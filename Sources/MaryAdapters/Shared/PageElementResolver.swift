@@ -99,4 +99,23 @@ public enum PageElementResolver {
     public static func normalized(_ value: String) -> String {
         SpokenReference.normalized(value)
     }
+
+    /// RE-FIND AN ELEMENT IN A FRESH READ — the rule every actuation path runs
+    /// before touching anything, because a frame is a coordinate and a window
+    /// that re-laid out has moved its controls.
+    ///
+    /// A URL is the strongest handle when there is one; otherwise label and
+    /// role together, which is the same pair `identity` is spelled from.
+    /// Lived on the browser's recipes in Bonnie and is not browser-shaped:
+    /// nothing in it knows what a page is.
+    static func relocate(_ element: PageElement, in fresh: [PageElement]) -> PageElement? {
+        if let url = element.url,
+           let match = fresh.first(where: { $0.url == url }) {
+            return match
+        }
+        return fresh.first {
+            $0.label.caseInsensitiveCompare(element.label) == .orderedSame
+                && $0.role == element.role
+        }
+    }
 }

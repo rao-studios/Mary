@@ -222,3 +222,35 @@ protocol WindowApplicationResolving: Sendable {
     func runningApplication(named application: String) -> Result<ManagedApplication, WindowManagementError>
     func activateApplication(named application: String) async -> Result<ManagedApplication, WindowManagementError>
 }
+
+/// A WINDOW AN APPLICATION HAS RESOLVED FOR ITSELF — its own id spelling and
+/// the application it belongs to.
+///
+/// The identity is opaque to window management on purpose: only the owning
+/// application knows whether its windows are addressed by a scripting id, an
+/// accessibility handle or something else, and a service that parsed the
+/// spelling would be a second answer to a question its owner already answered.
+public struct ManagedWindowReference: Sendable, Equatable {
+    /// The bundle identifier of the application that owns the window.
+    public let applicationID: String
+    /// The owner's own stable spelling for this window.
+    public let identity: String
+
+    public init(applicationID: String, identity: String) {
+        self.applicationID = applicationID
+        self.identity = identity
+    }
+}
+
+/// WHETHER A SPOKEN REFERENCE BELONGS TO AN APPLICATION, and if so where it
+/// points.
+///
+/// The middle case is the one that matters and the one a boolean would lose:
+/// "this reference IS mine and I could not resolve it" must stop the ladder,
+/// because falling through to a looser resolver after a confident owner has
+/// failed is how a raise lands on the wrong window.
+public enum WindowReferenceDecision: Sendable, Equatable {
+    case none
+    case ownedButUnresolved(WindowManagementError)
+    case resolved(ManagedWindowReference)
+}

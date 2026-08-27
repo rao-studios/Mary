@@ -197,6 +197,27 @@ public struct ProseStructureRules: Sendable {
         intraParagraphSeparators: ["\u{2028}"],
         detectsHeadings: false,
         offersDocumentUnit: true)
+
+    /// A SCRATCHPAD: every non-empty line is its own unit and nothing is a
+    /// heading.
+    ///
+    /// For an editor a person keeps lists and jottings in rather than prose.
+    /// The heading heuristic is exactly wrong there — in a list of short
+    /// lines, EVERY line contrasts with its neighbours, so heading detection
+    /// would turn each item into a section spanning the ones below it, and
+    /// "change the second one" would rewrite the rest of the note.
+    ///
+    /// A package chooses this by declaring `grammar: "lines"`; nothing infers
+    /// it, because whether a document is prose or a list is a fact about how
+    /// the person uses the application and not about its text.
+    public static let lines = ProseStructureRules(
+        headingMaxLength: 80,
+        headingContrast: 2,
+        terminalMarks: [".", "!", "?", ",", ";", "…"],
+        bulletMarks: ["•", "‣", "◦", "▪", "·", "-", "–", "—", "*", "+"],
+        defaultLevel: 1,
+        detectsHeadings: false,
+        offersDocumentUnit: true)
 }
 
 public enum ProseStructure {

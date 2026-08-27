@@ -28,11 +28,11 @@ public enum MaryAdapterCatalog {
 
     /// Every compiled provider with Skill bindings.
     ///
-    /// Empty until the acting adapters land — the surface observer below
-    /// perceives and dispatches nothing, which is exactly what a tier-0
-    /// walker should do.
+    /// Generic every one: the typer types wherever a cursor is, the prose
+    /// surface reads and writes whatever declares one, window management
+    /// raises whatever has windows. Adding an application adds no entry.
     public static func adapters() -> [any MaryAdapter] {
-        [ApplicationsAdapter()]
+        [ApplicationsAdapter(), ProseSurfaceAdapter(), TyperPlugin(), WindowManagementPlugin()]
     }
 
     /// Every compiled provider with senses.

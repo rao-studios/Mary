@@ -44,6 +44,12 @@ func value(_ name: String) -> String? {
     return arguments[index + 1]
 }
 
+if ProseProbe.shouldRun(arguments) {
+    // The prose lane's own probe — a different question from the surface
+    // walk below, and it may write, so it never runs by default.
+    await ProseProbe.run(arguments)
+}
+
 guard AXIsProcessTrusted() else {
     print("""
     Accessibility is not granted for this binary.
