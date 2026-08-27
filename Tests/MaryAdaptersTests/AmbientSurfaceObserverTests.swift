@@ -109,13 +109,36 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         }
     }
 
+    /// A BROWSER IS A BROWSER BECAUSE A PACKAGE SAYS SO. No bundle id is
+    /// compiled in, so this installs the registration that makes one — which
+    /// is also what makes the test honest: it exercises the road a real
+    /// browser travels rather than a shortcut only one product had.
     func testBrowsersAreValidSurfaceTargets() {
-        let observer = observer(
-            store: AmbientContextStore(), index: AmbientElementIndexStore(),
-            front: (7, "com.apple.Safari"))
-        let target = observer.target()
-        XCTAssertNotNil(target)
-        XCTAssertTrue(AmbientPlaceResolver.isBrowser(bundleID: target?.bundleID ?? ""))
+        Self.withBrowserRoster {
+            let observer = observer(
+                store: AmbientContextStore(), index: AmbientElementIndexStore(),
+                front: (7, Self.browserBundleID))
+            let target = observer.target()
+            XCTAssertNotNil(target)
+            XCTAssertTrue(AmbientPlaceResolver.isBrowser(bundleID: target?.bundleID ?? ""))
+        }
+    }
+
+    static let browserBundleID = "com.example.browser"
+
+    /// One registration that realizes `browsing`, scoped to this task tree.
+    static func withBrowserRoster(_ body: () -> Void) {
+        let registration = ApplicationRegistration(
+            id: "browser",
+            profile: ApplicationProfile(
+                id: "browser", title: "Browser", summary: "A fixture that browses.",
+                abilities: [.browsing],
+                applicationIdentifiers: [browserBundleID]),
+            bundleIdentifiers: [browserBundleID],
+            worldClass: .perceptionOnly,
+            displayName: "Browser")
+        AmbientApplicationIndexProvider.$scoped.withValue(
+            AmbientApplicationRoster([registration]), operation: body)
     }
 
     // MARK: - The two publications
@@ -135,16 +158,19 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         XCTAssertEqual(slate(index, place), ["Save"])
     }
 
-    func testBrowserRealmPublishesSurfaceButNeverAffordances() {
-        let store = AmbientContextStore()
-        let index = AmbientElementIndexStore()
-        let observer = observer(
-            store: store, index: index, front: (7, "com.apple.Safari"))
-        observer.pollOnce(at: epoch)
+    func testABrowserPublishesItsSurfaceButNeverAffordances() {
+        Self.withBrowserRoster {
+            let store = AmbientContextStore()
+            let index = AmbientElementIndexStore()
+            let observer = observer(
+                store: store, index: index, front: (7, Self.browserBundleID))
+            observer.pollOnce(at: epoch)
 
-        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.apple.Safari")
-        XCTAssertNotNil(store.surface(place: place, at: epoch))
-        XCTAssertTrue(slate(index, place).isEmpty)
+            let place = AmbientPlaceResolver.applicationPlace(
+                forBundleID: Self.browserBundleID)
+            XCTAssertNotNil(store.surface(place: place, at: epoch))
+            XCTAssertTrue(slate(index, place).isEmpty)
+        }
     }
 
     func testSwitchingApplicationsRetractsThePreviousSlate() {

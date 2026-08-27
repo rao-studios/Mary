@@ -180,7 +180,7 @@ public enum NamedPartClassifier {
     /// genuinely collides with document words, not every eyeless world, because
     /// over-vetoing costs a bonus read while under-vetoing cost the answer.
     public static let ambientSourceWords = [
-        "calendar", "reminder", "reminders", "event", "events",
+        "calendar", "reminder", "event", "events",
         "appointment", "appointments", "schedule", "agenda",
         "shopping list", "grocery list", "to-do list", "todo list",
         "inbox", "email", "e-mail", "unread",

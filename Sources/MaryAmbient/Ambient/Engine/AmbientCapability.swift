@@ -46,6 +46,17 @@ public struct ApplicationProfile: Sendable, Equatable {
     /// is not seeing it.
     public var perception: ApplicationPerception?
 
+    /// What this application calls ONE of its documents, singular — "note",
+    /// "chapter", "board". Nil when it holds no documents.
+    ///
+    /// DECLARED, NOT GUESSED. It comes from the package's prose-surface block
+    /// (`PluginProseSurfaceSchema.documentNoun`), so the word Mary uses out
+    /// loud and the word the classifier listens for are the same word. The
+    /// alternative — a default of "document" applied everywhere — is how a
+    /// user who says "bring that note forward" gets told Mary heard nothing
+    /// about a window.
+    public var documentNoun: String?
+
     public init(
         id: String,
         title: String? = nil,
@@ -58,7 +69,8 @@ public struct ApplicationProfile: Sendable, Equatable {
         targetClasses: Set<String> = [],
         skills: [Skill] = [],
         guidance: String? = nil,
-        perception: ApplicationPerception? = nil
+        perception: ApplicationPerception? = nil,
+        documentNoun: String? = nil
     ) {
         self.id = id
         self.title = title ?? id
@@ -72,6 +84,7 @@ public struct ApplicationProfile: Sendable, Equatable {
         self.skills = skills
         self.guidance = guidance
         self.perception = perception
+        self.documentNoun = documentNoun
     }
 
     public func isMentioned(in utterance: String) -> Bool {

@@ -1,5 +1,5 @@
 //
-//  AmbientRanking+CoActiveRealms.swift
+//  AmbientRanking+CoActivePlaces.swift
 //
 
 import Foundation

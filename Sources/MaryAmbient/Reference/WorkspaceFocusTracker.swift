@@ -72,7 +72,7 @@ public final class WorkspaceFocusTracker: Sendable {
         OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
     /// Per-app canvas-selection baseline for change detection — a standing
     /// selection re-reported every poll is not an interaction.
-    let dynamicSelectionBox =
+    let selectionBox =
         OSAllocatedUnfairLock<(id: String, signature: String)?>(initialState: nil)
     /// THE EVIDENCE LEDGER behind the single lead — one freshest stamp per
     /// place, written by the same funnels that stamp `leadBox` plus the

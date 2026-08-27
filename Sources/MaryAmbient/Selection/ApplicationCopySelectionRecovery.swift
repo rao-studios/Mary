@@ -43,10 +43,10 @@ public enum ApplicationCopySelectionRecovery {
             }
         }
         let diagnostics = ProcessInfo.processInfo.environment[
-            "MARY_LIVE_PAGES_SELECTION_PROBE"] == "1"
+            "MARY_LIVE_SELECTION_COPY_PROBE"] == "1"
         if diagnostics {
             let source = NSRunningApplication(processIdentifier: pid)
-            print("[pages-copy] begin pid=\(pid) active=\(source?.isActive == true) "
+            print("[selection-copy] begin pid=\(pid) active=\(source?.isActive == true) "
                 + "front=\(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "nil")")
         }
         let pasteboard = NSPasteboard.general
@@ -88,14 +88,14 @@ public enum ApplicationCopySelectionRecovery {
                 // Pressing the disabled item — or falling through to a Cmd-C
                 // the app will reject the same way — is the system beep the
                 // user hears on an unrelated turn. Stand down with no event.
-                if diagnostics { print("[pages-copy] copy menu disabled — standing down") }
+                if diagnostics { print("[selection-copy] copy menu disabled — standing down") }
                 return nil
             case .notFound:
                 break
             }
         }
         if diagnostics {
-            print("[pages-copy] native-menu-issued=\(nativeCopyIssued)")
+            print("[selection-copy] native-menu-issued=\(nativeCopyIssued)")
         }
         if !nativeCopyIssued {
             // Cmd-C only into the FRONTMOST source. A copy keystroke posted
@@ -103,7 +103,7 @@ public enum ApplicationCopySelectionRecovery {
             // — audible on whatever turn happens to be running — and its
             // capture was best-effort to begin with.
             guard sourceIsActive else {
-                if diagnostics { print("[pages-copy] source not frontmost — standing down") }
+                if diagnostics { print("[selection-copy] source not frontmost — standing down") }
                 return nil
             }
             keyDown.postToPid(pid)
@@ -119,10 +119,10 @@ public enum ApplicationCopySelectionRecovery {
               let text = pasteboard.string(forType: .string),
               !text.isEmpty
         else {
-            if diagnostics { print("[pages-copy] no clipboard transaction") }
+            if diagnostics { print("[selection-copy] no clipboard transaction") }
             return nil
         }
-        if diagnostics { print("[pages-copy] captured \(text.count) characters") }
+        if diagnostics { print("[selection-copy] captured \(text.count) characters") }
         return text
     }
 

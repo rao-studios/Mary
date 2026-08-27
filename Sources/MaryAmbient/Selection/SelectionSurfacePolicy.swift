@@ -14,8 +14,13 @@ public enum SelectionSurfacePolicy {
 
     /// Applications where synthesizing prose would be unsafe even if an AX
     /// element happens to report a selected range.
+    /// TERMINALS ONLY, NOW. An IDE's bundle id used to head this list; it is
+    /// gone because "is this a place where synthesized prose would be
+    /// dangerous" is a question the registration answers — a place that
+    /// registers for CODING is not a prose surface, whichever IDE it is.
+    /// A terminal registers for nothing at all, which is why the compiled
+    /// floor survives for exactly them.
     private static let blockedProseApplications: Set<String> = [
-        WorkspaceApplicationIdentity.xcode,
         "com.apple.Terminal",
         "com.googlecode.iterm2",
         "net.kovidgoyal.kitty",
@@ -49,8 +54,10 @@ public enum SelectionSurfacePolicy {
     /// WRITING — a package that merely declares aliases cannot talk its way
     /// into having keystrokes sprayed at an unknown surface.
     public static func isKnownProseEditor(_ applicationID: String) -> Bool {
-        if applicationID == WorkspaceApplicationIdentity.pages { return true }
-        if applicationID == WorkspaceApplicationIdentity.textEdit { return true }
+        // NO COMPILED EDITORS. Two bundle ids used to be admitted before the
+        // roster was consulted at all, which meant those two worked with no
+        // package installed and every other editor had to earn it. The
+        // registration is the only road in.
         guard let registration = AmbientApplicationIndexProvider.current
             .registration(bundleID: applicationID)
         else { return false }

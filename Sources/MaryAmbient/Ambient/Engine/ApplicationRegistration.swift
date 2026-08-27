@@ -172,6 +172,17 @@ public struct ApplicationRegistration: Sendable, Equatable {
     /// observation. A registration additionally needs Mary-owned perception
     /// machinery; package-authored workspace language can never declare its
     /// way into sight it does not have.
+    /// Is anything actually reading this application's documents?
+    public var observesDocuments: Bool {
+        perception?.observesDocuments == true
+    }
+
+    /// What it calls one of its documents, singular. `"document"` when it did
+    /// not say — a neutral word, and honest: Mary does not know their word.
+    public var documentNoun: String {
+        profile.documentNoun ?? "document"
+    }
+
     public var hasEyes: Bool {
         worldClass == .workspace && perception?.observesDocuments == true
     }
@@ -224,7 +235,7 @@ public struct ApplicationPerception: Sendable, Equatable {
     /// `observesDocuments`.
     public var documentOperation: String?
 
-    /// BONNIE'S OWN CORPUS READER IS THE CHANNEL, rather than a declared
+    /// MARY'S OWN CORPUS READER IS THE CHANNEL, rather than a declared
     /// operation.
     ///
     /// Set at admission when the package declares a `documentCorpus`, never by
@@ -298,6 +309,20 @@ public protocol AmbientApplicationIndex: Sendable {
 
     /// Every registration, for the rosters that enumerate rather than resolve.
     var all: [ApplicationRegistration] { get }
+}
+
+public extension AmbientApplicationIndex {
+    /// By place — the spelling every caller downstream of routing actually
+    /// holds.
+    ///
+    /// A DEFAULTED EXTENSION, not a protocol requirement: it is composed from
+    /// `registration(id:)` and there is no index for which a different answer
+    /// would be correct. A lane is never a registration — Mary's own faculties
+    /// are not applications, and asking for one is a question, not a miss.
+    func registration(place: AmbientPlace?) -> ApplicationRegistration? {
+        guard let place, case .application(let id) = place else { return nil }
+        return registration(id: id) ?? registration(bundleID: id)
+    }
 }
 
 /// The answer when nothing has been installed: this machine has no

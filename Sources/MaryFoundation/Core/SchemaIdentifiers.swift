@@ -36,7 +36,6 @@ public struct AbilityID: SchemaIdentifier {
     public static let coding: Self = "coding"
     public static let windowManagement: Self = "window-management"
     public static let design: Self = "design"
-    public static let sketch: Self = "sketch"
     /// Named in Swift because the ambient layer asks "does this registration
     /// realize browsing?" to decide whether a bundle is a browser at all —
     /// which is how Chrome and any later browser package join the browser

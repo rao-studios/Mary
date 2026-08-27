@@ -72,28 +72,19 @@ public struct AmbientRoute: Sendable, Equatable {
     /// A conflicting explicitly named world or application makes this false.
     public var selectionDefinesTurn: Bool
 
-    // MARK: - Worlds
-
-    /// The world that leads schema routing for this turn. It normally mirrors
-    /// the focus arbiter's lead. A fresh source-owned selection referred to
-    /// deictically—or selected as the revision target—overrides it inside this
-    /// route only; persistent workspace focus is never mutated by an
-    /// Interaction.
-    public var lead: AmbientWorld?
+    // MARK: - Where the turn leads
 
     /// Logical application identity selected from the open Application
-    /// Registry. Unlike `lead`, this is open-ended and can name an
-    /// Ability-provided Dynamic application without adding an enum case.
+    /// Registry — open-ended, so it names whatever the roster knows without
+    /// anybody adding an enum case.
     ///
-    /// STORED, DELIBERATELY NOT `leadPlace?.application`. This id and `lead`
-    /// are produced by two independent ladders in `AmbientEngine.resolve` —
-    /// the world from the arbiter/named-world ladder, the id from the
-    /// named/inherited/focused-application ladder — and the id is routinely a
-    /// NATIVE plugin owner (`effectiveLead?.pluginOwner` → "pages"), which a
-    /// place can never carry: a native place has a nil lane by the pinned
-    /// host-lane shape (AmbientPlaceABITests). Projecting it off `leadPlace`
-    /// would therefore nil it on every native-led turn. The pair stays
-    /// stored until place-M2 unifies the two ladders.
+    /// ONE LADDER NOW, AND ONE ANSWER. A world-typed `lead` used to sit beside
+    /// this, produced by a SECOND independent ladder, and the comment here
+    /// said the pair would stay stored "until place-M2 unifies the two
+    /// ladders". This is that unification: two fields answering "where does
+    /// this turn lead" is two things to keep in step, and the compiled-world
+    /// half could not name a taught application at all — which is precisely
+    /// the answer Mary needs on nearly every turn.
     public var leadApplicationID: String?
 
     /// WHERE the turn leads, as ONE value: the lead world when a built-in
@@ -102,16 +93,13 @@ public struct AmbientRoute: Sendable, Equatable {
     /// leadApplicationID:)` unless a caller supplies it explicitly.
     public var leadPlace: AmbientPlace?
 
-    /// Workspace worlds the utterance named outright — "fix the typo in my
-    /// Scrivener chapter" while Xcode is frontmost names `.scrivener`.
-    public var namedWorlds: Set<AmbientWorld>
-
-    /// Named destinations as PLACES: `namedWorlds` as places, unioned with
-    /// every registered Dynamic application the gate matched by name.
+    /// Destinations the utterance named outright — "fix the typo in my
+    /// manuscript chapter" while something else is frontmost.
+    ///
     /// COMPOSED from `gate.applications` rather than re-matching the
-    /// utterance — the gate already ran `ApplicationProfile.isMentioned`,
-    /// and a second spelling of "did the user name it" is how two layers
-    /// come to disagree.
+    /// utterance: the gate already ran `ApplicationProfile.isMentioned`, and a
+    /// second spelling of "did the user name it" is how two layers come to
+    /// disagree.
     public var namedPlaces: Set<AmbientPlace>
 
     /// Worlds that supplied routing evidence for this turn. Ability packages
@@ -158,10 +146,8 @@ public struct AmbientRoute: Sendable, Equatable {
         gate: AmbientIntentGate = AmbientIntentGate(),
         attention: AmbientAttention? = nil,
         selectionDefinesTurn: Bool = false,
-        lead: AmbientWorld? = nil,
         leadApplicationID: String? = nil,
         leadPlace: AmbientPlace? = nil,
-        namedWorlds: Set<AmbientWorld> = [],
         namedPlaces: Set<AmbientPlace>? = nil,
         candidateWorlds: Set<AmbientWorld> = [],
         writingTarget: AmbientWritingTarget? = nil,
@@ -177,13 +163,10 @@ public struct AmbientRoute: Sendable, Equatable {
         self.gate = gate
         self.attention = attention
         self.selectionDefinesTurn = selectionDefinesTurn
-        self.lead = lead
         self.leadApplicationID = leadApplicationID
         self.leadPlace = leadPlace
-            ?? Self.leadPlace(lead: lead, leadApplicationID: leadApplicationID)
-        self.namedWorlds = namedWorlds
-        self.namedPlaces = namedPlaces
-            ?? Self.namedPlaces(namedWorlds: namedWorlds, gate: gate)
+            ?? Self.leadPlace(leadApplicationID: leadApplicationID)
+        self.namedPlaces = namedPlaces ?? Self.namedPlaces(gate: gate)
         self.candidateWorlds = candidateWorlds
         self.writingTarget = writingTarget
         self.supportingContext = supportingContext
@@ -193,41 +176,28 @@ public struct AmbientRoute: Sendable, Equatable {
         self.rankingMode = rankingMode
     }
 
-    /// THE RESOLUTION LADDER, spelled once. A registered DYNAMIC application
-    /// id wins the lane — its place is `(.applications, id)` by the pinned
-    /// host-lane shape — otherwise the lead world answers for itself. A
-    /// NATIVE application id ("pages") deliberately does not redirect the
-    /// place: the world ladder already chose the world, and a native place
-    /// never discriminates a lane inside its own world.
-    public static func leadPlace(
-        lead: AmbientWorld?, leadApplicationID: String?
-    ) -> AmbientPlace? {
-        if let id = leadApplicationID,
-           let registration = AmbientApplicationIndexProvider.current.registration(id: id),
-           registration.legacyWorld == nil {
-            return registration.place
-        }
-        return lead.map(AmbientPlace.lane)
+    /// THE RESOLUTION LADDER, spelled once. The registration answers if the
+    /// roster knows the id; a bare id it does not know is still a place —
+    /// naming something Mary has not been taught is a fact about the turn, not
+    /// an absence of one.
+    public static func leadPlace(leadApplicationID: String?) -> AmbientPlace? {
+        guard let id = leadApplicationID, !id.isEmpty else { return nil }
+        return AmbientApplicationIndexProvider.current.registration(id: id)?.place
+            ?? .application(id)
     }
 
-    /// Named worlds as places, plus the gate's registered Dynamic mentions.
-    /// Native ids in `gate.applications` are already covered by
-    /// `namedWorlds`; only lane-carrying registrations add a member here.
+    /// Every application the gate matched by name, as places.
     public static func namedPlaces(
-        namedWorlds: Set<AmbientWorld>, gate: AmbientIntentGate,
-        /// Places an address probe asserted. Carried SEPARATELY because the
-        /// registration rung below cannot reach them: it skips every profile
-        /// with a legacy world, and the browser workspace's profile
-        /// (`safari`) has one — so an addressed browser would otherwise
-        /// admit no place at all, and the roster scoping that reads this set
-        /// would never see it.
+        gate: AmbientIntentGate,
+        /// Places an address probe asserted, carried separately because the
+        /// gate cannot reach them — an address is evidence from a different
+        /// ladder than a mention.
         addressedPlaces: Set<AmbientPlace> = []
     ) -> Set<AmbientPlace> {
-        var places = Set(namedWorlds.map(AmbientPlace.lane))
+        var places: Set<AmbientPlace> = []
         for id in gate.applications {
             guard let registration =
-                    AmbientApplicationIndexProvider.current.registration(id: id),
-                  registration.legacyWorld == nil
+                    AmbientApplicationIndexProvider.current.registration(id: id)
             else { continue }
             places.insert(registration.place)
         }

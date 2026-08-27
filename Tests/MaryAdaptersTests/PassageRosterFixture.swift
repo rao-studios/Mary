@@ -24,14 +24,24 @@ import MaryFoundation
 
 enum PassageRosterFixture {
 
-    /// Two observed writing applications, which is the shape these suites
-    /// assume: one to act in, and a second so "the other one" has an answer.
-    static let registrations: [ApplicationRegistration] = ["pages", "xcode"].map { id in
+    /// Two observed applications: one that writes, one that codes — so
+    /// "the other one" has an answer and the two disciplines are both live.
+    ///
+    /// THE NAMES ARE INVENTED, and that is the point. A fixture naming a real
+    /// product invites a reader to believe Mary knows about that product, and
+    /// she does not: a place is whatever a package declared. Quill and Forge
+    /// exist only here, which is exactly as much as any application exists to
+    /// the code under test.
+    static let registrations: [ApplicationRegistration] = [
+        ("quill", AbilityID.writing, "note"),
+        ("forge", AbilityID.coding, "file"),
+    ].map { id, ability, noun in
         ApplicationRegistration(
             id: id,
             profile: ApplicationProfile(
                 id: id, title: id.capitalized, summary: "A fixture.",
-                abilities: [id == "xcode" ? .coding : .writing]),
+                abilities: [ability],
+                documentNoun: noun),
             bundleIdentifiers: ["com.example.\(id)"],
             worldClass: .workspace,
             displayName: id.capitalized,

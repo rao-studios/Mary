@@ -172,17 +172,25 @@ import Testing
         }
     }
 
-    /// SAFARI NEEDS NO PACKAGE. It is the one compiled browser and carries a
-    /// closed `AmbientWorld` case, so it answers with an empty roster — which
-    /// is also what a machine that has installed nothing looks like.
-    @Test func safariIsABrowserWithNoRegistrationsAtAll() {
+    /// NO PACKAGE, NO BROWSERS — and that is the whole point.
+    ///
+    /// One browser used to be compiled in as a starting point, so a machine
+    /// with nothing installed still answered "yes, I know a browser". That is
+    /// a claim about the USER'S machine made from a constant in Mary's, and
+    /// it is exactly the shape of belief this cut exists to remove: knowing
+    /// about an application is something a package does, or it is nothing.
+    ///
+    /// The failure it prevented is small and the failure it caused is not:
+    /// the compiled answer made one browser work with no package and every
+    /// other browser need one, so the first person to teach Mary a different
+    /// browser discovered a rule nobody had written down.
+    @Test func nothingIsABrowserUntilSomePackageSaysSo() {
         withRoster([]) {
-            #expect(AmbientPlaceResolver.isBrowser(
+            #expect(!AmbientPlaceResolver.isBrowser(
                 bundleID: WorkspaceApplicationIdentity.safari))
-            #expect(AmbientPlaceResolver.browserName(
-                bundleID: WorkspaceApplicationIdentity.safari) == "Safari")
-            // And an uninstalled Chrome is simply not a browser yet.
             #expect(!AmbientPlaceResolver.isBrowser(bundleID: "com.google.Chrome"))
+            #expect(AmbientPlaceResolver.browserName(
+                bundleID: WorkspaceApplicationIdentity.safari) == nil)
         }
     }
 }

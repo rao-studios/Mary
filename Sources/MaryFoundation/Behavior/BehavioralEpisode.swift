@@ -197,6 +197,18 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     /// Whether this episode has stopped taking actions.
     public var isSealed: Bool { sealedReason != nil }
 
+    /// Close the episode, once.
+    ///
+    /// IDEMPOTENT BY REFUSAL rather than by overwrite: the FIRST reason is the
+    /// true one. A turn cancelled by a barge-in and then caught again by the
+    /// quit flush was cancelled, not quit, and letting the second call win
+    /// would make every interrupted turn at shutdown read as a shutdown.
+    public mutating func seal(_ reason: EpisodeSealReason, at date: Date = Date()) {
+        guard sealedReason == nil else { return }
+        sealedReason = reason
+        sealedAt = date
+    }
+
     /// Whether anything actually ran. The natural first filter for a training
     /// set that wants only acted turns — and the natural inverse for one that
     /// wants to learn restraint.

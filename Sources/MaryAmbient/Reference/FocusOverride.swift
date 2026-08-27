@@ -64,7 +64,7 @@ public enum FocusOverride {
             "code", "coding", "function", "func", "method", "class", "classes",
             "struct",
             "compile", "compiles", "compiling", "compiler", "build", "builds",
-            "rebuild", "xcode", "refactor", "refactoring", "swift", "variable",
+            "rebuild", "refactor", "refactoring", "swift", "variable",
             "bug", "debug", "debugging", "debugger", "unit test",
             "breakpoint", "linker", "import", "protocol", "enum",
             // The prose-shaped half of the coding vocabulary. These are what
@@ -92,7 +92,7 @@ public enum FocusOverride {
             options: [.regularExpression, .caseInsensitive]) != nil
         let writing = documentNoun || mentions([
             "manuscript", "chapter", "scene", "novel", "prose", "draft",
-            "drafting", "scrivener", "binder", "synopsis", "storyline",
+            "drafting", "binder", "synopsis", "storyline",
             "narrative", "paragraph", "the story", "my book", "the book",
             "character", "proofread", "proofreading", "proof-read",
         ])

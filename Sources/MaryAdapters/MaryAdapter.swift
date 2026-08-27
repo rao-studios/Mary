@@ -136,11 +136,11 @@ public struct TypedSkillResult: Sendable {
 /// the model as its own Skill — reliable for small models.
 public struct SkillBinding: Sendable {
     public enum Backing: Sendable {
-        /// Parametrized AppleScript. `{{name}}` placeholders substitute per
-        /// the escaping spec (strings escaped inside quoted literals;
-        /// integers validated; enums matched against enumValues) and run via
-        /// /usr/bin/osascript with a 30 s timeout.
-        case appleScript(template: String)
+        // A PARAMETRIZED-APPLESCRIPT CASE USED TO LEAD THIS LIST, and it
+        // was never once used: every binding in the tree that drove a script
+        // did it from inside a compiled closure, so the templating, the
+        // escaping spec and the timeout all described a path nothing took.
+        // The AppleScript lane is not in this cut, and the case went with it.
         /// Native Swift implementation.
         case native(@Sendable ([String: String], AbilityExecutionContext) async throws -> SkillOutcome)
         /// Native Swift implementation with schema-typed Value ports. New

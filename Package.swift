@@ -54,6 +54,14 @@ let package = Package(
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
     ],
     dependencies: [
+        // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
+        // is its only consumer — enforced by `onlyBrainNamesFrigate`. It
+        // vendors swift-transformers targets (Hub, Tokenizers, Jinja,
+        // Generation, Models) under their original names, which is why a
+        // second consumer of those names would need an alias map. Mary has
+        // none: dropping WhisperKit removed the only other claimant, so the
+        // alias wall that guarded this graph does not exist here.
+        .package(path: "../Frigate"),
     ],
     targets: [
         // MARK: - MaryFoundation — the schema layer: Plugin package grammar,
@@ -158,6 +166,38 @@ let package = Package(
             name: "MaryVoiceTests",
             dependencies: ["MaryVoice"],
             path: "Tests/MaryVoiceTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // MARK: - MaryBrain — WHAT TO SAY AND WHAT TO DO. The inference
+        // engines (one local MLX, one hosted through Seer), the prompt
+        // catalog, the turn loop, and the ability pipeline that turns a
+        // model's tool call into an act on the Mac.
+        //
+        // THE ONLY FRIGATE CONSUMER. Everything below it — ambient, adapters,
+        // voice — is testable without a model runtime, and this is the target
+        // where that stops being true.
+        .target(
+            name: "MaryBrain",
+            dependencies: [
+                "MaryFoundation",
+                "MaryAmbient",
+                "MaryAdapters",
+                "MaryVoice",
+                .product(name: "MLXLMCommon", package: "Frigate"),
+                .product(name: "MLXLLM", package: "Frigate"),
+            ],
+            path: "Sources/MaryBrain",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryBrainTests",
+            dependencies: [
+                "MaryBrain",
+                "MaryAdapters",
+                "MaryFoundationTestSupport",
+            ],
+            path: "Tests/MaryBrainTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

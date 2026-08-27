@@ -71,7 +71,7 @@ extension WorkspaceFocusTracker {
     /// pre-lane look, so the NEXT turn's "here"/"it" can inherit the
     /// looked-at application (the live miss: the look described a Google
     /// Doc, nothing armed, and "add a draft here" circled into TextEdit).
-    public func latestGlanceRealm(at now: Date = Date()) -> AmbientPlace? {
+    public func latestGlancePlace(at now: Date = Date()) -> AmbientPlace? {
         ledgerBox.withLock { ledger in
             ledger.values
                 .filter {
@@ -165,7 +165,7 @@ extension WorkspaceFocusTracker {
     /// every poll asserts nothing.
     public func noteDynamicSelection(application id: String, signature: String) {
         guard signalsAllowed() else { return }
-        let changed: Bool = dynamicSelectionBox.withLock { last in
+        let changed: Bool = selectionBox.withLock { last in
             defer { last = (id, signature) }
             guard let last else { return false }
             return last.id != id || last.signature != signature

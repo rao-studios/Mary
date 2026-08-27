@@ -155,6 +155,17 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     public var scope: SourceScope
     public var applicationID: String
     public var processID: Int32
+
+    /// WHERE this selection came from, as ONE value.
+    ///
+    /// `world` and `application` are two fields answering one question — the
+    /// same split `AmbientRoute` and `AmbientAttention` carry, and the same
+    /// hazard: a reader that consults only the lane gets "somewhere in the
+    /// applications lane" when the actual answer was sitting in the next
+    /// field. Composed rather than stored so the two can never disagree.
+    public var place: AmbientPlace {
+        application.map(AmbientPlace.application) ?? .lane(world)
+    }
     /// Best-effort fingerprint of the live AX object that supplied the
     /// interaction. It is not a durable document id; it only distinguishes
     /// simultaneous title/comment/document surfaces under one PID so one

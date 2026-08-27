@@ -130,7 +130,7 @@ extension PluginValidator {
                 error(
                     "invalid-plugin-bundle-name",
                     path,
-                    "Use a path-free application bundle name ending in .app, such as Sketch.app.")
+                    "Use a path-free application bundle name ending in .app, such as MyEditor.app.")
             }
         }
         if application.supportedReleases.count > maximumSupportedReleases {

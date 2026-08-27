@@ -15,7 +15,12 @@ extension TyperPlugin {
                 description: "Type prose at the user's cursor in any ordinary text surface. A fresh highlight returns to its source. Never type code or terminal commands.",
                 parameters: [
                     .init(name: "text", type: "string", description: "The prose to type, exactly as it should appear.", required: true),
-                    .init(name: "app", type: "string", description: "App NAME — pages, textedit, scrivener, or a running app like Notes. Never a document title. Omit to type into the just-opened document or the surface in front of the user.",
+                    // NO APP LIST. Naming three applications here was a
+                    // capability claim about software the user may not have,
+                    // and it taught the model that anything unlisted was not
+                    // an option. The parameter takes whatever the roster
+                    // knows, which is the actual rule.
+                    .init(name: "app", type: "string", description: "The application's NAME, never a document title. Omit to type into the just-opened document, or into the surface in front of the user.",
                           required: false),
                     .init(name: "mode", type: "string", description: "compose for new prose, or replace_selection only when the user has highlighted the words to replace.",
                           required: false, enumValues: ["compose", "replace_selection"]),
@@ -42,7 +47,7 @@ extension TyperPlugin {
                         }
                         return SkillOutcome(
                             ok: false,
-                            summary: "I couldn't pick a text surface. Call type_at_cursor again with app set to pages, textedit, scrivener, or a running app's NAME (never a document title) — or open the document first with its create Skill. I never type into code or a terminal, and browser pages go through type_in_web_page.")
+                            summary: "I couldn't pick a text surface. Call type_at_cursor again with app set to a running application's NAME (never a document title) — or open the document first with its create Skill. I never type into code or a terminal.")
                     }
                     let selectedMode = args["mode"].flatMap(TypingMode.init(rawValue:))
                     guard args["mode"] == nil || selectedMode != nil else {
@@ -99,7 +104,7 @@ extension TyperPlugin {
                     .init(
                         name: "app",
                         type: "string",
-                        description: "App NAME — pages, textedit, scrivener, or a running app. Omit to use the document in front of the user.",
+                        description: "The application's NAME, never a document title. Omit to use the document in front of the user.",
                         required: false),
                 ],
                 access: .tweak,

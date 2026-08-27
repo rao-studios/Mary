@@ -376,7 +376,7 @@ public enum ReferenceResolver {
     /// declines it.
     public static let referentialWords: Set<String> = [
         "one", "ones", "thing", "things", "it", "this", "that", "these", "those",
-        "other", "last", "first", "next", "previous", "note", "notes",
+        "other", "last", "first", "next", "previous", "note",
         "document", "documents", "window", "windows", "file", "files",
         "first", "second", "third", "fourth", "fifth",
         "sixth", "seventh", "eighth", "ninth", "tenth",
@@ -500,8 +500,11 @@ public enum ReferenceResolver {
     public static let stopWords: Set<String> = [
         "about", "there", "these", "those", "which", "where", "would", "could",
         "should", "please", "change", "replace", "rewrite", "delete", "remove",
-        "instead", "another", "window", "windows", "textedit", "opened",
-        "document", "documents", "scrivener", "pages", "forward",
+        // NO PRODUCT NAMES. Three sat in this list, so a correction naming
+        // one of three editors was recognised and one naming any other was
+        // not — a vocabulary that worked for whoever wrote it.
+        "instead", "another", "window", "windows", "opened",
+        "document", "documents", "forward",
     ]
 
     // MARK: - 4. Ordinal

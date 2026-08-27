@@ -147,13 +147,13 @@ public enum AmbientPlaceResolver {
     /// `chrome.mary` says `bundleIdentifiers: ["com.google.Chrome"]` and
     /// realizes `browsing.*`; that IS the registration, and this reads it.
     ///
-    /// The discovered half comes through `AmbientApplicationIndex`, the same
-    /// injected seam the rest of this layer uses to stay above MaryFoundation
-    /// alone. A host that has installed nothing still answers Safari.
+    /// EVERY BROWSER ARRIVES THE SAME WAY, through `AmbientApplicationIndex`.
+    /// One was compiled in as a starting point, so a host with nothing
+    /// installed still claimed to know a browser — a claim about the user's
+    /// machine made from a constant. A host that has installed nothing now
+    /// knows of no browsers, which is true.
     public static var browserIdentities: [(prefix: String, displayName: String)] {
-        var identities: [(prefix: String, displayName: String)] = [
-            (WorkspaceApplicationIdentity.safari, "Safari"),
-        ]
+        var identities: [(prefix: String, displayName: String)] = []
         for registration in AmbientApplicationIndexProvider.current.all
         where registration.profile.abilities.contains(.browsing) {
             for bundleID in registration.bundleIdentifiers.sorted()
@@ -196,8 +196,7 @@ public enum AmbientPlaceResolver {
     /// the compiled case without building the discovered list at all, and
     /// scans registrations lazily rather than materializing tuples.
     public static func isBrowser(bundleID: String) -> Bool {
-        if bundleID.hasPrefix(WorkspaceApplicationIdentity.safari) { return true }
-        return AmbientApplicationIndexProvider.current.all.contains { registration in
+        AmbientApplicationIndexProvider.current.all.contains { registration in
             registration.profile.abilities.contains(.browsing)
                 && registration.bundleIdentifiers.contains { bundleID.hasPrefix($0) }
         }

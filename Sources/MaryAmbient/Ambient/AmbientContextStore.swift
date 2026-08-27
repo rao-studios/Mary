@@ -86,6 +86,16 @@ public struct AmbientAttention: Sendable, Equatable {
     /// ordinary activation/hover attention, whose transport has no text
     /// surface to write into.
     public var selectionEditability: AmbientSelectionEditability?
+
+    /// WHERE the attention is, as ONE value.
+    ///
+    /// `world` and `applicationID` are two fields answering one question, and
+    /// every reader that consults only the first gets the lane rather than the
+    /// application — which for a taught application is the difference between
+    /// "somewhere in the applications lane" and the actual answer.
+    public var place: AmbientPlace {
+        applicationID.map(AmbientPlace.application) ?? .lane(world)
+    }
     /// How directly Accessibility identified the text element for a direct
     /// selection. A canvas-descendant discovery is enough to discuss the
     /// words, but it is deliberately not enough to promise an in-place

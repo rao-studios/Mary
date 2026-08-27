@@ -528,7 +528,7 @@ private let purposeParagraphsOnly: [PassageUnit] = [
         text: String, range: Range<Int>, body: String, title: String = "Draft"
     ) -> Passage {
         Passage(
-            handle: "S1", place: .application("pages"), documentKey: "/tmp/draft.pages",
+            handle: "S1", place: .application("quill"), documentKey: "/tmp/draft.pages",
             documentTitle: title, text: text,
             bodyHash: ContentUndoStore.hash(body), bodyLength: body.count,
             range: range, unitKind: .paragraph, provenance: .recipeRead)!
@@ -808,7 +808,7 @@ private let purposeParagraphsOnly: [PassageUnit] = [
         body: String = "Alpha one.\n\nBravo two.", at now: Date = Date()
     ) -> Passage? {
         registry.mint(
-            place: .application("pages"), documentKey: "/tmp/draft.pages", documentTitle: "Draft",
+            place: .application("quill"), documentKey: "/tmp/draft.pages", documentTitle: "Draft",
             text: text, bodyHash: ContentUndoStore.hash(body), bodyLength: body.count,
             range: range, unitKind: .paragraph, locatorNote: "the part with that heading",
             provenance: .recipeRead, at: now)
@@ -861,7 +861,7 @@ private let purposeParagraphsOnly: [PassageUnit] = [
         let passage = mint(registry, text: "Bravo two.", range: 12..<22, at: minted)!
         store.register(
             AmbientFact(
-                world: .applications, application: "pages", slot: .read("bravo"),
+                world: .applications, application: "quill", slot: .read("bravo"),
                 content: passage.text,
                 subject: "Draft", provenance: .recipeRead, registration: .askedFor,
                 capturedAt: minted),
@@ -963,7 +963,7 @@ private let purposeParagraphsOnly: [PassageUnit] = [
     /// for the same read.
     @Test func aPassageSpeaksTheAmbientFreshnessVocabulary() {
         let passage = Passage(
-            handle: "S1", place: .application("xcode"), documentKey: "/tmp/a.swift", documentTitle: "a.swift",
+            handle: "S1", place: .application("forge"), documentKey: "/tmp/a.swift", documentTitle: "a.swift",
             text: "func resolveFocus() {}", bodyHash: "abc", bodyLength: 22, range: 0..<22,
             unitKind: .declaration, provenance: .recipeRead)
         #expect(passage?.space == .documentText)
@@ -1041,7 +1041,7 @@ enum PassageErrands {
     ) -> Passage {
         let body = "Purpose\n\n" + text
         return Passage(
-            handle: "S1", place: .application("pages"), documentKey: "/Users/x/Essay.pages",
+            handle: "S1", place: .application("quill"), documentKey: "/Users/x/Essay.pages",
             documentTitle: title, text: text,
             bodyHash: ContentUndoStore.hash(body), bodyLength: body.count,
             range: 9..<(9 + text.count), unitKind: .paragraph, provenance: .recipeRead)!

@@ -64,7 +64,7 @@ private func hold(
     body: String = brief, kind: PassageUnitKind = .paragraph
 ) -> Passage {
     let passage = PassageRecipes.mintRead(
-        place: .application("pages"), documentKey: key, documentTitle: "Brief",
+        place: .application("quill"), documentKey: key, documentTitle: "Brief",
         body: body, range: offsets(needle, in: body), kind: kind,
         registry: registry)
     return passage!
@@ -118,7 +118,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         #expect(PassageResolver.anchor(held, in: after) == .gone)
 
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: ambient, undo: ContentUndoStore())
         #expect(moved == 1)
 
@@ -145,7 +145,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let after = "A line the user just typed.\n\n" + brief
 
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
         #expect(moved == 1)
 
@@ -167,7 +167,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let after = brief + "\n\nA closing line the user just typed."
 
         _ = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
 
         let now = try! #require(following(held.handle, in: registry))
@@ -190,7 +190,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
             with: "before the next review, and for whom.\n\nRemit")
 
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
         #expect(moved == 0)
         #expect(registry.resolve(held.handle) == .live(held))
@@ -241,7 +241,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let after = brief.replacingOccurrences(of: "Purpose and scope\n\n", with: "")
 
         _ = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
 
         let now = try! #require(following(held.handle, in: registry))
@@ -262,7 +262,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
             of: "Everything the team touches this quarter, and nothing else.", with: "")
 
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
         #expect(moved == 0)
         #expect(registry.resolve(held.handle) == .live(held))
@@ -282,7 +282,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let moved = PassageRefresh.after(
             before: snapshot(brief),
             after: snapshot("An entirely different document.", key: "/Users/x/Other.pages"),
-            place: .application("pages"), registry: registry, ambient: AmbientContextStore(), undo: undo)
+            place: .application("quill"), registry: registry, ambient: AmbientContextStore(), undo: undo)
         #expect(moved == 0)
         #expect(registry.resolve(held.handle) == .live(held))
         // Nothing was recorded either — an undo entry from a swap would offer to
@@ -301,7 +301,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let undo = ContentUndoStore()
 
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(brief), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(brief), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: undo)
         #expect(moved == 0)
         #expect(registry.resolve(held.handle) == .live(held))
@@ -316,15 +316,15 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
         let registry = PassageRegistry()
         let here = hold("This document sets out what we are for, before the next review.", in: registry)
         let elsewhere = PassageRecipes.mintRead(
-            place: .application("xcode"), documentKey: "/Users/x/App.swift", documentTitle: "App.swift",
+            place: .application("forge"), documentKey: "/Users/x/App.swift", documentTitle: "App.swift",
             body: brief, range: offsets("Budget"), kind: .declaration, registry: registry)!
         let otherDocument = PassageRecipes.mintRead(
-            place: .application("pages"), documentKey: "/Users/x/Other.pages", documentTitle: "Other",
+            place: .application("quill"), documentKey: "/Users/x/Other.pages", documentTitle: "Other",
             body: brief, range: offsets("Purpose and scope"), kind: .section, registry: registry)!
 
         let after = "A line the user just typed.\n\n" + brief
         let moved = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: ContentUndoStore())
         #expect(moved == 1)
         #expect(following(here.handle, in: registry)?.range.lowerBound
@@ -352,7 +352,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
             of: "sets out what we are for", with: "sets out, plainly, what we are for")
 
         _ = PassageRefresh.after(
-            before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+            before: snapshot(brief), after: snapshot(after), place: .application("quill"),
             registry: registry, ambient: AmbientContextStore(), undo: undo)
 
         let prior = try! #require(undo.take(
@@ -377,7 +377,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
             let held = hold(
                 "This document sets out what we are for, before the next review.", in: registry)
             ambient.register(AmbientFact(
-                world: .applications, application: "pages", slot: .read("Purpose"),
+                world: .applications, application: "quill", slot: .read("Purpose"),
                 content: "[\(held.handle)] Brief — characters 0–0 of 0:\n" + held.text,
                 subject: "Brief", provenance: .recipeRead, registration: .askedFor,
                 capturedAt: now, spokenAt: now, spokenNote: "told them about it",
@@ -389,7 +389,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
                 : "A line the user just typed.\n\n" + brief
 
             _ = PassageRefresh.after(
-                before: snapshot(brief), after: snapshot(after), place: .application("pages"),
+                before: snapshot(brief), after: snapshot(after), place: .application("quill"),
                 registry: registry, ambient: ambient, undo: ContentUndoStore(), now: now)
 
             let landed = try! #require(following(held.handle, in: registry))

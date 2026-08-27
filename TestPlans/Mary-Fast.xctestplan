@@ -37,6 +37,13 @@
         "identifier": "MaryVoiceTests",
         "name": "MaryVoiceTests"
       }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryBrainTests",
+        "name": "MaryBrainTests"
+      }
     }
   ],
   "version": 1

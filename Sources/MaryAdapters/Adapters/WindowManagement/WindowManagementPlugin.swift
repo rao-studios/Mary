@@ -47,7 +47,11 @@ public struct WindowManagementPlugin: MaryAdapter {
             capabilities: [CapabilityID],
             input: ValueTypeID,
             output: ValueTypeID,
-            targets: [String] = ["macos-application-window", "textedit-window"]
+            // ONE CLASS, GENERIC. A second entry named one application's windows,
+        // so that application's window Skills were eligible by default and
+        // every other application's were not. A place mints its own
+        // `<id>-window` class through the turn classifier when it leads.
+        targets: [String] = ["macos-application-window"]
         ) -> InstalledAdapterBinding {
             let enforced = Set(capabilities.flatMap { guarantees[$0] ?? [] })
             return InstalledAdapterBinding(

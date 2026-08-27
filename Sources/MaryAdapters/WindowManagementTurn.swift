@@ -26,12 +26,43 @@ public struct WindowManagementTurnIntent: Sendable, Equatable {
 }
 
 
+/// The document-holding place in play this turn, in the only two terms this
+/// classifier needs: what its documents are CALLED, and whether the turn's
+/// referent is already pointing at it.
+///
+/// TWO BOOLEANS USED TO STAND HERE, and both were named after one
+/// application. That is how "the note" came to be a phrase compiled into
+/// Mary rather than a word a package declares — and it meant the next
+/// prose surface, whose documents are called chapters or pages or cards,
+/// got the wrong noun or none at all. The noun arrives from the
+/// registration (`PluginProseSurfaceSchema.documentNoun`), so a package
+/// that calls its documents "boards" is understood the day it installs.
+public struct WindowManagementDocumentPlace: Sendable, Equatable {
+    /// The registration's logical id — used to mint its window target class.
+    public var applicationID: String
+    /// What this place calls one of its documents, singular ("note",
+    /// "chapter", "board").
+    public var documentNoun: String
+    /// The turn's referent already points at this place, so a bare pronoun
+    /// ("bring it forward") has something to mean.
+    public var isReferent: Bool
+
+    public init(applicationID: String, documentNoun: String, isReferent: Bool) {
+        self.applicationID = applicationID
+        self.documentNoun = documentNoun
+        self.isReferent = isReferent
+    }
+}
+
 public enum WindowManagementTurnClassifier {
+    /// - Parameter documentPlace: the prose surface in play, or nil when no
+    ///   place holding documents leads this turn.
     public static func classify(
         utterance: String,
-        textEditContext: Bool,
-        textEditReferent: Bool
+        documentPlace: WindowManagementDocumentPlace? = nil
     ) -> WindowManagementTurnIntent {
+        let inDocumentPlace = documentPlace != nil
+        let referentIsDocumentPlace = documentPlace?.isReferent == true
         let tokens = utterance.lowercased().split {
             !$0.isLetter && !$0.isNumber
         }.map(String.init)
@@ -65,24 +96,34 @@ public enum WindowManagementTurnClassifier {
                 || words.contains("windowed") || words.contains("unmaximize")
                 || normalized.contains(" get out of ")
                 || normalized.contains(" back to normal "))
-        let namesTextEditTitle = tokens.indices.contains { index in
+        // "UNTITLED 47" NAMES A WINDOW WITHOUT SAYING "WINDOW", and it is not
+        // one application's habit: an unsaved document gets a numbered
+        // placeholder title almost everywhere, which is exactly why the user
+        // says the number out loud — it is the only thing telling two of them
+        // apart.
+        let namesAnUntitledDocument = tokens.indices.contains { index in
             tokens[index] == "untitled"
                 && tokens.index(after: index) < tokens.endIndex
                 && Int(tokens[tokens.index(after: index)]) != nil
         }
-        let namesTextEditContainer = textEditContext
-            && (normalized.contains(" the note ")
-                || normalized.contains(" that note ")
-                || normalized.contains(" this note "))
-        let refersToTextEditContainer = textEditReferent
+        // THE NOUN COMES FROM THE PACKAGE. "The note", "that chapter", "this
+        // board" — whichever word the leading place declared for its
+        // documents.
+        let namesTheDocument = documentPlace.map { place in
+            let noun = place.documentNoun.lowercased()
+            return normalized.contains(" the \(noun) ")
+                || normalized.contains(" that \(noun) ")
+                || normalized.contains(" this \(noun) ")
+        } ?? false
+        let refersToTheDocument = referentIsDocumentPlace
             && (normalized.contains(" it ")
                 || normalized.contains(" the one ")
                 || normalized.contains(" that one ")
                 || normalized.contains(" this one "))
         let targetsWindow = namesWindow
-            || (textEditContext && namesTextEditTitle)
-            || namesTextEditContainer
-            || refersToTextEditContainer
+            || (inDocumentPlace && namesAnUntitledDocument)
+            || namesTheDocument
+            || refersToTheDocument
         guard targetsWindow || namesFullScreen else {
             return WindowManagementTurnIntent(
                 explicitlyRequestsScript: explicitlyRequestsScript)
@@ -158,8 +199,12 @@ public enum WindowManagementTurnClassifier {
         }
 
         var targetClasses: Set<String> = ["macos-application-window"]
-        if textEditContext || namesTextEditTitle || textEditReferent {
-            targetClasses.insert("textedit-window")
+        // THE PLACE'S OWN WINDOW CLASS, minted from its id rather than written
+        // down here. A package declares that it serves `<id>-window` and this
+        // is the only thing that mints it, so the two cannot drift.
+        if let place = documentPlace,
+           inDocumentPlace || namesAnUntitledDocument || referentIsDocumentPlace {
+            targetClasses.insert("\(place.applicationID)-window")
         }
         // ARITY IS THE MODEL'S CALL, not the classifier's. Minting exactly one
         // of the two raise classes made "bring the TextEdit windows forward"
