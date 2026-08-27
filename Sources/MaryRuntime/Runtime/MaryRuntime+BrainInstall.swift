@@ -146,7 +146,9 @@ extension MaryRuntime {
     /// A DECLARATION BECOMES A REGISTRATION HERE and nowhere else, so the set
     /// the passage verbs can reach is exactly the set the graph admitted —
     /// never a stale copy from the last activation.
-    static func proseSurfaceRegistrations(
+    /// `package` so the behavior probe can install the SAME registrations the
+    /// app does. A probe that hand-built its own would be measuring a fixture.
+    package static func proseSurfaceRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [ProseSurfaceRegistration] {
         snapshot.records.compactMap { record -> ProseSurfaceRegistration? in

@@ -36,11 +36,22 @@ import MaryFoundation
         private func store(_ episode: BehavioralEpisode) {
             lock.lock(); _episodes.append(episode); lock.unlock()
         }
-        /// The assembler hands off detached, so a test that just sealed has to
-        /// let that task run.
-        func settle(expecting count: Int) async {
-            for _ in 0..<200 where episodes.count < count {
-                try? await Task.sleep(nanoseconds: 1_000_000)
+        /// The assembler hands off detached AT `.utility`, so a test that just
+        /// sealed has to let that task run.
+        ///
+        /// THE BUDGET IS WALL-CLOCK, not a sleep count, and that distinction
+        /// cost a green run to learn. A fixed 200 × 1ms loop is a 200ms budget
+        /// only on an idle machine; run inside the one-process bundle with a
+        /// hundred suites in flight, a `.utility` task is starved behind all of
+        /// them and 200 sleeps stretch into seconds while still expiring too
+        /// early. The failure looked like a lost episode — in two tests at once,
+        /// one of which then indexed an empty array and took the whole bundle
+        /// down with it. A generous deadline costs a passing test nothing: it
+        /// returns the instant the episodes arrive.
+        func settle(expecting count: Int, within seconds: TimeInterval = 10) async {
+            let deadline = Date().addingTimeInterval(seconds)
+            while episodes.count < count, Date() < deadline {
+                try? await Task.sleep(nanoseconds: 2_000_000)
             }
         }
     }

@@ -154,9 +154,8 @@ public struct ProseSurfaceAdapter: MaryAdapter {
                         ok: false,
                         summary: "\(registration.displayName) hasn't told me how to make a new \(registration.noun.singular).")
                 }
-                let before = Set(
-                    ProseSurfaceAX.surfaces(pid: pid, registration: registration)
-                        .map(\.documentKey))
+                let before = ProseSurfaceAX.surfaces(
+                    pid: pid, registration: registration).count
 
                 let activation = await VerifiedActivation.bringForward(pid: pid)
                 guard activation.succeeded else {
@@ -174,11 +173,29 @@ public struct ProseSurfaceAdapter: MaryAdapter {
                 // keystroke worked. A window takes a moment to appear, and a
                 // create that reported success before its document existed
                 // would send the very next typing Skill into the old one.
+                //
+                // COUNTED, THEN TAKEN FROM THE FRONT — not diffed by key. The
+                // diff this replaces looked for a `documentKey` that had not
+                // been there before, which is precisely backwards for an
+                // application whose unsaved documents key by ORDINAL: a new
+                // window renumbers every other one, so the only key missing
+                // from the old set was the highest — the BACKMOST window, the
+                // oldest note open. It never failed; it confidently named the
+                // wrong document, and `made.editor` was that document's
+                // editor. Found by the behavior probe, which made a note and
+                // was told it had made one from an earlier run.
+                //
+                // A new-document chord puts its document in front. That is
+                // what the chord means, and it is already what the typing
+                // handshake below and the typer's own focus read assume — so
+                // reading the front is the answer agreeing with itself rather
+                // than a second guess. The count is what proves the keystroke
+                // landed at all, which is the part the wait is really for.
                 var appeared: ProseSurfaceAX.Surface?
                 let deadline = Date().addingTimeInterval(2.0)
                 while Date() < deadline, appeared == nil {
-                    appeared = ProseSurfaceAX.surfaces(pid: pid, registration: registration)
-                        .first { !before.contains($0.documentKey) }
+                    let now = ProseSurfaceAX.surfaces(pid: pid, registration: registration)
+                    if now.count > before { appeared = now.first }
                     if appeared == nil { try? await Task.sleep(nanoseconds: 100_000_000) }
                 }
                 guard let made = appeared else {

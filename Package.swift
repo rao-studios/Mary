@@ -54,6 +54,7 @@ let package = Package(
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
+        .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -300,6 +301,15 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
+        // The one live check the suite cannot make about the codec: whether
+        // its halves MEET — a real accessibility read reaching a value
+        // composed three layers away, with its geometry intact.
+        .executableTarget(
+            name: "BehaviorProbe",
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/BehaviorProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(
             name: "MaryRuntimeTests",
             dependencies: ["MaryRuntime"],

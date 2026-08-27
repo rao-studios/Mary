@@ -172,16 +172,13 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     /// to name there.
     public var ability: AbilityID? { nil }
 
-    /// Every Ability any lane realizes, in a stable order.
-    ///
-    /// Empty here, and still worth keeping as the ONE spelling of the
-    /// deterministic ability order: `AmbientPlace.ability` uses it to break
-    /// ties when a package declares several disciplines, and a `Set`'s own
-    /// order would make the roster differ between runs.
-    public static var realizedAbilities: [AbilityID] {
-        var seen = Set<String>()
-        return allCases.compactMap(\.ability).filter { seen.insert($0.rawValue).inserted }
-    }
+    // A `realizedAbilities` list stood here — "every Ability any lane
+    // realizes, in a stable order" — kept after the world shrink on the
+    // reasoning that an empty list was still the one spelling of the
+    // deterministic ability order. It was not: `AmbientPlace.ability` fell
+    // straight past it to an alphabetical tie-break every time, which is a
+    // DIFFERENT rule quietly wearing the same name. The order now lives on
+    // `WorkspaceFocus`, which still has members. See `AmbientPlace.ability`.
 
     /// Nil for every lane: workspace identity belongs to applications, and
     /// `AmbientPlace.focus` asks the registration for it.

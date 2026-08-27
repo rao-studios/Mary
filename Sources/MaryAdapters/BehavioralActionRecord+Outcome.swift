@@ -19,6 +19,17 @@
 //  reference is the fallback for everything else. A snapshot reference taken
 //  at composition time is never correct here and is not offered.
 //
+//  THE ADAPTER TRAIL IS NEVER LEFT BLANK. An outcome's own trail is the
+//  FULFILLMENT CHAIN, and it is worth stating only when it differs from the
+//  binding — the prose writer that falls back to keystrokes returns
+//  `["prose-surface", "typer"]`, and no other value could be derived. When an
+//  adapter says nothing, the turn-accurate reference already names the adapter
+//  that ran, so the record takes it from there rather than shipping a dataset
+//  row with a hole in it. This was found by the behavior probe: `list_documents`
+//  returned a bare success and its row could not say who answered it, while the
+//  `read_document` beside it could — the same act, described two ways,
+//  depending on whether an author remembered.
+//
 //  IT LIVES IN MaryAdapters, not MaryBrain, because `SkillOutcome` does. The
 //  layer that DEFINES an outcome is the layer that can say what the outcome
 //  means, and putting the mapping a layer up would let the two drift.
@@ -52,14 +63,17 @@ public extension BehavioralActionRecord {
         startedAt: Date,
         finishedAt: Date = Date()
     ) {
+        let skill = outcome.skillReference ?? reference
         self.init(
             id: runID,
             action: BehavioralAction(
                 intention: intention,
                 argumentsJSON: argumentsJSON,
-                skill: outcome.skillReference ?? reference,
+                skill: skill,
                 target: outcome.target,
-                adapters: outcome.adapterTrail),
+                adapters: outcome.adapterTrail.isEmpty
+                    ? [skill.adapterID].compactMap(\.self)
+                    : outcome.adapterTrail),
             disposition: BehavioralDisposition(outcome.status),
             summary: outcome.summary,
             foundNothing: outcome.foundNothing,

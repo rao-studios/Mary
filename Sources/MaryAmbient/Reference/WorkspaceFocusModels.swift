@@ -22,6 +22,7 @@
 //
 
 import Foundation
+import MaryFoundation
 
 /// THE DISCIPLINE AXIS — coding or writing, or neither.
 ///
@@ -29,9 +30,32 @@ import Foundation
 /// whether a manuscript and a source file are rivals for the same attention
 /// or two unrelated things. A package declares which disciplines it realizes,
 /// and `AmbientPlace.focus` projects that down to this.
-public enum WorkspaceFocus: Sendable, Equatable {
+public enum WorkspaceFocus: String, CaseIterable, Sendable, Equatable {
     case coding
     case writing
+
+    /// The Ability a package realizes in order to join this discipline.
+    ///
+    /// THE SAME WORD ON PURPOSE. A discipline is not a second taxonomy laid
+    /// over the packages — it is one Ability, seen on the axis the arbiter
+    /// splits on. `writing.mary` is the worked example: its id is the
+    /// discipline's own name, and an application joins by realizing one of its
+    /// Skills rather than by claiming membership.
+    public var abilityID: AbilityID { AbilityID(rawValue) }
+
+    /// The disciplines as Ability ids, in precedence order.
+    ///
+    /// CODING BEFORE WRITING, which is `allCases` order and therefore the
+    /// declaration order above: a package realizing both is a coding workspace
+    /// that also writes, not a writing one that also codes.
+    ///
+    /// This is the ONE deterministic ordering of abilities. `AmbientPlace`
+    /// needs it because `ApplicationProfile.abilities` is a `Set`, and a set's
+    /// own order would make the roster differ between runs. It lives here, on
+    /// the axis, because the previous home — the lanes — stopped realizing any
+    /// craft when the compiled applications went away; see `AmbientPlace.ability`
+    /// for what an empty order cost.
+    public static var abilityOrder: [AbilityID] { allCases.map(\.abilityID) }
 }
 
 /// A USER-PLANTED FOCUS PIN — the debugger's "watch THIS place" gesture.

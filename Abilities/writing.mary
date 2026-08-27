@@ -88,19 +88,14 @@
     },
     "skills" : [
       "writing.compose-draft",
-      "writing.corpus-progress",
       "writing.delete-passage",
       "writing.find-passage",
       "writing.insert-passage",
-      "writing.open-corpus-document",
-      "writing.read-corpus-document",
-      "writing.read-corpus-outline",
       "writing.replace-passage",
       "writing.resume-typing",
       "writing.revert-last-edit",
       "writing.revise-selection",
       "writing.save-document",
-      "writing.search-corpus",
       "writing.start-dictation",
       "writing.stop-dictation",
       "writing.type-at-cursor"
@@ -412,26 +407,6 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "writing.read-corpus-outline",
-      "id" : "read-a-manuscript-outline",
-      "interactions" : [
-
-      ],
-      "targetClass" : "document-workspace",
-      "utterance" : "What's in my manuscript's binder?"
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "writing.search-corpus",
-      "id" : "search-a-manuscript",
-      "interactions" : [
-
-      ],
-      "targetClass" : "document-workspace",
-      "utterance" : "Where do I mention the lighthouse in my manuscript?"
-    },
-    {
-      "expectedDisposition" : "route",
       "expectedSkill" : "writing.type-at-cursor",
       "id" : "type-prose",
       "interactions" : [
@@ -464,7 +439,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f4de705ab05221a21acddf41e2b1b402a6fad0a729f4e36cf23f007069d1ee50"
+    "digest" : "20bba5cb13a467af66fd1f3f9964a6c749be66085e605dd106feeaab3dc9b420"
   },
   "interactions" : [
     {

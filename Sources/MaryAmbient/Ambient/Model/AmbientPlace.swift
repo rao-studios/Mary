@@ -227,8 +227,8 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
         }
     }
 
-    /// WHICH CRAFT this place is for — `AmbientWorld.ability`'s answer, asked
-    /// so that a taught application can give one.
+    /// WHICH CRAFT this place is for, so that a taught application can give
+    /// one.
     ///
     /// `focus` above is the two-value projection of this, and it is written as
     /// a projection deliberately: the two used to pick from
@@ -237,18 +237,32 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     ///
     /// THE ORDER IS NOT `Set` ORDER. `profile.abilities` is a `Set<AbilityID>`,
     /// so a bare `first` would answer differently between runs and make the
-    /// roster nondeterministic. `AmbientWorld.realizedAbilities` is already
-    /// "every Ability any world realizes, in a stable order", and its order IS
-    /// the coding-before-writing rule `focus` needs — so reusing it is what
-    /// keeps this from becoming a second spelling of the tie-break.
+    /// roster nondeterministic. The order is `WorkspaceFocus`'s own — the
+    /// disciplines, coding before writing — because that enum IS the axis this
+    /// projects onto.
     ///
-    /// The last rung is for a craft no compiled world realizes: a package can
-    /// teach a discipline Mary has no world for, and answering nil there
-    /// would deny it the workspace family its own package declares.
+    /// IT USED TO ASK THE LANES, and in Mary that silently answered nothing.
+    /// `AmbientWorld.realizedAbilities` was "every Ability any world realizes,
+    /// in a stable order", which was a real list while the writing and coding
+    /// applications were compiled cases; the world shrink left five lanes that
+    /// realize no craft at all, so the list went empty and every taught
+    /// application fell to the last rung — plain alphabetical order over a set
+    /// that ALWAYS contains the package's own id. TextEdit's craft came back
+    /// "textedit", because t sorts before w. The cost was not cosmetic: `focus`
+    /// went nil for every declared application (standing down the rival-writing
+    /// bar the way this file's `focus` comment warns about) and
+    /// `workspaceFamily` never produced "writing", so the one admission arm in
+    /// `writing.mary` that does not depend on classifying a sentence could
+    /// never fire. Found by the behavior probe, which asked a live TextEdit
+    /// what discipline it was in and was told none.
+    ///
+    /// The last rung is for a craft that is not a discipline: a package can
+    /// teach one — design.mary does — and answering nil there would deny it
+    /// the workspace family its own package declares.
     public var ability: AbilityID? {
         guard let registration else { return world.ability }
         let declared = registration.profile.abilities
-        return AmbientWorld.realizedAbilities.first(where: declared.contains)
+        return WorkspaceFocus.abilityOrder.first(where: declared.contains)
             ?? declared.sorted { $0.rawValue < $1.rawValue }.first
     }
 

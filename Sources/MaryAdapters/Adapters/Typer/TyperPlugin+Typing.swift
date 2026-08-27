@@ -95,6 +95,18 @@ extension TyperPlugin {
                 ok: false,
                 summary: "I couldn't find a text cursor in \(target.spokenName) after waiting for it. Click into the document body — or open one first with its create Skill — then call type_at_cursor again.")
         }
+        // WHAT THE KEYSTROKES ARE ABOUT TO LAND IN, read once, here.
+        //
+        // BEFORE THE TYPING AND NOT AFTER, which matters for exactly one
+        // branch: `.lostFocus` means the user moved away mid-passage, so a
+        // read taken afterwards would name whatever they moved TO and file it
+        // as the thing Mary typed into. Read at the moment the surface is
+        // verified, this names the surface that was verified.
+        //
+        // The check above proves a writable text surface exists but only ever
+        // returned a Bool — the discard `SkillOutcome.target`'s own comment
+        // names. This is the second read that closes it.
+        let acted = focusedRecord(in: target)
         if mode == .replaceSelection {
             guard hasFrontmostSelection(in: target) else {
                 return SkillOutcome(
@@ -137,7 +149,8 @@ extension TyperPlugin {
                 ok: true,
                 summary: "\(verb) — \(SpokenPhrase.countWord(words)) word\(words == 1 ? "" : "s"). Command Z takes it back.",
                 archivePolicy: .stateSnapshot,
-                typingDisposition: .completed)
+                typingDisposition: .completed,
+                target: acted)
         case .stopped(let typed):
             // Stop is final — never leave a remainder a later "continue"
             // would surprise-type.
@@ -145,7 +158,8 @@ extension TyperPlugin {
             return SkillOutcome(
                 ok: true,
                 summary: "Stopped — I'd typed \(KeyboardTyper.wordsPhrase(of: normalized, typedCharacters: typed)).",
-                archivePolicy: .stateSnapshot)
+                archivePolicy: .stateSnapshot,
+                target: acted)
         case .paused(let typed):
             WorkspaceFocusTracker.shared.endSelfDriving(hold, tail: 0)
             TypingSession.shared.save(
@@ -154,7 +168,8 @@ extension TyperPlugin {
                 ok: true,
                 summary: "I paused the typing — \(KeyboardTyper.wordsPhrase(of: normalized, typedCharacters: typed)) in. Say continue when you're ready and I'll pick up right there.",
                 archivePolicy: .stateSnapshot,
-                typingDisposition: .partialResumable)
+                typingDisposition: .partialResumable,
+                target: acted)
         case .lostFocus(let typed, _):
             WorkspaceFocusTracker.shared.endSelfDriving(hold, tail: 0)
             TypingSession.shared.save(
@@ -163,8 +178,19 @@ extension TyperPlugin {
                 ok: true,
                 summary: "I paused — \(target.spokenName) lost focus after \(KeyboardTyper.wordsPhrase(of: normalized, typedCharacters: typed)). Click back into the document and say continue.",
                 archivePolicy: .stateSnapshot,
-                typingDisposition: .partialResumable)
+                typingDisposition: .partialResumable,
+                target: acted)
         }
+    }
+
+    /// The frontmost application's focused element, as a record — nil when
+    /// the family that was verified is no longer the one in front.
+    private static func focusedRecord(in target: TypingSurface) -> AXElementRecord? {
+        guard let front = NSWorkspace.shared.frontmostApplication,
+              let bundleID = front.bundleIdentifier,
+              bundleID.hasPrefix(target.matchPrefix)
+        else { return nil }
+        return ActedElementReader.focusedElement(pid: front.processIdentifier)
     }
 
     private static func hasFrontmostSelection(in target: TypingSurface) -> Bool {
