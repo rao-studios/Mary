@@ -64,9 +64,17 @@ let package = Package(
             path: "Sources/MaryFoundation",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // Fixtures shared by more than one test target. A non-test target
+        // because a testTarget cannot expose its declarations to another one.
+        .target(
+            name: "MaryFoundationTestSupport",
+            dependencies: ["MaryFoundation"],
+            path: "Sources/TestSupport/MaryFoundationTestSupport",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .testTarget(
             name: "MaryFoundationTests",
-            dependencies: ["MaryFoundation"],
+            dependencies: ["MaryFoundation", "MaryFoundationTestSupport"],
             path: "Tests/MaryFoundationTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
