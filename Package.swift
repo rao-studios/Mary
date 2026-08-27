@@ -72,6 +72,28 @@ let package = Package(
             path: "Sources/TestSupport/MaryFoundationTestSupport",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // MARK: - MaryAmbient — THE AMBIENT LAYER: the tiered context store
+        // (tier 0 the accessibility surface, tier 1 per-application facts,
+        // tier 2 selection and attention), realms, passages, containers, and
+        // the behavioural capture built from what a turn actually injected.
+        // Knows nothing about inference, adapters, or any specific
+        // application — depends on MaryFoundation and the system frameworks
+        // alone, deliberately, so the paradigm can be read, reasoned about
+        // and ported without dragging a model runtime behind it. The layering
+        // test enforces that edge; it is the whole portability claim.
+        .target(
+            name: "MaryAmbient",
+            dependencies: ["MaryFoundation"],
+            path: "Sources/MaryAmbient",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryAmbientTests",
+            dependencies: ["MaryAmbient", "MaryFoundation"],
+            path: "Tests/MaryAmbientTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
         .testTarget(
             name: "MaryFoundationTests",
             dependencies: ["MaryFoundation", "MaryFoundationTestSupport"],
