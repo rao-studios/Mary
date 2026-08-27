@@ -113,6 +113,23 @@ extension WorkspaceFocusTracker {
         }
     }
 
+    /// THE FRESH EVIDENCE ITSELF, unranked and unprojected.
+    ///
+    /// `signal(at:)` below answers "who leads and who else is warm", which is
+    /// what the prompt needs. A realm needs something else: the KIND and the
+    /// AGE of each place's claim, because "conformed but cold" and "conformed
+    /// and was touched four seconds ago" are the two facts that explain a
+    /// choice, and a ranked list of places has already thrown both away.
+    public func freshEvidence(at now: Date = Date()) -> [AmbientPlace: FocusEvidence] {
+        ledgerBox.withLock { ledger in
+            ledger = ledger.filter {
+                now.timeIntervalSince($0.value.at)
+                    <= FocusSignal.horizon(for: $0.value.kind)
+            }
+            return ledger
+        }
+    }
+
     /// THE PROJECTED RESPONDER-LAYER SIGNAL. `lead` is exactly
     /// `leadPlace(at:)` — the parity rule: single-place sessions answer
     /// byte-identically to the pre-ledger tracker. `coActive` is every other

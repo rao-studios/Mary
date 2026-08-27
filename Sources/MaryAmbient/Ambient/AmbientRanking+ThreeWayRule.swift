@@ -90,11 +90,17 @@ extension AmbientRanker {
     /// a native place never discriminates a lane inside its own world.
     public static func namedPlaces(in utterance: String) -> Set<AmbientPlace> {
         var places = Set<AmbientPlace>()
-        // THE DISCIPLINE CUE, resolved through the roster. A "writing" vibe
-        // names the writing SIDE without choosing an application, so every
-        // registration that realizes it counts as named — which is what lets
+        // THE DISCIPLINE CUE, RESOLVED BY THE REALM RESOLVER. A "writing"
+        // vibe names the writing SIDE without choosing an application, so
+        // every place that realizes it counts as named — which is what lets
         // "not the focused place" still answer correctly when the focus is a
         // coding place and the cue was about writing.
+        //
+        // THIS USED TO BE THE SCAN ITSELF: a loop over the roster testing one
+        // discipline, collapsed into this set and forgotten. It was a realm
+        // computed inline over a two-value need, and the reason the dataset
+        // could never say why a turn went where it went. There is one
+        // spelling of "who conforms" now and this reads it.
         //
         // EYELESS PLACES STAY OUT, and must. This feeds `mode`, and
         // `mode == .focusedWorld` is a PARTITION: admitting a place nothing
@@ -104,9 +110,11 @@ extension AmbientRanker {
         // lead — the same statement as "eyes decide what she perceives, not
         // what she may use", read from the other end.
         if let discipline = namedDiscipline(in: utterance) {
-            for registration in AmbientApplicationIndexProvider.current.all
-            where registration.hasEyes && registration.place.focus == discipline {
-                places.insert(registration.place)
+            let realm = AmbientRealmResolver.candidates(
+                for: AmbientNeed(discipline: discipline),
+                .init(utterance: utterance, discipline: discipline))
+            for candidate in realm where candidate.hasEyes && candidate.conformsByDiscipline {
+                places.insert(candidate.place)
             }
         }
         // NO `legacyWorld == nil` FILTER. It read as "a native place never

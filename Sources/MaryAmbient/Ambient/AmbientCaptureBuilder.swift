@@ -70,7 +70,23 @@ public enum AmbientCaptureBuilder {
         realm: AmbientRealm? = nil,
         at now: Date = Date()
     ) -> AmbientCapture {
-        AmbientCapture(
+        // BOTH HALVES ARE RECORDED AS THEY ARRIVED, and this builder does not
+        // reconcile them.
+        //
+        // `lead` is what the prompt actually used; `realm.place` is what the
+        // resolver recorded as the where. They agree on nearly every turn,
+        // because the resolver READS the focus signal rather than deciding
+        // again with it — and they are ALLOWED to differ on exactly one:
+        // a place the user NAMED outranks the focus lead, so the realm points
+        // where they said and the ranker led where they were looking.
+        //
+        // The invariant belongs where it can be stated precisely, which is in
+        // the resolver's own tests (`theRealmsPlaceIsTheLeadWheneverTheLead-
+        // Conforms`). A guard here could only be a vaguer version of it, and
+        // a vague guard on a dataset builder is worse than none: it would
+        // either fire on legitimate turns or pass on the divergence it exists
+        // to catch.
+        return AmbientCapture(
             mode: rendering.mode.rawValue,
             lead: lead.map(token(for:)),
             surfaces: surfaces.map { surfaceCapture($0) },

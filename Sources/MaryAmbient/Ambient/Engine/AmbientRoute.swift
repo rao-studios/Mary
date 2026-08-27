@@ -93,6 +93,19 @@ public struct AmbientRoute: Sendable, Equatable {
     /// leadApplicationID:)` unless a caller supplies it explicitly.
     public var leadPlace: AmbientPlace?
 
+    /// WHAT COULD HAVE SERVED THIS TURN, and which of them did.
+    ///
+    /// Resolved once, at route construction, from the same need and signals
+    /// that decide everything else about the turn — so the ranking, the
+    /// roster arbiter and the behavioral capture all read one answer instead
+    /// of computing three.
+    ///
+    /// `realm.place` is pinned equal to the ranker's lead wherever both
+    /// exist: the resolver READS the focus signal rather than re-deciding
+    /// with it, because two place-pickers is exactly the shape of bug the
+    /// whole vocabulary was reorganised to remove.
+    public var realm: AmbientRealm?
+
     /// Destinations the utterance named outright — "fix the typo in my
     /// manuscript chapter" while something else is frontmost.
     ///
@@ -149,6 +162,7 @@ public struct AmbientRoute: Sendable, Equatable {
         leadApplicationID: String? = nil,
         leadPlace: AmbientPlace? = nil,
         namedPlaces: Set<AmbientPlace>? = nil,
+        realm: AmbientRealm? = nil,
         candidateWorlds: Set<AmbientWorld> = [],
         writingTarget: AmbientWritingTarget? = nil,
         supportingContext: String? = nil,
@@ -167,6 +181,7 @@ public struct AmbientRoute: Sendable, Equatable {
         self.leadPlace = leadPlace
             ?? Self.leadPlace(leadApplicationID: leadApplicationID)
         self.namedPlaces = namedPlaces ?? Self.namedPlaces(gate: gate)
+        self.realm = realm
         self.candidateWorlds = candidateWorlds
         self.writingTarget = writingTarget
         self.supportingContext = supportingContext

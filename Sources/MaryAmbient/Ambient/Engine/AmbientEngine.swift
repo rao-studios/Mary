@@ -20,6 +20,10 @@ public enum AmbientEngine {
         /// nothing about which applications exist. Empty (the default) makes
         /// the probe a no-op and every existing caller byte-identical.
         public var addressCandidates: [AmbientAddressProbe.Candidate]
+        /// The turn's live focus evidence, kind and age per place — what the
+        /// realm needs and `FocusSignal` has already thrown away.
+        public var focus: FocusSignal
+        public var evidence: [AmbientPlace: FocusEvidence]
         /// Immutable ability graph used for this routing decision. Nil asks
         /// the library for its active (lazily loaded) registry.
         public var abilitySnapshot: (any AbilityCapabilityIndex)?
@@ -36,6 +40,8 @@ public enum AmbientEngine {
             leadApplicationID: String? = nil,
             profiles: [ApplicationProfile] = [],
             addressCandidates: [AmbientAddressProbe.Candidate] = [],
+            focus: FocusSignal = FocusSignal(),
+            evidence: [AmbientPlace: FocusEvidence] = [:],
             abilitySnapshot: (any AbilityCapabilityIndex)? = nil,
             now: Date = Date()
         ) {
@@ -49,6 +55,8 @@ public enum AmbientEngine {
             self.leadApplicationID = leadApplicationID
             self.profiles = profiles
             self.addressCandidates = addressCandidates
+            self.focus = focus
+            self.evidence = evidence
             self.abilitySnapshot = abilitySnapshot
             self.now = now
         }
@@ -205,6 +213,9 @@ public enum AmbientEngine {
         // registered Dynamic application) and keeps both stored fields,
         // because the id is routinely a NATIVE plugin owner, which a place
         // cannot carry.
+        let allNamedPlaces = namedPlaces.union(
+            AmbientRoute.namedPlaces(
+                gate: gate, addressedPlaces: Set(addressed.map(\.place))))
         return AmbientRoute(
             intent: intent,
             decidedBy: signal,
@@ -217,10 +228,21 @@ public enum AmbientEngine {
             // from a different ladder than a mention, and the gate cannot
             // reach it — without this the roster scoping would never see an
             // application the user addressed by its live contents.
-            namedPlaces: namedPlaces.union(
-                AmbientRoute.namedPlaces(
-                    gate: gate,
-                    addressedPlaces: Set(addressed.map(\.place)))),
+            namedPlaces: allNamedPlaces,
+            // THE REALM, RESOLVED ONCE. It reads the focus signal rather than
+            // re-deciding with it, so `realm.place == leadPlace` holds by
+            // construction wherever both exist — see `AmbientRealmResolver`.
+            realm: AmbientRealmResolver.resolve(.init(
+                utterance: inputs.utterance,
+                namedPlaces: allNamedPlaces,
+                discipline: verdicts.focusOverride,
+                decidedBy: signal,
+                focus: inputs.focus,
+                evidence: inputs.evidence,
+                registrations: inputs.profiles.isEmpty
+                    ? nil : AmbientApplicationIndexProvider.current.all,
+                abilities: abilitySnapshot,
+                now: inputs.now)),
             candidateWorlds: candidateWorlds(
                 intent: intent, lead: AmbientRoute.leadPlace(
                     leadApplicationID: leadApplicationID),

@@ -124,6 +124,10 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// leaves only, so CONFIRM parking (nothing ran) never shows and a
     /// confirmed replay shows exactly once. Injectable for test isolation.
     private let executionLog: AbilityExecutionLog
+    /// WHERE THE TURN'S ACTIONS GO. Optional because a runtime built for a
+    /// test has no episode to file under, and appending to nothing is a
+    /// better answer than a fake episode nobody sealed.
+    private let behavior: BehavioralAssembler?
     /// THE AMBIENT CONTEXT STORE. The dispatcher is one of its four writers,
     /// and the most consequential: a READ RESULT REGISTERS A FACT here instead
     /// of vanishing when the turn ends.
@@ -195,6 +199,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         standalone: [SkillBinding] = [],
         focusProvider: (@Sendable () -> String?)? = nil,
         executionLog: AbilityExecutionLog = .shared,
+        behavior: BehavioralAssembler? = nil,
         ambient: AmbientContextStore = .shared,
         passages: PassageRegistry = .shared,
         containers: ContainerRegistry = .shared,
@@ -212,6 +217,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             }
             attributedBindings.append(AttributedSkillBinding(owner: owner, binding: binding))
         }
+        self.behavior = behavior
         self.nativeAttributed = attributedBindings
         self.nativeProfiles = plugins.map(\.applicationProfile)
         var reads: [String: (binding: String, parameter: String)] = [:]
@@ -1959,7 +1965,60 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return LocatedPassage(passage: passage, label: label, verb: verb, widened: true)
     }
 
+    /// THE CHOKEPOINT. Every dispatch — the model's, a lane's deterministic
+    /// press, a confirmation replay — passes through here, and exactly one
+    /// `BehavioralActionRecord` is composed for each.
+    ///
+    /// A WRAPPER RATHER THAN A LINE INSIDE `dispatchCore`, because cognitive
+    /// skills, blocked refusals and confirmation PARKS all return before
+    /// `execute` is ever reached. Recording at the execution site would have
+    /// caught only the acts that ran, and a dataset that omits every refusal
+    /// teaches a model that its requests are always granted.
+    ///
+    /// THE REFERENCE PRECEDENCE IS THE POINT, and it is the defect this whole
+    /// arrangement exists to kill:
+    ///
+    ///   1. `outcome.skillReference` — a confirmation replay carries the
+    ///      reference FROZEN at park time, which is the binding the user
+    ///      actually approved. Focus may have moved since; the roster would
+    ///      now choose differently, and choosing differently is exactly what
+    ///      must not happen to an act somebody already said yes to.
+    ///   2. `skillReference(for:)` — the TURN-ACCURATE one, carrying this
+    ///      turn's provider choice.
+    ///
+    /// What is never used is the static snapshot's reference. The ledger this
+    /// replaces used it while the transcript chip used the turn-patched one,
+    /// so the log and the chip printed different providers for the same act.
+    /// There is one composition now, so there is one answer.
     public func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+        let startedAt = Date()
+        // READ BEFORE THE DISPATCH. `skillReference(for:)` consults the turn's
+        // provider selection, and a dispatch can change it — reading after
+        // would describe the act with the state it left behind.
+        let turnReference = skillReference(for: name)
+        let confirmationID = pendingStore.current()?.id
+
+        let outcome = await dispatchCore(name: name, argumentsJSON: argumentsJSON)
+
+        let record = BehavioralActionRecord(
+            outcome: outcome,
+            intention: name,
+            argumentsJSON: Self.canonicalArguments(argumentsJSON),
+            reference: turnReference,
+            runID: UUID().uuidString,
+            // THE CONFIRMATION THREAD. A park and its later replay are two
+            // episodes and one act; this is the string that joins them. Read
+            // BEFORE for a park (the question is being asked now) and AFTER
+            // for a replay (the pending store has just been emptied), which
+            // is why both are consulted.
+            confirmationID: confirmationID ?? pendingStore.current()?.id,
+            startedAt: startedAt)
+        executionLog.record(record)
+        behavior?.append(record)
+        return outcome
+    }
+
+    private func dispatchCore(name: String, argumentsJSON: String) async -> SkillOutcome {
         let snapshot = abilitySnapshot
         let routing = abilityRoutingContext()
         let roster = rosterArbitration(snapshot: snapshot, context: routing)
@@ -2910,16 +2969,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         arguments: [String: String],
         outcome: SkillOutcome
     ) {
-        executionLog.record(
-            skillName: runtime.reference.invocationName,
-            reference: runtime.reference,
-            owner: runtime.ability.id.rawValue,
-            target: AbilityExecutionLog.target(from: arguments),
-            ok: outcome.ok,
-            summary: outcome.summary,
-            undoable: false,
-            foundNothing: outcome.foundNothing,
-            argumentsJSON: Self.encodeArguments(arguments))
+        // NOTHING IS RECORDED HERE ANY MORE. `dispatch` composes one record
+        // for every act, refusals included; a second write from inside the
+        // execution path would double every schema-executed row and describe
+        // it with a reference this site cannot make turn-accurate.
+        _ = arguments
+        _ = outcome
     }
 
     /// THE SECOND UNBOUNDED AWAIT ON THIS PATH, and it is the one nobody looks
@@ -3037,16 +3092,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             policy: policy)
         outcome.skillReference = outcome.skillReference ?? reference
         let owner = ownerID(bindingName: binding.name)
-        executionLog.record(
-            skillName: binding.name,
-            reference: reference,
-            owner: owner,
-            target: AbilityExecutionLog.target(from: arguments),
-            ok: outcome.ok,
-            summary: outcome.summary,
-            undoable: binding.access != .read,
-            foundNothing: outcome.foundNothing,
-            argumentsJSON: Self.encodeArguments(arguments))
+        // See `recordSchemaExecution`: the chokepoint owns the ledger.
         registerRead(binding: binding, owner: owner, arguments: arguments, outcome: outcome)
         if outcome.ok, let bracket {
             await refreshPassages(after: bracket)
@@ -3375,14 +3421,34 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
            !value.isEmpty {
             return value
         }
-        let target = (AbilityExecutionLog.target(from: arguments) ?? "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return target.isEmpty ? binding.name : target
+        // NO KEY SNIFFING. This used to guess the phrase from an argument
+        // called "document", "file", "title" or one of ten others, which got
+        // the wrong answer for any package using a different word. A binding
+        // that wants its read named declares which parameter names it
+        // (`targetedRead`, above); everything else is named after the binding,
+        // which is at least true.
+        return binding.name
     }
 
     private func ownerID(bindingName: String) -> String {
         let owner = attributed.first { $0.binding.name == bindingName }?.owner ?? ""
         return owner.isEmpty ? "mac" : owner
+    }
+
+    /// The turn's arguments, canonically ordered.
+    ///
+    /// RE-ENCODED, NOT PASSED THROUGH. A model emits keys in whatever order it
+    /// pleases, and two calls that differ only in key order are the same call
+    /// — a dataset that records them as different strings cannot deduplicate,
+    /// diff, or compare a replay against the act it replays.
+    static func canonicalArguments(_ argumentsJSON: String) -> String {
+        guard let data = argumentsJSON.data(using: .utf8),
+              let object = try? JSONSerialization.jsonObject(with: data),
+              let canonical = try? JSONSerialization.data(
+                withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes]),
+              let text = String(data: canonical, encoding: .utf8)
+        else { return argumentsJSON }
+        return text
     }
 
     private static func encodeArguments(_ arguments: [String: String]) -> String? {
