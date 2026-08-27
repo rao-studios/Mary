@@ -23,6 +23,13 @@
         "identifier": "MaryAmbientTests",
         "name": "MaryAmbientTests"
       }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryAdaptersTests",
+        "name": "MaryAdaptersTests"
+      }
     }
   ],
   "version": 1

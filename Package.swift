@@ -50,6 +50,7 @@ let package = Package(
         // MaryTotem). SwiftPM's implicit per-executable-target product would
         // otherwise name them after the target; `Mary` itself needs no entry,
         // since its implicit product already carries the target's own name.
+        .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
     ],
     dependencies: [
     ],
@@ -91,6 +92,34 @@ let package = Package(
             name: "MaryAmbientTests",
             dependencies: ["MaryAmbient", "MaryFoundation"],
             path: "Tests/MaryAmbientTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // MARK: - MaryAdapters — THE ADAPTER LAYER: the contract a compiled
+        // provider satisfies, the accessibility engine that reads the screen,
+        // and the generic adapters themselves. The word "plugin" names
+        // nothing here — a Plugin is a declarative package, and everything in
+        // this target is generic by construction: no file names an
+        // application, and what an adapter serves at any moment comes from a
+        // registration rather than from its own source.
+        .target(
+            name: "MaryAdapters",
+            dependencies: ["MaryFoundation", "MaryAmbient"],
+            path: "Sources/MaryAdapters",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The one live check the suite cannot make: what the engine sees when
+        // it looks at a real application, driven through the real path.
+        .executableTarget(
+            name: "AXProbe",
+            dependencies: ["MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/AXProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryAdaptersTests",
+            dependencies: ["MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            path: "Tests/MaryAdaptersTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
