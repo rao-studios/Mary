@@ -263,6 +263,43 @@ let package = Package(
             path: "Sources/MaryRuntime",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // MARK: - Mary — the SwiftUI app: components, view models, the design
+        // primitives, the headless probe entry points, and main.swift. Talks
+        // to MaryRuntime's actors and Granite services through
+        // `package`-level declarations — visible across targets in this one
+        // package without becoming public API.
+        .executableTarget(
+            name: "Mary",
+            dependencies: [
+                "MaryRuntime",
+                "MaryFoundation",
+                "MaryAmbient",
+                "MaryAdapters",
+                "MaryVoice",
+                "MaryBrain",
+                "MaryTotem",
+                .product(name: "Granite", package: "Granite"),
+                .product(name: "GraniteUI", package: "Granite"),
+            ],
+            path: "Sources/MaryApp",
+            // MLX types are not Sendable; the same precedent the brain uses.
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker", "-sectcreate",
+                    "-Xlinker", "__TEXT",
+                    "-Xlinker", "__info_plist",
+                    "-Xlinker", "Support/Info.plist",
+                ]),
+            ]
+        ),
+        .testTarget(
+            name: "MaryTests",
+            dependencies: ["Mary", "MaryRuntime"],
+            path: "Tests/MaryTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
         .testTarget(
             name: "MaryRuntimeTests",
             dependencies: ["MaryRuntime"],
