@@ -1,0 +1,239 @@
+{
+  "ability" : {
+    "aliases" : [
+      "textedit",
+      "text edit",
+      "plain text editor"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.TextEdit"
+        ],
+        "id" : "textedit",
+        "title" : "TextEdit"
+      }
+    ],
+    "id" : "textedit",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never type into a window the user did not ask for.",
+        "A document is identified by its own key, never by window position."
+      ],
+      "phases" : [
+        "resolve-document",
+        "revalidate-identity",
+        "mutate-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "document mismatch",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the named document changed",
+        "the change reads back"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "One macOS text editor, described rather than compiled in.",
+    "tint" : "#8ECAE6",
+    "title" : "TextEdit",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in textedit",
+        "my notes",
+        "the note"
+      ],
+      "tokens" : [
+        "textedit",
+        "note",
+        "notes"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "writing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "856acca59f440878ae200f5bb853077459acaa0a4796200cedc758f9a5f99a32"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "textedit",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary one text editor: where its prose lives, what its documents are called, and how to make a new one.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "textedit.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "TextEdit Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "textedit",
+        "text edit"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.TextEdit"
+      ],
+      "bundleNames" : [
+        "TextEdit.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "textedit",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "document-window",
+        "document-workspace",
+        "editable-prose-surface"
+      ],
+      "title" : "TextEdit"
+    },
+    "id" : "textedit",
+    "operations" : [
+      {
+        "adapterID" : "textedit.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "textedit_save_document",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "save",
+            "key" : "s",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-S while TextEdit owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Save the Note"
+      }
+    ],
+    "proseSurface" : {
+      "budgets" : {
+        "ambientExcerptCharacters" : 600,
+        "regionCharacters" : 4000,
+        "wholeDocumentCharacters" : 12000
+      },
+      "chords" : {
+        "newDocument" : {
+          "key" : "n",
+          "modifiers" : [
+            "command"
+          ]
+        }
+      },
+      "documentKey" : "documentPathThenWindow",
+      "documentNoun" : {
+        "plural" : "notes",
+        "singular" : "note"
+      },
+      "editorRoles" : [
+        "textArea"
+      ],
+      "grammar" : "prose",
+      "handlePrefix" : "W",
+      "watch" : {
+        "activeSeconds" : 2.5,
+        "idleSeconds" : 10
+      }
+    },
+    "realizations" : [
+      {
+        "operation" : "textedit_save_document",
+        "preference" : 260,
+        "skillID" : "writing.save-document",
+        "targetClasses" : [
+          "document-workspace",
+          "document-window"
+        ]
+      }
+    ],
+    "title" : "TextEdit",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

@@ -1,0 +1,1475 @@
+{
+  "ability" : {
+    "aliases" : [
+      "windows",
+      "window control",
+      "foreground",
+      "bring forward",
+      "switch application"
+    ],
+    "id" : "window-management",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+
+      ],
+      "guardrails" : [
+        "Never infer one window from an ambiguous title.",
+        "Prefer stable adapter window identity over titles or z-order.",
+        "Application activation cannot satisfy a request naming or referring to a window; route bring_window_forward.",
+        "Foreground operations never read or mutate window contents.",
+        "Preserve relative stacking order when raising a group."
+      ],
+      "phases" : [
+        "resolve-application",
+        "resolve-window",
+        "claim-stage",
+        "restore-if-needed",
+        "raise",
+        "verify-focus"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "ambiguous window",
+        "source application terminated",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "target resolved",
+        "minimized target restored",
+        "foreground state verified"
+      ]
+    },
+    "paradigm" : "systemControl",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 140
+    },
+    "skills" : [
+      "window-management.bring-application-forward",
+      "window-management.list-app-windows",
+      "window-management.bring-window-forward",
+      "window-management.bring-all-windows-forward",
+      "window-management.restore-window",
+      "window-management.make-window-full-screen",
+      "window-management.exit-full-screen"
+    ],
+    "summary" : "Resolve, restore, and foreground macOS applications and windows as a reusable supporting ability.",
+    "tint" : "#F4A261",
+    "title" : "Window Management",
+    "totemProjections" : [
+      "window-management.receipts"
+    ],
+    "triggers" : {
+      "intentAliases" : [
+        "activate-application",
+        "list-windows",
+        "bring-all-windows-forward",
+        "restore-window",
+        "make-window-full-screen",
+        "exit-full-screen"
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "bring forward",
+        "bring to front",
+        "show all windows",
+        "switch to",
+        "full screen",
+        "exit full screen"
+      ],
+      "tokens" : [
+        "window",
+        "windows",
+        "foreground",
+        "front",
+        "restore",
+        "unminimize",
+        "switch",
+        "fullscreen",
+        "maximize"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "foreground-window-control"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "macos-application"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "application.activate",
+      "inputType" : "window-management.application-target",
+      "outputType" : "window-management.operation-result",
+      "permissions" : [
+
+      ],
+      "summary" : "Launch or activate one explicitly resolved macOS application.",
+      "title" : "Activate Application",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "macos-application-window"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "document-window"
+        }
+      ],
+      "effect" : "read",
+      "id" : "window.enumerate",
+      "inputType" : "window-management.application-target",
+      "outputType" : "window-management.window-list",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "List an application's windows with stable identities, titles, minimized state, and frontmost order.",
+      "title" : "Enumerate Windows",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "sourceMustMatchTarget",
+          "value" : "application-and-process-epoch"
+        }
+      ],
+      "effect" : "read",
+      "id" : "window.resolve",
+      "inputType" : "window-management.window-reference",
+      "outputType" : "window-management.window-reference",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "Resolve a stable window handle, exact title, or otherwise unambiguous application window reference.",
+      "title" : "Resolve Window",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "foreground-window-control"
+        },
+        {
+          "kind" : "sourceMustMatchTarget",
+          "value" : "resolved-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "window.restore",
+      "inputType" : "window-management.window-reference",
+      "outputType" : "window-management.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "Unminimize one uniquely resolved application window without changing its contents.",
+      "title" : "Restore Window",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "foreground-window-control"
+        },
+        {
+          "kind" : "sourceMustMatchTarget",
+          "value" : "resolved-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "window.raise",
+      "inputType" : "window-management.window-reference",
+      "outputType" : "window-management.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "Bring one uniquely resolved application window to the foreground.",
+      "title" : "Raise Window",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "foreground-window-control"
+        },
+        {
+          "kind" : "sourceMustMatchTarget",
+          "value" : "resolved-application"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "window.raise-all",
+      "inputType" : "window-management.application-target",
+      "outputType" : "window-management.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "Restore and bring all windows of one explicitly resolved application forward while preserving their relative stacking order.",
+      "title" : "Raise All Application Windows",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "foreground-window-control"
+        },
+        {
+          "kind" : "sourceMustMatchTarget",
+          "value" : "resolved-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "window.full-screen",
+      "inputType" : "window-management.window-reference",
+      "outputType" : "window-management.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Enumerate, restore, and raise application windows through macOS accessibility."
+        },
+        {
+          "kind" : "automation",
+          "reason" : "Use an application's precise automation contract when it is safer than generic accessibility."
+        }
+      ],
+      "summary" : "Move one resolved application window into or out of macOS full screen without reading or changing its contents.",
+      "title" : "Switch Full Screen",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "activate-app",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Bring my browser forward."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "list-document-windows",
+      "interactions" : [
+
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Which note windows are open?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-window-forward",
+      "id" : "raise-one-document-window",
+      "interactions" : [
+        "interaction.window-reference"
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Bring [W2] to the front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-window-forward",
+      "id" : "raise-exact-document-window",
+      "interactions" : [
+
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Bring Untitled 9 forward."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "raise-all-document-windows",
+      "interactions" : [
+
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Bring all my document windows forward."
+    },
+    {
+      "expectedDisposition" : "ask-user",
+      "id" : "ambiguous-title",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application-window",
+      "utterance" : "Bring the Untitled window forward."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "cefe718cc11a9299c30299155f99a1efc1482aed0bc77e0888833818db3c7213"
+  },
+  "interactions" : [
+    {
+      "claimPolicy" : "reusable",
+      "clearPolicies" : [
+        "sourceTermination",
+        "expiry",
+        "replacement"
+      ],
+      "evidence" : [
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "stable-window-handle",
+          "rank" : 120
+        },
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "conversation-window-referent",
+          "rank" : 110
+        },
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "exact-window-title",
+          "rank" : 90
+        },
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "frontmost-window",
+          "rank" : 70
+        }
+      ],
+      "freshnessSeconds" : 180,
+      "id" : "interaction.window-reference",
+      "ownership" : "sourceOwned",
+      "privacy" : "private",
+      "requiredScope" : [
+        "application",
+        "window"
+      ],
+      "summary" : "A user-named or adapter-minted application window reference such as a stable [W1] handle.",
+      "supersessionKeys" : [
+        "applicationID",
+        "processEpoch",
+        "windowID"
+      ],
+      "title" : "Window Reference",
+      "totemProjection" : "window-management.interaction-ephemera",
+      "valueType" : "window-management.window-reference",
+      "version" : "1.0.0"
+    }
+  ],
+  "package" : {
+    "id" : "window-management",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Global application and window foregrounding, with portable contracts and no application named in the package.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+    {
+      "freshnessSeconds" : 3,
+      "id" : "perception.application-focus",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "Observed frontmost macOS application identity.",
+      "title" : "Application Focus",
+      "valueType" : "window-management.focus-state",
+      "version" : "1.0.0"
+    },
+    {
+      "freshnessSeconds" : 3,
+      "id" : "perception.window-focus",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "Observed frontmost window identity when the adapter can prove it.",
+      "title" : "Window Focus",
+      "valueType" : "window-management.focus-state",
+      "version" : "1.0.0"
+    }
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "mac",
+            "operation" : "open_app",
+            "preference" : 100,
+            "targetClasses" : [
+              "macos-application"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.bring-application-forward",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.application-target"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "bring_application_forward",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app_name",
+            "required" : true,
+            "summary" : "Application name only. Never use this parameter to satisfy a named, titled, or referred window request.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "application.activate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "highestEvidence",
+        "excludes" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "macos-application-window"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "document-window"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "hasInteraction",
+            "value" : "interaction.window-reference"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "sourceResolution",
+            "value" : "window"
+          }
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 170
+      },
+      "summary" : "Launch or activate an explicitly named application as a whole. This Skill cannot target a named, titled, or referred window; bring_window_forward is mandatory whenever the request identifies a window.",
+      "title" : "Bring Application Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "list_app_windows",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "list_app_windows",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.list-app-windows",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.application-target"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_app_windows",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Application name or bundle identifier; omit for frontmost.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.window-list"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.enumerate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "window-read",
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.list"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 170
+      },
+      "summary" : "Enumerate one application's windows and mint stable references without reading their contents.",
+      "title" : "List Application Windows",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_window_forward",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_window_forward",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.bring-window-forward",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "bring_window_forward",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Owning application; omit when the window reference proves it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "window",
+            "required" : true,
+            "summary" : "Stable handle, exact unambiguous title, or conversation-established anaphoric window reference.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.resolve",
+          "window.restore",
+          "window.raise"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+          "interaction.window-reference"
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.bring-one"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 230
+      },
+      "summary" : "Resolve, restore, and raise one application window. This Skill is mandatory for exact window titles, stable handles, and anaphoric references such as the window or that window.",
+      "title" : "Bring Window Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_all_windows_forward",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "bring_all_windows_forward",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.bring-all-windows-forward",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.application-target"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "bring_all_windows_forward",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Application name or bundle identifier; omit for frontmost.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.raise-all"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.bring-all"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Restore and raise all windows of one application while preserving their relative stacking order.",
+      "title" : "Bring All Windows Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "restore_window",
+            "preference" : 240,
+            "targetClasses" : [
+              "document-window"
+            ]
+          },
+          {
+            "adapterID" : "window-management",
+            "operation" : "restore_window",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.restore-window",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "restore_window",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Owning application; omit when the window reference proves it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "window",
+            "required" : true,
+            "summary" : "Stable window handle or exact unambiguous title.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.resolve",
+          "window.restore"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+          "interaction.window-reference"
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.restore"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Unminimize one uniquely resolved application window without reading or changing its contents.",
+      "title" : "Restore Window",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "make_window_full_screen",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.make-window-full-screen",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "make_window_full_screen",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Owning application; omit for the frontmost one.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "window",
+            "required" : false,
+            "summary" : "Stable window handle or exact title; omit for the window in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.full-screen",
+          "window.raise",
+          "window.resolve"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+          "interaction.window-reference"
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.full-screen"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Move one application window into macOS full screen without reading or changing its contents.",
+      "title" : "Make Window Full Screen",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "window-management",
+            "operation" : "exit_full_screen",
+            "preference" : 120,
+            "targetClasses" : [
+              "macos-application-window"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "window-management.exit-full-screen",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed request for this skill.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "exit_full_screen",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Owning application; omit for the frontmost one.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "window",
+            "required" : false,
+            "summary" : "Stable window handle or exact title; omit for the window in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed result returned by this skill.",
+          "valueType" : "window-management.operation-result"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "window.full-screen",
+          "window.resolve"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+          "interaction.window-reference"
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "foreground-stage",
+        "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+
+          ],
+          "kind" : "targetClass",
+          "value" : "window-operation.full-screen"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Take one application window back out of macOS full screen without reading or changing its contents.",
+      "title" : "Exit Full Screen",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+    {
+      "exclude" : [
+        "windowTitle",
+        "windowContents",
+        "interactionPayload"
+      ],
+      "id" : "window-management.receipts",
+      "include" : [
+        "skillID",
+        "status",
+        "applicationID",
+        "windowID",
+        "summary"
+      ],
+      "lanes" : [
+        "application"
+      ],
+      "persistence" : "session",
+      "purpose" : "receipt",
+      "redactContent" : true,
+      "retentionSeconds" : 3600,
+      "skills" : [
+
+      ],
+      "version" : "1.0.0"
+    },
+    {
+      "exclude" : [
+        "title",
+        "contents",
+        "payload"
+      ],
+      "id" : "window-management.interaction-ephemera",
+      "include" : [
+
+      ],
+      "lanes" : [
+        "application"
+      ],
+      "persistence" : "none",
+      "purpose" : "interaction",
+      "redactContent" : true,
+      "skills" : [
+
+      ],
+      "version" : "1.0.0"
+    }
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.text",
+      "shape" : "string",
+      "summary" : "A bounded window-management text value.",
+      "title" : "Text",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.application-id",
+      "shape" : "string",
+      "summary" : "Bundle identifier or source-proven application identity.",
+      "title" : "Application Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.application-name",
+      "shape" : "string",
+      "summary" : "User-facing application name.",
+      "title" : "Application Name",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.window-id",
+      "shape" : "string",
+      "summary" : "Stable adapter-provided window identity for the current process epoch.",
+      "title" : "Window Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.window-title",
+      "shape" : "string",
+      "summary" : "User-facing window title, which is not treated as unique identity.",
+      "title" : "Window Title",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.boolean",
+      "shape" : "boolean",
+      "summary" : "A true or false value.",
+      "title" : "Boolean",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "name",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Application display name.",
+          "valueType" : "window-management.application-name"
+        },
+        {
+          "name" : "applicationID",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Bundle identifier.",
+          "valueType" : "window-management.application-id"
+        }
+      ],
+      "id" : "window-management.application-target",
+      "shape" : "object",
+      "summary" : "An application name or identity to activate.",
+      "title" : "Application Target",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "applicationID",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Owning application.",
+          "valueType" : "window-management.application-id"
+        },
+        {
+          "name" : "windowID",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Stable window identity.",
+          "valueType" : "window-management.window-id"
+        },
+        {
+          "name" : "title",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Window title.",
+          "valueType" : "window-management.window-title"
+        },
+        {
+          "name" : "minimized",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Whether the window is minimized.",
+          "valueType" : "window-management.boolean"
+        }
+      ],
+      "id" : "window-management.window-reference",
+      "shape" : "object",
+      "summary" : "A source-proven application window reference with stable identity when the adapter can provide one.",
+      "title" : "Window Reference",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "window-management.window-list",
+      "itemType" : "window-management.window-reference",
+      "shape" : "array",
+      "summary" : "Ordered application windows with stable references.",
+      "title" : "Window List",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "succeeded",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Whether the operation completed.",
+          "valueType" : "window-management.boolean"
+        },
+        {
+          "name" : "summary",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Short user-facing outcome.",
+          "valueType" : "window-management.text"
+        },
+        {
+          "name" : "window",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Resolved target window.",
+          "valueType" : "window-management.window-reference"
+        }
+      ],
+      "id" : "window-management.operation-result",
+      "shape" : "object",
+      "summary" : "A bounded status receipt without window contents.",
+      "title" : "Window Operation Result",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "applicationID",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Frontmost application.",
+          "valueType" : "window-management.application-id"
+        },
+        {
+          "name" : "windowID",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Frontmost window.",
+          "valueType" : "window-management.window-id"
+        }
+      ],
+      "id" : "window-management.focus-state",
+      "shape" : "object",
+      "summary" : "Observed frontmost application and window identity without window contents.",
+      "title" : "Window Focus State",
+      "version" : "1.0.0"
+    }
+  ]
+}

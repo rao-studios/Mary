@@ -143,6 +143,98 @@ import Testing
         #expect(hits.isEmpty)
     }
 
+    // MARK: - The same doctrine, in data
+
+    /// A PACKAGE MAY NAME ITSELF, AND NOTHING ELSE.
+    ///
+    /// The Swift rule above has an exact counterpart in the shipped packages,
+    /// and the same failure. A DISCIPLINE package listed three editors in
+    /// `ability.applications`, so those three were the writing applications
+    /// and every editor installed afterwards was not, whatever its own
+    /// package said about itself. `window-management` carried one
+    /// application's window class through its capability constraints, its
+    /// skills' target classes and a routing exclusion — so its Skills were
+    /// eligible for that application's windows and nobody else's. And a
+    /// model-facing parameter offered a closed `enumValues` list of four
+    /// products, teaching the model that anything unlisted was not an option.
+    ///
+    /// None of that is catchable by reading Swift, and all of it has exactly
+    /// the effect the Swift rule exists to prevent.
+    @Test func noPackageNamesAnApplicationOtherThanItsOwn() throws {
+        let abilities = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Abilities", isDirectory: true)
+        let files = (try? FileManager.default.contentsOfDirectory(
+            at: abilities, includingPropertiesForKeys: nil))?
+            .filter { $0.pathExtension == "mary" }.sorted { $0.path < $1.path } ?? []
+        guard !files.isEmpty else {
+            print("[packages] PENDING (no .mary packages yet): \(#function)")
+            return
+        }
+
+        var offences: [String] = []
+        for file in files {
+            // ITS OWN NAME IS THE ONE IT MAY SAY. `textedit.mary` IS the
+            // declaration of that application; forbidding it there would
+            // forbid the file from existing.
+            let own = file.deletingPathExtension().lastPathComponent.lowercased()
+            let data = try Data(contentsOf: file)
+            guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            else {
+                offences.append("\(file.lastPathComponent) is not an object")
+                continue
+            }
+            // THE IDENTIFYING FIELDS ONLY. A whole-file scan flags a package
+            // for calling its documents "notes", which is the word for its
+            // documents and exactly what `documentNoun` is for. These four
+            // keys are where a package says WHICH APPLICATION something is.
+            for (path, value) in Self.identifyingStrings(root) {
+                let text = value.lowercased()
+                for name in (Self.banned + Self.bannedAsTokens) where name != own {
+                    guard text.contains(name) else { continue }
+                    offences.append(
+                        "\(file.lastPathComponent) names \(name) at \(path): \"\(value)\"")
+                }
+            }
+        }
+        #expect(offences.isEmpty, """
+            \(offences.count) package(s) name an application that is not their own:
+
+            \(offences.joined(separator: "\n"))
+            """)
+    }
+
+    /// Keys whose values IDENTIFY an application rather than describe one.
+    static let identifyingKeys: Set<String> = [
+        "aliases", "bundleIdentifiers", "bundleNames", "targetClasses",
+        "enumValues", "applications", "allowedTargetClass",
+    ]
+
+    /// Every string under an identifying key, with the path that reached it.
+    static func identifyingStrings(
+        _ node: Any, path: String = "", inside: Bool = false
+    ) -> [(String, String)] {
+        switch node {
+        case let text as String:
+            return inside ? [(path, text)] : []
+        case let array as [Any]:
+            return array.enumerated().flatMap {
+                identifyingStrings($1, path: "\(path)[\($0)]", inside: inside)
+            }
+        case let object as [String: Any]:
+            return object.sorted { $0.key < $1.key }.flatMap { key, value in
+                identifyingStrings(
+                    value,
+                    path: path.isEmpty ? key : "\(path).\(key)",
+                    inside: inside || identifyingKeys.contains(key))
+            }
+        default:
+            return []
+        }
+    }
+
     // MARK: - Scanning
 
     /// Every line with its comment tail removed, block comments dropped.

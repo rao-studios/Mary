@@ -34,42 +34,52 @@ import Testing
 
     // MARK: - 1. The profile carries the discipline that claims the app
 
-    /// A discipline naming an application in `ability.applications` is making
-    /// the same claim a native plugin makes with `abilities`. Both channels
-    /// must reach the profile, or the app is invisible to the register test.
-    @Test func aDynamicApplicationInheritsTheDisciplineThatClaimsIt() throws {
+    /// AN APPLICATION JOINS A DISCIPLINE BY REALIZING ONE OF ITS SKILLS —
+    /// which is proof rather than a list.
+    ///
+    /// A discipline package CAN name applications outright
+    /// (`ability.applications`), and Mary's own do not. The list is the wrong
+    /// channel: it makes the discipline's author decide which applications
+    /// count, so the three they thought of are writing applications and every
+    /// editor installed afterwards is not — no matter what its own package
+    /// says about itself. Realization inverts that. The application declares
+    /// what it can do, the discipline finds out, and nobody has to be
+    /// enumerated in advance.
+    @Test func anApplicationJoinsTheDisciplineItRealizesASkillFor() throws {
         guard InstalledPackages.installed() != nil else { return }
         let compilation = PluginCompiler.compile(
-            packages: [try loadRootPackage("scrivener"), try loadRootPackage("writing")],
+            packages: [try loadRootPackage("textedit"), try loadRootPackage("writing")],
             nativeAdapterManifests: [],
             grantedPermissions: { _ in [.accessibility] })
 
-        let scrivener = try #require(
-            compilation.applicationProfiles.first { $0.id == "scrivener" })
-        #expect(scrivener.abilities.contains(AbilityID("scrivener")))
+        let editor = try #require(
+            compilation.applicationProfiles.first { $0.id == "textedit" })
+        #expect(editor.abilities.contains(AbilityID("textedit")), "its own ability")
         #expect(
-            scrivener.abilities.contains(.writing),
-            "writing.mary declares Scrivener in ability.applications; the profile must say so")
+            editor.abilities.contains(.writing),
+            "it realizes writing.save-document, so it is a writing application")
     }
 
-    /// The affinity must not leak. Only a discipline that NAMES the
-    /// application joins its profile — otherwise every profile would end up
-    /// carrying every discipline and the register test would mean nothing.
-    @Test func anUnrelatedDisciplineDoesNotJoinTheProfile() throws {
+    /// AND ONLY THAT DISCIPLINE. Merely being installed alongside one does
+    /// not join it — otherwise every profile would carry every discipline and
+    /// the register test would mean nothing.
+    @Test func anUnrealizedDisciplineDoesNotJoinTheProfile() throws {
         guard InstalledPackages.installed() != nil else { return }
         let compilation = PluginCompiler.compile(
             packages: [
-                try loadRootPackage("scrivener"),
+                try loadRootPackage("textedit"),
                 try loadRootPackage("writing"),
-                try loadRootPackage("coding"),
+                try loadRootPackage("window-management"),
             ],
             nativeAdapterManifests: [],
             grantedPermissions: { _ in [.accessibility] })
 
-        let scrivener = try #require(
-            compilation.applicationProfiles.first { $0.id == "scrivener" })
-        #expect(scrivener.abilities.contains(.writing), "writing names Scrivener")
-        #expect(!scrivener.abilities.contains(.coding), "coding does not")
+        let editor = try #require(
+            compilation.applicationProfiles.first { $0.id == "textedit" })
+        #expect(editor.abilities.contains(.writing), "it realizes a writing skill")
+        #expect(
+            !editor.abilities.contains(AbilityID("window-management")),
+            "it realizes none of window-management's, so it does not join it")
     }
 
     // MARK: - 2. A manuscript turn is a writing turn

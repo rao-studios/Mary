@@ -47,7 +47,7 @@ import Testing
         let record = AbilityPackageRecord(
             package: imported,
             source: .installed,
-            sourceURL: URL(fileURLWithPath: "/tmp/architect.mary"),
+            sourceURL: URL(fileURLWithPath: "/tmp/imported.mary"),
             validation: validation,
             rawData: importedBytes)
         let snapshot = AbilityRuntimeSnapshot(
@@ -55,9 +55,16 @@ import Testing
             records: [record],
             validation: validation,
             adapterManifests: [])
-        let route = AmbientRoute(intent: .architect, decidedBy: .architectAbility)
+        // THE ROUTE HAS TO ACTIVATE THE ABILITY, or the projection renders
+        // nothing and every "must not appear" assertion below passes against
+        // an empty string — a security test that cannot fail.
+        let route = AmbientRoute(
+            intent: .compose,
+            decidedBy: .writingRegister,
+            gate: AmbientIntentGate(requestedAbilities: [imported.ability.id]))
 
         let rendered = AbilityPromptProjection.render(snapshot: snapshot, route: route)
+        #expect(!rendered.isEmpty, "nothing rendered; the payload assertions would be vacuous")
 
         // TIGHTENED 2026-08-07, and deliberately: this used to expect
         // "ABILITY ARCHITECT —". The label is now gated on PROVENANCE rather
@@ -138,7 +145,7 @@ import Testing
         let record = AbilityPackageRecord(
             package: package,
             source: .sourceTree,
-            sourceURL: URL(fileURLWithPath: "/Abilities/shaderfeel.mary"),
+            sourceURL: URL(fileURLWithPath: "/Abilities/\(package.ability.id.rawValue).mary"),
             validation: AbilityPackageValidator.validate(package),
             rawData: Data())
         let snapshot = AbilityRuntimeSnapshot(
@@ -151,7 +158,12 @@ import Testing
             gate: AmbientIntentGate(requestedAbilities: [package.ability.id]))
 
         let rendered = AbilityPromptProjection.render(snapshot: snapshot, route: route)
-        #expect(rendered.contains("ABILITY SHADERFEEL —"))
+        // THE LABEL IS DERIVED FROM THE IDENTIFIER, with no Swift case for it
+        // — which is the property. A package's own label appears because its
+        // id spells one, not because somebody added it to a table.
+        let expected = AbilityPromptProjection.derivedLabel(
+            for: package.ability.id)
+        #expect(rendered.contains("ABILITY \(expected) —"))
         #expect(!rendered.contains("ABILITY CUSTOM"))
     }
 
@@ -195,12 +207,19 @@ import Testing
         guard let abilities = InstalledPackages.installed() else {
             throw CocoaError(.fileNoSuchFile)
         }
+        // A PACKAGE WITH SKILLS. The projection under test renders skills, so
+        // one that declares none renders nothing and every assertion below
+        // passes against an empty string — a test that cannot fail. Picking
+        // alphabetically first found exactly that package.
         let names = try FileManager.default
             .contentsOfDirectory(atPath: abilities.path)
             .filter { $0.hasSuffix(".mary") }
             .sorted()
-        let first = try #require(names.first, "Abilities/ holds no .mary packages")
-        return try AbilityPackageCodec.load(
-            from: abilities.appendingPathComponent(first))
+        for name in names {
+            let package = try AbilityPackageCodec.load(
+                from: abilities.appendingPathComponent(name))
+            if !package.skills.isEmpty { return package }
+        }
+        throw CocoaError(.fileNoSuchFile)
     }
 }

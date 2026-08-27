@@ -199,12 +199,21 @@ public enum WindowManagementTurnClassifier {
         }
 
         var targetClasses: Set<String> = ["macos-application-window"]
-        // THE PLACE'S OWN WINDOW CLASS, minted from its id rather than written
-        // down here. A package declares that it serves `<id>-window` and this
-        // is the only thing that mints it, so the two cannot drift.
-        if let place = documentPlace,
+        // A DOCUMENT WINDOW IS A CLASS, NOT AN APPLICATION.
+        //
+        // This minted `<id>-window` from the place's own id, which sounds
+        // general and is not: a capability elsewhere has to ALLOW a class for
+        // it to mean anything, and no package can allow a class it cannot
+        // predict. The window Skills ended up allowing exactly one
+        // application's minted class — which is how "list the windows" worked
+        // in one editor and nowhere else.
+        //
+        // `document-window` is the class a place earns by declaring a prose
+        // surface. Any application can earn it, and the window Skills allow
+        // it once.
+        if documentPlace != nil,
            inDocumentPlace || namesAnUntitledDocument || referentIsDocumentPlace {
-            targetClasses.insert("\(place.applicationID)-window")
+            targetClasses.insert("document-window")
         }
         // ARITY IS THE MODEL'S CALL, not the classifier's. Minting exactly one
         // of the two raise classes made "bring the TextEdit windows forward"

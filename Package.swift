@@ -52,6 +52,7 @@ let package = Package(
         // since its implicit product already carries the target's own name.
         .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
+        .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -115,6 +116,15 @@ let package = Package(
             name: "MaryAdapters",
             dependencies: ["MaryFoundation", "MaryAmbient"],
             path: "Sources/MaryAdapters",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Validates and seals the shipped .mary packages. A package that
+        // fails to decode is a package that quietly is not installed, which
+        // is exactly the failure a tool should catch and a comment cannot.
+        .executableTarget(
+            name: "PackageProbe",
+            dependencies: ["MaryFoundation"],
+            path: "Sources/Probes/PackageProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // The one live check the suite cannot make: what the engine sees when

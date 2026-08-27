@@ -225,8 +225,37 @@ public struct PluginProseSurfaceSchema: Codable, Hashable, Sendable {
     public var budgets: PluginProseBudgetSchema
 
     /// The named chords a prose surface may declare.
-    public enum PluginProseChordName: String, Codable, Hashable, Sendable, CaseIterable {
+    ///
+    /// `CodingKeyRepresentable` IS LOAD-BEARING, and its absence was a real
+    /// defect found by writing the first package that declares a chord.
+    /// Swift encodes a `Dictionary` whose key is merely `RawRepresentable` as
+    /// a FLAT ALTERNATING ARRAY — `["newDocument", {…}]` — which is not a
+    /// shape any author would write by hand, is not what the field's own
+    /// documentation implies, and fails to decode the object they do write.
+    /// The conformance is what makes `"chords": {"newDocument": {…}}` the
+    /// format, which is the only format worth having.
+    ///
+    /// It survived until now because nothing had ever round-tripped a
+    /// NON-EMPTY chords map: an empty dictionary encodes identically either
+    /// way, so every test of the schema passed while the one shape a package
+    /// needs was unreachable.
+    public enum PluginProseChordName:
+        String, Codable, Hashable, Sendable, CaseIterable, CodingKeyRepresentable
+    {
         case newDocument
+
+        public init?<T: CodingKey>(codingKey: T) {
+            self.init(rawValue: codingKey.stringValue)
+        }
+
+        public var codingKey: any CodingKey { ChordKey(stringValue: rawValue) }
+
+        private struct ChordKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue _: Int) { nil }
+        }
     }
 
     public init(
