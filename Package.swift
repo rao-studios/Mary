@@ -53,6 +53,7 @@ let package = Package(
         .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
+        .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -63,6 +64,16 @@ let package = Package(
         // none: dropping WhisperKit removed the only other claimant, so the
         // alias wall that guarded this graph does not exist here.
         .package(path: "../Frigate"),
+        // CONDUIT COMES FROM THE LOCAL CHECKOUT, not a git pin, and this is a
+        // correctness requirement rather than a convenience: Seer and the
+        // Totem node build against that same checkout, so a pin here could
+        // drift from the wire contract the servers actually speak — and a
+        // drifted contract fails at runtime, on a machine, in a way no build
+        // notices.
+        .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
+        .package(path: "../Conduit"),
+        .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
+        .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
     targets: [
         // MARK: - MaryFoundation — the schema layer: Plugin package grammar,
@@ -200,6 +211,65 @@ let package = Package(
             path: "Sources/MaryBrain",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
+        // MARK: - MaryTotem — Mary's direct line to the local Totem node
+        // (gRPC :9090). Wraps the Conduit contract package behind a small
+        // facade so no other target imports generated protos.
+        //
+        // STANDING RULE: only MaryRuntime and the Mary app consume MaryTotem.
+        // MaryBrain and MaryVoice must never depend on it — a brain that
+        // could reach the transport would start deciding what to persist,
+        // which is the runtime's decision to make.
+        .target(
+            name: "MaryTotem",
+            dependencies: [
+                .product(name: "Conduit", package: "Conduit"),
+                .product(name: "GRPCCore", package: "grpc-swift"),
+                .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport"),
+            ],
+            path: "Sources/MaryTotem",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .executableTarget(
+            name: "TotemProbe",
+            dependencies: ["MaryTotem"],
+            path: "Sources/Probes/TotemProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryTotemTests",
+            dependencies: [
+                "MaryTotem",
+                .product(name: "Conduit", package: "Conduit"),
+            ],
+            path: "Tests/MaryTotemTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // MARK: - MaryRuntime — the composition root and the non-UI services.
+        // The long-lived actors, the Granite services that own durable state,
+        // and their models. NO SwiftUI here: SwiftUI lives only in the app
+        // target, and the split is what keeps the runtime testable headless.
+        .target(
+            name: "MaryRuntime",
+            dependencies: [
+                "MaryFoundation",
+                "MaryAmbient",
+                "MaryAdapters",
+                "MaryVoice",
+                "MaryBrain",
+                "MaryTotem",
+                .product(name: "Granite", package: "Granite"),
+            ],
+            path: "Sources/MaryRuntime",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryRuntimeTests",
+            dependencies: ["MaryRuntime"],
+            path: "Tests/MaryRuntimeTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
         .testTarget(
             name: "MaryBrainTests",
             dependencies: [

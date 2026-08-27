@@ -36,6 +36,38 @@ public protocol MaryObserver: Sendable {
     /// never actors.
     func promptContribution() -> String?
 
+    /// WHERE THIS OBSERVER LOOKS.
+    ///
+    /// Nil for a faculty that serves every place at once — the surface
+    /// reader, the selection transport — which is why it is optional rather
+    /// than required. An observer that answers a place is one the focus
+    /// arbiter can weigh; one that answers nil is infrastructure.
+    ///
+    /// THE ARBITER CANNOT WORK WITHOUT THIS. Its predecessor learned who
+    /// contributed from nine named fields on a context struct, one per
+    /// application somebody had thought of. An observer knows where it is
+    /// looking; asking it is the only version of that question with no fixed
+    /// list of answers.
+    var observedPlace: AmbientPlace? { get }
+
+    /// The one-line version, for a turn this observer's place did not lead.
+    ///
+    /// A LIVE PLACE IS NEVER SILENCED ENTIRELY — demotion is a change of
+    /// volume, not an erasure — so an observer that can contribute a full
+    /// section must be able to contribute a line. Nil means it had nothing
+    /// to say at all, which is different from being quiet.
+    var ambientLine: String? { get }
+
+    /// Whether this observer holds the WHOLE of its document or a window
+    /// onto part of it.
+    ///
+    /// It decides the sight claim the voice makes, and getting it wrong is
+    /// audible: a voice that holds a whole note and hedges about "the part I
+    /// can see" is wrong in one direction, and one that holds a single
+    /// outline item and claims the whole manuscript is wrong in the other.
+    /// A property of the CHANNEL, never of the application.
+    var holdsWholeDocument: Bool { get }
+
     /// The ambient signals this plugin can normalize for Mary.
     var ambientSenses: Set<AmbientSense> { get }
 
@@ -61,6 +93,15 @@ public protocol MaryObserver: Sendable {
 }
 
 public extension MaryObserver {
+    /// INFRASTRUCTURE BY DEFAULT. An observer that does not say where it
+    /// looks is a faculty serving every place, and the arbiter leaves it out
+    /// of the weighing rather than guessing a place for it.
+    var observedPlace: AmbientPlace? { nil }
+    var ambientLine: String? { nil }
+    /// A WINDOW BY DEFAULT, which is the cautious direction: claiming less
+    /// sight than you have costs a re-read, and claiming more costs an answer
+    /// that is confidently wrong.
+    var holdsWholeDocument: Bool { false }
     var ambientSenses: Set<AmbientSense> { [] }
     var providedInteractions: Set<InteractionID> {
         var interactions: Set<InteractionID> = []

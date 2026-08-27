@@ -246,6 +246,29 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
     /// recorded rather than dropped: a refusal is behaviour, and a dataset
     /// that only contains what Mary agreed to do teaches nothing about what
     /// she declines.
+    /// THE ASK, BEFORE IT SETTLES. A call has been announced and has not
+    /// come back.
+    ///
+    /// `.unsettled` IS THE HONEST DISPOSITION, not a placeholder: the model
+    /// asked, the act is in flight, and nobody yet knows how it went. The
+    /// settled record replaces this one under the same id — which is why the
+    /// id is the wire run id and not a fresh one.
+    ///
+    /// NO TARGET, and that is the shape of the ask rather than an omission:
+    /// nothing has been touched, so there is nothing to name.
+    public static func requested(
+        id: String,
+        action: BehavioralAction,
+        at date: Date = Date()
+    ) -> BehavioralActionRecord {
+        BehavioralActionRecord(
+            id: id,
+            action: action,
+            disposition: .unsettled,
+            summary: "",
+            startedAt: date)
+    }
+
     public static func refused(
         id: String,
         action: BehavioralAction,

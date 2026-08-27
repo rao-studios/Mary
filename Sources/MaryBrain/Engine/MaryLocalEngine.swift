@@ -1,5 +1,5 @@
 //
-//  MistralLocalEngine.swift
+//  MaryLocalEngine.swift
 //  MaryBrain
 //
 //  On-device Mistral over Frigate's MLX stack, modeled on Fleet's
@@ -12,7 +12,12 @@ import Foundation
 import MLXLLM
 import MLXLMCommon
 
-public actor MistralLocalEngine: InferenceEngine {
+public actor MaryLocalEngine: InferenceEngine {
+
+    /// ON-DEVICE. Nothing this engine is given leaves the machine, and the
+    /// behavioral record says so on every episode it produced.
+    public nonisolated var choice: LLMEngineChoice { .local }
+
 
     /// One MLX model instance; concurrent generate calls are not guaranteed
     /// safe — the brain serializes rounds for this engine only.
@@ -29,7 +34,7 @@ public actor MistralLocalEngine: InferenceEngine {
 
     public nonisolated let displayName: String
 
-    public init(modelID: String = MistralLocalEngine.defaultModelID) {
+    public init(modelID: String = MaryLocalEngine.defaultModelID) {
         self.modelID = modelID
         self.displayName = "On-device (\(modelID.components(separatedBy: "/").last ?? modelID))"
     }
