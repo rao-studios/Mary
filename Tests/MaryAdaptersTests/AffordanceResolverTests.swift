@@ -47,7 +47,7 @@ import Testing
         _ goal: String, _ elements: [PageElement]
     ) -> PageElementResolution {
         let store = AmbientElementIndexStore()
-        let scope = AmbientElementScope.affordances(in: .native(.applications))
+        let scope = AmbientElementScope.affordances(in: .lane(.applications))
         AffordanceResolver.publish(elements, scope: scope, store: store)
         return AffordanceResolver.resolve(
             goal: goal, in: elements, scope: scope, store: store)

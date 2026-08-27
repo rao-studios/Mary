@@ -118,18 +118,18 @@ if context.webContentHost {
 // MARK: - The surface, as the store would hold it
 
 // THE SAME LADDER THE OBSERVER CALLS, and the distinction is not academic:
-// `realm(forBundleID:)` answers with the shared applications LANE — the fact
+// `factPlace(forBundleID:)` answers with the shared applications LANE — the fact
 // pool for genuinely-unknown processes — while this one is identity-bearing.
 // Calling the wrong one here would make the probe report every application as
-// the same realm, which is exactly the collision the identity ladder exists
+// the same place, which is exactly the collision the identity ladder exists
 // to prevent, and the probe would be lying about a bug it does not have.
-let realm = AmbientRealmResolver.applicationRealm(
+let place = AmbientPlaceResolver.applicationPlace(
     forBundleID: application.bundleIdentifier ?? "\(pid)")
-let surface = AmbientBridge.surface(from: context, realm: realm)
+let surface = AmbientBridge.surface(from: context, place: place)
 
 print("""
 
-  realm       \(realm.token)
+  place       \(place.token)
   surface     \(surface.surfaceLine(at: Date()))
 """)
 

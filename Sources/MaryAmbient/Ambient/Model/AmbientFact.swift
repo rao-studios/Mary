@@ -174,8 +174,8 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
 
     /// WHERE this fact lives — the world it rides and, when its world holds
     /// more than one application, which lane inside it.
-    public var place: AmbientRealm {
-        AmbientRealm(world: world, application: application)
+    public var place: AmbientPlace {
+        AmbientPlace(world: world, application: application)
     }
 
     public var key: AmbientKey { AmbientKey(place: place, slot: slot) }

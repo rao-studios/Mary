@@ -10,7 +10,7 @@
 //
 //  IT ARRIVES FROM OUTSIDE. MaryAmbient never names the engine that
 //  produced it (the layering rule `PackageLayeringTests` pins); the plugin
-//  layer's `AmbientBridge.surface(from:realm:)` renders the engine's
+//  layer's `AmbientBridge.surface(from:place:)` renders the engine's
 //  artifact into this vocabulary, exactly as each watcher world renders its
 //  own snapshot into facts.
 //
@@ -23,7 +23,7 @@
 //  position (`MaryFoundation/Core/AXFrame.swift`), the core precision
 //  element in how Mary knows WHERE something is. `AXFrame` carries no
 //  CoreGraphics itself; the plugin layer's `AXFrameProjection` is where a
-//  live `CGRect` becomes one, exactly as `AmbientBridge.surface(from:realm:)`
+//  live `CGRect` becomes one, exactly as `AmbientBridge.surface(from:place:)`
 //  is where the engine's artifact becomes this vocabulary. A frame is
 //  evidence of a moment (it is capture-stamped), never a target to press
 //  blind — every actuation path still re-reads and re-locates by identity
@@ -120,7 +120,7 @@ public struct AmbientSurface: Sendable, Equatable {
 
     /// The family lane this screen belongs to — attached by the bridge via
     /// the resolver, never by the engine.
-    public var place: AmbientRealm
+    public var place: AmbientPlace
     public var application: Application
     /// Nil when no non-minimized window exists.
     public var activeWindow: Window?
@@ -137,7 +137,7 @@ public struct AmbientSurface: Sendable, Equatable {
     public var freshFor: TimeInterval
 
     public init(
-        place: AmbientRealm,
+        place: AmbientPlace,
         application: Application,
         activeWindow: Window? = nil,
         windowCount: Int = 0,

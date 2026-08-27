@@ -33,7 +33,7 @@ public enum SelectionSurfacePolicy {
             // browser would spray keystrokes past every one of those guards.
             // Browser selections stay REFERABLE — referencing is a separate
             // ability, exactly this file's header.
-            && !AmbientRealmResolver.isBrowser(bundleID: applicationID)
+            && !AmbientPlaceResolver.isBrowser(bundleID: applicationID)
     }
 
     /// Pages and a manuscript application can render a canvas while omitting

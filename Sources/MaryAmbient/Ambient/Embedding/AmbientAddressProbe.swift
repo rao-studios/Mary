@@ -51,16 +51,16 @@ public struct AmbientAddress: Sendable, Equatable {
 
     /// The CLOSED profile-id vocabulary routing speaks.
     public var applicationID: String
-    /// The scope's own realm — carried because `gate.applications` alone
-    /// cannot admit one: `namedRealms` skips every registration with a
+    /// The scope's own place — carried because `gate.applications` alone
+    /// cannot admit one: `namedPlaces` skips every registration with a
     /// legacy world, and the browser's profile has one.
-    public var realm: AmbientRealm
+    public var place: AmbientPlace
     public var score: Float
     public var basis: Basis
 
-    public init(applicationID: String, realm: AmbientRealm, score: Float, basis: Basis) {
+    public init(applicationID: String, place: AmbientPlace, score: Float, basis: Basis) {
         self.applicationID = applicationID
-        self.realm = realm
+        self.place = place
         self.score = score
         self.basis = basis
     }
@@ -157,7 +157,7 @@ public enum AmbientAddressProbe {
             guard best >= acceptanceThreshold else { continue }       // G2
             found.append(AmbientAddress(
                 applicationID: candidate.applicationID,
-                realm: candidate.scope.realm,
+                place: candidate.scope.place,
                 score: best,
                 basis: basis))
         }

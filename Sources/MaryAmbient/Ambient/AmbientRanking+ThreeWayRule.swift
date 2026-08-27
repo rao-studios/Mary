@@ -20,10 +20,10 @@ extension AmbientRanker {
     /// focused place a taught manuscript application, "fix the typo in my
     /// chapter" named a set the focused place could not be in, and the branch
     /// that exists to protect a named-but-unfocused world fired against the
-    /// one the user was actually in. Asking over realms lets a package's own
+    /// one the user was actually in. Asking over places lets a package's own
     /// declared aliases answer, which is where those words live now.
     public static func mode(
-        utterance: String, focusedPlace: AmbientRealm?
+        utterance: String, focusedPlace: AmbientPlace?
     ) -> AmbientRankingMode {
         guard let focusedPlace else { return .relevance }
         let named = namedPlacesForRanking(in: utterance)
@@ -35,7 +35,7 @@ extension AmbientRanker {
     }
 
     /// The places an utterance names, for the ranking rule. Private to it:
-    /// `namedRealms` is the admission ladder's spelling and deliberately
+    /// `namedPlaces` is the admission ladder's spelling and deliberately
     /// keeps its own shape.
     ///
     /// A REGISTRATION THAT NAMES ITSELF STANDS DOWN THE CUE'S GUESS. A
@@ -43,11 +43,11 @@ extension AmbientRanker {
     /// about what the user meant; an actual name is not a guess. Leaving the
     /// cue's places in beside a real name would leave the focused place
     /// "named" by a word the user never said.
-    static func namedPlacesForRanking(in utterance: String) -> Set<AmbientRealm> {
-        let named = explicitlyNamedRealms(in: utterance)
+    static func namedPlacesForRanking(in utterance: String) -> Set<AmbientPlace> {
+        let named = explicitlyNamedPlaces(in: utterance)
             .filter { $0.hasEyes }
         guard named.isEmpty else { return named }
-        return namedRealms(in: utterance).filter { $0.hasEyes }
+        return namedPlaces(in: utterance).filter { $0.hasEyes }
     }
 
     /// Does the utterance point at the focused place? Either it NAMES it, or
@@ -57,7 +57,7 @@ extension AmbientRanker {
     /// an utterance that names no place and points at nothing (small talk, a
     /// general question) concerns none at all: relevance decides.
     public static func concernsFocusedPlace(
-        utterance: String, focusedPlace: AmbientRealm
+        utterance: String, focusedPlace: AmbientPlace
     ) -> Bool {
         let named = namedPlacesForRanking(in: utterance)
         if named.contains(focusedPlace) { return true }
@@ -72,7 +72,7 @@ extension AmbientRanker {
     /// TextEdit, the compiled writing worlds, and a taught application had no
     /// case and so could never be named by a cue. Mary has no compiled
     /// application worlds to return, so the cue is answered as what it
-    /// actually is: a discipline. `namedRealms` below turns that into places
+    /// actually is: a discipline. `namedPlaces` below turns that into places
     /// by asking the roster which registrations realize it, which means a
     /// package installed this morning is nameable by cue the same way
     /// anything else is.
@@ -88,8 +88,8 @@ extension AmbientRanker {
     /// already runs, rather than inventing a second spelling of "did the
     /// user name it". Native registrations contribute through their world —
     /// a native place never discriminates a lane inside its own world.
-    public static func namedRealms(in utterance: String) -> Set<AmbientRealm> {
-        var places = Set<AmbientRealm>()
+    public static func namedPlaces(in utterance: String) -> Set<AmbientPlace> {
+        var places = Set<AmbientPlace>()
         // THE DISCIPLINE CUE, resolved through the roster. A "writing" vibe
         // names the writing SIDE without choosing an application, so every
         // registration that realizes it counts as named — which is what lets
@@ -115,7 +115,7 @@ extension AmbientRanker {
         // onto. A taught application that projects onto one still has aliases
         // of its own, and skipping it meant the package's declared words were
         // matched by nothing — `registration.place` is that world for a native
-        // and the guest's own realm otherwise, so the insert is correct either
+        // and the guest's own place otherwise, so the insert is correct either
         // way and the set stays deduplicated.
         for registration in AmbientApplicationIndexProvider.current.all
         where registration.profile.isMentioned(in: utterance) {
@@ -126,11 +126,11 @@ extension AmbientRanker {
 
     /// The places this turn's WORDS re-admit — THE ONE MENTIONS LADDER,
     /// shared by the dispatcher's roster scoping
-    /// (`AbilityRuntime.admittedRealmMentions`) and the prompt's writing-
+    /// (`AbilityRuntime.admittedPlaceMentions`) and the prompt's writing-
     /// fragment suppression, so the schema list and the fragments can never
     /// disagree about what the words re-admitted. Four rungs:
     ///
-    ///   1. The route's `namedRealms` — native worlds the classifier heard
+    ///   1. The route's `namedPlaces` — native worlds the classifier heard
     ///      plus every registered application the gate matched by name,
     ///      COMPOSED from the gate's own matches rather than re-matched.
     ///      On a route-less turn the roster matcher contributes registered
@@ -141,18 +141,18 @@ extension AmbientRanker {
     ///      note").
     ///   3. Any watched world whose display name appears in the words.
     ///   4. Xcode, whenever the words carry a coding cue.
-    public static func admittedRealmMentions(
+    public static func admittedPlaceMentions(
         route: AmbientRoute?,
         referent: ResolvedReferent?,
         utterance: String,
-        glanced: Set<AmbientRealm> = WorkspaceFocusTracker.shared.signal().glanced
-    ) -> Set<AmbientRealm> {
-        var admitted: Set<AmbientRealm> = []
+        glanced: Set<AmbientPlace> = WorkspaceFocusTracker.shared.signal().glanced
+    ) -> Set<AmbientPlace> {
+        var admitted: Set<AmbientPlace> = []
         if let route {
-            admitted.formUnion(route.namedRealms)
+            admitted.formUnion(route.namedPlaces)
         } else {
             admitted.formUnion(
-                namedRealms(in: utterance).filter { $0.application != nil })
+                namedPlaces(in: utterance).filter { $0.application != nil })
         }
         if let referent {
             admitted.insert(referent.place)
@@ -160,9 +160,9 @@ extension AmbientRanker {
         // Rung 4 — the words themselves, answered by the roster. Bonnie
         // scanned its compiled watched worlds' display names here and then
         // hardcoded Xcode for a coding cue; both are roster questions now,
-        // and `namedRealms` is the one place they are asked.
-        admitted.formUnion(namedRealms(in: utterance))
-        // Rung 5 — GLANCED realms (a fresh look_at_screen at that app). A
+        // and `namedPlaces` is the one place they are asked.
+        admitted.formUnion(namedPlaces(in: utterance))
+        // Rung 5 — GLANCED places (a fresh look_at_screen at that app). A
         // glance is the user deliberately bringing a place into the
         // conversation, exactly as naming it would; admitting it keeps the
         // glanced app's Skills on the roster and its fragment standing for
@@ -189,10 +189,10 @@ extension AmbientRanker {
     /// Alias matching goes through `ApplicationProfile.isMentioned`, the exact
     /// matcher the intent gate already runs, so "did the user name it" has one
     /// answer and not two.
-    public static func explicitlyNamedRealms(
+    public static func explicitlyNamedPlaces(
         in utterance: String
-    ) -> Set<AmbientRealm> {
-        var places = Set<AmbientRealm>()
+    ) -> Set<AmbientPlace> {
+        var places = Set<AmbientPlace>()
         for registration in AmbientApplicationIndexProvider.current.all
         where registration.profile.isMentioned(in: utterance) {
             places.insert(registration.place)

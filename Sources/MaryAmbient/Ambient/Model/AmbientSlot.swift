@@ -167,13 +167,13 @@ public struct AmbientKey: Sendable, Equatable, Hashable {
     /// WHERE, as one value. Holding a place rather than a loose pair is what
     /// lets the store scope a read budget or a perception wipe to a lane
     /// without every call site re-deriving what a lane is.
-    public var place: AmbientRealm
+    public var place: AmbientPlace
     public var slot: AmbientSlot
 
     /// The closed world half. Kept as the primary spelling because almost every
     /// reader asks exactly this and does not care about the discriminator.
     /// Read-only since the place became an enum: nothing ever wrote these
-    /// halves, and half a realm is not a thing you can assign.
+    /// halves, and half a place is not a thing you can assign.
     public var world: AmbientWorld { place.world }
 
     /// The registered application's LOGICAL id — `"sketch"`, never a bundle
@@ -185,10 +185,10 @@ public struct AmbientKey: Sendable, Equatable, Hashable {
     public var application: String? { place.application }
 
     public init(world: AmbientWorld, application: String? = nil, slot: AmbientSlot) {
-        self.init(place: AmbientRealm(world: world, application: application), slot: slot)
+        self.init(place: AmbientPlace(world: world, application: application), slot: slot)
     }
 
-    public init(place: AmbientRealm, slot: AmbientSlot) {
+    public init(place: AmbientPlace, slot: AmbientSlot) {
         self.place = place
         self.slot = slot
     }

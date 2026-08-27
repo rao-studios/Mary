@@ -88,10 +88,10 @@ public struct Passage: Sendable, Equatable, Identifiable {
     /// manuscript: `canHold` would refuse it (the host lane is eyeless), the
     /// identity key would collide with every other taught application's, and
     /// the write site would look up a backing for the host rather than the
-    /// guest. `AmbientRealm.token` is `rawValue` for a native world, so this
+    /// guest. `AmbientPlace.token` is `rawValue` for a native world, so this
     /// is a widening and not a migration — every previously minted native
     /// identity string is byte-identical.
-    public var place: AmbientRealm
+    public var place: AmbientPlace
     /// The document's stable identity in its own world's terms — Pages'
     /// `PagesContext.documentIdentity`, Xcode's `BufferSnapshot.path`,
     /// Scrivener's `projectPath#uuid`. REUSED, never re-invented: a second
@@ -144,7 +144,7 @@ public struct Passage: Sendable, Equatable, Identifiable {
     /// for a compiled world — and not a fourth list of app names.
     public init?(
         handle: String,
-        place: AmbientRealm,
+        place: AmbientPlace,
         documentKey: String,
         documentTitle: String,
         text: String,
@@ -173,18 +173,18 @@ public struct Passage: Sendable, Equatable, Identifiable {
         self.provenance = provenance
     }
 
-    /// Can this place hold passages at all? Bridges to `AmbientRealm.hasEyes`
+    /// Can this place hold passages at all? Bridges to `AmbientPlace.hasEyes`
     /// rather than re-listing the workspace apps.
     ///
     /// A PLACE, because a registered application that earned eyes can hold them
     /// and its host world (`.applications`) cannot. Asking the world would answer
     /// for the host and refuse the guest.
-    public static func canHold(_ place: AmbientRealm) -> Bool { place.hasEyes }
+    public static func canHold(_ place: AmbientPlace) -> Bool { place.hasEyes }
 
     /// The built-in spelling, kept so every existing caller and pinned test
     /// reads exactly as it did.
     public static func canHold(_ world: AmbientWorld) -> Bool {
-        canHold(AmbientRealm.world(world))
+        canHold(AmbientPlace.lane(world))
     }
 
     /// THE IDENTITY KEY minting is idempotent on: `place|documentKey|hash(text)`.
@@ -196,21 +196,21 @@ public struct Passage: Sendable, Equatable, Identifiable {
     /// conversation is already calling `[S1]`, which is the drift the opaque
     /// handle was introduced to end.
     ///
-    /// `AmbientRealm.token` and not `memoryToken`: two taught applications must
+    /// `AmbientPlace.token` and not `memoryToken`: two taught applications must
     /// never share an identity namespace, and `other_apps:manuscripts` is the
     /// spelling that cannot collide with a world's own `rawValue`.
     public static func identity(
-        place: AmbientRealm, documentKey: String, text: String
+        place: AmbientPlace, documentKey: String, text: String
     ) -> String {
         "\(place.token)|\(documentKey)|\(ContentUndoStore.hash(text))"
     }
 
     /// The built-in spelling, unchanged byte for byte — `token` IS `rawValue`
-    /// for a native realm, so no previously minted handle moves.
+    /// for a native place, so no previously minted handle moves.
     public static func identity(
         world: AmbientWorld, documentKey: String, text: String
     ) -> String {
-        identity(place: .native(world), documentKey: documentKey, text: text)
+        identity(place: .lane(world), documentKey: documentKey, text: text)
     }
 
     public var identity: String {

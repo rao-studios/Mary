@@ -145,7 +145,7 @@ import Testing
     /// THE PARADIGM STANDS ON THE SCHEMA ALONE.
     ///
     /// This is the rule that makes "accessibility is tier 0" a portable claim
-    /// rather than a slogan: the ambient layer — store, tiers, realms,
+    /// rather than a slogan: the ambient layer — store, tiers, places,
     /// surfaces — must be readable and testable without a model runtime or a
     /// Mac integration behind it. Everything it needs from above arrives as an
     /// injected protocol. A second edge here is a claim that the paradigm is

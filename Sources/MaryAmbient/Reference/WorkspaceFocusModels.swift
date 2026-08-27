@@ -13,7 +13,7 @@
 //  compiled applications at all, so the enum would have exactly zero cases,
 //  and every question it answered ("what is this app called", "does its
 //  watcher hold the whole document") is now a question about a registration —
-//  asked of `AmbientRealm`, which resolves it through the roster.
+//  asked of `AmbientPlace`, which resolves it through the roster.
 //
 //  A PIN IS THEREFORE JUST A PLACE AND ITS DISCIPLINE. Bonnie's `PinnedWorld`
 //  was a three-case enum where two cases named compiled worlds and the third
@@ -28,7 +28,7 @@ import Foundation
 /// Not a taxonomy of applications but of WORK: the arbiter uses it to decide
 /// whether a manuscript and a source file are rivals for the same attention
 /// or two unrelated things. A package declares which disciplines it realizes,
-/// and `AmbientRealm.focus` projects that down to this.
+/// and `AmbientPlace.focus` projects that down to this.
 public enum WorkspaceFocus: Sendable, Equatable {
     case coding
     case writing
@@ -85,9 +85,9 @@ public struct PinnedWorld: Sendable, Equatable {
 
     /// Where the pin points. Resolved through the roster on every read rather
     /// than held, because a pin is a value that outlives an import: a package
-    /// can be reinstalled under the same id and the realm must follow it.
-    public var place: AmbientRealm {
+    /// can be reinstalled under the same id and the place must follow it.
+    public var place: AmbientPlace {
         AmbientApplicationIndexProvider.current.registration(id: applicationID)?.place
-            ?? .dynamic(applicationID)
+            ?? .application(applicationID)
     }
 }

@@ -60,9 +60,9 @@ final class AmbientSurfaceObserverTests: XCTestCase {
     }
 
     private func slate(
-        _ index: AmbientElementIndexStore, _ realm: AmbientRealm
+        _ index: AmbientElementIndexStore, _ place: AmbientPlace
     ) -> [String] {
-        index.index(for: .affordances(in: realm))?
+        index.index(for: .affordances(in: place))?
             .records.map { $0.name ?? "" } ?? []
     }
 
@@ -115,7 +115,7 @@ final class AmbientSurfaceObserverTests: XCTestCase {
             front: (7, "com.apple.Safari"))
         let target = observer.target()
         XCTAssertNotNil(target)
-        XCTAssertTrue(AmbientRealmResolver.isBrowser(bundleID: target?.bundleID ?? ""))
+        XCTAssertTrue(AmbientPlaceResolver.isBrowser(bundleID: target?.bundleID ?? ""))
     }
 
     // MARK: - The two publications
@@ -127,12 +127,12 @@ final class AmbientSurfaceObserverTests: XCTestCase {
             store: store, index: index, front: (7, "com.example.app"))
         observer.pollOnce(at: epoch)
 
-        let realm = AmbientRealmResolver.applicationRealm(forBundleID: "com.example.app")
-        let surface = store.surface(place: realm, at: epoch)
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        let surface = store.surface(place: place, at: epoch)
         XCTAssertEqual(surface?.application.name, "Example")
         XCTAssertEqual(surface?.activeWindow?.title, "Document")
         XCTAssertEqual(surface?.elements.first?.label, "Save")
-        XCTAssertEqual(slate(index, realm), ["Save"])
+        XCTAssertEqual(slate(index, place), ["Save"])
     }
 
     func testBrowserRealmPublishesSurfaceButNeverAffordances() {
@@ -142,9 +142,9 @@ final class AmbientSurfaceObserverTests: XCTestCase {
             store: store, index: index, front: (7, "com.apple.Safari"))
         observer.pollOnce(at: epoch)
 
-        let realm = AmbientRealmResolver.applicationRealm(forBundleID: "com.apple.Safari")
-        XCTAssertNotNil(store.surface(place: realm, at: epoch))
-        XCTAssertTrue(slate(index, realm).isEmpty)
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.apple.Safari")
+        XCTAssertNotNil(store.surface(place: place, at: epoch))
+        XCTAssertTrue(slate(index, place).isEmpty)
     }
 
     func testSwitchingApplicationsRetractsThePreviousSlate() {
@@ -163,17 +163,17 @@ final class AmbientSurfaceObserverTests: XCTestCase {
             trusted: { true })
 
         observer.pollOnce(at: epoch)
-        let firstRealm = AmbientRealmResolver
-            .applicationRealm(forBundleID: "com.example.first")
-        XCTAssertEqual(slate(index, firstRealm), ["Save"])
+        let firstPlace = AmbientPlaceResolver
+            .applicationPlace(forBundleID: "com.example.first")
+        XCTAssertEqual(slate(index, firstPlace), ["Save"])
 
         front.set((9, "com.example.second"))
         observer.pollOnce(at: epoch.addingTimeInterval(10))
-        let secondRealm = AmbientRealmResolver
-            .applicationRealm(forBundleID: "com.example.second")
-        XCTAssertEqual(slate(index, secondRealm), ["Publish"])
+        let secondPlace = AmbientPlaceResolver
+            .applicationPlace(forBundleID: "com.example.second")
+        XCTAssertEqual(slate(index, secondPlace), ["Publish"])
         XCTAssertTrue(
-            slate(index, firstRealm).isEmpty,
+            slate(index, firstPlace).isEmpty,
             "the previous application's slate must be retracted, not left live")
     }
 
@@ -187,14 +187,14 @@ final class AmbientSurfaceObserverTests: XCTestCase {
             frontmost: { front.get() },
             trusted: { true })
         observer.pollOnce(at: epoch)
-        let realm = AmbientRealmResolver.applicationRealm(forBundleID: "com.example.app")
-        XCTAssertEqual(slate(index, realm), ["Save"])
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        XCTAssertEqual(slate(index, place), ["Save"])
 
         front.set(nil)
         observer.pollOnce(at: epoch.addingTimeInterval(1))
-        XCTAssertTrue(slate(index, realm).isEmpty)
+        XCTAssertTrue(slate(index, place).isEmpty)
         // The surface is NOT retracted — drop-at-expiry is the tier's honesty.
-        XCTAssertNotNil(store.surface(place: realm, at: epoch.addingTimeInterval(1)))
+        XCTAssertNotNil(store.surface(place: place, at: epoch.addingTimeInterval(1)))
     }
 
     // MARK: - Skip when unchanged
@@ -215,11 +215,11 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         captureDate = epoch.addingTimeInterval(10)
         observer.pollOnce(at: captureDate)
 
-        let realm = AmbientRealmResolver.applicationRealm(forBundleID: "com.example.app")
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
         XCTAssertEqual(
-            store.surface(place: realm, at: captureDate)?.capturedAt, captureDate,
+            store.surface(place: place, at: captureDate)?.capturedAt, captureDate,
             "an unchanged screen must still re-stamp its surface, or it expires")
-        XCTAssertEqual(slate(index, realm), ["Save"])
+        XCTAssertEqual(slate(index, place), ["Save"])
     }
 
     func testChangedScreenRepublishesTheSlate() {
@@ -237,7 +237,7 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         label = "Publish"
         observer.pollOnce(at: epoch.addingTimeInterval(10))
 
-        let realm = AmbientRealmResolver.applicationRealm(forBundleID: "com.example.app")
-        XCTAssertEqual(slate(index, realm), ["Publish"])
+        let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
+        XCTAssertEqual(slate(index, place), ["Publish"])
     }
 }

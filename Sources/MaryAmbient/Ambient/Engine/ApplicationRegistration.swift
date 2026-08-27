@@ -97,7 +97,7 @@ public struct ApplicationRegistration: Sendable, Equatable {
     ///
     /// Non-nil ONLY for an application that genuinely is a built-in world
     /// (every Native Plugin: `"calendar"` → `.calendar`). Nil is the ordinary
-    /// case for a Dynamic package, and `AmbientRealm` then rides the generic
+    /// case for a Dynamic package, and `AmbientPlace` then rides the generic
     /// perception world with `id` as its discriminator.
     public var legacyWorld: AmbientWorld?
 
@@ -178,19 +178,19 @@ public struct ApplicationRegistration: Sendable, Equatable {
 
     /// The lane this application's facts key under.
     ///
-    /// THE BROWSER CARVE-OUT (mirrors `AmbientRealmResolver.realm`): a dynamic
+    /// THE BROWSER CARVE-OUT (mirrors `AmbientPlaceResolver.place`): a dynamic
     /// registration whose process identities are ALL browsers (chrome.mary,
     /// claiming com.google.Chrome) files on the one shared browser workspace,
-    /// not a realm of its own. The browser is ONE workspace regardless of
+    /// not a place of its own. The browser is ONE workspace regardless of
     /// which plugin drives it; a package registration grants verbs, it never
     /// splits the lane's facts and memory by engine. Native plugins carry a
     /// `legacyWorld` and never reach the carve-out.
-    public var place: AmbientRealm {
+    public var place: AmbientPlace {
         if legacyWorld == nil, !bundleIdentifiers.isEmpty,
-           bundleIdentifiers.allSatisfy({ AmbientRealmResolver.isBrowser(bundleID: $0) }) {
-            return AmbientRealmResolver.browserRealm
+           bundleIdentifiers.allSatisfy({ AmbientPlaceResolver.isBrowser(bundleID: $0) }) {
+            return AmbientPlaceResolver.browserPlace
         }
-        return AmbientRealm(world: legacyWorld ?? .applications,
+        return AmbientPlace(world: legacyWorld ?? .applications,
                             application: legacyWorld == nil ? id : nil)
     }
 }

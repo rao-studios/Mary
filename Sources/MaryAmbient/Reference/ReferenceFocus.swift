@@ -80,10 +80,10 @@ public enum ReferenceAct: Sendable, Equatable {
 
 /// THE ANSWER: which container this turn means, and how we know.
 public struct ResolvedReferent: Sendable, Equatable {
-    /// WHERE the referred-to container lives. A realm, so a taught
+    /// WHERE the referred-to container lives. A place, so a taught
     /// application's `[D#]` is a referent in its own right rather than one of
     /// however many are riding the `.applications` host lane.
-    public var place: AmbientRealm
+    public var place: AmbientPlace
     /// The place's own `documentKey` — the same string its `PassageBacking`
     /// answers `bodyForDocument` for.
     public var key: String
@@ -95,7 +95,7 @@ public struct ResolvedReferent: Sendable, Equatable {
     public var alternative: ReferenceResolver.Rival?
 
     public init(
-        place: AmbientRealm, key: String, title: String,
+        place: AmbientPlace, key: String, title: String,
         rung: ReferenceResolver.Rung,
         confidence: ReferenceResolver.Confidence = .exact,
         alternative: ReferenceResolver.Rival? = nil
@@ -116,7 +116,7 @@ public struct ResolvedReferent: Sendable, Equatable {
         alternative: ReferenceResolver.Rival? = nil
     ) {
         self.init(
-            place: .native(world), key: key, title: title, rung: rung,
+            place: .lane(world), key: key, title: title, rung: rung,
             confidence: confidence, alternative: alternative)
     }
 }
@@ -154,7 +154,7 @@ public enum ReferenceFocus {
     public static func resolve(
         utterance: String,
         rosters: [ContainerRoster],
-        lead: AmbientRealm?,
+        lead: AmbientPlace?,
         registry: ContainerRegistry = .shared,
         now: Date = Date()
     ) -> ResolvedReferent? {
@@ -173,7 +173,7 @@ public enum ReferenceFocus {
         utterance: String,
         act: ReferenceAct,
         rosters: [ContainerRoster],
-        lead: AmbientRealm?,
+        lead: AmbientPlace?,
         registry: ContainerRegistry = .shared,
         now: Date = Date()
     ) -> ReferenceDecision {
@@ -194,13 +194,13 @@ public enum ReferenceFocus {
         for roster in rosters {
             // GUARANTEE CLAUSE 2: the leading world's containers are not
             // referents. Its seams already answer correctly.
-            guard roster.realm != lead else { continue }
+            guard roster.place != lead else { continue }
             let rows = roster.cached()
             guard !rows.isEmpty else { continue }
 
             let keys = rows.map(\.key)
-            let ranks = registry.salienceRanks(realm: roster.realm, keys: keys, at: now)
-            if let remembered = registry.listing(for: roster.realm, against: keys) {
+            let ranks = registry.salienceRanks(place: roster.place, keys: keys, at: now)
+            if let remembered = registry.listing(for: roster.place, against: keys) {
                 // ONE LISTING AT A TIME. Two worlds both holding a live listing
                 // would make "the second one" ambiguous across worlds, and the
                 // honest answer to an ambiguous ordinal is to abstain — so the
@@ -208,7 +208,7 @@ public enum ReferenceFocus {
                 if listing == nil {
                     listing = remembered.keys
                     listingIsNewest = isNewestEvidence(
-                        remembered, realm: roster.realm, registry: registry, now: now)
+                        remembered, place: roster.place, registry: registry, now: now)
                 } else {
                     listing = nil
                     listingIsNewest = false
@@ -217,10 +217,10 @@ public enum ReferenceFocus {
 
             candidates += rows.map { row in
                 ReferenceResolver.Candidate(
-                    realm: roster.realm,
+                    place: roster.place,
                     key: row.key,
                     handle: registry.handle(
-                        realm: roster.realm, prefix: roster.handlePrefix, key: row.key),
+                        place: roster.place, prefix: roster.handlePrefix, key: row.key),
                     title: row.title,
                     subtitle: row.subtitle,
                     body: row.body,
@@ -265,15 +265,15 @@ public enum ReferenceFocus {
             // (`lead?.focus == .writing` is the key), so the Xcode guarantee
             // and "add this to my sourdough note" while coding both stand.
             if lead?.focus == .writing,
-               choice.realm.focus == .writing,
-               choice.realm != lead {
+               choice.place.focus == .writing,
+               choice.place != lead {
                 let crossesOnEvidence = choice.confidence == .exact
                     && choice.rung != .content
                 guard crossesOnEvidence else { return .none }
             }
             let title = candidates.first { $0.key == choice.key }?.title ?? ""
             return .referent(ResolvedReferent(
-                place: choice.realm, key: choice.key, title: title,
+                place: choice.place, key: choice.key, title: title,
                 rung: choice.rung, confidence: choice.confidence,
                 alternative: choice.alternative))
 
@@ -344,12 +344,12 @@ public enum ReferenceFocus {
             // one" is still information, and the next anaphoric pick must stop
             // preferring it even when we cannot say what they did mean.
             registry.noteCorrection(
-                realm: previous.place, rejected: previous.key, intended: previous.key, at: now)
-            registry.noteEvidence(realm: previous.place, key: previous.key, .shown, at: now)
+                place: previous.place, rejected: previous.key, intended: previous.key, at: now)
+            registry.noteEvidence(place: previous.place, key: previous.key, .shown, at: now)
             return nil
         }
         registry.noteCorrection(
-            realm: intended.realm, rejected: previous.key, intended: intended.key, at: now)
+            place: intended.place, rejected: previous.key, intended: intended.key, at: now)
         return intended
     }
 
@@ -361,20 +361,20 @@ public enum ReferenceFocus {
         registry: ContainerRegistry,
         now: Date
     ) -> ReferenceResolver.Rival? {
-        guard let roster = rosters.first(where: { $0.realm == previous.place })
+        guard let roster = rosters.first(where: { $0.place == previous.place })
         else { return nil }
         let rows = roster.cached().filter { $0.key != previous.key }
         guard !rows.isEmpty else { return nil }
         if rows.count == 1 {
-            return .init(realm: previous.place, key: rows[0].key, title: rows[0].title)
+            return .init(place: previous.place, key: rows[0].key, title: rows[0].title)
         }
         let ranks = registry.salienceRanks(
-            realm: previous.place, keys: rows.map(\.key), at: now)
+            place: previous.place, keys: rows.map(\.key), at: now)
         guard let best = rows
             .filter({ ranks[$0.key] != nil })
             .min(by: { (ranks[$0.key] ?? .max) < (ranks[$1.key] ?? .max) })
         else { return nil }
-        return .init(realm: previous.place, key: best.key, title: best.title)
+        return .init(place: previous.place, key: best.key, title: best.title)
     }
 
     /// NEWEST EVIDENCE WINS — the rule for "the last one".
@@ -387,7 +387,7 @@ public enum ReferenceFocus {
     /// DOES, so it would always tie with its own evidence.
     public static func isNewestEvidence(
         _ listing: ContainerListing,
-        realm: AmbientRealm,
+        place: AmbientPlace,
         registry: ContainerRegistry,
         now: Date
     ) -> Bool {
@@ -396,7 +396,7 @@ public enum ReferenceFocus {
         ]
         for key in listing.keys {
             if registry.hasEvidence(
-                realm: realm,
+                place: place,
                 key: key,
                 kinds: referential,
                 newerThan: listing.at,

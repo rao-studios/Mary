@@ -26,7 +26,7 @@
 //  about the world and the codec keeps them different.
 //
 //  TOKENS, NOT ENUMS — the one rule that makes this file boring on purpose.
-//  Realms, slots and provenance are `String` here, never the live types they
+//  Places, slots and provenance are `String` here, never the live types they
 //  came from. A written episode is a historical record; if it referenced
 //  today's enums it would silently change meaning when a case is renamed, and
 //  fail to decode when one is removed. The mapping from live type to token
@@ -63,8 +63,8 @@ public struct CapturedApplication: Codable, Hashable, Sendable {
 /// and the elements the tier-0 walk published.
 public struct SurfaceCapture: Codable, Hashable, Sendable {
 
-    /// The realm this surface belongs to, as a token — `"textedit"`,
-    /// `"applications"`. See the file header on why this is not a realm type.
+    /// The place this surface belongs to, as a token — `"textedit"`,
+    /// `"applications"`. See the file header on why this is not a place type.
     public var place: String
 
     public var application: CapturedApplication
@@ -130,7 +130,7 @@ public struct SurfaceCapture: Codable, Hashable, Sendable {
 /// One held fact as it was injected — a claim about a place, with its age.
 public struct FactCapture: Codable, Hashable, Sendable {
 
-    /// Realm token — see the file header.
+    /// Place token — see the file header.
     public var place: String
 
     /// Slot token: which kind of claim this is — `"file"`, `"viewport"`,
@@ -196,18 +196,157 @@ public struct SelectionCapture: Codable, Hashable, Sendable {
     }
 }
 
+/// WHAT THE QUERY REQUIRED, as tokens.
+public struct NeedCapture: Codable, Hashable, Sendable {
+    /// Ability ids the utterance asked for.
+    public var abilities: [String]
+    /// The discipline a cue named, when one did.
+    public var discipline: String?
+
+    public init(abilities: [String] = [], discipline: String? = nil) {
+        self.abilities = abilities
+        self.discipline = discipline
+    }
+
+    private enum CodingKeys: String, CodingKey { case abilities, discipline }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        abilities = try values.decodeIfPresent([String].self, forKey: .abilities) ?? []
+        discipline = try values.decodeIfPresent(String.self, forKey: .discipline)
+    }
+}
+
+/// ONE APPLICATION THAT COULD HAVE SERVED, and the evidence about it.
+public struct CandidateCapture: Codable, Hashable, Sendable {
+    /// Place token — see the file header on why this is not a place type.
+    public var place: String
+    /// The needed abilities this one declares — the intersection, so an
+    /// application conforming to two needs appears once carrying both.
+    public var conformsByAbilities: [String]
+    public var conformsByDiscipline: Bool
+    public var targetClasses: [String]
+    public var hasEyes: Bool
+    /// The strongest live signal for this place and its age, when there was
+    /// one. Absent means the user had done nothing here recently — which is
+    /// usually why a conforming candidate lost.
+    public var evidence: String?
+    public var evidenceAgeSeconds: Double?
+
+    public init(
+        place: String,
+        conformsByAbilities: [String] = [],
+        conformsByDiscipline: Bool = false,
+        targetClasses: [String] = [],
+        hasEyes: Bool = false,
+        evidence: String? = nil,
+        evidenceAgeSeconds: Double? = nil
+    ) {
+        self.place = place
+        self.conformsByAbilities = conformsByAbilities
+        self.conformsByDiscipline = conformsByDiscipline
+        self.targetClasses = targetClasses
+        self.hasEyes = hasEyes
+        self.evidence = evidence
+        self.evidenceAgeSeconds = evidenceAgeSeconds
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case place, conformsByAbilities, conformsByDiscipline
+        case targetClasses, hasEyes, evidence, evidenceAgeSeconds
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        place = try values.decode(String.self, forKey: .place)
+        conformsByAbilities =
+            try values.decodeIfPresent([String].self, forKey: .conformsByAbilities) ?? []
+        conformsByDiscipline =
+            try values.decodeIfPresent(Bool.self, forKey: .conformsByDiscipline) ?? false
+        targetClasses = try values.decodeIfPresent([String].self, forKey: .targetClasses) ?? []
+        hasEyes = try values.decodeIfPresent(Bool.self, forKey: .hasEyes) ?? false
+        evidence = try values.decodeIfPresent(String.self, forKey: .evidence)
+        evidenceAgeSeconds = try values.decodeIfPresent(Double.self, forKey: .evidenceAgeSeconds)
+    }
+}
+
+/// WHAT COULD HAVE SERVED, AND WHERE IT LANDED — the judgement half of the
+/// input.
+///
+/// The surfaces and facts above record what Mary could SEE. This records what
+/// she could USE, which is a different question and the one a future model
+/// has to learn: a row saying "she typed into TextEdit" teaches an
+/// association, and the same row saying "three applications conformed to
+/// writing, TextEdit led on an activation four seconds old, the other two
+/// were cold" teaches the choice.
+public struct RealmCapture: Codable, Hashable, Sendable {
+
+    /// What the query required.
+    public var need: NeedCapture
+
+    /// Everything that could have served it, in the resolver's order.
+    public var candidates: [CandidateCapture]
+
+    /// The place that won, as a token. Nil is a real observation: a turn can
+    /// name a need, find applications that conform, and still point at
+    /// nothing — nobody is in any of them and the user named none.
+    public var place: String?
+
+    /// WHICH SIGNAL CHOSE — named, deictic, frontmost, pinned. "TextEdit,
+    /// because it was named" and "TextEdit, because it was in front" are
+    /// different turns to learn from even when the place is identical.
+    public var decidedBy: String?
+
+    public init(
+        need: NeedCapture = .init(),
+        candidates: [CandidateCapture] = [],
+        place: String? = nil,
+        decidedBy: String? = nil
+    ) {
+        self.need = need
+        self.candidates = candidates
+        self.place = place
+        self.decidedBy = decidedBy
+    }
+
+    private enum CodingKeys: String, CodingKey { case need, candidates, place, decidedBy }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        need = try values.decodeIfPresent(NeedCapture.self, forKey: .need) ?? .init()
+        candidates = try values.decodeIfPresent(
+            [CandidateCapture].self, forKey: .candidates) ?? []
+        place = try values.decodeIfPresent(String.self, forKey: .place)
+        decidedBy = try values.decodeIfPresent(String.self, forKey: .decidedBy)
+    }
+}
+
 /// Everything the model was given about the world for one turn.
 public struct AmbientCapture: Codable, Hashable, Sendable {
 
     /// How ranking chose what to include — token for the ranking mode.
     public var mode: String
 
-    /// The realm that led the turn, if one did. Token; nil when nothing led.
+    /// The place that led the turn, if one did. Token; nil when nothing led.
     public var lead: String?
 
     public var surfaces: [SurfaceCapture]
     public var facts: [FactCapture]
     public var selection: SelectionCapture?
+
+    /// WHAT COULD HAVE SERVED THE NEED, and where it landed.
+    ///
+    /// Nil until the resolver that computes a realm exists — it needs the
+    /// capability index, the roster and the focus signal together, which
+    /// arrive with the brain. Nil here means "nobody worked out the
+    /// candidates", never "there were none"; an empty `candidates` inside a
+    /// present realm is the second thing, and the two are different rows.
+    ///
+    /// `lead` above stays and is not redundant: it is the place the prompt
+    /// actually used. When both exist they must agree, and that is pinned —
+    /// a dataset that disagreed with the prompt about the where would teach
+    /// the wrong lesson confidently.
+    public var realm: RealmCapture?
 
     /// THE RENDERED TEXT, exactly as it reached the prompt.
     ///
@@ -227,6 +366,7 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
         surfaces: [SurfaceCapture] = [],
         facts: [FactCapture] = [],
         selection: SelectionCapture? = nil,
+        realm: RealmCapture? = nil,
         renderedSurfaceLines: [String] = [],
         renderedBlocks: [String] = [],
         renderedMentions: [String] = []
@@ -236,6 +376,7 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
         self.surfaces = surfaces
         self.facts = facts
         self.selection = selection
+        self.realm = realm
         self.renderedSurfaceLines = renderedSurfaceLines
         self.renderedBlocks = renderedBlocks
         self.renderedMentions = renderedMentions
@@ -248,13 +389,13 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
     }
 
     public var isEmpty: Bool {
-        surfaces.isEmpty && facts.isEmpty && selection == nil
+        surfaces.isEmpty && facts.isEmpty && selection == nil && realm == nil
             && renderedSurfaceLines.isEmpty && renderedBlocks.isEmpty
             && renderedMentions.isEmpty
     }
 
     private enum CodingKeys: String, CodingKey {
-        case mode, lead, surfaces, facts, selection
+        case mode, lead, surfaces, facts, selection, realm
         case renderedSurfaceLines, renderedBlocks, renderedMentions
     }
 
@@ -265,6 +406,7 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
         surfaces = try values.decodeIfPresent([SurfaceCapture].self, forKey: .surfaces) ?? []
         facts = try values.decodeIfPresent([FactCapture].self, forKey: .facts) ?? []
         selection = try values.decodeIfPresent(SelectionCapture.self, forKey: .selection)
+        realm = try values.decodeIfPresent(RealmCapture.self, forKey: .realm)
         renderedSurfaceLines =
             try values.decodeIfPresent([String].self, forKey: .renderedSurfaceLines) ?? []
         renderedBlocks = try values.decodeIfPresent([String].self, forKey: .renderedBlocks) ?? []

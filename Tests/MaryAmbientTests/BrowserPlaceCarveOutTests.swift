@@ -1,5 +1,5 @@
 //
-//  BrowserRealmCarveOutTests.swift
+//  BrowserPlaceCarveOutTests.swift
 //  BonnieAmbientTests
 //
 //  THE BROWSER CARVE-OUT SPEC. A dynamic package may REGISTER a browser
@@ -9,16 +9,16 @@
 //  the resolver ladder, the registration's `place`, and the tracker's
 //  record ladder. Without the carve-out, installing chrome.mary would
 //  silently re-home Chrome's facts, ledger evidence, and deposited memory
-//  into `.dynamic("chrome")`, splitting the browser lane by engine.
+//  into `.application("chrome")`, splitting the browser lane by engine.
 //
 
 import Foundation
 import Testing
 @testable import MaryAmbient
 
-@Suite struct BrowserRealmCarveOutTests {
+@Suite struct BrowserPlaceCarveOutTests {
 
-    /// SCOPED, never installed — same reasoning as AmbientRealmTests: these
+    /// SCOPED, never installed — same reasoning as AmbientPlaceTests: these
     /// suites run concurrently, and the process-wide provider would answer
     /// this question for whatever else is mid-turn.
     private func withRoster<T>(
@@ -48,7 +48,7 @@ import Testing
 
     /// The counter-case that proves the rule: a registration claiming a
     /// browser-shaped bundle WITHOUT realizing browsing is not a browser, and
-    /// keeps its own realm. Before browser-ness was declared, a hardcoded
+    /// keeps its own place. Before browser-ness was declared, a hardcoded
     /// prefix would have swallowed it.
     private var browserShapedImposter: ApplicationRegistration {
         ApplicationRegistration(
@@ -73,10 +73,10 @@ import Testing
     /// grants verbs, it never re-homes the workspace.
     @Test func registeredChromeStaysInTheBrowserRealm() {
         withRoster([chrome]) {
-            #expect(AmbientRealmResolver.realm(forBundleID: "com.google.Chrome")
-                == AmbientRealmResolver.browserRealm)
-            #expect(AmbientRealmResolver.applicationRealm(forBundleID: "com.google.Chrome")
-                == AmbientRealmResolver.browserRealm)
+            #expect(AmbientPlaceResolver.factPlace(forBundleID: "com.google.Chrome")
+                == AmbientPlaceResolver.browserPlace)
+            #expect(AmbientPlaceResolver.applicationPlace(forBundleID: "com.google.Chrome")
+                == AmbientPlaceResolver.browserPlace)
         }
     }
 
@@ -84,18 +84,18 @@ import Testing
     /// to the browser workspace even though only the exact bundle registered.
     @Test func chromeVariantsStayInTheBrowserRealm() {
         withRoster([chrome]) {
-            #expect(AmbientRealmResolver.realm(forBundleID: "com.google.Chrome.canary")
-                == AmbientRealmResolver.browserRealm)
+            #expect(AmbientPlaceResolver.factPlace(forBundleID: "com.google.Chrome.canary")
+                == AmbientPlaceResolver.browserPlace)
         }
     }
 
     /// A NON-BROWSER DYNAMIC APP IS UNTOUCHED by the carve-out: Sketch keeps
-    /// its own realm exactly as before.
-    @Test func nonBrowserRegistrationsKeepTheirOwnRealm() {
+    /// its own place exactly as before.
+    @Test func nonBrowserRegistrationsKeepTheirOwnPlace() {
         withRoster([chrome, sketch]) {
-            let realm = AmbientRealmResolver.realm(
+            let place = AmbientPlaceResolver.factPlace(
                 forBundleID: "com.bohemiancoding.sketch3")
-            #expect(realm == AmbientRealm(world: .applications, application: "sketch"))
+            #expect(place == AmbientPlace(world: .applications, application: "sketch"))
         }
     }
 
@@ -108,9 +108,9 @@ import Testing
     /// sees.
     @Test func browserOnlyRegistrationPlaceIsTheBrowserRealm() {
         withRoster([chrome, sketch]) {
-            #expect(chrome.place == AmbientRealmResolver.browserRealm)
+            #expect(chrome.place == AmbientPlaceResolver.browserPlace)
             #expect(sketch.place
-                == AmbientRealm(world: .applications, application: "sketch"))
+                == AmbientPlace(world: .applications, application: "sketch"))
         }
     }
 
@@ -125,19 +125,19 @@ import Testing
             bundleIdentifiers: ["com.google.Chrome", "com.example.tool"],
             worldClass: .workspace)
         #expect(mixed.place
-            == AmbientRealm(world: .applications, application: "hybrid"))
+            == AmbientPlace(world: .applications, application: "hybrid"))
     }
 
     /// THE TRACKER'S LADDER: a Chrome activation with chrome.mary
     /// installed still stamps the browser workspace — lead AND ledger, with
-    /// the concrete process behind the logical realm — never
+    /// the concrete process behind the logical place — never
     /// noteDynamicApplication("chrome").
     @Test func chromeActivationLeadsTheBrowserWorkspaceEvenWhenRegistered() {
         withRoster([chrome]) {
             let tracker = WorkspaceFocusTracker()
             tracker.record(bundleID: "com.google.Chrome", localizedName: "Google Chrome")
-            #expect(tracker.leadRealm() == AmbientRealmResolver.browserRealm)
-            #expect(tracker.evidenceProcess(for: AmbientRealmResolver.browserRealm)
+            #expect(tracker.leadPlace() == AmbientPlaceResolver.browserPlace)
+            #expect(tracker.evidenceProcess(for: AmbientPlaceResolver.browserPlace)
                 == "com.google.Chrome")
         }
     }
@@ -149,8 +149,8 @@ import Testing
         withRoster([sketch]) {
             let tracker = WorkspaceFocusTracker()
             tracker.record(bundleID: "com.bohemiancoding.sketch3", localizedName: "Sketch")
-            #expect(tracker.leadRealm()
-                == AmbientRealm(world: .applications, application: "sketch"))
+            #expect(tracker.leadPlace()
+                == AmbientPlace(world: .applications, application: "sketch"))
         }
     }
 
@@ -159,15 +159,15 @@ import Testing
     /// bundle family with no such declaration does not.
     @Test func onlyADeclaredBrowsingRegistrationJoinsTheBrowserWorkspace() {
         withRoster([browserShapedImposter]) {
-            #expect(!AmbientRealmResolver.isBrowser(
+            #expect(!AmbientPlaceResolver.isBrowser(
                 bundleID: "com.google.Chrome.helper.fake"))
-            #expect(AmbientRealmResolver.realm(
+            #expect(AmbientPlaceResolver.factPlace(
                 forBundleID: "com.google.Chrome.helper.fake")
-                != AmbientRealmResolver.browserRealm)
+                != AmbientPlaceResolver.browserPlace)
         }
         withRoster([chrome]) {
-            #expect(AmbientRealmResolver.isBrowser(bundleID: "com.google.Chrome"))
-            #expect(AmbientRealmResolver.browserName(
+            #expect(AmbientPlaceResolver.isBrowser(bundleID: "com.google.Chrome"))
+            #expect(AmbientPlaceResolver.browserName(
                 bundleID: "com.google.Chrome") == "Chrome")
         }
     }
@@ -177,12 +177,12 @@ import Testing
     /// is also what a machine that has installed nothing looks like.
     @Test func safariIsABrowserWithNoRegistrationsAtAll() {
         withRoster([]) {
-            #expect(AmbientRealmResolver.isBrowser(
+            #expect(AmbientPlaceResolver.isBrowser(
                 bundleID: WorkspaceApplicationIdentity.safari))
-            #expect(AmbientRealmResolver.browserName(
+            #expect(AmbientPlaceResolver.browserName(
                 bundleID: WorkspaceApplicationIdentity.safari) == "Safari")
             // And an uninstalled Chrome is simply not a browser yet.
-            #expect(!AmbientRealmResolver.isBrowser(bundleID: "com.google.Chrome"))
+            #expect(!AmbientPlaceResolver.isBrowser(bundleID: "com.google.Chrome"))
         }
     }
 }

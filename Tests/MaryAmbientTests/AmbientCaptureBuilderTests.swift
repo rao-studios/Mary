@@ -15,7 +15,7 @@
 //  not match inference input, which is the one thing behavioural cloning
 //  cannot survive.
 //
-//  THE TOKENS ARE THE SCHEMA. Realms and slots cross into the dataset as
+//  THE TOKENS ARE THE SCHEMA. Places and slots cross into the dataset as
 //  strings, and this file is where their spelling is agreed. Getting one
 //  wrong does not fail anything today — it silently splits one place into two
 //  populations in a dataset nobody reads for months.
@@ -35,7 +35,7 @@ import Testing
     // MARK: - Fixtures
 
     static let now = Date(timeIntervalSince1970: 1_787_821_200)
-    static let textEdit = AmbientRealm.dynamic("textedit")
+    static let textEdit = AmbientPlace.application("textedit")
 
     static func frame(_ x: Double, _ y: Double) -> AXFrame {
         AXFrame(
@@ -114,7 +114,7 @@ import Testing
     /// rather than crashing or emitting a placeholder.
     @Test func aRenderedKeyWithNoFactIsSkipped() {
         let held = Self.fact(content: "still here")
-        let vanished = AmbientKey(place: .dynamic("pages"), slot: .file)
+        let vanished = AmbientKey(place: .application("pages"), slot: .file)
         let rendering = AmbientRendering(
             mode: .relevance, blocks: ["x", "y"], keys: [vanished, held.key])
 
@@ -140,11 +140,11 @@ import Testing
 
     // MARK: - Tokens
 
-    /// The realm token is the collision-free spelling, shared with the pane
+    /// The place token is the collision-free spelling, shared with the pane
     /// and the trace so a capture and a trace naming one place say one word.
     @Test func realmTokensMatchTheRealmsOwnSpelling() {
         #expect(AmbientCaptureBuilder.token(for: Self.textEdit) == "applications:textedit")
-        #expect(AmbientCaptureBuilder.token(for: .native(.typer)) == "typer")
+        #expect(AmbientCaptureBuilder.token(for: .lane(.typer)) == "typer")
     }
 
     /// A named read keeps its phrase in the token, so a read of one thing
@@ -158,7 +158,7 @@ import Testing
     /// EVERY LANE AND EVERY SLOT HAS A TOKEN, and no two collide. A silent
     /// collision merges two populations in the dataset.
     @Test func laneTokensAreDistinct() {
-        let tokens = AmbientWorld.allCases.map { AmbientCaptureBuilder.token(for: .native($0)) }
+        let tokens = AmbientWorld.allCases.map { AmbientCaptureBuilder.token(for: .lane($0)) }
         #expect(Set(tokens).count == tokens.count)
         #expect(tokens.allSatisfy { !$0.isEmpty })
     }
@@ -283,5 +283,128 @@ import Testing
         let data = try BehavioralCodec.encoder().encode(capture)
         let decoded = try BehavioralCodec.decoder().decode(AmbientCapture.self, from: data)
         #expect(decoded == capture)
+    }
+}
+
+// MARK: - The realm: what could have served, and where it landed
+
+/// THE JUDGEMENT HALF OF THE INPUT. The surfaces record what Mary could SEE;
+/// the realm records what she could USE and which of those won. A dataset row
+/// with only the first teaches an association ("she typed into TextEdit"); a
+/// row with both teaches the choice ("three conformed; this one led on a
+/// four-second-old activation").
+@Suite struct RealmCaptureTests {
+
+    static let textEdit = AmbientPlace.application("textedit")
+    static let pages = AmbientPlace.application("pages")
+
+    /// AN APPLICATION CONFORMING TO TWO NEEDS APPEARS ONCE, CARRYING BOTH.
+    /// Splitting it would let the same place compete with itself, and the
+    /// dataset would show two candidates where the user had one choice.
+    static var realm: AmbientRealm {
+        AmbientRealm(
+            need: AmbientNeed(abilities: ["writing", "typing"], discipline: .writing),
+            candidates: [
+                AmbientCandidate(
+                    place: textEdit,
+                    conformsByAbilities: ["writing", "typing"],
+                    conformsByDiscipline: true,
+                    targetClasses: ["editable-prose-surface"],
+                    hasEyes: true,
+                    evidence: .activation,
+                    evidenceAgeSeconds: 4),
+                AmbientCandidate(
+                    place: pages,
+                    conformsByAbilities: ["writing"],
+                    conformsByDiscipline: true,
+                    hasEyes: true),
+            ],
+            place: textEdit,
+            decidedBy: .ambientSource)
+    }
+
+    private func capture(_ realm: AmbientRealm?) -> AmbientCapture {
+        AmbientCaptureBuilder.capture(
+            facts: [], surfaces: [],
+            rendering: AmbientRendering(mode: .focusedWorld),
+            lead: realm?.place, realm: realm,
+            at: Date(timeIntervalSince1970: 1_787_821_200))
+    }
+
+    @Test func aRealmReachesTheDatasetAsTokens() throws {
+        let captured = try #require(capture(Self.realm).realm)
+        #expect(captured.need.abilities == ["typing", "writing"], "sorted, so rows are stable")
+        #expect(captured.need.discipline == "writing")
+        #expect(captured.place == "applications:textedit")
+        #expect(captured.decidedBy == "ambientSource")
+        #expect(captured.candidates.map(\.place)
+            == ["applications:textedit", "applications:pages"])
+    }
+
+    @Test func aCandidateCarriesBothConformancesAndItsEvidence() throws {
+        let captured = try #require(capture(Self.realm).realm)
+        let chosen = try #require(captured.candidates.first)
+        #expect(chosen.conformsByAbilities == ["typing", "writing"])
+        #expect(chosen.conformsByDiscipline)
+        #expect(chosen.targetClasses == ["editable-prose-surface"])
+        #expect(chosen.evidence == "activation")
+        #expect(chosen.evidenceAgeSeconds == 4)
+
+        // The loser conformed too, and the row says so — that is the whole
+        // point of keeping the set after the decision.
+        let rival = try #require(captured.candidates.last)
+        #expect(rival.conformsByAbilities == ["writing"])
+        #expect(rival.evidence == nil, "cold: nothing recent happened there")
+    }
+
+    /// EVIDENCE IS A NAME, NOT A RANK. `FocusEvidenceKind`'s raw value is an
+    /// Int used for comparison; writing `2` into the dataset would record a
+    /// comparison rather than a fact.
+    @Test(arguments: [
+        (FocusEvidenceKind.activity, "activity"),
+        (.activation, "activation"),
+        (.glance, "glance"),
+    ])
+    func evidenceTokensAreNames(_ kind: FocusEvidenceKind, _ expected: String) {
+        #expect(AmbientCaptureBuilder.token(for: kind) == expected)
+    }
+
+    /// ABSENT IS NOT EMPTY, one level deeper than the capture itself. No realm
+    /// means nobody worked out the candidates; a realm with none means she
+    /// understood the need and knows nowhere that serves it.
+    @Test func noRealmAndAnEmptyRealmAreDifferentRows() throws {
+        let unresolved = capture(nil)
+        let nowhere = capture(AmbientRealm(need: AmbientNeed(discipline: .writing)))
+        #expect(unresolved.realm == nil)
+        #expect(nowhere.realm?.candidates.isEmpty == true)
+        #expect(nowhere.realm?.place == nil, "conformance found nobody, so nothing was chosen")
+
+        let a = try BehavioralCodec.encoder().encode(unresolved)
+        let b = try BehavioralCodec.encoder().encode(nowhere)
+        #expect(a != b)
+    }
+
+    /// THE DATASET AND THE PROMPT MUST AGREE ABOUT THE WHERE. `lead` is what
+    /// the prompt used; `realm.place` is what the resolver chose. A row where
+    /// they disagreed would teach the wrong lesson confidently.
+    @Test func theResolvedPlaceMatchesTheLead() {
+        let captured = capture(Self.realm)
+        #expect(captured.realm?.place == captured.lead)
+    }
+
+    @Test func aRealmBearingCaptureRoundTrips() throws {
+        let original = capture(Self.realm)
+        let data = try BehavioralCodec.encoder().encode(original)
+        let decoded = try BehavioralCodec.decoder().decode(AmbientCapture.self, from: data)
+        #expect(decoded == original)
+        #expect(try BehavioralCodec.encoder().encode(decoded) == data)
+    }
+
+    /// An omitted realm stays omitted in the canonical bytes — the digest
+    /// rule the whole codec keeps.
+    @Test func anAbsentRealmDoesNotAppearInTheEncoding() throws {
+        let data = try BehavioralCodec.encoder().encode(capture(nil))
+        let text = try #require(String(data: data, encoding: .utf8))
+        #expect(!text.contains("realm"))
     }
 }

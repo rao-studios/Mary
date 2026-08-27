@@ -15,11 +15,11 @@ import Testing
 @Suite struct AmbientSurfaceRenderTests {
 
     private let epoch = Date(timeIntervalSince1970: 1_700_000_000)
-    private let pages = AmbientRealm.dynamic("pages")
-    private let sketch = AmbientRealm(world: .applications, application: "com.example.sketch")
+    private let pages = AmbientPlace.application("pages")
+    private let sketch = AmbientPlace(world: .applications, application: "com.example.sketch")
 
     private func surface(
-        place: AmbientRealm? = nil, name: String = "Pages",
+        place: AmbientPlace? = nil, name: String = "Pages",
         window: String = "Essay", capturedAt: Date? = nil,
         freshFor: TimeInterval = AmbientSurface.defaultFreshFor
     ) -> AmbientSurface {
@@ -43,7 +43,7 @@ import Testing
         let rendering = AmbientRanker.render(
             facts: [fact("Essay — about 900 words.")],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface()],
             at: epoch)
         #expect(rendering.surfaceLines.count == 1)
@@ -55,7 +55,7 @@ import Testing
         let rendering = AmbientRanker.render(
             facts: [fact("Essay — about 900 words.")],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface()],
             at: epoch)
         #expect(!rendering.blocks.contains { $0.contains("On screen:") })
@@ -79,7 +79,7 @@ import Testing
         let withSurface = AmbientRanker.render(
             facts: [fact(detail)],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface()],
             budget: budget,
             at: epoch)
@@ -89,7 +89,7 @@ import Testing
         let withoutSurface = AmbientRanker.render(
             facts: [fact(detail)],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             budget: budget,
             at: epoch)
         #expect(withoutSurface.blocks.contains { $0.contains("detail detail") })
@@ -99,7 +99,7 @@ import Testing
         let rendering = AmbientRanker.render(
             facts: [],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface()],
             budget: 10,
             at: epoch)
@@ -110,7 +110,7 @@ import Testing
         let rendering = AmbientRanker.render(
             facts: [],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface(freshFor: 10)],
             at: epoch.addingTimeInterval(60))
         #expect(rendering.surfaceLines.isEmpty)
@@ -120,7 +120,7 @@ import Testing
         let rendering = AmbientRanker.render(
             facts: [],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             surfaces: [surface(place: sketch, name: "Sketch"), surface()],
             at: epoch)
         #expect(rendering.surfaceLines.count == 2)
@@ -132,7 +132,7 @@ import Testing
         let withNone = AmbientRanker.render(
             facts: [fact("Essay — about 900 words.")],
             utterance: "what am I looking at",
-            focusedPlace: .dynamic("pages"),
+            focusedPlace: .application("pages"),
             at: epoch)
         #expect(withNone.surfaceLines.isEmpty)
         #expect(!withNone.blocks.isEmpty)

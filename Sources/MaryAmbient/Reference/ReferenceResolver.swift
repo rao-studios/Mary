@@ -55,12 +55,12 @@ public enum ReferenceResolver {
 
     /// One container the resolver may choose, with everything the rungs need.
     public struct Candidate: Sendable, Equatable {
-        /// WHERE THIS CONTAINER LIVES. A realm, because `ContainerRoster` has
-        /// been realm-carrying since taught applications began enrolling `[D#]`
+        /// WHERE THIS CONTAINER LIVES. A place, because `ContainerRoster` has
+        /// been place-carrying since taught applications began enrolling `[D#]`
         /// rows, and narrowing it here was the last place two taught corpora
         /// collapsed onto the one `.applications` host lane — indistinguishable to
         /// every rung below, and eyeless to every consumer above.
-        public var realm: AmbientRealm
+        public var place: AmbientPlace
         public var key: String
         /// The registry's handle, when one has been minted.
         public var handle: String?
@@ -75,11 +75,11 @@ public enum ReferenceResolver {
         public var salience: Int?
 
         public init(
-            realm: AmbientRealm, key: String, handle: String? = nil,
+            place: AmbientPlace, key: String, handle: String? = nil,
             title: String, subtitle: String? = nil, body: String? = nil,
             listIndex: Int, isFront: Bool = false, salience: Int? = nil
         ) {
-            self.realm = realm
+            self.place = place
             self.key = key
             self.handle = handle
             self.title = title
@@ -97,7 +97,7 @@ public enum ReferenceResolver {
             listIndex: Int, isFront: Bool = false, salience: Int? = nil
         ) {
             self.init(
-                realm: .native(world), key: key, handle: handle, title: title,
+                place: .lane(world), key: key, handle: handle, title: title,
                 subtitle: subtitle, body: body, listIndex: listIndex,
                 isFront: isFront, salience: salience)
         }
@@ -123,24 +123,24 @@ public enum ReferenceResolver {
     /// A container that also matched. Kept because a correction needs something
     /// to re-aim AT, and because "several matched" is unsayable without it.
     public struct Rival: Sendable, Equatable {
-        public var realm: AmbientRealm
+        public var place: AmbientPlace
         public var key: String
         public var title: String
 
-        public init(realm: AmbientRealm, key: String, title: String) {
-            self.realm = realm
+        public init(place: AmbientPlace, key: String, title: String) {
+            self.place = place
             self.key = key
             self.title = title
         }
 
         /// The built-in spelling.
         public init(world: AmbientWorld, key: String, title: String) {
-            self.init(realm: .native(world), key: key, title: title)
+            self.init(place: .lane(world), key: key, title: title)
         }
     }
 
     public struct Choice: Sendable, Equatable {
-        public var realm: AmbientRealm
+        public var place: AmbientPlace
         public var key: String
         public var rung: Rung
         public var confidence: Confidence = .exact
@@ -148,10 +148,10 @@ public enum ReferenceResolver {
         public var alternative: Rival?
 
         public init(
-            realm: AmbientRealm, key: String, rung: Rung,
+            place: AmbientPlace, key: String, rung: Rung,
             confidence: Confidence = .exact, alternative: Rival? = nil
         ) {
-            self.realm = realm
+            self.place = place
             self.key = key
             self.rung = rung
             self.confidence = confidence
@@ -164,7 +164,7 @@ public enum ReferenceResolver {
             confidence: Confidence = .exact, alternative: Rival? = nil
         ) {
             self.init(
-                realm: .native(world), key: key, rung: rung,
+                place: .lane(world), key: key, rung: rung,
                 confidence: confidence, alternative: alternative)
         }
     }
@@ -252,7 +252,7 @@ public enum ReferenceResolver {
                 continue
             case .hit(let candidate, let confidence, let alternative):
                 return .resolved(Choice(
-                    realm: candidate.realm, key: candidate.key, rung: rung,
+                    place: candidate.place, key: candidate.key, rung: rung,
                     confidence: confidence, alternative: alternative.map(rival)))
             case .ambiguous(let phrase, let rivals):
                 return .ambiguous(phrase: phrase, rivals: rivals.map(rival))
@@ -289,7 +289,7 @@ public enum ReferenceResolver {
     }
 
     public static func rival(_ candidate: Candidate) -> Rival {
-        Rival(realm: candidate.realm, key: candidate.key, title: candidate.title)
+        Rival(place: candidate.place, key: candidate.key, title: candidate.title)
     }
 
     // MARK: - 0. Handle

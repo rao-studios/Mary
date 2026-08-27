@@ -289,7 +289,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
             // perfectly good highlight in hand. The DISCIPLINE decides, which
             // is what Bonnie's `world == .xcode` meant while one compiled
             // world was the only coding place there was.
-            schemaID: AmbientRealm(world: world, application: application).focus == .coding
+            schemaID: AmbientPlace(world: world, application: application).focus == .coding
                 ? .codeSelection : .textSelection,
             scope: scope,
             capturedAt: capturedAt,

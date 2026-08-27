@@ -59,7 +59,7 @@ public enum WorkspaceApplicationIdentity {
     /// into a table here would restate what the package already says, and
     /// would leave the next browser package (Arc, Firefox, a fork) invisible
     /// to the focus ledger no matter what it declared. See
-    /// `AmbientRealmResolver.browserIdentities`.
+    /// `AmbientPlaceResolver.browserIdentities`.
     public static let safari = "com.apple.Safari"
 }
 

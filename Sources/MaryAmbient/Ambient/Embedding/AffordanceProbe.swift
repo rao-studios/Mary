@@ -73,7 +73,7 @@ public enum AffordanceProbe {
     /// The best-serving control for this goal, if the screen offers one.
     ///
     /// Ranked across every fresh affordance slate rather than only the lead
-    /// realm's: a slate exists only where a perception lane published one, so
+    /// place's: a slate exists only where a perception lane published one, so
     /// candidacy already follows publication, and the second application's
     /// controls are exactly as real as the first's.
     public static func candidate(

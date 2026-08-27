@@ -49,12 +49,12 @@ public struct AmbientTraceRecord: Sendable, Equatable, Identifiable {
     public var abilityRoster: AbilityRosterTrace
     /// Structured, privacy-safe receipts in invocation order.
     public var skillRuns: [SkillRunReceipt]
-    /// The responder-layer signal AT EXCHANGE TIME: realms with fresh
+    /// The responder-layer signal AT EXCHANGE TIME: places with fresh
     /// evidence beside the lead, and which of them were only glanced.
     /// Stamped when the row is recorded — the lens must not re-read live
     /// tracker state onto an old row.
-    public var coActiveRealms: [AmbientRealm]
-    public var glancedRealms: Set<AmbientRealm>
+    public var coActivePlaces: [AmbientPlace]
+    public var glancedPlaces: Set<AmbientPlace>
 
     public init(
         id: UUID = UUID(),
@@ -68,8 +68,8 @@ public struct AmbientTraceRecord: Sendable, Equatable, Identifiable {
         exposedSkillCount: Int = 0,
         abilityRoster: AbilityRosterTrace = .empty,
         skillRuns: [SkillRunReceipt] = [],
-        coActiveRealms: [AmbientRealm] = [],
-        glancedRealms: Set<AmbientRealm> = []
+        coActivePlaces: [AmbientPlace] = [],
+        glancedPlaces: Set<AmbientPlace> = []
     ) {
         self.id = id
         self.date = date
@@ -82,8 +82,8 @@ public struct AmbientTraceRecord: Sendable, Equatable, Identifiable {
         self.exposedSkillCount = exposedSkillCount
         self.abilityRoster = abilityRoster
         self.skillRuns = skillRuns
-        self.coActiveRealms = coActiveRealms
-        self.glancedRealms = glancedRealms
+        self.coActivePlaces = coActivePlaces
+        self.glancedPlaces = glancedPlaces
     }
 }
 

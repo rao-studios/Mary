@@ -112,22 +112,22 @@ public final class ApplicationsWatcher: MaryObserver, @unchecked Sendable {
     /// An unregistered application still answers `.applications` with no
     /// lane — one shared perception world for every app Mary has been told
     /// nothing about.
-    static func selectionPlace(for bundleID: String) -> AmbientRealm {
+    static func selectionPlace(for bundleID: String) -> AmbientPlace {
         // THE BROWSER WORKSPACE, ABOVE THE REGISTRY RUNG. SafariPlugin claims
         // BOTH browser bundles and its world is `.safari`, so the registry
-        // below would file a CHROME highlight into `.native(.safari)` while
+        // below would file a CHROME highlight into `.lane(.safari)` while
         // the browser lead — and the browser's tab facts and elements — all
-        // read `.dynamic("browser")`. Highlight a paragraph in a Google Doc,
+        // read `.application("browser")`. Highlight a paragraph in a Google Doc,
         // say "make this shorter", and the highlight would be held in a lane
-        // the leading realm cannot see. Selections belong where the eyes are.
-        if AmbientRealmResolver.isBrowser(bundleID: bundleID) {
-            return AmbientRealmResolver.browserRealm
+        // the leading place cannot see. Selections belong where the eyes are.
+        if AmbientPlaceResolver.isBrowser(bundleID: bundleID) {
+            return AmbientPlaceResolver.browserPlace
         }
         if let registered = AmbientApplicationIndexProvider.current
             .registration(bundleID: bundleID) {
             return registered.place
         }
-        return .world(.applications)
+        return .lane(.applications)
     }
 
     // MARK: - MaryObserver
@@ -172,7 +172,7 @@ public final class ApplicationsWatcher: MaryObserver, @unchecked Sendable {
         }
         if let registration { SelectionHandoffCoordinator.shared.unregister(registration) }
         await removeSelectionGestureMonitor()
-        ambient.forgetPerceived(place: .world(.applications))
+        ambient.forgetPerceived(place: .lane(.applications))
     }
 
     /// Accessibility notifications are inconsistent across canvas editors,

@@ -174,12 +174,12 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// `AmbientContextStore+Surface.swift`, which owns every access).
     /// `internal` so the extension file and `@testable` reach it.
     let surfaceBox =
-        OSAllocatedUnfairLock<[AmbientRealm: AmbientSurface]>(initialState: [:])
+        OSAllocatedUnfairLock<[AmbientPlace: AmbientSurface]>(initialState: [:])
     /// The focus arbiter's current lead — held as a PLACE, because the lead
     /// can be a registered application riding `.applications`, and a world alone
     /// cannot say which one. World callers read `place.world`, unchanged.
     private let leadBox =
-        OSAllocatedUnfairLock<(place: AmbientRealm, at: Date)?>(initialState: nil)
+        OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
     /// The utterance currently being answered.
     private let utteranceBox = OSAllocatedUnfairLock<String>(initialState: "")
     /// The resolved container for the active turn.
@@ -240,7 +240,7 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     /// The gate's partition for one world's facts.
     public static func scope(world: AmbientWorld) -> AmbientElementScope {
-        AmbientElementScope(realm: .world(world), key: world.rawValue)
+        AmbientElementScope(place: .lane(world), key: world.rawValue)
     }
 
     /// Republish one world's facts. Outside the fact lock, like every
@@ -292,7 +292,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             // ONE PASS PER LANE. A batch can carry facts for several
             // registered applications sharing `.applications`, and each owns its
             // own read budget — see `capNamedReads`.
-            var lanes: Set<AmbientRealm> = []
+            var lanes: Set<AmbientPlace> = []
             for fact in nonSelectionFacts { lanes.insert(fact.place) }
             for lane in lanes {
                 Self.capNamedReads(&stored, world: lane.world, application: lane.application)
@@ -351,7 +351,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// LANE-SCOPED BY CONSTRUCTION: the place IS the lane, so a registered
     /// application's teardown can never erase what a sibling on the same host
     /// world still perceives.
-    public func forgetPerceived(place: AmbientRealm) {
+    public func forgetPerceived(place: AmbientPlace) {
         box.withLock { stored in
             for key in Array(stored.keys)
             where key.place == place && key.slot.isPerceived {
@@ -369,7 +369,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// WORLD-WIDE teardown — every lane in the world goes, including every
     /// registered application riding it. Deliberately NOT a
     /// `forget(place:)` wrapper, and deliberately world-typed for good: a
-    /// realm names ONE lane, and this method's callers (disable/quit paths,
+    /// place names ONE lane, and this method's callers (disable/quit paths,
     /// test isolation) mean the whole world — a legitimate cross-lane
     /// operation, the same species of query as `facts(world:)`. The
     /// world-typed signature IS the roster/lane distinction: you cannot
@@ -446,13 +446,13 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     /// Which PLACE the focus arbiter gave the lead to this turn — the
     /// canonical writer, and since M4 the only one.
-    public func noteLead(place: AmbientRealm?) {
+    public func noteLead(place: AmbientPlace?) {
         leadBox.withLock { $0 = place.map { ($0, Date()) } }
     }
 
     /// The canonical read: the lead as a place, decayed at `leadHorizon` —
     /// the copy must not assert longer than its tracker-derived source.
-    public func leadRealm(at now: Date = Date()) -> AmbientRealm? {
+    public func leadPlace(at now: Date = Date()) -> AmbientPlace? {
         leadBox.withLock { held in
             guard let held, now.timeIntervalSince(held.at) <= Self.leadHorizon
             else { return nil }
@@ -1043,11 +1043,11 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     /// EVERY lane in a world — for `.applications`, every registered
-    /// application at once. Deliberately NOT `facts(place: .world(world))`:
+    /// application at once. Deliberately NOT `facts(place: .lane(world))`:
     /// that names the world's OWN lane and would drop every registered
     /// application's facts from the roster queries (`publishElements`,
     /// `noteAttention`'s emit) that mean the whole world. A world-wide query
-    /// is a legitimate cross-lane operation, not a missing realm overload —
+    /// is a legitimate cross-lane operation, not a missing place overload —
     /// the world-typed signature is the name of that scope, permanently, the
     /// same way `forget(world:)` spells world-wide teardown.
     public func facts(world: AmbientWorld, at now: Date = Date()) -> [AmbientFact] {
@@ -1057,7 +1057,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// One LANE's facts. `facts(world:)` returns everything in a world, which
     /// for `.applications` is every registered application at once — right for a
     /// roster, wrong for "what is this application looking at".
-    public func facts(place: AmbientRealm, at now: Date = Date()) -> [AmbientFact] {
+    public func facts(place: AmbientPlace, at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter { $0.place == place }
     }
 

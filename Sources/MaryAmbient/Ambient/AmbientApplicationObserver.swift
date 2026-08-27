@@ -66,7 +66,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
         var operation: String
         var pollSeconds: Int
         var freshFor: TimeInterval
-        var place: AmbientRealm
+        var place: AmbientPlace
         var task: Task<Void, Never>?
         var running = false
         var pending = false
@@ -94,7 +94,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
     /// forgotten.
     public func activate() {
         let sighted = AmbientApplicationIndexProvider.current.all.filter(\.hasEyes)
-        var retired: [AmbientRealm] = []
+        var retired: [AmbientPlace] = []
         lanesBox.withLock { lanes in
             var wanted: Set<String> = []
             for registration in sighted {
@@ -136,7 +136,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
     /// Full stop: every lane cancelled, every lane's perceived facts
     /// forgotten. The observer never claims sight it no longer maintains.
     public func deactivate() {
-        let retired: [AmbientRealm] = lanesBox.withLock { lanes in
+        let retired: [AmbientPlace] = lanesBox.withLock { lanes in
             let places = lanes.values.map(\.place)
             for lane in lanes.values { lane.task?.cancel() }
             lanes.removeAll()
@@ -193,7 +193,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
         // Decide under the lock, ACT outside it — the store takes its own
         // lock, and the house rule (PassageRecipes' accessor) is that nothing
         // is invoked while one is held.
-        enum StoreAction { case replace(AmbientRealm, TimeInterval), retract(AmbientRealm), none }
+        enum StoreAction { case replace(AmbientPlace, TimeInterval), retract(AmbientPlace), none }
         let action: StoreAction = lanesBox.withLock { lanes in
             guard var current = lanes[registrationID] else { return .none }
             defer { lanes[registrationID] = current }

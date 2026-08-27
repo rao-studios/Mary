@@ -73,7 +73,7 @@ public struct LocatedPassage: Sendable, Equatable {
     public var handle: String
     /// Which place the document lives in. Eyes-bearing by construction: a
     /// passage cannot be minted for anything else (`Passage.init?`).
-    public var place: AmbientRealm
+    public var place: AmbientPlace
     /// What to CALL the document out loud. Display only, never an identity —
     /// the identity is on the `Passage` the handle resolves to.
     public var documentTitle: String
@@ -101,7 +101,7 @@ public struct LocatedPassage: Sendable, Equatable {
 
     public init(
         handle: String,
-        place: AmbientRealm,
+        place: AmbientPlace,
         documentTitle: String,
         text: String,
         boundsLabel: String,

@@ -44,13 +44,13 @@ public final class WorkspaceFocusTracker: Sendable {
     ///
     /// ONE BOX, because there is one kind of answer. Bonnie carried two: a
     /// closed `WritingApp` enum for its compiled writing worlds, and this
-    /// realm as an escape hatch for applications taught by package. The enum
+    /// place as an escape hatch for applications taught by package. The enum
     /// always answered SOMETHING — it had no way not to — so a taught
     /// application's autosave was detected and then thrown away, and a
     /// default meant for one app came to answer for another. Every
     /// application is taught in Mary, so the escape hatch is the whole road,
     /// and nil honestly means "nobody has written anywhere yet".
-    let writingPlaceBox = OSAllocatedUnfairLock<AmbientRealm?>(initialState: nil)
+    let writingPlaceBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
     /// User-planted pin; overlays ambient below the turn override. NOT gated
     /// by signalsAllowed() — a debugger click is user intent, not a ceremony
     /// echo, so it lands even mid-suppress/mid-self-driving.
@@ -60,27 +60,27 @@ public final class WorkspaceFocusTracker: Sendable {
     let holdsBox = OSAllocatedUnfairLock<Set<UUID>>(initialState: [])
     /// WHICH REALM last asserted the lead — ONE box for both cases of the
     /// identity. The native arms of `record(bundleID:)` and the watchers'
-    /// real-work signals stamp `.native(world)`; a registered dynamic
-    /// application's activation/activity stamps its registration's realm.
+    /// real-work signals stamp `.lane(world)`; a registered dynamic
+    /// application's activation/activity stamps its registration's place.
     /// Recency between the two used to be a cross-box comparison (the
     /// deleted dynamic-channel read peeking at `box`); with one box it is
     /// trivial ordering — whoever stamped last leads. `box` stays beside it
     /// untouched, because focus (`.coding`/`.writing`) is vocabulary the
-    /// arbiter ranks and a realm is an address; they decay on the same
+    /// arbiter ranks and a place is an address; they decay on the same
     /// horizon but answer different questions.
     let leadBox =
-        OSAllocatedUnfairLock<(realm: AmbientRealm, at: Date)?>(initialState: nil)
+        OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
     /// Per-app canvas-selection baseline for change detection — a standing
     /// selection re-reported every poll is not an interaction.
     let dynamicSelectionBox =
         OSAllocatedUnfairLock<(id: String, signature: String)?>(initialState: nil)
     /// THE EVIDENCE LEDGER behind the single lead — one freshest stamp per
-    /// realm, written by the same funnels that stamp `leadBox` plus the
+    /// place, written by the same funnels that stamp `leadBox` plus the
     /// glance responder. `leadBox` stays authoritative for the lead;
     /// `signal()` projects this into the co-active set. Bounded by nature (a
-    /// handful of realms exist per session) and swept on read.
+    /// handful of places exist per session) and swept on read.
     let ledgerBox =
-        OSAllocatedUnfairLock<[AmbientRealm: FocusEvidence]>(initialState: [:])
+        OSAllocatedUnfairLock<[AmbientPlace: FocusEvidence]>(initialState: [:])
 
     public init() {}
 
@@ -134,17 +134,17 @@ public final class WorkspaceFocusTracker: Sendable {
         // further down. Here the roster arm below is the only application
         // arm there is, so a taught application gets exactly the treatment a
         // compiled one used to, by construction rather than by remembering.
-        if AmbientRealmResolver.isBrowser(bundleID: bundleID) {
+        if AmbientPlaceResolver.isBrowser(bundleID: bundleID) {
             // THE BROWSER IS A WORKSPACE (user decision, 2026-08-11), and it
             // LEADS (same day, after "led: Xcode" stood while the user
             // watched a video in a browser — cursor-obvious means the app
             // you're in wins). Same shape as noteDynamicApplication: lead +
-            // ledger (with the concrete process behind the logical realm) +
+            // ledger (with the concrete process behind the logical place) +
             // activation attention. `box` stays untouched (native
             // coding/writing vocabulary — D3).
             //
             // ABOVE the registration arm on purpose (the browser carve-out,
-            // mirrored in AmbientRealmResolver.realm(forBundleID:)): a
+            // mirrored in AmbientPlaceResolver.factPlace(forBundleID:)): a
             // dynamic package may register a browser bundle (chrome.mary),
             // but a Chrome activation must keep stamping the ONE browser
             // workspace with its concrete process id, never
@@ -152,14 +152,14 @@ public final class WorkspaceFocusTracker: Sendable {
             // ledger and facts split by engine.
             AmbientApplicationDirectory.shared.note(
                 bundleID: bundleID, name: localizedName)
-            leadBox.withLock { $0 = (AmbientRealmResolver.browserRealm, Date()) }
+            leadBox.withLock { $0 = (AmbientPlaceResolver.browserPlace, Date()) }
             stampEvidence(
-                realm: AmbientRealmResolver.browserRealm, kind: .activation,
+                place: AmbientPlaceResolver.browserPlace, kind: .activation,
                 processBundleID: bundleID)
             AmbientContextStore.shared.noteAttention(.init(
                 tier: .activation, world: .applications,
-                subject: AmbientRealmResolver.browserApplicationID,
-                applicationID: AmbientRealmResolver.browserApplicationID))
+                subject: AmbientPlaceResolver.browserApplicationID,
+                applicationID: AmbientPlaceResolver.browserApplicationID))
         } else if let registration = AmbientApplicationIndexProvider.current
                       .registration(bundleID: bundleID),
                   registration.legacyWorld == nil {
@@ -186,7 +186,7 @@ public final class WorkspaceFocusTracker: Sendable {
             // FINDER: evidence only, never the lead (user decision — a
             // desktop misclick activates it constantly).
             stampEvidence(
-                realm: AmbientRealmResolver.applicationRealm(forBundleID: bundleID),
+                place: AmbientPlaceResolver.applicationPlace(forBundleID: bundleID),
                 kind: .activation, processBundleID: bundleID)
         } else {
             // THE TERMINAL ARM — every generic app. The user activated it;

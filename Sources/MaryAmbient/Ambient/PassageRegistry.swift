@@ -149,18 +149,18 @@ public final class PassageRegistry: @unchecked Sendable {
     /// applications ride the same `.applications` host lane, so a key built from
     /// the host world's `rawValue` would file both manuscripts under one
     /// partition and let a phrase in one rank a passage from the other.
-    public static func scope(place: AmbientRealm, documentKey: String) -> AmbientElementScope {
-        AmbientElementScope(realm: place, key: "\(place.token)|\(documentKey)")
+    public static func scope(place: AmbientPlace, documentKey: String) -> AmbientElementScope {
+        AmbientElementScope(place: place, key: "\(place.token)|\(documentKey)")
     }
 
-    /// The built-in spelling, byte-identical for a native realm.
+    /// The built-in spelling, byte-identical for a native place.
     public static func scope(world: AmbientWorld, documentKey: String) -> AmbientElementScope {
-        scope(place: .native(world), documentKey: documentKey)
+        scope(place: .lane(world), documentKey: documentKey)
     }
 
     /// Republish one document's live passages. Outside the state lock, like
     /// every publisher — the store vectorizes.
-    private func publishElements(place: AmbientRealm, documentKey: String, at now: Date) {
+    private func publishElements(place: AmbientPlace, documentKey: String, at now: Date) {
         let scope = Self.scope(place: place, documentKey: documentKey)
         let passages = live(at: now)
             .filter { $0.place == place && $0.documentKey == documentKey }
@@ -172,7 +172,7 @@ public final class PassageRegistry: @unchecked Sendable {
     /// the fuzzy-title/substring matching every caller used to hand-roll,
     /// answered by the reference gate instead.
     public func rankedPassages(
-        matching phrase: String, place: AmbientRealm, documentKey: String
+        matching phrase: String, place: AmbientPlace, documentKey: String
     ) -> [RankedAmbientElement] {
         AmbientReferenceGate.rank(
             phrase: phrase,
@@ -185,7 +185,7 @@ public final class PassageRegistry: @unchecked Sendable {
     public func rankedPassages(
         matching phrase: String, world: AmbientWorld, documentKey: String
     ) -> [RankedAmbientElement] {
-        rankedPassages(matching: phrase, place: .native(world), documentKey: documentKey)
+        rankedPassages(matching: phrase, place: .lane(world), documentKey: documentKey)
     }
 
     // MARK: - Minting
@@ -199,7 +199,7 @@ public final class PassageRegistry: @unchecked Sendable {
     /// the failure to the write site.
     @discardableResult
     public func mint(
-        place: AmbientRealm,
+        place: AmbientPlace,
         documentKey: String,
         documentTitle: String,
         text: String,
@@ -266,7 +266,7 @@ public final class PassageRegistry: @unchecked Sendable {
         at now: Date = Date()
     ) -> Passage? {
         mint(
-            place: .native(world),
+            place: .lane(world),
             documentKey: documentKey,
             documentTitle: documentTitle,
             text: text,

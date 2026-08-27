@@ -1,9 +1,9 @@
 //
-//  AmbientRealmTests.swift
+//  AmbientPlaceTests.swift
 //  BonnieAmbientTests
 //
-//  THE REALM'S SEMANTICS SPEC — five properties, one per test: a native realm
-//  answers exactly as its world always did; a dynamic realm answers for
+//  THE REALM'S SEMANTICS SPEC — five properties, one per test: a native place
+//  answers exactly as its world always did; a dynamic place answers for
 //  itself, not the host lane it rides; registrations sort after every native;
 //  an unknown application falls back to its host world rather than inventing
 //  a taxonomy; and a workspace-class registration with no perception contract
@@ -15,7 +15,7 @@ import Foundation
 import Testing
 @testable import MaryAmbient
 
-@Suite struct AmbientRealmTests {
+@Suite struct AmbientPlaceTests {
 
     /// SCOPED, never installed. These suites run concurrently with everything
     /// else in the package, and installing on the process-wide provider would
@@ -46,7 +46,7 @@ import Testing
     @Test func aBuiltInPlaceAnswersExactlyAsItsWorld() {
         withRoster([]) {
             for world in AmbientWorld.allCases {
-                let place = AmbientRealm.world(world)
+                let place = AmbientPlace.lane(world)
                 #expect(place.token == world.rawValue)
                 #expect(place.worldClass == world.worldClass)
                 #expect(place.hasEyes == world.hasEyes)
@@ -64,7 +64,7 @@ import Testing
             worldClass: .workspace,
             perception: .init(documentOperation: "read_canvas", pollSeconds: 30))
         withRoster([registration]) {
-            let place = AmbientRealm(world: .applications, application: "sketch")
+            let place = AmbientPlace(world: .applications, application: "sketch")
             #expect(place.token == "applications:sketch")
             #expect(place.displayName == "Sketch", "not \"Other apps\"")
             #expect(place.worldClass == .workspace, "not the host's .perceptionOnly")
@@ -79,7 +79,7 @@ import Testing
     /// is the confident lie this layer refuses.
     @Test func aWorkspaceClassRegistrationWithNoContractHasNoEyes() {
         withRoster([sketch(worldClass: .workspace, perception: nil)]) {
-            let place = AmbientRealm(world: .applications, application: "sketch")
+            let place = AmbientPlace(world: .applications, application: "sketch")
             #expect(place.worldClass == .workspace)
             #expect(!place.hasEyes, "declared workspace, declared no observation")
             #expect(!Passage.canHold(place), "and therefore holds no passages")
@@ -90,9 +90,9 @@ import Testing
     /// reorder the worlds the golden prompt diff compares byte for byte.
     @Test func registrationsSortAfterEveryBuiltInWorld() {
         withRoster([sketch()]) {
-            let registered = AmbientRealm(world: .applications, application: "sketch")
+            let registered = AmbientPlace(world: .applications, application: "sketch")
             for world in AmbientWorld.allCases {
-                #expect(AmbientRealm.world(world).order < registered.order)
+                #expect(AmbientPlace.lane(world).order < registered.order)
             }
         }
     }
@@ -102,7 +102,7 @@ import Testing
     /// a package is removed, and it must degrade rather than crash.
     @Test func anUnknownApplicationFallsBackToItsHostWorld() {
         withRoster([]) {
-            let place = AmbientRealm(world: .applications, application: "ghost")
+            let place = AmbientPlace(world: .applications, application: "ghost")
             #expect(place.registration == nil)
             #expect(place.worldClass == AmbientWorld.applications.worldClass)
             #expect(place.displayName == AmbientWorld.applications.displayName)

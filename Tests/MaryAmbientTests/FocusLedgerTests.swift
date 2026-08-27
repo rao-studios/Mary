@@ -6,7 +6,7 @@
 //  untested. What it pins: kind precedence in the co-active ranking
 //  (activity > activation > glance), the 5-minute co-active and 10-minute
 //  glance horizons, glance-never-leads, the concrete process behind the
-//  browser realm (both horizons of `evidenceProcess`), and the termination
+//  browser place (both horizons of `evidenceProcess`), and the termination
 //  sweep that keeps a quit browser from speaking.
 //
 
@@ -16,7 +16,7 @@ import Testing
 
 @Suite struct FocusLedgerTests {
 
-    private var browser: AmbientRealm { AmbientRealmResolver.browserRealm }
+    private var browser: AmbientPlace { AmbientPlaceResolver.browserPlace }
 
     /// CHROME IS A BROWSER BECAUSE A PACKAGE SAYS SO, which is why these
     /// tests now have to say so too. `chrome.mary` declares its bundle
@@ -43,7 +43,7 @@ import Testing
         withChromeInstalled {
             let tracker = WorkspaceFocusTracker()
             tracker.record(bundleID: "com.google.Chrome", localizedName: "Google Chrome")
-            #expect(tracker.leadRealm() == browser)
+            #expect(tracker.leadPlace() == browser)
             #expect(tracker.evidenceProcess(for: browser) == "com.google.Chrome")
             #expect(tracker.signal().lead == browser)
         }
@@ -56,9 +56,9 @@ import Testing
         // identity there is — which is exactly how a generic application
         // still leads instead of producing no signal at all.
         tracker.record(bundleID: WorkspaceApplicationIdentity.xcode)
-        tracker.noteGlance(realm: browser)
+        tracker.noteGlance(place: browser)
         let signal = tracker.signal()
-        #expect(signal.lead == .dynamic(WorkspaceApplicationIdentity.xcode))
+        #expect(signal.lead == .application(WorkspaceApplicationIdentity.xcode))
         #expect(signal.coActive.contains(browser))
         #expect(signal.glanced.contains(browser))
     }
@@ -81,7 +81,7 @@ import Testing
     @Test func aGlanceOutlivesCoActiveEvidenceOnItsOwnHorizon() {
         let tracker = WorkspaceFocusTracker()
         tracker.record(bundleID: WorkspaceApplicationIdentity.xcode)
-        tracker.noteGlance(realm: browser)
+        tracker.noteGlance(place: browser)
         let now = Date()
         let between = tracker.signal(at: now.addingTimeInterval(
             FocusSignal.coActiveHorizon + 30))
@@ -98,12 +98,12 @@ import Testing
             // strongest-evidence-then-recency, so the activation must still
             // rank first among the co-actives.
             tracker.record(bundleID: "com.google.Chrome")
-            tracker.noteGlance(realm: .dynamic("pages"))
+            tracker.noteGlance(place: .application("pages"))
             tracker.record(bundleID: WorkspaceApplicationIdentity.xcode)
             let signal = tracker.signal()
-            #expect(signal.lead == .dynamic(WorkspaceApplicationIdentity.xcode))
+            #expect(signal.lead == .application(WorkspaceApplicationIdentity.xcode))
             #expect(signal.coActive.first == browser)
-            #expect(signal.glanced.contains(.dynamic("pages")))
+            #expect(signal.glanced.contains(.application("pages")))
         }
     }
 
@@ -131,9 +131,9 @@ import Testing
         withChromeInstalled {
             let tracker = WorkspaceFocusTracker()
             tracker.record(bundleID: "com.google.Chrome")
-            #expect(tracker.leadRealm() == browser)
-            tracker.clearLead(ifApplication: AmbientRealmResolver.browserApplicationID)
-            #expect(tracker.leadRealm() == nil)
+            #expect(tracker.leadPlace() == browser)
+            tracker.clearLead(ifApplication: AmbientPlaceResolver.browserApplicationID)
+            #expect(tracker.leadPlace() == nil)
             #expect(tracker.evidenceProcess(for: browser) == nil)
         }
     }
@@ -142,7 +142,7 @@ import Testing
         let tracker = WorkspaceFocusTracker()
         tracker.record(bundleID: "com.apple.Safari")
         let signal = tracker.signal()
-        #expect(signal.lead == tracker.leadRealm())
+        #expect(signal.lead == tracker.leadPlace())
         #expect(signal.coActive.isEmpty)
         #expect(signal.glanced.isEmpty)
     }

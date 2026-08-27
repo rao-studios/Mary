@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Mary}",
+            "name": "Debug mary-ax-probe",
+            "target": "mary-ax-probe",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug mary-ax-probe"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Mary}",
+            "name": "Release mary-ax-probe",
+            "target": "mary-ax-probe",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release mary-ax-probe"
+        }
+    ]
+}

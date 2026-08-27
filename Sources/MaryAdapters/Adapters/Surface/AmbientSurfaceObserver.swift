@@ -14,7 +14,7 @@
 //       `AffordanceObserver` used to fill from its own separate
 //       `PageElementReader.readWindowControls` walk. The browser carve-out
 //       is preserved FOR THIS PUBLICATION ONLY: `BrowserContextWatcher`
-//       publishes the browser realm's slate from the page rather than the
+//       publishes the browser place's slate from the page rather than the
 //       window, and two publishers writing one scope is how two lanes start
 //       disagreeing.
 //
@@ -68,7 +68,7 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
     public struct Target {
         public var pid: pid_t
         public var bundleID: String
-        public var realm: AmbientRealm
+        public var place: AmbientPlace
     }
 
     private let store: AmbientContextStore
@@ -87,7 +87,7 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
     private let lastContextBox =
         OSAllocatedUnfairLock<(pid: pid_t, context: AXAmbientContext)?>(initialState: nil)
     /// The lane whose surface this observer last noted — deactivate's teardown.
-    private let lastRealmBox = OSAllocatedUnfairLock<AmbientRealm?>(initialState: nil)
+    private let lastPlaceBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
 
     public convenience init() {
         self.init(
@@ -135,11 +135,11 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
             current = nil
         }
         retractAffordances()
-        let realm = lastRealmBox.withLock { realm -> AmbientRealm? in
-            defer { realm = nil }
-            return realm
+        let place = lastPlaceBox.withLock { place -> AmbientPlace? in
+            defer { place = nil }
+            return place
         }
-        if let realm { store.forgetSurface(place: realm) }
+        if let place { store.forgetSurface(place: place) }
         lastContextBox.withLock { $0 = nil }
     }
 
@@ -207,7 +207,7 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         return Target(
             pid: front.pid,
             bundleID: front.bundleID,
-            realm: AmbientRealmResolver.applicationRealm(forBundleID: front.bundleID))
+            place: AmbientPlaceResolver.applicationPlace(forBundleID: front.bundleID))
     }
 
     public func pollOnce(at now: Date = Date()) {
@@ -225,11 +225,11 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         // 1 — the surface, every family, every poll.
         store.noteSurface(
-            AmbientBridge.surface(from: context, realm: target.realm), at: now)
-        lastRealmBox.withLock { $0 = target.realm }
+            AmbientBridge.surface(from: context, place: target.place), at: now)
+        lastPlaceBox.withLock { $0 = target.place }
 
         // 2 — the affordance slate, unless the browser watcher owns it.
-        guard !AmbientRealmResolver.isBrowser(bundleID: target.bundleID) else {
+        guard !AmbientPlaceResolver.isBrowser(bundleID: target.bundleID) else {
             retractAffordances()
             lastContextBox.withLock { $0 = (target.pid, context) }
             return
@@ -238,7 +238,7 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
             defer { last = (target.pid, context) }
             return last?.pid == target.pid && last?.context == context
         }
-        let scope = AmbientElementScope.affordances(in: target.realm)
+        let scope = AmbientElementScope.affordances(in: target.place)
         let previous = publishedBox.withLock { current -> AmbientElementScope? in
             defer { current = scope }
             return current == scope ? nil : current

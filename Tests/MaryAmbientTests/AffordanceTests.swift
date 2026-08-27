@@ -17,7 +17,7 @@ import Testing
 
 @Suite struct AffordanceRuleTests {
 
-    private let scope = AmbientElementScope.affordances(in: .native(.applications))
+    private let scope = AmbientElementScope.affordances(in: .lane(.applications))
 
     private func affordance(
         _ label: String,
@@ -75,9 +75,9 @@ import Testing
 
     @Test func theScopeKeyIsWhatMarksAnAffordancePartition() {
         #expect(scope.key.hasSuffix(AmbientElementScope.affordanceSuffix))
-        // And it can never collide with the realm's other slates — the whole
+        // And it can never collide with the place's other slates — the whole
         // reason `.pressable` is safe to add.
-        #expect(scope.key != AmbientRealmResolver.browserApplicationID)
+        #expect(scope.key != AmbientPlaceResolver.browserApplicationID)
     }
 }
 
@@ -88,7 +88,7 @@ import Testing
     ) -> RankedAmbientElement {
         RankedAmbientElement(
             record: AmbientElementRecord(
-                scope: .affordances(in: .native(.applications)),
+                scope: .affordances(in: .lane(.applications)),
                 elementID: name, kindWord: "button", name: name,
                 embedTexts: [name.lowercased()],
                 capabilities: [.pressable], displaySummary: name),
@@ -151,7 +151,7 @@ import Testing
 
     @Test func aGoalReachesTheControlThatServesIt() {
         let store = store()
-        let scope = AmbientElementScope.affordances(in: .native(.applications))
+        let scope = AmbientElementScope.affordances(in: .lane(.applications))
         publish(["Skip Ads", "Subscribe", "Share"], into: scope, store: store)
         let offer = try! #require(
             AffordanceProbe.candidate(for: "can you skip the ad", store: store))
@@ -161,7 +161,7 @@ import Testing
 
     @Test func fullScreenReachesThePlayersOwnControl() {
         let store = store()
-        let scope = AmbientElementScope.affordances(in: .native(.applications))
+        let scope = AmbientElementScope.affordances(in: .lane(.applications))
         publish(["Full screen (f)", "Settings", "Mute (m)"],
                 into: scope, store: store)
         let offer = try! #require(
@@ -172,7 +172,7 @@ import Testing
     @Test func aPhraseThatMatchesNothingOffersNothing() {
         let store = store()
         publish(["Subscribe", "Share"],
-                into: .affordances(in: .native(.applications)), store: store)
+                into: .affordances(in: .lane(.applications)), store: store)
         // Nothing here would rename a file, and the honest failure must be
         // allowed to stand.
         #expect(AffordanceProbe.candidate(
@@ -181,12 +181,12 @@ import Testing
 
     @Test func onlyAffordanceSlatesAreProbed() {
         let store = store()
-        // A tab roster, in the browser realm's OTHER partition. It carries no
+        // A tab roster, in the browser place's OTHER partition. It carries no
         // `.pressable` capability and lives under a different key; a goal must
         // never rank it.
         let tabs = AmbientElementScope(
-            realm: AmbientRealmResolver.browserRealm,
-            key: AmbientRealmResolver.browserApplicationID)
+            place: AmbientPlaceResolver.browserPlace,
+            key: AmbientPlaceResolver.browserApplicationID)
         store.noteElements(
             [AmbientElementRecord(
                 scope: tabs, elementID: "tab:1", kindWord: "tab",
@@ -201,7 +201,7 @@ import Testing
     @Test func aStaleSlateStopsDescribingTheScreen() {
         let store = store()
         publish(["Skip Ads"],
-                into: .affordances(in: .native(.applications)), store: store)
+                into: .affordances(in: .lane(.applications)), store: store)
         // A button is pressable for five seconds; a slate older than the
         // horizon is a memory, not an offer.
         let later = Date().addingTimeInterval(
@@ -212,7 +212,7 @@ import Testing
 
     @Test func aRetractedSlateOffersNothing() {
         let store = store()
-        let scope = AmbientElementScope.affordances(in: .native(.applications))
+        let scope = AmbientElementScope.affordances(in: .lane(.applications))
         publish(["Skip Ads"], into: scope, store: store)
         store.noteElements([], scope: scope)
         #expect(AffordanceProbe.candidate(
@@ -222,7 +222,7 @@ import Testing
     @Test func aTiedGoalNamesItsRivals() {
         let store = store()
         publish(["Skip Ads", "Skip Intro"],
-                into: .affordances(in: .native(.applications)), store: store)
+                into: .affordances(in: .lane(.applications)), store: store)
         let offer = try! #require(
             AffordanceProbe.candidate(for: "skip that", store: store))
         // Both are named. The nudge lists them and the act refuses by name —

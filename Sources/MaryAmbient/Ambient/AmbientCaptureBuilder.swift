@@ -26,7 +26,7 @@
 //  rendering's own `keys` are the filter: a fact is captured if and only if it
 //  was rendered, in the order it was rendered.
 //
-//  THIS FILE OWNS THE TOKEN SPELLINGS, and that is its second job. Realms,
+//  THIS FILE OWNS THE TOKEN SPELLINGS, and that is its second job. Places,
 //  slots and provenance cross into the dataset as `String`, because a written
 //  episode is a historical record and must not change meaning when an enum
 //  case is renamed. Every one of those spellings is produced here, once, and
@@ -56,14 +56,18 @@ public enum AmbientCaptureBuilder {
     ///   - rendering: what the renderer actually produced — the filter for
     ///     which facts were injected, and the rendered lines themselves.
     ///   - selection: the live selection, when one was in play.
-    ///   - lead: the realm leading the turn, when one was.
+    ///   - lead: the place leading the turn, when one was.
+    ///   - realm: what could have served the need, when a resolver worked it
+    ///     out. Nil until one exists — "nobody computed the candidates",
+    ///     never "there were none".
     ///   - now: the moment the turn asked, for fact ages.
     public static func capture(
         facts: [AmbientFact],
         surfaces: [AmbientSurface],
         rendering: AmbientRendering,
         selection: AmbientSelectionHandoff? = nil,
-        lead: AmbientRealm? = nil,
+        lead: AmbientPlace? = nil,
+        realm: AmbientRealm? = nil,
         at now: Date = Date()
     ) -> AmbientCapture {
         AmbientCapture(
@@ -72,6 +76,7 @@ public enum AmbientCaptureBuilder {
             surfaces: surfaces.map { surfaceCapture($0) },
             facts: injectedFacts(facts, rendering: rendering, at: now),
             selection: selection.map(selectionCapture),
+            realm: realm.map(realmCapture),
             renderedSurfaceLines: rendering.surfaceLines,
             renderedBlocks: rendering.blocks,
             renderedMentions: rendering.mentions)
@@ -153,7 +158,7 @@ public enum AmbientCaptureBuilder {
 
     static func selectionCapture(_ handoff: AmbientSelectionHandoff) -> SelectionCapture {
         SelectionCapture(
-            place: token(for: AmbientRealm(world: handoff.world, application: handoff.application)),
+            place: token(for: AmbientPlace(world: handoff.world, application: handoff.application)),
             application: CapturedApplication(
                 name: handoff.applicationID, bundleID: handoff.applicationID),
             text: handoff.text,
@@ -166,15 +171,62 @@ public enum AmbientCaptureBuilder {
             capturedAt: handoff.capturedAt)
     }
 
+    // MARK: - Realm
+
+    static func realmCapture(_ realm: AmbientRealm) -> RealmCapture {
+        RealmCapture(
+            need: NeedCapture(
+                // SORTED, because a Set has no order and an unordered field
+                // would make two identical turns produce two different rows —
+                // undiffable, undeduplicatable, and impossible to compare.
+                abilities: realm.need.abilities.map(\.rawValue).sorted(),
+                discipline: realm.need.discipline.map(token(for:))),
+            candidates: realm.candidates.map(candidateCapture),
+            place: realm.place.map(token(for:)),
+            decidedBy: realm.decidedBy?.rawValue)
+    }
+
+    static func candidateCapture(_ candidate: AmbientCandidate) -> CandidateCapture {
+        CandidateCapture(
+            place: token(for: candidate.place),
+            conformsByAbilities: candidate.conformsByAbilities.map(\.rawValue).sorted(),
+            conformsByDiscipline: candidate.conformsByDiscipline,
+            targetClasses: candidate.targetClasses.sorted(),
+            hasEyes: candidate.hasEyes,
+            evidence: candidate.evidence.map(token(for:)),
+            evidenceAgeSeconds: candidate.evidenceAgeSeconds)
+    }
+
     // MARK: - Tokens
 
-    /// A realm as a dataset token.
+    /// A place as a dataset token.
     ///
-    /// `AmbientRealm.token` is already the collision-free spelling the pane
+    /// `AmbientPlace.token` is already the collision-free spelling the pane
     /// and the report split on, and reusing it is the point: a capture and a
     /// trace naming the same place must say the same word, or joining them
     /// later is guesswork.
-    public static func token(for realm: AmbientRealm) -> String { realm.token }
+    public static func token(for place: AmbientPlace) -> String { place.token }
+
+    /// A discipline as a dataset token.
+    public static func token(for focus: WorkspaceFocus) -> String {
+        switch focus {
+        case .coding: return "coding"
+        case .writing: return "writing"
+        }
+    }
+
+    /// An evidence kind as a dataset token.
+    ///
+    /// Spelled here rather than read off the enum because its raw value is an
+    /// Int — a ranking, not a name — and writing `2` into the dataset would
+    /// record a comparison instead of a fact.
+    public static func token(for evidence: FocusEvidenceKind) -> String {
+        switch evidence {
+        case .activity: return "activity"
+        case .activation: return "activation"
+        case .glance: return "glance"
+        }
+    }
 
     /// A slot as a dataset token.
     ///

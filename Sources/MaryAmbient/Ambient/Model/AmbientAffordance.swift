@@ -84,15 +84,15 @@ extension AmbientElementScope {
 
     /// THE AFFORDANCE PARTITION, and the reason `.pressable` is safe to add.
     ///
-    /// Affordances live in their own key beside the realm's other slates —
+    /// Affordances live in their own key beside the place's other slates —
     /// the browser's tab roster, a canvas's layers, a document's passages —
     /// so a phrase resolving against tabs can never rank a button, and a
     /// press can never land on a paragraph however similar the words. That
     /// separation is what the earlier decision to omit a `.pressable`
     /// capability was protecting; with it, the capability costs nothing.
-    public static func affordances(in realm: AmbientRealm) -> AmbientElementScope {
+    public static func affordances(in place: AmbientPlace) -> AmbientElementScope {
         AmbientElementScope(
-            realm: realm, key: "\(realm.token)\(affordanceSuffix)")
+            place: place, key: "\(place.token)\(affordanceSuffix)")
     }
 
     /// How `AffordanceProbe` recognizes one of these partitions among all the

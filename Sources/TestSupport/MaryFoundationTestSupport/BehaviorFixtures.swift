@@ -200,6 +200,34 @@ public enum BehaviorFixtures {
             finishedAt: openedAt.addingTimeInterval(0.125))
     }
 
+    // MARK: - The realm
+
+    /// WHAT COULD HAVE SERVED, and what won. Two applications conform to
+    /// writing; TextEdit led on a recent activation and Pages was cold. The
+    /// loser is kept deliberately — a row that dropped it would teach the
+    /// association without the choice.
+    public static var writingRealm: RealmCapture {
+        RealmCapture(
+            need: NeedCapture(abilities: ["typing", "writing"], discipline: "writing"),
+            candidates: [
+                CandidateCapture(
+                    place: "applications:textedit",
+                    conformsByAbilities: ["typing", "writing"],
+                    conformsByDiscipline: true,
+                    targetClasses: ["editable-prose-surface"],
+                    hasEyes: true,
+                    evidence: "activation",
+                    evidenceAgeSeconds: 4),
+                CandidateCapture(
+                    place: "applications:pages",
+                    conformsByAbilities: ["writing"],
+                    conformsByDiscipline: true,
+                    hasEyes: true),
+            ],
+            place: "applications:textedit",
+            decidedBy: "ambientSource")
+    }
+
     // MARK: - Whole episodes
 
     /// THE CANONICAL EPISODE: asked to write, saw TextEdit, typed into it.

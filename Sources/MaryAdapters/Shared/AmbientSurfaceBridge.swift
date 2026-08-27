@@ -8,7 +8,7 @@
 //  depend on AXEngine/, never the reverse (the one-way rule this directory
 //  already lives under), so the conversion belongs on this side.
 //
-//  ONE WALK FEEDS BOTH TIERS. `surface(from:realm:)` is the tier-0 record;
+//  ONE WALK FEEDS BOTH TIERS. `surface(from:place:)` is the tier-0 record;
 //  `affordances(from:)` is the SAME walk's element roster rendered into the
 //  affordance slate — the publication that used to cost `AffordanceObserver`
 //  its own separate `PageElementReader.readWindowControls` walk.
@@ -40,17 +40,17 @@ import Foundation
 public extension AmbientBridge {
 
     /// The tier-0 record: the engine's artifact in ambient vocabulary, with
-    /// the family lane attached HERE — the engine stays app-agnostic; realm
+    /// the family lane attached HERE — the engine stays app-agnostic; place
     /// resolution is the bridge's job, exactly where `AffordanceObserver`'s
     /// target ladder used to attach it.
     static func surface(
-        from context: AXAmbientContext, realm: AmbientRealm
+        from context: AXAmbientContext, place: AmbientPlace
     ) -> AmbientSurface {
         let window = context.activeWindow?.frame
         let screens = AXFrameProjection.activeScreens()
         let capturedAt = context.capture.capturedAt
         return AmbientSurface(
-            place: realm,
+            place: place,
             application: .init(
                 name: context.app.appName,
                 bundleID: context.app.bundleID,

@@ -4,11 +4,11 @@
 //
 //  BUNDLE ID → HUMAN NAME, session-scoped.
 //
-//  Generic-application realms carry the BUNDLE ID as their identity (stable,
+//  Generic-application places carry the BUNDLE ID as their identity (stable,
 //  exactly matchable by `clearLead(ifApplication:)` and app-termination) —
 //  but a chip reading "led: com.apple.Notes" would be machine truth worn as
 //  UI. The localizedName is in hand at the two places activations are
-//  observed; it lands here, and `AmbientRealm.displayName` reads it back.
+//  observed; it lands here, and `AmbientPlace.displayName` reads it back.
 //  Bounded by the number of distinct apps a session touches, like the
 //  evidence ledger.
 //

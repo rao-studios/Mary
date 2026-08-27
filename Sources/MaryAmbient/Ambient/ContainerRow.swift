@@ -98,16 +98,16 @@ public struct ContainerRoster: Sendable {
 
     /// WHERE THESE CONTAINERS LIVE.
     ///
-    /// A realm rather than a world, because a registered application supplies
+    /// A place rather than a world, because a registered application supplies
     /// containers too and it need not BE one of the built-in worlds.
-    /// `ContainerRegistry` has been realm-keyed all along; this was the last
+    /// `ContainerRegistry` has been place-keyed all along; this was the last
     /// place that narrowed it on the way in. Every built-in caller keeps its
     /// spelling through `init(world:…)` below, and `world` still answers for
     /// the native projection — so this widening changes no behaviour today and
     /// is what lets a second manuscript application enrol its own `[D#]`.
-    public var realm: AmbientRealm
+    public var place: AmbientPlace
 
-    public var world: AmbientWorld { realm.world }
+    public var world: AmbientWorld { place.world }
 
     /// The `HandleMap` prefix this world's containers are addressed by —
     /// `W` for TextEdit windows, `D` for Scrivener binder items. Registered in
@@ -128,12 +128,12 @@ public struct ContainerRoster: Sendable {
     public var list: (@Sendable () async -> [ContainerRow])?
 
     public init(
-        realm: AmbientRealm,
+        place: AmbientPlace,
         handlePrefix: String,
         cached: @escaping @Sendable () -> [ContainerRow],
         list: (@Sendable () async -> [ContainerRow])? = nil
     ) {
-        self.realm = realm
+        self.place = place
         self.handlePrefix = handlePrefix
         self.cached = cached
         self.list = list
@@ -147,7 +147,7 @@ public struct ContainerRoster: Sendable {
         list: (@Sendable () async -> [ContainerRow])? = nil
     ) {
         self.init(
-            realm: .native(world),
+            place: .lane(world),
             handlePrefix: handlePrefix,
             cached: cached,
             list: list)

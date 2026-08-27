@@ -1,9 +1,9 @@
 //
-//  RealmNamespaceTests.swift
+//  PlaceNamespaceTests.swift
 //  BonnieAmbientTests
 //
-//  THE TWO NAMESPACES CANNOT COLLIDE — the M4 pin. Native realms spell bare
-//  world raw values; dynamic realms spell "applications:<id>". Disjointness is
+//  THE TWO NAMESPACES CANNOT COLLIDE — the M4 pin. Native places spell bare
+//  world raw values; dynamic places spell "applications:<id>". Disjointness is
 //  structural on the token axis (the colon prefix) and enforced on the
 //  roster axis by admission's projection rule: a registration whose id IS a
 //  plugin owner projects onto that world (`legacyWorld`), so its place is
@@ -20,7 +20,7 @@ import Foundation
 import Testing
 @testable import MaryAmbient
 
-@Suite struct RealmNamespaceTests {
+@Suite struct PlaceNamespaceTests {
 
     /// A fixture roster shaped exactly as admission builds one: every
     /// world-named profile projects (`legacyWorld` non-nil), every other id
@@ -43,7 +43,7 @@ import Testing
 
     /// NO INSTALLED REGISTRATION MAY MINT A DYNAMIC REALM WEARING A WORLD'S
     /// NAME. Over the fixture roster: a world-named registration's place is
-    /// the NATIVE realm (projection), and every free-standing registration's
+    /// the NATIVE place (projection), and every free-standing registration's
     /// id is not a world raw value.
     @Test func noRosterRegistrationCollidesWithAWorldRawValue() {
         let worldNames = Set(AmbientWorld.allCases.map(\.rawValue))
@@ -51,10 +51,10 @@ import Testing
             if worldNames.contains(registration.id) {
                 #expect(registration.legacyWorld?.rawValue == registration.id,
                         "a world-named registration must project onto its world")
-                #expect(registration.place == .native(registration.legacyWorld!),
+                #expect(registration.place == .lane(registration.legacyWorld!),
                         "its place is the NATIVE case — no dynamic twin")
             } else {
-                #expect(registration.place == .dynamic(registration.id))
+                #expect(registration.place == .application(registration.id))
             }
         }
     }
@@ -63,15 +63,15 @@ import Testing
     /// the "applications:" prefix, no native token contains a colon, and
     /// `from(token:)` sends each spelling back to its own case.
     @Test func nativeAndDynamicTokensAreStructurallyDisjoint() {
-        let nativeTokens = Set(AmbientWorld.allCases.map { AmbientRealm.native($0).token })
+        let nativeTokens = Set(AmbientWorld.allCases.map { AmbientPlace.lane($0).token })
         for world in AmbientWorld.allCases {
             #expect(!world.rawValue.contains(":"))
             // Even a hostile id that IS a world raw value cannot collide on
             // the token axis — the prefix keeps the namespaces apart.
-            let dynamicTwin = AmbientRealm.dynamic(world.rawValue)
+            let dynamicTwin = AmbientPlace.application(world.rawValue)
             #expect(!nativeTokens.contains(dynamicTwin.token))
-            #expect(AmbientRealm.from(token: world.rawValue) == .native(world))
-            #expect(AmbientRealm.from(token: dynamicTwin.token) == dynamicTwin)
+            #expect(AmbientPlace.from(token: world.rawValue) == .lane(world))
+            #expect(AmbientPlace.from(token: dynamicTwin.token) == dynamicTwin)
         }
     }
 
@@ -82,13 +82,13 @@ import Testing
         AmbientApplicationIndexProvider.$scoped.withValue(Self.roster) {
             // EVERY REGISTRATION IS ITS OWN REALM. Bonnie's roster could
             // project an application onto a compiled world, so this rung
-            // answered `.native(.keynote)`; with no compiled applications
+            // answered `.lane(.keynote)`; with no compiled applications
             // there is nothing to project onto and an id is simply itself.
-            #expect(AmbientRealm.lead(
+            #expect(AmbientPlace.lead(
                 world: .applications, applicationID: "keynote")
-                == .dynamic("keynote"))
-            #expect(AmbientRealm.lead(world: .applications, applicationID: "sketch")
-                == .dynamic("sketch"))
+                == .application("keynote"))
+            #expect(AmbientPlace.lead(world: .applications, applicationID: "sketch")
+                == .application("sketch"))
         }
     }
 }

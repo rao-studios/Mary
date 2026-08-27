@@ -73,19 +73,19 @@ extension WorkspaceFocusTracker {
     /// read a registration to learn the discipline in the first place), so
     /// the place is passed rather than guessed.
     public func note(
-        _ focus: WorkspaceFocus, place: AmbientRealm, at now: Date = Date()
+        _ focus: WorkspaceFocus, place: AmbientPlace, at now: Date = Date()
     ) {
         guard signalsAllowed(at: now) else { return }
         if focus == .writing { writingPlaceBox.withLock { $0 = place } }
         box.withLock { $0 = (focus, now) }
         leadBox.withLock { $0 = (place, now) }
-        stampEvidence(realm: place, kind: .activity)
+        stampEvidence(place: place, kind: .activity)
     }
 
     /// Writing activity from a place — the shorthand for `note(.writing,
     /// place:)`, kept because "the user is writing HERE" is the signal most
     /// callers mean.
-    public func noteWriting(place: AmbientRealm) {
+    public func noteWriting(place: AmbientPlace) {
         note(.writing, place: place)
     }
 
@@ -102,8 +102,8 @@ extension WorkspaceFocusTracker {
     /// behaves exactly as if unpinned, falling to ambient truth. A
     /// half-honoured pin — the override's discipline with the pin's place —
     /// is how an utterance about one document gets routed to another.
-    public func writingPlace() -> AmbientRealm? {
-        func ambient() -> AmbientRealm? { writingPlaceBox.withLock { $0 } }
+    public func writingPlace() -> AmbientPlace? {
+        func ambient() -> AmbientPlace? { writingPlaceBox.withLock { $0 } }
         if overrideBox.withLock({ $0 }) != nil { return ambient() }
         if let pin = pinBox.withLock({ $0 }), pin.focus == .writing { return pin.place }
         return ambient()

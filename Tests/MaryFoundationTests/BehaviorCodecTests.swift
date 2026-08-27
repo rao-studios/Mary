@@ -129,15 +129,15 @@ import Testing
         #expect(decoded.sealedReason == .unknown)
     }
 
-    /// Realms and slots are carried as tokens precisely so a renamed enum
+    /// Places and slots are carried as tokens precisely so a renamed enum
     /// case cannot change what an old row means. An unrecognized token is
     /// just a word this build does not use.
     @Test func unrecognizedPlaceTokensPassThroughAsData() throws {
         var capture = BehaviorFixtures.textEditCapture
-        capture.surfaces[0].place = "some-realm-from-2030"
+        capture.surfaces[0].place = "some-place-from-2030"
         capture.facts[0].slot = "a-slot-nobody-declared"
         let decoded = try roundTrip(capture)
-        #expect(decoded.surfaces[0].place == "some-realm-from-2030")
+        #expect(decoded.surfaces[0].place == "some-place-from-2030")
         #expect(decoded.facts[0].slot == "a-slot-nobody-declared")
     }
 
@@ -307,5 +307,74 @@ import Testing
                 encoding: .utf8))
         #expect(text.contains("09:00:00.000Z"))
         #expect(!text.contains("+0"), "a local-offset stamp leaked into the dataset")
+    }
+}
+
+// MARK: - The realm, in a whole episode
+
+/// The vocabulary the episode is written in: WORLD is Mary's own state, REALM
+/// is what outside her could serve the need, PLACE is the where a realm
+/// settled on. These pin the codec end of that — the tokens travel, and an
+/// unresolved realm is a different row from a realm that found nobody.
+@Suite struct EpisodeRealmTests {
+
+    private func episode(_ realm: RealmCapture?) -> BehavioralEpisode {
+        var episode = BehaviorFixtures.typedIntoTextEdit
+        episode.input.ambient?.realm = realm
+        return episode
+    }
+
+    @Test func anEpisodeCarriesTheRealmThroughARoundTrip() throws {
+        let original = episode(BehaviorFixtures.writingRealm)
+        let decoded = try BehavioralCodec.episode(from: try BehavioralCodec.line(original))
+        #expect(decoded == original)
+
+        let realm = try #require(decoded.input.ambient?.realm)
+        #expect(realm.need.discipline == "writing")
+        #expect(realm.candidates.count == 2, "the loser is kept — it is half the lesson")
+        #expect(realm.place == "applications:textedit")
+        #expect(realm.decidedBy == "ambientSource")
+    }
+
+    /// THE ROW MUST AGREE WITH THE PROMPT ABOUT THE WHERE. `lead` is the place
+    /// the prompt actually used; `realm.place` is the place the resolver
+    /// chose. Whenever both exist they are the same place, or the dataset
+    /// teaches something the live system never did.
+    @Test func theRealmsPlaceMatchesTheLead() throws {
+        var withRealm = episode(BehaviorFixtures.writingRealm)
+        withRealm.input.ambient?.lead = "applications:textedit"
+        let ambient = try #require(withRealm.input.ambient)
+        #expect(ambient.realm?.place == ambient.lead)
+    }
+
+    /// NO REALM is what every episode written before a resolver exists will
+    /// carry, and it is honest: nobody worked out the candidates. It is not
+    /// the same as a realm that looked and found nobody.
+    @Test func anEpisodeWithoutARealmIsStillValid() throws {
+        let plain = episode(nil)
+        #expect(plain.input.ambient?.realm == nil)
+        #expect(try BehavioralCodec.episode(from: try BehavioralCodec.line(plain)) == plain)
+
+        let nowhere = episode(RealmCapture(need: NeedCapture(discipline: "writing")))
+        #expect(try BehavioralCodec.line(plain) != (try BehavioralCodec.line(nowhere)))
+    }
+
+    /// A reader from before the realm existed still opens a row that has one.
+    @Test func aRealmBearingRowDecodesLeniently() throws {
+        let data = try BehavioralCodec.line(episode(BehaviorFixtures.writingRealm))
+        var object = try #require(
+            try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        var input = try #require(object["input"] as? [String: Any])
+        var ambient = try #require(input["ambient"] as? [String: Any])
+        var realm = try #require(ambient["realm"] as? [String: Any])
+        realm["somethingFromTheFuture"] = true
+        ambient["realm"] = realm
+        input["ambient"] = ambient
+        object["input"] = input
+
+        let decoded = try BehavioralCodec.decoder().decode(
+            BehavioralEpisode.self,
+            from: try JSONSerialization.data(withJSONObject: object))
+        #expect(decoded.input.ambient?.realm?.place == "applications:textedit")
     }
 }

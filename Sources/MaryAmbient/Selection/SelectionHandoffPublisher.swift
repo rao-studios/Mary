@@ -21,7 +21,7 @@ public enum SelectionHandoffPublisher {
     public static func captureOutcome(
         _ sample: AXSelectionReader.FocusedSelectionSample,
         ambient: AmbientContextStore,
-        place: AmbientRealm,
+        place: AmbientPlace,
         applicationID: String,
         subject: String? = nil,
         channel: AmbientSelectionCaptureChannel,
@@ -91,7 +91,7 @@ public enum SelectionHandoffPublisher {
     public static func publish(
         _ sample: AXSelectionReader.FocusedSelectionSample,
         ambient: AmbientContextStore,
-        place: AmbientRealm,
+        place: AmbientPlace,
         applicationID: String,
         subject: String? = nil,
         channel: AmbientSelectionCaptureChannel,

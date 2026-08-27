@@ -15,7 +15,7 @@
 //  raw.
 //
 //  APP-AGNOSTIC, LIKE EVERYTHING ELSE HERE. `bundleID` is reported, never
-//  branched on; family identity (`AmbientRealm`) attaches OUTSIDE the
+//  branched on; family identity (`AmbientPlace`) attaches OUTSIDE the
 //  engine, where the resolver lives. Deriving is PURE — snapshot in, value
 //  out — so every field is table-testable without AX.
 //

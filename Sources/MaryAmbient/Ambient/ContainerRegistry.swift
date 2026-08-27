@@ -37,12 +37,12 @@
 //  records it. Only `[W#]` migrates, because it is the one that was wrong.
 //
 //  KEYED BY REALM, so a REGISTERED APPLICATION has container identity of its
-//  own. The ledger keys on `AmbientRealm.token` — byte-identical to the bare
+//  own. The ledger keys on `AmbientPlace.token` — byte-identical to the bare
 //  raw value for every native world, `other_apps:<id>` for a registration —
 //  which is what lets two registered applications share the `.applications` host
 //  lane without their containers colliding, and what a world-keyed ledger
 //  could never grant them. The world-labeled API below is the native
-//  projection, not a leftover: a native realm IS its world, so a built-in
+//  projection, not a leftover: a native place IS its world, so a built-in
 //  plugin keeps speaking world and mints exactly the bytes it always did.
 //
 
@@ -55,24 +55,24 @@ import os
 /// the user actually saw, so this is what makes cardinals resolvable — and
 /// what makes them ABSTAIN when no listing has happened.
 public struct ContainerListing: Sendable, Equatable {
-    public var realm: AmbientRealm
+    public var place: AmbientPlace
     /// The keys, in the order the listing binding rendered them.
     public var keys: [String]
     public var at: Date
 
     /// The closed world half — for a registered application, the host lane it
     /// rides. Kept because most readers only ask "which built-in".
-    public var world: AmbientWorld { realm.world }
+    public var world: AmbientWorld { place.world }
 
-    public init(realm: AmbientRealm, keys: [String], at: Date) {
-        self.realm = realm
+    public init(place: AmbientPlace, keys: [String], at: Date) {
+        self.place = place
         self.keys = keys
         self.at = at
     }
 
     /// The native spelling, unchanged for every built-in caller.
     public init(world: AmbientWorld, keys: [String], at: Date) {
-        self.init(realm: .native(world), keys: keys, at: at)
+        self.init(place: .lane(world), keys: keys, at: at)
     }
 }
 
@@ -145,20 +145,20 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     private struct State: Sendable {
         /// One `HandleMap` per prefix — `W` for TextEdit, `D` for Scrivener.
-        /// Per-prefix rather than one shared map so two realms cannot mint the
+        /// Per-prefix rather than one shared map so two places cannot mint the
         /// same string for different things.
         var handles: [String: HandleMap] = [:]
-        /// NORMALIZED handle → `(realm, key)`. Not `HandleMap.identifier(forHandle:)`:
+        /// NORMALIZED handle → `(place, key)`. Not `HandleMap.identifier(forHandle:)`:
         /// that passes any string longer than 8 characters straight back as a
         /// raw identifier, which is right for a Notes URL a model echoed and
         /// wrong here — it would turn a hallucinated sentence into a
         /// "resolved" container. Resolution here is a lookup in a map this
         /// registry filled, or it is nil.
-        var byHandle: [String: (realm: AmbientRealm, key: String)] = [:]
-        /// The most recent listing per realm — one per registered application,
+        var byHandle: [String: (place: AmbientPlace, key: String)] = [:]
+        /// The most recent listing per place — one per registered application,
         /// not one shared slot for the whole `.applications` host lane.
-        var listings: [AmbientRealm: ContainerListing] = [:]
-        /// `realm.token|key` → the newest stamp per evidence class.
+        var listings: [AmbientPlace: ContainerListing] = [:]
+        /// `place.token|key` → the newest stamp per evidence class.
         var evidence: [String: [ContainerEvidence: Date]] = [:]
     }
 
@@ -169,18 +169,18 @@ public final class ContainerRegistry: @unchecked Sendable {
     // MARK: - Handles
 
     /// Mint (or re-use) the handle for one container. Idempotent by
-    /// `(realm, key)`, so a container keeps its handle for the conversation
+    /// `(place, key)`, so a container keeps its handle for the conversation
     /// however many times it is listed.
     @discardableResult
-    public func handle(realm: AmbientRealm, prefix: String, key: String) -> String {
+    public func handle(place: AmbientPlace, prefix: String, key: String) -> String {
         box.withLock { state in
             var map = state.handles[prefix] ?? HandleMap(prefix: prefix)
-            // Scope the identifier by realm token so two realms sharing a
+            // Scope the identifier by place token so two places sharing a
             // prefix (none today, but the table is open) cannot collide —
             // including two registered applications on one host lane.
-            let handle = map.handle(for: "\(realm.token)|\(key)")
+            let handle = map.handle(for: "\(place.token)|\(key)")
             state.handles[prefix] = map
-            state.byHandle[Self.normalize(handle)] = (realm, key)
+            state.byHandle[Self.normalize(handle)] = (place, key)
             // MINTING IS *NOT* BEING SHOWN, and this comment used to say the
             // opposite. Caught live: `ReferenceFocus.resolve` mints a handle for
             // every candidate on every turn, so stamping `.shown` here gave all
@@ -195,65 +195,65 @@ public final class ContainerRegistry: @unchecked Sendable {
     }
 
     /// The native projection — a built-in world mints exactly the bytes it
-    /// always did (`realm.token == rawValue` for every native case).
+    /// always did (`place.token == rawValue` for every native case).
     @discardableResult
     public func handle(world: AmbientWorld, prefix: String, key: String) -> String {
-        handle(realm: .native(world), prefix: prefix, key: key)
+        handle(place: .lane(world), prefix: prefix, key: key)
     }
 
-    /// Record a handle a realm minted ITSELF, so `[D3]` from Scrivener's own
+    /// Record a handle a place minted ITSELF, so `[D3]` from Scrivener's own
     /// `HandleMap` resolves here too. Adoption, not re-minting — see the file
     /// header.
-    public func adopt(handle: String, realm: AmbientRealm, key: String) {
-        box.withLock { $0.byHandle[Self.normalize(handle)] = (realm, key) }
+    public func adopt(handle: String, place: AmbientPlace, key: String) {
+        box.withLock { $0.byHandle[Self.normalize(handle)] = (place, key) }
     }
 
-    /// The native projection of `adopt(handle:realm:key:)`.
+    /// The native projection of `adopt(handle:place:key:)`.
     public func adopt(handle: String, world: AmbientWorld, key: String) {
-        adopt(handle: handle, realm: .native(world), key: key)
+        adopt(handle: handle, place: .lane(world), key: key)
     }
 
     /// The container a handle names, or nil. Tolerant of `[W1]`, `w1`, ` W1 `
     /// — a model writes back whichever it likes.
-    public func resolveRealm(_ raw: String) -> (realm: AmbientRealm, key: String)? {
+    public func resolvePlace(_ raw: String) -> (place: AmbientPlace, key: String)? {
         let normalized = Self.normalize(raw)
         guard !normalized.isEmpty else { return nil }
         return box.withLock { $0.byHandle[normalized] }
     }
 
-    /// The world projection of `resolveRealm(_:)` — a registered application's
+    /// The world projection of `resolvePlace(_:)` — a registered application's
     /// container answers with its host lane here, which is what a caller
     /// asking "is this one of TextEdit's?" needs and nothing more.
     public func resolve(_ raw: String) -> (world: AmbientWorld, key: String)? {
-        resolveRealm(raw).map { ($0.realm.world, $0.key) }
+        resolvePlace(raw).map { ($0.place.world, $0.key) }
     }
 
     // MARK: - Salience
 
     /// Record that something referential happened to a container.
     public func noteEvidence(
-        realm: AmbientRealm, key: String, _ kind: ContainerEvidence,
+        place: AmbientPlace, key: String, _ kind: ContainerEvidence,
         at now: Date = Date()
     ) {
-        let id = Self.evidenceKey(realm: realm, key: key)
+        let id = Self.evidenceKey(place: place, key: key)
         box.withLock { $0.evidence[id, default: [:]][kind] = now }
     }
 
-    /// The native projection of `noteEvidence(realm:key:_:at:)`.
+    /// The native projection of `noteEvidence(place:key:_:at:)`.
     public func noteEvidence(
         world: AmbientWorld, key: String, _ kind: ContainerEvidence,
         at now: Date = Date()
     ) {
-        noteEvidence(realm: .native(world), key: key, kind, at: now)
+        noteEvidence(place: .lane(world), key: key, kind, at: now)
     }
 
     /// The strongest live claim on a container, and when it was made. Nil when
     /// nothing referential has happened to it — which is a real answer, and the
     /// one that keeps a never-mentioned container out of every anaphoric pick.
     public func evidence(
-        realm: AmbientRealm, key: String, at now: Date = Date()
+        place: AmbientPlace, key: String, at now: Date = Date()
     ) -> (kind: ContainerEvidence, at: Date)? {
-        let id = Self.evidenceKey(realm: realm, key: key)
+        let id = Self.evidenceKey(place: place, key: key)
         let stamps = box.withLock { $0.evidence[id] ?? [:] }
         let live = stamps.filter { kind, at in
             // `.touched` is world state and never expires here; the rest are
@@ -264,11 +264,11 @@ public final class ContainerRegistry: @unchecked Sendable {
         return (best, live[best] ?? .distantPast)
     }
 
-    /// The native projection of `evidence(realm:key:at:)`.
+    /// The native projection of `evidence(place:key:at:)`.
     public func evidence(
         world: AmbientWorld, key: String, at now: Date = Date()
     ) -> (kind: ContainerEvidence, at: Date)? {
-        evidence(realm: .native(world), key: key, at: now)
+        evidence(place: .lane(world), key: key, at: now)
     }
 
     /// Whether any selected conversation event happened after a boundary.
@@ -277,13 +277,13 @@ public final class ContainerRegistry: @unchecked Sendable {
     /// for salience. An older `.actedOn` must not hide a newer `.read` when the
     /// question is whether a roster listing is still the newest event.
     public func hasEvidence(
-        realm: AmbientRealm,
+        place: AmbientPlace,
         key: String,
         kinds: Set<ContainerEvidence>,
         newerThan boundary: Date,
         at now: Date = Date()
     ) -> Bool {
-        let id = Self.evidenceKey(realm: realm, key: key)
+        let id = Self.evidenceKey(place: place, key: key)
         let stamps = box.withLock { $0.evidence[id] ?? [:] }
         return stamps.contains { kind, stamp in
             guard kinds.contains(kind), stamp > boundary else { return false }
@@ -292,7 +292,7 @@ public final class ContainerRegistry: @unchecked Sendable {
         }
     }
 
-    /// The native projection of `hasEvidence(realm:key:kinds:newerThan:at:)`.
+    /// The native projection of `hasEvidence(place:key:kinds:newerThan:at:)`.
     public func hasEvidence(
         world: AmbientWorld,
         key: String,
@@ -301,7 +301,7 @@ public final class ContainerRegistry: @unchecked Sendable {
         at now: Date = Date()
     ) -> Bool {
         hasEvidence(
-            realm: .native(world), key: key, kinds: kinds,
+            place: .lane(world), key: key, kinds: kinds,
             newerThan: boundary, at: now)
     }
 
@@ -311,10 +311,10 @@ public final class ContainerRegistry: @unchecked Sendable {
     /// `ContainerEvidence` documents. Returned as a plain `Int` because that is
     /// all `ReferenceResolver` needs: it compares, it never interprets.
     public func salienceRanks(
-        realm: AmbientRealm, keys: [String], at now: Date = Date()
+        place: AmbientPlace, keys: [String], at now: Date = Date()
     ) -> [String: Int] {
         let scored: [(key: String, kind: ContainerEvidence, at: Date)] = keys.compactMap { key in
-            guard let found = evidence(realm: realm, key: key, at: now) else { return nil }
+            guard let found = evidence(place: place, key: key, at: now) else { return nil }
             return (key, found.kind, found.at)
         }
         let ordered = scored.sorted {
@@ -339,11 +339,11 @@ public final class ContainerRegistry: @unchecked Sendable {
                 .enumerated().map { ($1.key, $0) })
     }
 
-    /// The native projection of `salienceRanks(realm:keys:at:)`.
+    /// The native projection of `salienceRanks(place:keys:at:)`.
     public func salienceRanks(
         world: AmbientWorld, keys: [String], at now: Date = Date()
     ) -> [String: Int] {
-        salienceRanks(realm: .native(world), keys: keys, at: now)
+        salienceRanks(place: .lane(world), keys: keys, at: now)
     }
 
     /// A CORRECTION, RECORDED BOTH WAYS.
@@ -360,71 +360,71 @@ public final class ContainerRegistry: @unchecked Sendable {
     /// evidence, which is exactly "stop preferring this" without inventing an
     /// anti-preference the ordering has no room for.
     public func noteCorrection(
-        realm: AmbientRealm, rejected: String?, intended: String,
+        place: AmbientPlace, rejected: String?, intended: String,
         at now: Date = Date()
     ) {
-        let intendedKey = Self.evidenceKey(realm: realm, key: intended)
+        let intendedKey = Self.evidenceKey(place: place, key: intended)
         box.withLock { state in
             if let rejected {
                 state.evidence.removeValue(
-                    forKey: Self.evidenceKey(realm: realm, key: rejected))
+                    forKey: Self.evidenceKey(place: place, key: rejected))
             }
             state.evidence[intendedKey, default: [:]][.corrected] = now
         }
     }
 
-    /// The native projection of `noteCorrection(realm:rejected:intended:at:)`.
+    /// The native projection of `noteCorrection(place:rejected:intended:at:)`.
     public func noteCorrection(
         world: AmbientWorld, rejected: String?, intended: String,
         at now: Date = Date()
     ) {
-        noteCorrection(realm: .native(world), rejected: rejected, intended: intended, at: now)
+        noteCorrection(place: .lane(world), rejected: rejected, intended: intended, at: now)
     }
 
-    /// `textedit|/tmp/todo.txt` / `other_apps:sketch|canvas-1`. The realm
+    /// `textedit|/tmp/todo.txt` / `other_apps:sketch|canvas-1`. The place
     /// token IS the raw value for every native world, so built-in evidence
     /// keys are byte-identical to what the world-keyed ledger stored.
-    public static func evidenceKey(realm: AmbientRealm, key: String) -> String {
-        "\(realm.token)|\(key)"
+    public static func evidenceKey(place: AmbientPlace, key: String) -> String {
+        "\(place.token)|\(key)"
     }
 
-    /// The native projection of `evidenceKey(realm:key:)`.
+    /// The native projection of `evidenceKey(place:key:)`.
     public static func evidenceKey(world: AmbientWorld, key: String) -> String {
-        evidenceKey(realm: .native(world), key: key)
+        evidenceKey(place: .lane(world), key: key)
     }
 
     // MARK: - Listings
 
     /// Remember the order a listing binding just showed the model.
-    public func noteListing(realm: AmbientRealm, keys: [String], at now: Date = Date()) {
+    public func noteListing(place: AmbientPlace, keys: [String], at now: Date = Date()) {
         box.withLock { state in
-            state.listings[realm] = ContainerListing(realm: realm, keys: keys, at: now)
+            state.listings[place] = ContainerListing(place: place, keys: keys, at: now)
             // A LISTING IS WHAT "SHOWN" MEANS — the model was handed these rows
             // and can refer to them. Recorded here rather than at handle-minting
             // time, because minting happens on every turn for every candidate
             // and would give the whole roster identical evidence.
             for key in keys {
-                state.evidence[Self.evidenceKey(realm: realm, key: key), default: [:]][.shown] = now
+                state.evidence[Self.evidenceKey(place: place, key: key), default: [:]][.shown] = now
             }
         }
     }
 
-    /// The native projection of `noteListing(realm:keys:at:)`.
+    /// The native projection of `noteListing(place:keys:at:)`.
     public func noteListing(world: AmbientWorld, keys: [String], at now: Date = Date()) {
-        noteListing(realm: .native(world), keys: keys, at: now)
+        noteListing(place: .lane(world), keys: keys, at: now)
     }
 
-    /// The last listing for a realm, IF IT IS STILL TRUE.
+    /// The last listing for a place, IF IT IS STILL TRUE.
     ///
-    /// A listing goes stale the moment the realm's live enumeration disagrees
+    /// A listing goes stale the moment the place's live enumeration disagrees
     /// with it — in membership OR in order. That is what stops "the last one"
     /// pointing at a row that has since moved: raise a window and the ordinal
     /// rung drops through to salience instead of naming the wrong note. The
     /// enumeration is already polled, so the check is free.
     public func listing(
-        for realm: AmbientRealm, against live: [String]
+        for place: AmbientPlace, against live: [String]
     ) -> ContainerListing? {
-        guard let listing = box.withLock({ $0.listings[realm] }) else { return nil }
+        guard let listing = box.withLock({ $0.listings[place] }) else { return nil }
         guard listing.keys == live else { return nil }
         return listing
     }
@@ -433,18 +433,18 @@ public final class ContainerRegistry: @unchecked Sendable {
     public func listing(
         for world: AmbientWorld, against live: [String]
     ) -> ContainerListing? {
-        listing(for: .native(world), against: live)
+        listing(for: .lane(world), against: live)
     }
 
     /// The raw remembered listing, staleness unchecked — for the debugger pane
     /// and for tests. Callers deciding anything must use `listing(for:against:)`.
-    public func lastListing(for realm: AmbientRealm) -> ContainerListing? {
-        box.withLock { $0.listings[realm] }
+    public func lastListing(for place: AmbientPlace) -> ContainerListing? {
+        box.withLock { $0.listings[place] }
     }
 
     /// The native projection of `lastListing(for:)`.
     public func lastListing(for world: AmbientWorld) -> ContainerListing? {
-        lastListing(for: .native(world))
+        lastListing(for: .lane(world))
     }
 
     /// Test isolation, and the shape `PassageRegistry.clear()` set.

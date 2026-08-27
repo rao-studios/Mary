@@ -27,10 +27,10 @@ import Testing
     private func candidate(
         _ key: String, title: String, subtitle: String? = nil, body: String? = nil,
         listIndex: Int, isFront: Bool = false, salience: Int? = nil,
-        handle: String? = nil, realm: AmbientRealm = .dynamic("textedit")
+        handle: String? = nil, place: AmbientPlace = .application("textedit")
     ) -> ReferenceResolver.Candidate {
         .init(
-            realm: realm, key: key, handle: handle, title: title, subtitle: subtitle,
+            place: place, key: key, handle: handle, title: title, subtitle: subtitle,
             body: body, listIndex: listIndex, isFront: isFront, salience: salience)
     }
 
@@ -54,7 +54,7 @@ import Testing
             candidate("k2", title: "B", listIndex: 2, handle: "W2"),
         ]
         let choice = ReferenceResolver.resolve(utterance: "change it in [W2]", candidates: rows)
-        #expect(choice == .init(realm: .dynamic("textedit"), key: "k2", rung: .handle))
+        #expect(choice == .init(place: .application("textedit"), key: "k2", rung: .handle))
     }
 
     @Test func anInventedHandleAbstains() {
@@ -88,15 +88,15 @@ import Testing
     /// items are titled "Chapter One", and the synopsis is the only thing that
     /// tells them apart.
     ///
-    /// A `.dynamic` realm and not a compiled world, deliberately — this is the
-    /// rung a package brings, and it has to work for a realm with no
+    /// A `.dynamic` place and not a compiled world, deliberately — this is the
+    /// rung a package brings, and it has to work for a place with no
     /// `AmbientWorld` behind it.
     @Test func theSubtitleCarriesAWorldThatCannotBeRead() {
         let rows = [
             candidate("d1", title: "Chapter One", subtitle: "Bea arrives in the rain",
-                      listIndex: 1, isFront: true, realm: .dynamic("manuscripts")),
+                      listIndex: 1, isFront: true, place: .application("manuscripts")),
             candidate("d2", title: "Chapter Two", subtitle: "the orchard confrontation",
-                      listIndex: 2, realm: .dynamic("manuscripts")),
+                      listIndex: 2, place: .application("manuscripts")),
         ]
         let choice = ReferenceResolver.resolve(
             utterance: "read me the orchard scene", candidates: rows)
@@ -169,7 +169,7 @@ import Testing
     @Test func anaphoraTakesTheMostSalientNonFrontContainer() {
         let choice = ReferenceResolver.resolve(
             utterance: "no, the other one", candidates: untitled)
-        #expect(choice?.realm == .dynamic("textedit"))
+        #expect(choice?.place == .application("textedit"))
         #expect(choice?.key == "k2")
         #expect(choice?.rung == .anaphora)
         // Salience PICKED between real rivals, so this is a decision with a
@@ -242,11 +242,11 @@ import Testing
         let recent = Date(timeIntervalSince1970: 2_000)
 
         // The weaker class is far more RECENT, and must still lose.
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "acted", .actedOn, at: old)
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "touched", .touched, at: recent)
+        registry.noteEvidence(place: .application("textedit"), key: "acted", .actedOn, at: old)
+        registry.noteEvidence(place: .application("textedit"), key: "touched", .touched, at: recent)
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["touched", "acted"], at: recent)
+            place: .application("textedit"), keys: ["touched", "acted"], at: recent)
         #expect(ranks["acted"] == 0)
         #expect(ranks["touched"] == 1)
     }
@@ -255,14 +255,14 @@ import Testing
         let registry = ContainerRegistry()
         let now = Date(timeIntervalSince1970: 2_000)
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "read", .read,
+            place: .application("textedit"), key: "read", .read,
             at: now.addingTimeInterval(-500))
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "front", .touched,
+            place: .application("textedit"), key: "front", .touched,
             at: now)
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["front", "read"], at: now)
+            place: .application("textedit"), keys: ["front", "read"], at: now)
         #expect(ranks["read"] == 0)
         #expect(ranks["front"] == 1)
     }
@@ -271,14 +271,14 @@ import Testing
         let registry = ContainerRegistry()
         let now = Date(timeIntervalSince1970: 2_000)
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "mentioned", .spokenAbout,
+            place: .application("textedit"), key: "mentioned", .spokenAbout,
             at: now.addingTimeInterval(-10))
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "read", .read,
+            place: .application("textedit"), key: "read", .read,
             at: now)
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["mentioned", "read"], at: now)
+            place: .application("textedit"), keys: ["mentioned", "read"], at: now)
         #expect(ranks["read"] == 0)
         #expect(ranks["mentioned"] == 1)
     }
@@ -286,14 +286,14 @@ import Testing
     @Test func withinAClassTheNewestWins() {
         let registry = ContainerRegistry()
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "older", .spokenAbout,
+            place: .application("textedit"), key: "older", .spokenAbout,
             at: Date(timeIntervalSince1970: 1_000))
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "newer", .spokenAbout,
+            place: .application("textedit"), key: "newer", .spokenAbout,
             at: Date(timeIntervalSince1970: 2_000))
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["older", "newer"],
+            place: .application("textedit"), keys: ["older", "newer"],
             at: Date(timeIntervalSince1970: 2_000))
         #expect(ranks["newer"] == 0)
         #expect(ranks["older"] == 1)
@@ -303,8 +303,8 @@ import Testing
     /// what keeps a never-mentioned note out of every anaphoric pick.
     @Test func noEvidenceIsNoRank() {
         let registry = ContainerRegistry()
-        #expect(registry.salienceRanks(realm: .dynamic("textedit"), keys: ["a", "b"]).isEmpty)
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "a") == nil)
+        #expect(registry.salienceRanks(place: .application("textedit"), keys: ["a", "b"]).isEmpty)
+        #expect(registry.evidence(place: .application("textedit"), key: "a") == nil)
     }
 
     /// CONVERSATION MEMORY EXPIRES; WORLD STATE DOES NOT. `.touched` is a fact
@@ -316,13 +316,13 @@ import Testing
         let then = Date(timeIntervalSince1970: 1_000)
         let muchLater = then.addingTimeInterval(ContainerRegistry.evidenceRetention + 60)
 
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "spoken", .spokenAbout, at: then)
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "read", .read, at: then)
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "touched", .touched, at: then)
+        registry.noteEvidence(place: .application("textedit"), key: "spoken", .spokenAbout, at: then)
+        registry.noteEvidence(place: .application("textedit"), key: "read", .read, at: then)
+        registry.noteEvidence(place: .application("textedit"), key: "touched", .touched, at: then)
 
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "spoken", at: muchLater) == nil)
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "read", at: muchLater) == nil)
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "touched", at: muchLater)?.kind
+        #expect(registry.evidence(place: .application("textedit"), key: "spoken", at: muchLater) == nil)
+        #expect(registry.evidence(place: .application("textedit"), key: "read", at: muchLater) == nil)
+        #expect(registry.evidence(place: .application("textedit"), key: "touched", at: muchLater)?.kind
             == .touched)
     }
 
@@ -342,11 +342,11 @@ import Testing
     /// order. A coin toss wearing a rank.
     @Test func onlyAListingCountsAsBeingShown() {
         let registry = ContainerRegistry()
-        _ = registry.handle(realm: .dynamic("textedit"), prefix: "W", key: "k")
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "k") == nil)
+        _ = registry.handle(place: .application("textedit"), prefix: "W", key: "k")
+        #expect(registry.evidence(place: .application("textedit"), key: "k") == nil)
 
-        registry.noteListing(realm: .dynamic("textedit"), keys: ["k"])
-        #expect(registry.evidence(realm: .dynamic("textedit"), key: "k")?.kind == .shown)
+        registry.noteListing(place: .application("textedit"), keys: ["k"])
+        #expect(registry.evidence(place: .application("textedit"), key: "k")?.kind == .shown)
     }
 
     /// THE USER'S ATTENTION BEATS A LISTING. A listing stamps every container
@@ -357,11 +357,11 @@ import Testing
         let now = Date(timeIntervalSince1970: 5_000)
         // The listing is NEWER, and must still lose.
         registry.noteEvidence(
-            realm: .dynamic("textedit"), key: "visited", .touched, at: now.addingTimeInterval(-500))
-        registry.noteListing(realm: .dynamic("textedit"), keys: ["listed"], at: now)
+            place: .application("textedit"), key: "visited", .touched, at: now.addingTimeInterval(-500))
+        registry.noteListing(place: .application("textedit"), keys: ["listed"], at: now)
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["listed", "visited"], at: now)
+            place: .application("textedit"), keys: ["listed", "visited"], at: now)
         #expect(ranks["visited"] == 0)
         #expect(ranks["listed"] == 1)
     }
@@ -372,10 +372,10 @@ import Testing
     @Test func containersTiedAtTheSameInstantGetNoRank() {
         let registry = ContainerRegistry()
         let now = Date(timeIntervalSince1970: 9_000)
-        registry.noteListing(realm: .dynamic("textedit"), keys: ["a", "b", "c"], at: now)
+        registry.noteListing(place: .application("textedit"), keys: ["a", "b", "c"], at: now)
 
         let ranks = registry.salienceRanks(
-            realm: .dynamic("textedit"), keys: ["a", "b", "c"], at: now)
+            place: .application("textedit"), keys: ["a", "b", "c"], at: now)
         #expect(ranks.isEmpty, "a listing must not rank its own rows against each other")
     }
 
@@ -385,10 +385,10 @@ import Testing
     @Test func differentClassesAreNeverATieHoweverCloseTheClock() {
         let registry = ContainerRegistry()
         let now = Date(timeIntervalSince1970: 9_000)
-        registry.noteListing(realm: .dynamic("textedit"), keys: ["a", "b"], at: now)
-        registry.noteEvidence(realm: .dynamic("textedit"), key: "b", .actedOn, at: now)
+        registry.noteListing(place: .application("textedit"), keys: ["a", "b"], at: now)
+        registry.noteEvidence(place: .application("textedit"), key: "b", .actedOn, at: now)
 
-        let ranks = registry.salienceRanks(realm: .dynamic("textedit"), keys: ["a", "b"], at: now)
+        let ranks = registry.salienceRanks(place: .application("textedit"), keys: ["a", "b"], at: now)
         #expect(ranks["b"] == 0)   // acted on
         #expect(ranks["a"] == 1)   // merely shown, but still the only rival
     }

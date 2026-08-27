@@ -2,17 +2,34 @@
 //  AmbientWorld.swift
 //  MaryAmbient
 //
-//  MARY'S OWN LANES — and deliberately nothing else.
+//  MARY'S OVERALL STATE AT A MOMENT — the lanes that host every ambient
+//  context, and the faculties she can invoke.
 //
-//  This enum is the CLOSED half of the `AmbientRealm` taxonomy: the places
-//  Mary herself is, as opposed to the places she is looking at. There are
-//  five, they are all things this build ships, and the list is not expected
-//  to grow when a user teaches her a new application — because teaching her
-//  an application does not add a world.
+//  A WORLD IS NOT A PLACE, and the whole vocabulary turns on keeping those
+//  apart:
+//
+//    WORLD  — this enum. What Mary IS right now: the standing lanes her
+//             context hangs on, and what she can reach for. Five of them,
+//             all shipped by this build, and the list does not grow when a
+//             user teaches her a new application.
+//    REALM  — `AmbientRealm`. What is OUTSIDE her that could serve the turn:
+//             the applications conforming to what the query needs, held as a
+//             set while the where is still being decided.
+//    PLACE  — `AmbientPlace`. The WHERE, singular and decided. A realm HOSTS
+//             one once the focus signal has spoken.
+//
+//  Confusing the world for the place is the specific mixup this file exists
+//  to prevent. A lane hosts contexts; it is not somewhere the user is.
+//
+//  EVERY AMBIENT CONTEXT IS HOSTED BY A LANE, mechanically and not just by
+//  description: the store keys every fact under `(world, application)`, so
+//  the lane is the first half of the address of everything Mary holds. An
+//  application's facts ride `.applications`; her own faculties key under
+//  themselves.
 //
 //  WHAT IS NOT HERE IS THE POINT. There is no `textEdit` case, no `pages`,
 //  no `xcode`. Every application arrives as a Plugin package and lives as
-//  `AmbientRealm.dynamic("textedit")`, riding the `.applications` lane and
+//  `AmbientPlace.application("textedit")`, riding the `.applications` lane and
 //  resolved through its registration. Bonnie learned this the expensive way:
 //  its version of this enum carried one case per compiled plugin owner, so
 //  every application anyone ever taught it needed a new case — a recompile to
@@ -24,17 +41,20 @@
 //
 //  THE CONSEQUENCE WORTH NAMING: several questions this enum used to answer —
 //  does this place have eyes, what craft is it for, does it hold prose — are
-//  now questions about a REGISTRATION, and `AmbientRealm` asks them there.
+//  now questions about a REGISTRATION, and `AmbientPlace` asks them there.
 //  What is left here answers only for Mary's own lanes, and answers "no" or
 //  "nothing" for all of them, honestly: the typer is not a place with
 //  contents, and the applications lane is a channel rather than a location.
+//  What this enum DOES still answer for itself is `isInvocable` — which of
+//  these lanes is a faculty Mary can reach for, as opposed to a channel
+//  through which she perceives.
 //
 //  THIS ALSO CLOSES A GAP BY CONSTRUCTION. Bonnie's passage backing was keyed
 //  on this enum, so an application taught by package — having no case — could
 //  be read, focused and remembered but could never have a passage cut from
 //  it. There was a documented note about that. With no application cases at
-//  all, there is no set to be left out of: passages key on the realm, and
-//  every application is a realm the same way.
+//  all, there is no set to be left out of: passages key on the place, and
+//  every application is a place the same way.
 //
 
 import Foundation
@@ -70,7 +90,7 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     ///
     /// Not "an application" — the channel through which any of them is
     /// perceived. A fact about TextEdit is stored under
-    /// `AmbientRealm.dynamic("textedit")`, whose `world` is this; the lane is
+    /// `AmbientPlace.application("textedit")`, whose `world` is this; the lane is
     /// what makes a fact about an application distinguishable from a fact
     /// about the Mac, and the registration is what says which application.
     case applications
@@ -87,6 +107,28 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
 
     /// The keyboard. Mary's hands for putting text where a cursor is.
     case typer
+
+    /// WHETHER THIS LANE IS SOMETHING MARY CAN INVOKE.
+    ///
+    /// Four of the five are faculties: she types, she drives the machine, she
+    /// reads and sets system state, she moves windows. `.applications` is the
+    /// odd one and the important one — it is the channel every taught
+    /// application's perception rides, not a thing to reach for. Asking to
+    /// "invoke applications" is a category error, and a roster that offered
+    /// it would be offering the user a lane instead of an app.
+    ///
+    /// Stated as a property rather than left implicit because the distinction
+    /// is exactly the world-versus-place mixup this file guards: a faculty is
+    /// part of Mary's state, a hosted application is not.
+    public var isInvocable: Bool {
+        switch self {
+        case .applications: return false
+        case .mac, .system, .windowManagement, .typer: return true
+        }
+    }
+
+    /// The faculties, in `order` — what Mary can reach for right now.
+    public static var invocable: [AmbientWorld] { allCases.filter(\.isInvocable) }
 
     /// The adapter owner id the roster and the dispatcher use.
     public var pluginOwner: String { rawValue }
@@ -108,7 +150,7 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     /// A lane is not observed; the applications riding it are. Asking the
     /// host lane whether it has eyes would answer for the channel and not the
     /// guest, which is precisely how Bonnie's version denied sight to every
-    /// application taught by package. `AmbientRealm.hasEyes` asks the
+    /// application taught by package. `AmbientPlace.hasEyes` asks the
     /// registration, and only falls back here when nothing owns the lane —
     /// where the honest answer is no.
     public var hasEyes: Bool { false }
@@ -125,7 +167,7 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     /// WHICH CRAFT THIS LANE IS FOR — nothing, for all five.
     ///
     /// A craft belongs to an application, and applications are registrations.
-    /// `AmbientRealm.ability` reads the disciplines a package declares; this
+    /// `AmbientPlace.ability` reads the disciplines a package declares; this
     /// is the fallback for a lane that owns no package, and there is no craft
     /// to name there.
     public var ability: AbilityID? { nil }
@@ -133,7 +175,7 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     /// Every Ability any lane realizes, in a stable order.
     ///
     /// Empty here, and still worth keeping as the ONE spelling of the
-    /// deterministic ability order: `AmbientRealm.ability` uses it to break
+    /// deterministic ability order: `AmbientPlace.ability` uses it to break
     /// ties when a package declares several disciplines, and a `Set`'s own
     /// order would make the roster differ between runs.
     public static var realizedAbilities: [AbilityID] {
@@ -142,7 +184,7 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     }
 
     /// Nil for every lane: workspace identity belongs to applications, and
-    /// `AmbientRealm.focus` asks the registration for it.
+    /// `AmbientPlace.focus` asks the registration for it.
     public var focus: WorkspaceFocus? { nil }
 
     public var displayName: String {

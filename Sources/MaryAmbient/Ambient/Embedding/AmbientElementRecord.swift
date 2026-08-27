@@ -48,21 +48,21 @@ public struct AmbientElementCapabilities: OptionSet, Sendable, Hashable {
 /// Which slice of the ambient world a record belongs to — the index is
 /// partitioned by scope so a Sketch query never ranks against Pages prose.
 public struct AmbientElementScope: Hashable, Sendable {
-    /// WHERE the partition lives: a native world's realm, or a registered
-    /// application's dynamic realm. Was `world: AmbientWorld?` with nil
+    /// WHERE the partition lives: a native world's place, or a registered
+    /// application's dynamic place. Was `world: AmbientWorld?` with nil
     /// meaning "a design application discriminated only by `key`" — the
-    /// realm spells that lane explicitly, and every factory maps its old
+    /// place spells that lane explicitly, and every factory maps its old
     /// spelling onto a distinct new one, so existing partitions are
-    /// preserved (a design app's `.dynamic(id)` can never collide with
-    /// a fact lane's `.native(world)`).
-    public var realm: AmbientRealm
-    /// The document partition WITHIN the realm: `world|documentKey` for
+    /// preserved (a design app's `.application(id)` can never collide with
+    /// a fact lane's `.lane(world)`).
+    public var place: AmbientPlace
+    /// The document partition WITHIN the place: `world|documentKey` for
     /// document-partitioned worlds, the application's logical id for design
     /// canvases, the world's rawValue for fact lanes.
     public var key: String
 
-    public init(realm: AmbientRealm, key: String) {
-        self.realm = realm
+    public init(place: AmbientPlace, key: String) {
+        self.place = place
         self.key = key
     }
 }

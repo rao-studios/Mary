@@ -42,14 +42,14 @@ extension AmbientContextStore {
     }
 
     /// The fresh surface for one family lane, or nil.
-    public func surface(place: AmbientRealm, at now: Date = Date()) -> AmbientSurface? {
+    public func surface(place: AmbientPlace, at now: Date = Date()) -> AmbientSurface? {
         surfaceBox.withLock { surfaces in
             Self.pruneSurfaces(&surfaces, at: now)
             return surfaces[place]
         }
     }
 
-    /// Every fresh surface — realm order, then newest first, so a reader
+    /// Every fresh surface — place order, then newest first, so a reader
     /// without a lead in hand still gets a stable presentation.
     public func surfaces(at now: Date = Date()) -> [AmbientSurface] {
         surfaceBox.withLock { surfaces in
@@ -64,12 +64,12 @@ extension AmbientContextStore {
     }
 
     /// Teardown for one lane — the observer's deactivate path.
-    public func forgetSurface(place: AmbientRealm) {
+    public func forgetSurface(place: AmbientPlace) {
         surfaceBox.withLock { $0[place] = nil }
     }
 
     private static func pruneSurfaces(
-        _ surfaces: inout [AmbientRealm: AmbientSurface], at now: Date
+        _ surfaces: inout [AmbientPlace: AmbientSurface], at now: Date
     ) {
         for (place, surface) in surfaces where !surface.isFresh(at: now) {
             surfaces[place] = nil

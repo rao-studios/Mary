@@ -111,7 +111,7 @@ extension AmbientRanker {
     /// what "apply focused priority INSTEAD" means.
     ///
     /// PLACES, NOT WORLDS. Bonnie offered a world-typed shim beside this that
-    /// wrapped its argument in `.native(...)`, which worked while a world WAS
+    /// wrapped its argument in `.lane(...)`, which worked while a world WAS
     /// an application. Here every application shares the one `.applications`
     /// lane, so comparing worlds would rank every application as focused
     /// whenever any of them was — the shim is not narrower, it is wrong, and
@@ -119,7 +119,7 @@ extension AmbientRanker {
     public static func rank(
         facts: [AmbientFact],
         utterance: String,
-        focusedPlace: AmbientRealm?,
+        focusedPlace: AmbientPlace?,
         attention: AmbientAttention? = nil,
         at now: Date = Date()
     ) -> (mode: AmbientRankingMode, facts: [AmbientFact]) {
@@ -152,7 +152,7 @@ extension AmbientRanker {
     /// are not omitted, they are above.
     ///
     /// `surfaces` IS TIER 0 AND SPENDS FIRST — the caller passes them
-    /// lead-lane first (it is the side holding `leadRealm`; this stays
+    /// lead-lane first (it is the side holding `leadPlace`; this stays
     /// place-ignorant). The foundation is charged to the budget before any
     /// detail, which is the tiering made literal. A surface that does not
     /// fit is DROPPED rather than degraded to a mention: it is live
@@ -161,7 +161,7 @@ extension AmbientRanker {
     public static func render(
         facts: [AmbientFact],
         utterance: String,
-        focusedPlace: AmbientRealm?,
+        focusedPlace: AmbientPlace?,
         attention: AmbientAttention? = nil,
         alreadyRendered: Set<AmbientKey> = [],
         suppressingContentIn suppressed: [String] = [],

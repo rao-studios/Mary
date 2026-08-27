@@ -18,7 +18,7 @@ import XCTest
 
 final class AmbientSurfaceBridgeTests: XCTestCase {
 
-    private let realm = AmbientRealm(world: .applications, application: "com.example.app")
+    private let place = AmbientPlace(world: .applications, application: "com.example.app")
 
     private func context(
         roles: [(role: String, label: String, category: AXNodeCategory)] =
@@ -58,8 +58,8 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
 
     func testSurfaceCarriesIdentityWindowAndElements() {
         let sample = context(focusedLabel: "Search")
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
-        XCTAssertEqual(surface.place, realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
+        XCTAssertEqual(surface.place, place)
         XCTAssertEqual(surface.application.name, "Example")
         XCTAssertEqual(surface.application.bundleID, "com.example.app")
         XCTAssertEqual(surface.application.pid, 1)
@@ -74,7 +74,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
 
     func testSurfaceElementKeepsOrdinalTrailAndState() {
         let sample = context()
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
         let element = surface.elements.first
         XCTAssertEqual(element?.ordinal, sample.elements.first?.ordinal)
         XCTAssertEqual(element?.role, "AXButton")
@@ -87,7 +87,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
 
     func testSurfaceElementCarriesAFrame() {
         let sample = context()
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
         let engineFrame = sample.elements.first!.frame
         let surfaceFrame = surface.elements.first?.frame
         XCTAssertEqual(surfaceFrame?.rect.x, engineFrame.origin.x)
@@ -101,7 +101,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
     /// act-relevant element on screen and carried no geometry.
     func testFocusedElementNowCarriesItsFrame() {
         let sample = context(focusedLabel: "Search")
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
         XCTAssertNotNil(surface.focused?.frame, "the focused element must carry a frame")
         XCTAssertEqual(surface.focused?.frame?.rect.x, 400)
         XCTAssertEqual(surface.focused?.frame?.rect.y, 10)
@@ -109,7 +109,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
 
     func testWindowFrameIsProjected() {
         let sample = context()
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
         XCTAssertNotNil(surface.activeWindow?.frame)
         XCTAssertEqual(surface.activeWindow?.frame?.rect.width, 800)
     }
@@ -123,7 +123,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
 
     func testInWindowIsRelativeToTheActiveWindow() {
         let sample = context()
-        let surface = AmbientBridge.surface(from: sample, realm: realm)
+        let surface = AmbientBridge.surface(from: sample, place: place)
         // The fixture's window sits at (0,0), so element-relative-to-window
         // equals the element's own global rect exactly.
         let engineFrame = sample.elements.first!.frame
@@ -273,7 +273,7 @@ final class AmbientSurfaceBridgeTests: XCTestCase {
     /// the surface says so.
     func testAWebContentHostIsMarkedAsNotYetRead() {
         let hosted = context(webContentHost: true)
-        XCTAssertTrue(AmbientBridge.surface(from: hosted, realm: realm).pageNotYetRead)
-        XCTAssertFalse(AmbientBridge.surface(from: context(), realm: realm).pageNotYetRead)
+        XCTAssertTrue(AmbientBridge.surface(from: hosted, place: place).pageNotYetRead)
+        XCTAssertFalse(AmbientBridge.surface(from: context(), place: place).pageNotYetRead)
     }
 }
