@@ -1,0 +1,254 @@
+//
+//  PackageLayeringTests.swift
+//  MaryFoundationTests
+//
+//  THE STANDING RULES, ENFORCED RATHER THAN ASSERTED.
+//
+//  These are the rules about which GRAPHS a target may join: MaryAmbient
+//  stands on MaryFoundation alone, neither it nor MaryAdapters touches
+//  inference or transport, only MaryBrain names Frigate, only MaryRuntime and
+//  the app consume MaryTotem, and nothing anywhere names WhisperKit.
+//
+//  WHY THE COMPILER DOES NOT CATCH IT. It is tempting to assume a violation
+//  shows up as a circular dependency. It does not. A target gaining an edge it
+//  should not have forms no cycle — it compiles, it links, it ships, and the
+//  boundary is gone with no diagnostic anywhere.
+//
+//  So the manifest is read as text. That is cruder than a compiler check and
+//  it is the strongest check available: SwiftPM exposes no build-time hook for
+//  "this target may not depend on that target".
+//
+//  THIS TEST EXISTS BEFORE THE TARGETS DO. Mary is built in stages, so most
+//  rules below name a target that is not in the manifest yet. A rule whose
+//  subject is absent is recorded as PENDING rather than passing silently —
+//  `everyRuleHasASubjectOrIsPending` prints the roster each run, so a target
+//  arriving without its rule is visible instead of quietly unpoliced.
+//
+//  WHY A TEST TARGET MAY SEE BOTH SIDES. Test targets are integration suites
+//  that assert ACROSS a seam; these rules constrain the library targets only.
+//
+
+import Foundation
+import Testing
+
+@Suite struct PackageLayeringTests {
+
+    // MARK: - Reading the manifest
+
+    /// The single root manifest, read from disk.
+    ///
+    /// Throws rather than returning empty if the path is wrong, because most
+    /// assertions below are of the form "this text does not appear" and an
+    /// empty read satisfies all of them. A layering test that silently stops
+    /// reading is worse than no layering test at all.
+    static func manifest() throws -> String {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // MaryFoundationTests
+            .deletingLastPathComponent()   // Tests
+            .deletingLastPathComponent()   // repo root
+        return try String(
+            contentsOf: root.appendingPathComponent("Package.swift"),
+            encoding: .utf8)
+    }
+
+    /// The manifest with `//` comments removed.
+    ///
+    /// The manifest carries STANDING RULE headers that NAME the things the
+    /// rules forbid ("no WhisperKit", "Frigate only through MaryBrain").
+    /// Scanning raw text would flag the documentation of a rule as a violation
+    /// of it.
+    static func code(_ manifest: String) -> String {
+        manifest
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { line -> Substring in
+                guard let slashes = line.range(of: "//") else { return line }
+                return line[line.startIndex..<slashes.lowerBound]
+            }
+            .joined(separator: "\n")
+    }
+
+    /// The body of one `.target(name: "X", …)` / `.testTarget(…)` /
+    /// `.executableTarget(…)` block, paren-balanced from the opening `(` to
+    /// its match.
+    ///
+    /// Anchored on the `target(` DECLARATION, not on the name: the manifest
+    /// opens with `Package(name: "Mary")`, so searching for the name alone
+    /// finds the package itself and then balances across the entire file.
+    static func targetBlock(_ manifest: String, named name: String) -> String? {
+        let source = code(manifest)
+        var searchFrom = source.startIndex
+        while let open = source.range(of: "target(", range: searchFrom..<source.endIndex) {
+            var depth = 1
+            var cursor = open.upperBound
+            while cursor < source.endIndex, depth > 0 {
+                switch source[cursor] {
+                case "(": depth += 1
+                case ")": depth -= 1
+                default: break
+                }
+                if depth > 0 { cursor = source.index(after: cursor) }
+            }
+            guard depth == 0 else { return nil }
+            let body = String(source[open.upperBound..<cursor])
+            if body.contains("name: \"\(name)\"") { return body }
+            searchFrom = cursor
+        }
+        return nil
+    }
+
+    /// Just the `dependencies: [...]` array of a target block, one entry per
+    /// element, trimmed. `.product(name: "X", package: "Y")` entries survive
+    /// whole so a rule can match on either half.
+    static func dependencyNames(_ targetBlock: String) -> [String] {
+        guard let open = targetBlock.range(of: "dependencies: [") else { return [] }
+        var depth = 1
+        var cursor = open.upperBound
+        while cursor < targetBlock.endIndex, depth > 0 {
+            switch targetBlock[cursor] {
+            case "[": depth += 1
+            case "]": depth -= 1
+            default: break
+            }
+            if depth > 0 { cursor = targetBlock.index(after: cursor) }
+        }
+        let body = String(targetBlock[open.upperBound..<cursor])
+        // Split on commas that are not inside a nested paren — `.product(name:
+        // "X", package: "Y")` is ONE entry, and splitting it in two would let
+        // a rule match the package half while missing the product half.
+        var entries: [String] = []
+        var current = ""
+        var parens = 0
+        for character in body {
+            switch character {
+            case "(": parens += 1; current.append(character)
+            case ")": parens -= 1; current.append(character)
+            case "," where parens == 0:
+                entries.append(current); current = ""
+            default: current.append(character)
+            }
+        }
+        entries.append(current)
+        return entries
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Every library target Mary will have, in layering order. A rule naming a
+    /// target absent from the manifest is PENDING, not passing.
+    static let plannedTargets = [
+        "MaryFoundation", "MaryAmbient", "MaryAdapters",
+        "MaryVoice", "MaryBrain", "MaryTotem", "MaryRuntime", "Mary",
+    ]
+
+    // MARK: - The rules
+
+    /// THE PARADIGM STANDS ON THE SCHEMA ALONE.
+    ///
+    /// This is the rule that makes "accessibility is tier 0" a portable claim
+    /// rather than a slogan: the ambient layer — store, tiers, realms,
+    /// surfaces — must be readable and testable without a model runtime or a
+    /// Mac integration behind it. Everything it needs from above arrives as an
+    /// injected protocol. A second edge here is a claim that the paradigm is
+    /// not portable after all.
+    @Test func ambientDependsOnFoundationAlone() throws {
+        let manifest = try Self.manifest()
+        guard let target = Self.targetBlock(manifest, named: "MaryAmbient") else { return }
+        let declared = Self.dependencyNames(target)
+
+        #expect(
+            declared.count == 1,
+            """
+            MaryAmbient declares \(declared.count) dependencies: \(declared). \
+            It must declare exactly one — MaryFoundation.
+            """)
+        #expect(declared.first?.contains("MaryFoundation") == true)
+    }
+
+    /// THE PERCEPTION AND ADAPTER LAYERS STAY OUT OF THE INFERENCE AND
+    /// TRANSPORT GRAPHS. Frigate/MLX is consumed only through MaryBrain;
+    /// Conduit/gRPC only through MaryTotem.
+    @Test func perceptionLayersStayOutOfInferenceAndTransport() throws {
+        let manifest = try Self.manifest()
+        for name in ["MaryAmbient", "MaryAdapters", "MaryVoice"] {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC"] {
+                #expect(
+                    !target.contains(forbidden),
+                    "\(name)'s target block names \(forbidden). It may not join that graph.")
+            }
+        }
+    }
+
+    /// ONLY MARYBRAIN NAMES FRIGATE.
+    ///
+    /// Frigate vendors swift-transformers targets (`Hub`, `Tokenizers`,
+    /// `Jinja`, `Generation`, `Models`) under their original names. Mary has
+    /// no second consumer of those names — which is exactly why it needs no
+    /// module-alias map — and that stays true only while one target owns the
+    /// edge.
+    @Test func onlyBrainNamesFrigate() throws {
+        let manifest = try Self.manifest()
+        for name in Self.plannedTargets where name != "MaryBrain" {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            #expect(
+                !target.contains("Frigate"),
+                "\(name)'s target block names Frigate — only MaryBrain may hold that edge.")
+        }
+    }
+
+    /// NOTHING NAMES WHISPERKIT.
+    ///
+    /// Mary transcribes with Apple's SpeechAnalyzer. WhisperKit's real
+    /// swift-transformers is what forced Bonnie's five-target module-alias
+    /// map; the absence of that dependency is what lets this manifest carry
+    /// none. Re-adding WhisperKit means rebuilding the alias wall, and this
+    /// test is where that decision surfaces.
+    @Test func nothingNamesWhisperKit() throws {
+        let manifest = try Self.manifest()
+        #expect(
+            !Self.code(manifest).contains("WhisperKit"),
+            """
+            The manifest names WhisperKit. Mary's transcription is SpeechAnalyzer; \
+            adding WhisperKit reintroduces a second swift-transformers in the same \
+            graph as Frigate's vendored copy, which needs a module-alias map to \
+            resolve. Rebuild that map deliberately or drop the dependency.
+            """)
+    }
+
+    /// CONDUIT AND gRPC ARE CONSUMED ONLY THROUGH MARYTOTEM'S FACADE, AND
+    /// MARYTOTEM ONLY BY THE RUNTIME AND THE APP. No other target may import
+    /// generated protos.
+    @Test func totemIsTheOnlyTransportFacade() throws {
+        let manifest = try Self.manifest()
+        for name in Self.plannedTargets where name != "MaryTotem" {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            for forbidden in ["Conduit", "GRPCCore", "GRPCNIOTransport"] {
+                #expect(
+                    !target.contains(forbidden),
+                    "\(name)'s target block names \(forbidden) — that graph is MaryTotem's alone.")
+            }
+        }
+        for name in Self.plannedTargets where !["MaryRuntime", "Mary", "MaryTotem"].contains(name) {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            #expect(
+                !Self.dependencyNames(target).contains(where: { $0.contains("MaryTotem") }),
+                "\(name) depends on MaryTotem — only MaryRuntime and the app may.")
+        }
+    }
+
+    /// THE ROSTER, PRINTED. A target arriving without a rule should be seen,
+    /// not silently unpoliced; a rule whose subject is still unbuilt should
+    /// read as pending rather than green.
+    @Test func everyRuleHasASubjectOrIsPending() throws {
+        let manifest = try Self.manifest()
+        let present = Self.plannedTargets.filter { Self.targetBlock(manifest, named: $0) != nil }
+        let pending = Self.plannedTargets.filter { !present.contains($0) }
+        print("[layering] present: \(present.joined(separator: ", "))")
+        if !pending.isEmpty {
+            print("[layering] PENDING (rules not yet exercised): \(pending.joined(separator: ", "))")
+        }
+        #expect(
+            present.contains("MaryFoundation"),
+            "MaryFoundation is missing from the manifest — the layering test is reading the wrong file.")
+    }
+}

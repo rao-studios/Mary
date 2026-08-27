@@ -1,0 +1,82 @@
+# Mary
+
+A macOS ambient-intelligence assistant. Mary perceives your screen through the
+accessibility tree, carries out declarative **Plugins** by voice, speaks through
+Seer, and remembers through Totem.
+
+Mary is a re-architecture of [Bonnie](../Bonnie) — the same ideas, cut down to
+their load-bearing shape. Three commitments define it:
+
+**Every plugin is a plugin.** A Plugin is a declarative package: one `.mary`
+file under `Abilities/` describing an application, the skills it offers, and the
+recipes that carry them out. There is no "native plugin" concept — no Swift file
+anywhere names a target application. The compiled providers that satisfy what a
+Plugin declares are **adapters**, they are generic by construction, and the word
+"plugin" never names Swift code.
+
+**Accessibility is tier 0.** The ambient context store takes the AX surface —
+what is actually on screen right now — as its foundation, with per-application
+facts layered on top and selection/attention above that. A stale fact renders
+with its age and loses authority, because held knowledge ages honestly. A stale
+surface is *dropped*, because a screen that may no longer exist is a confidently
+wrong answer waiting for a question.
+
+**Ambient intelligence is the philosophy.** Mary's job is to already know what
+you are looking at, so that "change the second paragraph" needs no explanation.
+
+## Status
+
+Under construction, in stages. Stage 0 (scaffold, doctrine tests, signing) is
+in. See `~/.claude/plans/we-have-implemented-all-atomic-sutton.md` for the
+staged plan.
+
+## Building
+
+Requires macOS 26 (the floor is `SpeechAnalyzer`, the only API for long-form
+continuous on-device transcription) and sibling checkouts of `../Frigate` and
+`../Conduit` alongside this repository once those stages land.
+
+```sh
+swift build
+swift test
+./scripts/dev.sh          # build, stable-sign, run
+CONFIG=release ./scripts/dev.sh
+./scripts/make-app.sh     # build/Mary.app
+```
+
+**Use `./scripts/dev.sh`, not `swift run`.** SwiftPM signs the built binary
+ad-hoc, and an ad-hoc identity *is* the binary's cdhash — it changes on every
+build, so macOS treats each rebuild as a brand-new app. The System Settings
+checkbox still looks enabled while `AXIsProcessTrusted()` quietly returns false.
+`scripts/sign-binary.sh` re-signs with a stable certificate (an Apple
+Development identity, or a self-made one named `Mary Dev Signing`) so the
+designated requirement is identifier + certificate rather than a hash, and one
+Accessibility grant survives every rebuild. The Xcode scheme carries the same
+logic inlined in a **launch pre-action** — pure SwiftPM packages have no build
+phases, and `SRCROOT` does not resolve in scheme actions, so only
+`BUILT_PRODUCTS_DIR` works there.
+
+Kokoro's speech models (~665 MB) are tracked with git-lfs; run
+`git lfs install` before cloning or the voice target builds against
+placeholder files.
+
+## Layout
+
+One SwiftPM package, targets under `Sources/`, layered strictly:
+
+| Target | What it is |
+|---|---|
+| `MaryFoundation` | The schema layer: Plugin grammar, codec + integrity digest, value envelopes, `AXFrame` geometry. Depends on nothing. |
+| `MaryAmbient` | The ambient paradigm: the tiered context store, realms, surfaces, passages, focus and reference resolution. Depends on `MaryFoundation` **alone** — that is what makes it portable, and a test enforces it. |
+| `MaryAdapters` | The adapter contract, the accessibility engine, and the generic providers (surface, typer, prose-surface, window management). |
+| `MaryVoice` | Mic → VAD → transcription → a `LanguageResponder` seam → speech, every stage observable. |
+| `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients, one on-device MLX engine. The only target that may name Frigate. |
+| `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |
+| `MaryRuntime` | The composition root, long-lived actors, and Granite services. |
+| `Mary` | The SwiftUI app. |
+
+Those rules are not conventions — `Tests/MaryFoundationTests/PackageLayeringTests.swift`
+reads `Package.swift` as text and fails the build when an edge appears that
+should not, because SwiftPM offers no build-time hook for "this target may not
+depend on that one" and a wrong edge forms no cycle: it compiles, links, ships,
+and the boundary is simply gone.

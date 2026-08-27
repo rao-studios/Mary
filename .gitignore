@@ -60,3 +60,10 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Assembled app bundle (scripts/make-app.sh)
+build/
+
+# Xcode user state inside the package .swiftpm; shared schemes ARE committed
+.swiftpm/xcode/package.xcworkspace/
+.swiftpm/xcode/xcuserdata/

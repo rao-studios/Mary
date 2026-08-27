@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "9A1E1F1A-0000-4000-8000-00000000M11A",
+      "name" : "Default",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryFoundationTests",
+        "name" : "MaryFoundationTests"
+      }
+    }
+  ],
+  "version" : 1
+}

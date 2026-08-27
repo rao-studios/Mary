@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleIdentifier</key>
+	<string>nyc.rao.mary</string>
+	<key>CFBundleName</key>
+	<string>Mary</string>
+	<key>CFBundleDisplayName</key>
+	<string>Mary</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>nyc.rao.mary.ability-package</string>
+			<key>UTTypeDescription</key>
+			<string>Mary Plugin Package</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.json</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array><string>mary</string></array>
+			</dict>
+		</dict>
+	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Mary Plugin Package</string>
+			<key>LSItemContentTypes</key>
+			<array><string>nyc.rao.mary.ability-package</string></array>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+		</dict>
+	</array>
+	<key>LSMinimumSystemVersion</key>
+	<string>26.0</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Mary listens to your voice to hear commands and hold a conversation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Mary transcribes your speech on-device to understand what you asked.</string>
+</dict>
+</plist>
