@@ -164,6 +164,33 @@ import Testing
         #expect(declared.first?.contains("MaryFoundation") == true)
     }
 
+    /// THE VOICE LAYER NEVER LEARNS WHAT ANYTHING MEANS.
+    ///
+    /// MaryVoice decides WHEN to listen and how a sentence should SOUND — the
+    /// VAD's endpoint, the wake word, the speaker floor, which synthesizer
+    /// carries a chunk. It must not decide WHAT to say, and the cheapest way
+    /// to guarantee that is to deny it the vocabulary: no ambient store, no
+    /// places, no abilities. An edge to MaryAmbient here would let a barge-in
+    /// rule start consulting what is on screen, and the next person to read
+    /// the pipeline would have no way to know it does.
+    ///
+    /// The one domain type it touches is `BehavioralActionRecord`, which
+    /// lives in MaryFoundation and which the pipeline only ever RELAYS —
+    /// events pass through the voice layer, they are never composed there.
+    @Test func voiceDependsOnFoundationAlone() throws {
+        let manifest = try Self.manifest()
+        guard let target = Self.targetBlock(manifest, named: "MaryVoice") else { return }
+        let declared = Self.dependencyNames(target)
+
+        #expect(
+            declared.count == 1,
+            """
+            MaryVoice declares \(declared.count) dependencies: \(declared). \
+            It must declare exactly one — MaryFoundation. Ears and mouth, no meaning.
+            """)
+        #expect(declared.first?.contains("MaryFoundation") == true)
+    }
+
     /// THE PERCEPTION AND ADAPTER LAYERS STAY OUT OF THE INFERENCE AND
     /// TRANSPORT GRAPHS. Frigate/MLX is consumed only through MaryBrain;
     /// Conduit/gRPC only through MaryTotem.

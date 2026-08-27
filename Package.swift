@@ -51,6 +51,7 @@ let package = Package(
         // otherwise name them after the target; `Mary` itself needs no entry,
         // since its implicit product already carries the target's own name.
         .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
+        .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
     ],
     dependencies: [
     ],
@@ -120,6 +121,43 @@ let package = Package(
             name: "MaryAdaptersTests",
             dependencies: ["MaryAdapters", "MaryAmbient", "MaryFoundation"],
             path: "Tests/MaryAdaptersTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // MARK: - MaryVoice — EARS AND MOUTH, and nothing about meaning. The
+        // mic, the VAD that decides where an utterance ends, transcription,
+        // the wake word, the speaker floor, and two synthesis backends
+        // (Kokoro on-device, Seer in the cloud).
+        //
+        // DEPENDS ON MaryFoundation ALONE — not on MaryAmbient, and the
+        // layering test holds it there. A voice layer that could read the
+        // ambient store would start deciding WHAT to say, and the whole point
+        // of the split is that it only decides WHEN to listen and how a
+        // sentence should sound. The one domain type it touches is
+        // `BehavioralActionRecord`, which it relays and never composes.
+        .target(
+            name: "MaryVoice",
+            dependencies: ["MaryFoundation"],
+            path: "Sources/MaryVoice",
+            resources: [
+                .copy("Resources/KokoroModels")
+            ],
+            // The Kokoro port is a faithful translation of pre-strict-
+            // concurrency CoreML/AVFoundation code.
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Speaks, listens, and prints what the VAD decided — the only way to
+        // check a thing whose whole output is sound.
+        .executableTarget(
+            name: "VoiceProbe",
+            dependencies: ["MaryVoice"],
+            path: "Sources/Probes/VoiceProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryVoiceTests",
+            dependencies: ["MaryVoice"],
+            path: "Tests/MaryVoiceTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 

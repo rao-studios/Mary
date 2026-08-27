@@ -30,6 +30,13 @@
         "identifier": "MaryAdaptersTests",
         "name": "MaryAdaptersTests"
       }
+    },
+    {
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryVoiceTests",
+        "name": "MaryVoiceTests"
+      }
     }
   ],
   "version": 1
