@@ -57,6 +57,7 @@ func usage() -> Never {
       wake    [--app <name> | --pid <n> | --bundle <id>]  wake signals + timing
       tabs    [--app <name> | --pid <n>]                  the tab strip's AX shape
       windows [--app <name> | --pid <n>]                  where the page is, vs where the lane looks
+      page-text [--bytes <n>]                             the page as prose, via AX
       dump    [--window <n>] [--depth <n>]                the whole tree, printed
       settle  <url> [--app <name>]                        load-settle signals
 
@@ -117,6 +118,14 @@ case "windows":
         exit(1)
     }
     await WebProbeWindows.run(application)
+
+case "page-text":
+    guard let application = resolveTarget() else {
+        print("No such application. Try --app <name> or --pid <n>.")
+        exit(1)
+    }
+    await WebProbePageText.run(
+        application, byteLimit: value("--bytes").flatMap(Int.init) ?? 8000)
 
 case "dump":
     guard let application = resolveTarget() else {
