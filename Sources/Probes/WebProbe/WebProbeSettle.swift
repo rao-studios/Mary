@@ -25,6 +25,23 @@
 //  why the verdict this feeds has a `presentButChurning` case rather than a
 //  boolean — but the frequency of that case is a fact, not a guess.
 //
+//  MEASURED 2026-08-28, macOS 26, and the two browsers agreed exactly:
+//
+//    • QUIESCENCE WORKS. Safari settled at 1.2 s and Chrome at 1.1 s, then
+//      held perfectly still for the remaining nineteen seconds — same title,
+//      same child count, every poll. The rule is not marginal on ordinary
+//      pages.
+//    • `AXURL` IS NOT READABLE on the web area in EITHER browser. The
+//      predecessor got a page's address from the browser's scripting
+//      dictionary, and the assumption that Accessibility would hand it over
+//      instead does not survive contact. So the settle check cannot confirm
+//      WHICH page arrived, only that A page did and stopped moving.
+//    • The address is not lost, though — it is in the toolbar, as an
+//      `AXTextField` holding the URL as its VALUE (Safari names it by title,
+//      Chrome describes it "Address and search bar"). That field, not the
+//      web area, is where a URL check has to read from, and being chrome
+//      rather than page it is readable before the page is.
+//
 
 import AppKit
 import ApplicationServices

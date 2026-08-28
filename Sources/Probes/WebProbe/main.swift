@@ -54,9 +54,11 @@ func usage() -> Never {
     print("""
     mary-web-probe — what a browser actually exposes
 
-      wake   [--app <name> | --pid <n> | --bundle <id>]   wake signals + timing
-      tabs   [--app <name> | --pid <n>]                   the tab strip's AX shape
-      settle <url> [--app <name>]                         load-settle signals
+      wake    [--app <name> | --pid <n> | --bundle <id>]  wake signals + timing
+      tabs    [--app <name> | --pid <n>]                  the tab strip's AX shape
+      windows [--app <name> | --pid <n>]                  where the page is, vs where the lane looks
+      dump    [--window <n>] [--depth <n>]                the whole tree, printed
+      settle  <url> [--app <name>]                        load-settle signals
 
     With no --app/--pid the frontmost application is used.
     """)
@@ -108,6 +110,23 @@ case "tabs":
         exit(1)
     }
     await WebProbeTabs.run(application)
+
+case "windows":
+    guard let application = resolveTarget() else {
+        print("No such application. Try --app <name> or --pid <n>.")
+        exit(1)
+    }
+    await WebProbeWindows.run(application)
+
+case "dump":
+    guard let application = resolveTarget() else {
+        print("No such application. Try --app <name> or --pid <n>.")
+        exit(1)
+    }
+    await WebProbeDump.run(
+        application,
+        windowIndex: value("--window").flatMap(Int.init),
+        maxDepth: value("--depth").flatMap(Int.init) ?? 6)
 
 case "settle":
     guard arguments.count > 2, !arguments[2].hasPrefix("--") else {
