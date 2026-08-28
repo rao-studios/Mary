@@ -43,7 +43,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
 
     public var skillBindings: [SkillBinding] {
         [listTabs, currentTab, activateTab, closeTab, openLocation, readPage]
-            + pageBindings + canvasBindings
+            + pageBindings + canvasBindings + interactBindings
     }
 
     /// THE TYPED HANDSHAKE, DECLARED RATHER THAN DEFAULTED — and written this
@@ -115,7 +115,8 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                     input: "browsing.browser-query",
                     output: "browsing.page-text"),
             ] + Self.pageOperations(adapterID: adapterID)
-                + Self.canvasOperations(adapterID: adapterID),
+                + Self.canvasOperations(adapterID: adapterID)
+                + Self.interactOperations(adapterID: adapterID),
             providesPerceptions: ["perception.browser-page"],
             supportedValueTypes: [
                 "browsing.browser-query",
@@ -129,6 +130,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                 "browsing.element-request",
                 "browsing.canvas-request",
                 "browsing.canvas-verdict",
+                "browsing.interaction-plan",
             ],
             // ACCESSIBILITY AND NOTHING ELSE. The predecessor's browsing lane
             // needed an Automation grant for its tab roster; this one reads
@@ -173,13 +175,27 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
         return .browser(resolved.0, resolved.1)
     }
 
-    private func noStrip(_ registration: BrowserSurfaceRegistration) -> SkillOutcome {
-        SkillOutcome(
-            ok: false,
-            summary: """
-            I couldn't find \(registration.displayName)'s tabs. It may have no \
-            window open right now.
-            """)
+    /// ⚠️ AN ABSENT STRIP IS USUALLY ONE TAB, not a missing window — measured
+    /// live, and the first version of this message got it backwards. Safari
+    /// hides its tab bar entirely when a window holds a single tab, so the
+    /// strip search correctly finds nothing and the honest answer is "just
+    /// the one", not "I couldn't find your tabs".
+    ///
+    /// The window title is the evidence that tells them apart: a window with
+    /// a title is a window showing a page.
+    private func noStrip(
+        _ registration: BrowserSurfaceRegistration, pid: pid_t
+    ) -> SkillOutcome {
+        guard let title = WebSurface.windowTitle(pid: pid), !title.isEmpty else {
+            return SkillOutcome(
+                ok: false,
+                summary: "\(registration.displayName) has no window open right now.")
+        }
+        return SkillOutcome(
+            ok: true,
+            summary: "\(registration.displayName) has just the one tab open: \(title).",
+            archivePolicy: .stateSnapshot,
+            adapterTrail: [AdapterID.normalized(name)])
     }
 
     /// One spoken sentence per outcome the roster can produce. Kept in one
@@ -245,7 +261,9 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
 
                 let tabs = BrowserTabRoster.read(
                     pid: browser.processIdentifier, surface: registration.schema)
-                guard !tabs.isEmpty else { return noStrip(registration) }
+                guard !tabs.isEmpty else {
+                    return noStrip(registration, pid: browser.processIdentifier)
+                }
 
                 // NUMBERED, because "the third one" is a thing people say and
                 // the roster is the only place those numbers are honest —
@@ -292,7 +310,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                     // current-tab signal — the window title is what is left,
                     // and it is a true answer to "what am I looking at".
                     guard let title = WebSurface.windowTitle(pid: browser.processIdentifier)
-                    else { return noStrip(registration) }
+                    else { return noStrip(registration, pid: browser.processIdentifier) }
                     return SkillOutcome(
                         ok: true,
                         summary: "\(registration.displayName) is showing \(title).",

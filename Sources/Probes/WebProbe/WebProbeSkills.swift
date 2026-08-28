@@ -164,6 +164,20 @@ enum WebProbeSkills {
                 ["target": field.label, "text": "mary was here",
                  "browser": registration.displayName])
         }
+        // A MULTI-STEP PLAN, which is the only way to see the per-step
+        // re-read do its job: the second step runs on a page the first one
+        // changed.
+        if let field = page.first(where: { $0.kind == .field }) {
+            await call("interact_with_page", [
+                "browser": registration.displayName,
+                "plan": "fill: \(field.label) = mary was here\nwait: 0.5",
+            ])
+        }
+        // AND A PLAN THAT MUST BE REFUSED WHOLE, before anything is pressed.
+        await call("interact_with_page", [
+            "browser": registration.displayName,
+            "plan": "press: Something\nfill: A field with no text\nwait: 99",
+        ])
         // AND THE ROAD THAT REFUSAL PROMISES. It tells the user to name the
         // thing by number, so this proves that form actually resolves — a
         // refusal offering an answer that does not work is worse than one

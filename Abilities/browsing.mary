@@ -153,6 +153,7 @@
       "browsing.close-tab",
       "browsing.current-tab",
       "browsing.fill-in-page",
+      "browsing.interact-with-page",
       "browsing.list-page-elements",
       "browsing.list-tabs",
       "browsing.navigate-back",
@@ -289,6 +290,31 @@
       ],
       "summary" : "Put text into one field on the page.",
       "title" : "Fill a Field On the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.interact",
+      "inputType" : "browsing.interaction-plan",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press and fill the page's own controls through Accessibility."
+        }
+      ],
+      "summary" : "Carry out a short, bounded sequence of presses and fills on one page.",
+      "title" : "Act Several Times On a Page",
       "version" : "1.0.0"
     },
     {
@@ -546,13 +572,23 @@
       ],
       "targetClass" : "browser-page",
       "utterance" : "Click the sign in link."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.interact-with-page",
+      "id" : "fill-and-submit",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Fill in the form and submit it."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "d7eacf44c458287763beaa754183b7f3080f0dce4abea82b7b67cf99786ecef6"
+    "digest" : "e137f6d9afde5af85ea9472a3a59d5ce9ac14ae5391280b86cd19be77ee2dc43"
   },
   "interactions" : [
 
@@ -1004,6 +1040,92 @@
       },
       "summary" : "Type text into one field on the page, replacing what is there.",
       "title" : "Type Into a Field On the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "interact_with_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.interact-with-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "interact_with_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "plan",
+            "required" : true,
+            "summary" : "The steps, one per line: `verb: what`. Verbs are press, fill, reveal, wait.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.interact"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Do several things to the page in order — fill a form and submit it.",
+      "title" : "Do Several Things On the Page",
       "usesStage" : true,
       "version" : "1.0.0"
     },
@@ -1637,6 +1759,19 @@
       "shape" : "string",
       "summary" : "Which element on the page an act addresses, by its label.",
       "title" : "Element Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.interaction-plan",
+      "shape" : "string",
+      "summary" : "A short ordered sequence of presses, fills and waits for one page.",
+      "title" : "Interaction Plan",
       "version" : "1.0.0"
     },
     {
