@@ -145,6 +145,19 @@ struct AbilityRunInspectorSheet: View {
                     .foregroundStyle(Color.primary.opacity(0.8))
                     .textSelection(.enabled)
             }
+            if let ambient = episode.input.ambient, !ambient.isEmpty {
+                DisclosureGroup {
+                    Text(ambient.prettyJSON)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Color.primary.opacity(0.65))
+                        .textSelection(.enabled)
+                        .padding(.top, 4)
+                } label: {
+                    Text("Ambient capture")
+                        .font(.marySans(11, weight: .semibold))
+                        .foregroundStyle(Color.primary.opacity(0.6))
+                }
+            }
             HStack(spacing: .layer2) {
                 Text(episode.openedAt.formatted(date: .abbreviated, time: .standard))
                 if let sealed = episode.sealedAt {

@@ -394,6 +394,17 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
             && renderedMentions.isEmpty
     }
 
+    /// Every field of this capture, pretty-printed — for surfaces that let a
+    /// person inspect exactly what the model was given, not just the query
+    /// that rode alongside it.
+    public var prettyJSON: String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(self), let string = String(data: data, encoding: .utf8)
+        else { return "{}" }
+        return string
+    }
+
     private enum CodingKeys: String, CodingKey {
         case mode, lead, surfaces, facts, selection, realm
         case renderedSurfaceLines, renderedBlocks, renderedMentions
