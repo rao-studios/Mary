@@ -93,7 +93,7 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
             personalTotemID: nodeID,
             chatModel: config.seerChatModel,
-            voiceID: "\(config.voice)_neutral",
+            voiceID: "\(config.seerVoice)_neutral",
             retrievalScope: { retrievalScope(ownerID: $0) })
         await seerTTS.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)

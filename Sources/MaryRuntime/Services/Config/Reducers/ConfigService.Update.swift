@@ -20,6 +20,7 @@ extension ConfigService {
             sttBackend: STTBackend? = nil,
             ttsBackend: TTSBackend? = nil,
             voice: String? = nil,
+            seerVoice: String? = nil,
             speechStyle: SpeechStyleSelection? = nil,
             vad: VADConfig? = nil,
             projects: [ProjectRef]? = nil,
@@ -49,6 +50,7 @@ extension ConfigService {
             self.sttBackend = sttBackend
             self.ttsBackend = ttsBackend
             self.voice = voice
+            self.seerVoice = seerVoice
             self.speechStyle = speechStyle
             self.vad = vad
             self.projects = projects
@@ -78,6 +80,7 @@ extension ConfigService {
             package var sttBackend: STTBackend? = nil
             package var ttsBackend: TTSBackend? = nil
             package var voice: String? = nil
+            package var seerVoice: String? = nil
             package var speechStyle: SpeechStyleSelection? = nil
             package var vad: VADConfig? = nil
             package var projects: [ProjectRef]? = nil
@@ -114,6 +117,7 @@ extension ConfigService {
             if let value = meta.sttBackend { state.sttBackend = value }
             if let value = meta.ttsBackend { state.ttsBackend = value }
             if let value = meta.voice, !value.isEmpty { state.voice = value }
+            if let value = meta.seerVoice, !value.isEmpty { state.seerVoice = value }
             if let value = meta.speechStyle { state.speechStyle = value }
             if let value = meta.vad { state.vad = value }
             if let value = meta.projects { state.projects = value }

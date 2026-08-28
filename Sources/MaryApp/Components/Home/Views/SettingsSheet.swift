@@ -148,10 +148,25 @@ struct SettingsSheet: View {
     }
 
     /// Which of the cloud voice's characters speaks.
+    /// THE HOSTED CHARACTER, written to its own field. This picker used to
+    /// write the on-device slot — the one boot hands to Kokoro — so choosing
+    /// Marie armed the next launch to die on `'fr_marie.json' not found`. It
+    /// also only wrote config: the character reached the speaker at the next
+    /// boot and not before, so the picker and the voice disagreed until then.
     var voiceCharacterBinding: Binding<String> {
         Binding(
-            get: { config.state.voice },
-            set: { config.center.update.send(ConfigService.Update.Meta(voice: $0)) }
+            get: { config.state.seerVoice },
+            set: { id in
+                config.center.update.send(ConfigService.Update.Meta(seerVoice: id))
+                let backend = config.state.ttsBackend
+                Task {
+                    if let notice = await MaryRuntime.applyTTSBackend(
+                        backend, hostedVoice: id) {
+                        chat.center.mirrorVoice.send(
+                            ChatService.MirrorVoice.Meta(kind: .error(notice)))
+                    }
+                }
+            }
         )
     }
 
@@ -245,7 +260,7 @@ struct SettingsSheet: View {
                 config.center.update.send(ConfigService.Update.Meta(ttsBackend: backend))
                 Task {
                     if let notice = await MaryRuntime.applyTTSBackend(
-                        backend, mistralVoice: config.state.voice) {
+                        backend, hostedVoice: config.state.seerVoice) {
                         chat.center.mirrorVoice.send(
                             ChatService.MirrorVoice.Meta(kind: .error(notice)))
                     }

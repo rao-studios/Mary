@@ -261,9 +261,32 @@ struct HomeSessionView: View {
     private func bootRuntime() async {
         setReadiness("waking the voice…", ready: false)
         if let error = await MaryRuntime.bootKokoro(voice: config.state.voice) {
+            // THE ON-DEVICE ENGINE IS THE GATE ONLY WHEN IT IS THE SPEAKER.
+            // Seer renders its own audio server-side; Kokoro sits behind it as
+            // the per-chunk cover. Returning here parked the whole session
+            // before readiness — no chat, no engine, no Seer — over a voice
+            // that session never speaks with.
+            guard config.state.ttsBackend == .kokoro else {
+                chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: .error(
+                    "\(error) \(config.state.ttsBackend.displayName) still speaks; only the "
+                    + "on-device cover voice is unavailable.")))
+                return await bootRuntimeAfterVoice()
+            }
             setReadiness(error, ready: false)
             return
         }
+        // Heal a config that named a voice the bundle does not carry, so the
+        // Settings picker agrees with the speaker.
+        if let loaded = MaryRuntime.activeKokoroVoice, loaded != config.state.voice {
+            config.center.update.send(ConfigService.Update.Meta(voice: loaded))
+        }
+        await bootRuntimeAfterVoice()
+    }
+
+    /// Everything after the voice: the brain engine, ambient wiring, the Seer
+    /// stack and the speaker. Split out so a hosted-TTS session can skip the
+    /// on-device voice and still boot the whole runtime.
+    private func bootRuntimeAfterVoice() async {
 
         let engine = config.state.llmEngine
         let warmingStatus: String
@@ -329,7 +352,7 @@ struct HomeSessionView: View {
             }
         }
         if let notice = await MaryRuntime.applyTTSBackend(
-            config.state.ttsBackend, mistralVoice: config.state.voice) {
+            config.state.ttsBackend, hostedVoice: config.state.seerVoice) {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: .error(notice)))
         }
         setReadiness(nil, ready: true)

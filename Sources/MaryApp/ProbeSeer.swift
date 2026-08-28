@@ -106,7 +106,7 @@ enum ProbeSeer {
                 print("(kokoro unavailable: \(error) — continuing text-only)")
             }
             if let notice = await MaryRuntime.applyTTSBackend(
-                .seer, mistralVoice: VoiceCharacter.marie.id) {
+                .seer, hostedVoice: VoiceCharacter.marie.id) {
                 print("(\(notice))")
             } else {
                 print("[tts] speaking through Seer /v1/speak")

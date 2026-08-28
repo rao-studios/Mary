@@ -26,6 +26,33 @@ extension MaryRuntime {
     /// from config when the Mistral key is missing and Kokoro covers.
     nonisolated(unsafe) package private(set) static var activeTTSBackend: TTSBackend = .kokoro
 
+    /// The on-device voice every fallback lands on when the requested name is
+    /// not one the bundle carries.
+    package static let defaultKokoroVoice = "af_heart"
+
+    /// The Kokoro voice actually LOADED — which differs from the requested
+    /// name when config named one the bundle has no embedding for. The app
+    /// heals its own config from this, so the picker and the speaker cannot
+    /// drift apart in silence.
+    nonisolated(unsafe) package private(set) static var activeKokoroVoice: String?
+
+    /// The bundled voice to actually load for `requested`: the request when it
+    /// names a real on-device voice, `af_heart` otherwise, and failing that
+    /// whatever the bundle does carry. Nil only when `voices/` is empty.
+    ///
+    /// THE SECOND LINE OF DEFENCE behind the config split. A hosted character
+    /// slug (`fr_marie`) is a SERVER voice — Seer synthesizes it and no style
+    /// embedding for it ships on device — so handed to the on-device engine it
+    /// names a file that was never meant to exist. Config no longer stores one
+    /// in the on-device slot; this makes sure that if one ever arrives again,
+    /// by any route, the voice still comes up.
+    package static func onDeviceVoice(named requested: String, in modelsDir: URL) -> String? {
+        let available = KokoroEngine.availableVoices(in: modelsDir)
+        if available.contains(requested) { return requested }
+        if available.contains(defaultKokoroVoice) { return defaultKokoroVoice }
+        return available.first
+    }
+
     /// One-time boot: load `.env`, bring Kokoro up from the bundled assets.
     /// Returns a user-facing error string on failure, nil on success.
     package static func bootKokoro(voice: String) async -> String? {
@@ -33,11 +60,19 @@ extension MaryRuntime {
         guard let modelsDir = KokoroAssets.modelsDirectory() else {
             return "Kokoro models missing — run `git lfs pull` and rebuild."
         }
+        guard let resolved = onDeviceVoice(named: voice, in: modelsDir) else {
+            return "Kokoro voices missing — run `git lfs pull` and rebuild."
+        }
+        if resolved != voice {
+            print("[voice] '\(voice)' is not an on-device voice — Kokoro speaks with '\(resolved)'.")
+        }
         do {
             if await !kokoro.isLoaded {
                 try await kokoro.loadModels(from: modelsDir)
             }
-            try await kokoro.loadVoice(named: voice, in: modelsDir.appendingPathComponent("voices"))
+            try await kokoro.loadVoice(
+                named: resolved, in: modelsDir.appendingPathComponent("voices"))
+            activeKokoroVoice = resolved
             return nil
         } catch {
             return "Kokoro failed to load: \(error.localizedDescription)"
@@ -54,14 +89,14 @@ extension MaryRuntime {
     package static func reapplyTTSBackend() async -> String? {
         guard let lastRequestedTTS else { return nil }
         return await applyTTSBackend(
-            lastRequestedTTS.backend, mistralVoice: lastRequestedTTS.voice)
+            lastRequestedTTS.backend, hostedVoice: lastRequestedTTS.voice)
     }
 
     /// Point the shared speaker at the configured TTS backend. Kokoro stays
     /// booted regardless — it is the instant-switch target and the fallback.
     /// Returns a user-facing notice when silently falling back, nil otherwise.
-    package static func applyTTSBackend(_ backend: TTSBackend, mistralVoice: String) async -> String? {
-        lastRequestedTTS = (backend, mistralVoice)
+    package static func applyTTSBackend(_ backend: TTSBackend, hostedVoice: String) async -> String? {
+        lastRequestedTTS = (backend, hostedVoice)
         switch backend {
         case .kokoro:
             await speaker.setSynthesizer(kokoro, policy: .onDevice)
@@ -75,7 +110,7 @@ extension MaryRuntime {
             // guard parked the whole session on Kokoro when Seer happened to
             // be down at boot, and nothing ever re-applied — settings said
             // Seer, audio was Kokoro, forever.
-            await seerTTS.setCharacter(.named(mistralVoice))
+            await seerTTS.setCharacter(.named(hostedVoice))
             // Per-chunk degradation: a dead Seer (its /v1/speak fatalErrors
             // when MISTRAL_API_KEY vanishes) hands each chunk to Kokoro —
             // after the engine's own re-auth-and-retry, and it says so.
@@ -97,7 +132,7 @@ extension MaryRuntime {
             // The realtime route renders server-side with its own voice id —
             // it follows the Character picker through here, narrowly, so a
             // voice change no longer waits for the next boot.
-            await seerRealtime.setVoiceID("\(mistralVoice)_neutral")
+            await seerRealtime.setVoiceID("\(hostedVoice)_neutral")
             // Cloud chunks may grow after the first: fewer seams on long
             // passages, one prosody arc per batch.
             await speaker.setSynthesizer(seerTTS, policy: .cloud)

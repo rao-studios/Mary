@@ -46,7 +46,19 @@ extension ConfigService {
             package var localModelID: String = MaryLocalEngine.defaultModelID
             package var sttBackend: STTBackend = .apple
             package var ttsBackend: TTSBackend = .seer
+            /// THE ON-DEVICE VOICE, and only that: a Kokoro style-embedding
+            /// name matching a file in the bundle's `voices/`. Never a hosted
+            /// character — see `seerVoice`.
             package var voice: String = "af_heart"
+            /// THE HOSTED CHARACTER, and only that: a `VoiceCharacter` slug
+            /// (`fr_marie`) the Seer server renders itself.
+            ///
+            /// SEPARATE FIELDS BECAUSE THEY ARE SEPARATE NAMESPACES. One field
+            /// served both, so choosing the Seer character wrote `fr_marie`
+            /// into the slot boot hands to Kokoro — and the next launch died on
+            /// `'fr_marie.json' not found`, an on-device file that never
+            /// existed for a voice that only ever spoke from the server.
+            package var seerVoice: String = VoiceCharacter.marie.id
             package var speechStyle: SpeechStyleSelection = .auto
             package var vad: VADConfig = .init()
             package var projects: [ProjectRef] = []
@@ -107,7 +119,7 @@ extension ConfigService {
             package var seerTransport: SeerTransportChoice = .classic
 
             enum CodingKeys: String, CodingKey {
-                case llmEngine, localModelID, sttBackend, ttsBackend, voice, speechStyle, vad,
+                case llmEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, totemGraphPolicyManaged, seerChatModel, seerTransport
@@ -126,6 +138,17 @@ extension ConfigService {
                 sttBackend = try c.decodeIfPresent(STTBackend.self, forKey: .sttBackend) ?? .apple
                 ttsBackend = try c.decodeIfPresent(TTSBackend.self, forKey: .ttsBackend) ?? .seer
                 voice = try c.decodeIfPresent(String.self, forKey: .voice) ?? "af_heart"
+                seerVoice = try c.decodeIfPresent(String.self, forKey: .seerVoice)
+                    ?? VoiceCharacter.marie.id
+                // THE MIGRATION off the shared field. Every install written by
+                // a build with one `voice` slot may hold a hosted character
+                // there; left alone it boots Kokoro on a file that cannot
+                // exist. Move it to the side it belongs on and give the
+                // on-device engine its default back.
+                if let hosted = VoiceCharacter.all.first(where: { $0.id == voice }) {
+                    if !c.contains(.seerVoice) { seerVoice = hosted.id }
+                    voice = Self().voice
+                }
 
                 speechStyle = try c.decodeIfPresent(SpeechStyleSelection.self, forKey: .speechStyle) ?? .auto
                 vad = try c.decodeIfPresent(VADConfig.self, forKey: .vad) ?? .init()

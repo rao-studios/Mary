@@ -81,7 +81,7 @@ enum ProbeChat {
                     print("(kokoro unavailable: \(error) — continuing text-only)")
                 }
                 if let notice = await MaryRuntime.applyTTSBackend(
-                    ttsBackend, mistralVoice: VoiceCharacter.marie.id) {
+                    ttsBackend, hostedVoice: VoiceCharacter.marie.id) {
                     print("(\(notice))")
                 }
             }
