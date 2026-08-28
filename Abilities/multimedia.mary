@@ -45,22 +45,162 @@
             "children" : [
 
             ],
-            "kind" : "intent",
+            "kind" : "targetClass",
+            "value" : "media-player"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "playing"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
             "value" : "play"
           },
           {
             "children" : [
 
             ],
-            "kind" : "intent",
+            "kind" : "utteranceToken",
             "value" : "pause"
           },
           {
             "children" : [
 
             ],
-            "kind" : "workspaceFamily",
-            "value" : "multimedia"
+            "kind" : "utteranceToken",
+            "value" : "skip"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "song"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "track"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "volume"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "louder"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "quieter"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "mute"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "shuffle"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "playlist"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "playlists"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "what is playing"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "play some music"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "pause the music"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "skip this song"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "next song"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "turn it up"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "turn it down"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "play my playlist"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "what playlists do i have"
           }
         ],
         "kind" : "any"
@@ -354,7 +494,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3f87f51a4060fdc459c32d2aa06cc619ca23b56157806a57197439e53c81b544"
+    "digest" : "72267a35a4fe1c37250701172671f0c371fd0a5ae72c9ad76317916171db63b4"
   },
   "interactions" : [
 
@@ -432,10 +572,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -515,10 +655,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -601,10 +741,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -687,10 +827,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -750,10 +890,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -827,10 +967,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 
@@ -913,10 +1053,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.player-transport"
         ],
         "perceptions" : [
-          "perception.player-transport"
+
         ],
         "supportingAbilities" : [
 

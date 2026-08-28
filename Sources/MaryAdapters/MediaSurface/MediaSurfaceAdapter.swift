@@ -53,6 +53,122 @@ public struct MediaSurfaceAdapter: MaryAdapter {
          listPlaylists, playPlaylist]
     }
 
+    /// THE TYPED HANDSHAKE, declared rather than defaulted.
+    ///
+    /// THE FAILURE THIS FIXES: the protocol's default manifest publishes an
+    /// operation's NAME and nothing else — no capabilities, no Value types, no
+    /// target classes. Every Capability in `multimedia.mary` that reads or
+    /// drives a player constrains itself with `allowedTargetClass:
+    /// media-player`, and `InstalledAdapterInventory` refuses a binding whose
+    /// operation does not IMPLEMENT one of the allowed classes. An operation
+    /// claiming no class implements none, so `control_playback`, `now_playing`,
+    /// `list_playlists` and `play_playlist` were all published, all installed,
+    /// and all unavailable:
+    ///
+    ///     control_playback is unavailable: Operation control_playback does not
+    ///     implement an allowed target class: media-player.
+    ///
+    /// AND IT LOOKED SELECTIVE, which is what made it puzzling rather than
+    /// obvious: `search_music` and `play_music` stayed READY throughout,
+    /// because `catalog.search` and `catalog.open` constrain no target class,
+    /// so the check never ran for them. Two Skills working is a far better
+    /// disguise for a missing declaration than none working.
+    ///
+    /// `providesPerceptions` is the same omission one level up. Every
+    /// multimedia Skill requires `perception.player-transport`, the package
+    /// declares it, and NOTHING published it — which is what
+    /// `multimedia.open-player` was reporting from behind its own package
+    /// adapter. Reading a player's transport is precisely what this adapter
+    /// does; saying so is what makes the Skills that need it eligible.
+    ///
+    /// STILL `.incremental`, deliberately. An empty list here keeps meaning
+    /// "not specified" rather than "supports none", which is what lets
+    /// `search_music` — which queries a web endpoint and touches no player —
+    /// leave its target class and observed Perception blank without being
+    /// refused for it. This adapter earns `.complete` when the lanes its
+    /// header describes as missing actually land.
+    public var adapterManifest: InstalledAdapterManifest {
+        let adapterID = AdapterID.normalized(name)
+        func operation(
+            _ name: String,
+            capability: CapabilityID,
+            input: ValueTypeID,
+            output: ValueTypeID,
+            // MEDIA-PLAYER OR NOTHING, per operation rather than adapter-wide:
+            // the two catalog operations reach the iTunes Search endpoint and
+            // target no application at all, and claiming a class they do not
+            // drive would be the same untruth in the opposite direction.
+            targets: [String] = ["media-player"],
+            observesTransport: Bool = true
+        ) -> InstalledAdapterBinding {
+            InstalledAdapterBinding(
+                adapterID: adapterID,
+                operation: name,
+                capabilities: [capability],
+                inputTypes: [input],
+                outputTypes: [output],
+                observesPerceptions: observesTransport ? ["perception.player-transport"] : [],
+                targetClasses: targets)
+        }
+        return InstalledAdapterManifest(
+            adapterID: adapterID,
+            title: "Media Surface",
+            transport: .accessibility,
+            operations: [
+                operation(
+                    "now_playing",
+                    capability: "player.transport.read",
+                    input: "multimedia.player-query",
+                    output: "multimedia.now-playing-report"),
+                operation(
+                    "control_playback",
+                    capability: "player.transport.control",
+                    input: "multimedia.transport-request",
+                    output: "multimedia.operation-result"),
+                operation(
+                    "search_music",
+                    capability: "catalog.search",
+                    input: "multimedia.catalog-query",
+                    output: "multimedia.catalog-results",
+                    targets: [],
+                    observesTransport: false),
+                operation(
+                    "play_music",
+                    capability: "catalog.open",
+                    input: "multimedia.catalog-query",
+                    output: "multimedia.operation-result",
+                    // The Skill's own binding names no class, so this stays
+                    // blank to match it: play_music opens a Store URL and only
+                    // then presses the page's play control.
+                    targets: []),
+                operation(
+                    "list_playlists",
+                    capability: "library.playlists.read",
+                    input: "multimedia.player-query",
+                    output: "multimedia.catalog-results"),
+                operation(
+                    "play_playlist",
+                    capability: "library.playlists.play",
+                    input: "multimedia.player-query",
+                    output: "multimedia.operation-result"),
+            ],
+            providesPerceptions: ["perception.player-transport"],
+            supportedValueTypes: [
+                "multimedia.player-query",
+                "multimedia.now-playing-report",
+                "multimedia.transport-request",
+                "multimedia.operation-result",
+                "multimedia.catalog-query",
+                "multimedia.catalog-results",
+            ],
+            // WHAT THE MACHINE ACTUALLY GRANTED is not this adapter's to
+            // decide; these name the two boundaries its operations cross, and
+            // the Capability schemas requiring them are checked against this
+            // list. Accessibility reads the transport and the sidebar; the
+            // network reaches the public iTunes Search endpoint.
+            grantedPermissions: [.accessibility, .network])
+    }
+
     // MARK: - Reading
 
     private var nowPlaying: SkillBinding {

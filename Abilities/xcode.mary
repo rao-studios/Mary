@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4dd893e0ea61cccbcf35552cf606243015aa5afd7e7bdbb0f1143a544dbf778e"
+    "digest" : "df6477f41fb966c8b5a025bfbe6135c020f2425b0fd8d56daaf95453c056911b"
   },
   "interactions" : [
 
@@ -148,11 +148,389 @@
         "trailing" : 0
       },
       "id" : "xcode",
+      "perception" : {
+        "kind" : "workspace"
+      },
       "targetClasses" : [
         "code-workspace",
         "document-window"
       ],
       "title" : "Xcode"
+    },
+    "corpus" : {
+      "exclude" : [
+        ".build",
+        "DerivedData",
+        "Pods",
+        "Carthage",
+        ".git",
+        "node_modules",
+        "Frigate"
+      ],
+      "include" : [
+        "swift"
+      ],
+      "notation" : "swift",
+      "relations" : {
+        "ancestry" : [
+          "\\b(?:class|struct|enum|actor|protocol|extension)\\s+[A-Za-z_]\\w*\\s*:\\s*([A-Za-z_][A-Za-z0-9_,<>\\.\\s]*)"
+        ],
+        "declarations" : [
+          "\\b(?:struct|class|enum|actor|protocol|typealias)\\s+([A-Za-z_][A-Za-z0-9_]*)"
+        ],
+        "references" : [
+          ":\\s*\\[?([A-Z][A-Za-z0-9_]*)",
+          "\\b([A-Z][A-Za-z0-9_]*)\\s*\\("
+        ]
+      },
+      "style" : [
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "OSAllocatedUnfairLock",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "NSLock\\(",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "os_unfair_lock",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "lockBox"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bactor\\s+[A-Z]",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "actor"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "DispatchQueue\\(label:",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "serialQueue"
+            }
+          ],
+          "dimension" : "concurrencyPrimitive",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "private\\s+(?:let|var)\\s+\\w+\\s*[=:]\\s*OSAllocatedUnfairLock",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "private\\s+var\\s+\\w+\\s*:",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "privateBoxedState"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "@Published",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "@Observable",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "publishedProperties"
+            }
+          ],
+          "dimension" : "stateExposure",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bguard\\s+(?:let|var|!|\\w)",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "guardEarlyReturn"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bif\\s+let\\b",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "nestedConditional"
+            }
+          ],
+          "dimension" : "bindingStyle",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\belse\\s*\\{\\s*return\\s+(?:nil|\\[\\]|false|\\\"\\\"|\\.\\w)",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "\\breturn\\s+nil\\b",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "degradeHonestly"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bthrows\\b",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "\\bthrow\\s+",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "throwToCaller"
+            }
+          ],
+          "dimension" : "errorPosture",
+          "kind" : "vote"
+        },
+        {
+          "above" : "publicByDefault",
+          "below" : "internalUnlessNeeded",
+          "denominator" : {
+            "source" : "declaration"
+          },
+          "dimension" : "accessDefault",
+          "guard" : {
+            "atLeast" : 4,
+            "numerator" : {
+              "source" : "declaration"
+            }
+          },
+          "kind" : "ratio",
+          "numerator" : {
+            "pattern" : "\\b(?:public|open)\\s+(?:func|var|let|struct|class|enum|actor|protocol)\\b",
+            "source" : "pattern"
+          },
+          "threshold" : 0.5
+        },
+        {
+          "below" : "sparse",
+          "denominator" : {
+            "source" : "declaration"
+          },
+          "dimension" : "commentPosture",
+          "guard" : {
+            "atLeast" : 3,
+            "numerator" : {
+              "source" : "declaration"
+            }
+          },
+          "kind" : "ratio",
+          "numerator" : {
+            "pattern" : "(?m)^[ \\t]*//(?!\\s*MARK)",
+            "region" : "source",
+            "source" : "pattern"
+          },
+          "threshold" : 0.25
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "(?i)the bug|the failure|live-verified|regression|why:|the reason|cost a|the trap|deliberately|on purpose|must not|would have",
+                  "region" : "comments",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "incidentAnchored"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "(?i)- parameter|- returns|- throws",
+                  "region" : "comments",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "apiDescriptive"
+            }
+          ],
+          "dimension" : "commentPosture",
+          "guard" : {
+            "atLeast" : 0.25,
+            "denominator" : {
+              "source" : "declaration"
+            },
+            "numerator" : {
+              "pattern" : "(?m)^[ \\t]*//(?!\\s*MARK)",
+              "region" : "source",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\+",
+                  "region" : "filename",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "extensionPerConcern"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bextension\\s+([A-Za-z_]\\w*)",
+                  "source" : "selfReference"
+                }
+              ],
+              "minimum" : 2,
+              "value" : "singleFileType"
+            }
+          ],
+          "dimension" : "fileOrganization",
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "import Testing",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "@Test",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "#expect\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "swiftTesting"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "import XCTest",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "XCTestCase",
+                  "source" : "pattern"
+                },
+                {
+                  "pattern" : "XCTAssert",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "xctest"
+            }
+          ],
+          "dimension" : "testFramework",
+          "guard" : {
+            "atLeast" : 1,
+            "numerator" : {
+              "pattern" : "Tests",
+              "region" : "filename",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "candidates" : [
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bfunc\\s+(?:test)?[a-z][A-Za-z0-9]*(?:[A-Z][a-z0-9]+){3,}\\s*\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "sentence"
+            },
+            {
+              "counters" : [
+                {
+                  "pattern" : "\\bfunc\\s+test[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]+){0,2}\\s*\\(",
+                  "source" : "pattern"
+                }
+              ],
+              "value" : "camelCaseUnit"
+            }
+          ],
+          "dimension" : "testNaming",
+          "guard" : {
+            "atLeast" : 1,
+            "numerator" : {
+              "pattern" : "Tests",
+              "region" : "filename",
+              "source" : "pattern"
+            }
+          },
+          "kind" : "vote"
+        },
+        {
+          "dimension" : "roleVocabulary",
+          "kind" : "vocabulary",
+          "vocabulary" : {
+            "source" : "declaredTypeSuffix",
+            "tokens" : [
+              "Manager",
+              "Provider",
+              "Sink",
+              "Box",
+              "Log",
+              "Probe",
+              "Router",
+              "Planner",
+              "Composer",
+              "Extractor",
+              "Index",
+              "Queue",
+              "Buffer",
+              "Client",
+              "Service",
+              "Adapter",
+              "Bridge",
+              "Factory",
+              "Validator",
+              "Store",
+              "Coordinator",
+              "Observer",
+              "Ledger",
+              "Registry",
+              "Resolver"
+            ]
+          }
+        }
+      ]
     },
     "id" : "xcode",
     "operations" : [

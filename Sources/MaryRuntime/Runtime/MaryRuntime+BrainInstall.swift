@@ -108,6 +108,11 @@ extension MaryRuntime {
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }
+            // A DECLARED PERCEPTION IS REFRESHED HERE TOO, for the same reason
+            // the observers above are: the dispatch gate asks what Mary
+            // observes RIGHT NOW, and a reading taken any earlier than the
+            // turn that uses it has already begun going stale.
+            publishPlayerTransportPerception()
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)

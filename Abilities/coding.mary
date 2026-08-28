@@ -46,22 +46,106 @@
             "children" : [
 
             ],
-            "kind" : "intent",
+            "kind" : "workspaceFamily",
+            "value" : "coding"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "code-workspace"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
             "value" : "build"
           },
           {
             "children" : [
 
             ],
-            "kind" : "intent",
+            "kind" : "utteranceToken",
+            "value" : "compile"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
             "value" : "run"
           },
           {
             "children" : [
 
             ],
-            "kind" : "workspaceFamily",
-            "value" : "coding"
+            "kind" : "utteranceToken",
+            "value" : "tests"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "scheme"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "project"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "build it"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "build the project"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "run it"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "run the project"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "stop it"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "run the tests"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "save everything"
           }
         ],
         "kind" : "any"
@@ -284,7 +368,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8cbfba92cd35b45dda72161aa1663185c3b9a87488a44d180bbfddc126896e37"
+    "digest" : "529f1019827d9d2875429b0437d0183b15497c43d1576df45cf5161c9490c654"
   },
   "interactions" : [
 
