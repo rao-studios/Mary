@@ -92,6 +92,10 @@ extension MaryRuntime {
         // because importing or editing a package changes the answer.
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))
+        // AND THE CORPORA. Same reconcile, same reason: which applications
+        // Mary can learn the shape of is a fact about the installed packages.
+        CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
+        installCorpusPipeline()
         // AND THE TRANSPORTS, on the same activation and for the same reason:
         // a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(

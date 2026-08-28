@@ -177,6 +177,53 @@ check(observations.allSatisfy { $0.weight <= CorpusStyleReader.maximumWeightPerF
 let isFresh = CorpusObserver.isFreshEdit(focus.absolutePath, at: Date())
 print("      fresh edit: \(isFresh ? "yes — this counts as the user's own style" : "no — indexed for structure only")")
 
+// MARK: - The wired pipeline
+
+heading("the pipeline, as the app wires it")
+
+MaryRuntime.installCorpusPipeline()
+CorpusSupport.shared.reconcile(registrations)
+// THE ROSTER, AS THE APP INSTALLS IT. Without this a place has no
+// registration, so `ability` answers nil and the sink drops every
+// observation — silently, which is exactly why the probe asserts it.
+AmbientApplicationBridge.install(
+    profiles: adapters.map(\.applicationProfile)
+        + load.snapshot.plugins.applicationProfiles)
+check(CorpusSupport.shared.registration(applicationID: registration.applicationID) != nil,
+      "the observer's registry holds the declaration")
+
+// The observer is in the catalog, so the app polls it. Prove the identity it
+// would publish, without waiting on a poll.
+let observers = MaryAdapterCatalog.observers()
+check(observers.contains { $0.id == "corpus" }, "the observer ships in the catalog")
+
+// STYLE FILES UNDER THE ABILITY, NEVER THE APPLICATION — the property that
+// makes learning in one editor teach Mary about the next.
+let place = AmbientPlace.application(registration.applicationID)
+check(place.ability?.rawValue == "coding",
+      "and its place resolves to an ability",
+      place.ability?.rawValue ?? "none")
+
+let store = StyleEvidenceStore.shared
+let before = store.tenets().count
+for observation in observations {
+    store.record(
+        dimension: observation.dimension, value: observation.value,
+        weight: observation.weight,
+        scope: StyleScope(kind: .ability, identity: place.ability?.rawValue ?? "coding"),
+        source: "\(registration.applicationID)|\(corpus.notation)",
+        vocabulary: observation.vocabulary)
+}
+store.publish()
+let tenets = store.tenets()
+check(tenets.count > before, "recorded evidence becomes tenets",
+      "\(before) → \(tenets.count)")
+for tenet in tenets.prefix(4) {
+    print("      · \(tenet.dimension.rawValue) → \(tenet.value.rawValue)  \(tenet.scope.kind.rawValue):\(tenet.scope.identity ?? "—")")
+}
+check(tenets.allSatisfy { $0.scope.kind == .ability },
+      "filed under the ability, not the application")
+
 // MARK: - Verdict
 
 heading("── THE VERDICT ──")

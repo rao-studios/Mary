@@ -16,6 +16,9 @@ package actor TotemContextStore: ContextDepositing {
     /// the SAME Totem group they did. This was hardcoded to Xcode's owner,
     /// which filed a Scrivener manuscript's index under the code editor.
     var unitManifestOwners: [String: String] = [:]
+    /// The per-project catalogue of what has been indexed and at which
+    /// revision, so a relaunch resumes instead of re-reading every file.
+    var unitManifests: [String: UnitIndexManifest] = [:]
     /// Summaries are clamped so one giant Skill result (a whole file read)
     /// doesn't become a bloated totem document.
     let summaryLimit = 2000

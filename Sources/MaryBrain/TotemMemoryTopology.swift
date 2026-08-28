@@ -103,4 +103,30 @@ public enum TotemMemoryTopology {
         }
         return String(format: "%016llx", hash)
     }
+
+    /// One durable profile per application subject. Tenets are scoped
+    /// internally (language / application / project), so they travel together
+    /// in one document rather than being scattered across per-scope addresses
+    /// that would have to be re-joined to answer any question about them.
+    public static func styleProfileDocumentID(subject: String, ownerID: String) -> String {
+        let key = UnitIndexHashing.canonical(ownerID) + "|" + UnitIndexHashing.canonical(subject)
+        return "mary-style-profile-\(UnitIndexHashing.stableHash(key))"
+    }
+
+    /// One durable document per indexed file. Keying on the unit rather than
+    /// the project is what lets a neighbourhood accumulate — moving to a
+    /// second file adds a card instead of rewriting the first.
+    public static func unitDocumentID(unitKey: String, ownerID: String) -> String {
+        let key = UnitIndexHashing.canonical(ownerID) + "|" + unitKey
+        return "mary-unit-\(UnitIndexHashing.stableHash(key))"
+    }
+
+    /// The compact per-project catalogue of what has already been indexed and
+    /// at which revision, so a relaunch resumes instead of re-reading the
+    /// whole project.
+    public static func unitManifestID(projectID: String, ownerID: String) -> String {
+        let key = UnitIndexHashing.canonical(ownerID) + "|" + UnitIndexHashing.canonical(projectID)
+        return "mary-unit-manifest-\(UnitIndexHashing.stableHash(key))"
+    }
+
 }

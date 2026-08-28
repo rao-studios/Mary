@@ -127,13 +127,14 @@ extension MaryRuntime {
     static func connectTotemDepositor(enabled: Bool) async {
         totemArchivingEnabledBox.withLock { $0 = enabled }
         await brain.setDepositor(enabled ? totemContext : nil)
-        // THE LEARNING SINKS ARE NOT IN THIS CUT. Archiving used to install
-        // three of them here — an observation indexer, a project indexer, a
-        // unit indexer feeding the style corpus — and the pairing was itself a
-        // defect: pausing archiving switched off LEARNING as well, so
-        // `knownContentHash` answered nil forever and no edit was ever
-        // distinguishable from a first sighting. When the corpus returns it
-        // installs its own sinks, on their own switch.
+        // AND DELIBERATELY NOT THE LEARNING SINKS. Archiving used to install
+        // them here, and the pairing was itself a defect: pausing archiving
+        // switched off LEARNING as well, so `knownContentHash` answered nil
+        // forever and no edit was distinguishable from a first sighting. The
+        // corpus has since returned and keeps that separation — it installs
+        // its own sink in `installCorpusPipeline` and answers to its own
+        // switch, so pausing memory never costs Mary the ability to tell a
+        // changed file from a new one.
     }
 
     /// Resets the ephemeral awareness and cancels any pending application
@@ -210,13 +211,29 @@ extension MaryRuntime {
     ) async -> String? {
         engineChoiceBox.withLock { $0 = choice }
         await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
-        await brain.setEngine(MaryLocalEngine(modelID: localModelID))
+        let engine = MaryLocalEngine(modelID: localModelID)
+        await brain.setEngine(engine)
         // CHECKED BEFORE WARMING, because the failure it prevents is not
         // catchable. A missing Metal library surfaces as a C++
         // `std::runtime_error` thrown out of MLX, which does not arrive as a
         // Swift error — the `catch` below never sees it and the process dies.
         // Reading the search path costs four `fileExists` calls and turns an
         // unrecoverable crash into a sentence naming the script to run.
+        // THE ANNOTATOR FOLLOWS THE CHOICE, and it is the one job the hosted
+        // lane is strictly better at. Summarising a unit needs no tools —
+        // the single thing Seer's chat cannot do — while the on-device engine
+        // requires exclusive generation and would make a background summary
+        // queue behind the user's own turn. On device, units keep their
+        // structure and go without a précis, and the ledger says why.
+        let hosted = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
+        await unitIndexer.setAnnotator(
+            hosted ? SeerUnitAnnotator(chat: seerChat) : InferenceUnitAnnotator(engine: engine))
+        // A relaunch resumes from the durable manifest instead of treating
+        // every file in the project as a first sighting.
+        await unitIndexer.setManifestLoader { projectID in
+            await totemContext.loadUnitManifest(projectID: projectID)
+        }
+
         guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
         do {
             try await brain.warmup()

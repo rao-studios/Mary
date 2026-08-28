@@ -207,6 +207,21 @@ package enum MaryRuntime {
     package static let seerTotems = SeerTotemsClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!)
     static let totemContext = TotemContextStore(session: seerSession)
+
+    /// The corpus's durable half: one card per indexed unit, plus the
+    /// per-project manifest that lets a relaunch resume instead of re-reading
+    /// every file.
+    ///
+    /// Its annotator is installed later, in `applyEngine`, because which one
+    /// can answer depends on where the words are going — see
+    /// `SeerUnitAnnotator` for why the on-device engine declines.
+    static let unitIndexer = AmbientUnitIndexingCoordinator { unit, manifest in
+        await totemContext.depositUnitIndex(unit, manifest: manifest)
+        // The same settle that produced this unit also moved style tallies.
+        // Coalesced, so a two-dozen-file crawl is one write.
+        requestStyleProfileSave()
+    }
+
     /// Coalescing slot for the style-profile write.
     static let styleSaveBox = OSAllocatedUnfairLock<Task<Void, Never>?>(initialState: nil)
 }

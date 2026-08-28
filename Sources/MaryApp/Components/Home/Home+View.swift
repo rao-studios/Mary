@@ -366,6 +366,7 @@ struct HomeSessionView: View {
             nodeID = TotemNodeIdentity.adoptOrMint(configured: "")
             config.center.update.send(ConfigService.Update.Meta(totemNodeID: nodeID))
         }
+        MaryRuntime.applyCorpusIndexing(enabled: config.state.ambientCorpusIndexing)
         await MaryRuntime.applyServers(config: config.state, nodeID: nodeID)
 
         guard config.state.seerEnabled else {
