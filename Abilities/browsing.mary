@@ -121,6 +121,20 @@
             ],
             "kind" : "utteranceToken",
             "value" : "refresh"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "click"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "press"
           }
         ],
         "kind" : "any"
@@ -135,14 +149,18 @@
     },
     "skills" : [
       "browsing.activate-tab",
+      "browsing.click-on-page",
       "browsing.close-tab",
       "browsing.current-tab",
+      "browsing.fill-in-page",
+      "browsing.list-page-elements",
       "browsing.list-tabs",
       "browsing.navigate-back",
       "browsing.navigate-forward",
       "browsing.open-location",
       "browsing.read-page",
-      "browsing.reload-page"
+      "browsing.reload-page",
+      "browsing.scroll-to-on-page"
     ],
     "summary" : "Read and drive what is open in a web browser: its tabs, and the page it is showing.",
     "tint" : "#4A90D9",
@@ -169,7 +187,9 @@
         "what does this page say",
         "read me this page",
         "reload this page",
-        "go back"
+        "go back",
+        "what can i click on this page",
+        "click that link"
       ],
       "tokens" : [
         "tab",
@@ -185,7 +205,12 @@
         "reload",
         "refresh",
         "back",
-        "forward"
+        "forward",
+        "click",
+        "press",
+        "button",
+        "field",
+        "type"
       ]
     },
     "version" : "1.0.0"
@@ -246,6 +271,56 @@
         {
           "kind" : "allowedTargetClass",
           "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.fill",
+      "inputType" : "browsing.element-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Focus the field through Accessibility and place text in it."
+        }
+      ],
+      "summary" : "Put text into one field on the page.",
+      "title" : "Fill a Field On the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.press",
+      "inputType" : "browsing.element-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the element through Accessibility, or click its measured frame."
+        }
+      ],
+      "summary" : "Press one element on the page the browser is showing.",
+      "title" : "Press On the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
         }
       ],
       "effect" : "read",
@@ -285,6 +360,31 @@
       ],
       "summary" : "Reload the page through the browser's own shortcut.",
       "title" : "Reload the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.reveal",
+      "inputType" : "browsing.element-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Use the element's own scroll-to-visible action."
+        }
+      ],
+      "summary" : "Scroll one element on the page into view.",
+      "title" : "Bring Into View",
       "version" : "1.0.0"
     },
     {
@@ -426,13 +526,33 @@
       ],
       "targetClass" : "browser-page",
       "utterance" : "Reload this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.list-page-elements",
+      "id" : "what-is-on-the-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "What can I click on this page?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "press-a-link",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Click the sign in link."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "56309f00d444f9c1cb9d4f5a909da5bdccf2c59b513dac65d5345673f0fcb94c"
+    "digest" : "d7eacf44c458287763beaa754183b7f3080f0dce4abea82b7b67cf99786ecef6"
   },
   "interactions" : [
 
@@ -540,6 +660,92 @@
       },
       "summary" : "Bring one of the browser's open tabs to the front, named or numbered.",
       "title" : "Switch to a Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "click_on_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.click-on-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "click_on_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "target",
+            "required" : true,
+            "summary" : "The label of the thing to act on, exactly as list_page_elements showed it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.press"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Press one link, button or control on the page the browser is showing.",
+      "title" : "Press Something On the Page",
       "usesStage" : true,
       "version" : "1.0.0"
     },
@@ -703,6 +909,187 @@
       },
       "summary" : "Report which page the browser is showing right now.",
       "title" : "Say What Page Is Open",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "fill_in_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.fill-in-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "fill_in_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "target",
+            "required" : true,
+            "summary" : "The label of the thing to act on, exactly as list_page_elements showed it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "text",
+            "required" : true,
+            "summary" : "What to put in the field.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.fill"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Type text into one field on the page, replacing what is there.",
+      "title" : "Type Into a Field On the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "list_page_elements",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.list-page-elements",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_page_elements",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "kind",
+            "required" : false,
+            "summary" : "Narrow to one kind: link, button, field, video, image, heading.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 225
+      },
+      "summary" : "List what can be pressed or typed into on the page, numbered within each kind.",
+      "title" : "List What's On the Page",
       "usesStage" : false,
       "version" : "1.0.0"
     },
@@ -1134,6 +1521,92 @@
       "title" : "Reload the Page",
       "usesStage" : true,
       "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "scroll_to_on_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.scroll-to-on-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "scroll_to_on_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "target",
+            "required" : true,
+            "summary" : "The label of the thing to act on, exactly as list_page_elements showed it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.reveal"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Scroll one thing on the page into view without pressing it.",
+      "title" : "Bring Something Into View",
+      "usesStage" : true,
+      "version" : "1.0.0"
     }
   ],
   "totemProjections" : [
@@ -1160,36 +1633,10 @@
       "fields" : [
 
       ],
-      "id" : "browsing.tab-roster",
+      "id" : "browsing.element-request",
       "shape" : "string",
-      "summary" : "The browser's open tabs, numbered, and which one is showing.",
-      "title" : "Tab Roster",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-
-      ],
-      "id" : "browsing.tab-report",
-      "shape" : "string",
-      "summary" : "What one tab is showing.",
-      "title" : "Tab Report",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-
-      ],
-      "id" : "browsing.tab-request",
-      "shape" : "string",
-      "summary" : "Which tab an act addresses, by name or by number.",
-      "title" : "Tab Request",
+      "summary" : "Which element on the page an act addresses, by its label.",
+      "title" : "Element Request",
       "version" : "1.0.0"
     },
     {
@@ -1225,10 +1672,62 @@
       "fields" : [
 
       ],
+      "id" : "browsing.page-elements",
+      "shape" : "string",
+      "summary" : "What the page offers, numbered within each kind.",
+      "title" : "Page Elements",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
       "id" : "browsing.page-text",
       "shape" : "string",
       "summary" : "The words of the page, read from its own Accessibility tree.",
       "title" : "Page Text",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-report",
+      "shape" : "string",
+      "summary" : "What one tab is showing.",
+      "title" : "Tab Report",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-request",
+      "shape" : "string",
+      "summary" : "Which tab an act addresses, by name or by number.",
+      "title" : "Tab Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-roster",
+      "shape" : "string",
+      "summary" : "The browser's open tabs, numbered, and which one is showing.",
+      "title" : "Tab Roster",
       "version" : "1.0.0"
     }
   ]

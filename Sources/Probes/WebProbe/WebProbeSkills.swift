@@ -97,6 +97,8 @@ enum WebProbeSkills {
         await call("list_tabs")
         await call("current_tab")
         await call("read_page")
+        await call("list_page_elements")
+        await call("list_page_elements", ["kind": "link"])
 
         // AND NAMED, which is the ladder's top rung and the one a refusal
         // above sends the user to.
@@ -109,10 +111,18 @@ enum WebProbeSkills {
             return
         }
 
-        guard let (registration, target) = BrowserSurfaceSupport.shared.resolve() else {
-            print("\n  No single browser to act on.")
+        // NAMED, not resolved by focus. This probe is a CLI, so the Terminal
+        // is frontmost while it runs and the ladder falls through to "two
+        // browsers are visible, which one?" — which is the ladder being
+        // RIGHT, and makes the unnamed form useless from here. `--browser`
+        // picks; otherwise the first declared running one.
+        let wanted = value("--browser")
+            ?? BrowserSurfaceSupport.shared.runningDisplayNames().first
+        guard let (registration, target) = BrowserSurfaceSupport.shared.resolve(wanted) else {
+            print("\n  No browser to act on\(wanted.map { " named \($0)" } ?? "").")
             return
         }
+        print("\n  acting on \(registration.displayName)")
         let tabs = BrowserTabRoster.read(
             pid: target.processIdentifier, surface: registration.schema)
         guard let current = tabs.first(where: { $0.isCurrent == true }),
@@ -125,7 +135,42 @@ enum WebProbeSkills {
         // SWITCH AWAY AND BACK. The probe leaves the browser as it found it,
         // which is what makes running it a safe thing to do twice.
         print("\n  (currently on \"\(current.name)\")")
-        await call("activate_tab", ["tab": other.name])
-        await call("activate_tab", ["tab": current.name])
+        await call("activate_tab", ["tab": other.name, "browser": registration.displayName])
+        await call("activate_tab", ["tab": current.name, "browser": registration.displayName])
+
+        // THE PAGE VERBS, and only the ones that leave the page where it is.
+        // `click_on_page` is deliberately NOT driven here: pressing a real
+        // link navigates the user's own tab away from whatever they were
+        // reading, and a probe that costs the user their place is a probe
+        // they stop running. Its ladder is exercised by the two refusals
+        // below, which reach the same resolver and touch nothing.
+        let page = PageControlsReader.read(
+            inApp: WebSurface.application(pid: target.processIdentifier))
+        if let first = page.first {
+            await call("scroll_to_on_page", ["target": first.label, "browser": registration.displayName])
+        }
+        // A MISS and an AMBIGUITY, both of which must be sentences rather
+        // than errors — and neither of which presses anything.
+        await call("click_on_page", ["target": "a control no page has ever had", "browser": registration.displayName])
+        if let repeated = Self.repeatedLabel(in: page) {
+            await call("click_on_page", ["target": repeated, "browser": registration.displayName])
+        }
+        // AND THE ROAD THAT REFUSAL PROMISES. It tells the user to name the
+        // thing by number, so this proves that form actually resolves — a
+        // refusal offering an answer that does not work is worse than one
+        // that offers none.
+        await call(
+            "scroll_to_on_page",
+            ["target": "the third link", "browser": registration.displayName])
+    }
+
+    /// A label two or more elements share, for exercising the ambiguity
+    /// refusal against whatever page happens to be open.
+    static func repeatedLabel(in elements: [PageElement]) -> String? {
+        var counts: [String: Int] = [:]
+        for element in elements where !element.label.isEmpty {
+            counts[element.label, default: 0] += 1
+        }
+        return counts.first { $0.value > 1 }?.key
     }
 }

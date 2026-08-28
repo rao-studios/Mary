@@ -35,7 +35,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
     public let summary =
         "reads a browser's tabs and page text, switches and closes tabs, and opens addresses"
 
-    private let support: BrowserSurfaceSupport
+    let support: BrowserSurfaceSupport
 
     public init(support: BrowserSurfaceSupport = .shared) {
         self.support = support
@@ -43,6 +43,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
 
     public var skillBindings: [SkillBinding] {
         [listTabs, currentTab, activateTab, closeTab, openLocation, readPage]
+            + pageBindings
     }
 
     /// THE TYPED HANDSHAKE, DECLARED RATHER THAN DEFAULTED — and written this
@@ -113,7 +114,7 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                     capability: "browsing.page.read",
                     input: "browsing.browser-query",
                     output: "browsing.page-text"),
-            ],
+            ] + Self.pageOperations(adapterID: adapterID),
             providesPerceptions: ["perception.browser-page"],
             supportedValueTypes: [
                 "browsing.browser-query",
@@ -123,6 +124,8 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                 "browsing.location-request",
                 "browsing.operation-result",
                 "browsing.page-text",
+                "browsing.page-elements",
+                "browsing.element-request",
             ],
             // ACCESSIBILITY AND NOTHING ELSE. The predecessor's browsing lane
             // needed an Automation grant for its tab roster; this one reads

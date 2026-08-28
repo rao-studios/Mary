@@ -127,8 +127,27 @@ public enum PageElementKindDerivation {
         return hasDurationSignature(label)
     }
 
+    /// A RELATIVE TIME IS NOT A DURATION, and the difference is one word.
+    ///
+    /// FOUND LIVE on a news page: `\d+\s*(hour|minute|second)s?` matches
+    /// "7 hours ago" exactly as it matches "58 minutes", so every comment
+    /// timestamp on the page classified as a video. The costs compound —
+    /// "the third video" counts things nobody would call a video, and
+    /// `offerings` tells the model the page is a video page when it is a
+    /// discussion.
+    ///
+    /// ONLY "ago", deliberately. The forward-looking form is genuinely
+    /// ambiguous and the measurement that produced these patterns cites
+    /// "…in one hour 58 minutes" as a REAL video duration, so excluding "in"
+    /// would break the case the rule was written for. "Ago" is unambiguous:
+    /// nothing that happened in the past is a running time.
+    static let relativeTimeMarkers = [" ago", " ago,", " ago."]
+
     static func hasDurationSignature(_ label: String) -> Bool {
         let lowered = label.lowercased()
+        guard !relativeTimeMarkers.contains(where: { lowered.contains($0) }),
+              !lowered.hasSuffix("ago")
+        else { return false }
         return durationPatterns.contains {
             lowered.range(of: $0, options: .regularExpression) != nil
         }

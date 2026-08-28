@@ -77,6 +77,27 @@ public enum PageElementResolver {
     public static func ambiguityRefusal(
         _ rivals: [PageElement], phrase: String
     ) -> String {
+        // WHEN THE LABELS DO NOT DISCRIMINATE, NAMING THEM IS A DEAD END.
+        // Found live on a news page: two rows both read "7 hours ago", and
+        // the refusal came back "…matching 7 hours ago — "7 hours ago" and
+        // "7 hours ago". Which one?" — a question with no answerable form.
+        // The user is being asked to distinguish two things using the one
+        // piece of information that is identical.
+        //
+        // The ladder DOES accept a positional phrase ("the third link",
+        // narrowed by kind), and `list_page_elements` numbers within kind for
+        // exactly that reason — so the honest refusal here points at the road
+        // that works instead of restating the one that does not.
+        let distinct = Set(rivals.map { normalized($0.label) })
+        guard distinct.count > 1 else {
+            let kinds = Set(rivals.map(\.kind.spokenWord)).sorted()
+            let noun = kinds.count == 1 ? kinds[0] : "things"
+            return """
+            There are \(rivals.count) \(noun)s on the page that all say \
+            "\(shortened(rivals[0].label))", so the name doesn't tell them \
+            apart. Ask me what's on the page and name it by number.
+            """
+        }
         let named = rivals.prefix(spokenRivalLimit)
             .map { "\"\(shortened($0.label))\"" }
         let list = SpokenReference.spokenList(Array(named))

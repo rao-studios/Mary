@@ -326,9 +326,45 @@ import Testing
         #expect(picked.label.hasPrefix("Swift Programming Tutorial"))
     }
 
+    // MARK: - A timestamp is not a duration
+
+    /// FOUND LIVE on a discussion page: every "7 hours ago" comment
+    /// timestamp classified as a VIDEO, because the duration pattern
+    /// `\d+\s*(hour|minute|second)s?` matches a relative time exactly as it
+    /// matches a running time. The cost is not cosmetic — "the third video"
+    /// starts counting comments, and the page's offering vocabulary tells
+    /// the model a discussion is a video page.
+    @Test(arguments: [
+        "7 hours ago", "1 hour ago", "20 minutes ago", "3 seconds ago",
+    ])
+    func aRelativeTimestampIsNotADuration(label: String) {
+        #expect(!PageElementKindDerivation.hasDurationSignature(label))
+    }
+
+    /// AND A REAL DURATION STILL IS ONE. The measurement that produced these
+    /// patterns cites each of these from a live results page, so narrowing
+    /// the rule must not cost them.
+    @Test(arguments: [
+        "in one hour 58 minutes", "2 minutes, 25 seconds", "Lecture · 2:21",
+    ])
+    func arunningTimeStillReadsAsADuration(label: String) {
+        #expect(PageElementKindDerivation.hasDurationSignature(label))
+    }
+
     // MARK: - Refusals
 
-    @Test func twoThingsWithTheSameNameRefuseAndNameTheRivals() {
+    /// IDENTICAL LABELS MUST NOT BE OFFERED AS THE WAY TO CHOOSE.
+    ///
+    /// Found live on a news page: two rows both read "7 hours ago", and the
+    /// refusal came back `…matching 7 hours ago — "7 hours ago" and "7 hours
+    /// ago". Which one?` — a question with no answerable form, because the
+    /// user is asked to distinguish two things using the one piece of
+    /// information that is identical.
+    ///
+    /// This test previously asserted that exact wording. It was pinning the
+    /// dead end: everything it checked was true (it refused, it named the
+    /// label, it did not lecture) and the sentence was still useless.
+    @Test func twoThingsWithTheSameNameRefuseTowardsAWayThatWorks() {
         let twins = [
             element(1, .video, "Lesson 1", url: "https://x/1"),
             element(2, .video, "Lesson 1", url: "https://x/2", y: 100),
@@ -339,12 +375,29 @@ import Testing
             return
         }
         #expect(rivals.count == 2)
-        let spoken = PageElementResolver.ambiguityRefusal(
-            rivals, phrase: "Lesson 1")
-        #expect(spoken.contains("2 things"))
+        let spoken = PageElementResolver.ambiguityRefusal(rivals, phrase: "Lesson 1")
+
+        #expect(spoken.contains("2"))
         #expect(spoken.contains("Lesson 1"))
-        // The refusal states the fact and asks; it never lectures.
+        // It says WHY the name cannot settle it, and points at the road that
+        // can — the resolver accepts "the second video", and
+        // `list_page_elements` numbers within kind for exactly this.
+        #expect(spoken.contains("number"))
+        // And it never offers the same string twice as a choice.
+        #expect(spoken.components(separatedBy: "Lesson 1").count == 2)
         #expect(!spoken.lowercased().contains("be more specific"))
+    }
+
+    /// DISTINCT labels still get named, because there the names DO settle it.
+    @Test func rivalsWithDifferentNamesAreNamed() {
+        let rivals = [
+            element(1, .link, "Sign in with email", url: "https://x/1"),
+            element(2, .link, "Sign in with Apple", url: "https://x/2", y: 100),
+        ]
+        let spoken = PageElementResolver.ambiguityRefusal(rivals, phrase: "sign in")
+        #expect(spoken.contains("Sign in with email"))
+        #expect(spoken.contains("Sign in with Apple"))
+        #expect(spoken.contains("Which one?"))
     }
 
     @Test func aNameThePageDoesNotHoldMissesHonestly() {
