@@ -90,11 +90,7 @@ extension MaryRuntime {
             // at, so gating it behind the route's fact filter would withhold
             // the foundation exactly when deixis needs it. The budget still
             // bounds it, and the ranker drops what does not fit.
-            var surfaces = store.surfaces()
-            if let lead = resolved.leadPlace,
-               let index = surfaces.firstIndex(where: { $0.place == lead }) {
-                surfaces.insert(surfaces.remove(at: index), at: 0)
-            }
+            let surfaces = leadFirstSurfaces(store.surfaces(), lead: resolved.leadPlace)
             return AmbientRanker.render(
                 facts: routed.facts,
                 utterance: store.utterance(),
@@ -105,6 +101,22 @@ extension MaryRuntime {
                 surfaces: surfaces,
                 budget: budget)
         }
+
+    /// Surfaces in reading order, except the lead place moves to the front.
+    ///
+    /// The lead lane's surface leads because it works for a dynamic
+    /// application lead as well as a native world, which the ranker's
+    /// native-only `focusedWorld` signal cannot express. Shared by the
+    /// renderer and the behavioral capture so both describe the same order.
+    private static func leadFirstSurfaces(
+        _ surfaces: [AmbientSurface], lead: AmbientPlace?
+    ) -> [AmbientSurface] {
+        var surfaces = surfaces
+        if let lead, let index = surfaces.firstIndex(where: { $0.place == lead }) {
+            surfaces.insert(surfaces.remove(at: index), at: 0)
+        }
+        return surfaces
+    }
 
     /// The tails both per-turn prompts append to their plan render: ambient
     /// guidance, then the ability projection — same texts, same order for
@@ -220,6 +232,20 @@ extension MaryRuntime {
             RetrievalTraceLedger.shared.stageSystemPrompt(
                 spend: assembled.spend,
                 ambient: assembled.ambient)
+            // THE INPUT HALF OF THE EPISODE, staged from the same inputs the
+            // render above used. The turn loop claims this a few statements
+            // after this provider returns — see `BehavioralAssembler`.
+            let now = Date()
+            brainWiring.behavior.stageCapture(
+                AmbientCaptureBuilder.capture(
+                    facts: AmbientContextStore.shared.facts(at: now),
+                    surfaces: leadFirstSurfaces(
+                        AmbientContextStore.shared.surfaces(at: now), lead: resolved.leadPlace),
+                    rendering: held,
+                    selection: AmbientContextStore.shared.routedSelectionHandoff(at: now),
+                    lead: resolved.leadPlace,
+                    realm: AmbientContextStore.shared.route()?.realm,
+                    at: now))
             return assembled.text
     }
 

@@ -1,0 +1,71 @@
+{
+  "configurations" : [
+    {
+      "id" : "5291AFA0-CEF6-4ED2-9979-08B6C58EE5D6",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "Mary",
+      "name" : "Mary"
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryAmbientTests",
+        "name" : "MaryAmbientTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryBrainTests",
+        "name" : "MaryBrainTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryFoundationTests",
+        "name" : "MaryFoundationTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryPluginTests",
+        "name" : "MaryPluginTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryRuntimeTests",
+        "name" : "MaryRuntimeTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryTotemTests",
+        "name" : "MaryTotemTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryVoiceTests",
+        "name" : "MaryVoiceTests"
+      }
+    }
+  ],
+  "version" : 1
+}
