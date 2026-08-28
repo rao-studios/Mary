@@ -126,6 +126,13 @@ extension MaryRuntime {
     /// not a hop into Granite from a background task.
     static let corpusIndexingEnabledBox = OSAllocatedUnfairLock<Bool>(initialState: true)
 
+    /// The live answer, for anything that needs to read the switch rather
+    /// than set it. The lock itself stays internal: a caller holding it could
+    /// keep the observer waiting mid-poll.
+    package static var corpusIndexingIsEnabled: Bool {
+        corpusIndexingEnabledBox.withLock { $0 }
+    }
+
     package static func applyCorpusIndexing(enabled: Bool) {
         corpusIndexingEnabledBox.withLock { $0 = enabled }
     }

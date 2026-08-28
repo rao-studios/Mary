@@ -29,6 +29,7 @@ func heading(_ text: String) {
 }
 
 var failures = 0
+nonisolated(unsafe) var reIndexed = false
 func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
     print("  \(passed ? "✓" : "✗")  \(claim)\(detail.isEmpty ? "" : " — \(detail)")")
     if !passed { failures += 1 }
@@ -223,6 +224,46 @@ for tenet in tenets.prefix(4) {
 }
 check(tenets.allSatisfy { $0.scope.kind == .ability },
       "filed under the ability, not the application")
+
+// MARK: - The switch
+
+heading("the switch")
+
+// OFF MUST MEAN OFF ON THE NEXT POLL, not the next launch — the flag is read
+// per poll for exactly this reason, and a switch that only takes effect after
+// a relaunch is one people stop trusting.
+MaryRuntime.applyCorpusIndexing(enabled: false)
+let observerUnderTest = CorpusObserver()
+observerUnderTest.setEnabled { MaryRuntime.corpusIndexingIsEnabled }
+var crawledWhileOff = false
+observerUnderTest.setSink { _, _, _ in crawledWhileOff = true }
+await observerUnderTest.pollOnce()
+check(!crawledWhileOff, "indexing off reaches no sink")
+check(observerUnderTest.observedPlace == nil, "and publishes no place")
+
+MaryRuntime.applyCorpusIndexing(enabled: true)
+check(MaryRuntime.corpusIndexingIsEnabled, "and back on again")
+
+// MARK: - Resuming
+
+heading("resuming after a relaunch")
+
+// A manifest that did not survive would make every file a first sighting on
+// every launch — the hash gate switched off in all but name, and the most
+// expensive way to learn nothing.
+let indexer = AmbientUnitIndexingCoordinator(idleFor: 0.1, ledger: nil) { _, _ in }
+for unit in units { await indexer.ingest(unit) }
+await indexer.flush()
+let manifest = await indexer.manifest(forProject: focus.root)
+check(manifest != nil, "a manifest was built", "\(manifest?.entries.count ?? 0) entries")
+
+let relaunched = AmbientUnitIndexingCoordinator(idleFor: 0.1, ledger: nil) { _, _ in
+    reIndexed = true
+}
+if let manifest { await relaunched.restore(manifest, projectID: focus.root) }
+for unit in units { await relaunched.ingest(unit) }
+await relaunched.flush()
+check(!reIndexed, "and a restored one re-indexes nothing")
 
 // MARK: - Verdict
 
