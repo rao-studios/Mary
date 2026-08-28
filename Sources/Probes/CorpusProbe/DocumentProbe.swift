@@ -18,8 +18,11 @@
 //
 
 import Foundation
+import MaryAmbient
+import MaryBrain
 import MaryFoundation
 import MaryPlugin
+import MaryRuntime
 
 enum DocumentProbe {
 
@@ -69,6 +72,10 @@ enum DocumentProbe {
             return arguments[index + 1]
         }
 
+        if arguments.contains("--lane") {
+            await lane()
+            return
+        }
         guard let raw = value("--project") else {
             print("Pass --project <path to a .scriv>")
             exit(1)
@@ -132,5 +139,126 @@ enum DocumentProbe {
                 }
             }
         }
+    }
+}
+
+// MARK: - The lane, through the shipped configuration
+
+extension DocumentProbe {
+
+    /// THE JOIN NO FIXTURE CAN MAKE: do the shipped PACKAGES declare this
+    /// project correctly, and do the Skills reach the roster unblocked?
+    ///
+    /// `document` above proves the reader works against a real manuscript
+    /// using a declaration written here. This proves `scrivener.mary` says
+    /// the same thing — which is the only question a live parity pass is for,
+    /// and the one a hand-built structure cannot answer.
+    static func lane() async {
+        var failures = 0
+        func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
+            print("  \(passed ? "✓" : "✗")  \(claim)\(detail.isEmpty ? "" : "  — \(detail)")")
+            if !passed { failures += 1 }
+        }
+
+        ProseSurfaceSupport.shared.installBackingResolver()
+        AmbientCapabilityBridge.install()
+        let adapters = MaryAdapterCatalog.adapters()
+        let observers = MaryAdapterCatalog.observers()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: observers),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+
+        print("▸ the shipped configuration")
+        check(load.activated, "the package graph activated",
+              load.snapshot.records.map(\.package.ability.id.rawValue).sorted()
+                .joined(separator: ", "))
+        for issue in load.issues where issue.severity == .error {
+            print("      ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.documentCorpusRegistrations(from: load.snapshot)
+        DocumentCorpusSupport.shared.reconcile(registrations)
+        AmbientApplicationBridge.install(
+            profiles: adapters.map(\.applicationProfile)
+                + load.snapshot.plugins.applicationProfiles)
+        check(!registrations.isEmpty, "a writing project is declared",
+              registrations.map(\.applicationID).sorted().joined(separator: ", "))
+
+        // ⚠️ A NOTATION-ONLY CORPUS MUST NOT REGISTER HERE. xcode.mary
+        // declares a corpus with no `structure` — files to learn style from,
+        // not a project with an outline — and registering it would offer an
+        // outline read against something that has none.
+        check(!registrations.contains { $0.applicationID == "xcode" },
+              "a notation-only corpus stays out of this lane")
+
+        let corpora = DocumentCorpusSupport.shared.openCorpora()
+        check(!corpora.isEmpty, "a project is open right now",
+              corpora.map(\.name).joined(separator: ", "))
+
+        for corpus in corpora {
+            check(DocumentCorpusSupport.isOpenForEditing(corpus),
+                  "\(corpus.name) is open for editing")
+            let place = AmbientPlace.application(corpus.registration.applicationID)
+            check(place.hasEyes, "\(corpus.registration.applicationID)'s place has eyes")
+        }
+
+        let skills = load.snapshot.skills.filter {
+            $0.id.rawValue.hasPrefix("writing.")
+        }
+        let blocked = skills.filter { $0.availability.readiness == .blocked }
+        check(blocked.isEmpty && !skills.isEmpty, "no writing skill is blocked",
+              blocked.isEmpty
+                ? "\(skills.count) offered"
+                : blocked.map { "\($0.id.rawValue): "
+                    + ($0.availability.reasons.first ?? "?") }
+                    .sorted().joined(separator: "; "))
+
+        // AND THE READ ITSELF, through the shipped adapter rather than a
+        // hand-built structure — the whole point of this pass.
+        guard let adapter = adapters.first(where: { $0.name == "document-corpus" }),
+              let binding = adapter.skillBindings.first(
+                where: { $0.name == "read_corpus_outline" }),
+              case .native(let run) = binding.backing
+        else {
+            check(false, "read_corpus_outline is published")
+            return
+        }
+        do {
+            let outcome = try await run([:], AbilityExecutionContext(projects: [:]))
+            check(outcome.ok, "read_corpus_outline answered")
+            print("\n" + outcome.summary.split(separator: "\n").prefix(10)
+                .joined(separator: "\n"))
+        } catch {
+            check(false, "read_corpus_outline threw", error.localizedDescription)
+        }
+
+        // THE OTHER READS, through the same shipped path. Each answers a
+        // different question of the manuscript, and each is a different way
+        // for a declaration to be subtly wrong.
+        for (skill, arguments) in [
+            ("corpus_progress", [:]),
+            ("search_corpus", ["query": "comet"]),
+            ("read_corpus_document", ["document": "Section 1.1"]),
+        ] as [(String, [String: String])] {
+            guard let binding = adapter.skillBindings.first(where: { $0.name == skill }),
+                  case .native(let call) = binding.backing else { continue }
+            print("\n▸ \(skill)")
+            do {
+                let outcome = try await call(arguments, AbilityExecutionContext(projects: [:]))
+                print("  \(outcome.ok ? "ok" : "REFUSED")"
+                    + (outcome.foundNothing ? "  (found nothing)" : ""))
+                for line in outcome.summary.split(separator: "\n").prefix(5) {
+                    print("    \(line.prefix(100))")
+                }
+            } catch {
+                print("  THREW  \(error.localizedDescription)")
+            }
+        }
+
+        print(failures == 0
+            ? "\n  The document-corpus lane is loaded and reading."
+            : "\n  \(failures) check(s) failed.")
     }
 }

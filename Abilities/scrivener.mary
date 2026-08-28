@@ -1,0 +1,418 @@
+{
+  "ability" : {
+    "aliases" : [
+      "scrivener",
+      "the manuscript app"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.literatureandlatte.scrivener"
+        ],
+        "id" : "scrivener",
+        "title" : "Scrivener"
+      }
+    ],
+    "id" : "scrivener",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never write into the project on disk; the editor autosaves and would win that race silently.",
+        "Never launch it; a closed project is an honest refusal.",
+        "Read from disk, change through the application's own commands.",
+        "The trash is not part of the work; never count it or offer it as a destination."
+      ],
+      "phases" : [
+        "find-the-project",
+        "read-it",
+        "act-through-its-own-command",
+        "verify-on-disk"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "the project is not open",
+        "the command is greyed out"
+      ],
+      "successSignals" : [
+        "the project on disk shows the change"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferFocusedWorkspace",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "writing-project"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 185
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Drive Scrivener: read the manuscript, and split or restructure it through its own commands.",
+    "tint" : "#2E7D9A",
+    "title" : "Scrivener",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+
+      ],
+      "tokens" : [
+
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "writing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "9773a30a73531f5fade1a7ce32f6e6d5f5e0bd2b3f619a6290e261f886e3cc63"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "scrivener",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teach Mary how a Scrivener project is shaped and how to drive it.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "scrivener.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Scrivener Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "scrivener"
+      ],
+      "bundleIdentifiers" : [
+        "com.literatureandlatte.scrivener"
+      ],
+      "bundleNames" : [
+        "Scrivener.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "scrivener",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "writing-project",
+        "document-window"
+      ],
+      "title" : "Scrivener"
+    },
+    "corpus" : {
+      "include" : [
+        "rtf"
+      ],
+      "notation" : "prose",
+      "structure" : {
+        "ceremonies" : [
+          {
+            "act" : "addItem",
+            "menuPath" : [
+              "Project",
+              "New Text"
+            ]
+          },
+          {
+            "act" : "addContainer",
+            "menuPath" : [
+              "Project",
+              "New Folder"
+            ]
+          },
+          {
+            "act" : "moveToContainer",
+            "completedByContainer" : true,
+            "menuPath" : [
+              "Documents",
+              "Move To"
+            ]
+          },
+          {
+            "act" : "trash",
+            "menuPath" : [
+              "Documents",
+              "Move to Trash"
+            ]
+          }
+        ],
+        "discovery" : "directoryExtension",
+        "documentURLTemplate" : "x-scrivener-item:///{project}?id={id}",
+        "handlePrefix" : "D",
+        "lockFilePath" : "Files/user.lock",
+        "manifest" : {
+          "childrenElement" : "Children",
+          "containerTypes" : [
+            "Folder",
+            "DraftFolder",
+            "ResearchFolder",
+            "TrashFolder"
+          ],
+          "draftType" : "DraftFolder",
+          "idAttribute" : "UUID",
+          "itemElement" : "BinderItem",
+          "kind" : "xmlManifest",
+          "pathTemplate" : "{name}.scrivx",
+          "rootElement" : "Binder",
+          "titleElement" : "Title",
+          "trashType" : "TrashFolder",
+          "typeAttribute" : "Type"
+        },
+        "openState" : [
+          "lockFile",
+          "runningApplication"
+        ],
+        "parts" : [
+          {
+            "format" : "rtf",
+            "name" : "text",
+            "pathTemplate" : "Files/Data/{id}/content.rtf"
+          }
+        ],
+        "projectExtension" : "scriv"
+      }
+    },
+    "id" : "scrivener",
+    "operations" : [
+      {
+        "adapterID" : "scrivener.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "scrivener_split_horizontally",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "equal",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "option",
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Split the editor into two panes, one above the other.",
+        "timeoutSeconds" : 10,
+        "title" : "Split the Editor Horizontally"
+      },
+      {
+        "adapterID" : "scrivener.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "scrivener_split_vertically",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "quote",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "shift",
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Split the editor into two panes, side by side.",
+        "timeoutSeconds" : 10,
+        "title" : "Split the Editor Vertically"
+      },
+      {
+        "adapterID" : "scrivener.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "scrivener_no_split",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "quote",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Return the editor to a single pane.",
+        "timeoutSeconds" : 10,
+        "title" : "Close the Split"
+      },
+      {
+        "adapterID" : "scrivener.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "scrivener_split_document",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "k",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "option",
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.4,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Split the document being written into two at the cursor.",
+        "timeoutSeconds" : 10,
+        "title" : "Split the Document at the Cursor"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "scrivener_split_horizontally",
+        "preference" : 260,
+        "skillID" : "writing.split-editor-horizontally",
+        "targetClasses" : [
+          "writing-project"
+        ]
+      },
+      {
+        "operation" : "scrivener_split_vertically",
+        "preference" : 260,
+        "skillID" : "writing.split-editor-vertically",
+        "targetClasses" : [
+          "writing-project"
+        ]
+      },
+      {
+        "operation" : "scrivener_no_split",
+        "preference" : 260,
+        "skillID" : "writing.unsplit-editor",
+        "targetClasses" : [
+          "writing-project"
+        ]
+      },
+      {
+        "operation" : "scrivener_split_document",
+        "preference" : 260,
+        "skillID" : "writing.split-document",
+        "targetClasses" : [
+          "writing-project"
+        ]
+      }
+    ],
+    "title" : "Scrivener",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}
