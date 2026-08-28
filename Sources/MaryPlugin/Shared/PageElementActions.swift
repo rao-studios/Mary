@@ -274,6 +274,22 @@ public enum PageElementActions {
         let frame = element.frame
         guard frame.width > 1, frame.height > 1 else { return false }
         let point = CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded())
+        guard click(at: point, pid: pid) else { return false }
+        try? await Task.sleep(nanoseconds: 200_000_000)
+        return true
+    }
+
+    /// One click at one measured point, aimed at one process.
+    ///
+    /// EXTRACTED SO THERE IS ONE DEFINITION, not because `press` was long.
+    /// The web surface needs the same click to put a caret in an editor whose
+    /// focus setter lied, and a second copy of these six lines is how two
+    /// call sites start disagreeing about which tap to post to.
+    ///
+    /// The caller supplies the point and owns the question of whether it is a
+    /// legal place to click — this one only knows how.
+    @discardableResult
+    public static func click(at point: CGPoint, pid: pid_t) -> Bool {
         guard let source = CGEventSource(stateID: .hidSystemState),
               let down = CGEvent(
                 mouseEventSource: source, mouseType: .leftMouseDown,
@@ -282,11 +298,10 @@ public enum PageElementActions {
                 mouseEventSource: source, mouseType: .leftMouseUp,
                 mouseCursorPosition: point, mouseButton: .left)
         else { return false }
-        // postToPid, never a global tap: the click belongs to the browser
+        // postToPid, never a global tap: the click belongs to the application
         // that owns the element, and nothing else on screen should see it.
         down.postToPid(pid)
         up.postToPid(pid)
-        try? await Task.sleep(nanoseconds: 200_000_000)
         return true
     }
 
