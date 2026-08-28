@@ -45,20 +45,27 @@ extension SettingsSheet {
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                 case .hosted:
-                    HStack(spacing: .layer2) {
-                        StatusDot(color: SeerAuth.isConfigured ? .maryGreen : .maryError)
-                        Text(SeerAuth.isConfigured
-                             ? "SEER_TOKEN found"
-                             : "SEER_TOKEN missing — add it to Mary's .env")
-                            .font(.marySans(11))
-                            .foregroundStyle(Color.maryInk.opacity(0.7))
-                    }
+                    // THE SESSION, NOT AN ENVIRONMENT VARIABLE. This row used
+                    // to demand a SEER_TOKEN in Mary's .env — a credential the
+                    // app consumes NOWHERE. Every Seer request rides a Bearer
+                    // token minted by SeerSession's account sign-in, which
+                    // happens by itself at boot with the admin account; the
+                    // only reader of SEER_TOKEN is the standalone voice probe,
+                    // which has no session to mint from. So the old row sent
+                    // people to edit a dotfile that would change nothing,
+                    // while the actual requirement — being signed in — went
+                    // unreported.
+                    SeerSignInRow(
+                        signedIn: seerSignedIn,
+                        account: config.state.seerEmail,
+                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
                     Text("Your words reach the cloud through the Seer server on this machine. Acting still runs on device.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                 }
             }
         }
+        .task { await refreshSeerSignIn() }
     }
 
     /// WHAT MARY REMEMBERS DOING.
@@ -198,14 +205,12 @@ extension SettingsSheet {
                             Text(character.displayName).tag(character.id)
                         }
                     }
-                    HStack(spacing: .layer2) {
-                        StatusDot(color: SeerAuth.isConfigured ? .maryGreen : .maryError)
-                        Text(SeerAuth.isConfigured
-                             ? "SEER_TOKEN found"
-                             : "SEER_TOKEN missing — Kokoro speaks until it's added")
-                            .font(.marySans(11))
-                            .foregroundStyle(Color.maryInk.opacity(0.7))
-                    }
+                    // Same correction as the Brain card's row: the cloud
+                    // voice needs the SIGN-IN, not a token in a dotfile.
+                    SeerSignInRow(
+                        signedIn: seerSignedIn,
+                        account: config.state.seerEmail,
+                        whenSignedOut: "Not signed in — Kokoro speaks until the Seer sign-in completes.")
                     Text("Speaks through the local Seer server; Kokoro covers any chunk Seer can't. Needs the Seer sign-in from the Servers panel.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
@@ -225,6 +230,32 @@ extension SettingsSheet {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .task { await refreshSeerSignIn() }
     }
 
+}
+
+/// The Seer sign-in as a status row: the session's answer, three states.
+///
+/// NIL IS A REAL STATE. The read is an actor hop that lands a frame after the
+/// sheet opens; until it does, the row says it is checking rather than
+/// guessing. A dot that guessed red would tell a signed-in user to go fix
+/// something for the length of a frame — and screenshots freeze frames.
+private struct SeerSignInRow: View {
+    let signedIn: Bool?
+    let account: String
+    let whenSignedOut: String
+
+    var body: some View {
+        HStack(spacing: .layer2) {
+            StatusDot(color: signedIn == nil
+                ? Color.maryInk.opacity(0.35)
+                : signedIn == true ? .maryGreen : .maryError)
+            Text(signedIn == nil
+                ? "Checking the Seer sign-in…"
+                : signedIn == true ? "Signed in to Seer as \(account)" : whenSignedOut)
+                .font(.marySans(11))
+                .foregroundStyle(Color.maryInk.opacity(0.7))
+        }
+    }
 }

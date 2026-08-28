@@ -3,8 +3,18 @@
 //  MaryBrain
 //
 //  Seer's loadDotEnv, ported: parse KEY=VALUE lines into the process
-//  environment at boot. Mary's `.env` is gitignored; the README says where
-//  to copy TINKER_API_KEY from.
+//  environment at boot. Mary's `.env` is gitignored.
+//
+//  WHAT SEER_TOKEN IS, AND IS NOT. The app never authenticates with it —
+//  every Seer request (chat, realtime, TTS, Totem) rides a Bearer token
+//  minted by `SeerSession`'s account sign-in, which runs by itself at boot
+//  with the admin account. The one reader of SEER_TOKEN is the standalone
+//  voice probe, which has no session to mint from and takes a static bearer
+//  from the environment instead. An enum named `SeerAuth` used to stand
+//  here presenting the token as "the one hosted credential", and two
+//  Settings rows rendered its presence as the hosted lane's health — telling
+//  people to go edit a dotfile the app never reads, while the actual
+//  requirement, being signed in, went unreported.
 //
 
 import MaryVoice
@@ -14,10 +24,14 @@ public enum DotEnv {
     /// The sibling Seer checkout whose `.env` holds the shared keys.
     public static let seerEnvDirectory = "\(NSHomeDirectory())/Documents/rao/repositories/Seer"
 
+    /// The voice probe's static bearer — see the header for why this is a
+    /// probe credential and not the app's.
+    static let probeTokenKey = "SEER_TOKEN"
+
     /// Mary's boot loader: the repo's own `.env` first, then the Seer
     /// checkout's as a fallback, never overwriting what is already set — so
-    /// the hosted lane works out of the box on this machine without copying
-    /// keys between repositories.
+    /// the probes work out of the box on this machine without copying keys
+    /// between repositories.
     ///
     /// ONE KEY, because there is one hosted engine. The version this descends
     /// from probed two providers' variables and fell back if EITHER was
@@ -25,7 +39,7 @@ public enum DotEnv {
     /// reading another repository's dotfile every launch.
     public static func loadMaryEnvironment() {
         load()
-        if ProcessInfo.processInfo.environment[SeerAuth.apiKeyEnvVar] == nil {
+        if ProcessInfo.processInfo.environment[probeTokenKey] == nil {
             load(from: seerEnvDirectory, overwrite: false)
         }
     }
@@ -48,26 +62,4 @@ public enum DotEnv {
             setenv(key, value, overwrite ? 1 : 0)
         }
     }
-}
-
-/// The one hosted credential.
-///
-/// A SECOND AUTH ENUM USED TO SIT BESIDE THIS ONE, for a second cloud
-/// provider, and every caller had to know which of the two a given engine
-/// wanted. Mary has one hosted engine, so she has one key and one place that
-/// answers for it.
-public enum SeerAuth {
-    public static let apiKeyEnvVar = "SEER_TOKEN"
-
-    /// Resolution order: process env, which `.env` was loaded into at boot.
-    /// A MISSING KEY MUST NEVER CRASH THE APP — the engine reports it as an
-    /// unreachable server, which is what the user can actually act on.
-    public static var apiKey: String? {
-        if let key = ProcessInfo.processInfo.environment[apiKeyEnvVar], !key.isEmpty {
-            return key
-        }
-        return nil
-    }
-
-    public static var isConfigured: Bool { apiKey != nil }
 }

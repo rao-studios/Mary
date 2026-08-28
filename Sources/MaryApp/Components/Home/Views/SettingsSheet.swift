@@ -29,6 +29,10 @@ struct SettingsSheet: View {
     @State var newPronunciationIPA: String = ""
     /// Bytes the behavioral record occupies, refreshed when its card appears.
     @State var behaviorSizeOnDisk: Int = 0
+    /// Whether the Seer session is signed in. Nil until the first read
+    /// answers — a dot that defaulted to red would flash "not signed in" at
+    /// every open of the sheet, on a machine where boot signed in seconds ago.
+    @State var seerSignedIn: Bool? = nil
 
     var voices: [String] {
         guard let dir = KokoroAssets.modelsDirectory() else { return ["af_heart"] }
@@ -135,6 +139,12 @@ struct SettingsSheet: View {
 
     func refreshBehaviorSize() async {
         behaviorSizeOnDisk = await MaryRuntime.behavioralStore.sizeOnDisk()
+    }
+
+    /// The sign-in state the status rows render — the SESSION's own answer,
+    /// not an environment variable's.
+    func refreshSeerSignIn() async {
+        seerSignedIn = await MaryRuntime.seerSession.isAuthenticated
     }
 
     /// Which of the cloud voice's characters speaks.
