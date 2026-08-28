@@ -161,6 +161,18 @@ enum WebProbeLane {
                 .joined(separator: ", "))
         }
 
+        // THE FIRST SHIPPED RECIPE WITH A MODEL-SUPPLIED INPUT. Its steps
+        // are chords and a typeText that carries the model's own word, so
+        // this is also the first time the text-expression path is exercised
+        // by anything but a unit test.
+        if let find = load.snapshot.skills.first(
+            where: { $0.id.rawValue == "browsing.find-in-page" }) {
+            check(
+                find.availability.readiness != .blocked,
+                "find_in_page is realized by a browser package",
+                find.availability.selectedBinding?.operation ?? "no binding")
+        }
+
         print(failures == 0
             ? "\n  The browsing lane is loaded and offered."
             : "\n  \(failures) check(s) failed.")

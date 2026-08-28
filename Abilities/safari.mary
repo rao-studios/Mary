@@ -108,7 +108,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f0756c6608c018db330e8978365f445289386f38eab4f5fdf090c2e06541c93a"
+    "digest" : "d1082c8e1142d06f2a145da230ab7ee0546ee882f7ed484bc83cf21ccad89d9e"
   },
   "interactions" : [
 
@@ -283,6 +283,76 @@
         "summary" : "Step forward through this tab's history.",
         "timeoutSeconds" : 10,
         "title" : "Go Forward"
+      },
+      {
+        "adapterID" : "safari.managed-ui",
+        "inputs" : [
+          {
+            "kind" : "text",
+            "name" : "query",
+            "required" : true
+          }
+        ],
+        "operation" : "safari_find_in_page",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "open-find",
+            "key" : "f",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.25,
+            "id" : "settle-bar",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "id" : "type-query",
+            "kind" : "typeText",
+            "modifiers" : [
+
+            ],
+            "text" : {
+              "input" : "query"
+            }
+          },
+          {
+            "id" : "commit",
+            "key" : "return",
+            "kind" : "keyChord",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle-find",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "id" : "close-find",
+            "key" : "escape",
+            "kind" : "keyChord",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Find a word on the page and leave the find bar closed.",
+        "timeoutSeconds" : 15,
+        "title" : "Find On the Page"
       }
     ],
     "realizations" : [
@@ -306,6 +376,14 @@
         "operation" : "safari_forward",
         "preference" : 260,
         "skillID" : "browsing.navigate-forward",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "safari_find_in_page",
+        "preference" : 260,
+        "skillID" : "browsing.find-in-page",
         "targetClasses" : [
           "browser-page"
         ]

@@ -75,6 +75,32 @@ public struct PluginOperationInputSchema: Codable, Hashable, Sendable, Identifia
         defaultValue = try values.decodeIfPresent(String.self, forKey: .defaultValue)
         minimum = try values.decodeIfPresent(Double.self, forKey: .minimum)
         maximum = try values.decodeIfPresent(Double.self, forKey: .maximum)
-        enumValues = try values.decode([String].self, forKey: .enumValues)
+        // ⚠️ `decodeIfPresent`, and it was `decode` until the first package
+        // ever to declare an operation input tried to load. An input with no
+        // closed list of values is the ordinary case — a search query, a
+        // title — and its author writes no `enumValues` key, which is exactly
+        // what the memberwise initializer's own default says is fine. The
+        // decoder disagreed, and the failure it produced named no field:
+        // "The data couldn't be read because it is missing."
+        //
+        // It survived this long because nothing shipped had an operation
+        // input at all. Same shape as the `chords` map that encoded as a flat
+        // array: machinery that is correct in every direction nobody has
+        // travelled.
+        enumValues = try values.decodeIfPresent([String].self, forKey: .enumValues) ?? []
+    }
+
+    /// Hand-written so an absent list stays absent — the synthesized encoder
+    /// would write `"enumValues": []` into every input, and the package
+    /// digest is taken over these exact bytes.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(required, forKey: .required)
+        if let defaultValue { try container.encode(defaultValue, forKey: .defaultValue) }
+        if let minimum { try container.encode(minimum, forKey: .minimum) }
+        if let maximum { try container.encode(maximum, forKey: .maximum) }
+        if !enumValues.isEmpty { try container.encode(enumValues, forKey: .enumValues) }
     }
 }

@@ -135,6 +135,13 @@
             ],
             "kind" : "utteranceToken",
             "value" : "press"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "find"
           }
         ],
         "kind" : "any"
@@ -153,6 +160,7 @@
       "browsing.close-tab",
       "browsing.current-tab",
       "browsing.fill-in-page",
+      "browsing.find-in-page",
       "browsing.interact-with-page",
       "browsing.list-page-elements",
       "browsing.list-tabs",
@@ -193,25 +201,26 @@
         "click that link"
       ],
       "tokens" : [
+        "back",
+        "browse",
+        "browser",
+        "button",
+        "click",
+        "field",
+        "find",
+        "forward",
+        "link",
+        "page",
+        "press",
+        "refresh",
+        "reload",
+        "site",
         "tab",
         "tabs",
-        "page",
-        "browser",
-        "website",
-        "site",
-        "web",
+        "type",
         "url",
-        "link",
-        "browse",
-        "reload",
-        "refresh",
-        "back",
-        "forward",
-        "click",
-        "press",
-        "button",
-        "field",
-        "type"
+        "web",
+        "website"
       ]
     },
     "version" : "1.0.0"
@@ -290,6 +299,31 @@
       ],
       "summary" : "Put text into one field on the page.",
       "title" : "Fill a Field On the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.find",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own find shortcut and type into its find bar."
+        }
+      ],
+      "summary" : "Find a word on the page through the browser's own find command.",
+      "title" : "Find On the Page",
       "version" : "1.0.0"
     },
     {
@@ -582,13 +616,23 @@
       ],
       "targetClass" : "browser-page",
       "utterance" : "Fill in the form and submit it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.find-in-page",
+      "id" : "find-on-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Find the word comet on this page."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "e137f6d9afde5af85ea9472a3a59d5ce9ac14ae5391280b86cd19be77ee2dc43"
+    "digest" : "f1e8469221986cdab25bcae9604db20b20729d92e2aca874d31e3a98256e05b4"
   },
   "interactions" : [
 
@@ -1040,6 +1084,77 @@
       },
       "summary" : "Type text into one field on the page, replacing what is there.",
       "title" : "Type Into a Field On the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.find-in-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "find_in_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "The word or phrase to find on the page.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.find"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Find a word on the page the browser is showing, through the browser's own find.",
+      "title" : "Find On the Page",
       "usesStage" : true,
       "version" : "1.0.0"
     },

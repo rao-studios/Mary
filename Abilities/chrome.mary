@@ -109,7 +109,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "1bf5bfd21cd2428b10f40413951655a3422249c83140049429bd1b4108b497b8"
+    "digest" : "7318de01ded854137d5ae05fda3c961f08e512aac0e1fb56938a57d70a296aad"
   },
   "interactions" : [
 
@@ -287,6 +287,76 @@
         "summary" : "Step forward through this tab's history.",
         "timeoutSeconds" : 10,
         "title" : "Go Forward"
+      },
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+          {
+            "kind" : "text",
+            "name" : "query",
+            "required" : true
+          }
+        ],
+        "operation" : "chrome_find_in_page",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "open-find",
+            "key" : "f",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.25,
+            "id" : "settle-bar",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "id" : "type-query",
+            "kind" : "typeText",
+            "modifiers" : [
+
+            ],
+            "text" : {
+              "input" : "query"
+            }
+          },
+          {
+            "id" : "commit",
+            "key" : "return",
+            "kind" : "keyChord",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle-find",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          },
+          {
+            "id" : "close-find",
+            "key" : "escape",
+            "kind" : "keyChord",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Find a word on the page and leave the find bar closed.",
+        "timeoutSeconds" : 15,
+        "title" : "Find On the Page"
       }
     ],
     "realizations" : [
@@ -310,6 +380,14 @@
         "operation" : "chrome_forward",
         "preference" : 260,
         "skillID" : "browsing.navigate-forward",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "chrome_find_in_page",
+        "preference" : 260,
+        "skillID" : "browsing.find-in-page",
         "targetClasses" : [
           "browser-page"
         ]
