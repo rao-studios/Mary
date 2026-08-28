@@ -199,12 +199,19 @@ extension PluginValidator {
         // lives in files it edits over days is genuinely observed by the third
         // — refusing it eyes because it publishes no live text would deny a
         // workspace claim that is fully earned.
+        //
+        // A BROWSER SURFACE IS THE FOURTH, and it observes what the other
+        // three cannot: a set of pages, one of which is showing. A browser
+        // publishes no document and no transport, so under the first three
+        // rules it could see everything a person does all day and claim no
+        // eyes for any of it.
         if application.perception?.kind == .workspace,
-           plugin.proseSurface == nil, plugin.mediaSurface == nil, plugin.corpus == nil {
+           plugin.proseSurface == nil, plugin.mediaSurface == nil,
+           plugin.corpus == nil, plugin.browserSurface == nil {
             error(
                 "unsupported-workspace-perception",
                 "\(root).application.perception.kind",
-                "A workspace perception claim requires a proseSurface, a mediaSurface or a corpus: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
+                "A workspace perception claim requires a proseSurface, a mediaSurface, a corpus or a browserSurface: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
         }
 
         if plugin.adapters.isEmpty {
@@ -354,6 +361,9 @@ extension PluginValidator {
         }
         if let proseSurface = plugin.proseSurface {
             validateProseSurface(proseSurface, root: root, error: error)
+        }
+        if let browserSurface = plugin.browserSurface {
+            validateBrowserSurface(browserSurface, root: root, error: error)
         }
         if let corpus = plugin.corpus {
             validateCorpus(corpus, root: root, error: error)

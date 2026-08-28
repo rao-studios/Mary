@@ -100,6 +100,12 @@ extension MaryRuntime {
         // a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(
             mediaSurfaceRegistrations(from: load.snapshot))
+        // AND THE BROWSERS. The fourth surface, reconciled with the rest —
+        // and the one whose absence is most visible, because with no declared
+        // browser the place resolver knows of no browsers at all and every
+        // web page on screen is an unrecognized application.
+        BrowserSurfaceSupport.shared.reconcile(
+            browserSurfaceRegistrations(from: load.snapshot))
 
         // 4. THE BRAIN'S PROVIDERS.
         let deps = FocusResolutionContext(observers: observers)
@@ -194,6 +200,22 @@ extension MaryRuntime {
                   let surface = plugin.mediaSurface
             else { return nil }
             return MediaSurfaceRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: surface)
+        }
+    }
+
+    package static func browserSurfaceRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [BrowserSurfaceRegistration] {
+        snapshot.records.compactMap { record -> BrowserSurfaceRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let surface = plugin.browserSurface
+            else { return nil }
+            return BrowserSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,
