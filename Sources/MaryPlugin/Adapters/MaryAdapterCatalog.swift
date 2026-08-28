@@ -48,6 +48,12 @@ public enum MaryAdapterCatalog {
     public static func observers() -> [any MaryObserver] {
         AmbientSurfaceSupport.all + ApplicationsSupport.shared.all
             + CorpusObserverSupport.all
+            // THE OTHER HALF OF THE BROWSER CARVE-OUT. The tier-0 observer
+            // retracts the affordance slate for a browser and stands down;
+            // this one fills it from the PAGE. Two publishers, one scope,
+            // and they never overlap because the condition is the same
+            // `isBrowser` test read from opposite sides.
+            + BrowserSurfaceObserverSupport.all
     }
 
     /// The value-only adapter handshake for one runtime configuration.
