@@ -1,0 +1,672 @@
+{
+  "ability" : {
+    "aliases" : [
+      "code",
+      "coding",
+      "programming",
+      "development"
+    ],
+    "applications" : [
+
+    ],
+    "id" : "coding",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never type prose into a code surface; the writing Ability owns prose.",
+        "A build, run or test is the editor's own command, never a synthesized edit.",
+        "Never act on a project the user did not name or focus."
+      ],
+      "phases" : [
+        "resolve-workspace",
+        "revalidate-identity",
+        "invoke-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "workspace mismatch",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the editor accepted the command",
+        "the workspace that ran is the one named"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "intent",
+            "value" : "build"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "intent",
+            "value" : "run"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "workspaceFamily",
+            "value" : "coding"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 200
+    },
+    "skills" : [
+      "coding.build-project",
+      "coding.run-project",
+      "coding.save-all",
+      "coding.stop-execution",
+      "coding.test-project"
+    ],
+    "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands. An application joins this discipline by realizing one of these Skills — which is what gives its place the coding focus. READING AND EDITING CODE ARE NOT HERE, and their absence is deliberate: a Skill that returns a value needs a compiled provider, and Mary has no code-surface adapter yet (the prose-surface lane's analogue for code). Every Skill below is a chord the managed-UI engine can actually press.",
+    "tint" : "#B392F0",
+    "title" : "Coding",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "build it",
+        "build the project",
+        "run it",
+        "run the project",
+        "stop it",
+        "run the tests",
+        "save everything"
+      ],
+      "tokens" : [
+        "build",
+        "compile",
+        "run",
+        "tests",
+        "scheme",
+        "project"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "project.build",
+      "inputType" : "coding.project-identity",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Start a compile through the application's own build command.",
+      "title" : "Build Project",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "project.run",
+      "inputType" : "coding.project-identity",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Build and launch through the application's own run command.",
+      "title" : "Run Project",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "project.save-all",
+      "inputType" : "coding.project-identity",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Commit every modified file through the application's own save command.",
+      "title" : "Save Every File",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "project.stop",
+      "inputType" : "coding.project-identity",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Halt a running scheme through the application's own stop command.",
+      "title" : "Stop Execution",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "project.test",
+      "inputType" : "coding.project-identity",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Run the suite through the application's own test command.",
+      "title" : "Test Project",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.build-project",
+      "id" : "build-the-project",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Build my project."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.run-project",
+      "id" : "run-the-project",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Run it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.test-project",
+      "id" : "test-the-project",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Run the tests."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "8cbfba92cd35b45dda72161aa1663185c3b9a87488a44d180bbfddc126896e37"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "coding",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Build, run, test and save a project through the editor's own commands.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+    {
+      "freshnessSeconds" : 8,
+      "id" : "perception.code-workspace-focus",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "Observed active code workspace and application identity used for honest routing.",
+      "title" : "Code Workspace Focus",
+      "valueType" : "coding.workspace-focus",
+      "version" : "1.0.0"
+    }
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.build-project",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "build_project",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "project.build"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Compile the open project through the editor's own build command.",
+      "title" : "Build the Project",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.run-project",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "run_project",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "project.run"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Build and start the open project through the editor's own run command.",
+      "title" : "Run the Project",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.stop-execution",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "stop_execution",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "project.stop"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Halt whatever the editor is currently running.",
+      "title" : "Stop Execution",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.test-project",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "test_project",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "project.test"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 185
+      },
+      "summary" : "Run the project's test suite through the editor's own test command.",
+      "title" : "Test the Project",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.save-all",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "save_all",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "project.save-all"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Commit every modified file through the editor's own save command.",
+      "title" : "Save Every File",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.project-identity",
+      "shape" : "string",
+      "summary" : "Which project or workspace an action addresses.",
+      "title" : "Project Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.operation-result",
+      "shape" : "string",
+      "summary" : "What the editor reported back about the command.",
+      "title" : "Operation Result",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.workspace-focus",
+      "shape" : "string",
+      "summary" : "The observed focused code workspace.",
+      "title" : "Workspace Focus",
+      "version" : "1.0.0"
+    }
+  ]
+}

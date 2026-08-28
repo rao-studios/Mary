@@ -95,7 +95,19 @@ case "check":
     // VALIDATED AS A GRAPH, not one at a time. Packages reference each other
     // — a dependency, a supporting ability, a skill another package realizes
     // — and half the errors worth catching only exist between two of them.
-    let validation = PluginGraphValidator.validate(loaded)
+    //
+    // `AbilityPackageValidator.validateGraph` AND NOT `PluginGraphValidator`,
+    // which is what stood here and is only the second half of the job: it
+    // checks what packages say ABOUT EACH OTHER and never re-checks what each
+    // one says about itself. So a package could be individually malformed and
+    // this probe would print a tick. It did: `coding.mary` shipped a routing
+    // eligibility GROUP carrying a scalar `value`, which is refused by
+    // `AbilityPackageValidator.validate` — and the probe reported 5/5 valid
+    // while the test suite failed on it. `validateGraph` is a strict superset
+    // (it runs `validate` over every package, then the plugin graph), and it
+    // is what `AbilityLibrary` itself activates against. The gate an author
+    // reaches for must not be weaker than the one that loads the result.
+    let validation = AbilityPackageValidator.validateGraph(loaded)
     for package in loaded {
         let file = "\(package.package.id.rawValue).mary"
         do {
@@ -115,6 +127,13 @@ case "check":
                 }
                 if !issues.isEmpty { line += "  (\(issues.count) note(s))" }
                 print(line)
+                // AND SAY WHAT THEY ARE. Counting them was worse than
+                // silence: a package that reported "5 note(s)" and would not
+                // name one left the author to guess whether the validator had
+                // spotted something worth fixing or was clearing its throat.
+                for issue in issues.prefix(8) {
+                    print("      · \(issue.code) at \(issue.path): \(issue.message)")
+                }
             } else {
                 failures += 1
                 print("  ✗ \(file)")

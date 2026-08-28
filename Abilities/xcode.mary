@@ -1,0 +1,335 @@
+{
+  "ability" : {
+    "aliases" : [
+      "xcode",
+      "the ide"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.dt.Xcode"
+        ],
+        "id" : "xcode",
+        "title" : "Xcode"
+      }
+    ],
+    "id" : "xcode",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never type prose into a code surface.",
+        "Build, run and test are the editor's own commands, never synthesized edits.",
+        "A scheme is whatever the editor has selected; never change it to make a command succeed."
+      ],
+      "phases" : [
+        "resolve-workspace",
+        "revalidate-identity",
+        "invoke-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "workspace mismatch",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the editor accepted the command",
+        "the workspace that ran is the one in front"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "One macOS code editor, described rather than compiled in.",
+    "tint" : "#7EA6E0",
+    "title" : "Xcode",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in xcode",
+        "my project",
+        "the workspace"
+      ],
+      "tokens" : [
+        "xcode",
+        "project",
+        "workspace",
+        "scheme"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "coding"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "4dd893e0ea61cccbcf35552cf606243015aa5afd7e7bdbb0f1143a544dbf778e"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "xcode",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary one code editor: which application it is, and which of its own commands build, run, test and save. NO PROSE SURFACE, deliberately — a code editor is not a prose surface, and the selection policy already refuses to type prose into one.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "xcode.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Xcode Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "xcode",
+        "the ide"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.dt.Xcode"
+      ],
+      "bundleNames" : [
+        "Xcode.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "xcode",
+      "targetClasses" : [
+        "code-workspace",
+        "document-window"
+      ],
+      "title" : "Xcode"
+    },
+    "id" : "xcode",
+    "operations" : [
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_build_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "build",
+            "key" : "b",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-B while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Build the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_run_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "run",
+            "key" : "r",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-R while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Run the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_stop_execution",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "stop",
+            "key" : "period",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-Period while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Stop Execution"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_test_project",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "test",
+            "key" : "u",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-U while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Test the Project"
+      },
+      {
+        "adapterID" : "xcode.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "xcode_save_all",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "save-all",
+            "key" : "s",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command",
+              "option"
+            ]
+          }
+        ],
+        "summary" : "Press Command-Option-S while the editor owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Save Every File"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "xcode_build_project",
+        "preference" : 260,
+        "skillID" : "coding.build-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_run_project",
+        "preference" : 260,
+        "skillID" : "coding.run-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_stop_execution",
+        "preference" : 260,
+        "skillID" : "coding.stop-execution",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_test_project",
+        "preference" : 260,
+        "skillID" : "coding.test-project",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      },
+      {
+        "operation" : "xcode_save_all",
+        "preference" : 260,
+        "skillID" : "coding.save-all",
+        "targetClasses" : [
+          "code-workspace"
+        ]
+      }
+    ],
+    "title" : "Xcode",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}
