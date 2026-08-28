@@ -35,7 +35,12 @@ extension ConfigService {
     package struct Center: GraniteCenter {
         package init() {}
         package struct State: GraniteState {
-            package var llmEngine: LLMEngineChoice = .local
+            /// HOSTED BY DEFAULT, because that is what the build already
+            /// does: `seerEnabled` and `autoStartServers` both default true
+            /// and the turn loop takes the Seer path whenever the server
+            /// answers, so a fresh install that read "Local (on device)" was
+            /// describing a turn that had gone to Seer.
+            package var llmEngine: LLMEngineChoice = .hosted
             /// Whether sealed episodes reach disk. See `BehavioralStore`.
             package var behavioralRecording: Bool = true
             package var localModelID: String = MaryLocalEngine.defaultModelID
@@ -115,7 +120,7 @@ extension ConfigService {
             package init(from decoder: Decoder) throws {
                 self.init()
                 let c = try decoder.container(keyedBy: CodingKeys.self)
-                llmEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .llmEngine) ?? .local
+                llmEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .llmEngine) ?? .hosted
                 localModelID = try c.decodeIfPresent(String.self, forKey: .localModelID) ?? MaryLocalEngine.defaultModelID
 
                 sttBackend = try c.decodeIfPresent(STTBackend.self, forKey: .sttBackend) ?? .apple

@@ -268,14 +268,20 @@ struct HomeSessionView: View {
         let engine = config.state.llmEngine
         let warmingStatus: String
         switch engine {
+        // THE ON-DEVICE MODEL WARMS IN BOTH MODES, so both messages say so.
+        // Hosted moves the SPOKEN pass to the server; the acting pass and the
+        // unreachable-server fallback are still the local engine, and a
+        // "checking the Seer server…" that quietly downloaded 4 GB was a
+        // status line describing the smaller half of what was happening.
         case .local: warmingStatus = "warming the on-device model (first run downloads ~4 GB)…"
-        case .hosted: warmingStatus = "checking the Seer server…"
+        case .hosted: warmingStatus =
+            "checking the Seer server, warming the on-device model for acting (first run downloads ~4 GB)…"
         }
         setReadiness(warmingStatus, ready: false)
         if let error = await MaryRuntime.applyEngine(
             engine,
             localModelID: config.state.localModelID,
-            hostedModelID: ""
+            seerEnabled: config.state.seerEnabled
         ) {
             setReadiness(error, ready: false)
             return
@@ -356,7 +362,7 @@ struct HomeSessionView: View {
         await MaryRuntime.applyServers(config: config.state, nodeID: nodeID)
 
         guard config.state.seerEnabled else {
-            await MaryRuntime.connectSeerToBrain(enabled: false)
+            await MaryRuntime.connectSeerToBrain(chat: false, archiving: false)
             return
         }
 
@@ -379,10 +385,15 @@ struct HomeSessionView: View {
             seerPort: config.state.seerPort) {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
                 kind: .error("\(error) Chat continues without Seer.")))
-            await MaryRuntime.connectSeerToBrain(enabled: false)
+            await MaryRuntime.connectSeerToBrain(chat: false, archiving: false)
             return
         }
-        await MaryRuntime.connectSeerToBrain(enabled: true)
+        // ARCHIVING IS NOT THE BRAIN'S CHOICE. Sign-in succeeded, so Totem
+        // takes deposits either way; only the chat lane answers to the Brain
+        // card, so choosing "on device" keeps memory working.
+        await MaryRuntime.connectSeerToBrain(
+            chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
+            archiving: true)
         // Transport rides the signed-in session, so it applies last.
         await MaryRuntime.applySeerTransport(config.state.seerTransport)
     }

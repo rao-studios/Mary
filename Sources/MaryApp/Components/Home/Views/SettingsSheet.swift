@@ -154,9 +154,13 @@ struct SettingsSheet: View {
                     ChatService.SetReadiness.Meta(status: "switching engine…", ready: false)
                 )
                 let modelID = config.state.localModelID
+                // THE SERVER SIDE IS READ NOW, the choice is passed as chosen:
+                // the config update above has not landed yet, so reading
+                // `llmEngine` back inside the task would apply the OLD value.
+                let seerEnabled = config.state.seerEnabled
                 Task {
                     let error = await MaryRuntime.applyEngine(
-                        choice, localModelID: modelID, hostedModelID: "")
+                        choice, localModelID: modelID, seerEnabled: seerEnabled)
                     chat.center.setReadiness.send(
                         ChatService.SetReadiness.Meta(status: error, ready: error == nil)
                     )

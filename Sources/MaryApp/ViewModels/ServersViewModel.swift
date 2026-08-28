@@ -162,7 +162,11 @@ final class ServersViewModel: ObservableObject {
             self.isAuthenticated = await MaryRuntime.seerSession.isAuthenticated
             self.ownerID = await MaryRuntime.seerSession.userID
             if error == nil {
-                await MaryRuntime.connectSeerToBrain(enabled: true)
+                // The Brain card still decides where the words go; signing
+                // in only makes the server available to be chosen.
+                await MaryRuntime.connectSeerToBrain(
+                    chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
+                    archiving: true)
                 // Seer means Seer: a session that booted unauthenticated
                 // parked speech elsewhere — a successful sign-in is the
                 // moment the configured backend can finally hold.

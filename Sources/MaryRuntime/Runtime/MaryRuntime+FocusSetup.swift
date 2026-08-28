@@ -68,6 +68,18 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<Bool>(initialState: false)
     static let totemArchivingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
+    /// The Brain card's choice, as `applyEngine` last applied it.
+    ///
+    /// HERE FOR THE SAME REASON AS `projectRootsBox` above: the wiring
+    /// decisions that depend on it are made from places holding no config —
+    /// the sign-in view model most of all — and the service layer has no
+    /// config singleton to reach for. `applyEngine` is the only writer, and
+    /// it is also the only place the choice is ever acted on.
+    ///
+    /// `.hosted` initially, matching the config default: before the first
+    /// `applyEngine` the honest assumption is the one a fresh install makes.
+    static let engineChoiceBox =
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .hosted)
 
     /// Read-only snapshot for the debugger. Empty until the first
     /// `installBrainConfiguration`, which is honest: before that there is no

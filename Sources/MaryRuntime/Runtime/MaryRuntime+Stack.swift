@@ -152,30 +152,65 @@ extension MaryRuntime {
     /// thing anyone wants when memory starts answering for the live document.
     /// The brain re-checks readiness every turn, so a dead server degrades to
     /// engine-only turns without re-wiring.
-    package static func connectSeerToBrain(enabled: Bool) async {
-        await connectSeerVoice(enabled: enabled)
-        await connectTotemDepositor(enabled: enabled)
+    ///
+    /// TWO PARAMETERS AND NOT ONE, for the same reason the two functions are
+    /// separate: a caller that had to pass a single `enabled` could not say
+    /// "keep archiving, but this person wants their words to stay on the
+    /// device", which is exactly the combination the Brain card now offers.
+    package static func connectSeerToBrain(chat: Bool, archiving: Bool) async {
+        await connectSeerVoice(enabled: chat)
+        await connectTotemDepositor(enabled: archiving)
     }
 
-    /// Swap the brain's engine to match configuration and warm it.
-    /// Returns a user-facing error string on failure, nil on success.
+    /// WHETHER THE SEER CHAT LANE CARRIES TURNS — the one spelling of a
+    /// question four call sites ask.
+    ///
+    /// TWO CONDITIONS, AND THEY ARE DIFFERENT QUESTIONS. `seerEnabled` is
+    /// about the SERVER: is the local stack the user's to run, is Mary signed
+    /// in. The Brain card's choice is about WHERE THE WORDS GO, which is the
+    /// user's own question and the one the card's title asks out loud. Either
+    /// one off keeps the turn on the device.
+    ///
+    /// THE CHOICE COMES FROM `engineChoiceBox`, not from config, because the
+    /// callers that need this answer have no config in hand and because the
+    /// picker must act on the value the person just selected — the config
+    /// update it sends has not landed yet when the re-wire runs.
+    package static func seerCarriesTurns(seerEnabled: Bool) -> Bool {
+        seerCarriesTurns(
+            engine: engineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+    }
+
+    /// The rule itself, free of the box — so a test can state the truth table
+    /// without writing to a global that every other suite shares.
+    package static func seerCarriesTurns(
+        engine: LLMEngineChoice, seerEnabled: Bool
+    ) -> Bool {
+        engine == .hosted && seerEnabled
+    }
+
+    /// Apply the Brain card's choice: wire or unwire the Seer chat lane, then
+    /// warm the on-device engine. Returns user-facing error text, or nil.
+    ///
+    /// THE ENGINE IS ALWAYS THE LOCAL ONE, and that is not the bug it looks
+    /// like. Seer's chat has no tool support — verified, and the reason Lane B
+    /// stays on the device — so hosted mode moves the SPOKEN pass to the
+    /// server while the ACTING pass still runs here, and the local engine is
+    /// also what carries the whole turn when the server is unreachable. There
+    /// is no second engine type to construct.
+    ///
+    /// WHAT THE CHOICE ACTUALLY CHANGES IS THE WIRING, and until now it changed
+    /// nothing at all: both arms of a `switch` built the same engine, the Seer
+    /// lane was gated on `seerEnabled` alone, and so selecting "Local (on
+    /// device)" left every word going to the server anyway. The only
+    /// observable difference was a warming message. For a setting whose own
+    /// title is "where the words go", that was the wrong way round to be
+    /// broken.
     package static func applyEngine(
-        _ choice: LLMEngineChoice, localModelID: String, hostedModelID: String
+        _ choice: LLMEngineChoice, localModelID: String, seerEnabled: Bool
     ) async -> String? {
-        let engine: any InferenceEngine
-        switch choice {
-        case .local:
-            engine = MaryLocalEngine(modelID: localModelID)
-        case .hosted:
-            // THE HOSTED LANE IS SEER'S, and Seer's chat has no tool support
-            // — verified, and the reason Lane B stays local. Choosing hosted
-            // swaps the SPOKEN pass to the server; the acting pass still runs
-            // on the device, which is also why there is no second engine type
-            // to construct here.
-            engine = MaryLocalEngine(modelID: localModelID)
-            _ = hostedModelID
-        }
-        await brain.setEngine(engine)
+        engineChoiceBox.withLock { $0 = choice }
+        await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
+        await brain.setEngine(MaryLocalEngine(modelID: localModelID))
         do {
             try await brain.warmup()
             return nil

@@ -436,7 +436,11 @@ struct ServersSheet: View {
             get: { config.state.seerEnabled },
             set: { enabled in
                 config.center.update.send(ConfigService.Update.Meta(seerEnabled: enabled))
-                Task { await MaryRuntime.connectSeerToBrain(enabled: enabled) }
+                Task {
+                    await MaryRuntime.connectSeerToBrain(
+                        chat: MaryRuntime.seerCarriesTurns(seerEnabled: enabled),
+                        archiving: enabled)
+                }
             }
         )
     }

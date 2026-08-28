@@ -35,7 +35,13 @@ extension SettingsSheet {
                     TextField("MLX model id", text: localModelBinding)
                         .textFieldStyle(.roundedBorder)
                         .font(.maryMono(11))
-                    Text("Any mlx-community id works; applied on the next engine switch or relaunch.")
+                    // NARROWLY WHAT IS TRUE. A first draft of this line
+                    // promised "nothing reaches the Seer server", which this
+                    // switch does not deliver on its own: the voice backend
+                    // defaults to Seer and archiving keeps depositing. A
+                    // privacy sentence that is wrong about the two other
+                    // settings on the same screen is worse than none.
+                    Text("The turn is answered on this machine. Voice and memory keep their own settings — this one is the brain.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                 case .hosted:
