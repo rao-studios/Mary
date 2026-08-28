@@ -119,6 +119,22 @@ extension SettingsSheet {
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
 
+                // WHOSE GRANT IS THIS, ANYWAY. A development build launched
+                // from a terminal is that terminal's responsibility as far as
+                // TCC is concerned, so Accessibility reads granted, "Grant
+                // everything" skips it as already done, and Mary never
+                // appears in the Accessibility list. Every part of that is
+                // correct and the screen still looked broken, because it
+                // reported the permission without reporting who holds it.
+                if let holder = PermissionsCenter.accessibilityGrantHolder {
+                    HStack(alignment: .top, spacing: .layer2) {
+                        StatusDot(color: .maryGold)
+                        Text("Accessibility here is inherited from \(holder), not Mary's own — which is why she isn't in the Accessibility list and why granting again changes nothing. Run build/Mary.app (./scripts/make-app.sh) for Mary to hold it herself.")
+                            .font(.marySans(11))
+                            .foregroundStyle(Color.maryInk.opacity(0.7))
+                    }
+                }
+
                 ForEach(permissions) { item in
                     HStack(spacing: .layer3) {
                         StatusDot(color: dotColor(item.status))

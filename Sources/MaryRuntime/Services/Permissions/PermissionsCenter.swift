@@ -268,6 +268,34 @@ package enum PermissionsCenter {
             &address, typeWildCard, typeWildCard, true)
     }
 
+    /// WHETHER MARY IS RUNNING AS AN APPLICATION, or as a bare development
+    /// binary.
+    ///
+    /// THIS DECIDES WHO OWNS THE ACCESSIBILITY GRANT, which is the single
+    /// most confusing thing about the permissions screen. TCC attributes a
+    /// request to the RESPONSIBLE PROCESS: a binary launched from a terminal
+    /// is the terminal's responsibility, so `AXIsProcessTrusted()` answers
+    /// TRUE whenever that terminal has been granted — for a Mary that has
+    /// never been asked about and will never appear in the Accessibility
+    /// list under her own name.
+    ///
+    /// The symptom is exact and was reported as a bug: pressing "Grant
+    /// everything" changes nothing, because the accessibility rung is
+    /// already reading `.granted` and is skipped. Nothing is broken; the
+    /// grant simply belongs to somebody else, and the screen said "granted"
+    /// without saying to whom.
+    package static var runsAsApplication: Bool {
+        Bundle.main.bundleURL.pathExtension == "app"
+    }
+
+    /// The name macOS will have listed instead of Mary, when the grant was
+    /// inherited. Nil when Mary is a real application and owns her own.
+    package static var accessibilityGrantHolder: String? {
+        guard !runsAsApplication, AXIsProcessTrusted() else { return nil }
+        return ProcessInfo.processInfo.environment["TERM_PROGRAM"]
+            ?? "the process that launched Mary"
+    }
+
     /// One AX prompt per app run — repeated system dialogs would nag.
     nonisolated(unsafe) private static var accessibilityPromptFired = false
 
