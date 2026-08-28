@@ -212,14 +212,16 @@ public struct WindowManagementPlugin: MaryAdapter {
         .init(
             name: "app", type: "string",
             description: "Application name or bundle identifier; omit for the frontmost application.",
-            required: false)
+            required: false,
+            aliases: Self.applicationAliases)
     }
 
     private var windowParameter: ModelSkillSchema.Parameter {
         .init(
             name: "window", type: "string",
             description: "Stable id from list_app_windows, or one unambiguous exact window title.",
-            required: true)
+            required: true,
+            aliases: Self.windowAliases)
     }
 
     /// The same reference, optional. "Make it full screen" names no window,
@@ -229,6 +231,27 @@ public struct WindowManagementPlugin: MaryAdapter {
         .init(
             name: "window", type: "string",
             description: "Stable id or exact title; omit for the window in front.",
-            required: false)
+            required: false,
+            aliases: Self.windowAliases)
     }
+
+    /// WHAT A MODEL CALLS A WINDOW WHEN IT DOES NOT SAY "WINDOW".
+    ///
+    /// `title` is the live one: asked to raise "Untitled 47", the model sent
+    /// `{"app":"TextEdit","title":"Untitled 47"}` — the natural word for the
+    /// only thing that distinguishes one untitled document from another. The
+    /// rest are the same substitution in the other directions this Skill's own
+    /// description invites ("exact window title", "document").
+    ///
+    /// Shared by both spellings of the parameter so the required and optional
+    /// forms can never drift apart on what they will accept.
+    private static let windowAliases = [
+        "title", "window_title", "windowtitle", "window_name", "name", "document",
+    ]
+
+    /// The same, for the application half — the two spellings AppKit itself
+    /// uses either side of `NSRunningApplication`.
+    private static let applicationAliases = [
+        "application", "app_name", "application_name", "bundle_id", "bundle_identifier",
+    ]
 }

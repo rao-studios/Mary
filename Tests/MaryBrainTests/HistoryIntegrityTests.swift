@@ -131,7 +131,7 @@ import Testing
             return dispatched
         }
 
-        func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+        func dispatch(name: String, argumentsJSON: String, runID: String? = nil) async -> SkillOutcome {
             lock.lock(); dispatched.append(name); lock.unlock()
             if delayNanoseconds > 0 {
                 try? await Task.sleep(nanoseconds: delayNanoseconds)

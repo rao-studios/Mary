@@ -67,10 +67,31 @@ struct ConversationPageView: View {
     @ViewBuilder
     private func utteranceRow(_ utterance: Utterance, depth: Int) -> some View {
         if streamVM.streamingUtteranceId == utterance.id, streamVM.phase != .idle {
-            StreamingUtteranceView(
-                text: streamVM.streamedText,
-                isThinking: streamVM.phase == .thinking
-            )
+            // THE CHIPS RIDE ALONG WITH THE STREAM.
+            //
+            // This branch used to replace the whole row, so the badge row did
+            // not exist until the turn went idle — the chips appeared only
+            // once everything they described was already over, and the one
+            // window where "still running" is worth knowing was the one window
+            // with nothing on screen to say it. The receipts are already on
+            // the utterance while the turn runs (`TranscriptOps` writes the
+            // `.unsettled` row at announcement), so this costs no new state.
+            //
+            // Not tappable here on purpose: the inspector is a sheet, and
+            // opening one over a reply still being written puts a modal in
+            // front of the thing the person is reading.
+            VStack(alignment: .leading, spacing: .layer3) {
+                StreamingUtteranceView(
+                    text: streamVM.streamedText,
+                    isThinking: streamVM.phase == .thinking
+                )
+                if !utterance.abilityBadges.isEmpty {
+                    AbilityBadgeRow(
+                        badges: utterance.abilityBadges,
+                        actions: utterance.actions,
+                        realmLensEntry: utterance.turnID.flatMap { realmLens.entries[$0] })
+                }
+            }
         } else {
             UtteranceView(
                 utterance: utterance,

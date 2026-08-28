@@ -74,9 +74,13 @@ extension ChatService {
                 /// by construction.
                 case exchangeSuperseded(userTurnID: UUID)
                 /// Proactive channel: a routine began / ended (settled AND
-                /// cancelled both end) — chip count + origin bookkeeping.
-                case routineStarted(originTurnID: UUID)
-                case routineEnded(originTurnID: UUID)
+                /// cancelled both end) — running rows + origin bookkeeping.
+                ///
+                /// The routine's own id and label ride along so the status bar
+                /// can name the work and offer to stop it; the origin alone
+                /// could do neither (several routines can share one origin).
+                case routineStarted(routineID: UUID, label: String, originTurnID: UUID)
+                case routineEnded(routineID: UUID, originTurnID: UUID)
                 /// A detached routine's progress chip, anchored to its
                 /// ORIGINATING turn — never the positionally-last bubble.
                 case proactiveAbilityBadge(reference: AbilitySkillReference, turnID: UUID)

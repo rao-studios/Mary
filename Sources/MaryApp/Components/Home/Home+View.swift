@@ -452,7 +452,7 @@ private struct VoiceBar: View {
             partialTranscript: voice.state.lastPartial,
             isMicEnabled: chat.state.isReady,
             isSendEnabled: chat.state.isReady && !isBusy && !voice.state.isSessionActive,
-            runningRoutines: chat.state.runningRoutines,
+            runningRoutines: chat.state.runningRoutineRows,
             isStandingBy: config.state.wakeWordEnabled
                 && chat.state.isReady
                 && !voice.state.isSessionActive,

@@ -179,7 +179,7 @@ import Testing
         func awaitDispatchEntered(_ count: Int) async { await entered.wait(until: count) }
         func releaseDispatch() { released.advance() }
 
-        func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+        func dispatch(name: String, argumentsJSON: String, runID: String? = nil) async -> SkillOutcome {
             lock.lock()
             dispatched.append(name)
             let hold = holdsDispatch

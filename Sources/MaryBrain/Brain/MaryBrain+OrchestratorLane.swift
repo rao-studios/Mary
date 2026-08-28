@@ -50,7 +50,10 @@ extension MaryBrain {
         /// The pre-lane look already ANSWERED this turn (its description rode
         /// `readPassages` into the voice). The lane is a backstop for
         /// ACTIONS only; the look-first nudge must not fire.
-        servedByPreLook: Bool = false
+        servedByPreLook: Bool = false,
+        /// Whether the turn is still waiting on this lane. Nil for callers
+        /// with no turn to detach from (probes, the legacy path).
+        attachment: LaneAttachment? = nil
     ) async -> OrchestratorLaneResult {
         var result = OrchestratorLaneResult()
         guard let dispatcher else { return result }
@@ -115,10 +118,29 @@ extension MaryBrain {
                 // 250ms join grace and detached, so every fast action became
                 // a routine. The gate covers ONLY the stream consumption
                 // (throw-safe defer); a cancelled waiter acquires nothing.
+                // THREE NUMBERS, MEASURED SEPARATELY: how long this round
+                // QUEUED, how long it GENERATED, and how long its calls RAN.
+                //
+                // Nothing measured them before, and the split is the whole
+                // diagnosis. With the local MLX engine every generation round
+                // in the process serializes on `engineGate`, so five detached
+                // routines are a queue up to fifty rounds deep — and a turn
+                // that waits behind them misses its 250 ms join grace and
+                // detaches, which adds a sixth. In the log that feedback loop
+                // and a genuinely slow model look identical until the queue
+                // time is split out.
+                let roundStart = DispatchTime.now()
+                var gateWaitMs: UInt64 = 0
+                let queueDepth = engineGate.waiterCount
                 do {
                     var holdsGate = false
                     if engine.requiresExclusiveGeneration {
-                        holdsGate = await engineGate.acquire()
+                        // A live turn goes ahead of background rounds; once
+                        // this lane detaches it takes its place among them.
+                        holdsGate = await engineGate.acquire(
+                            priority: (attachment?.isAttached ?? true)
+                                ? .attached : .detached)
+                        gateWaitMs = Self.elapsedMs(since: roundStart)
                     }
                     defer { if holdsGate { engineGate.release() } }
                     let events = engine.stream(
@@ -167,6 +189,22 @@ extension MaryBrain {
                             break
                         }
                     }
+                }
+
+                let generateMs = Self.elapsedMs(since: roundStart) - gateWaitMs
+                let dispatchStart = DispatchTime.now()
+                let callCount = skillInvocations.count
+                // `defer` rather than a line after the dispatch loop: this
+                // round has several `continue`s and two `return`s, and a round
+                // that leaves early is exactly the one worth seeing.
+                defer {
+                    let line = "round \(round) — queued \(gateWaitMs)ms"
+                        + " (depth \(queueDepth)), generated \(generateMs)ms,"
+                        + " dispatched \(Self.elapsedMs(since: dispatchStart))ms,"
+                        + " calls=\(callCount),"
+                        + " attached=\(attachment?.isAttached ?? true),"
+                        + " trace=\(traceID?.uuidString.prefix(8) ?? "-")"
+                    Self.laneLog.info("\(line, privacy: .public)")
                 }
 
                 if Task.isCancelled { return result }
@@ -404,7 +442,8 @@ extension MaryBrain {
                     }
                     let startedAt = Date()
                     let outcome = await dispatcher.dispatch(
-                        name: call.name, argumentsJSON: call.argumentsJSON)
+                        name: call.name, argumentsJSON: call.argumentsJSON,
+                        runID: call.id)
                     let reference = outcome.skillReference
                         ?? dispatcher.skillReference(for: call.name)
                     emitter.emitSkillResult(BehavioralActionRecord(

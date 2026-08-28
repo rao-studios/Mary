@@ -11,11 +11,18 @@ extension ChatService {
             /// Transient boot status line ("warming Mistral…", nil when ready).
             package var bootStatus: String? = nil
             package var isReady: Bool = false
-            /// How many detached routines (Skill work that outlived its turn)
-            /// are still executing — transient, drives the "still working"
-            /// chip. A count, because several can run at once and one
-            /// finishing must not douse the chip for the rest.
-            package var runningRoutines: Int = 0
+            /// The detached routines (Skill work that outlived its turn)
+            /// still executing — transient, drives the "still working" chip
+            /// and the popover behind it.
+            ///
+            /// A LIST WHERE A COUNT USED TO STAND. `5 running` was true and
+            /// useless: no way to see which five, and no way to stop one of
+            /// them without saying "stop" and losing all five. The brain has
+            /// carried a spoken `label` per routine since routines existed;
+            /// this is what finally shows it.
+            package var runningRoutineRows: [RunningRoutineRow] = []
+            /// Kept as the count the status chip already binds to.
+            package var runningRoutines: Int { runningRoutineRows.count }
             /// The in-flight turn's identity (BrainTurn.id of its user turn)
             /// — stamped by .turnBegan, cleared at turn end. Transient: every
             /// in-turn transcript write resolves against it, never position.

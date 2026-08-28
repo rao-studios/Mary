@@ -73,7 +73,8 @@ extension MaryBrain {
                     Self.couldNotActLine(label: Self.routineLabel(from: routine.userText)),
                     originUserTurnID: routine.originUserTurnID)
             }
-            proactive.yield(.routineSettled(originUserTurnID: routine.originUserTurnID))
+            proactive.yield(.routineSettled(
+                routineID: routine.id, originUserTurnID: routine.originUserTurnID))
             return
         }
 
@@ -120,7 +121,7 @@ extension MaryBrain {
                 self?.proactiveYield(.followUpToken(line, originUserTurnID: origin))
                 self?.proactiveYield(.followUpCompleted(fullText: line, originUserTurnID: origin))
             }
-            proactive.yield(.routineSettled(originUserTurnID: origin))
+            proactive.yield(.routineSettled(routineID: routine.id, originUserTurnID: origin))
             return
         }
 
@@ -253,7 +254,8 @@ extension MaryBrain {
             mergeFollowUpIntoHistory(
                 "(blocked: \(Self.spokenBrief(concrete[0].summary)))",
                 originUserTurnID: routine.originUserTurnID)
-            proactive.yield(.routineSettled(originUserTurnID: routine.originUserTurnID))
+            proactive.yield(.routineSettled(
+                routineID: routine.id, originUserTurnID: routine.originUserTurnID))
             return
         }
         if result.confirmQuestion == nil, !late,
@@ -266,7 +268,8 @@ extension MaryBrain {
             mergeFollowUpIntoHistory(
                 Self.doneMarker(outcomes: result.outcomes),
                 originUserTurnID: routine.originUserTurnID)
-            proactive.yield(.routineSettled(originUserTurnID: routine.originUserTurnID))
+            proactive.yield(.routineSettled(
+                routineID: routine.id, originUserTurnID: routine.originUserTurnID))
             return
         }
 
@@ -330,6 +333,7 @@ extension MaryBrain {
                 originFocus: originFocus,
                 servedByPreRead: servedByPreRead, gate: gate)
         }
-        proactive.yield(.routineSettled(originUserTurnID: routine.originUserTurnID))
+        proactive.yield(.routineSettled(
+                routineID: routine.id, originUserTurnID: routine.originUserTurnID))
     }
 }

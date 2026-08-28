@@ -156,7 +156,7 @@ enum ProbeSeer {
                             case .followUpCompleted(let fullText, _):
                                 print("[follow-up] \(fullText)")
                                 return true
-                            case .routineCancelled(let acknowledgement, _):
+                            case .routineCancelled(_, let acknowledgement, _):
                                 print("[routine] cancelled — \(acknowledgement)")
                                 return true
                             case .routineSettled:

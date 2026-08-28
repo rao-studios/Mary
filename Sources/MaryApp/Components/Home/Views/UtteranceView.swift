@@ -182,157 +182,20 @@ struct UtteranceView: View {
 
     // MARK: - Ability | Skill badges
 
+    /// The row itself lives in `AbilityBadgeRow` so the streaming reply can
+    /// render it too — see that file's header.
     private var abilityBadges: some View {
-        FlowLayout(spacing: .layer2) {
-            if let place = realmLensEntry?.leadPlace {
-                realmCapsule(place)
-            }
-            // THE MERGED-WORLDS CHIP: the places co-active beside the lead at
-            // exchange time — "with: Sketch, Safari (glanced)". At most two,
-            // matching the compact section's own restraint.
-            if let entry = realmLensEntry, !entry.coActivePlaces.isEmpty {
-                coActiveCapsule(entry)
-            }
-            ForEach(Array(utterance.abilityBadges.enumerated()), id: \.offset) { _, reference in
-                let presentation = AbilityBadgePresentation(reference: reference)
-                Button {
-                    inspectedRuns = InspectedAbilityRuns(
-                        reference: reference,
-                        runs: utterance.actions.filter { $0.action.skill == reference })
-                } label: {
-                    badgeLabel(reference: reference, presentation: presentation)
-                }
-                .buttonStyle(.plain)
-                .help("Show this Skill's calls — arguments, receipts, status")
-            }
-        }
-    }
-
-    /// The Ability | Skill badge's own label — split out from `abilityBadges`
-    /// so the type checker isn't asked to solve one Button+HStack expression
-    /// per ForEach iteration in a single pass (SE cannot resolve that in
-    /// reasonable time once enough sibling overloads are in scope).
-    @ViewBuilder
-    private func badgeLabel(
-        reference: AbilitySkillReference,
-        presentation: AbilityBadgePresentation
-    ) -> some View {
-        HStack(spacing: 5) {
-            Text(presentation.abilityTitle)
-                .foregroundStyle(Color.maryAbilityTint(reference.abilityTint))
-            if let providerTitle = presentation.providerTitle {
-                Text("·")
-                    .foregroundStyle(Color.primary.opacity(0.32))
-                Text(providerTitle)
-                    .foregroundStyle(Color.primary.opacity(0.7))
-            }
-            if let realization = presentation.realization {
-                HStack(spacing: 2) {
-                    Image(systemName: realization.symbol)
-                    Text(realization.badgeWord)
-                }
-                .font(.system(size: 7, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.maryAbilityTint(reference.abilityTint))
-                .padding(.horizontal, 3)
-                .padding(.vertical, 1)
-                .background(
-                    Capsule().fill(
-                        Color.maryAbilityTint(reference.abilityTint).opacity(0.12))
-                )
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(realization.label)
-                .help(realization.help)
-            }
-            Text("|")
-                .foregroundStyle(Color.primary.opacity(0.32))
-            Text(presentation.invocationName)
-                .foregroundStyle(Color.primary.opacity(0.7))
-        }
-        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-        .padding(.horizontal, .layer2)
-        .padding(.vertical, 4)
-        .background(
-            Capsule().fill(
-                Color.maryAbilityTint(reference.abilityTint).opacity(0.07))
-        )
-        .overlay(
-            Capsule().strokeBorder(
-                Color.maryAbilityTint(reference.abilityTint).opacity(0.34),
-                lineWidth: 1)
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(presentation.accessibilityLabel)
-    }
-
-    // MARK: - Place capsule (the lens)
-
-    /// `with: Sketch, Safari (glanced)` — the responder-layer signal beside
-    /// the lead chip. Capped at two names; a longer tail says how many more.
-    @ViewBuilder
-    private func coActiveCapsule(_ entry: RealmLensEntry) -> some View {
-        let names = entry.coActivePlaces.prefix(2).map { place -> String in
-            entry.glancedPlaces.contains(place)
-                ? "\(place.displayName) (glanced)"
-                : place.displayName
-        }
-        let overflow = entry.coActivePlaces.count - names.count
-        let label = names.joined(separator: ", ")
-            + (overflow > 0 ? " +\(overflow)" : "")
-        HStack(spacing: 5) {
-            Text("with:")
-                .foregroundStyle(Color.primary.opacity(0.45))
-            Text(label)
-                .foregroundStyle(Color.primary.opacity(0.7))
-        }
-        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-        .padding(.horizontal, .layer2)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(Color.primary.opacity(0.05)))
-        .overlay(
-            Capsule().strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Also in play: \(label)")
-        .help("Places with fresh evidence beside the lead when this turn ran")
-    }
-
-    /// `led: Sketch · dynamic` / `led: Pages · workspace` — which place led
-    /// the turn these chips ran under. Same capsule family as the badges
-    /// beside it; a subtle green tint marks a Dynamic application, the
-    /// warm gold stays for native worlds.
-    @ViewBuilder
-    private func realmCapsule(_ place: AmbientPlace) -> some View {
-        let accent: Color = place.isApplication ? .maryGreen : .maryGold
-        let classWord = place.isApplication ? "dynamic" : place.worldClass.rawValue
-        let capsule = HStack(spacing: 5) {
-            Text("led:")
-                .foregroundStyle(Color.primary.opacity(0.45))
-            Text(place.displayName)
-                .foregroundStyle(accent)
-            Text("·")
-                .foregroundStyle(Color.primary.opacity(0.32))
-            Text(classWord)
-                .foregroundStyle(Color.primary.opacity(0.7))
-        }
-        .font(.system(size: 10, weight: .semibold, design: .monospaced))
-        .padding(.horizontal, .layer2)
-        .padding(.vertical, 4)
-        .background(
-            Capsule().fill(accent.opacity(place.isApplication ? 0.1 : 0.07))
-        )
-        .overlay(
-            Capsule().strokeBorder(accent.opacity(0.34), lineWidth: 1)
-        )
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Led by \(place.displayName), \(classWord) place")
-        if let onOpenRoutes {
-            Button(action: onOpenRoutes) { capsule }
-                .buttonStyle(.plain)
-                .help("Which place led this turn — open the Routes pane")
-        } else {
-            capsule
-                .help("Which place led this turn")
-        }
+        AbilityBadgeRow(
+            badges: utterance.abilityBadges,
+            actions: utterance.actions,
+            realmLensEntry: realmLensEntry,
+            onOpenRoutes: onOpenRoutes,
+            onInspect: { reference, runs in
+                inspectedRuns = InspectedAbilityRuns(
+                    reference: reference,
+                    runs: runs,
+                    turnID: utterance.turnID)
+            })
     }
 
 }

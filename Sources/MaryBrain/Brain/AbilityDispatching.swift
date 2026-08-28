@@ -41,7 +41,22 @@ public protocol AbilityDispatching: Sendable {
     var schemaCount: Int { get }
     /// Privacy-safe conflict/fallback decisions for the frozen turn roster.
     var abilityRosterTrace: AbilityRosterTrace { get }
-    func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome
+    /// ONE ACT, ONE IDENTITY. `runID` is the model's own invocation id — the
+    /// string the chip, the session ledger and the sealed episode all key on.
+    ///
+    /// THE FAILURE THIS FIXES: `dispatch` used to mint a fresh UUID for the
+    /// record it filed, while the caller filed a SECOND record for the same
+    /// act under the wire id. So the chip a person taps and the episode row
+    /// describing that same call carried different identities — nothing could
+    /// join them, and nothing could address one running call to stop it.
+    /// Callers with no wire id (deterministic presses, probes) omit it and get
+    /// a minted one, exactly as before.
+    func dispatch(name: String, argumentsJSON: String, runID: String?) async -> SkillOutcome
+
+    /// Ask one running call to stop, by the id its chip shows. A dispatcher
+    /// with nothing in flight — every test fake — does nothing, which is the
+    /// honest answer rather than a fatal.
+    func cancelRun(id: String)
 
     /// RUN A SEQUENCE OF ACTIONS — the door a future model's emitted plan
     /// walks through.
@@ -170,20 +185,27 @@ public protocol AbilityDispatching: Sendable {
 public extension AbilityDispatching {
     /// The loop, defaulted, so every conformer — the real runtime and every
     /// fake — gets identical sequence semantics for free.
+    func cancelRun(id: String) {}
+
     func perform(
         sequence: [BehavioralAction], episodeID: UUID? = nil
     ) async -> [BehavioralActionRecord] {
         var records: [BehavioralActionRecord] = []
         for action in sequence {
             let startedAt = Date()
+            // Minted once and used for BOTH the dispatch and the record, so a
+            // replayed step is one identity end to end — the same rule the
+            // model-driven path now follows with the wire id.
+            let runID = UUID().uuidString
             let outcome = await dispatch(
-                name: action.intention, argumentsJSON: action.argumentsJSON)
+                name: action.intention, argumentsJSON: action.argumentsJSON,
+                runID: runID)
             let record = BehavioralActionRecord(
                 outcome: outcome,
                 intention: action.intention,
                 argumentsJSON: action.argumentsJSON,
                 reference: action.skill,
-                runID: UUID().uuidString,
+                runID: runID,
                 startedAt: startedAt)
             records.append(record)
             guard record.disposition == .succeeded else { break }

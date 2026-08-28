@@ -326,6 +326,9 @@ extension MaryBrain {
         // cancellation-responsive); a finished AsyncStream is.
         let laneSignal: AsyncStream<Void>?
         let laneSpawn = DispatchTime.now()
+        // ATTACHED UNTIL THE GRACE RACE SAYS OTHERWISE. Flipped exactly once,
+        // at the detach below; the lane reads it every round.
+        let laneAttachment = LaneAttachment()
         do {
             let seed = laneSeed
             let prompt = systemPrompt
@@ -342,7 +345,8 @@ extension MaryBrain {
                     routeIntent: routeIntent,
                     writingTarget: writingTarget,
                     lookUnderway: lookUnderway,
-                    servedByPreLook: lookServed) ?? OrchestratorLaneResult()
+                    servedByPreLook: lookServed,
+                    attachment: laneAttachment) ?? OrchestratorLaneResult()
                 signalContinuation.finish()
                 return result
             }
@@ -460,6 +464,11 @@ extension MaryBrain {
             // routine would have given it and was cancelled, so registering it
             // as a routine would only buy it a second seven minutes to fail in.
             Self.laneLog.info("lane detached after grace (\(laneElapsedMs)ms since spawn; exclusiveEngine=\(self.engine.requiresExclusiveGeneration))")
+            // NOBODY IS WAITING ON IT FROM HERE. Flipped before the routine
+            // is registered, so the lane's very next round already knows it
+            // is background work — both for the log and for its place in the
+            // engine gate's queue.
+            laneAttachment.detach()
             // DETACH: the turn completes now; the lane becomes a routine and
             // reports through the proactive channel when it finishes. Its
             // Skill turns never enter shared history — results reach context
@@ -549,7 +558,10 @@ extension MaryBrain {
             // before the turn finalizes — the empty-bubble-drop race closes.
             continuation.yield(.routineDetached(originUserTurnID: originUserTurnID))
             emitter.flipToDetached(proactive, originUserTurnID: originUserTurnID)
-            proactive.yield(.routineStarted(originUserTurnID: originUserTurnID))
+            proactive.yield(.routineStarted(
+                routineID: routineID,
+                label: routine.label,
+                originUserTurnID: originUserTurnID))
             // Registered in `settleTasks` (self-removing) so quiescence can
             // enumerate the settle hop — the one piece of routine work that
             // used to be untracked.

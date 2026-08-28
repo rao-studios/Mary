@@ -214,18 +214,31 @@ package enum TranscriptOps {
                 state.activeRoutineOrigins.append(origin)
             }
 
-        case .routineStarted(let origin):
-            // A COUNT, not a Bool: several routines can run at once, and one
-            // finishing must not douse the chip while another still works.
-            state.runningRoutines += 1
+        case .routineStarted(let routineID, let label, let origin):
+            // A LIST, not a Bool and no longer a bare count: several routines
+            // can run at once, one finishing must not douse the chip while
+            // another still works, and a person looking at the chip should be
+            // able to see which is which.
+            //
+            // Keyed by id, so a duplicate start is a no-op rather than an
+            // inflated count.
+            if !state.runningRoutineRows.contains(where: { $0.id == routineID }) {
+                state.runningRoutineRows.append(RunningRoutineRow(
+                    id: routineID, label: label, originTurnID: origin))
+            }
             // Idempotent with .routineDetached — whichever channel lands
             // first registers the origin.
             if !state.activeRoutineOrigins.contains(origin) {
                 state.activeRoutineOrigins.append(origin)
             }
 
-        case .routineEnded(let origin):
-            state.runningRoutines = max(0, state.runningRoutines - 1)
+        case .routineEnded(let routineID, let origin):
+            // REMOVAL BY ID IS IDEMPOTENT, and that is an improvement rather
+            // than housekeeping: a cancelled routine can yield both
+            // `.routineCancelled` and, moments later, `.routineSettled`. The
+            // old counter clamped that double-decrement at zero and quietly
+            // lost a still-running sibling's place in the count.
+            state.runningRoutineRows.removeAll { $0.id == routineID }
             // Remove ONE occurrence — never the bubble itself.
             if let idx = state.activeRoutineOrigins.firstIndex(of: origin) {
                 state.activeRoutineOrigins.remove(at: idx)

@@ -43,7 +43,7 @@ import MaryFoundation
         func beginTurn() {}
         func skillReference(for name: String) -> AbilitySkillReference? { nil }
 
-        func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+        func dispatch(name: String, argumentsJSON: String, runID: String? = nil) async -> SkillOutcome {
             // The lock is taken in a SYNCHRONOUS helper: NSLock is unavailable
             // from an async context because a suspension while holding it
             // deadlocks, and nothing here needs to suspend under it.

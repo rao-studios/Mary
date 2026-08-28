@@ -19,8 +19,9 @@ struct VoiceStatusBar: View {
     let partialTranscript: String
     let isMicEnabled: Bool
     let isSendEnabled: Bool
-    /// How many detached routines are still executing in the background.
-    var runningRoutines: Int = 0
+    /// The detached routines still executing in the background — one row
+    /// each, so the pill can name them and offer to stop one.
+    var runningRoutines: [RunningRoutineRow] = []
     /// Unprompted speech. Lives HERE rather than in the header trio, because
     /// those three mean "this pane is open" and wearing their tint for "this
     /// capability is armed" would make the header say two kinds of thing in
@@ -38,6 +39,7 @@ struct VoiceStatusBar: View {
     let onSend: (String) -> Void
 
     @State private var draft: String = ""
+    @State private var showingRunning = false
     @FocusState private var composerFocused: Bool
 
     var body: some View {
@@ -48,14 +50,9 @@ struct VoiceStatusBar: View {
                     HStack(spacing: .layer2) {
                     }
                     stateChip
-                    if runningRoutines > 0 {
-                        HStack(spacing: .layer2) {
-                            StatusDot(color: .maryGold)
-                            SectionLabel(runningRoutines == 1
-                                ? "still working"
-                                : "\(runningRoutines) running")
-                        }
-                        .transition(.opacity)
+                    if !runningRoutines.isEmpty {
+                        runningPill
+                            .transition(.opacity)
                     }
                     Spacer()
                     LevelMeter(level: audioLevel)
@@ -88,6 +85,73 @@ struct VoiceStatusBar: View {
             }
             .ignoresSafeArea()
         }
+    }
+
+    // MARK: - Running work
+
+    /// "5 running", and now something happens when you press it.
+    ///
+    /// THE FAILURE THIS FIXES: the count was the ONLY report the app made
+    /// about background work, and it answered none of the three questions a
+    /// person actually has — what are they, how long has that one been going,
+    /// and how do I stop the one that has clearly wedged. The only stop was
+    /// saying "stop", which halts all of them; there was no way to keep four
+    /// and drop the fifth.
+    private var runningPill: some View {
+        Button {
+            showingRunning.toggle()
+        } label: {
+            HStack(spacing: .layer2) {
+                StatusDot(color: .maryGold)
+                SectionLabel(runningRoutines.count == 1
+                    ? "still working"
+                    : "\(runningRoutines.count) running")
+            }
+        }
+        .buttonStyle(.plain)
+        .help("What Mary is still working on — and how to stop it")
+        .popover(isPresented: $showingRunning, arrowEdge: .top) {
+            runningList
+        }
+    }
+
+    private var runningList: some View {
+        VStack(alignment: .leading, spacing: .layer3) {
+            HStack {
+                SectionLabel("still working")
+                Spacer()
+                if runningRoutines.count > 1 {
+                    Button("Stop all") {
+                        RunControl.stopAll()
+                        showingRunning = false
+                    }
+                    .buttonStyle(.maryQuiet)
+                }
+            }
+            ForEach(runningRoutines) { row in
+                HStack(spacing: .layer3) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(row.label.isEmpty ? "background work" : row.label)
+                            .font(.marySans(12))
+                            .foregroundStyle(Color.primary.opacity(0.8))
+                            .lineLimit(2)
+                        Text(row.elapsed)
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(Color.primary.opacity(0.45))
+                    }
+                    Spacer(minLength: .layer3)
+                    // NOT DESTRUCTIVE-STYLED, and not behind a confirmation.
+                    // Stopping work Mary started on your behalf is an ordinary
+                    // correction, and a confirmation sheet over a two-word
+                    // decision is how a person ends up letting the wedged one
+                    // run because dismissing the dialog was easier.
+                    Button("Stop") { RunControl.stopRoutine(id: row.id) }
+                        .buttonStyle(.maryQuiet)
+                }
+            }
+        }
+        .padding(.layer4)
+        .frame(minWidth: 260, maxWidth: 340)
     }
 
     // MARK: - Mic

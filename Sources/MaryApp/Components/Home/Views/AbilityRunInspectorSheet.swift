@@ -19,6 +19,10 @@ import MaryRuntime
 struct InspectedAbilityRuns: Identifiable {
     let reference: AbilitySkillReference
     let runs: [BehavioralActionRecord]
+    /// The turn this reply belongs to — the id a sealed `BehavioralEpisode`
+    /// is filed under, so the sheet can show the whole turn beside this one
+    /// Skill's calls. Nil on restored rows written before turns were stamped.
+    var turnID: UUID? = nil
     var id: String { reference.id }
 }
 
@@ -26,28 +30,165 @@ struct AbilityRunInspectorSheet: View {
     let inspected: InspectedAbilityRuns
     @Environment(\.dismiss) private var dismiss
 
+    /// WHICH QUESTION THE SHEET IS ANSWERING.
+    ///
+    /// "What did this Skill do" and "what did this whole turn do" are
+    /// different questions with different answers, and stacking both in one
+    /// scroll made the first one — the one the tap asked — harder to find.
+    private enum Lens: String, CaseIterable, Identifiable {
+        case skill = "This Skill"
+        case episode = "Episode"
+        var id: String { rawValue }
+    }
+
+    @State private var lens: Lens = .skill
+    @State private var episode: BehavioralEpisode?
+    @State private var episodeLoaded = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: .layer3) {
             header
             provenance
-            if inspected.runs.isEmpty {
-                Text("No recorded calls for this Skill on this reply.")
-                    .font(.marySans(12))
-                    .foregroundStyle(Color.primary.opacity(0.6))
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: .layer3) {
-                        ForEach(inspected.runs) { run in
-                            runCard(run)
-                        }
-                    }
+            Picker("", selection: $lens) {
+                ForEach(Lens.allCases) { lens in
+                    Text(lens.rawValue).tag(lens)
                 }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            switch lens {
+            case .skill: skillSection
+            case .episode: episodeSection
             }
             Spacer(minLength: 0)
         }
         .padding(.layer4)
-        .frame(minWidth: 440, minHeight: 280, maxHeight: 480)
+        .frame(minWidth: 520, minHeight: 340, maxHeight: 560)
         .background(Paper.page)
+        .task(id: inspected.turnID) { await loadEpisode() }
+    }
+
+    @ViewBuilder
+    private var skillSection: some View {
+        if inspected.runs.isEmpty {
+            Text("No recorded calls for this Skill on this reply.")
+                .font(.marySans(12))
+                .foregroundStyle(Color.primary.opacity(0.6))
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer3) {
+                    ForEach(inspected.runs) { run in
+                        runCard(run)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - The episode
+
+    /// THE WHOLE TURN, not just this Skill's part of it.
+    ///
+    /// `BehavioralEpisode` has been sealed to disk for every turn since the
+    /// recorder existed, and nothing has ever displayed one — the only surface
+    /// was a Settings toggle and a Delete button for a body of data no one
+    /// could look at. A chip is the natural door to it: a person tapping one
+    /// is already asking "what happened here", and the honest answer usually
+    /// involves the calls that ran either side of the one they tapped.
+    @ViewBuilder
+    private var episodeSection: some View {
+        if !MaryRuntime.behavioralRecordingEnabledBox.withLock({ $0 }) {
+            // AN HONEST EMPTY, not a blank pane. This is off by the person's
+            // own choice in Settings, and a sheet that simply shows nothing
+            // reads as a bug rather than as a setting.
+            emptyNote(
+                "Recording what she does is turned off, so this turn was never"
+                + " written down. Settings → What she remembers doing.")
+        } else if let episode {
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer3) {
+                    episodeHeader(episode)
+                    if episode.output.actions.isEmpty {
+                        emptyNote("This turn recorded no actions.")
+                    } else {
+                        ForEach(episode.output.actions) { run in
+                            runCard(run, dimmed: run.action.skill != inspected.reference)
+                        }
+                    }
+                }
+            }
+        } else if !episodeLoaded {
+            emptyNote("Reading the episode…")
+        } else if !inspected.runs.isEmpty {
+            // STILL OPEN. An episode is sealed at the END of its turn, and a
+            // routine still running holds its turn's episode open — so the
+            // live rows on the utterance are the only account there is yet,
+            // and they are a true one.
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer3) {
+                    emptyNote("This turn is still open — sealed when it finishes.")
+                    ForEach(inspected.runs) { run in
+                        runCard(run)
+                    }
+                }
+            }
+        } else {
+            emptyNote("No episode was recorded for this turn.")
+        }
+    }
+
+    private func episodeHeader(_ episode: BehavioralEpisode) -> some View {
+        VStack(alignment: .leading, spacing: .layer2) {
+            if !episode.input.query.isEmpty {
+                Text(episode.input.query)
+                    .font(.marySerif(13, italic: true))
+                    .foregroundStyle(Color.primary.opacity(0.8))
+                    .textSelection(.enabled)
+            }
+            HStack(spacing: .layer2) {
+                Text(episode.openedAt.formatted(date: .abbreviated, time: .standard))
+                if let sealed = episode.sealedAt {
+                    Text("·")
+                        .foregroundStyle(Color.primary.opacity(0.3))
+                    Text(String(
+                        format: "%.1fs", sealed.timeIntervalSince(episode.openedAt)))
+                }
+                if let reason = episode.sealedReason, reason != .completed {
+                    Text("·")
+                        .foregroundStyle(Color.primary.opacity(0.3))
+                    Text(reason.rawValue)
+                        .foregroundStyle(Color.maryGold)
+                }
+                Text("·")
+                    .foregroundStyle(Color.primary.opacity(0.3))
+                Text("\(episode.output.actions.count) actions")
+            }
+            .font(.system(size: 10, design: .monospaced))
+            .foregroundStyle(Color.primary.opacity(0.5))
+        }
+    }
+
+    private func emptyNote(_ text: String) -> some View {
+        Text(text)
+            .font(.marySans(12))
+            .foregroundStyle(Color.primary.opacity(0.6))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// Off the main actor: a miss scans every day file in the store, and the
+    /// sheet must open at once whether or not the read has landed.
+    /// `episode(id:)` is nonisolated file reading, so the detached hop is what
+    /// keeps that scan off the main thread.
+    private func loadEpisode() async {
+        guard let turnID = inspected.turnID else {
+            episodeLoaded = true
+            return
+        }
+        let found = await Task.detached(priority: .userInitiated) {
+            MaryRuntime.behavioralStore.episode(id: turnID)
+        }.value
+        episode = found
+        episodeLoaded = true
     }
 
     private var header: some View {
@@ -87,16 +228,49 @@ struct AbilityRunInspectorSheet: View {
         }
     }
 
-    private func runCard(_ run: BehavioralActionRecord) -> some View {
+    /// - Parameter dimmed: this row belongs to a different Skill than the chip
+    ///   that was tapped. Shown, because the calls either side are most of why
+    ///   someone opens the episode at all — dimmed, because they are context
+    ///   for the one they asked about rather than the answer.
+    private func runCard(
+        _ run: BehavioralActionRecord, dimmed: Bool = false
+    ) -> some View {
         VStack(alignment: .leading, spacing: .layer2) {
             HStack(spacing: .layer2) {
                 Circle()
-                    .fill(statusColor(run))
+                    .fill(AbilityRunPresentation.color(run))
                     .frame(width: 8, height: 8)
-                Text(statusLabel(run))
+                Text(AbilityRunPresentation.label(run))
                     .font(.marySans(11, weight: .semibold))
                     .foregroundStyle(Color.primary.opacity(0.7))
+                if dimmed {
+                    Text(run.action.skill.invocationName)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(Color.primary.opacity(0.5))
+                }
                 Spacer()
+                // STOP, WHILE THERE IS STILL SOMETHING TO STOP.
+                //
+                // `.unsettled` is on the row from the moment the call is
+                // announced, and until now it was a status word with nothing
+                // behind it — a person watching a wedged call had no recourse
+                // but to say "stop", which kills every routine at once. This
+                // stops the one call; its lane carries on.
+                if run.disposition == .unsettled {
+                    Button("Stop") { RunControl.stopRun(id: run.id) }
+                        .buttonStyle(.maryQuiet)
+                }
+                // HOW LONG IT TOOK, beside when it started. The record has
+                // carried both ends since it was first written; only the
+                // start was ever shown, which is the half that cannot answer
+                // "why did that feel slow".
+                if let duration = AbilityRunPresentation.duration(run) {
+                    Text(duration)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(Color.primary.opacity(0.45))
+                    Text("·")
+                        .foregroundStyle(Color.primary.opacity(0.3))
+                }
                 Text(run.startedAt.formatted(date: .omitted, time: .standard))
                     .font(.system(size: 10, design: .monospaced))
                     .foregroundStyle(Color.primary.opacity(0.45))
@@ -134,27 +308,7 @@ struct AbilityRunInspectorSheet: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.primary.opacity(0.04))
         )
+        .opacity(dimmed ? 0.6 : 1)
     }
 
-    private func statusColor(_ run: BehavioralActionRecord) -> Color {
-        switch run.disposition {
-        case .succeeded: return run.foundNothing ? .maryGold : .maryGreen
-        case .unsettled: return Color.primary.opacity(0.3)
-        case .requestedConfirmation, .deferred: return .maryGold
-        default: return .maryError
-        }
-    }
-
-    private func statusLabel(_ run: BehavioralActionRecord) -> String {
-        switch run.disposition {
-        case .succeeded: return run.foundNothing ? "looked, found nothing" : "completed"
-        case .failed: return "did not go through"
-        case .blocked: return "refused"
-        case .cancelled: return "stopped"
-        case .deferred: return "handed off"
-        case .requestedConfirmation: return "waiting on you"
-        case .unsettled: return "running"
-        case .unknown: return "unknown"
-        }
-    }
 }

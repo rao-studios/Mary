@@ -136,6 +136,28 @@ extension MaryBrain {
         return routine
     }
 
+    /// STOP ONE ROUTINE — the single cancel path.
+    ///
+    /// The bare spoken "stop" used to inline this loop body, and it was the
+    /// only way to cancel anything: all-or-nothing, by voice, with no way to
+    /// name which of five running routines you meant. A Stop control on one
+    /// row needs exactly the same three steps, and two copies of "how a
+    /// routine is torn down" is how one of them comes to forget the clocks.
+    ///
+    /// Returns the routine it stopped, or nil if it had already settled —
+    /// a stop arriving a moment late is a race a person can lose honestly.
+    @discardableResult
+    func cancelRoutine(id: UUID, acknowledgement: String = "") -> ActiveRoutine? {
+        guard let routine = activeRoutines[id] else { return nil }
+        routine.task.cancel()
+        clearActiveRoutine(id: id)
+        proactive.yield(.routineCancelled(
+            routineID: id,
+            acknowledgement: acknowledgement,
+            originUserTurnID: routine.originUserTurnID))
+        return routine
+    }
+
     /// Self-removal hook for the tracked settle hop — called as the settle
     /// task's last act, on the actor.
     // internal for file split — treat as private
@@ -247,7 +269,7 @@ extension MaryBrain {
             detail: "\(routine.label) — lane ran \(Self.spokenDuration(since: routine.spawnedAt))",
             characters: 0))
         await speakSettleLine(Self.stalledLine(label: routine.label), originUserTurnID: origin)
-        proactive.yield(.routineSettled(originUserTurnID: origin))
+        proactive.yield(.routineSettled(routineID: id, originUserTurnID: origin))
     }
 
     /// The follow-up chain: each spoken follow-up awaits every earlier one.

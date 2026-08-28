@@ -89,7 +89,7 @@ public actor BehavioralStore: BehavioralRecording {
     /// A DAY, not a size cap. The natural question of this data is "what
     /// happened on the day the thing went wrong", and a rotation on bytes
     /// answers a question nobody asks while making that one hard.
-    func file(for date: Date) -> URL {
+    nonisolated func file(for date: Date) -> URL {
         directory.appendingPathComponent("episodes-\(Self.day.string(from: date)).jsonl")
     }
 
@@ -160,7 +160,30 @@ public actor BehavioralStore: BehavioralRecording {
         return (all, skipped)
     }
 
-    private func read(_ url: URL) -> (episodes: [BehavioralEpisode], skipped: Int) {
+    /// ONE EPISODE, BY ITS ID — what the run inspector asks for when someone
+    /// taps a chip and wants the whole turn rather than one Skill's calls.
+    ///
+    /// NEWEST DAY FIRST, WITH AN EARLY EXIT. The id is the user turn's UUID
+    /// and carries no date, so there is nothing to seek to; but the episode a
+    /// person is looking at is almost always today's or yesterday's, and
+    /// `allEpisodes()` would load every day in the store to answer a question
+    /// the first file usually settles. A miss still costs a full scan, which
+    /// is the honest price of an opaque id and is paid off the main actor.
+    /// NONISOLATED, along with the two readers it uses. Everything here
+    /// touches a `let` URL and the filesystem — nothing the actor protects —
+    /// and a full-store scan run ON the actor would sit in front of the next
+    /// episode seal, which is a write on a live turn's path. The isolation
+    /// exists for the append, not for reading files back.
+    public nonisolated func episode(id: UUID) -> BehavioralEpisode? {
+        for url in files().reversed() {
+            if let match = read(url).episodes.first(where: { $0.id == id }) {
+                return match
+            }
+        }
+        return nil
+    }
+
+    private nonisolated func read(_ url: URL) -> (episodes: [BehavioralEpisode], skipped: Int) {
         guard let data = try? Data(contentsOf: url) else { return ([], 0) }
         var episodes: [BehavioralEpisode] = []
         var skipped = 0
@@ -175,7 +198,7 @@ public actor BehavioralStore: BehavioralRecording {
         return (episodes, skipped)
     }
 
-    public func files() -> [URL] {
+    public nonisolated func files() -> [URL] {
         (try? FileManager.default.contentsOfDirectory(
             at: directory, includingPropertiesForKeys: nil))?
             .filter { $0.pathExtension == "jsonl" }

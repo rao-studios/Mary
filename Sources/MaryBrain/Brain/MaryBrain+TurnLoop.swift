@@ -273,7 +273,8 @@ extension MaryBrain {
                 reference: invocationReference, argumentsJSON: "{}",
                 runID: invocation.id))
             let startedAt = Date()
-            let outcome = await dispatcher.dispatch(name: skillName, argumentsJSON: "{}")
+            let outcome = await dispatcher.dispatch(
+                name: skillName, argumentsJSON: "{}", runID: invocation.id)
             continuation.yield(.skillResult(record: BehavioralActionRecord(
                 outcome: outcome,
                 intention: skillName,
@@ -303,11 +304,7 @@ extension MaryBrain {
            bareDecision == false {
             let stopped = activeRoutines.values.map(\.label)
             for id in Array(activeRoutines.keys) {
-                guard let routine = activeRoutines[id] else { continue }
-                routine.task.cancel()
-                clearActiveRoutine(id: id)
-                proactive.yield(.routineCancelled(
-                    acknowledgement: "", originUserTurnID: routine.originUserTurnID))
+                cancelRoutine(id: id)
             }
             PausedTypingSession.clear()
             let ack = stopped.count == 1
@@ -453,7 +450,8 @@ extension MaryBrain {
                 runID: invocation.id))
             let startedAt = Date()
             let outcome = await dispatcher.dispatch(
-                name: skillName, argumentsJSON: argumentsJSON)
+                name: skillName, argumentsJSON: argumentsJSON,
+                runID: invocation.id)
             continuation.yield(.skillResult(record: BehavioralActionRecord(
                 outcome: outcome,
                 intention: skillName,
@@ -639,6 +637,97 @@ extension MaryBrain {
             return
         }
 
+        // A WHOLE-APPLICATION WINDOW VERB NEEDS NO MODEL ROUND.
+        //
+        // THE COST IT REMOVES: Lane B's rounds all serialize on `engineGate`
+        // against a local 12B model generating up to 800 tokens with ~130 tool
+        // schemas in its prompt. "List the TextEdit windows" paid all of that
+        // to be told a verb the classifier had already named, for an
+        // application the route had already resolved — and when other routines
+        // were queued it paid the wait for theirs as well, missed the 250 ms
+        // join grace, and detached. That is how a one-second act became a
+        // background routine carrying a seven-minute watchdog.
+        //
+        // TWO VERBS ONLY, and the boundary is not arbitrary: `list_app_windows`
+        // and `bring_all_windows_forward` take an application and nothing else,
+        // and that application comes from the route's own resolution rather
+        // than from anything parsed here. `bring_window_forward` needs a window
+        // TITLE, which nothing at this seam can resolve — guessing one is how a
+        // raise lands on the wrong document — so it keeps its model round.
+        //
+        // MIRRORS THE BARE-CORRECTION PATH ABOVE, deliberately: same early
+        // return, same "no lane spawns, no skills, no model round". A miss
+        // falls through to the ordinary turn, so this can only make a turn
+        // faster, never make one impossible.
+        //
+        // IT SKIPS THE PROMPT, NOT THE GATES. `dispatch` runs the same
+        // `dispatchCore` every model-issued call runs — roster arbitration,
+        // provider selection, capability and confirmation policy — and that
+        // roster is computed live rather than read back from what `schemas`
+        // projected. So a window Skill this turn is not eligible for is
+        // refused here exactly as it would have been refused there; what is
+        // skipped is the round that would have OFFERED it, not the check that
+        // decides whether it may run.
+        if let dispatcher,
+           decisionOutcome == nil, editIntent == nil, !hadPendingAction,
+           let verb = Self.deterministicWindowVerb(userText) {
+            // THE ROUTE'S ANSWER, NOT THIS PATH'S GUESS. A named place is the
+            // application the user said; the lead is the one the turn is in;
+            // neither means the frontmost application, which is the declared
+            // meaning of an omitted `app` on both bindings.
+            let named = route.namedPlaces.first { $0.application != nil }
+            let application = (named ?? route.leadPlace)?.application
+            var arguments: [String: String] = [:]
+            if let application { arguments["app"] = application }
+            let argumentsJSON = (try? JSONSerialization.data(
+                withJSONObject: arguments, options: [.sortedKeys]))
+                .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+            let invocation = ModelSkillInvocation(
+                id: "window-\(UUID().uuidString)", name: verb,
+                argumentsJSON: argumentsJSON)
+            let invocationReference = dispatcher.skillReference(for: verb)
+            continuation.yield(.skillInvocation(
+                reference: invocationReference, argumentsJSON: argumentsJSON,
+                runID: invocation.id))
+            let startedAt = Date()
+            let outcome = await dispatcher.dispatch(
+                name: verb, argumentsJSON: argumentsJSON, runID: invocation.id)
+            continuation.yield(.skillResult(record: BehavioralActionRecord(
+                outcome: outcome,
+                intention: verb,
+                argumentsJSON: argumentsJSON,
+                reference: invocationReference,
+                runID: invocation.id,
+                startedAt: startedAt)))
+            appendHistory(contentsOf: [
+                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
+                BrainTurn(
+                    role: .skillResult,
+                    text: outcome.summary,
+                    skillInvocationID: invocation.id,
+                    skillName: verb
+                ),
+            ], epoch: epoch)
+            Self.laneLog.info("window verb dispatched deterministically — no model round")
+            // A READ'S SUMMARY IS THE ANSWER; A RAISE'S IS NOT.
+            //
+            // Listing windows produces the list that was asked for, so it is
+            // spoken. A successful raise is an ACTION, and the action-first
+            // rhythm settles those silently — the chip is the reply, exactly as
+            // it would have been through the lane. A FAILURE always speaks,
+            // whichever verb it was: that rule has no exceptions elsewhere in
+            // this file and gains none here.
+            let spoken = (outcome.ok && verb != "list_app_windows")
+                ? "" : outcome.summary
+            if !spoken.isEmpty {
+                continuation.yield(.token(spoken))
+                appendHistory(
+                    BrainTurn(role: .assistant, text: spoken), epoch: epoch)
+            }
+            continuation.yield(.completed(fullText: spoken))
+            continuation.finish()
+            return
+        }
 
         // THE ACT REACHES THE RESOLVER. `editIntent.shape` has been in hand
         // since ~50 lines above and used to be dropped here — so the same words

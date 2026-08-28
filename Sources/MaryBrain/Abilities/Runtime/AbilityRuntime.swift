@@ -71,6 +71,82 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     }
     private let offerLedger = OSAllocatedUnfairLock<TurnOfferLedger>(
         initialState: .init())
+
+    /// THE CALL CURRENTLY BEING DISPATCHED, carried down to `performExecute`.
+    ///
+    /// A task local rather than four more parameters: `dispatch` →
+    /// `dispatchCore` → `execute` → `performExecute` is a chain with a dozen
+    /// call sites and several other entrances (the confirmation replay among
+    /// them), and threading an identity through all of them to be read in one
+    /// place is how the identity ends up missing from the entrance nobody
+    /// updated. Unstructured tasks inherit task locals, which is exactly what
+    /// `performExecute`'s held worker needs.
+    enum RunContext {
+        @TaskLocal static var runID: String?
+    }
+
+    private struct InFlightRun {
+        /// TYPE-ERASED, because the two execution paths hold different tasks:
+        /// a native binding's worker returns a `SkillOutcome` and a workflow's
+        /// returns the state machine's result. A Stop must reach both — a
+        /// registry that could only hold one of them would put a live button
+        /// on half the running chips and a dead one on the rest.
+        let cancel: @Sendable () -> Void
+        /// Someone asked for this call to stop. Kept beside the canceller
+        /// because cancelling a `Task` is a REQUEST — a binding sitting in a
+        /// synchronous Accessibility round trip will not notice until it
+        /// returns, and when it does the outcome must still read as stopped
+        /// rather than as whatever the half-done work happened to produce.
+        var stopRequested = false
+    }
+
+    /// EVERY CALL A PERSON COULD ASK TO STOP, keyed by the id its chip shows.
+    ///
+    /// Until now the only user-facing stop was saying "stop", which cancelled
+    /// every detached routine at once — there was no handle on a single call
+    /// at all, because the only cancellable `Task` in the execution path was a
+    /// local inside `performExecute` that nothing outside could name.
+    private let inFlightRuns = OSAllocatedUnfairLock<[String: InFlightRun]>(
+        initialState: [:])
+
+    /// Ask one running call to stop. Safe to call for an id that has already
+    /// settled — a stop arriving a moment late is a race a person can lose
+    /// honestly, not an error.
+    public func cancelRun(id: String) {
+        let cancel = inFlightRuns.withLock { runs -> (@Sendable () -> Void)? in
+            guard var run = runs[id] else { return nil }
+            run.stopRequested = true
+            runs[id] = run
+            return run.cancel
+        }
+        cancel?()
+    }
+
+    /// Which calls are still running — the ids a Stop control may offer.
+    public var runningRunIDs: Set<String> {
+        Set(inFlightRuns.withLock { $0.keys })
+    }
+
+    /// Register the current call's canceller, returning the id to release
+    /// with. Nil when there is no run identity in scope (a nested workflow
+    /// step, which is stopped by stopping its owner).
+    private func registerInFlight(
+        _ cancel: @escaping @Sendable () -> Void
+    ) -> String? {
+        guard let identity = RunContext.runID else { return nil }
+        inFlightRuns.withLock { $0[identity] = InFlightRun(cancel: cancel) }
+        return identity
+    }
+
+    private func releaseInFlight(_ identity: String?) {
+        guard let identity else { return }
+        inFlightRuns.withLock { $0[identity] = nil }
+    }
+
+    private func wasStopRequested(_ identity: String?) -> Bool {
+        guard let identity else { return false }
+        return inFlightRuns.withLock { $0[identity]?.stopRequested ?? false }
+    }
     private var attributed: [AttributedSkillBinding] {
         let snapshot = abilitySnapshot
         let dynamic = rosterCache.withLock { cache -> [AttributedSkillBinding] in
@@ -1990,22 +2066,42 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// replaces used it while the transcript chip used the turn-patched one,
     /// so the log and the chip printed different providers for the same act.
     /// There is one composition now, so there is one answer.
-    public func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+    /// WHERE A CALL'S TIME WENT — the gate chain against the work.
+    ///
+    /// Two lines per call, deliberately, because the interesting number is the
+    /// difference. `dispatchCore` recomputes the ability snapshot, the routing
+    /// context and the whole roster arbitration before any adapter is touched;
+    /// `performExecute` is the adapter actually doing something. A call that
+    /// spends most of its time in the first is a Mary problem, and one that
+    /// spends it in the second is the target application being slow — and
+    /// until now the two were one opaque duration.
+    static let timingLog = Logger(subsystem: "nyc.rao.mary", category: "lanes")
+
+    public func dispatch(
+        name: String, argumentsJSON: String, runID: String? = nil
+    ) async -> SkillOutcome {
         let startedAt = Date()
+        let dispatchStart = DispatchTime.now()
         // READ BEFORE THE DISPATCH. `skillReference(for:)` consults the turn's
         // provider selection, and a dispatch can change it — reading after
         // would describe the act with the state it left behind.
         let turnReference = skillReference(for: name)
         let confirmationID = pendingStore.current()?.id
 
-        let outcome = await dispatchCore(name: name, argumentsJSON: argumentsJSON)
+        // ONE IDENTITY FOR THE WHOLE ACT — the caller's wire id when it has
+        // one, so the chip, the ledger row, the episode entry and the Stop
+        // button are all talking about the same call.
+        let identity = runID ?? UUID().uuidString
+        let outcome = await RunContext.$runID.withValue(identity) {
+            await dispatchCore(name: name, argumentsJSON: argumentsJSON)
+        }
 
         let record = BehavioralActionRecord(
             outcome: outcome,
             intention: name,
             argumentsJSON: Self.canonicalArguments(argumentsJSON),
             reference: turnReference,
-            runID: UUID().uuidString,
+            runID: identity,
             // THE CONFIRMATION THREAD. A park and its later replay are two
             // episodes and one act; this is the string that joins them. Read
             // BEFORE for a park (the question is being asked now) and AFTER
@@ -2015,6 +2111,11 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             startedAt: startedAt)
         executionLog.record(record)
         behavior?.append(record)
+        let totalMs = (DispatchTime.now().uptimeNanoseconds
+            &- dispatchStart.uptimeNanoseconds) / 1_000_000
+        let line = "dispatch \(name) — total \(totalMs)ms,"
+            + " status=\(record.disposition)"
+        Self.timingLog.info("\(line, privacy: .public)")
         return outcome
     }
 
@@ -2458,12 +2559,27 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                         depth: depth)
                 }
         }
+        let runIdentity = registerInFlight { worker.cancel() }
+        defer { releaseInFlight(runIdentity) }
         let result = await withTaskCancellationHandler {
             await bounded(budget) { await worker.value }
         } onCancel: {
             worker.cancel()
         }
         worker.cancel()
+        // Same rule as `performExecute`: a stop the person asked for is what
+        // the record says happened, whatever the machine got as far as.
+        if wasStopRequested(runIdentity) {
+            let stopped = SkillOutcome(
+                ok: false,
+                summary: "You stopped \(runtime.reference.invocationName).",
+                status: .cancelled,
+                archivePolicy: .none,
+                skillReference: runtime.reference)
+            recordSchemaExecution(
+                runtime: runtime, arguments: arguments, outcome: stopped)
+            return stopped
+        }
 
         guard let machineResult = result else {
             let timedOut = SkillOutcome(
@@ -3563,12 +3679,42 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 typedInputs: typedInputs,
                 context: boundedContext)
         }
+        // THE HANDLE A STOP BUTTON REACHES. Registered before the wait and
+        // removed after it, so `cancelRun` can only ever find a call that is
+        // genuinely still running.
+        let runIdentity = registerInFlight { worker.cancel() }
+        defer { releaseInFlight(runIdentity) }
+        let executeStart = DispatchTime.now()
         let outcome = await withTaskCancellationHandler {
             await bounded(budget) { await worker.value }
         } onCancel: {
             worker.cancel()
         }
         worker.cancel()
+        let wasStopped = wasStopRequested(runIdentity)
+        let executeMs = (DispatchTime.now().uptimeNanoseconds
+            &- executeStart.uptimeNanoseconds) / 1_000_000
+        let executeLine = "execute \(binding.name) — \(executeMs)ms"
+            + (outcome == nil ? " (BUDGET EXPIRED at \(Int(unscaledBudget))s)" : "")
+            + (wasStopped ? " (STOPPED)" : "")
+        Self.timingLog.info("\(executeLine, privacy: .public)")
+        // A STOPPED CALL SAYS SO, whatever the binding managed to return.
+        //
+        // Cancelling a Task is a request, not a guarantee: an Accessibility
+        // round trip already in flight finishes regardless, and a binding that
+        // ignores cancellation returns an ordinary success. Reporting that as
+        // "completed" would tell the person their Stop did nothing when it may
+        // well have stopped the rest of the sequence — and reporting it as a
+        // failure would blame the application. `.cancelled` is the honest word
+        // and the one the chip and the inspector already know.
+        if wasStopped {
+            return Self.hinted(
+                SkillOutcome(
+                    ok: false,
+                    summary: "You stopped \(binding.name).",
+                    status: .cancelled),
+                binding)
+        }
         guard let outcome else {
             // AN HONEST SENTENCE, NEVER SILENCE — `BoundedWait`'s whole rule.
             // It says what was waited on and how long, because "that didn't
@@ -3673,6 +3819,36 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // `filename` for `path`; it must never redistribute a value the model
         // placed exactly right.
         let declared = Set(parameters.map { $0.name.lowercased() })
+        // A DECLARED ALIAS IS TRIED BEFORE THE HEURISTIC, and matched exactly.
+        //
+        // THE FAILURE THIS FIXES (live): the model raised a TextEdit window
+        // with `{"app":"TextEdit","title":"Untitled 47"}`. The parameter is
+        // spelled `window`; neither name contains the other, so the substring
+        // test below could not bridge them, the binding read the miss as `""`,
+        // and the user was told their window did not exist. `"Untitled 47"`
+        // would have matched the resolver's exact-title rung on the first try.
+        //
+        // Exact rather than loose on purpose: containment is what let a
+        // correctly-placed value be copied into a sibling parameter (see the
+        // `fill` / `fill_type` note above), and an alias list is precisely the
+        // case where we already know both spellings and need no guessing.
+        // Declaration order decides which of two present aliases wins, so the
+        // lookup is a plain exact-match table rather than an ordered scan.
+        let byLowercasedKey = Dictionary(
+            arguments.map { ($0.key.lowercased(), $0.value) },
+            uniquingKeysWith: { first, _ in first })
+        for parameter in parameters where result[parameter.name] == nil {
+            for alias in parameter.aliases {
+                let candidate = alias.lowercased()
+                // An alias that is ITSELF a declared parameter belongs to that
+                // parameter, not to this one.
+                guard !declared.contains(candidate) else { continue }
+                if let value = byLowercasedKey[candidate] {
+                    result[parameter.name] = value
+                    break
+                }
+            }
+        }
         for parameter in parameters where result[parameter.name] == nil {
             let want = parameter.name.lowercased()
             // Sorted: `Dictionary.first(where:)` has no defined order, so two

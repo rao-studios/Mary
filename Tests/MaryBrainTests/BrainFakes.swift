@@ -216,7 +216,7 @@ enum BrainFakes {
             return focusedApplicationIDOverride
         }
 
-        func dispatch(name: String, argumentsJSON: String) async -> SkillOutcome {
+        func dispatch(name: String, argumentsJSON: String, runID: String? = nil) async -> SkillOutcome {
             lock.lock()
             dispatched.append(name)
             if name == AbilityRuntime.confirmSkillName || name == AbilityRuntime.cancelSkillName {

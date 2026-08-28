@@ -89,4 +89,71 @@ extension MaryBrain {
     /// How many detached routines are currently executing.
     public var activeRoutineCount: Int { activeRoutines.count }
 
+    // MARK: - Stopping things
+
+    /// ONE PIECE OF BACKGROUND WORK, as the app may show it.
+    ///
+    /// Only what a person can act on: what it is called, when it started, and
+    /// which exchange it belongs to. Nothing about the lane, the prompt, or
+    /// the outcomes — a Stop control is not a debugger.
+    public struct RunningRoutine: Sendable, Identifiable {
+        public let id: UUID
+        public let label: String
+        public let originUserTurnID: UUID
+        public let spawnedAt: DispatchTime
+    }
+
+    /// The routines running right now. The registry has carried `label` since
+    /// routines existed; this is the first thing to read it out.
+    public var runningRoutines: [RunningRoutine] {
+        activeRoutines.values.map {
+            RunningRoutine(
+                id: $0.id, label: $0.label,
+                originUserTurnID: $0.originUserTurnID, spawnedAt: $0.spawnedAt)
+        }
+    }
+
+    /// STOP ONE ROUTINE — what a Stop button on one row sends.
+    ///
+    /// Until now the only user-facing cancel was the spoken bare "stop", which
+    /// halts EVERYTHING by explicit design ("one stop, no disambiguation
+    /// grammar"). That decision was about the SPOKEN grammar — there is no
+    /// ambiguity to resolve when a person has clicked one row — so this is not
+    /// a reversal of it. Both go through `cancelRoutine(id:)`.
+    ///
+    /// The acknowledgement is empty: a click has already acknowledged itself,
+    /// and speaking "Okay — I stopped it" at someone who is looking at the
+    /// button they just pressed is the app talking to itself.
+    public func stopRoutine(id: UUID) {
+        cancelRoutine(id: id)
+    }
+
+    /// STOP EVERYTHING RUNNING IN THE BACKGROUND — the "Stop all" control,
+    /// and the same tear-down the spoken bare "stop" performs.
+    ///
+    /// The paused typing remainder dies with it, and that is not incidental:
+    /// stop must never leave something behind that a later "continue" would
+    /// surprise-type into a document.
+    ///
+    /// Returns the labels it stopped so the caller can say what happened.
+    @discardableResult
+    public func stopAllRoutines() -> [String] {
+        let stopped = activeRoutines.values.map(\.label)
+        for id in Array(activeRoutines.keys) {
+            cancelRoutine(id: id)
+        }
+        PausedTypingSession.clear()
+        return stopped
+    }
+
+    /// STOP ONE CALL, by the id its chip shows.
+    ///
+    /// Narrower than stopping a routine: the lane keeps going and may well
+    /// dispatch something else. That is the right granularity for a Stop on a
+    /// single run row — the person is objecting to one act, not to the whole
+    /// request.
+    public func stopRun(id: String) {
+        dispatcher?.cancelRun(id: id)
+    }
+
 }

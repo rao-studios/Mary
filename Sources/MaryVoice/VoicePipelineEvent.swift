@@ -179,7 +179,14 @@ public extension LanguageResponder {
 /// with no originating routine (the coding bridge, until the app threads
 /// its session's origin id through).
 public enum ProactiveEvent: Sendable {
-    case routineStarted(originUserTurnID: UUID)
+    /// A LANE DETACHED AND IS NOW BACKGROUND WORK.
+    ///
+    /// It carries the routine's own id and its spoken label as well as the
+    /// origin, because the status bar's "5 running" was an integer with
+    /// nothing behind it: no way to see WHICH five, and no way to stop one.
+    /// The registry has held a `label` per routine all along — "still working
+    /// on the Purpose section" — and nothing ever showed it.
+    case routineStarted(routineID: UUID, label: String, originUserTurnID: UUID)
     case skillInvocation(
         reference: AbilitySkillReference,
         argumentsJSON: String,
@@ -192,7 +199,7 @@ public enum ProactiveEvent: Sendable {
     case skillResult(record: BehavioralActionRecord, originUserTurnID: UUID)
     case followUpToken(String, originUserTurnID: UUID?)
     case followUpCompleted(fullText: String, originUserTurnID: UUID?)
-    case routineCancelled(acknowledgement: String, originUserTurnID: UUID)
+    case routineCancelled(routineID: UUID, acknowledgement: String, originUserTurnID: UUID)
     /// THE LANE IS STILL RUNNING AND SAYS SO — a wall clock on work that had
     /// none. Not a result, not an answer, and deliberately NOT a follow-up.
     ///
@@ -232,7 +239,7 @@ public enum ProactiveEvent: Sendable {
     /// Terminal, quiet completion: the routine ended with nothing to report
     /// (a no-outcome lane, or the watchdog expired a hung one). UI clears
     /// its "still working" state; nothing is spoken.
-    case routineSettled(originUserTurnID: UUID)
+    case routineSettled(routineID: UUID, originUserTurnID: UUID)
     /// SHE SPOKE WITHOUT BEING ASKED — the first case in this enum that
     /// traces back to no user turn at all. Every other one is downstream of
     /// something the user said; this one is downstream of the room.

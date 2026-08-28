@@ -59,7 +59,8 @@ extension MaryBrain {
             runID: invocation.id))
         let startedAt = Date()
         let outcome = await dispatcher.dispatch(
-            name: skillName, argumentsJSON: argumentsJSON)
+            name: skillName, argumentsJSON: argumentsJSON,
+            runID: invocation.id)
         continuation.yield(.skillResult(record: BehavioralActionRecord(
             outcome: outcome,
             intention: skillName,

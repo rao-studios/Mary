@@ -96,7 +96,10 @@ extension MaryBrain {
                 do {
                     var holdsGate = false
                     if engine.requiresExclusiveGeneration {
-                        holdsGate = await engineGate.acquire()
+                        // The legacy path runs inside the turn and never
+                        // detaches, so its rounds are always ones a person
+                        // is waiting on.
+                        holdsGate = await engineGate.acquire(priority: .attached)
                     }
                     defer { if holdsGate { engineGate.release() } }
                     let events = engine.stream(system: turnPrompt, history: history, skills: schemas)
@@ -297,7 +300,8 @@ extension MaryBrain {
                     }
                     let startedAt = Date()
                     let outcome = await dispatcher.dispatch(
-                        name: call.name, argumentsJSON: call.argumentsJSON)
+                        name: call.name, argumentsJSON: call.argumentsJSON,
+                        runID: call.id)
                     let reference = outcome.skillReference
                         ?? dispatcher.skillReference(for: call.name)
                     continuation.yield(.skillResult(record: BehavioralActionRecord(
@@ -400,7 +404,10 @@ extension MaryBrain {
             do {
                 var holdsGate = false
                 if engine.requiresExclusiveGeneration {
-                    holdsGate = await engineGate.acquire()
+                    // The legacy path runs inside the turn and never
+                    // detaches, so its rounds are always ones a person is
+                    // waiting on.
+                    holdsGate = await engineGate.acquire(priority: .attached)
                 }
                 defer { if holdsGate { engineGate.release() } }
                 let wrapEvents = engine.stream(

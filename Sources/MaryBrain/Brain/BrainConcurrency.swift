@@ -192,13 +192,83 @@ final class TurnBox: @unchecked Sendable {
 /// barged-in/superseded waiter is removed from the FIFO queue and resumed
 /// with FALSE immediately, so dead lanes never hold a slot ahead of live
 /// ones (they were part of the detach feedback loop).
+/// WHETHER THE LANE'S TURN IS STILL WAITING ON IT.
+///
+/// A lane starts ATTACHED — the user is in front of the app, watching a reply
+/// that has not arrived — and becomes DETACHED at the join grace, after which
+/// nothing is blocked on its next round. The lane cannot work this out for
+/// itself: the decision is made by `seerTurn` long after the lane started, and
+/// the lane is by then an unstructured task with no view of its own turn.
+///
+/// Two readers. The lane log needs it to tell a slow round apart from a round
+/// nobody is waiting on, and `AsyncGate` needs it to let a live turn past a
+/// queue of background ones.
+final class LaneAttachment: @unchecked Sendable {
+    private let lock = NSLock()
+    private var attached = true
+
+    var isAttached: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return attached
+    }
+
+    func detach() {
+        lock.lock(); defer { lock.unlock() }
+        attached = false
+    }
+}
+
 final class AsyncGate: @unchecked Sendable {
+    /// WHO IS WAITING ON THE OTHER SIDE OF THIS ROUND.
+    ///
+    /// Strict FIFO was wrong in one specific way, and it was the way that
+    /// mattered: a turn the user is sitting in front of queued behind however
+    /// many BACKGROUND rounds happened to be in line. With the local MLX
+    /// engine every generation round in the process serializes here, so five
+    /// detached routines are a queue up to fifty rounds deep — and the live
+    /// turn behind them cannot make its 250 ms join grace no matter how small
+    /// its own request is, so it detaches too, and now there are six. The
+    /// `lanes` log has been recording that loop; this is the fix for it.
+    ///
+    /// Two tiers only, and FIFO inside each. A priority NUMBER would invite
+    /// tuning, and there is exactly one distinction that is real here: is a
+    /// person waiting, or is this work nobody is blocked on.
+    enum Priority {
+        /// A turn is still waiting on this round.
+        case attached
+        /// A detached routine — nobody is blocked on it.
+        case detached
+    }
+
     private let lock = NSLock()
     private var busy = false
-    private var waiters: [(id: UUID, continuation: CheckedContinuation<Bool, Never>)] = []
+    private var waiters: [
+        (id: UUID, priority: Priority, continuation: CheckedContinuation<Bool, Never>)
+    ] = []
 
+    /// HOW MANY LANES ARE QUEUED BEHIND THE HOLDER, read for the lane log.
+    ///
+    /// The regression this measures is queueing, not work: with the local MLX
+    /// engine every generation round in the process is serialized here, so a
+    /// depth of four means the next turn cannot possibly make its 250 ms join
+    /// grace no matter how fast its own round is. Without this number a slow
+    /// turn and a queued turn are indistinguishable in the log.
+    var waiterCount: Int {
+        lock.lock(); defer { lock.unlock() }
+        return waiters.count
+    }
+
+    /// STARVATION IS BOUNDED BY THE WORLD, not by a fairness rule here.
+    ///
+    /// A detached waiter can in principle be passed by attached ones forever.
+    /// In practice attached rounds arrive only as fast as a person types or
+    /// speaks, each one takes a bounded number of rounds, and a routine that
+    /// waits too long is expired by its own watchdog and says so out loud —
+    /// which is a better outcome than the status quo, where the LIVE turn was
+    /// the one made to wait. An ageing rule would trade a loud, already-handled
+    /// failure for a quiet return of the regression this exists to fix.
     @discardableResult
-    func acquire() async -> Bool {
+    func acquire(priority: Priority = .detached) async -> Bool {
         let acquired: Bool = {
             lock.lock(); defer { lock.unlock() }
             if busy { return false }
@@ -221,7 +291,16 @@ final class AsyncGate: @unchecked Sendable {
                     continuation.resume(returning: true)
                     return
                 }
-                waiters.append((id, continuation))
+                // Attached waiters go ahead of every detached one, and behind
+                // every attached one already queued.
+                switch priority {
+                case .attached:
+                    let insertion = waiters.lastIndex { $0.priority == .attached }
+                        .map { waiters.index(after: $0) } ?? waiters.startIndex
+                    waiters.insert((id, priority, continuation), at: insertion)
+                case .detached:
+                    waiters.append((id, priority, continuation))
+                }
                 lock.unlock()
             }
         } onCancel: {

@@ -101,8 +101,9 @@ package enum ProactiveBridge {
             var composer = FollowUpComposer()
             for await event in MaryRuntime.brain.proactiveEvents() {
                 switch event {
-                case .routineStarted(let origin):
-                    mirror(.routineStarted(originTurnID: origin))
+                case .routineStarted(let routineID, let label, let origin):
+                    mirror(.routineStarted(
+                        routineID: routineID, label: label, originTurnID: origin))
 
                 case .skillInvocation(let reference, let argumentsJSON, let runID, let origin):
                     // Progress chip onto the routine's ORIGINATING bubble.
@@ -172,17 +173,17 @@ package enum ProactiveBridge {
                     // the pipeline plays its own.
                     await FollowUpSpeech.shared.enqueue(line, origin: origin, as: .progress)
 
-                case .routineCancelled(_, let origin):
+                case .routineCancelled(let routineID, _, let origin):
                     // The stop turn already spoke and mirrored its ack —
                     // this is chip + origin bookkeeping only. The partial
                     // narration dies with the routine (see `cancelled`).
                     composer.cancelled(origin: origin)
-                    mirror(.routineEnded(originTurnID: origin))
+                    mirror(.routineEnded(routineID: routineID, originTurnID: origin))
 
-                case .routineSettled(let origin):
+                case .routineSettled(let routineID, let origin):
                     // One routine fully done (speech included — settle fires
                     // after the serialized follow-up).
-                    mirror(.routineEnded(originTurnID: origin))
+                    mirror(.routineEnded(routineID: routineID, originTurnID: origin))
 
                 case .ambientUtterance(let line, let candidateID):
                     // ITS OWN TRAILING BUBBLE, never someone else's. The

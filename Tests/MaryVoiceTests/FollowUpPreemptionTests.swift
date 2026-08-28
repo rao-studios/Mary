@@ -149,7 +149,7 @@ import Testing
         let (pipeline, _) = makePipeline(responder: responder)
 
         await pipeline.setStateForTesting(.listening(utteranceActive: false))
-        await pipeline.handleProactive(.routineSettled(originUserTurnID: UUID()))
+        await pipeline.handleProactive(.routineSettled(routineID: UUID(), originUserTurnID: UUID()))
 
         #expect(responder.cancelCount == 0)
         let speakingFollowUp = await pipeline.isFollowUpSpeaking

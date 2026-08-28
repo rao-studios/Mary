@@ -25,6 +25,26 @@ public struct ModelSkillSchema: Sendable {
         /// provider does not declare that side of the range.
         public var minimum: Double?
         public var maximum: Double?
+        /// OTHER NAMES A MODEL PLAUSIBLY WRITES FOR THIS PARAMETER.
+        ///
+        /// THE FAILURE THIS FIXES (live): `bring_window_forward` declares
+        /// `window`; a model asked to raise "Untitled 47" sent
+        /// `{"app":"TextEdit","title":"Untitled 47"}` — `title` is the more
+        /// natural word for a window's name, and it is not wrong, it is just
+        /// not the declared spelling. `reconcile`'s substring heuristic needs
+        /// one name to contain the other, so it could not bridge them; the
+        /// binding coalesced the miss to `""`, and the user was told
+        /// `I couldn't find one open window matching ""` — a refusal over
+        /// vocabulary, reported as a fact about their windows.
+        ///
+        /// These are declared rather than guessed, and matched EXACTLY (case
+        /// -insensitively) rather than by containment, because the loose test
+        /// is what let a correctly-placed value be copied into a sibling
+        /// parameter — see `reconcile`'s own note about `fill` / `fill_type`.
+        /// They are never sent to the model: the wire schema advertises the
+        /// declared name alone, so an alias is a rescue for a call already
+        /// made, not a second spelling the model is invited to choose.
+        public var aliases: [String]
 
         public init(
             name: String,
@@ -33,7 +53,8 @@ public struct ModelSkillSchema: Sendable {
             required: Bool,
             enumValues: [String]? = nil,
             minimum: Double? = nil,
-            maximum: Double? = nil
+            maximum: Double? = nil,
+            aliases: [String] = []
         ) {
             self.name = name
             self.type = type
@@ -42,6 +63,7 @@ public struct ModelSkillSchema: Sendable {
             self.enumValues = enumValues
             self.minimum = minimum
             self.maximum = maximum
+            self.aliases = aliases
         }
     }
 

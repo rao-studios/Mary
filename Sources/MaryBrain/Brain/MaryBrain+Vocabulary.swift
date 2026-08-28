@@ -145,6 +145,86 @@ extension MaryBrain {
         return String(format: "%.1fs", Double(elapsed) / 1_000_000_000)
     }
 
+    /// WHETHER THIS TURN IS ONE WHOLE-APPLICATION WINDOW VERB AND NOTHING
+    /// ELSE — the gate on the deterministic window path in `runTurnBody`.
+    ///
+    /// Two questions, both of which must answer yes.
+    ///
+    /// FIRST, does the window classifier name one of the two verbs whose only
+    /// parameter is an application? The classifier is consulted rather than
+    /// re-implemented — it is the same vocabulary routing already uses, and a
+    /// second copy of "what counts as listing windows" is how the two come to
+    /// disagree. It is asked WITHOUT a document place: that argument can only
+    /// widen what it matches, and widening is the direction that costs a user
+    /// their command rather than costing them a millisecond.
+    ///
+    /// SECOND, is the utterance a single request? This path answers the whole
+    /// turn and returns, so a compound request would have its second half
+    /// silently dropped — "bring all the Pages windows forward and read me the
+    /// first paragraph" must reach a lane that can do both. Conjunctions and
+    /// clause punctuation are what a person joins two requests with, and a
+    /// long sentence is one even when it joins them some other way.
+    ///
+    /// Nil means "not this path", which costs nothing: the ordinary turn runs.
+    static func deterministicWindowVerb(_ utterance: String) -> String? {
+        let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let words = trimmed.split { $0.isWhitespace }.map(String.init)
+        guard words.count <= 12 else { return nil }
+        let lowered = " " + words.joined(separator: " ").lowercased() + " "
+        let joiners = [" and ", " then ", " also ", " after that ", " plus "]
+        guard !joiners.contains(where: { lowered.contains($0) }) else { return nil }
+        guard !trimmed.contains(";"), !trimmed.contains(","),
+              !trimmed.contains("?") else { return nil }
+
+        let intent = WindowManagementTurnClassifier.classify(utterance: trimmed)
+        // A turn that explicitly asked for a script is asking for the model,
+        // not for a shortcut past it.
+        guard !intent.explicitlyRequestsScript else { return nil }
+
+        switch intent.invocationName {
+        case "bring_all_windows_forward":
+            return intent.invocationName
+
+        case "list_app_windows":
+            // A SENTENCE THAT ALSO ASKS TO BRING SOMETHING FORWARD IS NOT A
+            // PURE LIST, whatever the classifier concluded.
+            //
+            // THE FAILURE THIS PREVENTS (found while writing this path):
+            // "bring the Shopping List window forward" classifies as
+            // `list_app_windows`, because the classifier looks for the token
+            // "list" anywhere in the utterance and the WINDOW'S TITLE contains
+            // it. That misreading is survivable today — the classifier is
+            // advisory, so the model still calls `bring_window_forward` and
+            // the user gets their window. It would not be survivable here:
+            // this path EXECUTES the verdict and returns, so the user would
+            // ask for a window and be handed a list instead, with no round
+            // left in which anything could notice.
+            //
+            // The check is a CONTRADICTION test, not a second copy of the
+            // classifier's vocabulary: it does not decide what the turn means,
+            // it only declines to act deterministically on a verdict the
+            // sentence argues with. Any sentence carrying both readings falls
+            // through to the ordinary turn, where the model settles it.
+            let raiseWords = ["forward", "front", "raise", "unhide", "restore"]
+            guard !raiseWords.contains(where: { lowered.contains(" \($0) ") }) else {
+                return nil
+            }
+            return intent.invocationName
+
+        default:
+            return nil
+        }
+    }
+
+    /// The same clock, in milliseconds and unrounded — for the lane log,
+    /// where the numbers are compared against each other and against the
+    /// 250 ms join grace rather than read aloud.
+    static func elapsedMs(since start: DispatchTime) -> UInt64 {
+        (DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds) / 1_000_000
+    }
+
     /// Case, punctuation and whitespace folded away, so "All TextEdit windows
     /// are now forward." and "all textedit windows are now forward" compare
     /// equal. Non-alphanumerics become spaces (folds CONFIRM-style colons and

@@ -247,7 +247,9 @@ import Testing
         #expect(!buffered.isEmpty)
 
         await pipeline.handleProactive(
-            .routineCancelled(acknowledgement: "stopped", originUserTurnID: origin))
+            .routineCancelled(
+                routineID: UUID(), acknowledgement: "stopped",
+                originUserTurnID: origin))
 
         let after = await pipeline.followUpBufferForTesting
         #expect(after.isEmpty)
