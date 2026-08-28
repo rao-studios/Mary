@@ -63,7 +63,7 @@ extension DocumentCorpusAdapter {
         case .corpus(let found): corpus = found
         case .refused(let outcome): return outcome
         }
-        let structure = corpus.registration.structure
+        let structure = corpus.structure
 
         guard let ceremony = structure.ceremonies.first(where: { $0.act == act }) else {
             // A package that declared no path for this act has said it cannot

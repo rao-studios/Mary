@@ -178,8 +178,11 @@ extension DocumentProbe {
             print("      ! \(issue.code): \(issue.message)")
         }
 
-        let registrations = MaryRuntime.documentCorpusRegistrations(from: load.snapshot)
-        DocumentCorpusSupport.shared.reconcile(registrations)
+        // THE SAME ONE RECONCILE THE COMPOSITION ROOT PERFORMS. The document
+        // lane keeps no roster of its own; it filters this one on `structure`.
+        CorpusSupport.shared.reconcile(
+            MaryRuntime.corpusRegistrations(from: load.snapshot))
+        let registrations = DocumentCorpusSupport.all()
         AmbientApplicationBridge.install(
             profiles: adapters.map(\.applicationProfile)
                 + load.snapshot.plugins.applicationProfiles)
@@ -193,7 +196,7 @@ extension DocumentProbe {
         check(!registrations.contains { $0.applicationID == "xcode" },
               "a notation-only corpus stays out of this lane")
 
-        let corpora = DocumentCorpusSupport.shared.openCorpora()
+        let corpora = DocumentCorpusSupport.openCorpora()
         check(!corpora.isEmpty, "a project is open right now",
               corpora.map(\.name).joined(separator: ", "))
 

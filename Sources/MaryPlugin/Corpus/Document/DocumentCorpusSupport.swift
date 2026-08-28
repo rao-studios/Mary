@@ -29,6 +29,20 @@
 //  reads need. A crash leaves a lock file behind, which is why the two are
 //  paired rather than either being trusted alone.
 //
+//  ⚠️ NO ROSTER OF ITS OWN, and it briefly had one. This file first shipped
+//  with a `DocumentCorpusRegistration` and a registry beside it — the same
+//  four fields, the same frozen swap, fed by a reconciler that differed from
+//  the existing one by a single guard. Two answers to "which applications
+//  have a corpus", from one declaration, kept in step by hand.
+//
+//  There IS a real difference between the two consumers, and it is not the
+//  roster: `CorpusObserver` watches a corpus passively for style, this lane
+//  answers the model and drives menus. Different protocols, different
+//  questions, one fact about which applications are involved. So the roster
+//  is `CorpusSupport`'s, and what remains here is the part that is genuinely
+//  about PROJECTS: finding the one an application has open, and deciding
+//  whether it can be acted on.
+//
 
 import AppKit
 import ApplicationServices
@@ -37,38 +51,17 @@ import MaryAmbient
 import MaryFoundation
 import os
 
-public struct DocumentCorpusRegistration: Sendable, Equatable {
-    public let applicationID: String
-    public let bundleIdentifiers: [String]
-    public let displayName: String
-    public let structure: PluginCorpusStructureSchema
-
-    public init(
-        applicationID: String,
-        bundleIdentifiers: [String],
-        displayName: String,
-        structure: PluginCorpusStructureSchema
-    ) {
-        self.applicationID = applicationID
-        self.bundleIdentifiers = bundleIdentifiers
-        self.displayName = displayName
-        self.structure = structure
-    }
-
-    /// PREFIX-MATCHED, and this is the case the rule exists for. Scrivener's
-    /// bundle id carries its major version — `…scrivener3` today,
-    /// `…scrivener4` next year — and the Setapp build adds its own suffix. A
-    /// package naming the family should not stop working at the next
-    /// release, so membership is a prefix test even though nothing here
-    /// launches anything by exact id.
-    public func owns(bundleID: String) -> Bool {
-        bundleIdentifiers.contains { bundleID.lowercased().hasPrefix($0.lowercased()) }
-    }
-}
-
 /// One project, open in one process.
+///
+/// IT CARRIES ITS STRUCTURE rather than reaching back through the
+/// registration for it. A corpus reaches this type only by having one — the
+/// roster is filtered on exactly that — so an `OpenCorpus` with no structure
+/// is a state that cannot occur, and holding it as an optional would make
+/// every reader unwrap something that is never nil and invent a sentence for
+/// a case that never happens.
 public struct OpenCorpus: Sendable, Equatable {
-    public let registration: DocumentCorpusRegistration
+    public let registration: CorpusRegistration
+    public let structure: PluginCorpusStructureSchema
     public let projectRoot: URL
     public let processIdentifier: pid_t
 
@@ -76,24 +69,12 @@ public struct OpenCorpus: Sendable, Equatable {
     public var name: String { projectRoot.deletingPathExtension().lastPathComponent }
 }
 
-public final class DocumentCorpusSupport: @unchecked Sendable {
+public enum DocumentCorpusSupport {
 
-    public static let shared = DocumentCorpusSupport()
-
-    private let box = OSAllocatedUnfairLock<[String: DocumentCorpusRegistration]>(
-        initialState: [:])
-
-    public init() {}
-
-    public func reconcile(_ registrations: [DocumentCorpusRegistration]) {
-        let map = Dictionary(
-            registrations.map { ($0.applicationID, $0) },
-            uniquingKeysWith: { first, _ in first })
-        box.withLock { $0 = map }
-    }
-
-    public func all() -> [DocumentCorpusRegistration] {
-        box.withLock { Array($0.values) }.sorted { $0.applicationID < $1.applicationID }
+    /// The declared corpora that are PROJECTS. Read from the one roster, not
+    /// kept in a second one — see the header.
+    public static func all() -> [CorpusRegistration] {
+        CorpusSupport.shared.withStructure.sorted { $0.applicationID < $1.applicationID }
     }
 
     // MARK: - What is open
@@ -103,7 +84,7 @@ public final class DocumentCorpusSupport: @unchecked Sendable {
     /// EVERY WINDOW, not just the front one: a writer with two manuscripts
     /// open has two, and naming one of them should reach it without first
     /// bringing it forward.
-    public func openCorpora() -> [OpenCorpus] {
+    public static func openCorpora() -> [OpenCorpus] {
         let declared = all()
         guard !declared.isEmpty else { return [] }
 
@@ -117,11 +98,13 @@ public final class DocumentCorpusSupport: @unchecked Sendable {
             let pid = application.processIdentifier
             let element = AXUIElementCreateApplication(pid)
             for window in AX.children(element, kAXWindowsAttribute) {
-                guard let root = Self.projectRoot(
-                    ofWindow: window, structure: registration.structure) else { continue }
+                guard let structure = registration.structure,
+                      let root = projectRoot(ofWindow: window, structure: structure)
+                else { continue }
                 guard !found.contains(where: { $0.projectRoot == root }) else { continue }
                 found.append(OpenCorpus(
                     registration: registration,
+                    structure: structure,
                     projectRoot: root,
                     processIdentifier: pid))
             }
@@ -157,7 +140,7 @@ public final class DocumentCorpusSupport: @unchecked Sendable {
     /// a name that matches nothing must refuse rather than silently answering
     /// about a different book. Otherwise: the only one open, and nil when two
     /// are and nothing said which.
-    public func resolve(_ named: String?) -> Result<OpenCorpus, Refusal> {
+    public static func resolve(_ named: String?) -> Result<OpenCorpus, Refusal> {
         let open = openCorpora()
         guard !open.isEmpty else {
             return .failure(all().isEmpty ? .noneDeclared : .noneOpen(all().map(\.displayName)))
@@ -208,7 +191,8 @@ public final class DocumentCorpusSupport: @unchecked Sendable {
     /// be read off disk while its application is busy; only a menu-driven
     /// change needs the application present and attending.
     public static func isOpenForEditing(_ corpus: OpenCorpus) -> Bool {
-        let states = corpus.registration.structure.openState
+        let structure = corpus.structure
+        let states = structure.openState
         if states.contains(.alwaysOpen) { return true }
         var satisfied = true
         if states.contains(.runningApplication) {
@@ -216,7 +200,7 @@ public final class DocumentCorpusSupport: @unchecked Sendable {
                 && NSRunningApplication(processIdentifier: corpus.processIdentifier)?
                     .isTerminated == false
         }
-        if states.contains(.lockFile), let path = corpus.registration.structure.lockFilePath {
+        if states.contains(.lockFile), let path = structure.lockFilePath {
             // A CRASH LEAVES A LOCK BEHIND, which is exactly why this is
             // paired with the process check rather than trusted alone — a
             // stale lock would otherwise say "open" about a project nothing

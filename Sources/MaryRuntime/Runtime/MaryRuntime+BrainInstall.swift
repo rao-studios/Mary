@@ -94,6 +94,11 @@ extension MaryRuntime {
             proseSurfaceRegistrations(from: load.snapshot))
         // AND THE CORPORA. Same reconcile, same reason: which applications
         // Mary can learn the shape of is a fact about the installed packages.
+        // ONE ROSTER FOR BOTH CORPUS CONSUMERS — the passive style crawl and
+        // the document lane that answers the model. They ask different
+        // questions of a corpus; they must not disagree about which
+        // applications have one. The document lane filters this roster on
+        // `structure` rather than keeping a second copy of it.
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
         installCorpusPipeline()
         // AND THE TRANSPORTS, on the same activation and for the same reason:
@@ -110,10 +115,6 @@ extension MaryRuntime {
         // so they are read off the PACKAGE rather than off its plugin.
         WebCanvasSupport.shared.reconcile(
             webCanvasRegistrations(from: load.snapshot))
-        // AND THE WRITING PROJECTS. A corpus that declares a `structure` is a
-        // project on disk rather than only a notation to learn the style of.
-        DocumentCorpusSupport.shared.reconcile(
-            documentCorpusRegistrations(from: load.snapshot))
 
         // 4. THE BRAIN'S PROVIDERS.
         let deps = FocusResolutionContext(observers: observers)
@@ -228,26 +229,6 @@ extension MaryRuntime {
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,
                 schema: surface)
-        }
-    }
-
-    package static func documentCorpusRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
-    ) -> [DocumentCorpusRegistration] {
-        snapshot.records.compactMap { record -> DocumentCorpusRegistration? in
-            guard record.validation.isValid,
-                  let plugin = record.package.plugin,
-                  // ONLY A CORPUS WITH A `structure`. A notation-only corpus
-                  // (xcode.mary) describes files to learn from, not a project
-                  // with an outline — registering it here would offer an
-                  // outline read against something that has none.
-                  let structure = plugin.corpus?.structure
-            else { return nil }
-            return DocumentCorpusRegistration(
-                applicationID: plugin.application.id,
-                bundleIdentifiers: plugin.application.bundleIdentifiers,
-                displayName: plugin.application.title,
-                structure: structure)
         }
     }
 

@@ -40,11 +40,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     public let applicationIdentifiers: Set<String> = []
     public let abilities: Set<AbilityID> = [.writing]
 
-    private let support: DocumentCorpusSupport
-
-    public init(support: DocumentCorpusSupport = .shared) {
-        self.support = support
-    }
+    public init() {}
 
     public var skillBindings: [SkillBinding] {
         [readOutline, readDocument, searchCorpus, corpusProgress]
@@ -112,7 +108,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     }
 
     func project(_ named: String?) -> Resolved {
-        switch support.resolve(named) {
+        switch DocumentCorpusSupport.resolve(named) {
         case .success(let corpus): return .corpus(corpus)
         case .failure(let refusal):
             return .refused(SkillOutcome(ok: false, summary: refusal.spoken))
@@ -129,7 +125,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
 
     func outline(_ corpus: OpenCorpus) -> Outlined {
         switch DocumentCorpusReader.outline(
-            projectRoot: corpus.projectRoot, structure: corpus.registration.structure) {
+            projectRoot: corpus.projectRoot, structure: corpus.structure) {
         case .success(let items): return .items(items)
         case .failure(let failure):
             return .refused(SkillOutcome(ok: false, summary: failure.spoken))
@@ -245,7 +241,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 case .one(let item):
                     switch DocumentCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
-                        structure: corpus.registration.structure) {
+                        structure: corpus.structure) {
                     case .failure(let failure):
                         return SkillOutcome(
                             ok: true, summary: failure.spoken, foundNothing: true)
@@ -296,7 +292,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                     guard hits.count < Self.searchLimit else { break }
                     guard case .success(let text) = DocumentCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
-                        structure: corpus.registration.structure) else { continue }
+                        structure: corpus.structure) else { continue }
                     guard let range = text.range(
                         of: query, options: [.caseInsensitive, .diacriticInsensitive])
                     else { continue }
@@ -344,7 +340,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 for item in documents {
                     guard case .success(let text) = DocumentCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
-                        structure: corpus.registration.structure) else { continue }
+                        structure: corpus.structure) else { continue }
                     let count = text.split(whereSeparator: \.isWhitespace).count
                     words += count
                     if count > 0 { written += 1 }
