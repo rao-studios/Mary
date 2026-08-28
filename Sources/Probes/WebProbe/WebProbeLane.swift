@@ -117,9 +117,13 @@ enum WebProbeLane {
             !browsingSkills.isEmpty, "browsing skills reached the roster",
             "\(browsingSkills.count)")
 
+        // NOT VACUOUSLY. With no skills loaded at all, "none is blocked" is
+        // true and reassuring and means nothing — which is exactly what it
+        // printed the first time the packages failed to seal, right beside
+        // the three checks that had already said so.
         let blocked = browsingSkills.filter { $0.availability.readiness == .blocked }
         check(
-            blocked.isEmpty, "no browsing skill is blocked",
+            blocked.isEmpty && !browsingSkills.isEmpty, "no browsing skill is blocked",
             blocked.isEmpty
                 ? "\(browsingSkills.count) offered"
                 : blocked.map { skill in

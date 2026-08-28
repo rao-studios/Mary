@@ -154,6 +154,49 @@ final class BrowserTabRosterTests: XCTestCase {
         XCTAssertEqual(tabs.map(\.isCurrent), [false, true])
     }
 
+    // MARK: - The browser's own diagnostics
+
+    /// FOUND LIVE. Chrome publishes a tab's accessibility name as
+    /// "<title> - Memory usage - 772 MB", so the first working `list_tabs`
+    /// read four tab names back to the user each ending in a number that
+    /// changes every few seconds — and a name that changes is a poor thing to
+    /// match on, so "switch to the pull request tab" would be matching
+    /// against a string that had already moved.
+    func testADeclaredNoiseMarkerTrimsTheDiagnosticAndWhatFollowsIt() {
+        let cleaned = BrowserTabRoster.cleaned(
+            "Pull Request #1 · rao-studios/MaryOS - Memory usage - 772 MB",
+            markers: ["Memory usage"])
+        XCTAssertEqual(cleaned, "Pull Request #1 · rao-studios/MaryOS")
+    }
+
+    /// The title's own dashes survive: only the marked segment onward goes.
+    func testDashesInsideTheTitleAreKept() {
+        let cleaned = BrowserTabRoster.cleaned(
+            "Software Engineer - Platform - Bluecoders - Memory usage - 124 MB",
+            markers: ["Memory usage"])
+        XCTAssertEqual(cleaned, "Software Engineer - Platform - Bluecoders")
+    }
+
+    func testANameWithNoDiagnosticIsUntouched() {
+        XCTAssertEqual(
+            BrowserTabRoster.cleaned("Hacker News", markers: ["Memory usage"]),
+            "Hacker News")
+    }
+
+    func testNoDeclaredMarkersMeansNoTrimming() {
+        let raw = "Anything - Memory usage - 1 MB"
+        XCTAssertEqual(BrowserTabRoster.cleaned(raw, markers: []), raw)
+    }
+
+    /// NEVER THE FIRST SEGMENT. A page genuinely titled "Memory usage" would
+    /// otherwise read as an empty tab — and an empty name is worse than a
+    /// noisy one, because it can neither be spoken nor matched.
+    func testAPageWhoseWholeTitleIsTheMarkerKeepsIt() {
+        XCTAssertEqual(
+            BrowserTabRoster.cleaned("Memory usage", markers: ["Memory usage"]),
+            "Memory usage")
+    }
+
     // MARK: - Resolving what the user said
 
     private func resolve(

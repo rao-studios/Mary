@@ -95,6 +95,21 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
     /// finds an unnamed strip in one of them, silently.
     public var tabNameAttribute: PluginElementTextAttribute
 
+    /// Words that mark the start of DIAGNOSTIC text a browser appends to a
+    /// tab's published name, rather than part of the page's title.
+    ///
+    /// MEASURED, and not a nicety: Chrome publishes a tab's accessibility
+    /// name as "<title> - Memory usage - 772 MB", so the name Mary reads back
+    /// to the user ends in a number that changes every few seconds. It also
+    /// makes a name a poor thing to match on — the same tab is a different
+    /// string one minute later.
+    ///
+    /// A DECLARED LIST RATHER THAN A PATTERN IN THE READER, because which
+    /// diagnostics a browser volunteers is a fact about that browser, and the
+    /// next one will volunteer different ones. The reader knows only the
+    /// SHAPE: a trailing dash-separated segment, from the marker onward.
+    public var tabNameNoiseMarkers: [String]
+
     /// How to tell which tab is current.
     public var selectionSignal: PluginTabSelectionSignal
 
@@ -130,6 +145,7 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
         tabStripSubrole: String? = nil,
         tabRole: String = "AXRadioButton",
         tabNameAttribute: PluginElementTextAttribute,
+        tabNameNoiseMarkers: [String] = [],
         selectionSignal: PluginTabSelectionSignal,
         closeAffordance: PluginTabCloseAffordance = .chordOnly,
         closeControlLabel: String? = nil,
@@ -142,6 +158,7 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
         self.tabStripSubrole = tabStripSubrole
         self.tabRole = tabRole
         self.tabNameAttribute = tabNameAttribute
+        self.tabNameNoiseMarkers = tabNameNoiseMarkers
         self.selectionSignal = selectionSignal
         self.closeAffordance = closeAffordance
         self.closeControlLabel = closeControlLabel
@@ -153,6 +170,7 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case tabStripRole, tabStripSubrole, tabRole, tabNameAttribute
+        case tabNameNoiseMarkers
         case selectionSignal, closeAffordance, closeControlLabel
         case newTabChord, closeTabChord, addressChord, ordinalChordFallback
     }
@@ -165,6 +183,8 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
         tabRole = try values.decodeIfPresent(String.self, forKey: .tabRole) ?? "AXRadioButton"
         tabNameAttribute = try values.decode(
             PluginElementTextAttribute.self, forKey: .tabNameAttribute)
+        tabNameNoiseMarkers = try values.decodeIfPresent(
+            [String].self, forKey: .tabNameNoiseMarkers) ?? []
         selectionSignal = try values.decode(
             PluginTabSelectionSignal.self, forKey: .selectionSignal)
         closeAffordance = try values.decodeIfPresent(
@@ -190,6 +210,9 @@ public struct PluginBrowserSurfaceSchema: Codable, Hashable, Sendable {
         }
         if tabRole != "AXRadioButton" { try container.encode(tabRole, forKey: .tabRole) }
         try container.encode(tabNameAttribute, forKey: .tabNameAttribute)
+        if !tabNameNoiseMarkers.isEmpty {
+            try container.encode(tabNameNoiseMarkers, forKey: .tabNameNoiseMarkers)
+        }
         try container.encode(selectionSignal, forKey: .selectionSignal)
         if closeAffordance != .chordOnly {
             try container.encode(closeAffordance, forKey: .closeAffordance)

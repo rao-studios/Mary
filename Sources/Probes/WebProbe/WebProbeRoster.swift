@@ -40,6 +40,7 @@ enum WebProbeRoster {
             return .init(
                 tabStripRole: "AXTabGroup",
                 tabNameAttribute: .description,
+                tabNameNoiseMarkers: ["Memory usage"],
                 selectionSignal: .selectedAttribute,
                 closeAffordance: .childButton,
                 closeControlLabel: "Close",

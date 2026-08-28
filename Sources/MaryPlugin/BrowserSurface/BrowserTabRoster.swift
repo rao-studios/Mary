@@ -89,9 +89,10 @@ public enum BrowserTabRoster {
         let children = AX.children(strip)
             .filter { AX.string($0, kAXRoleAttribute) == surface.tabRole }
 
-        let names = children.map {
-            AX.string($0, surface.tabNameAttribute.attributeName)?
-                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let names = children.map { child in
+            cleaned(
+                AX.string(child, surface.tabNameAttribute.attributeName) ?? "",
+                markers: surface.tabNameNoiseMarkers)
         }
         let selectedFlags = children.map {
             AX.number($0, kAXSelectedAttribute)?.boolValue
@@ -100,6 +101,37 @@ public enum BrowserTabRoster {
             names: names, selectedFlags: selectedFlags,
             windowTitle: windowTitle, surface: surface,
             element: { children[$0] })
+    }
+
+    /// The tab's name with the browser's own diagnostics trimmed off.
+    ///
+    /// THE READER KNOWS THE SHAPE, THE PACKAGE KNOWS THE WORDS. Chrome
+    /// publishes "<title> - Memory usage - 772 MB", so without this the name
+    /// Mary reads back ends in a number that changes every few seconds — and
+    /// worse, a name that changes is a poor thing to match on, so "switch to
+    /// the pull request tab" would work against a string that had already
+    /// moved. The marker words come from the declaration because the next
+    /// browser will append something else.
+    ///
+    /// Cuts from the START of the segment containing a marker, because the
+    /// diagnostic itself is several segments ("Memory usage" then "772 MB")
+    /// and dropping only the marked one leaves the number behind.
+    static func cleaned(_ raw: String, markers: [String]) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !markers.isEmpty, !trimmed.isEmpty else { return trimmed }
+
+        let separator = " - "
+        let segments = trimmed.components(separatedBy: separator)
+        // Never the FIRST segment: a page genuinely titled "Memory usage"
+        // would otherwise read as an empty tab, and an empty name is worse
+        // than a noisy one — it cannot be spoken or matched at all.
+        guard let cut = segments.indices.dropFirst().first(where: { index in
+            markers.contains { marker in
+                segments[index].localizedCaseInsensitiveContains(marker)
+            }
+        }) else { return trimmed }
+        return segments[..<cut].joined(separator: separator)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Find the declared container.

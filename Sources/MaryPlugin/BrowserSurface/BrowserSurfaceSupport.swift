@@ -90,12 +90,24 @@ public final class BrowserSurfaceSupport: @unchecked Sendable {
 
     /// Every declared browser currently running, for a caller that must name
     /// the rivals in a refusal rather than merely report that there were some.
+    ///
+    /// REGULAR APPLICATIONS ONLY, AND DEDUPLICATED — and the first live run
+    /// needed both. `runningBrowsers` reports `isRegularApplication` as a
+    /// FIELD rather than filtering on it, because the ladder wants helpers
+    /// visible in order to reject them; a caller that forgets to filter gets
+    /// every XPC helper too. Their bundle ids prefix-match their browser's
+    /// (`com.google.Chrome.helper`, and `com.apple.Safari` is genuinely a
+    /// prefix of `com.apple.SafariPlatformSupport.Helper`), so the refusal
+    /// read "Google Chrome and Google Chrome are both open — which one?"
     public func runningDisplayNames() -> [String] {
         let declared = all()
+        var seen: Set<String> = []
         return BrowserTargetResolver.runningBrowsers()
+            .filter(\.isRegularApplication)
             .compactMap { candidate in
                 declared.first { $0.owns(bundleID: candidate.bundleID) }?.displayName
             }
+            .filter { seen.insert($0).inserted }
             .sorted()
     }
 }

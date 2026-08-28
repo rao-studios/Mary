@@ -44,6 +44,8 @@ import MaryPlugin
 let arguments = CommandLine.arguments
 let verb = arguments.count > 1 ? arguments[1] : ""
 
+func flag(_ name: String) -> Bool { arguments.contains(name) }
+
 func value(_ name: String) -> String? {
     guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
     else { return nil }
@@ -57,6 +59,7 @@ func usage() -> Never {
       wake    [--app <name> | --pid <n> | --bundle <id>]  wake signals + timing
       tabs    [--app <name> | --pid <n>]                  the tab strip's AX shape
       windows [--app <name> | --pid <n>]                  where the page is, vs where the lane looks
+      skills  [--act]                                   call the browsing Skills for real
       lane                                                does the browsing lane load and offer its skills
       roster  [--switch <name|ordinal>]                    the tab roster, through the shipped code
       address [--set <url>]                              can the address bar be SET, not typed
@@ -121,6 +124,9 @@ case "windows":
         exit(1)
     }
     await WebProbeWindows.run(application)
+
+case "skills":
+    await WebProbeSkills.run(act: flag("--act"))
 
 case "lane":
     await WebProbeLane.run()

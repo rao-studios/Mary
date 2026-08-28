@@ -109,7 +109,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "37eccf76dacd959df16ac95e109e2f9ba9272196d7da1898711e4a0b4bbd6a73"
+    "digest" : "1bf5bfd21cd2428b10f40413951655a3422249c83140049429bd1b4108b497b8"
   },
   "interactions" : [
 
@@ -185,6 +185,9 @@
       },
       "selectionSignal" : "selectedAttribute",
       "tabNameAttribute" : "description",
+      "tabNameNoiseMarkers" : [
+        "Memory usage"
+      ],
       "tabStripRole" : "AXTabGroup"
     },
     "id" : "chrome",
