@@ -59,6 +59,7 @@ func usage() -> Never {
       wake    [--app <name> | --pid <n> | --bundle <id>]  wake signals + timing
       tabs    [--app <name> | --pid <n>]                  the tab strip's AX shape
       windows [--app <name> | --pid <n>]                  where the page is, vs where the lane looks
+      canvas  [--browser <name>]                          drive a declared web canvas end to end
       skills  [--act]                                   call the browsing Skills for real
       lane                                                does the browsing lane load and offer its skills
       roster  [--switch <name|ordinal>]                    the tab roster, through the shipped code
@@ -124,6 +125,9 @@ case "windows":
         exit(1)
     }
     await WebProbeWindows.run(application)
+
+case "canvas":
+    await WebProbeCanvas.run(browser: value("--browser"))
 
 case "skills":
     await WebProbeSkills.run(act: flag("--act"))

@@ -131,6 +131,30 @@ enum WebProbeLane {
                         + (skill.availability.reasons.first ?? "no reason given")
                 }.sorted().joined(separator: "; "))
 
+        // THE CANVAS LANE, which is a different question: a web canvas is
+        // declared on the PACKAGE rather than on a plugin, so it reconciles
+        // through its own path and can be absent while browsing is perfect.
+        let canvases = MaryRuntime.webCanvasRegistrations(from: load.snapshot)
+        WebCanvasSupport.shared.reconcile(canvases)
+        if !canvases.isEmpty {
+            check(
+                true, "a web canvas is declared",
+                canvases.map(\.canvasID).sorted().joined(separator: ", "))
+            let canvasSkills = load.snapshot.skills.filter { skill in
+                canvases.contains { skill.id.rawValue.hasPrefix("\($0.canvasID).") }
+            }
+            let canvasBlocked = canvasSkills.filter { $0.availability.readiness == .blocked }
+            check(
+                canvasBlocked.isEmpty && !canvasSkills.isEmpty,
+                "no canvas skill is blocked",
+                canvasBlocked.isEmpty
+                    ? "\(canvasSkills.count) offered"
+                    : canvasBlocked.map { skill in
+                        "\(skill.id.rawValue): "
+                            + (skill.availability.reasons.first ?? "no reason given")
+                    }.sorted().joined(separator: "; "))
+        }
+
         let partial = browsingSkills.filter { $0.availability.readiness == .partial }
         if !partial.isEmpty {
             print("      partial: " + partial.map(\.id.rawValue).sorted()

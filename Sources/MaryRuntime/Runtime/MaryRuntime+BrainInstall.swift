@@ -106,6 +106,10 @@ extension MaryRuntime {
         // web page on screen is an unrecognized application.
         BrowserSurfaceSupport.shared.reconcile(
             browserSurfaceRegistrations(from: load.snapshot))
+        // AND THE WEB CANVASES — declared places that are not applications,
+        // so they are read off the PACKAGE rather than off its plugin.
+        WebCanvasSupport.shared.reconcile(
+            webCanvasRegistrations(from: load.snapshot))
 
         // 4. THE BRAIN'S PROVIDERS.
         let deps = FocusResolutionContext(observers: observers)
@@ -220,6 +224,19 @@ extension MaryRuntime {
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,
                 schema: surface)
+        }
+    }
+
+    package static func webCanvasRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [WebCanvasRegistration] {
+        snapshot.records.compactMap { record -> WebCanvasRegistration? in
+            guard record.validation.isValid, let canvas = record.package.webCanvas
+            else { return nil }
+            return WebCanvasRegistration(
+                canvasID: record.package.ability.id.rawValue,
+                displayName: record.package.ability.title,
+                schema: canvas)
         }
     }
 

@@ -87,6 +87,16 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     public var dependencies: [AbilityPackageDependency]
     public var fixtures: [AbilityFixture]
     public var plugin: PluginSchema?
+
+    /// A place on the WEB this package teaches, if it teaches one.
+    ///
+    /// BESIDE `plugin` AND NOT INSIDE IT, because a web tool is not an
+    /// application: it has no bundle identifier and no process, it is reached
+    /// THROUGH a browser and is not the browser. A package that claimed a
+    /// browser's identity in order to describe a site would collide with the
+    /// package that legitimately owns that browser. See `WebCanvasSchema`.
+    public var webCanvas: WebCanvasSchema?
+
     public var integrity: AbilityPackageIntegrity?
 
     public init(
@@ -101,6 +111,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         dependencies: [AbilityPackageDependency] = [],
         fixtures: [AbilityFixture] = [],
         plugin: PluginSchema? = nil,
+        webCanvas: WebCanvasSchema? = nil,
         integrity: AbilityPackageIntegrity? = nil
     ) {
         self.format = Self.format
@@ -116,6 +127,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         self.dependencies = dependencies
         self.fixtures = fixtures
         self.plugin = plugin
+        self.webCanvas = webCanvas
         self.integrity = integrity
     }
 
@@ -133,6 +145,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         case dependencies
         case fixtures
         case plugin
+        case webCanvas
         case integrity
     }
 
@@ -155,6 +168,8 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         fixtures = try values.decode([AbilityFixture].self, forKey: .fixtures)
         plugin = try values.decodeIfPresent(
             PluginSchema.self, forKey: .plugin)
+        webCanvas = try values.decodeIfPresent(
+            WebCanvasSchema.self, forKey: .webCanvas)
         integrity = try values.decodeIfPresent(
             AbilityPackageIntegrity.self, forKey: .integrity)
     }

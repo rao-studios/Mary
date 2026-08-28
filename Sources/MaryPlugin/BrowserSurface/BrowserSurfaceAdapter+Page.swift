@@ -191,7 +191,22 @@ extension BrowserSurfaceAdapter {
                     // A PASTE, not the typer: a field with an autocomplete
                     // attached fires on every keystroke, and a chunked type
                     // races a dropdown that rewrites what is underneath it.
-                    return await WebSurface.replaceAll(with: text)
+                    guard await WebSurface.replaceAll(with: text) else { return false }
+                    try? await Task.sleep(for: .milliseconds(200))
+
+                    // AND READ IT BACK. Every other verb in this lane
+                    // confirms — a tab press is checked against the roster, a
+                    // page press against the title — and this one reported
+                    // success on the strength of having sent a paste. A field
+                    // that silently rejected it, or that a dropdown rewrote
+                    // underneath, looked identical to one that took it.
+                    //
+                    // Compared by CONTAINMENT rather than equality: a field
+                    // with a formatter reformats what it is given, and
+                    // demanding a byte match would call a working fill a
+                    // failure.
+                    let landed = AX.string(element.axElement, kAXValueAttribute) ?? ""
+                    return landed.contains(text)
                 }
             })
     }

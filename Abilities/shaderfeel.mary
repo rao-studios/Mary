@@ -1,0 +1,318 @@
+{
+  "ability" : {
+    "aliases" : [
+      "shaderfeel",
+      "how i feel",
+      "a feeling"
+    ],
+    "applications" : [
+
+    ],
+    "id" : "shaderfeel",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "browsing"
+      ],
+      "guardrails" : [
+        "Write the shader now, for this moment; never reach for one written before.",
+        "Never read the code aloud — the point is the picture, not the source.",
+        "Say what the editor said. A tool that printed nothing has not said it worked."
+      ],
+      "phases" : [
+        "feel",
+        "write-the-shader",
+        "place-it",
+        "report-what-the-tool-said"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "no browser running",
+        "the editor never appeared"
+      ],
+      "successSignals" : [
+        "the shader is on screen and the editor reported no problem"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "feeling"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "feel"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "mood"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 150
+    },
+    "skills" : [
+      "shaderfeel.render-feeling"
+    ],
+    "summary" : "Answer how it feels by writing a shader for this moment and putting it on screen.",
+    "tint" : "#7B61FF",
+    "title" : "ShaderFeel",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+        "feel about",
+        "feelings about"
+      ],
+      "phrases" : [
+        "how are you feeling",
+        "what are you feeling",
+        "show me how you feel",
+        "what does that feel like"
+      ],
+      "tokens" : [
+        "feeling",
+        "feel",
+        "mood",
+        "shader"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-canvas"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.canvas.compose",
+      "inputType" : "browsing.canvas-request",
+      "outputType" : "browsing.canvas-verdict",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Open the tool, place text in its editor, and read the page back."
+        }
+      ],
+      "summary" : "Put a body of text into a web tool that runs it, and read back what it said.",
+      "title" : "Compose In a Web Tool",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "browsing"
+    }
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "shaderfeel.render-feeling",
+      "id" : "how-are-you-feeling",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-canvas",
+      "utterance" : "How are you feeling?"
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "b4324865ffdfe241c92dda5c7088eb1c1a2b3714bdcfd9500323b3815e5b30ef"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "shaderfeel",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Answer how it feels with a shader written for this moment.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "compose_in_web_canvas",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-canvas"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "shaderfeel.render-feeling",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "show_feeling_shader",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "content",
+            "required" : true,
+            "summary" : "A complete GLSL fragment shader with a mainImage entry point, written now for this moment.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "opening",
+            "required" : false,
+            "summary" : "One sentence naming the feeling, said before the tool's verdict.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.canvas.compose"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+          "browsing"
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferDirectInteraction",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 240
+      },
+      "summary" : "Write a GLSL shader for how this moment feels and put it on screen.",
+      "title" : "Show a Feeling",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.canvas-request",
+      "shape" : "string",
+      "summary" : "The text to place in a web tool's editor.",
+      "title" : "Canvas Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.canvas-verdict",
+      "shape" : "string",
+      "summary" : "What the tool said about what it was given.",
+      "title" : "Canvas Verdict",
+      "version" : "1.0.0"
+    }
+  ],
+  "webCanvas" : {
+    "address" : "https://www.shadertoy.com/new",
+    "consentLabels" : [
+      "Accept",
+      "I Accept",
+      "Got it",
+      "Accept all"
+    ],
+    "contentLimitBytes" : 32000,
+    "contentNoun" : "shader",
+    "diagnosticPhrases" : [
+      "ERROR:",
+      "error:",
+      "syntax error",
+      "compilation failed"
+    ],
+    "editorHints" : [
+      "Shader code"
+    ],
+    "requiredContentMarker" : "mainImage",
+    "runChord" : {
+      "key" : "return",
+      "modifiers" : [
+        "option"
+      ]
+    },
+    "statusMarker" : "Compiled in"
+  }
+}

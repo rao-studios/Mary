@@ -155,6 +155,15 @@ enum WebProbeSkills {
         if let repeated = Self.repeatedLabel(in: page) {
             await call("click_on_page", ["target": repeated, "browser": registration.displayName])
         }
+        // FILLING A FIELD — the same focus-then-replace path the web-canvas
+        // lane uses to put a shader in an editor, which is the half of that
+        // choreography a fixture cannot reach.
+        if let field = page.first(where: { $0.kind == .field }) {
+            await call(
+                "fill_in_page",
+                ["target": field.label, "text": "mary was here",
+                 "browser": registration.displayName])
+        }
         // AND THE ROAD THAT REFUSAL PROMISES. It tells the user to name the
         // thing by number, so this proves that form actually resolves — a
         // refusal offering an answer that does not work is worse than one
