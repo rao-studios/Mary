@@ -88,6 +88,11 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
     /// values back declares where to look rather than shipping a reader.
     public var proseSurface: PluginProseSurfaceSchema?
 
+    /// Where this application keeps its TRANSPORT, for the same reason and by
+    /// the same road: a player's state has to come back as a value, and a
+    /// recipe cannot return one. See `PluginMediaSurfaceSchema`.
+    public var mediaSurface: PluginMediaSurfaceSchema?
+
     /// The single-adapter view. Valid Plugins always declare at least one.
     public var adapter: PluginAdapterSchema {
         get { adapters[0] }
@@ -111,7 +116,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         adapter: PluginAdapterSchema,
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
-        proseSurface: PluginProseSurfaceSchema? = nil
+        proseSurface: PluginProseSurfaceSchema? = nil,
+        mediaSurface: PluginMediaSurfaceSchema? = nil
     ) {
         self.init(
             id: id,
@@ -121,7 +127,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             adapters: [adapter],
             operations: operations,
             realizations: realizations,
-            proseSurface: proseSurface)
+            proseSurface: proseSurface,
+            mediaSurface: mediaSurface)
     }
 
     public init(
@@ -132,7 +139,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         adapters: [PluginAdapterSchema],
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
-        proseSurface: PluginProseSurfaceSchema? = nil
+        proseSurface: PluginProseSurfaceSchema? = nil,
+        mediaSurface: PluginMediaSurfaceSchema? = nil
     ) {
         self.id = id
         self.version = version
@@ -142,6 +150,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         self.operations = operations
         self.realizations = realizations
         self.proseSurface = proseSurface
+        self.mediaSurface = mediaSurface
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -154,6 +163,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         case operations
         case realizations
         case proseSurface
+        case mediaSurface
     }
 
     public init(from decoder: Decoder) throws {
@@ -173,6 +183,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             [PluginSkillRealizationSchema].self, forKey: .realizations)
         proseSurface = try container.decodeIfPresent(
             PluginProseSurfaceSchema.self, forKey: .proseSurface)
+        mediaSurface = try container.decodeIfPresent(
+            PluginMediaSurfaceSchema.self, forKey: .mediaSurface)
     }
 
     /// Encoding is HAND-WRITTEN, and an absent optional stays absent rather
@@ -196,6 +208,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         try container.encode(realizations, forKey: .realizations)
         if let proseSurface {
             try container.encode(proseSurface, forKey: .proseSurface)
+        }
+        if let mediaSurface {
+            try container.encode(mediaSurface, forKey: .mediaSurface)
         }
     }
 }

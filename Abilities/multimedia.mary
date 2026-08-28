@@ -1,0 +1,793 @@
+{
+  "ability" : {
+    "aliases" : [
+      "multimedia",
+      "music",
+      "playback",
+      "media"
+    ],
+    "applications" : [
+
+    ],
+    "id" : "multimedia",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Transport verbs address the player, never a named application's window — a media key reaches whatever holds the system's now-playing role.",
+        "Never report what is playing from memory; a stale track is worse than no answer.",
+        "Opening a catalog result is not playing it; say what was opened."
+      ],
+      "phases" : [
+        "resolve-player",
+        "read-transport",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "no player running",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the transport reports the state the request asked for",
+        "the player that answered is the one the user meant"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "intent",
+            "value" : "play"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "intent",
+            "value" : "pause"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "workspaceFamily",
+            "value" : "multimedia"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 200
+    },
+    "skills" : [
+      "multimedia.control-playback",
+      "multimedia.now-playing",
+      "multimedia.open-player",
+      "multimedia.play-music",
+      "multimedia.search-music"
+    ],
+    "summary" : "The multimedia discipline: say what is playing, drive the transport, and find a song in the Apple Music catalog. An application joins this discipline by declaring a `mediaSurface` — where its transport lives — which is what lets Mary read its state without naming it in Swift. THE LIBRARY IS NOT HERE, and its absence is deliberate rather than an oversight: playlists, library search and track ratings were Apple Events in the plugin this descends from, and Mary sends none and asks for no Automation grant. They wait on a lane this build does not have.",
+    "tint" : "#FC5C7D",
+    "title" : "Multimedia",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+        "sheet music"
+      ],
+      "phrases" : [
+        "what is playing",
+        "play some music",
+        "pause the music",
+        "skip this song",
+        "next song",
+        "turn it up",
+        "turn it down"
+      ],
+      "tokens" : [
+        "playing",
+        "play",
+        "pause",
+        "skip",
+        "song",
+        "track",
+        "volume",
+        "louder",
+        "quieter",
+        "mute",
+        "shuffle"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "media-player"
+        }
+      ],
+      "effect" : "read",
+      "id" : "player.transport.read",
+      "inputType" : "multimedia.player-query",
+      "outputType" : "multimedia.now-playing-report",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the player's own transport through Accessibility."
+        }
+      ],
+      "summary" : "Report what the player is playing and which modes are on.",
+      "title" : "Read the Transport",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "media-player"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "player.transport.control",
+      "inputType" : "multimedia.transport-request",
+      "outputType" : "multimedia.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Post a system media key."
+        }
+      ],
+      "summary" : "Play, pause, skip or change volume through the system media keys.",
+      "title" : "Drive the Transport",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+
+      ],
+      "effect" : "read",
+      "id" : "catalog.search",
+      "inputType" : "multimedia.catalog-query",
+      "outputType" : "multimedia.catalog-results",
+      "permissions" : [
+        {
+          "kind" : "network",
+          "reason" : "Query the public iTunes Search endpoint."
+        }
+      ],
+      "summary" : "Look a song up in the public Apple Music catalog.",
+      "title" : "Search the Catalog",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "catalog.open",
+      "inputType" : "multimedia.catalog-query",
+      "outputType" : "multimedia.operation-result",
+      "permissions" : [
+        {
+          "kind" : "network",
+          "reason" : "Query the public iTunes Search endpoint."
+        }
+      ],
+      "summary" : "Hand a catalog song to the player registered for Store links.",
+      "title" : "Open a Catalog Song",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "media-player"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "player.open",
+      "inputType" : "multimedia.player-query",
+      "outputType" : "multimedia.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Bring the player forward while it owns the stage."
+        }
+      ],
+      "summary" : "Bring a music player forward so the user can see it.",
+      "title" : "Open the Player",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.now-playing",
+      "id" : "ask-whats-playing",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "What's playing?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "pause-the-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Pause the music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "skip-this-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Skip this song."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-a-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play Stand by Me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.open-player",
+      "id" : "open-the-player",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Open my music."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "9fe6ed7fd40f7241778791b218c9fe26b002e488d1ce60d320da0df68e46395c"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "multimedia",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Say what is playing, drive the transport, and search the Apple Music catalog.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+    {
+      "freshnessSeconds" : 4,
+      "id" : "perception.player-transport",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "The observed transport of a running media player: what is playing and which modes are on.",
+      "title" : "Player Transport",
+      "valueType" : "multimedia.now-playing-report",
+      "version" : "1.0.0"
+    }
+  ],
+  "skills" : [
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "now_playing",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.now-playing",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "now_playing",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which player. Omit for the one that's running.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "player.transport.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 220
+      },
+      "summary" : "Report the current track and whether the player is playing, shuffling or repeating.",
+      "title" : "Say What's Playing",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "control_playback",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.control-playback",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "control_playback",
+        "parameters" : [
+          {
+            "enumValues" : [
+              "play",
+              "pause",
+              "next",
+              "previous",
+              "louder",
+              "quieter",
+              "mute"
+            ],
+            "name" : "action",
+            "required" : true,
+            "summary" : "What to do.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "player.transport.control"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Play, pause, skip or change the volume of whatever is playing.",
+      "title" : "Control Playback",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "search_music",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.search-music",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "search_music",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "What to look for.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "artist",
+            "required" : false,
+            "summary" : "Artist hint.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "catalog.search"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Search the Apple Music catalog for songs without playing them.",
+      "title" : "Search the Catalog",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "play_music",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.play-music",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "play_music",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "What to play.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "artist",
+            "required" : false,
+            "summary" : "Artist hint.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "catalog.open"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Find a song in the Apple Music catalog and open it in the player.",
+      "title" : "Play a Song",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.open-player",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "open_player",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "player.open"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Bring the music player forward.",
+      "title" : "Open the Player",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.player-query",
+      "shape" : "string",
+      "summary" : "Which player a question addresses.",
+      "title" : "Player Query",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.now-playing-report",
+      "shape" : "string",
+      "summary" : "What the player reported about its current item and modes.",
+      "title" : "Now Playing Report",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.transport-request",
+      "shape" : "string",
+      "summary" : "A transport verb to send.",
+      "title" : "Transport Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.operation-result",
+      "shape" : "string",
+      "summary" : "What the player reported back.",
+      "title" : "Operation Result",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.catalog-query",
+      "shape" : "string",
+      "summary" : "A catalog search term.",
+      "title" : "Catalog Query",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "multimedia.catalog-results",
+      "shape" : "string",
+      "summary" : "Songs the catalog returned.",
+      "title" : "Catalog Results",
+      "version" : "1.0.0"
+    }
+  ]
+}

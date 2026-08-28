@@ -56,6 +56,7 @@ let package = Package(
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
         .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
+        .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -320,6 +321,14 @@ let package = Package(
             name: "GPUProbe",
             dependencies: ["MaryBrain"],
             path: "Sources/Probes/GPUProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The join no test can make: a package's declared transport labels on
+        // one side, a live player's Accessibility tree on the other.
+        .executableTarget(
+            name: "MediaProbe",
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryFoundation"],
+            path: "Sources/Probes/MediaProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

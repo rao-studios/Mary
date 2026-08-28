@@ -184,11 +184,20 @@ extension PluginValidator {
         // would be a workspace class with nothing there: a perception card
         // asserting live knowledge of a document, and a passage gate opening
         // onto a reader that was never pointed anywhere.
-        if application.perception?.kind == .workspace, plugin.proseSurface == nil {
+        //
+        // EITHER CHANNEL SATISFIES IT, and the plural is the point: a prose
+        // surface is one observation adapter Mary ships, a media surface is
+        // another, and a player that declares where its transport lives has
+        // been pointed at just as precisely as an editor that declares where
+        // its text lives. Naming only the first would have made a media
+        // package choose between claiming a perception it could not back and
+        // declining eyes it had genuinely earned.
+        if application.perception?.kind == .workspace,
+           plugin.proseSurface == nil, plugin.mediaSurface == nil {
             error(
                 "unsupported-workspace-perception",
                 "\(root).application.perception.kind",
-                "A workspace perception claim requires a proseSurface: an observation adapter is the only document channel a Plugin may be observed through.")
+                "A workspace perception claim requires a proseSurface or a mediaSurface: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
         }
 
         if plugin.adapters.isEmpty {

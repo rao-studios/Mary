@@ -92,6 +92,10 @@ extension MaryRuntime {
         // because importing or editing a package changes the answer.
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))
+        // AND THE TRANSPORTS, on the same activation and for the same reason:
+        // a package that stops declaring a player must stop having one.
+        MediaSurfaceSupport.shared.reconcile(
+            mediaSurfaceRegistrations(from: load.snapshot))
 
         // 4. THE BRAIN'S PROVIDERS.
         let deps = FocusResolutionContext(observers: observers)
@@ -148,6 +152,28 @@ extension MaryRuntime {
     /// never a stale copy from the last activation.
     /// `package` so the behavior probe can install the SAME registrations the
     /// app does. A probe that hand-built its own would be measuring a fixture.
+    /// The declared transports in one activation's package graph.
+    ///
+    /// `proseSurfaceRegistrations`' twin, kept beside it rather than folded
+    /// into one generic walk: the two blocks are independent, a package may
+    /// declare either or both, and a single function returning a pair would
+    /// make every caller take what it did not ask for.
+    package static func mediaSurfaceRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [MediaSurfaceRegistration] {
+        snapshot.records.compactMap { record -> MediaSurfaceRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let surface = plugin.mediaSurface
+            else { return nil }
+            return MediaSurfaceRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: surface)
+        }
+    }
+
     package static func proseSurfaceRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [ProseSurfaceRegistration] {

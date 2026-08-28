@@ -1,0 +1,226 @@
+{
+  "ability" : {
+    "aliases" : [
+      "apple music",
+      "the music app",
+      "itunes"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.Music"
+        ],
+        "id" : "apple-music",
+        "title" : "Apple Music"
+      }
+    ],
+    "id" : "apple-music",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never bring the player forward to change what it is doing; the transport answers without focus.",
+        "Report the track from a live read of the transport, never from the last one."
+      ],
+      "phases" : [
+        "resolve-player",
+        "read-transport",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "player not running",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the transport reports the requested state"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+
+    ],
+    "summary" : "One macOS music player, described rather than compiled in.",
+    "tint" : "#FA586A",
+    "title" : "Apple Music",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in apple music",
+        "in the music app"
+      ],
+      "tokens" : [
+        "music",
+        "song",
+        "track",
+        "album",
+        "playlist"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "multimedia"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "12bae7496e58f9a414d0cafe24975a340108e69f14288a414568ceff4b497dcd"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "apple-music",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary one music player: where its transport lives, what its buttons say, and how to open it.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "apple-music.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Apple Music Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "apple music",
+        "music"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.Music"
+      ],
+      "bundleNames" : [
+        "Music.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "apple-music",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "media-player",
+        "document-window"
+      ],
+      "title" : "Apple Music"
+    },
+    "id" : "apple-music",
+    "mediaSurface" : {
+      "itemNoun" : "track",
+      "pausedLabel" : "Play",
+      "playingLabel" : "Pause",
+      "positionLabel" : "Track Position",
+      "repeatMode" : {
+        "off" : "do not repeat",
+        "on" : "repeat"
+      },
+      "shuffle" : {
+        "off" : "do not shuffle",
+        "on" : "shuffle"
+      },
+      "transportLabel" : "Mini Player",
+      "watch" : {
+        "activeSeconds" : 3,
+        "idleSeconds" : 15
+      }
+    },
+    "operations" : [
+      {
+        "adapterID" : "apple-music.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "apple_music_open_player",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "durationSeconds" : 0.25,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Bring the player forward and wait for its window.",
+        "timeoutSeconds" : 10,
+        "title" : "Open the Player"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "apple_music_open_player",
+        "preference" : 260,
+        "skillID" : "multimedia.open-player",
+        "targetClasses" : [
+          "media-player"
+        ]
+      }
+    ],
+    "title" : "Apple Music",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}
