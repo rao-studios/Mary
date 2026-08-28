@@ -1,6 +1,6 @@
 import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryVoice
 import Foundation
 import Granite

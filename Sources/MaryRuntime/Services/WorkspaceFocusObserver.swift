@@ -11,7 +11,7 @@
 
 import AppKit
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 
 package enum WorkspaceFocusObserver {
 

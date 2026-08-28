@@ -30,7 +30,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryFoundation
 
 enum MaryHands {

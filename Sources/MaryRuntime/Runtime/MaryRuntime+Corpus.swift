@@ -10,7 +10,7 @@
 //  a view would be several chances to update all but one.
 //
 
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryBrain
 import MaryFoundation
@@ -88,7 +88,7 @@ extension MaryRuntime {
     ///
     /// THE OBSERVER KNOWS NOTHING ABOUT ANY OF THIS. It reads a window, walks
     /// a project and produces units and observations; where they go is
-    /// injected here, which is what keeps MaryAdapters free of Totem and the
+    /// injected here, which is what keeps MaryPlugin free of Totem and the
     /// evidence store, and what lets a test hand it an array instead.
     package static func installCorpusPipeline() {
         let observer = CorpusObserver.shared

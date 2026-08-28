@@ -41,9 +41,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "MaryAdaptersTests"
-               BuildableName = "MaryAdaptersTests"
-               BlueprintName = "MaryAdaptersTests"
+               BlueprintIdentifier = "MaryPluginTests"
+               BuildableName = "MaryPluginTests"
+               BlueprintName = "MaryPluginTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
@@ -104,6 +104,16 @@
                BlueprintIdentifier = "MaryVoiceTests"
                BuildableName = "MaryVoiceTests"
                BlueprintName = "MaryVoiceTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "MaryPluginTests"
+               BuildableName = "MaryPluginTests"
+               BlueprintName = "MaryPluginTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

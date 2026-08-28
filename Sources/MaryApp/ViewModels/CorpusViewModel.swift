@@ -17,7 +17,7 @@
 //
 
 import MaryAmbient
-import MaryAdapters
+import MaryPlugin
 import MaryFoundation
 import Foundation
 

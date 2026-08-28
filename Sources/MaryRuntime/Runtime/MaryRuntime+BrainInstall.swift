@@ -34,7 +34,7 @@
 
 import AppKit
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryBrain
 import MaryFoundation
@@ -54,7 +54,7 @@ extension MaryRuntime {
 
         // 1. THE SEAMS, INSTALLED BEFORE ANYTHING READS THEM.
         //
-        // Each of these is an inversion: MaryAmbient sits below MaryAdapters
+        // Each of these is an inversion: MaryAmbient sits below MaryPlugin
         // and MaryBrain, and needs answers only they have — which
         // applications exist, where a place's prose lives, what words map to
         // which ability. A direct call would be an upward edge and the

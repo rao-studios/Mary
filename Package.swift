@@ -10,10 +10,10 @@
 // (Tests/MaryFoundationTests/PackageLayeringTests.swift) — SwiftPM exposes no
 // build-time hook for "this target may not depend on that product."
 //
-// THE WORD "PLUGIN" NAMES NO SWIFT CODE. A Plugin is a declarative package
-// under Abilities/ (`*.mary`). Compiled providers that satisfy what a Plugin
-// declares are ADAPTERS, and they live in MaryAdapters. There is no native
-// plugin concept anywhere in this package.
+// "PLUGIN" NAMES TWO THINGS, DELIBERATELY DISTINGUISHED. A Plugin is a
+// declarative package under Abilities/ (`*.mary`). The compiled providers
+// that satisfy what a Plugin declares are Mary's NATIVE Plugin layer,
+// MaryPlugin — kept apart from the declarative package it fulfills.
 //
 // ACCESSIBILITY IS TIER 0. MaryAmbient's context store takes the AX surface as
 // its foundation — what is actually on screen — with per-application facts and
@@ -120,17 +120,17 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryAdapters — THE ADAPTER LAYER: the contract a compiled
-        // provider satisfies, the accessibility engine that reads the screen,
-        // and the generic adapters themselves. The word "plugin" names
-        // nothing here — a Plugin is a declarative package, and everything in
-        // this target is generic by construction: no file names an
-        // application, and what an adapter serves at any moment comes from a
-        // registration rather than from its own source.
+        // MARK: - MaryPlugin — Mary's Native Plugin layer: the contract a
+        // compiled provider satisfies, the accessibility engine that reads
+        // the screen, and the generic adapters themselves. Distinct from a
+        // Plugin (the declarative package under Abilities/, `*.mary`):
+        // everything in this target is generic by construction — no file
+        // names an application, and what an adapter serves at any moment
+        // comes from a registration rather than from its own source.
         .target(
-            name: "MaryAdapters",
+            name: "MaryPlugin",
             dependencies: ["MaryFoundation", "MaryAmbient"],
-            path: "Sources/MaryAdapters",
+            path: "Sources/MaryPlugin",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // Validates and seals the shipped .mary packages. A package that
@@ -146,14 +146,14 @@ let package = Package(
         // it looks at a real application, driven through the real path.
         .executableTarget(
             name: "AXProbe",
-            dependencies: ["MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/AXProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "MaryAdaptersTests",
-            dependencies: ["MaryAdapters", "MaryAmbient", "MaryFoundation"],
-            path: "Tests/MaryAdaptersTests",
+            name: "MaryPluginTests",
+            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            path: "Tests/MaryPluginTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -207,7 +207,7 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
-                "MaryAdapters",
+                "MaryPlugin",
                 "MaryVoice",
                 .product(name: "MLX", package: "Frigate"),
                 .product(name: "MLXLMCommon", package: "Frigate"),
@@ -259,7 +259,7 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
-                "MaryAdapters",
+                "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
                 "MaryTotem",
@@ -279,7 +279,7 @@ let package = Package(
                 "MaryRuntime",
                 "MaryFoundation",
                 "MaryAmbient",
-                "MaryAdapters",
+                "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
                 "MaryTotem",
@@ -310,7 +310,7 @@ let package = Package(
         // composed three layers away, with its geometry intact.
         .executableTarget(
             name: "BehaviorProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/BehaviorProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -323,7 +323,7 @@ let package = Package(
         // file; it carries the project root, which only a live read found.
         .executableTarget(
             name: "CorpusProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/CorpusProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -337,7 +337,7 @@ let package = Package(
         // one side, a live player's Accessibility tree on the other.
         .executableTarget(
             name: "MediaProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryFoundation"],
             path: "Sources/Probes/MediaProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -352,7 +352,7 @@ let package = Package(
             name: "MaryBrainTests",
             dependencies: [
                 "MaryBrain",
-                "MaryAdapters",
+                "MaryPlugin",
                 "MaryFoundationTestSupport",
             ],
             path: "Tests/MaryBrainTests",

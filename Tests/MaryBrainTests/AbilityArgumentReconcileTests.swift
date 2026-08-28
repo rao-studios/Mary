@@ -1,5 +1,5 @@
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import Testing
 @testable import MaryBrain
 

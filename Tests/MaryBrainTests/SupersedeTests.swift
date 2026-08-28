@@ -13,7 +13,7 @@ import MaryVoice
 import Foundation
 import Testing
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 // `ArrivalSignal` — the counted arrival primitive this file introduced —

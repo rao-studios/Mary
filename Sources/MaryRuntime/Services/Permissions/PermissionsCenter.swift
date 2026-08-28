@@ -18,7 +18,7 @@ import AppKit
 import ApplicationServices
 import AVFoundation
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import Contacts
 import CoreGraphics
 import EventKit

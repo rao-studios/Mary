@@ -68,7 +68,7 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 |---|---|
 | `MaryFoundation` | The schema layer: Plugin grammar, codec + integrity digest, value envelopes, `AXFrame` geometry. Depends on nothing. |
 | `MaryAmbient` | The ambient paradigm: the tiered context store, realms, surfaces, passages, focus and reference resolution. Depends on `MaryFoundation` **alone** — that is what makes it portable, and a test enforces it. |
-| `MaryAdapters` | The adapter contract, the accessibility engine, and the generic providers (surface, typer, prose-surface, window management). |
+| `MaryPlugin` | The adapter contract, the accessibility engine, and the generic providers (surface, typer, prose-surface, window management). |
 | `MaryVoice` | Mic → VAD → transcription → a `LanguageResponder` seam → speech, every stage observable. |
 | `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients, one on-device MLX engine. The only target that may name Frigate. |
 | `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |

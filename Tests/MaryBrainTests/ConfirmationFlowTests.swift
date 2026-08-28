@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 /// The generic destructive-confirmation flow: pending actions are held, not

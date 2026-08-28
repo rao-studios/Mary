@@ -17,7 +17,7 @@
 import Foundation
 import Testing
 import MaryFoundation
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryBrain
 
 @Suite struct PerformSequenceTests {

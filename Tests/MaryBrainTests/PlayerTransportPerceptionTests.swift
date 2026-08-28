@@ -24,7 +24,7 @@
 
 import Foundation
 import Testing
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryBrain
 
 @Suite struct PlayerTransportPerceptionTests {

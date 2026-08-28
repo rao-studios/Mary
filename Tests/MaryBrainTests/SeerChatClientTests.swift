@@ -8,7 +8,7 @@
 
 import XCTest
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 // MARK: - Scripted seams

@@ -15,7 +15,7 @@ import Foundation
 import Testing
 import MaryAmbient
 import MaryFoundation
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryBrain
 
 @Suite struct CancelRunTests {

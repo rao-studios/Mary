@@ -2,9 +2,9 @@
 
 import Foundation
 
-// `ArchivePolicy` is NOT here. It travels on `SkillOutcome`, in MaryAdapters,
+// `ArchivePolicy` is NOT here. It travels on `SkillOutcome`, in MaryPlugin,
 // because the binding that produces an outcome is the thing that knows what
-// the outcome means for memory — and MaryAmbient sits below MaryAdapters, so
+// the outcome means for memory — and MaryAmbient sits below MaryPlugin, so
 // a copy here could only ever be a second answer drifting from the first.
 
 /// How a workspace identifies the item being archived.

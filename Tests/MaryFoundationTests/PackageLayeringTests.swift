@@ -5,7 +5,7 @@
 //  THE STANDING RULES, ENFORCED RATHER THAN ASSERTED.
 //
 //  These are the rules about which GRAPHS a target may join: MaryAmbient
-//  stands on MaryFoundation alone, neither it nor MaryAdapters touches
+//  stands on MaryFoundation alone, neither it nor MaryPlugin touches
 //  inference or transport, only MaryBrain names Frigate, only MaryRuntime and
 //  the app consume MaryTotem, and nothing anywhere names WhisperKit.
 //
@@ -136,7 +136,7 @@ import Testing
     /// Every library target Mary will have, in layering order. A rule naming a
     /// target absent from the manifest is PENDING, not passing.
     static let plannedTargets = [
-        "MaryFoundation", "MaryAmbient", "MaryAdapters",
+        "MaryFoundation", "MaryAmbient", "MaryPlugin",
         "MaryVoice", "MaryBrain", "MaryTotem", "MaryRuntime", "Mary",
     ]
 
@@ -196,7 +196,7 @@ import Testing
     /// Conduit/gRPC only through MaryTotem.
     @Test func perceptionLayersStayOutOfInferenceAndTransport() throws {
         let manifest = try Self.manifest()
-        for name in ["MaryAmbient", "MaryAdapters", "MaryVoice"] {
+        for name in ["MaryAmbient", "MaryPlugin", "MaryVoice"] {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC"] {
                 #expect(

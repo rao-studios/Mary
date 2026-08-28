@@ -17,8 +17,8 @@
 //  itself to the model, and then refuses at the last gate.
 //
 //  WHY THIS LIVES IN MaryRuntime AND NOT BESIDE THE ADAPTER. Reading a
-//  player's transport is `MaryAdapters`; recording a Perception is
-//  `MaryBrain`; and MaryBrain depends on MaryAdapters, so the adapter cannot
+//  player's transport is `MaryPlugin`; recording a Perception is
+//  `MaryBrain`; and MaryBrain depends on MaryPlugin, so the adapter cannot
 //  call into the signal runtime without inverting the layering. A join
 //  between two layers belongs at the composition root that already owns both
 //  — the same reasoning that puts the profile and prose-surface bridges here.
@@ -30,7 +30,7 @@
 //
 
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryBrain
 import MaryFoundation
 import os

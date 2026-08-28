@@ -11,7 +11,7 @@
 
 import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryVoice
 import Granite
 import SwiftUI

@@ -18,7 +18,7 @@
 
 import AppKit
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryBrain
 import MaryFoundation
 import MaryRuntime

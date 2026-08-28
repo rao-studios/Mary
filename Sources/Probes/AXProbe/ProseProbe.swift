@@ -26,7 +26,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryFoundation
 
