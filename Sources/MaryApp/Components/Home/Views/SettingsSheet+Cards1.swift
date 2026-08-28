@@ -74,6 +74,25 @@ extension SettingsSheet {
     /// that is easy to find and a delete that really deletes — see
     /// `BehavioralStore`. The size is shown because "delete my recordings"
     /// should be a decision rather than a leap.
+    /// WHAT SHE LEARNS FROM YOUR WORK — the other half of memory, and a
+    /// separate switch from the one below on purpose: recording what she DID
+    /// and learning how you WRITE are different promises, and somebody may
+    /// want one without the other.
+    var corpusCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                SectionLabel("What she learns from your work")
+                Toggle("Index the projects I work in", isOn: corpusIndexingBinding)
+                Text("When you settle on a file, Mary reads its neighbourhood and remembers the shape — and notices how you tend to write. Only declaration headers and short generated summaries are kept; never the body of your work.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+                Text("Open the Corpus pane to see every unit, pin a label, or forget one.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+            }
+        }
+    }
+
     var behaviorCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {

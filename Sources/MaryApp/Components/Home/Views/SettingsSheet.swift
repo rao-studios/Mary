@@ -66,6 +66,7 @@ struct SettingsSheet: View {
                 // because the data is the user's words and Mary's edits in
                 // plaintext, and a recording somebody has to go looking for
                 // the switch to is a recording they did not really consent to.
+                corpusCard
                 behaviorCard
             }
             .padding(.layer5)
@@ -115,6 +116,20 @@ struct SettingsSheet: View {
     }
 
     // MARK: - Bindings
+
+    /// Ambient corpus indexing, live as well as persisted — the observer
+    /// reads the flag per poll, so switching it off stops the NEXT poll
+    /// rather than the next launch.
+    var corpusIndexingBinding: Binding<Bool> {
+        Binding(
+            get: { config.state.ambientCorpusIndexing },
+            set: { enabled in
+                config.center.update.send(
+                    ConfigService.Update.Meta(ambientCorpusIndexing: enabled))
+                MaryRuntime.applyCorpusIndexing(enabled: enabled)
+            }
+        )
+    }
 
     var behavioralRecordingBinding: Binding<Bool> {
         Binding(

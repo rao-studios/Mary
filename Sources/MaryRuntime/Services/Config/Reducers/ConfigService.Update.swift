@@ -28,6 +28,7 @@ extension ConfigService {
             disabledPlugins: [String]? = nil,
             historyMessageLimit: Int? = nil,
             behavioralRecording: Bool? = nil,
+            ambientCorpusIndexing: Bool? = nil,
             wakeWordEnabled: Bool? = nil,
             seerEnabled: Bool? = nil,
             autoStartServers: Bool? = nil,
@@ -58,6 +59,7 @@ extension ConfigService {
             self.disabledPlugins = disabledPlugins
             self.historyMessageLimit = historyMessageLimit
             self.behavioralRecording = behavioralRecording
+            self.ambientCorpusIndexing = ambientCorpusIndexing
             self.wakeWordEnabled = wakeWordEnabled
             self.seerEnabled = seerEnabled
             self.autoStartServers = autoStartServers
@@ -90,6 +92,7 @@ extension ConfigService {
             package var disabledPlugins: [String]? = nil
             package var historyMessageLimit: Int?
         package var behavioralRecording: Bool? = nil
+        package var ambientCorpusIndexing: Bool? = nil
             package var wakeWordEnabled: Bool? = nil
             package var seerEnabled: Bool? = nil
             package var autoStartServers: Bool? = nil
@@ -133,6 +136,7 @@ extension ConfigService {
             // Empty is meaningful here too: custom with no alias follows config.
             if let value = meta.historyMessageLimit, value >= 4 { state.historyMessageLimit = value }
             if let value = meta.behavioralRecording { state.behavioralRecording = value }
+            if let value = meta.ambientCorpusIndexing { state.ambientCorpusIndexing = value }
             if let value = meta.wakeWordEnabled { state.wakeWordEnabled = value }
             if let value = meta.seerEnabled { state.seerEnabled = value }
             if let value = meta.autoStartServers { state.autoStartServers = value }

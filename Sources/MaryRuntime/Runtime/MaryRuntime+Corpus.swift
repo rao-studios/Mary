@@ -129,4 +129,114 @@ extension MaryRuntime {
     package static func applyCorpusIndexing(enabled: Bool) {
         corpusIndexingEnabledBox.withLock { $0 = enabled }
     }
+
+
+
+    /// Pin corrected labels to a unit.
+    ///
+    /// The manifest is written first and then re-persisted, because the
+    /// coordinator owns it — writing Totem first would leave the durable copy
+    /// ahead of the gate that decides whether the next crawl even looks.
+    package static func pinUnitLabels(
+        _ labels: [String], unitKey: String, path: String,
+        projectID: String, projectName: String
+    ) async -> String {
+        await unitIndexer.pinLabels(labels, path: path, projectID: projectID)
+        UnitIndexLedger.shared.notePinnedLabels(labels, forUnit: unitKey)
+        guard let manifest = await unitIndexer.manifest(forProject: projectID) else {
+            return "Nothing to pin — that file has not been indexed yet."
+        }
+        await totemContext.persistUnitManifest(
+            manifest, projectID: projectID, projectName: projectName)
+        return labels.isEmpty
+            ? "Unpinned. The next summary decides its own labels again."
+            : "Pinned. These labels survive every re-index from now on."
+    }
+
+    /// Forget a unit: its manifest row, its ledger row, and its Totem document.
+    package static func forgetUnit(
+        unitKey: String, path: String, projectID: String, projectName: String
+    ) async -> String {
+        await unitIndexer.forget(path: path, projectID: projectID)
+        // Style evidence must not outlive the unit it was read from — the
+        // crawl keys sources as `project|relativePath|dimension`, so the
+        // prefix removes the file's one opinion on every dimension at once.
+        StyleEvidenceStore.shared.withdraw(sourcesWithPrefix: "\(projectName)|\(path)|")
+        let removed = await totemContext.forgetUnit(unitKey: unitKey)
+        if let manifest = await unitIndexer.manifest(forProject: projectID) {
+            await totemContext.persistUnitManifest(
+                manifest, projectID: projectID, projectName: projectName)
+        }
+        UnitIndexLedger.shared.noteForgotten(unitKey: unitKey)
+        return removed
+            ? "Forgotten, and removed from the totem."
+            : "Forgotten locally. The totem copy could not be reached — it will go on the next clear."
+    }
+
+    /// Clear a unit's hash gate so the next visit re-reads it.
+    package static func reindexUnit(
+        path: String, projectID: String, projectName: String
+    ) async -> String {
+        let cleared = await unitIndexer.invalidate(path: path, projectID: projectID)
+        guard cleared else { return "That file was not in the index." }
+        if let manifest = await unitIndexer.manifest(forProject: projectID) {
+            await totemContext.persistUnitManifest(
+                manifest, projectID: projectID, projectName: projectName)
+        }
+        UnitIndexLedger.shared.noteInvalidated(
+            projectName: projectName, subject: path)
+        return "Cleared. It re-indexes next time you settle on it."
+    }
+
+    static func reindexProject(projectID: String, projectName: String) async -> String {
+        let count = await unitIndexer.invalidate(projectID: projectID)
+        if let manifest = await unitIndexer.manifest(forProject: projectID) {
+            await totemContext.persistUnitManifest(
+                manifest, projectID: projectID, projectName: projectName)
+        }
+        UnitIndexLedger.shared.noteInvalidated(
+            projectName: projectName, subject: "the whole project")
+        return "Cleared \(count) files. They re-index as you visit them."
+    }
+
+    /// State a tenet by hand. It renders from the next turn and outranks the
+    /// corpus; the corpus keeps counting so the disagreement stays visible.
+    package static func assertTenet(
+        dimension: StyleDimension, value: StyleValue, scope: StyleScope,
+        vocabulary: [String] = []
+    ) async -> String {
+        guard StyleEvidenceStore.shared.assert(
+            dimension: dimension, value: value, scope: scope, vocabulary: vocabulary
+        ) != nil else {
+            return "That is not a combination Mary has a sentence for."
+        }
+        await persistStyleProfile()
+        return "Noted. Mary will work this way from your next request."
+    }
+
+    package static func retractTenet(tenetKey: String) async -> String {
+        StyleEvidenceStore.shared.retractAssertion(tenetKey: tenetKey)
+        await persistStyleProfile()
+        return "Retracted. What your code shows decides this again."
+    }
+
+    package static func vetoTenet(tenetKey: String) async -> String {
+        StyleEvidenceStore.shared.veto(tenetKey: tenetKey)
+        await persistStyleProfile()
+        return "Silenced. Mary keeps watching but will not act on it."
+    }
+
+    package static func liftTenetVeto(tenetKey: String) async -> String {
+        StyleEvidenceStore.shared.liftVeto(tenetKey: tenetKey)
+        await persistStyleProfile()
+        return "Unsilenced."
+    }
+
+    /// Drop everything learned from the corpus, keeping what was said by hand.
+    static func forgetObservedStyle() async -> String {
+        StyleEvidenceStore.shared.resetObservations()
+        await persistStyleProfile()
+        return "Cleared what Mary inferred. What you stated by hand is untouched."
+    }
+
 }

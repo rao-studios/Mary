@@ -24,6 +24,10 @@ extension Home: View {
             showTotems: state.showTotems,
             onToggleTotems: {
                 _state.showTotems.wrappedValue.toggle()
+            },
+            showCorpus: state.showCorpus,
+            onToggleCorpus: {
+                _state.showCorpus.wrappedValue.toggle()
             }
         )
         .sheet(isPresented: _state.showSettings) {
@@ -52,6 +56,8 @@ struct HomeSessionView: View {
     let onToggleRouter: () -> Void
     let showTotems: Bool
     let onToggleTotems: () -> Void
+    let showCorpus: Bool
+    let onToggleCorpus: () -> Void
 
     @Relay var chat: ChatService
     @Relay(.silence) var config: ConfigService
@@ -120,6 +126,11 @@ struct HomeSessionView: View {
                 if showTotems {
                     Totems()
                         .frame(minWidth: 360, maxWidth: 600)
+                }
+                // A SIXTH bare `if`, for the reason the four above give.
+                if showCorpus {
+                    Corpus()
+                        .frame(minWidth: 380, maxWidth: 640)
                 }
             }
         }
@@ -220,6 +231,15 @@ struct HomeSessionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Totems")
+            Button {
+                onToggleCorpus()
+            } label: {
+                Image(systemName: "books.vertical")
+                    .font(.system(size: 14))
+                    .foregroundStyle(showCorpus ? Paper.ink : Paper.ink.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Corpus")
             Button {
                 onShowSettings()
             } label: {
