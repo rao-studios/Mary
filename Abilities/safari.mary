@@ -1,0 +1,326 @@
+{
+  "ability" : {
+    "aliases" : [
+      "safari"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.apple.Safari"
+        ],
+        "id" : "safari",
+        "title" : "Safari"
+      }
+    ],
+    "id" : "safari",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never launch the browser; a closed browser is an honest refusal.",
+        "Act in the tab that is already open unless the request names a new destination.",
+        "Say the site, never the address."
+      ],
+      "phases" : [
+        "resolve-browser",
+        "read-what-is-open",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "browser not running",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the tab showing afterwards is the one the request named"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferFocusedWorkspace",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "browser-page"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 180
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Drive Safari: its tabs, its pages, and its own shortcuts.",
+    "tint" : "#1B7FDE",
+    "title" : "Safari",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+
+      ],
+      "tokens" : [
+
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "browsing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "f0756c6608c018db330e8978365f445289386f38eab4f5fdf090c2e06541c93a"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "safari",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teach Mary Safari's tab strip and its own shortcuts.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "safari.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Safari Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "safari"
+      ],
+      "bundleIdentifiers" : [
+        "com.apple.Safari"
+      ],
+      "bundleNames" : [
+        "Safari.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "safari",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "browser-page",
+        "document-window"
+      ],
+      "title" : "Safari"
+    },
+    "browserSurface" : {
+      "addressChord" : {
+        "key" : "l",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "closeAffordance" : "elementAction",
+      "closeControlLabel" : "close tab",
+      "closeTabChord" : {
+        "key" : "w",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "newTabChord" : {
+        "key" : "t",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "selectionSignal" : "windowTitle",
+      "tabNameAttribute" : "title",
+      "tabStripRole" : "AXOpaqueProviderGroup",
+      "tabStripSubrole" : "AXOpaqueProviderList"
+    },
+    "id" : "safari",
+    "operations" : [
+      {
+        "adapterID" : "safari.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "safari_reload",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "r",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Reload the current page through the browser's own shortcut.",
+        "timeoutSeconds" : 10,
+        "title" : "Reload the Page"
+      },
+      {
+        "adapterID" : "safari.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "safari_back",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "leftBracket",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Step back through this tab's history.",
+        "timeoutSeconds" : 10,
+        "title" : "Go Back"
+      },
+      {
+        "adapterID" : "safari.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "safari_forward",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "rightBracket",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Step forward through this tab's history.",
+        "timeoutSeconds" : 10,
+        "title" : "Go Forward"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "safari_reload",
+        "preference" : 260,
+        "skillID" : "browsing.reload-page",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "safari_back",
+        "preference" : 260,
+        "skillID" : "browsing.navigate-back",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "safari_forward",
+        "preference" : 260,
+        "skillID" : "browsing.navigate-forward",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      }
+    ],
+    "title" : "Safari",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

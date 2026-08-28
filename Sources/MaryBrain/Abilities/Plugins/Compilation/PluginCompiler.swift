@@ -501,8 +501,15 @@ public enum PluginCompiler {
             // Dynamic claim is only Mary's generic Accessibility perception;
             // no package operation is ever scheduled in the background.
             perception: providerIsAvailable
-                ? perception(from: plugin.application.perception,
-                             proseSurface: plugin.proseSurface)
+                ? perception(
+                    from: plugin.application.perception,
+                    // THE SAME FOUR CHANNELS THE VALIDATOR ADMITS. Written as
+                    // one expression rather than four call sites so the two
+                    // gates cannot drift apart again — see `perception`.
+                    declaresObservationSurface: plugin.proseSurface != nil
+                        || plugin.mediaSurface != nil
+                        || plugin.corpus != nil
+                        || plugin.browserSurface != nil)
                 : nil,
             // WHAT THIS APPLICATION CALLS ITS DOCUMENTS, straight from the
             // declaration. The word reaches the window classifier and the
@@ -518,19 +525,34 @@ public enum PluginCompiler {
     }
 
     /// A package projects MARY-OWNED perception only: the generic
-    /// Accessibility reader, and — when it declares a prose surface — Mary's
-    /// own document reader. `documentOperation` stays nil in both arms,
-    /// because a package-supplied operation is the one thing that would put
-    /// package code on a background timer against the user's document.
+    /// Accessibility reader, and — when it declares an observation surface —
+    /// Mary's own reader for whatever that surface describes.
+    /// `documentOperation` stays nil in both arms, because a
+    /// package-supplied operation is the one thing that would put package
+    /// code on a background timer against the user's work.
     ///
     /// THE SURFACE IS CHECKED HERE, NOT ONLY IN THE VALIDATOR. The validator
     /// refuses the package at admission; this refuses the CLAIM at
     /// compilation, so a graph that somehow reached this point without a
-    /// prose surface degrades to selection-only rather than being handed eyes
-    /// with nothing behind them.
-    private static func perception(
+    /// surface degrades to selection-only rather than being handed eyes with
+    /// nothing behind them.
+    ///
+    /// ⚠️ ALL FOUR SURFACES COUNT, and for a while only one did. The
+    /// validator was widened to accept a media surface, then a corpus, then a
+    /// browser surface — and this gate was left asking about prose alone. The
+    /// two halves disagreeing is silent by construction: the package is
+    /// admitted, the workspace claim is quietly downgraded to
+    /// `.perceptionOnly`, `observesDocuments` stays false, and the place
+    /// reports `hasEyes == false` for an application that plainly has them.
+    /// Nothing fails; the application is simply never treated as somewhere
+    /// the user is working. Found by the browsing lane's live pass, and it
+    /// had been true of the media and corpus lanes since they landed.
+    /// Internal rather than private so the gate can be tested DIRECTLY.
+    /// It is a pure decision with four inputs and a silent failure mode, and
+    /// reaching it through a whole compile would test the compile.
+    static func perception(
         from schema: PluginApplicationPerceptionSchema?,
-        proseSurface: PluginProseSurfaceSchema?
+        declaresObservationSurface: Bool
     ) -> ApplicationPerception? {
         guard let schema else { return nil }
         switch schema.kind {
@@ -539,11 +561,16 @@ public enum PluginCompiler {
                 kind: .perceptionOnly, documentOperation: nil,
                 pollSeconds: ApplicationPerception.pollBounds.lowerBound)
         case .workspace:
-            guard proseSurface != nil else {
+            guard declaresObservationSurface else {
                 return ApplicationPerception(
                     kind: .perceptionOnly, documentOperation: nil,
                     pollSeconds: ApplicationPerception.pollBounds.lowerBound)
             }
+            // `readsDocumentCorpus` is read only through `observesDocuments`,
+            // whose question is "does Mary have a way to see the work here" —
+            // true of a prose surface's text, a player's transport, a corpus
+            // on disk and a browser's pages alike. The field kept the name it
+            // was born with; the question it answers was always the wider one.
             return ApplicationPerception(
                 kind: .workspace, documentOperation: nil,
                 pollSeconds: ApplicationPerception.pollBounds.lowerBound,

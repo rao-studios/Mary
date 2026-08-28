@@ -1,0 +1,327 @@
+{
+  "ability" : {
+    "aliases" : [
+      "chrome",
+      "google chrome"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.google.Chrome"
+        ],
+        "id" : "chrome",
+        "title" : "Google Chrome"
+      }
+    ],
+    "id" : "chrome",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Never launch the browser; a closed browser is an honest refusal.",
+        "Act in the tab that is already open unless the request names a new destination.",
+        "Say the site, never the address."
+      ],
+      "phases" : [
+        "resolve-browser",
+        "read-what-is-open",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "browser not running",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the tab showing afterwards is the one the request named"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferFocusedWorkspace",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "browser-page"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 180
+    },
+    "skills" : [
+
+    ],
+    "summary" : "Drive Google Chrome: its tabs, its pages, and its own shortcuts.",
+    "tint" : "#F4B400",
+    "title" : "Google Chrome",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+
+      ],
+      "tokens" : [
+
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "browsing"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "37eccf76dacd959df16ac95e109e2f9ba9272196d7da1898711e4a0b4bbd6a73"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "chrome",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teach Mary Google Chrome's tab strip and its own shortcuts.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "chrome.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Google Chrome Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "chrome",
+        "google chrome"
+      ],
+      "bundleIdentifiers" : [
+        "com.google.Chrome"
+      ],
+      "bundleNames" : [
+        "Google Chrome.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "chrome",
+      "perception" : {
+        "kind" : "workspace"
+      },
+      "targetClasses" : [
+        "browser-page",
+        "document-window"
+      ],
+      "title" : "Google Chrome"
+    },
+    "browserSurface" : {
+      "addressChord" : {
+        "key" : "l",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "closeAffordance" : "childButton",
+      "closeControlLabel" : "Close",
+      "closeTabChord" : {
+        "key" : "w",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "newTabChord" : {
+        "key" : "t",
+        "modifiers" : [
+          "command"
+        ]
+      },
+      "selectionSignal" : "selectedAttribute",
+      "tabNameAttribute" : "description",
+      "tabStripRole" : "AXTabGroup"
+    },
+    "id" : "chrome",
+    "operations" : [
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_reload",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "r",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Reload the current page through the browser's own shortcut.",
+        "timeoutSeconds" : 10,
+        "title" : "Reload the Page"
+      },
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_back",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "leftBracket",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Step back through this tab's history.",
+        "timeoutSeconds" : 10,
+        "title" : "Go Back"
+      },
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_forward",
+        "postconditions" : [
+          "applicationFrontmost",
+          "applicationWindowAvailable"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "rightBracket",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          },
+          {
+            "durationSeconds" : 0.35,
+            "id" : "settle",
+            "kind" : "wait",
+            "modifiers" : [
+
+            ]
+          }
+        ],
+        "summary" : "Step forward through this tab's history.",
+        "timeoutSeconds" : 10,
+        "title" : "Go Forward"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "chrome_reload",
+        "preference" : 260,
+        "skillID" : "browsing.reload-page",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "chrome_back",
+        "preference" : 260,
+        "skillID" : "browsing.navigate-back",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      },
+      {
+        "operation" : "chrome_forward",
+        "preference" : 260,
+        "skillID" : "browsing.navigate-forward",
+        "targetClasses" : [
+          "browser-page"
+        ]
+      }
+    ],
+    "title" : "Google Chrome",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

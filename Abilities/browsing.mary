@@ -1,0 +1,1235 @@
+{
+  "ability" : {
+    "aliases" : [
+      "browsing",
+      "browser",
+      "web",
+      "the web"
+    ],
+    "applications" : [
+
+    ],
+    "id" : "browsing",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrails" : [
+        "Operate only in a browser that is already running; opening one is the user's move, not Mary's.",
+        "Act in the tab that is already open; a new tab is for a new destination.",
+        "Hold addresses, speak site names — reading a URL aloud is noise, and reading a long one aloud is noise for twenty seconds.",
+        "Never invent a path or a query; open only what the user actually said.",
+        "Never type into page content to navigate, and never answer a page's own dialog for the user.",
+        "A page that has not been exposed to Accessibility yet is not an empty page; say which it is."
+      ],
+      "phases" : [
+        "resolve-browser",
+        "read-what-is-open",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "no browser running",
+        "two browsers and nothing said which",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the tab that is showing is the one the request named",
+        "the browser that answered is the one the user meant"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferFocusedWorkspace",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "browser-page"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "tab"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "tabs"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "page"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "browser"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "website"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "site"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "web"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "open"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "reload"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "refresh"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 160
+    },
+    "skills" : [
+      "browsing.activate-tab",
+      "browsing.close-tab",
+      "browsing.current-tab",
+      "browsing.list-tabs",
+      "browsing.navigate-back",
+      "browsing.navigate-forward",
+      "browsing.open-location",
+      "browsing.read-page",
+      "browsing.reload-page"
+    ],
+    "summary" : "Read and drive what is open in a web browser: its tabs, and the page it is showing.",
+    "tint" : "#4A90D9",
+    "title" : "Browsing",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+        "tab key",
+        "tab character"
+      ],
+      "phrases" : [
+        "what tabs do i have open",
+        "list my tabs",
+        "what page am i on",
+        "switch to the other tab",
+        "go to that tab",
+        "close this tab",
+        "open that site",
+        "what does this page say",
+        "read me this page",
+        "reload this page",
+        "go back"
+      ],
+      "tokens" : [
+        "tab",
+        "tabs",
+        "page",
+        "browser",
+        "website",
+        "site",
+        "web",
+        "url",
+        "link",
+        "browse",
+        "reload",
+        "refresh",
+        "back",
+        "forward"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.history.navigate",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own history shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Step back or forward through this tab's history.",
+      "title" : "Move Through History",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.location.open",
+      "inputType" : "browsing.location-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Set the browser's address field through Accessibility and commit it."
+        }
+      ],
+      "summary" : "Open a web address in a new tab.",
+      "title" : "Open an Address",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        }
+      ],
+      "effect" : "read",
+      "id" : "browsing.page.read",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.page-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the page's own Accessibility tree."
+        }
+      ],
+      "summary" : "Read the text of the page a browser is showing.",
+      "title" : "Read the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.page.reload",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own reload shortcut while it owns the stage."
+        }
+      ],
+      "summary" : "Reload the page through the browser's own shortcut.",
+      "title" : "Reload the Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.tab.activate",
+      "inputType" : "browsing.tab-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the tab through Accessibility and confirm the switch."
+        }
+      ],
+      "summary" : "Bring one of a browser's open tabs to the front.",
+      "title" : "Switch Tabs",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browsing.tab.close",
+      "inputType" : "browsing.tab-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the tab's close control through Accessibility."
+        }
+      ],
+      "summary" : "Close one of a browser's open tabs.",
+      "title" : "Close a Tab",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "browser-page"
+        }
+      ],
+      "effect" : "read",
+      "id" : "browsing.tabs.read",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.tab-roster",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the browser's own tab strip through Accessibility."
+        }
+      ],
+      "summary" : "List what a browser has open, and which tab is showing.",
+      "title" : "Read the Tabs",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.list-tabs",
+      "id" : "list-open-tabs",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "What tabs do I have open?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.current-tab",
+      "id" : "which-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "What page am I on?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.activate-tab",
+      "id" : "switch-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Switch to the Wikipedia tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.close-tab",
+      "id" : "close-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Close this tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "read-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Read me this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.reload-page",
+      "id" : "reload-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "browser-page",
+      "utterance" : "Reload this page."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "56309f00d444f9c1cb9d4f5a909da5bdccf2c59b513dac65d5345673f0fcb94c"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "browsing",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Read and drive what is open in a web browser.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+    {
+      "freshnessSeconds" : 4,
+      "id" : "perception.browser-page",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "What a running browser has open: its tabs, and the page it is showing.",
+      "title" : "Browser Page",
+      "valueType" : "browsing.tab-roster",
+      "version" : "1.0.0"
+    }
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "activate_tab",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.activate-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "activate_tab",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "tab",
+            "required" : true,
+            "summary" : "The tab's name, or its number as list_tabs shows it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.tab.activate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Bring one of the browser's open tabs to the front, named or numbered.",
+      "title" : "Switch to a Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "close_tab",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.close-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "close_tab",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "tab",
+            "required" : true,
+            "summary" : "The tab's name, or its number as list_tabs shows it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.tab.close"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Close one of the browser's open tabs, named or numbered.",
+      "title" : "Close a Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "current_tab",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.current-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "current_tab",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.tabs.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Report which page the browser is showing right now.",
+      "title" : "Say What Page Is Open",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "list_tabs",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.list-tabs",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_tabs",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.tabs.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 220
+      },
+      "summary" : "List the browser's open tabs, numbered, saying which one is showing.",
+      "title" : "List the Open Tabs",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.navigate-back",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "navigate_back",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.history.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Go back to the previous page in this tab's history.",
+      "title" : "Go Back",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.navigate-forward",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "navigate_forward",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.history.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Go forward again in this tab's history.",
+      "title" : "Go Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "open_location",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.open-location",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "open_location",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "url",
+            "required" : true,
+            "summary" : "The address to open. http or https only.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.location.open"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Open a web address in a new browser tab.",
+      "title" : "Open an Address",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "browser-surface",
+            "operation" : "read_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "browser-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.read-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "browser",
+            "required" : false,
+            "summary" : "Which browser. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Read the text of the page the browser is showing, to answer a question about it or summarise it.",
+      "title" : "Read the Page",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.reload-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "reload_page",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browsing.page.reload"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.browser-page"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Reload the page the browser is showing.",
+      "title" : "Reload the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.browser-query",
+      "shape" : "string",
+      "summary" : "Which browser a question addresses.",
+      "title" : "Browser Query",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-roster",
+      "shape" : "string",
+      "summary" : "The browser's open tabs, numbered, and which one is showing.",
+      "title" : "Tab Roster",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-report",
+      "shape" : "string",
+      "summary" : "What one tab is showing.",
+      "title" : "Tab Report",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.tab-request",
+      "shape" : "string",
+      "summary" : "Which tab an act addresses, by name or by number.",
+      "title" : "Tab Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.location-request",
+      "shape" : "string",
+      "summary" : "A web address to open. HELD, NEVER SPOKEN: Mary says the site's name.",
+      "title" : "Location Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.operation-result",
+      "shape" : "string",
+      "summary" : "What a browsing act did, as observed afterwards rather than as requested.",
+      "title" : "Operation Result",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.page-text",
+      "shape" : "string",
+      "summary" : "The words of the page, read from its own Accessibility tree.",
+      "title" : "Page Text",
+      "version" : "1.0.0"
+    }
+  ]
+}

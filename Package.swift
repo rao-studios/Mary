@@ -348,7 +348,9 @@ let package = Package(
         // the answers exists, which is why it depends on the engine alone.
         .executableTarget(
             name: "WebProbe",
-            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            dependencies: [
+                "MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation",
+            ],
             path: "Sources/Probes/WebProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
