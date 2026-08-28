@@ -323,6 +323,37 @@ public extension AmbientApplicationIndex {
         guard let place, case .application(let id) = place else { return nil }
         return registration(id: id) ?? registration(bundleID: id)
     }
+
+    /// What KIND of thing this place is, as its packages declare it.
+    ///
+    /// ⚠️ SEPARATE FROM `registration(place:)` BECAUSE OF THE BROWSER, and
+    /// this is the carve-out's cost coming due. The browser is ONE place
+    /// shared by every browser, deliberately — but no package registers under
+    /// the id `browser`, so `registration(place:)` answers nil for it, and
+    /// every caller reading target classes through that lookup reads none.
+    ///
+    /// The consequence was invisible and total: `browsing.mary`'s eligibility
+    /// leads with `targetClass: browser-page`, and that arm could never fire.
+    /// Browsing was reachable ONLY by an utterance token — so "what tabs do I
+    /// have open" routed on the word "tabs" while a browser sitting in front
+    /// of the user contributed nothing at all. Found by dispatching a
+    /// browsing Skill through the real runtime, where every one came back
+    /// "does not match its Ability-level routing policy".
+    ///
+    /// The UNION is the right answer rather than a pick, and the carve-out is
+    /// why: these registrations are one place precisely because they are
+    /// interchangeable in kind. Asking which browser is a different question,
+    /// and the target ladder answers it where it matters.
+    func targetClasses(of place: AmbientPlace?) -> Set<String> {
+        guard let place, case .application(let id) = place else { return [] }
+        if let direct = registration(id: id) ?? registration(bundleID: id) {
+            return Set(direct.profile.targetClasses)
+        }
+        guard place == AmbientPlaceResolver.browserPlace else { return [] }
+        return Set(
+            all.filter { $0.profile.abilities.contains(.browsing) }
+                .flatMap(\.profile.targetClasses))
+    }
 }
 
 /// The answer when nothing has been installed: this machine has no

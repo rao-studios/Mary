@@ -68,6 +68,75 @@ import Testing
             worldClass: .workspace)
     }
 
+    // MARK: - What the shared place says it IS
+
+    /// ⚠️ THE CARVE-OUT'S COST, and it went unnoticed until a browsing Skill
+    /// was dispatched through the real runtime.
+    ///
+    /// The browser is ONE place shared by every browser, so no package
+    /// registers under the id `browser` — and `registration(place:)`
+    /// therefore answers nil for it. Every caller reading a place's target
+    /// classes through that lookup read NONE for a browser.
+    ///
+    /// The consequence was total and silent: `browsing.mary` leads its
+    /// eligibility with `targetClass: browser-page`, and that arm could never
+    /// fire. Browsing was reachable only by an utterance token — "what tabs
+    /// do I have open" routed on the word "tabs", while a browser sitting in
+    /// front of the user contributed nothing. Every browsing Skill came back
+    /// "does not match its Ability-level routing policy".
+    @Test func theBrowserPlaceCarriesTheTargetClassesOfItsBrowsers() {
+        var browser = chrome
+        browser.profile.targetClasses = ["browser-page", "document-window"]
+        withRoster([browser]) {
+            let classes = AmbientApplicationIndexProvider.current
+                .targetClasses(of: AmbientPlaceResolver.browserPlace)
+            #expect(classes.contains("browser-page"))
+            #expect(classes.contains("document-window"))
+        }
+    }
+
+    /// THE UNION, not a pick — and the carve-out is the reason. These
+    /// registrations are one place precisely because they are
+    /// interchangeable in kind, so a place holding two browsers is a place
+    /// that is both of the things they say they are.
+    @Test func twoBrowsersUnionTheirClassesRatherThanOneWinning() {
+        var chromeLike = chrome
+        chromeLike.profile.targetClasses = ["browser-page"]
+        var safariLike = ApplicationRegistration(
+            id: "safari",
+            profile: ApplicationProfile(
+                id: "safari", title: "Safari", summary: "Browser.",
+                abilities: [.browsing]),
+            bundleIdentifiers: ["com.apple.Safari"],
+            worldClass: .workspace,
+            displayName: "Safari")
+        safariLike.profile.targetClasses = ["browser-page", "reader-surface"]
+        withRoster([chromeLike, safariLike]) {
+            let classes = AmbientApplicationIndexProvider.current
+                .targetClasses(of: AmbientPlaceResolver.browserPlace)
+            #expect(classes == ["browser-page", "reader-surface"])
+        }
+    }
+
+    /// AND ONLY BROWSERS CONTRIBUTE. A place that is shared is not a place
+    /// that collects — an application registered alongside them, in its own
+    /// place, must not lend the browser workspace its kind.
+    @Test func aNonBrowserNeverLendsItsClassesToTheBrowserPlace() {
+        var chromeLike = chrome
+        chromeLike.profile.targetClasses = ["browser-page"]
+        var design = sketch
+        design.profile.targetClasses = ["canvas"]
+        withRoster([chromeLike, design]) {
+            let classes = AmbientApplicationIndexProvider.current
+                .targetClasses(of: AmbientPlaceResolver.browserPlace)
+            #expect(classes == ["browser-page"])
+            // And its own place still answers for itself.
+            #expect(
+                AmbientApplicationIndexProvider.current
+                    .targetClasses(of: .application("sketch")) == ["canvas"])
+        }
+    }
+
     /// A REGISTERED BROWSER BUNDLE STILL RESOLVES TO THE BROWSER WORKSPACE.
     /// The browser rung sits above the registration rung; registration
     /// grants verbs, it never re-homes the workspace.

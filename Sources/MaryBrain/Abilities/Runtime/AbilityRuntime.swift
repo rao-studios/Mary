@@ -1137,10 +1137,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             // declares for exactly this, and until now nothing read it: the
             // switch answered first for the five it knew and the declared
             // field only ever spoke for the rest.
-            if let registration = AmbientApplicationIndexProvider.current
-                .registration(place: lead) {
-                targets.formUnion(registration.profile.targetClasses)
-            }
+            // THROUGH `targetClasses(of:)` RATHER THAN THE REGISTRATION,
+            // because the browser place has none — it is one place shared by
+            // several packages, and reading its kind through a single
+            // registration reads nothing. See that method's header.
+            targets.formUnion(
+                AmbientApplicationIndexProvider.current.targetClasses(of: lead))
         }
         if attention?.selectionEditability == .editable,
            attention?.place.focus != .coding {

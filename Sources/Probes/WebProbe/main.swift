@@ -61,6 +61,7 @@ func usage() -> Never {
       windows [--app <name> | --pid <n>]                  where the page is, vs where the lane looks
       canvas  [--browser <name>]                          drive a declared web canvas end to end
       skills  [--act]                                   call the browsing Skills for real
+      dispatch [--browser <name>]                        through AbilityRuntime, not around it
       lane                                                does the browsing lane load and offer its skills
       roster  [--switch <name|ordinal>]                    the tab roster, through the shipped code
       address [--set <url>]                              can the address bar be SET, not typed
@@ -131,6 +132,9 @@ case "canvas":
 
 case "skills":
     await WebProbeSkills.run(act: flag("--act"))
+
+case "dispatch":
+    await WebProbeDispatch.run(browser: value("--browser"))
 
 case "lane":
     await WebProbeLane.run()

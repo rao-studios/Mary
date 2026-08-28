@@ -467,7 +467,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     public var structure: PluginCorpusStructureSchema?
 
     public init(
-        include: [String],
+        include: [String] = [],
         exclude: [String] = [],
         notation: String,
         relations: PluginCorpusRelations = .init(),
@@ -497,7 +497,11 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     public init(from decoder: Decoder) throws {
         try decoder.rejectUnknownKeys(CodingKeys.self)
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        include = try values.decode([String].self, forKey: .include)
+        // OPTIONAL BECAUSE A STRUCTURED CORPUS DOES NOT USE IT — its units
+        // come from a manifest, not from an extension match. The validator
+        // still requires it for a corpus with no structure, which is where
+        // the rule means something.
+        include = try values.decodeIfPresent([String].self, forKey: .include) ?? []
         exclude = try values.decodeIfPresent([String].self, forKey: .exclude) ?? []
         notation = try values.decode(String.self, forKey: .notation)
         relations = try values.decodeIfPresent(
@@ -511,7 +515,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(include, forKey: .include)
+        if !include.isEmpty { try container.encode(include, forKey: .include) }
         if !exclude.isEmpty { try container.encode(exclude, forKey: .exclude) }
         try container.encode(notation, forKey: .notation)
         if relations != PluginCorpusRelations() {

@@ -42,11 +42,24 @@ public extension PluginValidator {
     ) {
         let path = "\(root).corpus"
 
-        if corpus.include.isEmpty {
+        // ⚠️ A STRUCTURED CORPUS ENUMERATES FROM ITS MANIFEST, so `include`
+        // means nothing to it. The rule below is right for a corpus that IS a
+        // body of files — it is walked by extension, and one matching nothing
+        // does nothing — and wrong for a project with an outline, where the
+        // manifest names the items and their extensions are an implementation
+        // detail of where the text is stored.
+        //
+        // Requiring it anyway made `scrivener.mary` declare `include: ["rtf"]`
+        // to satisfy a check, which read as a claim to participate in the
+        // style crawl that this build cannot honour: the crawl walks a
+        // directory, and inside a project it would find `Files/Data/{uuid}/
+        // content.rtf` — units named by UUID, indexed as RTF markup rather
+        // than prose. An inert claim is still a claim.
+        if corpus.include.isEmpty, corpus.structure == nil {
             error(
                 "corpus-includes-nothing",
                 "\(path).include",
-                "A corpus must name at least one file extension: one that matches nothing is a declaration that does nothing.")
+                "A corpus with no structure must name at least one file extension: one that matches nothing is a declaration that does nothing.")
         }
         for (index, extensionName) in corpus.include.enumerated()
         where extensionName.hasPrefix(".") || extensionName.isEmpty {
