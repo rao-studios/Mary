@@ -80,8 +80,16 @@ public struct PluginCorpusCounter: Codable, Hashable, Sendable {
         /// THIS FILE. The one cross-reference a plain regex cannot make, and
         /// the whole of "does this author split a type across files".
         case selfReference
-        /// How many declarations this file makes, via the corpus's
-        /// `declarations` relation. The denominator most ratios want.
+        /// How many TYPES this file declares, via the corpus's own
+        /// `declarations` relation.
+        ///
+        /// NOT "how many declarations of any kind". The relation probe exists
+        /// to build the index references are resolved through, so it captures
+        /// type names and nothing else — an extension declares no new type and
+        /// a method declares nothing resolvable. A ratio that wants every
+        /// declaration, functions and properties included, declares its own
+        /// pattern; conflating the two makes an access ratio count a
+        /// twenty-method type as one declaration.
         case declaration
         /// The file's size in bytes. A guard, almost always: "is this file
         /// big enough for its organisation to be a choice rather than an

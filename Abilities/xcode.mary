@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "df6477f41fb966c8b5a025bfbe6135c020f2425b0fd8d56daaf95453c056911b"
+    "digest" : "6f5dfe56f3deb3ca78b514b2a8001da2dc2abd4a0efdbf6a7911cca18e92b6c1"
   },
   "interactions" : [
 
@@ -317,13 +317,15 @@
           "above" : "publicByDefault",
           "below" : "internalUnlessNeeded",
           "denominator" : {
-            "source" : "declaration"
+            "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+            "source" : "pattern"
           },
           "dimension" : "accessDefault",
           "guard" : {
             "atLeast" : 4,
             "numerator" : {
-              "source" : "declaration"
+              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "source" : "pattern"
             }
           },
           "kind" : "ratio",
@@ -336,13 +338,15 @@
         {
           "below" : "sparse",
           "denominator" : {
-            "source" : "declaration"
+            "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+            "source" : "pattern"
           },
           "dimension" : "commentPosture",
           "guard" : {
             "atLeast" : 3,
             "numerator" : {
-              "source" : "declaration"
+              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "source" : "pattern"
             }
           },
           "kind" : "ratio",
@@ -380,7 +384,8 @@
           "guard" : {
             "atLeast" : 0.25,
             "denominator" : {
-              "source" : "declaration"
+              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "source" : "pattern"
             },
             "numerator" : {
               "pattern" : "(?m)^[ \\t]*//(?!\\s*MARK)",
