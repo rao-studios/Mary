@@ -49,7 +49,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [nowPlaying, controlPlayback, searchCatalog, playFromCatalog]
+        [nowPlaying, controlPlayback, searchCatalog, playFromCatalog,
+         listPlaylists, playPlaylist]
     }
 
     // MARK: - Reading
@@ -101,13 +102,21 @@ public struct MediaSurfaceAdapter: MaryAdapter {
             }
             return "Nothing is playing in \(registration.displayName)."
         }
+        // PARENTHESES, NOT A DASH, and the reason is the data: the subtitle
+        // is already dash-joined by the player ("Enfant Sauvage — Petrichor"),
+        // so appending it with another dash produced a sentence with three of
+        // them in a row and no way to tell which one separated what.
         var sentence = reading.isPlaying == false
             ? "Paused on \"\(title)\""
             : "Playing \"\(title)\""
-        if let position = reading.position, position > 0.005 {
-            sentence += String(format: " — %.0f%% through", position * 100)
+        if let subtitle = reading.subtitle, !subtitle.isEmpty {
+            sentence += " (\(subtitle))"
         }
-        sentence += " in \(registration.displayName)."
+        sentence += " in \(registration.displayName)"
+        if let position = reading.position, position > 0.005 {
+            sentence += String(format: ", %.0f%% through", position * 100)
+        }
+        sentence += "."
         var modes: [String] = []
         if reading.isShuffling == true { modes.append("shuffle") }
         if reading.isRepeating == true { modes.append("repeat") }
@@ -270,23 +279,131 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                             summary: "I couldn't find \"\(query)\" in the catalog.",
                             foundNothing: true)
                     }
-                    // OPENED, NOT PLAYED, and the summary says so. The Store
-                    // URL hands the track to whichever application is
-                    // registered for those links; whether it begins playing
-                    // is that application's decision, and claiming otherwise
-                    // would be reporting an effect Mary never observed.
                     guard NSWorkspace.shared.open(track.storeURL) else {
                         return SkillOutcome(
                             ok: false,
                             summary: "I found \(track.spokenDescription) but couldn't open it.")
                     }
+                    // OPENING IS NOT PLAYING, which is the whole bug this
+                    // second half fixes. A Store URL navigates the player to
+                    // the track's page and leaves it there; the first version
+                    // reported success at exactly that point, and the song sat
+                    // on screen in silence. The page's own play control is
+                    // what starts it — never the transport's, which would
+                    // resume whatever was queued before and play the wrong
+                    // thing convincingly.
+                    guard let (registration, pid) = support.resolve(nil) else {
+                        return SkillOutcome(
+                            ok: true,
+                            summary: "Opening \(track.spokenDescription).",
+                            archivePolicy: .stateSnapshot,
+                            adapterTrail: ["media-surface"])
+                    }
+                    // The page has to arrive before its button exists.
+                    try? await Task.sleep(nanoseconds: 1_400_000_000)
+                    let started = await MediaSurfaceLibrary.pressPagePlay(
+                        pid: pid, registration: registration)
+                    let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
                     return SkillOutcome(
                         ok: true,
-                        summary: "Opening \(track.spokenDescription).",
+                        summary: started
+                            ? "Playing \(track.spokenDescription)."
+                            : "Opened \(track.spokenDescription) — press play to start it.",
                         archivePolicy: .stateSnapshot,
+                        target: reading?.element,
                         adapterTrail: ["media-surface"])
                 } catch {
                     return SkillOutcome(ok: false, summary: error.localizedDescription)
+                }
+            })
+    }
+
+    // MARK: - The library
+
+    private var listPlaylists: SkillBinding {
+        SkillBinding(
+            name: "list_playlists",
+            description: "List the playlists in the music player's sidebar.",
+            parameters: [
+                .init(
+                    name: "app", type: "string",
+                    description: "Which player. Omit for the one that's running.",
+                    required: false),
+            ],
+            access: .read,
+            backing: .native { arguments, _ in
+                guard let (registration, pid) = support.resolve(arguments["app"]) else {
+                    return notRunning(arguments["app"])
+                }
+                let playlists = await MediaSurfaceLibrary.playlists(
+                    pid: pid, registration: registration)
+                guard !playlists.isEmpty else {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "I can't see any playlists in \(registration.displayName).",
+                        foundNothing: true)
+                }
+                return SkillOutcome(
+                    ok: true,
+                    summary: playlists.joined(separator: "\n"),
+                    archivePolicy: .stateSnapshot,
+                    adapterTrail: ["media-surface"])
+            })
+    }
+
+    private var playPlaylist: SkillBinding {
+        SkillBinding(
+            name: "play_playlist",
+            description: "Play one of the playlists in the music player's sidebar, by name.",
+            parameters: [
+                .init(name: "playlist", type: "string",
+                      description: "Which playlist.", required: true),
+                .init(name: "app", type: "string",
+                      description: "Which player. Omit for the one that's running.",
+                      required: false),
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let wanted = arguments["playlist"], !wanted.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me which playlist.")
+                }
+                guard let (registration, pid) = support.resolve(arguments["app"]) else {
+                    return notRunning(arguments["app"])
+                }
+                switch await MediaSurfaceLibrary.play(
+                    playlistNamed: wanted, pid: pid, registration: registration
+                ) {
+                case .played(let name):
+                    let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+                    return SkillOutcome(
+                        ok: true,
+                        summary: reading?.title.map { "Playing \(name) — \"\($0)\"." }
+                            ?? "Playing \(name).",
+                        archivePolicy: .stateSnapshot,
+                        target: reading?.element,
+                        adapterTrail: ["media-surface"])
+                case .ambiguous(let titles):
+                    // NAMED, NEVER GUESSED — starting one of two is a coin
+                    // flip, and the wrong one is audible immediately.
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "I know more than one: \(titles.joined(separator: ", ")). Which?",
+                        foundNothing: true)
+                case .noSuchPlaylist(let closest):
+                    return SkillOutcome(
+                        ok: true,
+                        summary: closest.isEmpty
+                            ? "I couldn't find a playlist called \"\(wanted)\"."
+                            : "No playlist called \"\(wanted)\". Closest: \(closest.joined(separator: ", ")).",
+                        foundNothing: true)
+                case .noLibrary:
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I can't see \(registration.displayName)'s sidebar — open it and try again.")
+                case .couldNotPress:
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I found the playlist but couldn't start it.")
                 }
             })
     }

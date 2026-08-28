@@ -102,7 +102,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "12bae7496e58f9a414d0cafe24975a340108e69f14288a414568ceff4b497dcd"
+    "digest" : "4f53004c5b8e23682573f512d3cfbd1accf991f850f97cc5a6159afd53c66d6a"
   },
   "interactions" : [
 
@@ -158,8 +158,16 @@
     "id" : "apple-music",
     "mediaSurface" : {
       "itemNoun" : "track",
+      "libraryLabel" : "Sidebar",
+      "libraryRevealLabel" : "Dismiss Now Playing",
+      "nextLabel" : "Next",
+      "pagePlayLabel" : "Play",
       "pausedLabel" : "Play",
       "playingLabel" : "Pause",
+      "playlistSectionLabel" : "Playlists",
+      "playlistSectionSkips" : [
+        "All Playlists"
+      ],
       "positionLabel" : "Track Position",
       "repeatMode" : {
         "off" : "do not repeat",

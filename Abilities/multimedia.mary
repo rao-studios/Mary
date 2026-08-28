@@ -75,12 +75,14 @@
     },
     "skills" : [
       "multimedia.control-playback",
+      "multimedia.list-playlists",
       "multimedia.now-playing",
       "multimedia.open-player",
       "multimedia.play-music",
+      "multimedia.play-playlist",
       "multimedia.search-music"
     ],
-    "summary" : "The multimedia discipline: say what is playing, drive the transport, and find a song in the Apple Music catalog. An application joins this discipline by declaring a `mediaSurface` — where its transport lives — which is what lets Mary read its state without naming it in Swift. THE LIBRARY IS NOT HERE, and its absence is deliberate rather than an oversight: playlists, library search and track ratings were Apple Events in the plugin this descends from, and Mary sends none and asks for no Automation grant. They wait on a lane this build does not have.",
+    "summary" : "The multimedia discipline: say what is playing, drive the transport, play a playlist, and find a song in the Apple Music catalog. An application joins this discipline by declaring a `mediaSurface` — where its transport and library live — which is what lets Mary read and drive it without naming it in Swift. RATINGS AND LIBRARY SEARCH ARE STILL OUT: they were Apple Events in the plugin this descends from, and Mary sends none. Playlists were assumed to be in that group and are not — the sidebar is an ordinary Accessibility outline.",
     "tint" : "#FC5C7D",
     "title" : "Multimedia",
     "totemProjections" : [
@@ -100,7 +102,9 @@
         "skip this song",
         "next song",
         "turn it up",
-        "turn it down"
+        "turn it down",
+        "play my playlist",
+        "what playlists do i have"
       ],
       "tokens" : [
         "playing",
@@ -113,7 +117,9 @@
         "louder",
         "quieter",
         "mute",
-        "shuffle"
+        "shuffle",
+        "playlist",
+        "playlists"
       ]
     },
     "version" : "1.0.0"
@@ -221,6 +227,48 @@
       "summary" : "Bring a music player forward so the user can see it.",
       "title" : "Open the Player",
       "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "media-player"
+        }
+      ],
+      "effect" : "read",
+      "id" : "library.playlists.read",
+      "inputType" : "multimedia.player-query",
+      "outputType" : "multimedia.catalog-results",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the player's own sidebar through Accessibility."
+        }
+      ],
+      "summary" : "List the playlists the player shows in its sidebar.",
+      "title" : "Read the Playlists",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "media-player"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "library.playlists.play",
+      "inputType" : "multimedia.player-query",
+      "outputType" : "multimedia.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Select the playlist row and press the player's own play control."
+        }
+      ],
+      "summary" : "Start one of the player's playlists by name.",
+      "title" : "Play a Playlist",
+      "version" : "1.0.0"
     }
   ],
   "dependencies" : [
@@ -280,13 +328,33 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "Open my music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "play-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play my Dinner Office Playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.list-playlists",
+      "id" : "list-the-playlists",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "What playlists do I have?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "9fe6ed7fd40f7241778791b218c9fe26b002e488d1ce60d320da0df68e46395c"
+    "digest" : "3f87f51a4060fdc459c32d2aa06cc619ca23b56157806a57197439e53c81b544"
   },
   "interactions" : [
 
@@ -704,6 +772,169 @@
       "summary" : "Bring the music player forward.",
       "title" : "Open the Player",
       "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "list_playlists",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.list-playlists",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_playlists",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which player. Omit for the one that's running.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "library.playlists.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 185
+      },
+      "summary" : "List the playlists the player shows in its sidebar.",
+      "title" : "List the Playlists",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "play_playlist",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.play-playlist",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "play_playlist",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "playlist",
+            "required" : true,
+            "summary" : "Which playlist.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which player. Omit for the one that's running.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "library.playlists.play"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.player-transport"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Play one of the player's own playlists, by name.",
+      "title" : "Play a Playlist",
+      "usesStage" : false,
       "version" : "1.0.0"
     }
   ],

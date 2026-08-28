@@ -23,7 +23,9 @@ import MaryFoundation
     /// real rather than invented, so a rule that passes here passes there.
     private func registration(
         shuffle: PluginMediaToggleLabels? = .init(on: "shuffle", off: "do not shuffle"),
-        repeatMode: PluginMediaToggleLabels? = .init(on: "repeat", off: "do not repeat")
+        repeatMode: PluginMediaToggleLabels? = .init(on: "repeat", off: "do not repeat"),
+        playlistSection: String? = "Playlists",
+        skips: [String] = ["All Playlists"]
     ) -> MediaSurfaceRegistration {
         MediaSurfaceRegistration(
             applicationID: "player",
@@ -35,7 +37,11 @@ import MaryFoundation
                 pausedLabel: "Play",
                 shuffle: shuffle,
                 repeatMode: repeatMode,
-                positionLabel: "Track Position"))
+                positionLabel: "Track Position",
+                pagePlayLabel: "Play",
+                libraryLabel: "Sidebar",
+                playlistSectionLabel: playlistSection,
+                playlistSectionSkips: skips))
     }
 
     // MARK: - The state is in the label
@@ -104,6 +110,17 @@ import MaryFoundation
         #expect(spoken.contains("50%"))
     }
 
+    /// THE SUBTITLE IS PARENTHESISED, NOT DASHED. The player writes it
+    /// already dash-joined ("Enfant Sauvage — Petrichor"); appending it with
+    /// another dash gave a sentence with three in a row.
+    @Test func theSubtitleIsCarriedWithoutCollidingDashes() {
+        let spoken = MediaSurfaceAdapter.spoken(
+            .init(title: "58500", subtitle: "Enfant Sauvage — Petrichor", isPlaying: true),
+            registration: registration())
+        #expect(spoken.contains("(Enfant Sauvage — Petrichor)"))
+        #expect(!spoken.contains("— Enfant"))
+    }
+
     /// ABSENT FACTS ARE LEFT OUT. A player whose transport hides its shuffle
     /// control is not a player that is not shuffling, and a sentence that
     /// says "shuffle is off" about it is a confident lie.
@@ -145,6 +162,57 @@ import MaryFoundation
         support.reconcile([registration()])
         support.reconcile([])
         #expect(support.all().isEmpty)
+    }
+
+    // MARK: - Which sidebar rows are playlists
+
+    /// The real sidebar, in the real order, measured from a live player: the
+    /// navigation rows come first, then the section header, then the user's
+    /// own playlists.
+    private let sidebar = [
+        "Search", "Home", "New", "Radio", "Library", "Recently Added",
+        "Artists", "Albums", "Songs", "Made for You",
+        "Playlists", "All Playlists",
+        "Favorite Songs", "Dinner Office Playlist", "Gita's Ballad",
+    ]
+
+    @Test func onlyRowsAfterTheSectionHeaderArePlaylists() {
+        let found = MediaSurfaceLibrary.playlistNames(
+            from: sidebar, registration: registration())
+        #expect(found == ["Favorite Songs", "Dinner Office Playlist", "Gita's Ballad"])
+    }
+
+    /// THE HEADER IS NOT ONE OF ITS OWN CHILDREN. Offering "Playlists" as a
+    /// playlist would send `play_playlist` at a navigation row.
+    @Test func theSectionHeaderIsNotOfferedAsAPlaylist() {
+        let found = MediaSurfaceLibrary.playlistNames(
+            from: sidebar, registration: registration())
+        #expect(!found.contains("Playlists"))
+    }
+
+    /// Navigation inside the section is declared, because nothing in the tree
+    /// distinguishes it — every row is a sibling at the same depth and width.
+    @Test func declaredNavigationRowsAreSkipped() {
+        let found = MediaSurfaceLibrary.playlistNames(
+            from: sidebar, registration: registration())
+        #expect(!found.contains("All Playlists"))
+    }
+
+    /// A player that declares no section offers no playlists, rather than
+    /// offering its whole sidebar as though every view were one.
+    @Test func noDeclaredSectionMeansNoPlaylists() {
+        let found = MediaSurfaceLibrary.playlistNames(
+            from: sidebar, registration: registration(playlistSection: nil))
+        #expect(found.isEmpty)
+    }
+
+    /// A header the sidebar does not contain yields nothing — the sidebar was
+    /// scrolled, collapsed, or renamed, and inventing a boundary would offer
+    /// navigation rows as playlists.
+    @Test func aMissingSectionHeaderYieldsNothing() {
+        let found = MediaSurfaceLibrary.playlistNames(
+            from: ["Home", "Radio"], registration: registration())
+        #expect(found.isEmpty)
     }
 
     // MARK: - The transport verbs

@@ -86,6 +86,21 @@ public struct PluginMediaSurfaceSchema: Codable, Hashable, Sendable {
     /// than the first of thirty in a playlist.
     public var transportLabel: String
 
+    /// The label of the "skip forward" control.
+    ///
+    /// DECLARED SO THE TRANSPORT CAN BE FOUND WITHOUT ITS CONTAINER, which is
+    /// not a hypothetical: a player's transport moves between views. Measured
+    /// against Apple Music, the main window puts it in a group labelled
+    /// "Mini Player" and the full-screen Now Playing view puts the same
+    /// controls in a group with NO LABEL AT ALL — so a locator that could only
+    /// match a container name simply lost the transport whenever the user
+    /// expanded the player, and reported the player unreadable.
+    ///
+    /// A play button alone cannot stand in for it: a library page publishes
+    /// one per row, thirty of them, all wearing the same word. A play button
+    /// with a NEXT beside it is the transport, in every view.
+    public var nextLabel: String?
+
     /// The label the play/pause button wears WHILE PLAYING — see the header.
     /// Its absence from the transport means paused or stopped.
     public var playingLabel: String
@@ -108,6 +123,58 @@ public struct PluginMediaSurfaceSchema: Codable, Hashable, Sendable {
 
     /// What the user calls one of these — "track", "episode", "video".
     /// Mary speaks this word back rather than inventing one.
+    /// The label of the control that starts whatever the player is currently
+    /// SHOWING — an album page, a playlist, a search result.
+    ///
+    /// NOT THE TRANSPORT'S PLAY BUTTON, and the distinction is the whole
+    /// reason this is a separate field from `pausedLabel`. They commonly wear
+    /// the same word: Apple Music publishes a 36×38 "Play" inside its
+    /// transport and a 132×38 "Play" on the page, and pressing the first
+    /// resumes what was already queued while pressing the second starts the
+    /// thing on screen. Opening an album and then pressing the transport is
+    /// exactly how "play this album" silently resumes yesterday's song.
+    ///
+    /// Mary tells them apart by scope and size — outside the declared
+    /// transport, largest wins — so a package supplies only the word.
+    public var pagePlayLabel: String?
+
+    /// The Accessibility label of the outline holding the library and
+    /// playlists.
+    public var libraryLabel: String?
+
+    /// A control that returns the player to a view where the library IS
+    /// visible.
+    ///
+    /// THE LIBRARY IS NOT ALWAYS ON SCREEN, which a reader discovers the hard
+    /// way: Apple Music's full-screen Now Playing view has no sidebar in its
+    /// tree at all, so "list my playlists" answers "I can't see any" while
+    /// fifty-one of them exist one dismissal away. Without this the only
+    /// honest reply is to ask the user to go and change the view themselves,
+    /// for a step they never mentioned and Mary can take.
+    ///
+    /// PRESSED ONLY WHEN THE LIBRARY IS MISSING, never pre-emptively — a
+    /// player already showing its sidebar must not have its view changed to
+    /// answer a question about it.
+    public var libraryRevealLabel: String?
+
+    /// The row after which that outline lists PLAYLISTS.
+    ///
+    /// A HEADER AND NOT A CONTAINER, because that is how the application
+    /// builds it: measured against Apple Music, every sidebar row is a
+    /// sibling at the same depth, the same indent and the same width —
+    /// navigation entries and playlists alike. There is no structural
+    /// difference to key on, so the only honest answer to "which of these are
+    /// playlists" is "the ones after the heading that says so".
+    public var playlistSectionLabel: String?
+
+    /// Rows inside that section which are navigation rather than playlists —
+    /// Apple Music puts "All Playlists" there.
+    ///
+    /// A LIST AND NOT A RULE. Only the package can know them, and a rule that
+    /// guessed would either hide one of the user's playlists or offer them a
+    /// view as one.
+    public var playlistSectionSkips: [String]
+
     public var itemNoun: String
 
     /// How often to look while this application is in use.
@@ -117,18 +184,30 @@ public struct PluginMediaSurfaceSchema: Codable, Hashable, Sendable {
         transportLabel: String,
         playingLabel: String,
         pausedLabel: String,
+        nextLabel: String? = nil,
         shuffle: PluginMediaToggleLabels? = nil,
         repeatMode: PluginMediaToggleLabels? = nil,
         positionLabel: String? = nil,
+        pagePlayLabel: String? = nil,
+        libraryLabel: String? = nil,
+        libraryRevealLabel: String? = nil,
+        playlistSectionLabel: String? = nil,
+        playlistSectionSkips: [String] = [],
         itemNoun: String = "track",
         watch: PluginProseWatchSchema = .init()
     ) {
         self.transportLabel = transportLabel
         self.playingLabel = playingLabel
         self.pausedLabel = pausedLabel
+        self.nextLabel = nextLabel
         self.shuffle = shuffle
         self.repeatMode = repeatMode
         self.positionLabel = positionLabel
+        self.pagePlayLabel = pagePlayLabel
+        self.libraryLabel = libraryLabel
+        self.libraryRevealLabel = libraryRevealLabel
+        self.playlistSectionLabel = playlistSectionLabel
+        self.playlistSectionSkips = playlistSectionSkips
         self.itemNoun = itemNoun
         self.watch = watch
     }
@@ -137,9 +216,15 @@ public struct PluginMediaSurfaceSchema: Codable, Hashable, Sendable {
         case transportLabel
         case playingLabel
         case pausedLabel
+        case nextLabel
         case shuffle
         case repeatMode
         case positionLabel
+        case pagePlayLabel
+        case libraryLabel
+        case libraryRevealLabel
+        case playlistSectionLabel
+        case playlistSectionSkips
         case itemNoun
         case watch
     }
@@ -150,11 +235,20 @@ public struct PluginMediaSurfaceSchema: Codable, Hashable, Sendable {
         transportLabel = try values.decode(String.self, forKey: .transportLabel)
         playingLabel = try values.decode(String.self, forKey: .playingLabel)
         pausedLabel = try values.decode(String.self, forKey: .pausedLabel)
+        nextLabel = try values.decodeIfPresent(String.self, forKey: .nextLabel)
         shuffle = try values.decodeIfPresent(
             PluginMediaToggleLabels.self, forKey: .shuffle)
         repeatMode = try values.decodeIfPresent(
             PluginMediaToggleLabels.self, forKey: .repeatMode)
         positionLabel = try values.decodeIfPresent(String.self, forKey: .positionLabel)
+        pagePlayLabel = try values.decodeIfPresent(String.self, forKey: .pagePlayLabel)
+        libraryLabel = try values.decodeIfPresent(String.self, forKey: .libraryLabel)
+        libraryRevealLabel = try values.decodeIfPresent(
+            String.self, forKey: .libraryRevealLabel)
+        playlistSectionLabel = try values.decodeIfPresent(
+            String.self, forKey: .playlistSectionLabel)
+        playlistSectionSkips = try values.decodeIfPresent(
+            [String].self, forKey: .playlistSectionSkips) ?? []
         itemNoun = try values.decodeIfPresent(String.self, forKey: .itemNoun) ?? "track"
         watch = try values.decodeIfPresent(
             PluginProseWatchSchema.self, forKey: .watch) ?? .init()
