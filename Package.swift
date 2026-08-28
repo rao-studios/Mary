@@ -58,6 +58,7 @@ let package = Package(
         .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
+        .executable(name: "mary-web-probe", targets: ["WebProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -339,6 +340,16 @@ let package = Package(
             name: "MediaProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryFoundation"],
             path: "Sources/Probes/MediaProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The facts about other people's browsers that no fixture can hold:
+        // whether a lazy web tree wakes, what shape a tab strip has, and when
+        // a page has stopped moving. It measures BEFORE the lane that rides
+        // the answers exists, which is why it depends on the engine alone.
+        .executableTarget(
+            name: "WebProbe",
+            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/WebProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
