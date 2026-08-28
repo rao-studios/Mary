@@ -23,6 +23,11 @@ else
     swift build
 fi
 
+# THE SHADERS, WHICH `swift build` DOES NOT BUILD. Cheap after the first run
+# — the script skips itself when no shader is newer than the library.
+echo "▸ mlx.metallib"
+"$REPO_ROOT/scripts/build-metallib.sh" "$CONFIG"
+
 BIN="$REPO_ROOT/.build/$CONFIG/Mary"
 
 # Identity detection + codesign live in sign-binary.sh — shared with the

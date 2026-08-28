@@ -55,6 +55,7 @@ let package = Package(
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
+        .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
     ],
     dependencies: [
         // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
@@ -206,6 +207,7 @@ let package = Package(
                 "MaryAmbient",
                 "MaryAdapters",
                 "MaryVoice",
+                .product(name: "MLX", package: "Frigate"),
                 .product(name: "MLXLMCommon", package: "Frigate"),
                 .product(name: "MLXLLM", package: "Frigate"),
             ],
@@ -308,6 +310,16 @@ let package = Package(
             name: "BehaviorProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/BehaviorProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Whether the on-device engine has a GPU to run on — asked BEFORE a
+        // 4 GB download rather than after it. `swift build` cannot compile
+        // Metal, so this is the one build product that can go missing without
+        // anything failing until first use.
+        .executableTarget(
+            name: "GPUProbe",
+            dependencies: ["MaryBrain"],
+            path: "Sources/Probes/GPUProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

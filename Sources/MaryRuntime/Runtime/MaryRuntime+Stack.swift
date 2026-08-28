@@ -211,6 +211,13 @@ extension MaryRuntime {
         engineChoiceBox.withLock { $0 = choice }
         await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
         await brain.setEngine(MaryLocalEngine(modelID: localModelID))
+        // CHECKED BEFORE WARMING, because the failure it prevents is not
+        // catchable. A missing Metal library surfaces as a C++
+        // `std::runtime_error` thrown out of MLX, which does not arrive as a
+        // Swift error — the `catch` below never sees it and the process dies.
+        // Reading the search path costs four `fileExists` calls and turns an
+        // unrecoverable crash into a sentence naming the script to run.
+        guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
         do {
             try await brain.warmup()
             return nil
