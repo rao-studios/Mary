@@ -4,13 +4,13 @@
 //
 //  One learned thing about how a person works, in a form that can travel.
 //
-//  It generalizes `ApplicationSchemaFact`'s proven mechanics — support counts,
-//  candidate→verified promotion, confidence, an age horizon — and fixes what
-//  that type could not carry:
+//  It generalizes the mechanics of the observation fact it descends from —
+//  support counts, candidate→verified promotion, confidence, an age horizon —
+//  and fixes what that design could not carry:
 //
-//    · A FORMAT VERSION, from the first commit. `ApplicationSchemaFact` has
-//      none and its loader swallows decode failures with `try?`, so adding one
-//      later would not be an error, it would be silent total amnesia.
+//    · A FORMAT VERSION, from the first commit. That design had none and its
+//      loader swallowed decode failures with `try?`, so adding one later would
+//      not have been an error, it would have been silent total amnesia.
 //    · ONE canonicalizer and ONE hash (`StyleHashing`). Three canonicalizers
 //      already exist across the indexing surface and they disagree about
 //      punctuation and empty input; a key minted on one machine and resolved
