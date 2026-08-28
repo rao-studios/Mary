@@ -134,3 +134,61 @@ public struct PluginAccessibilityAnchorLocatorSchema: Codable, Hashable, Sendabl
             String.self, forKey: .descendantLabelText)
     }
 }
+
+/// One key chord, named by what it accomplishes rather than by which keys it
+/// presses.
+///
+/// LIVES HERE, WITH THE VOCABULARY IT IS BUILT FROM, because it belongs to no
+/// one lane. It arrived on the prose surface and was named for it, which read
+/// as a fact about prose — a key and a set of modifiers is nothing of the
+/// kind. The browser surface presses ⌘T out of the same struct.
+public struct PluginChord: Codable, Hashable, Sendable {
+    public var key: PluginKey
+    public var modifiers: [PluginKeyModifier]
+
+    public init(key: PluginKey, modifiers: [PluginKeyModifier] = []) {
+        self.key = key
+        self.modifiers = modifiers
+    }
+
+    private enum CodingKeys: String, CodingKey, CaseIterable {
+        case key
+        case modifiers
+    }
+
+    public init(from decoder: Decoder) throws {
+        try decoder.rejectUnknownKeys(CodingKeys.self)
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        key = try values.decode(PluginKey.self, forKey: .key)
+        modifiers = try values.decodeIfPresent([PluginKeyModifier].self, forKey: .modifiers) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(key, forKey: .key)
+        if !modifiers.isEmpty { try container.encode(modifiers, forKey: .modifiers) }
+    }
+}
+
+/// Which Accessibility attribute carries an element's name.
+///
+/// A DECLARED CHOICE AND NOT A LADDER, in the one place where a ladder is
+/// wrong. A reader climbing title-then-description-then-value is right about
+/// page content, where any of the three may hold the words. It is wrong about
+/// a browser's tab strip: Chrome names a tab in its DESCRIPTION and Safari in
+/// its TITLE, and Chrome's tabs also carry a title that is empty. A ladder
+/// finds an unnamed strip in one browser and never says why.
+public enum PluginElementTextAttribute: String, Codable, Hashable, Sendable, CaseIterable {
+    case title
+    case description
+    case value
+
+    /// The Accessibility attribute name this selects.
+    public var attributeName: String {
+        switch self {
+        case .title: return "AXTitle"
+        case .description: return "AXDescription"
+        case .value: return "AXValue"
+        }
+    }
+}

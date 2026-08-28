@@ -66,36 +66,6 @@ public enum PluginProseDocumentKey: String, Codable, Hashable, Sendable, CaseIte
     case windowOnly
 }
 
-/// One key chord this application answers to, named by what it accomplishes
-/// rather than by which keys it presses.
-public struct PluginProseChord: Codable, Hashable, Sendable {
-    public var key: PluginKey
-    public var modifiers: [PluginKeyModifier]
-
-    public init(key: PluginKey, modifiers: [PluginKeyModifier] = []) {
-        self.key = key
-        self.modifiers = modifiers
-    }
-
-    private enum CodingKeys: String, CodingKey, CaseIterable {
-        case key
-        case modifiers
-    }
-
-    public init(from decoder: Decoder) throws {
-        try decoder.rejectUnknownKeys(CodingKeys.self)
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        key = try values.decode(PluginKey.self, forKey: .key)
-        modifiers = try values.decodeIfPresent([PluginKeyModifier].self, forKey: .modifiers) ?? []
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(key, forKey: .key)
-        if !modifiers.isEmpty { try container.encode(modifiers, forKey: .modifiers) }
-    }
-}
-
 /// What this application calls one of its documents, in the user's language.
 ///
 /// Mary speaks these words back: "Essay — about 400 words, with two other
@@ -216,7 +186,7 @@ public struct PluginProseSurfaceSchema: Codable, Hashable, Sendable {
     /// Only `newDocument` is consulted today; unknown keys are refused rather
     /// than ignored, so a package cannot smuggle an unrecognized verb past a
     /// build that would not honour it.
-    public var chords: [PluginProseChordName: PluginProseChord]
+    public var chords: [PluginProseChordName: PluginChord]
 
     /// How often to look while this application is in use.
     public var watch: PluginProseWatchSchema
@@ -264,7 +234,7 @@ public struct PluginProseSurfaceSchema: Codable, Hashable, Sendable {
         grammar: PluginProseGrammar = .prose,
         documentKey: PluginProseDocumentKey = .documentPathThenWindow,
         documentNoun: PluginProseDocumentNoun,
-        chords: [PluginProseChordName: PluginProseChord] = [:],
+        chords: [PluginProseChordName: PluginChord] = [:],
         watch: PluginProseWatchSchema = .init(),
         budgets: PluginProseBudgetSchema = .init()
     ) {
@@ -301,7 +271,7 @@ public struct PluginProseSurfaceSchema: Codable, Hashable, Sendable {
             PluginProseDocumentKey.self, forKey: .documentKey) ?? .documentPathThenWindow
         documentNoun = try values.decode(PluginProseDocumentNoun.self, forKey: .documentNoun)
         chords = try values.decodeIfPresent(
-            [PluginProseChordName: PluginProseChord].self, forKey: .chords) ?? [:]
+            [PluginProseChordName: PluginChord].self, forKey: .chords) ?? [:]
         watch = try values.decodeIfPresent(
             PluginProseWatchSchema.self, forKey: .watch) ?? .init()
         budgets = try values.decodeIfPresent(

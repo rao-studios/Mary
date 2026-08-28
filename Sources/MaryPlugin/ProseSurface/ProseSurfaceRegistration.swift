@@ -76,7 +76,7 @@ public struct ProseSurfaceRegistration: Sendable, Equatable {
     /// The chord that makes a new document, when this application declared
     /// one. Nil is a real answer: an application may be readable and not
     /// creatable, and offering a create it cannot perform is worse.
-    public var newDocumentChord: PluginProseChord? {
+    public var newDocumentChord: PluginChord? {
         schema.chords[.newDocument]
     }
 

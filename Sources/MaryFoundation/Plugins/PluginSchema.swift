@@ -103,6 +103,14 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
     /// `PluginCorpusSchema`.
     public var corpus: PluginCorpusSchema?
 
+    /// Where this browser keeps its TABS — the third surface, for the thing
+    /// that is neither a document nor a player: a set of pages, one of which
+    /// is current. Same reason as the two above (a tab roster is a value, and
+    /// a recipe returns none) and the same road. See
+    /// `PluginBrowserSurfaceSchema`, whose header carries the measurement
+    /// showing the two browsers agree on one axis out of six.
+    public var browserSurface: PluginBrowserSurfaceSchema?
+
     /// The single-adapter view. Valid Plugins always declare at least one.
     public var adapter: PluginAdapterSchema {
         get { adapters[0] }
@@ -128,7 +136,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
-        corpus: PluginCorpusSchema? = nil
+        corpus: PluginCorpusSchema? = nil,
+        browserSurface: PluginBrowserSurfaceSchema? = nil
     ) {
         self.init(
             id: id,
@@ -140,7 +149,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             realizations: realizations,
             proseSurface: proseSurface,
             mediaSurface: mediaSurface,
-            corpus: corpus)
+            corpus: corpus,
+            browserSurface: browserSurface)
     }
 
     public init(
@@ -153,7 +163,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
-        corpus: PluginCorpusSchema? = nil
+        corpus: PluginCorpusSchema? = nil,
+        browserSurface: PluginBrowserSurfaceSchema? = nil
     ) {
         self.id = id
         self.version = version
@@ -165,6 +176,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         self.proseSurface = proseSurface
         self.mediaSurface = mediaSurface
         self.corpus = corpus
+        self.browserSurface = browserSurface
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -179,6 +191,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         case proseSurface
         case mediaSurface
         case corpus
+        case browserSurface
     }
 
     public init(from decoder: Decoder) throws {
@@ -202,6 +215,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             PluginMediaSurfaceSchema.self, forKey: .mediaSurface)
         corpus = try container.decodeIfPresent(
             PluginCorpusSchema.self, forKey: .corpus)
+        browserSurface = try container.decodeIfPresent(
+            PluginBrowserSurfaceSchema.self, forKey: .browserSurface)
     }
 
     /// Encoding is HAND-WRITTEN, and an absent optional stays absent rather
@@ -231,6 +246,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         }
         if let corpus {
             try container.encode(corpus, forKey: .corpus)
+        }
+        if let browserSurface {
+            try container.encode(browserSurface, forKey: .browserSurface)
         }
     }
 }
