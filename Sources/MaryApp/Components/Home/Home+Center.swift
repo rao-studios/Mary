@@ -23,11 +23,11 @@ extension Home {
             /// a route changes which world leads, and the eyes are where you
             /// see what that did.
             var showRouter: Bool = false
-            /// The corpus split (what indexing ingested and concluded).
-            /// Transient and separate for the same reasons as the two above —
-            /// you want it open BESIDE the routes while checking whether what
-            /// Mary learned is what she should have learned.
-            var showCorpus: Bool = false
+            // NO `showCorpus`. A flag stood here for the corpus split — what
+            // indexing ingested and concluded — and the pane that read it was
+            // never ported, because the behavioural corpus lane is deferred.
+            // The toolbar button survived the drop and lit up on press while
+            // rendering nothing at all. It comes back with its pane.
         }
 
         @Store public var state: State

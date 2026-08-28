@@ -62,5 +62,33 @@ struct MaryApp: App {
                 .frame(minWidth: 720, minHeight: 560)
         }
         .windowResizability(.contentMinSize)
+
+        // ABILITY STUDIO IS ITS OWN WINDOW, not a sheet on the conversation.
+        // Authoring a package is not a turn: it outlives the exchange that
+        // prompted it, and a person edits a recipe with Mary still listening
+        // beside it. The other debug surfaces are sheets for the opposite
+        // reason — each describes the turn that just happened.
+        Window("Ability Studio", id: "ability-studio") {
+            AbilityStudioView()
+        }
+        .defaultSize(width: 1040, height: 720)
+        .windowResizability(.contentMinSize)
+
+        WindowGroup(
+            "Ability Editor",
+            id: "ability-editor",
+            for: AbilityStudioEditorWindowRequest.self
+        ) { request in
+            if let request = request.wrappedValue {
+                AbilityStudioEditorWindow(request: request)
+            } else {
+                ContentUnavailableView(
+                    "Choose an Ability",
+                    systemImage: "shippingbox",
+                    description: Text("Open an Ability from Ability Studio to edit it visually."))
+            }
+        }
+        .defaultSize(width: 1320, height: 860)
+        .windowResizability(.contentMinSize)
     }
 }

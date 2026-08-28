@@ -21,10 +21,6 @@ extension Home: View {
             onToggleRouter: {
                 _state.showRouter.wrappedValue.toggle()
             },
-            showCorpus: state.showCorpus,
-            onToggleCorpus: {
-                _state.showCorpus.wrappedValue.toggle()
-            },
             showTotems: state.showTotems,
             onToggleTotems: {
                 _state.showTotems.wrappedValue.toggle()
@@ -54,8 +50,6 @@ struct HomeSessionView: View {
     let onToggleDebugger: () -> Void
     let showRouter: Bool
     let onToggleRouter: () -> Void
-    let showCorpus: Bool
-    let onToggleCorpus: () -> Void
     let showTotems: Bool
     let onToggleTotems: () -> Void
 
@@ -196,16 +190,6 @@ struct HomeSessionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Routes")
-            Button {
-                onToggleCorpus()
-            } label: {
-                Image(systemName: "square.stack.3d.up")
-                    .font(.system(size: 14))
-                    // A toggle like the two before it, tinted the same way.
-                    .foregroundStyle(showCorpus ? Paper.ink : Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Index and profile")
             Button {
                 openWindow(id: "ability-studio")
             } label: {

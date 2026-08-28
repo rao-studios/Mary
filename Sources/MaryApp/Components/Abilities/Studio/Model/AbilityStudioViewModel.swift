@@ -1,0 +1,530 @@
+import AppKit
+import MaryBrain
+import Combine
+import Foundation
+import UniformTypeIdentifiers
+
+@MainActor
+final class AbilityStudioViewModel: ObservableObject {
+    @Published private(set) var snapshot: AbilityRuntimeSnapshot = .empty
+    @Published var selectedPackageID: PackageID?
+    @Published var draft = ""
+    @Published private(set) var validation = AbilityPackageValidation()
+    @Published private(set) var isDirty = false
+    @Published private(set) var isLocalDraft = false
+    @Published private(set) var hasPendingRegistryUpdate = false
+    @Published var status: String?
+    @Published private(set) var applicationResolutionEpoch = 0
+
+    private let library: AbilityLibrary
+    private let applicationLocator: PluginApplicationLocator
+    private let workspaceNotificationCenter: NotificationCenter
+    private var editSession: AbilityPackageEditSession?
+    private var pendingSnapshot: AbilityRuntimeSnapshot?
+    private var eventsTask: Task<Void, Never>?
+    private var applicationObservers: [NSObjectProtocol] = []
+
+    init(
+        library: AbilityLibrary = .shared,
+        applicationLocator: PluginApplicationLocator = .live,
+        workspaceNotificationCenter: NotificationCenter = NSWorkspace.shared.notificationCenter
+    ) {
+        self.library = library
+        self.applicationLocator = applicationLocator
+        self.workspaceNotificationCenter = workspaceNotificationCenter
+    }
+
+    deinit {
+        eventsTask?.cancel()
+        applicationObservers.forEach { workspaceNotificationCenter.removeObserver($0) }
+    }
+
+    func start() {
+        guard eventsTask == nil else { return }
+        startApplicationObservation()
+        let current = library.snapshotEnsuringLoaded()
+        if isDirty {
+            acceptActivatedSnapshot(current)
+        } else {
+            snapshot = current
+            selectInitialIfNeeded()
+            reloadDraft()
+        }
+        let events = library.events()
+        eventsTask = Task { [weak self] in
+            for await event in events {
+                guard !Task.isCancelled else { return }
+                // Do not promote `self` for the lifetime of this infinite
+                // stream. The temporary optional borrow lets deinit cancel the
+                // task even when a hosting view disappears without delivering
+                // its normal onDisappear callback.
+                self?.handleLibraryEvent(event)
+            }
+        }
+    }
+
+    func stop() {
+        eventsTask?.cancel()
+        eventsTask = nil
+        applicationObservers.forEach { workspaceNotificationCenter.removeObserver($0) }
+        applicationObservers = []
+    }
+
+    private func startApplicationObservation() {
+        guard applicationObservers.isEmpty else { return }
+        let names: [Notification.Name] = [
+            NSWorkspace.didLaunchApplicationNotification,
+            NSWorkspace.didTerminateApplicationNotification,
+            NSWorkspace.didActivateApplicationNotification,
+        ]
+        applicationObservers = names.map { name in
+            workspaceNotificationCenter.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    self?.applicationResolutionEpoch &+= 1
+                }
+            }
+        }
+    }
+
+    func select(_ id: PackageID?) {
+        guard id != selectedPackageID else { return }
+        guard !isDirty else {
+            status = "Save or revert the current draft before switching packages."
+            return
+        }
+        selectedPackageID = id
+        reloadDraft()
+    }
+
+    // MARK: - Declarative Remote Hands authoring (Runtime tab)
+
+    /// The one source of truth stays the draft STRING: visual editors
+    /// decode, transform, and re-encode canonically through the same
+    /// `updateDraft` path the Schema tab uses, so the two tabs cannot drift.
+    var draftPackage: MaryAbilityPackage? {
+        try? AbilityPackageCodec.decode(Data(draft.utf8), verifyIntegrity: false)
+    }
+
+    func mutateDraftPackage(_ transform: (inout MaryAbilityPackage) -> Void) {
+        guard var package = draftPackage else {
+            status = "The draft JSON does not decode — fix it in the Schema tab first."
+            return
+        }
+        transform(&package)
+        guard let data = try? AbilityPackageCodec.encoded(package),
+              let json = String(data: data, encoding: .utf8) else {
+            status = "The edited package could not be re-encoded."
+            return
+        }
+        updateDraft(json)
+    }
+
+    /// Proves that a new package can enter an optimistic unsaved edit session
+    /// and returns the typed window handoff. This deliberately does not retain
+    /// the session in the Studio list model: the new editor window owns its
+    /// own lease and the installed registry remains unchanged until Save.
+    func editorRequestForNewPackage(
+        _ package: MaryAbilityPackage
+    ) -> AbilityStudioEditorWindowRequest? {
+        do {
+            _ = try library.beginCreatingPackage(package)
+            status = "Opened an unsaved \(package.package.id.rawValue) draft. It is not installed until Save."
+            return AbilityStudioEditorWindowRequest(newPackage: package)
+        } catch {
+            status = error.localizedDescription
+            return nil
+        }
+    }
+
+    /// Opens either an installed package lease or a brand-new in-memory
+    /// package lease in the visual editor. `initialDraft` is itself the
+    /// canonical Mary package, so visual and Schema modes keep editing the
+    /// same JSON from the first keystroke onward.
+    func openEditor(_ request: AbilityStudioEditorWindowRequest) {
+        guard let initialDraft = request.initialDraft else {
+            select(request.packageID)
+            return
+        }
+        guard initialDraft.package.id == request.packageID else {
+            openFailedNewDraft(
+                initialDraft,
+                message: "The new Ability request does not match its package id.")
+            return
+        }
+        do {
+            let session = try library.beginCreatingPackage(initialDraft)
+            selectedPackageID = request.packageID
+            editSession = session
+            draft = session.draftJSON
+            validation = library.validate(json: draft)
+            isDirty = true
+            isLocalDraft = false
+            pendingSnapshot = nil
+            hasPendingRegistryUpdate = false
+            status = "Unsaved new Ability — Save installs and activates it for the first time."
+        } catch {
+            openFailedNewDraft(initialDraft, message: error.localizedDescription)
+        }
+    }
+
+    private func openFailedNewDraft(
+        _ package: MaryAbilityPackage,
+        message: String
+    ) {
+        selectedPackageID = package.package.id
+        editSession = nil
+        if let data = try? AbilityPackageCodec.encoded(package),
+           let json = String(data: data, encoding: .utf8) {
+            draft = json
+            validation = library.validate(json: json)
+        } else {
+            draft = ""
+            validation = .init()
+        }
+        isDirty = true
+        isLocalDraft = false
+        status = message
+    }
+
+    func updateDraft(_ value: String) {
+        draft = value
+        validation = library.validate(json: value)
+        isDirty = true
+        status = validation.isValid ? "Valid — Save activates it for the next turn." : nil
+    }
+
+    func validateDraft() {
+        validation = library.validate(json: draft)
+        status = validation.isValid
+            ? "Schema and active package graph are valid."
+            : validation.issues.first?.message ?? "The package is invalid."
+    }
+
+    func reload() {
+        guard !isDirty else {
+            status = "Reload paused: save or revert the current draft first."
+            return
+        }
+        let report = library.reload()
+        if report.activated {
+            acceptActivatedSnapshot(report.snapshot)
+            status = "Reloaded registry \(report.snapshot.revision.uuidString.prefix(8))."
+        } else {
+            status = report.issues.first?.message
+        }
+    }
+
+    func revert() {
+        let discardedNewPackage = editSession?.createsNewPackage == true
+        let active = library.snapshot()
+        let adoptedPendingRegistry = pendingSnapshot != nil
+            || active.revision != snapshot.revision
+        snapshot = active
+        pendingSnapshot = nil
+        hasPendingRegistryUpdate = false
+        selectInitialIfNeeded()
+        reloadDraft()
+        if validation.isValid {
+            status = discardedNewPackage
+                ? "Discarded the unsaved new Ability without installing it."
+                : adoptedPendingRegistry
+                ? "Discarded the draft and opened the active registry."
+                : "Reverted to the active package."
+        }
+    }
+
+    func save() {
+        guard validation.isValid else {
+            status = validation.issues.first?.message ?? "Fix validation errors before saving."
+            return
+        }
+        guard let editSession else {
+            status = "Reopen the Ability before saving this edit."
+            return
+        }
+        let createsNewPackage = editSession.createsNewPackage
+        do {
+            let report = try library.saveEditedPackage(json: draft, session: editSession)
+            snapshot = report.snapshot
+            pendingSnapshot = nil
+            hasPendingRegistryUpdate = false
+            isDirty = false
+            reloadDraft()
+            status = createsNewPackage
+                ? "Created and activated this Ability. Registry \(report.snapshot.revision.uuidString.prefix(8)) is active for new turns."
+                : "Saved. Registry \(report.snapshot.revision.uuidString.prefix(8)) is active for new turns."
+        } catch {
+            status = error.localizedDescription
+        }
+    }
+
+    func importPackage() {
+        guard !isDirty else {
+            status = "Save or revert the current draft before importing another package."
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.maryAbilityPackage]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        importPackage(from: url)
+    }
+
+    func importPackage(from url: URL) {
+        guard !isDirty else {
+            status = "Save or revert the current draft before importing another package."
+            return
+        }
+        do {
+            try finishImport(from: url) { try library.importPackage(from: url) }
+        } catch {
+            status = error.localizedDescription
+        }
+    }
+
+    private func finishImport(
+        from url: URL,
+        install: () throws -> AbilityLibraryReloadReport
+    ) throws {
+        do {
+            let importedID = try AbilityPackageCodec.load(from: url).package.id
+            let report = try install()
+            snapshot = report.snapshot
+            pendingSnapshot = nil
+            hasPendingRegistryUpdate = false
+            selectedPackageID = importedID
+            reloadDraft()
+            guard let active = report.snapshot.package(id: importedID) else {
+                status = "The import completed, but \(importedID.rawValue) is not active."
+                return
+            }
+            status = "Imported and activated \(active.package.ability.title) (\(importedID.rawValue))."
+        } catch {
+            status = error.localizedDescription
+            throw error
+        }
+    }
+
+    func exportPackage() {
+        guard validation.isValid else {
+            status = validation.issues.first?.message
+                ?? "Fix validation errors before exporting this draft."
+            return
+        }
+        guard let id = selectedPackageID, editSession != nil else {
+            status = "Reopen the Ability before exporting this draft."
+            return
+        }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.maryAbilityPackage]
+        panel.nameFieldStringValue = "\(id.rawValue).mary"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        exportPackage(to: url)
+    }
+
+    func exportPackage(to url: URL) {
+        guard validation.isValid else {
+            status = validation.issues.first?.message
+                ?? "Fix validation errors before exporting this draft."
+            return
+        }
+        guard let editSession else {
+            status = "Reopen the Ability before exporting this draft."
+            return
+        }
+        do {
+            try library.exportEditedPackage(
+                json: draft,
+                session: editSession,
+                to: url)
+            status = isDirty
+                ? "Exported the current unsaved draft as \(url.lastPathComponent)."
+                : "Exported \(url.lastPathComponent)."
+        } catch {
+            status = error.localizedDescription
+        }
+    }
+
+    var selectedRecord: AbilityPackageRecord? {
+        guard let selectedPackageID else { return nil }
+        return snapshot.package(id: selectedPackageID)
+    }
+
+    var selectedSkills: [AbilityRuntimeSkill] {
+        guard let selectedPackageID else { return [] }
+        return snapshot.skills.filter { $0.packageID == selectedPackageID }
+    }
+
+    var selectedDependencies: [AbilityStudioDependencyPresentation] {
+        guard let package = selectedRecord?.package else { return [] }
+        return package.dependencies
+            .map { dependency in
+                AbilityStudioDependencyPresentation(
+                    dependency: dependency,
+                    installedPackage: snapshot.package(id: dependency.packageID)?.package)
+            }
+            .sorted { $0.packageID.rawValue < $1.packageID.rawValue }
+    }
+
+    var selectedApplication: AbilityStudioApplicationPresentation? {
+        _ = applicationResolutionEpoch
+        guard let package = selectedRecord?.package else { return nil }
+        let realizedSkills = Set(snapshot.skills.lazy.compactMap { runtime -> SkillID? in
+            guard runtime.availability.readiness == .ready,
+                  let selected = runtime.availability.selectedBinding,
+                  package.plugin.map({ plugin in
+                      plugin.adapters.contains { $0.id == selected.adapterID }
+                  }) == true,
+                  runtime.reference.provider?.originPackageID == package.package.id
+            else { return nil }
+            return runtime.skill.id
+        })
+        return AbilityStudioApplicationPresentation(
+            package: package,
+            activeRealizedSkillCount: realizedSkills.count,
+            applicationLocator: applicationLocator)
+    }
+
+    /// Provider implementations of the selected Ability's semantic Skills.
+    /// This is intentionally derived from the frozen registry rather than the
+    /// editable JSON draft so a portable discipline can show that an application
+    /// realizes its Skills without adding application bindings to that discipline.
+    var selectedProviderRealizations: [AbilityStudioProviderRealizationPresentation] {
+        _ = applicationResolutionEpoch
+        let skillIDs = Set(selectedSkills.map(\.skill.id))
+        guard !skillIDs.isEmpty else { return [] }
+
+        var skillsByProvider: [AdapterProviderProvenance: Set<SkillID>] = [:]
+        for realization in snapshot.plugins.skillRealizations
+        where skillIDs.contains(realization.skillID) {
+            skillsByProvider[realization.provider, default: []].insert(realization.skillID)
+        }
+        for runtime in selectedSkills {
+            guard let provider = runtime.reference.provider,
+                  provider.pluginClass == .runtime
+            else { continue }
+            skillsByProvider[provider, default: []].insert(runtime.skill.id)
+        }
+
+        return skillsByProvider.map { provider, skills in
+            let carriedPlugin = provider.originPackageID
+                .flatMap { snapshot.package(id: $0)?.package.plugin }
+            let manifest = snapshot.adapterManifests.first {
+                $0.resolvedProvider == provider
+            }
+            let applicationResolution = carriedPlugin.map {
+                applicationLocator.resolve($0.application)
+            }
+            let activeSkills = Set(snapshot.skills.lazy.compactMap {
+                runtime -> SkillID? in
+                guard skills.contains(runtime.skill.id),
+                      runtime.availability.readiness == .ready,
+                      runtime.reference.provider == provider
+                else { return nil }
+                return runtime.skill.id
+            })
+            return AbilityStudioProviderRealizationPresentation(
+                provider: provider,
+                realizedSkillCount: skills.count,
+                activeSkillCount: activeSkills.count,
+                isAvailable: manifest?.isAvailable ?? false,
+                unavailableReason: manifest?.unavailableReason,
+                bundleIdentifiers: carriedPlugin?.application.bundleIdentifiers ?? [],
+                bundleNames: carriedPlugin?.application.bundleNames ?? [],
+                applicationResolution: applicationResolution,
+                requiredPermissions: carriedPlugin.map { plugin in
+                    plugin.adapters.flatMap(\.permissions)
+                } ?? [])
+        }.sorted {
+            if $0.provider.pluginClass != $1.provider.pluginClass {
+                return $0.provider.pluginClass.rawValue < $1.provider.pluginClass.rawValue
+            }
+            return $0.provider.pluginTitle < $1.provider.pluginTitle
+        }
+    }
+
+    var canEditSelectedPackage: Bool {
+        editSession != nil
+    }
+
+    var isCreatingNewPackage: Bool {
+        editSession?.createsNewPackage == true
+    }
+
+    /// Registry events may arrive because adapters reconnect, files change on
+    /// disk, or another Studio operation activates a package. A dirty editor
+    /// stays pinned to the snapshot and selection that created its lease. The
+    /// latest registry is adopted only after Save or an explicit Revert.
+    func handleLibraryEvent(_ event: AbilityLibraryEvent) {
+        switch event {
+        case .activated(let next):
+            acceptActivatedSnapshot(next)
+        case .rejected(let issues):
+            if isDirty {
+                hasPendingRegistryUpdate = true
+                status = "A registry change was rejected. This draft remains pinned: \(issues.first?.message ?? "the changed package is invalid.")"
+            } else {
+                // Re-lease the visible package against its current bytes, or
+                // close editing if those bytes no longer match the active
+                // snapshot. Either result avoids retaining a stale save lease.
+                reloadDraft()
+                status = issues.first?.message ?? "The edited registry was rejected."
+            }
+        }
+    }
+
+    private func selectInitialIfNeeded() {
+        if let selectedPackageID, snapshot.package(id: selectedPackageID) != nil { return }
+        selectedPackageID = snapshot.records.first?.id
+    }
+
+    private func acceptActivatedSnapshot(_ next: AbilityRuntimeSnapshot) {
+        guard next.revision != snapshot.revision else { return }
+        guard !isDirty else {
+            pendingSnapshot = next
+            hasPendingRegistryUpdate = true
+            status = "Registry changed on disk. This draft remains pinned; save may be rejected, or Revert to open the active version."
+            return
+        }
+        pendingSnapshot = nil
+        hasPendingRegistryUpdate = false
+        snapshot = next
+        selectInitialIfNeeded()
+        reloadDraft()
+    }
+
+    private func reloadDraft() {
+        guard let id = selectedPackageID, snapshot.package(id: id) != nil else {
+            draft = ""
+            validation = .init()
+            editSession = nil
+            isDirty = false
+            isLocalDraft = false
+            return
+        }
+        do {
+            let session = try library.beginEditingPackage(id: id)
+            editSession = session
+            draft = session.draftJSON
+            validation = library.validate(json: draft)
+            isDirty = false
+            isLocalDraft = session.createsLocalOverride
+        } catch {
+            draft = ""
+            validation = .init(issues: [.init(
+                severity: .error,
+                code: "edit-session",
+                path: "$",
+                message: error.localizedDescription)])
+            editSession = nil
+            isDirty = false
+            isLocalDraft = false
+            status = error.localizedDescription
+        }
+    }
+}

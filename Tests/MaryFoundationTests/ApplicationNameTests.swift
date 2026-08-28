@@ -39,6 +39,22 @@ import Testing
         "textedit", "scrivener", "keynote", "xcode", "sketch", "safari",
     ]
 
+    /// The one innocent reading there turned out to be.
+    ///
+    /// SwiftUI ships `TextEditor`, and a multi-line text field is not an
+    /// application. "There is no innocent reading" was true of every name on
+    /// the list until a view layer arrived that had its own claim on one of
+    /// them — Ability Studio, whose editors are full of `TextEditor` and local
+    /// `textEditor` properties. Five honest lines tripped the gate at once.
+    ///
+    /// EXEMPTED BY SHAPE, NOT BY FILE. Adding those files to `allowed` would
+    /// have switched the whole gate off for them, including the names that
+    /// would be real offences; this exempts exactly `TextEditor` and nothing
+    /// else, so `TextEditPlugin` — a name Mary must never carry — still trips.
+    /// A gate that cries wolf gets switched off; the fix is to make it stop
+    /// crying, precisely.
+    static let innocent = [#"textedit(?=or\b)"#]
+
     /// Product names that are ALSO ordinary English — "pages", "notes",
     /// "reminders", "chrome" — matched only where they read as an identifier
     /// or a token rather than as a word.
@@ -62,6 +78,27 @@ import Testing
         return line.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
     }
 
+    /// An unambiguous product name, minus the one shape that is not one.
+    ///
+    /// `line` arrives already lowercased. Every occurrence must be innocent
+    /// for the line to pass — a line carrying both `TextEditor` and a real
+    /// `textedit` still offends, which is why this counts rather than
+    /// short-circuits.
+    static func namesApplication(_ line: String, _ name: String) -> Bool {
+        var searchRange = line.startIndex..<line.endIndex
+        while let found = line.range(of: name, range: searchRange) {
+            let isInnocent = Self.innocent.contains { pattern in
+                line.range(
+                    of: pattern,
+                    options: [.regularExpression],
+                    range: found.lowerBound..<line.endIndex)?.lowerBound == found.lowerBound
+            }
+            if !isInnocent { return true }
+            searchRange = found.upperBound..<line.endIndex
+        }
+        return false
+    }
+
     /// Files where naming an application is the honest thing to do.
     ///
     /// EACH ENTRY IS A REASON, not a convenience:
@@ -83,6 +120,30 @@ import Testing
     /// Directories exempt wholesale: fixtures, probes, and this file.
     static let allowedDirectories = ["Tests/", "Sources/Probes/", "TestSupport/"]
 
+    /// THE EXEMPTION IS EXACTLY ONE SHAPE WIDE.
+    ///
+    /// Loosening a doctrine gate without pinning what it still catches is how
+    /// a gate quietly becomes decoration. `TextEditor` is SwiftUI's; every
+    /// other spelling that contains those letters is the application, and must
+    /// still offend — including `TextEditPlugin`, which is the exact name Mary
+    /// exists not to have.
+    @Test(arguments: [
+        ("TextEditor(text: $text)", false),
+        ("var textEditor: some View {", false),
+        ("private let editor = TextEditor(text: binding)", false),
+        ("struct TextEditPlugin: MaryAdapter {", true),
+        ("case textedit", true),
+        ("\"com.apple.TextEdit\"", true),
+        ("bundleIdentifiers: [\"com.apple.TextEdit\"]", true),
+        // BOTH ON ONE LINE: the innocent occurrence must not excuse the guilty
+        // one, which is why the scan counts occurrences instead of stopping at
+        // the first thing it can forgive.
+        ("TextEditor(text: bindingFor(.textedit))", true),
+    ])
+    func onlySwiftUIsTextEditorIsInnocent(_ line: String, _ offends: Bool) {
+        #expect(Self.namesApplication(line.lowercased(), "textedit") == offends)
+    }
+
     @Test func noApplicationIsNamedInCode() throws {
         var offences: [String] = []
         for file in try Self.swiftFiles() {
@@ -93,7 +154,8 @@ import Testing
             let source = try String(contentsOf: file, encoding: .utf8)
             for (number, line) in Self.codeLines(of: source) {
                 let lower = line.lowercased()
-                for name in Self.banned where lower.contains(name) {
+                for name in Self.banned
+                where Self.namesApplication(lower, name) {
                     offences.append(
                         "\(file.lastPathComponent):\(number) names \(name) — \(line.trimmed)")
                 }
