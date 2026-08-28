@@ -32,6 +32,7 @@
 
 import Foundation
 import MaryAmbient
+import os
 import MaryFoundation
 
 /// Which files declare which names, for one project.
@@ -59,6 +60,56 @@ public struct CorpusTypeIndex: Sendable {
     }
 
     public func file(declaring name: String) -> String? { declaringFile[name] }
+}
+
+/// The type index, kept between crawls.
+///
+/// WITHOUT THIS THE OBSERVER IS UNUSABLE, and the arithmetic is the argument:
+/// building an index means reading and pattern-matching EVERY unit in the
+/// project — around seven hundred files for the checkout this was written in —
+/// and settling on a new file is a thing a person does every few seconds. Paid
+/// per settle, the corpus would burn more CPU indexing than the editor uses
+/// compiling.
+///
+/// A SHORT TTL RATHER THAN INVALIDATION. The index maps declared names to
+/// files, so it goes stale only when a type is ADDED, REMOVED or RENAMED —
+/// rare next to ordinary editing, and the cost of being briefly wrong is one
+/// neighbour missing from one crawl until the window passes. Watching the
+/// filesystem to be exactly right would be a second observer, with its own
+/// wakeups, to avoid an error that corrects itself in a minute.
+public final class CorpusTypeIndexCache: @unchecked Sendable {
+
+    public static let shared = CorpusTypeIndexCache()
+
+    public static let lifetime: TimeInterval = 60
+
+    private let box = OSAllocatedUnfairLock<[String: (index: CorpusTypeIndex, built: Date)]>(
+        initialState: [:])
+
+    public init() {}
+
+    public func index(
+        root: String, corpus: PluginCorpusSchema, at now: Date = Date(),
+        build: () -> CorpusTypeIndex
+    ) -> CorpusTypeIndex {
+        if let cached = box.withLock({ $0[root] }),
+           now.timeIntervalSince(cached.built) < Self.lifetime {
+            return cached.index
+        }
+        let built = build()
+        box.withLock { $0[root] = (built, now) }
+        return built
+    }
+
+    /// Drop a project's index — the pane's re-index action, and anything else
+    /// that knows the shape changed.
+    public func forget(root: String) {
+        box.withLock { $0[root] = nil }
+    }
+
+    public func forgetAll() {
+        box.withLock { $0 = [:] }
+    }
 }
 
 public enum CorpusCrawl {

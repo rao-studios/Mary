@@ -56,6 +56,7 @@ let package = Package(
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
         .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
+        .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
     ],
     dependencies: [
@@ -317,6 +318,15 @@ let package = Package(
         // 4 GB download rather than after it. `swift build` cannot compile
         // Metal, so this is the one build product that can go missing without
         // anything failing until first use.
+        // Whether a REAL editor showing a REAL project resolves through the
+        // SHIPPED declaration. The plan assumed AXDocument carried the active
+        // file; it carries the project root, which only a live read found.
+        .executableTarget(
+            name: "CorpusProbe",
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryAdapters", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/CorpusProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
         .executableTarget(
             name: "GPUProbe",
             dependencies: ["MaryBrain"],

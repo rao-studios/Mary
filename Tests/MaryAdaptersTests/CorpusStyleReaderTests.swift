@@ -135,6 +135,51 @@ import Testing
         #expect(value(read(source), .accessDefault) == .publicByDefault)
     }
 
+    /// A MODIFIER BETWEEN `public` AND THE KEYWORD STILL MAKES IT PUBLIC.
+    /// The first translation of this rule matched `public` only when the
+    /// declaration keyword followed it immediately, so `public static let` and
+    /// `public final class` counted as internal — seven of the twenty-four
+    /// public declarations in one real file, enough to flip its vote. The
+    /// compiled observer this descends from carried an explicit modifier set
+    /// for exactly this and the regex had quietly dropped it. Found by reading
+    /// a live crawl's output and disbelieving it.
+    @Test func modifiersBetweenPublicAndTheKeywordStillCountAsPublic() {
+        let source = """
+        public final class A {
+            public static let one = 0
+            public private(set) var two = 0
+            public static func three() {}
+            func hidden() {}
+        }
+        """
+        #expect(value(read(source), .accessDefault) == .publicByDefault)
+    }
+
+    /// LOCAL BINDINGS ARE NOT DECLARATIONS WITH AN ACCESS LEVEL, and counting
+    /// them sank this rule on real code. A working file is mostly `let` inside
+    /// function bodies — 56 of 74 in the first file this was run against — so a
+    /// denominator of "every declaration keyword" measured a 24-public API file
+    /// at 0.32 and called it internal. The denominator is now the declarations
+    /// that COULD carry an access level: anything with an explicit modifier,
+    /// plus types and functions.
+    @Test func localBindingsDoNotDiluteTheAccessRatio() {
+        let source = """
+        public struct A {
+            public func one() {
+                let a = 1
+                let b = 2
+                let c = 3
+                var d = 4
+                let e = 5
+                use(a, b, c, d, e)
+            }
+            public func two() {}
+            func hidden() {}
+        }
+        """
+        #expect(value(read(source), .accessDefault) == .publicByDefault)
+    }
+
     @Test func aMostlyInternalFileLeansInternal() {
         let source = """
         struct A {

@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6f5dfe56f3deb3ca78b514b2a8001da2dc2abd4a0efdbf6a7911cca18e92b6c1"
+    "digest" : "52fc566cc2b97f4a56fd94778de5ea230e0a7e1415b3a0f0ad43b743ab1d72d9"
   },
   "interactions" : [
 
@@ -317,20 +317,20 @@
           "above" : "publicByDefault",
           "below" : "internalUnlessNeeded",
           "denominator" : {
-            "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+            "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
             "source" : "pattern"
           },
           "dimension" : "accessDefault",
           "guard" : {
             "atLeast" : 4,
             "numerator" : {
-              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
               "source" : "pattern"
             }
           },
           "kind" : "ratio",
           "numerator" : {
-            "pattern" : "\\b(?:public|open)\\s+(?:func|var|let|struct|class|enum|actor|protocol)\\b",
+            "pattern" : "\\b(?:public|open)\\s+(?:(?:final|static|class|lazy|weak|unowned|override|mutating|nonisolated|indirect|dynamic|required|convenience|private\\(set\\)|internal\\(set\\))\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b",
             "source" : "pattern"
           },
           "threshold" : 0.5
@@ -338,14 +338,14 @@
         {
           "below" : "sparse",
           "denominator" : {
-            "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+            "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
             "source" : "pattern"
           },
           "dimension" : "commentPosture",
           "guard" : {
             "atLeast" : 3,
             "numerator" : {
-              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
               "source" : "pattern"
             }
           },
@@ -384,7 +384,7 @@
           "guard" : {
             "atLeast" : 0.25,
             "denominator" : {
-              "pattern" : "\\b(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_]",
+              "pattern" : "(?:\\b(?:public|open|internal|private|fileprivate|package)\\s+(?:[a-z]+(?:\\([a-z]+\\))?\\s+)*(?:func|var|let|struct|class|enum|actor|protocol|typealias)\\b)|(?:\\b(?:func|struct|class|enum|actor|protocol|typealias)\\s+[A-Za-z_])",
               "source" : "pattern"
             },
             "numerator" : {

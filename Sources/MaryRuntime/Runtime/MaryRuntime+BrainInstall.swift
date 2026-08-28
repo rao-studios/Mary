@@ -155,6 +155,24 @@ extension MaryRuntime {
     /// A DECLARATION BECOMES A REGISTRATION HERE and nowhere else, so the set
     /// the passage verbs can reach is exactly the set the graph admitted —
     /// never a stale copy from the last activation.
+    /// The corpus declarations, in the same shape and for the same reason as
+    /// the prose registrations below.
+    package static func corpusRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [CorpusRegistration] {
+        snapshot.records.compactMap { record -> CorpusRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let corpus = plugin.corpus
+            else { return nil }
+            return CorpusRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: corpus)
+        }
+    }
+
     /// `package` so the behavior probe can install the SAME registrations the
     /// app does. A probe that hand-built its own would be measuring a fixture.
     /// The declared transports in one activation's package graph.
