@@ -1,5 +1,5 @@
 //
-//  DocumentProbe.swift
+//  ProjectProbe.swift
 //  CorpusProbe
 //
 //  READING A REAL MANUSCRIPT — the document-corpus lane against a project
@@ -13,8 +13,8 @@
 //  decodes to prose. Those are facts about a file format, and only a real
 //  file has them.
 //
-//    mary-corpus-probe document --project ~/path/to/thing.scriv
-//    mary-corpus-probe document --project … --read "Prologue"
+//    mary-corpus-probe project --project ~/path/to/thing.scriv
+//    mary-corpus-probe project --project … --read "Prologue"
 //
 
 import Foundation
@@ -24,10 +24,10 @@ import MaryFoundation
 import MaryPlugin
 import MaryRuntime
 
-enum DocumentProbe {
+enum ProjectProbe {
 
     static func shouldRun(_ arguments: [String]) -> Bool {
-        arguments.contains("document")
+        arguments.contains("project")
     }
 
     /// The declaration `scrivener.mary` will carry, written from the measured
@@ -86,7 +86,7 @@ enum DocumentProbe {
         print("▸ \(root.lastPathComponent)")
 
         let started = Date()
-        switch DocumentCorpusReader.outline(projectRoot: root, structure: structure) {
+        switch ProjectCorpusReader.outline(projectRoot: root, structure: structure) {
         case .failure(let failure):
             print("  ✗ \(failure.spoken)")
             exit(1)
@@ -122,7 +122,7 @@ enum DocumentProbe {
             }
             print("\n▸ \(target.title)")
             let readStarted = Date()
-            switch DocumentCorpusReader.text(
+            switch ProjectCorpusReader.text(
                 itemID: target.id, projectRoot: root, structure: structure) {
             case .failure(let failure):
                 print("  ✗ \(failure.spoken)")
@@ -144,7 +144,7 @@ enum DocumentProbe {
 
 // MARK: - The lane, through the shipped configuration
 
-extension DocumentProbe {
+extension ProjectProbe {
 
     /// THE JOIN NO FIXTURE CAN MAKE: do the shipped PACKAGES declare this
     /// project correctly, and do the Skills reach the roster unblocked?
@@ -182,7 +182,7 @@ extension DocumentProbe {
         // lane keeps no roster of its own; it filters this one on `structure`.
         CorpusSupport.shared.reconcile(
             MaryRuntime.corpusRegistrations(from: load.snapshot))
-        let registrations = DocumentCorpusSupport.all()
+        let registrations = ProjectCorpusSupport.all()
         AmbientApplicationBridge.install(
             profiles: adapters.map(\.applicationProfile)
                 + load.snapshot.plugins.applicationProfiles)
@@ -196,12 +196,12 @@ extension DocumentProbe {
         check(!registrations.contains { $0.applicationID == "xcode" },
               "a notation-only corpus stays out of this lane")
 
-        let corpora = DocumentCorpusSupport.openCorpora()
+        let corpora = ProjectCorpusSupport.openCorpora()
         check(!corpora.isEmpty, "a project is open right now",
               corpora.map(\.name).joined(separator: ", "))
 
         for corpus in corpora {
-            check(DocumentCorpusSupport.isOpenForEditing(corpus),
+            check(ProjectCorpusSupport.isOpenForEditing(corpus),
                   "\(corpus.name) is open for editing")
             let place = AmbientPlace.application(corpus.registration.applicationID)
             check(place.hasEyes, "\(corpus.registration.applicationID)'s place has eyes")
@@ -220,7 +220,7 @@ extension DocumentProbe {
 
         // AND THE READ ITSELF, through the shipped adapter rather than a
         // hand-built structure — the whole point of this pass.
-        guard let adapter = adapters.first(where: { $0.name == "document-corpus" }),
+        guard let adapter = adapters.first(where: { $0.name == "project-corpus" }),
               let binding = adapter.skillBindings.first(
                 where: { $0.name == "read_corpus_outline" }),
               case .native(let run) = binding.backing

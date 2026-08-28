@@ -542,7 +542,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "aec36d3a976f7f87a24c319006a3536e479b8383164ed31c1cbe66f3747acd29"
+    "digest" : "d1c58602dbedb958d665c4a7637b1a6a79fd50139a86ec2c67bab72119632faf"
   },
   "interactions" : [
     {
@@ -609,7 +609,7 @@
   "perceptions" : [
     {
       "freshnessSeconds" : 60,
-      "id" : "perception.document-corpus",
+      "id" : "perception.project-corpus",
       "ownership" : "observed",
       "privacy" : "private",
       "summary" : "The writing project an application currently has open: its outline and size.",
@@ -644,7 +644,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "add_corpus_container",
             "preference" : 100,
             "targetClasses" : [
@@ -692,7 +692,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -721,7 +721,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "add_corpus_item",
             "preference" : 100,
             "targetClasses" : [
@@ -769,7 +769,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -904,7 +904,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "corpus_progress",
             "preference" : 100,
             "targetClasses" : [
@@ -952,7 +952,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -1331,7 +1331,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "move_corpus_item",
             "preference" : 100,
             "targetClasses" : [
@@ -1388,7 +1388,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -1417,7 +1417,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "read_corpus_document",
             "preference" : 100,
             "targetClasses" : [
@@ -1474,7 +1474,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -1503,7 +1503,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "read_corpus_outline",
             "preference" : 100,
             "targetClasses" : [
@@ -1560,7 +1560,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -2020,7 +2020,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "search_corpus",
             "preference" : 100,
             "targetClasses" : [
@@ -2077,7 +2077,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 
@@ -2452,7 +2452,7 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "document-corpus",
+            "adapterID" : "project-corpus",
             "operation" : "trash_corpus_item",
             "preference" : 100,
             "targetClasses" : [
@@ -2500,7 +2500,7 @@
 
         ],
         "optionalPerceptions" : [
-          "perception.document-corpus"
+          "perception.project-corpus"
         ],
         "perceptions" : [
 

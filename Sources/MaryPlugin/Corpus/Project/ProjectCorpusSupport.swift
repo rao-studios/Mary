@@ -1,8 +1,27 @@
 //
-//  DocumentCorpusSupport.swift
+//  ProjectCorpusSupport.swift
 //  MaryPlugin
 //
 //  WHICH PROJECT IS OPEN, AND WHO HAS IT.
+//
+//  ⚠️ "PROJECT", NOT "DOCUMENT", AND THE NAME WAS WRONG BOTH WAYS. This lane
+//  shipped as `DocumentCorpus*`, which reads as "the corpus lane for things
+//  that are documents" — implying it serves any corpus of files, source
+//  included. It does the opposite: `all()` filters to corpora that declare a
+//  `structure`, so a notation-only corpus (a body of source files, learned
+//  from by style) is EXPLICITLY EXCLUDED, and a test asserts it.
+//
+//  The word was also already taken. Across the ambient layer "document"
+//  means the thing open in an editor right now — `documentNoun`,
+//  `documentKey`, `holdsWholeDocument` — so a second meaning here made the
+//  same word mean "a file on disk somewhere in a project" three modules
+//  away.
+//
+//  What actually distinguishes this lane is that its corpus has an OUTLINE:
+//  a manifest naming items, their nesting, and where each one's text lives.
+//  That is a project. The vocabulary in these files had already settled
+//  there on its own — `projectRoot`, "which project", `noSuchProject` — and
+//  the type now agrees with it.
 //
 //  THE PROJECT COMES FROM THE APPLICATION, NOT FROM A SEARCH — measured
 //  2026-08-28, and it collapses most of what this file was going to be. The
@@ -30,7 +49,7 @@
 //  paired rather than either being trusted alone.
 //
 //  ⚠️ NO ROSTER OF ITS OWN, and it briefly had one. This file first shipped
-//  with a `DocumentCorpusRegistration` and a registry beside it — the same
+//  with a `ProjectCorpusRegistration` and a registry beside it — the same
 //  four fields, the same frozen swap, fed by a reconciler that differed from
 //  the existing one by a single guard. Two answers to "which applications
 //  have a corpus", from one declaration, kept in step by hand.
@@ -69,7 +88,7 @@ public struct OpenCorpus: Sendable, Equatable {
     public var name: String { projectRoot.deletingPathExtension().lastPathComponent }
 }
 
-public enum DocumentCorpusSupport {
+public enum ProjectCorpusSupport {
 
     /// The declared corpora that are PROJECTS. Read from the one roster, not
     /// kept in a second one — see the header.

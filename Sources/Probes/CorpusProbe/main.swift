@@ -38,8 +38,8 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
 // THE MENU MEASUREMENT is a different question from the corpus crawl below
 // — it asks what an application OFFERS rather than what a project holds —
 // so it runs instead of, not before.
-if DocumentProbe.shouldRun(CommandLine.arguments) {
-    await DocumentProbe.run(CommandLine.arguments)
+if ProjectProbe.shouldRun(CommandLine.arguments) {
+    await ProjectProbe.run(CommandLine.arguments)
     exit(0)
 }
 

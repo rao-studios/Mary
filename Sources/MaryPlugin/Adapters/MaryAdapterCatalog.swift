@@ -32,7 +32,7 @@ public enum MaryAdapterCatalog {
     /// surface reads and writes whatever declares one, window management
     /// raises whatever has windows. Adding an application adds no entry.
     public static func adapters() -> [any MaryAdapter] {
-        [ApplicationsAdapter(), BrowserSurfaceAdapter(), DocumentCorpusAdapter(),
+        [ApplicationsAdapter(), BrowserSurfaceAdapter(), ProjectCorpusAdapter(),
          MediaSurfaceAdapter(), ProseSurfaceAdapter(), TyperPlugin(),
          WindowManagementPlugin()]
     }

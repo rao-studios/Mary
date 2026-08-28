@@ -1,5 +1,5 @@
 //
-//  DocumentCorpusReader.swift
+//  ProjectCorpusReader.swift
 //  MaryPlugin
 //
 //  READING A WRITING PROJECT OFF DISK — the outline, and one item's text.
@@ -26,7 +26,7 @@
 import Foundation
 import MaryFoundation
 
-public enum DocumentCorpusReader {
+public enum ProjectCorpusReader {
 
     /// One item in the outline.
     public struct Item: Sendable, Equatable, Identifiable {

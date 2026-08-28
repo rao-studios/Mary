@@ -1,5 +1,5 @@
 //
-//  DocumentCorpusAdapter.swift
+//  ProjectCorpusAdapter.swift
 //  MaryPlugin
 //
 //  READING A WRITING PROJECT, AND CHANGING ITS SHAPE THROUGH ITS OWN MENUS.
@@ -13,6 +13,13 @@
 //  paths and the project extension all arrive from
 //  `PluginCorpusStructureSchema`. A second writing application that keeps its
 //  project as a directory is a `.mary` file.
+//
+//  IT SERVES ONLY CORPORA WITH A `structure`, which is what separates it from
+//  `CorpusObserver` — the other consumer of the same declaration block. That
+//  one watches a corpus PASSIVELY for style and never answers the model;
+//  this one answers and acts. They share the roster (`CorpusSupport`) and
+//  differ in what they ask of it. A body of source files reaches the first
+//  and never the second: there is no outline to read.
 //
 //  ⚠️ THE READS COME FROM DISK AND THE CHANGES GO THROUGH THE MENUS, and the
 //  asymmetry is the whole safety argument. An editor with the project open
@@ -28,9 +35,9 @@ import Foundation
 import MaryAmbient
 import MaryFoundation
 
-public struct DocumentCorpusAdapter: MaryAdapter {
+public struct ProjectCorpusAdapter: MaryAdapter {
 
-    public let name = "document-corpus"
+    public let name = "project-corpus"
     public let summary =
         "reads a writing project's outline and text, and changes its shape through its own menus"
 
@@ -57,7 +64,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 adapterID: adapterID, operation: name,
                 capabilities: [capability],
                 inputTypes: [input], outputTypes: [output],
-                observesPerceptions: ["perception.document-corpus"],
+                observesPerceptions: ["perception.project-corpus"],
                 targetClasses: ["writing-project"])
         }
         return InstalledAdapterManifest(
@@ -90,7 +97,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                     "trash_corpus_item", capability: "corpus.restructure",
                     input: "writing.corpus-query", output: "writing.corpus-progress"),
             ],
-            providesPerceptions: ["perception.document-corpus"],
+            providesPerceptions: ["perception.project-corpus"],
             supportedValueTypes: [
                 "writing.corpus-query",
                 "writing.corpus-outline",
@@ -108,7 +115,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     }
 
     func project(_ named: String?) -> Resolved {
-        switch DocumentCorpusSupport.resolve(named) {
+        switch ProjectCorpusSupport.resolve(named) {
         case .success(let corpus): return .corpus(corpus)
         case .failure(let refusal):
             return .refused(SkillOutcome(ok: false, summary: refusal.spoken))
@@ -119,12 +126,12 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     /// failure here is a SENTENCE rather than an error, composed where the
     /// project's name is in hand.
     enum Outlined {
-        case items([DocumentCorpusReader.Item])
+        case items([ProjectCorpusReader.Item])
         case refused(SkillOutcome)
     }
 
     func outline(_ corpus: OpenCorpus) -> Outlined {
-        switch DocumentCorpusReader.outline(
+        switch ProjectCorpusReader.outline(
             projectRoot: corpus.projectRoot, structure: corpus.structure) {
         case .success(let items): return .items(items)
         case .failure(let failure):
@@ -160,7 +167,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 case .corpus(let found): corpus = found
                 case .refused(let outcome): return outcome
                 }
-                let items: [DocumentCorpusReader.Item]
+                let items: [ProjectCorpusReader.Item]
                 switch outline(corpus) {
                 case .items(let found): items = found
                 case .refused(let outcome): return outcome
@@ -217,7 +224,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 case .corpus(let found): corpus = found
                 case .refused(let outcome): return outcome
                 }
-                let items: [DocumentCorpusReader.Item]
+                let items: [ProjectCorpusReader.Item]
                 switch outline(corpus) {
                 case .items(let found): items = found
                 case .refused(let outcome): return outcome
@@ -239,7 +246,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                         summary: "\(corpus.name) has \(rivals.count) documents called "
                             + "\(wanted). Say which folder it's in.")
                 case .one(let item):
-                    switch DocumentCorpusReader.text(
+                    switch ProjectCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
                         structure: corpus.structure) {
                     case .failure(let failure):
@@ -277,7 +284,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 case .corpus(let found): corpus = found
                 case .refused(let outcome): return outcome
                 }
-                let items: [DocumentCorpusReader.Item]
+                let items: [ProjectCorpusReader.Item]
                 switch outline(corpus) {
                 case .items(let found): items = found
                 case .refused(let outcome): return outcome
@@ -290,7 +297,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 var hits: [(title: String, snippet: String)] = []
                 for item in items.flatMap(\.flattened) where !item.isContainer {
                     guard hits.count < Self.searchLimit else { break }
-                    guard case .success(let text) = DocumentCorpusReader.text(
+                    guard case .success(let text) = ProjectCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
                         structure: corpus.structure) else { continue }
                     guard let range = text.range(
@@ -327,7 +334,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 case .corpus(let found): corpus = found
                 case .refused(let outcome): return outcome
                 }
-                let items: [DocumentCorpusReader.Item]
+                let items: [ProjectCorpusReader.Item]
                 switch outline(corpus) {
                 case .items(let found): items = found
                 case .refused(let outcome): return outcome
@@ -338,7 +345,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
                 var words = 0
                 var written = 0
                 for item in documents {
-                    guard case .success(let text) = DocumentCorpusReader.text(
+                    guard case .success(let text) = ProjectCorpusReader.text(
                         itemID: item.id, projectRoot: corpus.projectRoot,
                         structure: corpus.structure) else { continue }
                     let count = text.split(whereSeparator: \.isWhitespace).count
@@ -359,8 +366,8 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     // MARK: - Finding one item
 
     enum Located {
-        case one(DocumentCorpusReader.Item)
-        case many([DocumentCorpusReader.Item])
+        case one(ProjectCorpusReader.Item)
+        case many([ProjectCorpusReader.Item])
         case none
     }
 
@@ -368,7 +375,7 @@ public struct DocumentCorpusAdapter: MaryAdapter {
     /// repeats its titles by design — every act has a "Chapter 1" — so
     /// picking the first match would read a different chapter than the one
     /// asked for, confidently and without any sign.
-    static func locate(_ wanted: String, in items: [DocumentCorpusReader.Item]) -> Located {
+    static func locate(_ wanted: String, in items: [ProjectCorpusReader.Item]) -> Located {
         let needle = wanted.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !needle.isEmpty else { return .none }
         let exact = items.filter { $0.title.lowercased() == needle }

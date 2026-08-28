@@ -12,7 +12,7 @@
 //    · `CorpusObserver` (a MaryObserver) watches a corpus PASSIVELY — it
 //      crawls the files, counts style evidence, and feeds the unit index. It
 //      answers nothing and is never called by the model.
-//    · `DocumentCorpusAdapter` (a MaryAdapter) answers the model — an
+//    · `ProjectCorpusAdapter` (a MaryAdapter) answers the model — an
 //      outline, a document's text, a search — and changes a project's shape
 //      through its application's own menus.
 //

@@ -1,5 +1,5 @@
 //
-//  DocumentCorpusAdapter+Ceremonies.swift
+//  ProjectCorpusAdapter+Ceremonies.swift
 //  MaryPlugin
 //
 //  CHANGING A PROJECT'S SHAPE THROUGH THE APPLICATION'S OWN COMMANDS.
@@ -32,7 +32,7 @@ import Foundation
 import MaryAmbient
 import MaryFoundation
 
-extension DocumentCorpusAdapter {
+extension ProjectCorpusAdapter {
 
     /// MARY'S, NOT THE PACKAGE'S. Measured shape rather than a guess at
     /// timing: the first wait covers the ordinary autosave, the second covers
@@ -56,7 +56,7 @@ extension DocumentCorpusAdapter {
         act: PluginCorpusCeremony.Act,
         named project: String?,
         extraPath: [String] = [],
-        summarize: @escaping ([DocumentCorpusReader.Item], [DocumentCorpusReader.Item]) -> String?
+        summarize: @escaping ([ProjectCorpusReader.Item], [ProjectCorpusReader.Item]) -> String?
     ) async -> SkillOutcome {
         let corpus: OpenCorpus
         switch self.project(project) {
@@ -72,14 +72,14 @@ extension DocumentCorpusAdapter {
                 ok: false,
                 summary: "\(corpus.registration.displayName) doesn't offer that from a menu.")
         }
-        guard DocumentCorpusSupport.isOpenForEditing(corpus) else {
+        guard ProjectCorpusSupport.isOpenForEditing(corpus) else {
             return SkillOutcome(
                 ok: false,
                 summary: "\(corpus.name) isn't open in "
                     + "\(corpus.registration.displayName) just now.")
         }
 
-        let before: [DocumentCorpusReader.Item]
+        let before: [ProjectCorpusReader.Item]
         switch outline(corpus) {
         case .items(let items): before = items
         case .refused(let outcome): return outcome
@@ -108,7 +108,7 @@ extension DocumentCorpusAdapter {
         // VERIFY ON DISK, TWICE.
         for delay in Self.verifyDelays {
             try? await Task.sleep(for: delay)
-            guard case .success(let after) = DocumentCorpusReader.outline(
+            guard case .success(let after) = ProjectCorpusReader.outline(
                 projectRoot: corpus.projectRoot, structure: structure) else { continue }
             if let summary = summarize(before, after) {
                 return SkillOutcome(
@@ -243,9 +243,9 @@ extension DocumentCorpusAdapter {
     }
 
     /// Every item's parent title, keyed by id — the shape a move changes.
-    static func parents(of items: [DocumentCorpusReader.Item]) -> [String: String] {
+    static func parents(of items: [ProjectCorpusReader.Item]) -> [String: String] {
         var map: [String: String] = [:]
-        func walk(_ item: DocumentCorpusReader.Item) {
+        func walk(_ item: ProjectCorpusReader.Item) {
             for child in item.children {
                 map[child.id] = item.title
                 walk(child)

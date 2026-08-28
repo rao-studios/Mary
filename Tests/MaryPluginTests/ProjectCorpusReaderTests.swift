@@ -1,12 +1,12 @@
 //
-//  DocumentCorpusReaderTests.swift
+//  ProjectCorpusReaderTests.swift
 //  MaryPluginTests
 //
 //  Pins how a writing project on disk becomes an outline — against a project
 //  built in a temporary directory, so the rules are exercised without needing
 //  anybody's manuscript installed.
 //
-//  The live half runs as `mary-corpus-probe document`, and it is the half
+//  The live half runs as `mary-corpus-probe project`, and it is the half
 //  that answers whether a REAL `.scrivx` matches the declaration. What is
 //  here is what a real file cannot vary: that the trash is excluded, that a
 //  path template cannot leave the project, that nesting comes out as nesting.
@@ -17,7 +17,7 @@ import MaryFoundation
 import XCTest
 @testable import MaryPlugin
 
-final class DocumentCorpusReaderTests: XCTestCase {
+final class ProjectCorpusReaderTests: XCTestCase {
 
     private var root: URL!
 
@@ -69,8 +69,8 @@ final class DocumentCorpusReaderTests: XCTestCase {
             atomically: true, encoding: .utf8)
     }
 
-    private func outline() throws -> [DocumentCorpusReader.Item] {
-        switch DocumentCorpusReader.outline(projectRoot: root, structure: structure) {
+    private func outline() throws -> [ProjectCorpusReader.Item] {
+        switch ProjectCorpusReader.outline(projectRoot: root, structure: structure) {
         case .success(let items): return items
         case .failure(let failure):
             XCTFail("outline failed: \(failure)")
@@ -157,7 +157,7 @@ final class DocumentCorpusReaderTests: XCTestCase {
         </Binder></Project>
         """)
         try writeText("the comet fell", id: "abc")
-        switch DocumentCorpusReader.text(
+        switch ProjectCorpusReader.text(
             itemID: "abc", projectRoot: root, structure: structure) {
         case .success(let text): XCTAssertEqual(text, "the comet fell")
         case .failure(let failure): XCTFail("expected text, got \(failure)")
@@ -173,7 +173,7 @@ final class DocumentCorpusReaderTests: XCTestCase {
           <BinderItem UUID="empty" Type="Text"><Title>Blank</Title></BinderItem>
         </Binder></Project>
         """)
-        switch DocumentCorpusReader.text(
+        switch ProjectCorpusReader.text(
             itemID: "empty", projectRoot: root, structure: structure) {
         case .success: XCTFail("expected no text")
         case .failure(let failure): XCTAssertEqual(failure, .noText("empty"))
@@ -186,23 +186,23 @@ final class DocumentCorpusReaderTests: XCTestCase {
     /// ONE. The id comes out of a manifest this code did not write, so a
     /// resolved path that leaves the project is refused rather than read.
     func testAPathThatLeavesTheProjectIsRefused() {
-        XCTAssertNil(DocumentCorpusReader.resolved("../../etc/passwd", under: root))
-        XCTAssertNil(DocumentCorpusReader.resolved("/etc/passwd", under: root))
-        XCTAssertNil(DocumentCorpusReader.resolved("Files/../../escape", under: root))
-        XCTAssertNil(DocumentCorpusReader.resolved("", under: root))
+        XCTAssertNil(ProjectCorpusReader.resolved("../../etc/passwd", under: root))
+        XCTAssertNil(ProjectCorpusReader.resolved("/etc/passwd", under: root))
+        XCTAssertNil(ProjectCorpusReader.resolved("Files/../../escape", under: root))
+        XCTAssertNil(ProjectCorpusReader.resolved("", under: root))
     }
 
     func testAPathInsideTheProjectResolves() {
-        XCTAssertNotNil(DocumentCorpusReader.resolved("Files/abc/content.txt", under: root))
+        XCTAssertNotNil(ProjectCorpusReader.resolved("Files/abc/content.txt", under: root))
         // Traversal that stays inside is fine — it is the leaving that is not.
-        XCTAssertNotNil(DocumentCorpusReader.resolved("Files/../Files/a", under: root))
+        XCTAssertNotNil(ProjectCorpusReader.resolved("Files/../Files/a", under: root))
     }
 
     /// An id carrying traversal reaches the same guard, which is the case
     /// that matters: the template is the author's and the id is the file's.
     func testAnIdCarryingTraversalIsRefused() throws {
         try writeManifest("<Project><Binder></Binder></Project>")
-        switch DocumentCorpusReader.text(
+        switch ProjectCorpusReader.text(
             itemID: "../../..", projectRoot: root, structure: structure) {
         case .success: XCTFail("a traversing id must not read")
         case .failure(let failure):
@@ -215,7 +215,7 @@ final class DocumentCorpusReaderTests: XCTestCase {
     // MARK: - Absence
 
     func testAMissingManifestSaysWhichFileWasMissing() {
-        switch DocumentCorpusReader.outline(projectRoot: root, structure: structure) {
+        switch ProjectCorpusReader.outline(projectRoot: root, structure: structure) {
         case .success: XCTFail("expected a missing manifest")
         case .failure(let failure):
             guard case .noManifest(let path) = failure else {

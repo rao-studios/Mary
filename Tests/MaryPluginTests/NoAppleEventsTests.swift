@@ -120,7 +120,7 @@ final class NoAppleEventsTests: XCTestCase {
         for (text, name) in try Self.sources() {
             // Probes are diagnostics run by hand, not paths a turn takes.
             guard !name.hasPrefix("WebProbe"), !name.hasPrefix("MenuProbe"),
-                  !name.hasPrefix("DocumentProbe") else { continue }
+                  !name.hasPrefix("ProjectProbe") else { continue }
             let source = code(text)
             guard source.contains("Subprocess.run(") else { continue }
             // The declaration itself, and the one caller.
