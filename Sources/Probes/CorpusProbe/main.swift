@@ -35,6 +35,14 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
     if !passed { failures += 1 }
 }
 
+// THE MENU MEASUREMENT is a different question from the corpus crawl below
+// — it asks what an application OFFERS rather than what a project holds —
+// so it runs instead of, not before.
+if MenuProbe.shouldRun(CommandLine.arguments) {
+    await MenuProbe.run(CommandLine.arguments)
+    exit(0)
+}
+
 guard AXIsProcessTrusted() else {
     print("Accessibility is not granted — the probe needs it to read a window.")
     exit(1)
