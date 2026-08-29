@@ -102,6 +102,15 @@ public enum CodeSurfaceAX {
 
     /// The surface of the FRONT window, which is what "the buffer" means with
     /// no document named.
+    ///
+    /// NO LONGER THE ROUTINE PATH — `CodeSurfaceEditorCache.frontSurface` is,
+    /// and this is the fallback behind it, for the one case the focused window
+    /// cannot answer: a focused window with no editor in it, where walking on
+    /// past it finds a real one. Called directly it pays a full `editor(in:)`
+    /// walk PER WINDOW and never caches: measured live at 110.8 ms for one
+    /// project window alone, and ~120 ms for the same Xcode with a second
+    /// editor window open beside it. A new caller should reach for the cache
+    /// unless it specifically needs every window rather than the front one.
     public static func frontSurface(
         pid: pid_t, registration: CodeSurfaceRegistration
     ) -> Surface? {

@@ -20,6 +20,37 @@
 //  NO APPLICATION IS NAMED. Each Skill takes an optional `app`; the
 //  registration behind it decides everything else.
 //
+//  ALL FOUR LOCATE THEIR SURFACE THROUGH `CodeSurfaceEditorCache`, NOT
+//  `CodeSurfaceAX.frontSurface`. Every handler below is one AX walk followed by
+//  a handful of attribute reads, and the walk was ALL of the cost. MEASURED
+//  END-TO-END THROUGH REAL DISPATCH (`mary-corpus-probe --dispatch-code-surface`,
+//  four runs, a two-window Xcode on a real project), mean milliseconds:
+//
+//                          before    after
+//    read_buffer            111.4      8.4
+//    read_selection         108.2      4.8
+//    list_declarations      111.0      9.4
+//    replace_selection      107.1      4.7   (to its "nothing is selected" exit,
+//                                             which is the whole surface lookup)
+//
+//  — while `CodeSurfaceObserver`, polling the same editor beside them, was
+//  already paying 0.09 ms for the same element because it went through the
+//  cache. The cache was built for a poll that could not afford a tenth of a
+//  second; it turns out a Skill call could not really afford it either, it was
+//  just hidden behind a model round-trip. What remains in the "after" column is
+//  no longer the walk at all — it is reading up to 20 000 characters of buffer
+//  across the process boundary and running the declared regexes over it, which
+//  is the work these Skills exist to do. The FIRST call in a cold process still
+//  pays one walk (~116 ms) to prime the shared entry, and only that one.
+//
+//  WHAT THAT CHANGED SEMANTICALLY, stated rather than glossed: the cache asks
+//  `kAXFocusedWindow` where `frontSurface` walked `kAXWindows` in order. For
+//  the two READERS and the WRITE that is the stricter question — a selection
+//  belongs to the focused window by definition — and where the focused window
+//  holds no editor at all the cache falls back to the very walk it replaced,
+//  so no caller lost reach. `CodeSurfaceEditorCache`'s header carries the
+//  argument in full.
+//
 //  THIS IS MARY'S CLOSEST ANALOGUE TO BONNIE'S OLD `read_selection` /
 //  cursor-scope tool — the piece "read my repo" (the project-corpus lane)
 //  could never cover, because a corpus read comes from disk and an unsaved
@@ -140,7 +171,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let (registration, pid) = resolve(arguments["app"]) else {
                     return notRunning(arguments["app"])
                 }
-                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                guard let surface = CodeSurfaceEditorCache.frontSurface(
+                    pid: pid, registration: registration)
                 else {
                     return SkillOutcome(
                         ok: true,
@@ -191,7 +223,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let (registration, pid) = resolve(arguments["app"]) else {
                     return notRunning(arguments["app"])
                 }
-                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                guard let surface = CodeSurfaceEditorCache.frontSurface(
+                    pid: pid, registration: registration)
                 else {
                     return SkillOutcome(
                         ok: true,
@@ -282,7 +315,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let (registration, pid) = resolve(arguments["app"]) else {
                     return notRunning(arguments["app"])
                 }
-                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                guard let surface = CodeSurfaceEditorCache.frontSurface(
+                    pid: pid, registration: registration)
                 else {
                     return SkillOutcome(
                         ok: true,
@@ -379,7 +413,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let replacement = arguments["text"], !replacement.isEmpty else {
                     return SkillOutcome(ok: false, summary: "There's no replacement text to write.")
                 }
-                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                guard let surface = CodeSurfaceEditorCache.frontSurface(
+                    pid: pid, registration: registration)
                 else {
                     return SkillOutcome(
                         ok: true,

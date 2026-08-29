@@ -148,6 +148,57 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
         XCTAssertFalse(CodeSurfaceEditorCache.isPrimed)
     }
 
+    // MARK: - The front surface
+
+    /// THE HANDLERS' PATH, and the property that makes it worth having: four
+    /// Skill calls against one unchanged window pay ONE walk between them,
+    /// where each used to pay its own — and the observer's poll shares the
+    /// same entry rather than keeping a second one.
+    func testFourFrontSurfaceLookupsOfOneWindowCostOneWalk() {
+        let window = element(11)
+        let editor = element(12)
+        for _ in 0..<4 {
+            let surface = CodeSurfaceEditorCache.frontSurface(
+                pid: 7, registration: registration,
+                focusedWindow: { _ in window },
+                locate: { _, _ in editor },
+                role: { _ in "AXTextArea" },
+                locateAll: { _, _ in XCTFail("must not fall back"); return nil })
+            XCTAssertTrue(CFEqual(surface?.editor, editor))
+        }
+        XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 1)
+    }
+
+    /// A FOCUSED WINDOW WITH NO EDITOR — a Preferences sheet, an Organizer —
+    /// must not become "no source file open" when a real editor is sitting
+    /// behind it. The all-windows walk is kept for exactly this.
+    func testAFocusedWindowWithNoEditorFallsBackToTheFullWalk() {
+        let fallback = CodeSurfaceAX.Surface(
+            window: element(31), editor: element(32),
+            documentKey: "file:///tmp/x.swift", title: "x.swift", ordinal: 1)
+        let surface = CodeSurfaceEditorCache.frontSurface(
+            pid: 7, registration: registration,
+            focusedWindow: { _ in self.element(11) },
+            locate: { _, _ in nil },
+            role: { _ in "AXTextArea" },
+            locateAll: { _, _ in fallback })
+        XCTAssertEqual(surface?.documentKey, "file:///tmp/x.swift")
+    }
+
+    /// AND WHEN THERE IS NO FOCUSED WINDOW AT ALL — a process with every
+    /// window minimized, or Accessibility not granted, where the attribute
+    /// simply does not answer.
+    func testNoFocusedWindowFallsBackToTheFullWalk() {
+        var walked = false
+        _ = CodeSurfaceEditorCache.frontSurface(
+            pid: 7, registration: registration,
+            focusedWindow: { _ in nil },
+            locate: { _, _ in XCTFail("must not walk one window"); return nil },
+            role: { _ in nil },
+            locateAll: { _, _ in walked = true; return nil })
+        XCTAssertTrue(walked)
+    }
+
     func testInvalidateDropsTheEntry() {
         let window = element(11)
         let editor = element(12)

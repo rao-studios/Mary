@@ -29,6 +29,17 @@
 //                                                  only way to prove, on demand, both a
 //                                                  particular scope chain and the standing-cursor
 //                                                  lane standing down under a live highlight.
+//    mary-corpus-probe --dispatch-code-surface --debug-windows
+//                                                ← which window kAXWindows[0] and
+//                                                  kAXFocusedWindow each name, since the
+//                                                  handlers now ask the second where they
+//                                                  used to walk from the first
+//    mary-corpus-probe --dispatch-code-surface --caret-at 100 --select 40 \
+//                      --replace-selection "// new text"
+//                                                ← THE ONE ARGUMENT THAT WRITES. Dispatches
+//                                                  replace_selection for real and then
+//                                                  RE-READS the file from disk to prove the
+//                                                  bytes landed. Use a scratch file.
 //
 //  WHAT THIS PROVES THAT A DIRECT ADAPTER CALL CANNOT — the browsing-lane
 //  lesson this whole branch keeps re-learning: that `read_buffer`/
@@ -244,8 +255,52 @@ enum CodeSurfaceProbe {
             exit(1)
         }
 
+        // WHICH WINDOW EACH PATH IS TALKING ABOUT. `CodeSurfaceAX.frontSurface`
+        // takes `kAXWindows`' FIRST entry that holds an editor;
+        // `CodeSurfaceEditorCache.frontSurface` takes `kAXFocusedWindow`. They
+        // are the same window in the ordinary case and this prints whether they
+        // actually are, live, rather than leaving it asserted in a comment.
+        if arguments.contains("--debug-windows") {
+            let application = AXUIElementCreateApplication(pid)
+            AXUIElementSetMessagingTimeout(application, 2.0)
+            let windows = AX.children(application, kAXWindowsAttribute)
+            let focused = AX.element(application, kAXFocusedWindowAttribute)
+            print("      DEBUG windows: \(windows.count)")
+            for (offset, window) in windows.enumerated() {
+                let title = AX.string(window, kAXTitleAttribute) ?? "—"
+                let isFocused = focused.map { CFEqual($0, window) } ?? false
+                print("      DEBUG   [\(offset)] \(isFocused ? "FOCUSED " : "")\(title)")
+            }
+        }
+
+        // PER-HANDLER LATENCY, MEASURED THROUGH REAL DISPATCH. Every one of
+        // these used to pay `CodeSurfaceAX.surfaces`' all-windows walk on every
+        // call; they now go through `CodeSurfaceEditorCache.frontSurface`. The
+        // numbers printed here are the whole reason that change was made, and
+        // they are taken end-to-end through `AbilityRuntime.dispatch` rather
+        // than around the adapter, so they include everything a real turn pays.
+        func timed(_ label: String, _ body: () async -> SkillOutcome) async -> SkillOutcome {
+            let started = Date()
+            let outcome = await body()
+            print(String(format: "      ⏱  %@: %.1f ms", label, Date().timeIntervalSince(started) * 1000))
+            return outcome
+        }
+
         heading("dispatching read_buffer for real")
-        let bufferOutcome = await runtime.dispatch(name: "read_buffer", argumentsJSON: "{}")
+        // COLD ON PURPOSE for the first number below: `--caret-at` above and
+        // the observer both prime the same one-entry cache, and a "first call"
+        // timing that silently reused their walk would flatter the change this
+        // section exists to measure.
+        CodeSurfaceEditorCache.invalidate()
+        let bufferOutcome = await timed("read_buffer") {
+            await runtime.dispatch(name: "read_buffer", argumentsJSON: "{}")
+        }
+        // AND AGAIN, warm — the first call of the process pays a cache prime
+        // the second does not, and a caller in a real session is almost always
+        // the second kind.
+        _ = await timed("read_buffer (warm)") {
+            await runtime.dispatch(name: "read_buffer", argumentsJSON: "{}")
+        }
         check(bufferOutcome.ok, "read_buffer dispatched without a refusal")
         check(!bufferOutcome.foundNothing, "and a real source file answered")
         print("      \(bufferOutcome.summary.prefix(400).replacingOccurrences(of: "\n", with: "\n      "))…")
@@ -261,7 +316,9 @@ enum CodeSurfaceProbe {
         }
 
         heading("dispatching read_selection for real")
-        let selectionOutcome = await runtime.dispatch(name: "read_selection", argumentsJSON: "{}")
+        let selectionOutcome = await timed("read_selection") {
+            await runtime.dispatch(name: "read_selection", argumentsJSON: "{}")
+        }
         check(selectionOutcome.ok, "read_selection dispatched without a refusal")
         print("      \(selectionOutcome.summary)")
         if selectionOutcome.foundNothing {
@@ -276,7 +333,9 @@ enum CodeSurfaceProbe {
         }
 
         heading("dispatching list_declarations for real")
-        let declarationsOutcome = await runtime.dispatch(name: "list_declarations", argumentsJSON: "{}")
+        let declarationsOutcome = await timed("list_declarations") {
+            await runtime.dispatch(name: "list_declarations", argumentsJSON: "{}")
+        }
         check(declarationsOutcome.ok, "list_declarations dispatched without a refusal")
         check(!declarationsOutcome.foundNothing, "and real declarations came back")
         print("      \(declarationsOutcome.summary.replacingOccurrences(of: "\n", with: "\n      "))")
@@ -287,6 +346,72 @@ enum CodeSurfaceProbe {
         // pre-existing type-only one. The printed list above is the actual
         // evidence; cross-check it by eye against the open file's real
         // `func` names.
+
+        // replace_selection'S OWN SURFACE COST, AND ONLY THAT. This is the one
+        // handler that writes, so it is never dispatched here for a
+        // measurement while something is selected — the number wanted is what
+        // it spends LOCATING the surface, which is the only part
+        // `[Corpus AC]` changed, and that part runs identically before the
+        // "nothing is selected" early return. Skipped, with a word, whenever a
+        // live highlight would make the call a real edit.
+        heading("replace_selection's surface cost")
+        if selectionOutcome.foundNothing {
+            let replaceOutcome = await timed("replace_selection (no-op, nothing selected)") {
+                await runtime.dispatch(
+                    name: "replace_selection",
+                    argumentsJSON: #"{"text":"// probe: never written, nothing is selected"}"#)
+            }
+            check(replaceOutcome.foundNothing,
+                  "and it stopped at \"nothing is selected\" without writing",
+                  replaceOutcome.summary)
+        } else if let replacement = value("--replace-selection") {
+            // THE WRITE, FOR REAL, AND ONLY WHEN ASKED BY NAME. `--replace-
+            // selection` is the one argument in this probe that changes a file
+            // on disk, so it is never implied by anything else and never runs
+            // against whatever happened to be highlighted — pair it with
+            // `--caret-at`/`--select` on a scratch file.
+            //
+            // AND THE FILE IS RE-READ AFTERWARDS rather than the outcome
+            // believed. This branch's standing discipline: a writer that
+            // reports success has reported its own opinion, and the only
+            // evidence that bytes landed is the bytes.
+            let replaceOutcome = await timed("replace_selection (REAL WRITE)") {
+                await runtime.dispatch(
+                    name: "replace_selection",
+                    argumentsJSON: String(
+                        data: try! JSONSerialization.data(
+                            withJSONObject: ["text": replacement]), encoding: .utf8)!)
+            }
+            check(replaceOutcome.ok, "replace_selection reported success",
+                  replaceOutcome.summary)
+            let application = AXUIElementCreateApplication(pid)
+            AXUIElementSetMessagingTimeout(application, 2.0)
+            if let surface = CodeSurfaceEditorCache.frontSurface(
+                pid: pid, registration: registration),
+               // `documentKey` IS A `file://` URL STRING — measured, and the
+               // reason `CodeSurfaceWriter.fileURL` exists. Resolved here
+               // rather than through that (internal) helper so this check
+               // reaches disk by its OWN route, which is what makes it
+               // evidence about the write instead of a second reading of the
+               // writer's own opinion.
+               let url = URL(string: surface.documentKey),
+               url.isFileURL,
+               let onDisk = try? String(contentsOf: url, encoding: .utf8) {
+                check(onDisk.contains(replacement),
+                      "and the replacement is ON DISK when the file is re-read",
+                      url.path)
+            } else {
+                check(false, "could not re-read the file to confirm the write")
+            }
+        } else {
+            print("""
+
+              ⚠︎ Something IS selected, so replace_selection was NOT dispatched \
+                — it would have written to disk. Run this again with nothing \
+                highlighted to time its surface lookup, or pass \
+                --replace-selection "text" to drive the real write.
+            """)
+        }
 
         // THE INTERACTION THAT NEVER MINTED. `SchemaSignalRuntime
         // .bridgeSelection` has always computed `interaction.code-selection`

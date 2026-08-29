@@ -30,9 +30,40 @@
 //  which is the price of being sure rather than the price of assuming. Any of
 //  them failing drops the entry and re-walks.
 //
-//  ONE ENTRY, NOT A MAP. The caller is a poll that only ever asks about the
-//  front editor; a per-pid map would hold elements for windows nobody is
-//  looking at and give a second thing to invalidate for no measured gain.
+//  ONE ENTRY, NOT A MAP. The callers all ask about the front editor; a per-pid
+//  map would hold elements for windows nobody is looking at and give a second
+//  thing to invalidate for no measured gain. The one cost of that choice is
+//  that a Skill call naming a BACKGROUND editor evicts the foreground entry the
+//  observer keeps warm, and the next poll re-walks once. Measured against the
+//  alternative — a map whose extra entries would each need the same liveness
+//  re-proof — that is the cheaper wrong.
+//
+//  `frontSurface` IS THE SECOND CALLER, AND IT IS NOT THE SAME QUESTION AS
+//  `CodeSurfaceAX.frontSurface`. That one walks EVERY window of the process in
+//  `kAXWindows` order and returns the first that holds an editor;
+//  this one asks `kAXFocusedWindow` and walks only that. Measured live against
+//  a two-window Xcode, the focused window IS `kAXWindows[0]` — printed by
+//  `--dispatch-code-surface --debug-windows` rather than assumed — so in the
+//  ordinary case the two name the same surface, and after the first call this
+//  one names it without walking at all. Where they
+//  can diverge is a focused window with NO editor — a Preferences sheet, an
+//  Organizer — and there the all-windows path would keep looking and find a
+//  real editor behind it. That case falls back to the full walk rather than
+//  answering "no source file open," so nothing a caller could see gets worse.
+//  STAGED LIVE, not only unit-tested: with Xcode's Settings window focused and
+//  three editor windows behind it, `read_buffer` still answered out of the
+//  first of them. The fallback's answer is NOT cached — it belongs to a window
+//  that is not the focused one, which is the exact thing this cache's key
+//  refuses to hold — so that state keeps paying the old ~130 ms per call. That
+//  is not a regression; it is precisely what every call used to cost.
+//
+//  AND FOR THE THREE READERS THE FOCUSED WINDOW IS THE STRICTER ANSWER, not
+//  merely the cheaper one. `read_selection` and `replace_selection` read
+//  `kAXSelectedTextRange`, which is a statement about where the user is typing;
+//  answering it out of a window that is merely first in z-order while a
+//  different one holds focus would report a selection nobody is making. The
+//  fallback preserves the old reach; the primary path narrows to the window
+//  that can actually own a caret.
 //
 
 import AppKit
@@ -108,6 +139,59 @@ public enum CodeSurfaceEditorCache {
         }
         box.withLock { $0 = Entry(pid: pid, window: window, editor: editor, role: role) }
         return editor
+    }
+
+    // MARK: - The front surface, cached
+
+    /// The surface a Skill call means when it names no document — the focused
+    /// window's editor, through the cache, with the all-windows walk kept
+    /// behind it for the cases the focused window cannot answer.
+    ///
+    /// See this file's header for why the focused window is both the cheaper
+    /// and the stricter reading of "the front editor", and what the fallback
+    /// is for. `locateAll` is injected on `editor(pid:window:…)`'s own
+    /// precedent so the fallback branch is reachable from a test that has no
+    /// editor open.
+    public static func frontSurface(
+        pid: pid_t,
+        registration: CodeSurfaceRegistration,
+        focusedWindow: (AXUIElement) -> AXUIElement? =
+            { AX.element($0, kAXFocusedWindowAttribute) },
+        locate: (AXUIElement, CodeSurfaceRegistration) -> AXUIElement? =
+            { CodeSurfaceAX.editor(in: $0, registration: $1) },
+        role: (AXUIElement) -> String? = { AX.string($0, kAXRoleAttribute) },
+        locateAll: (pid_t, CodeSurfaceRegistration) -> CodeSurfaceAX.Surface? =
+            { CodeSurfaceAX.frontSurface(pid: $0, registration: $1) }
+    ) -> CodeSurfaceAX.Surface? {
+        // NO `AXIsProcessTrusted` GATE OF ITS OWN, deliberately. Without the
+        // grant `kAXFocusedWindow` answers `kAXErrorAPIDisabled` and therefore
+        // nil, which lands on the fallback — and `CodeSurfaceAX.frontSurface`
+        // holds the real guard, in the one place that would otherwise start a
+        // tree walk. Leaving it out here is also what lets a test drive the
+        // focused-window branch at all, since a test runner is never trusted.
+        let application = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(application, CodeSurfaceAX.messagingTimeout)
+        guard let window = focusedWindow(application),
+              let editor = editor(
+                pid: pid, window: window, registration: registration,
+                locate: locate, role: role)
+        else { return locateAll(pid, registration) }
+
+        // ORDINAL 1, AND IT IS NOT AN APPROXIMATION OF THE WALK'S OWN COUNT.
+        // `CodeSurfaceAX.surfaces` numbers the windows that hold editors in
+        // reading order, and this function returns exactly one surface — the
+        // front one — so its ordinal among front surfaces is 1. The number is
+        // only ever read by `documentKey`'s fallback, for a document with no
+        // `AXDocument` at all (a file never saved), where it names a window
+        // rather than a path and `CodeSurfaceWriter.fileURL` correctly refuses
+        // it either way.
+        return CodeSurfaceAX.Surface(
+            window: window,
+            editor: editor,
+            documentKey: CodeSurfaceAX.documentKey(
+                of: window, registration: registration, ordinal: 1),
+            title: AX.string(window, kAXTitleAttribute) ?? "",
+            ordinal: 1)
     }
 
     /// Drop whatever is held. Called when the observer stops, so a cache
