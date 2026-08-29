@@ -21,6 +21,7 @@
 //                                     spoken register, coding-agent provider/models
 //
 
+import MaryAmbient
 import MaryBrain
 import MaryPlugin
 import MaryTotem
@@ -147,8 +148,34 @@ package enum MaryRuntime {
         focusTracker: .shared,
         readLedger: .shared,
         ambient: .shared,
-        elementIndex: .shared,
+        elementIndex: elementIndex,
         behavior: BehavioralAssembler(recorder: behavioralStore))
+
+    /// THE PROCESS-WIDE ELEMENT INDEX, WITH ITS VECTORIZER ACTUALLY INSTALLED.
+    ///
+    /// WHAT THIS FIXES: `AmbientElementIndexStore.installVectorizer` existed,
+    /// was documented as "production wiring for `.shared`", and had NO CALL
+    /// SITE anywhere in the tree. Every production construction took the
+    /// `vectorizer: nil` default, so `queryVector` returned nil and all three
+    /// consumers — the reference gate, the address probe, the affordance probe
+    /// — ran permanently in the lexical-only fallback each of them documents
+    /// as a degraded mode. Their embedding thresholds had never once been
+    /// consulted in a shipping build.
+    ///
+    /// A LET WITH A BODY, not a call in `init`, because the store it wires is
+    /// a `static let` too: this is the one evaluation that can be guaranteed
+    /// to happen before the brain reads the wiring.
+    ///
+    /// NIL VECTORIZER IS STILL A VALID WORLD. An OS with no English embedding
+    /// asset leaves the store exactly as it is today, which is why the guard
+    /// is a `flatMap` rather than a force.
+    private static let elementIndex: AmbientElementIndexStore = {
+        let store = AmbientElementIndexStore.shared
+        if let vectorizer = NLAmbientTextVectorizer.shared {
+            store.installVectorizer(vectorizer)
+        }
+        return store
+    }()
 
     /// WHERE SEALED EPISODES GO, and the setting that governs whether any do.
     ///

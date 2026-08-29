@@ -192,6 +192,68 @@ public enum MediaSurfaceLibrary {
         return await press(element, pid: pid)
     }
 
+    // MARK: - Shuffle
+
+    /// Bring the player's shuffle mode to `desired`, pressing only if it is
+    /// not already there.
+    ///
+    /// THE LABEL IS THE STATE, which is what makes a blind press wrong half
+    /// the time: Music's shuffle control renames itself, the package declares
+    /// both words, and pressing without reading toggles away from what was
+    /// asked whenever the player was already there.
+    ///
+    /// THE STATE COMES FROM `MediaSurfaceAX.read`, NOT FROM A SECOND WALK, and
+    /// that is the whole correctness argument. The first cut of this searched
+    /// the window tree itself for "a button whose label parses as a shuffle
+    /// state" — which found a DIFFERENT node than the canonical reader does,
+    /// read it as on while the player was off, and dutifully pressed shuffle
+    /// ON when asked to turn it off. Live probe, first run. Two readers of one
+    /// fact will disagree eventually; there is now one reader, and this asks
+    /// it.
+    ///
+    /// THE PRESS IS SCOPED TO THE DECLARED TRANSPORT for the same reason —
+    /// that is where the reader looked, so it is the only place a control
+    /// answering for that state can honestly be found.
+    ///
+    /// AN UNREADABLE STATE IS NOT AN "OFF". It returns false and the caller
+    /// says the mode could not be set, rather than pressing hopefully and
+    /// reporting success — the rule `MediaSurfaceRegistration.shuffleState`
+    /// already states for reading.
+    @discardableResult
+    public static func pressShuffle(
+        pid: pid_t, registration: MediaSurfaceRegistration, desired: Bool
+    ) async -> Bool {
+        guard registration.schema.shuffle != nil,
+              let current = MediaSurfaceAX.read(
+                pid: pid, registration: registration)?.isShuffling
+        else { return false }
+        guard current != desired else { return true }
+
+        guard let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
+        else { return false }
+        let transport = transportIDs(in: built.snapshot, registration: registration)
+
+        var control: AXUIElement?
+        func walk(_ node: AXNodeSnapshot) {
+            guard control == nil else { return }
+            if transport.contains(node.id),
+               node.role.contains("Button"),
+               let label = node.label,
+               registration.shuffleState(label) != nil,
+               let element = built.elements[node.id] {
+                control = element
+                return
+            }
+            for child in node.children { walk(child) }
+        }
+        for window in built.snapshot.windows where control == nil {
+            if let root = window.root { walk(root) }
+        }
+
+        guard let control else { return false }
+        return await press(control, pid: pid)
+    }
+
     // MARK: - The tree
 
     struct Row: Equatable {

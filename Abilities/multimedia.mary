@@ -201,6 +201,69 @@
             ],
             "kind" : "utterancePhrase",
             "value" : "what playlists do i have"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "mix"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "queue"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "album"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "artist"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utteranceToken",
+            "value" : "music"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "put on my"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "shuffle my"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "do i have a playlist"
+          },
+          {
+            "children" : [
+
+            ],
+            "kind" : "utterancePhrase",
+            "value" : "on shuffle"
           }
         ],
         "kind" : "any"
@@ -215,12 +278,14 @@
     },
     "skills" : [
       "multimedia.control-playback",
+      "multimedia.find-playlist",
       "multimedia.list-playlists",
       "multimedia.now-playing",
       "multimedia.open-player",
       "multimedia.play-music",
       "multimedia.play-playlist",
-      "multimedia.search-music"
+      "multimedia.search-music",
+      "multimedia.shuffle-playlist"
     ],
     "summary" : "The multimedia discipline: say what is playing, drive the transport, play a playlist, and find a song in the Apple Music catalog. An application joins this discipline by declaring a `mediaSurface` — where its transport and library live — which is what lets Mary read and drive it without naming it in Swift. RATINGS AND LIBRARY SEARCH ARE STILL OUT: they were Apple Events in the plugin this descends from, and Mary sends none. Playlists were assumed to be in that group and are not — the sidebar is an ordinary Accessibility outline.",
     "tint" : "#FC5C7D",
@@ -230,7 +295,12 @@
     ],
     "triggers" : {
       "intentAliases" : [
-
+        "play-playlist",
+        "find-playlist",
+        "list-playlists",
+        "shuffle-playlist",
+        "control-playback",
+        "now-playing"
       ],
       "negativeTokens" : [
         "sheet music"
@@ -244,7 +314,12 @@
         "turn it up",
         "turn it down",
         "play my playlist",
-        "what playlists do i have"
+        "what playlists do i have",
+        "put on my",
+        "shuffle my",
+        "do i have a playlist",
+        "find my playlist",
+        "on shuffle"
       ],
       "tokens" : [
         "playing",
@@ -259,7 +334,12 @@
         "mute",
         "shuffle",
         "playlist",
-        "playlists"
+        "playlists",
+        "mix",
+        "queue",
+        "album",
+        "artist",
+        "music"
       ]
     },
     "version" : "1.0.0"
@@ -488,13 +568,83 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "What playlists do I have?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.shuffle-playlist",
+      "id" : "shuffle-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Shuffle my Dinner Office playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.shuffle-playlist",
+      "id" : "play-a-playlist-on-shuffle",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play my running mix on shuffle."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.find-playlist",
+      "id" : "find-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Do I have a jazz playlist?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.find-playlist",
+      "id" : "is-there-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Is there a playlist called Dinner Office?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "put-on-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Put on my running mix."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "start-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Start my Workout playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.list-playlists",
+      "id" : "which-playlists",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Which playlists do I have?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "72267a35a4fe1c37250701172671f0c371fd0a5ae72c9ad76317916171db63b4"
+    "digest" : "040c8f40bcbe3eb6eafb2b4c8d0b6fd8d50fa451121f74b5a30a58edd70aa522"
   },
   "interactions" : [
 
@@ -583,6 +733,39 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "playing"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "what is playing"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "what's playing"
+            }
+          ],
+          "kind" : "any"
+        },
         "excludes" : [
 
         ],
@@ -666,6 +849,60 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "pause"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "skip"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "next"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "louder"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "quieter"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "mute"
+            }
+          ],
+          "kind" : "any"
+        },
         "excludes" : [
 
         ],
@@ -978,6 +1215,39 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "playlists"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "what playlists"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "which playlists"
+            }
+          ],
+          "kind" : "any"
+        },
         "excludes" : [
 
         ],
@@ -1064,6 +1334,53 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "playlist"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "mix"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "play my"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "put on my"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "start my"
+            }
+          ],
+          "kind" : "any"
+        },
         "excludes" : [
 
         ],
@@ -1074,6 +1391,251 @@
       },
       "summary" : "Play one of the player's own playlists, by name.",
       "title" : "Play a Playlist",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "find_playlist",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.find-playlist",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "find_playlist",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "The playlist name to look for.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which player. Omit for the one that's running.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "library.playlists.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.player-transport"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "do i have a playlist"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "find a playlist"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "is there a playlist"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "find my"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 186
+      },
+      "summary" : "Say whether the player has a playlist matching a name, without playing it.",
+      "title" : "Find a Playlist",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "media-surface",
+            "operation" : "shuffle_playlist",
+            "preference" : 100,
+            "targetClasses" : [
+              "media-player"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "multimedia.shuffle-playlist",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "shuffle_playlist",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "playlist",
+            "required" : true,
+            "summary" : "Which playlist.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which player. Omit for the one that's running.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "library.playlists.play"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.player-transport"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "media-player"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utteranceToken",
+              "value" : "shuffle"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "shuffle my"
+            },
+            {
+              "children" : [
+
+              ],
+              "kind" : "utterancePhrase",
+              "value" : "on shuffle"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 216
+      },
+      "summary" : "Play one of the player's own playlists with shuffle turned on.",
+      "title" : "Shuffle a Playlist",
       "usesStage" : false,
       "version" : "1.0.0"
     }

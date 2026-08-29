@@ -30,7 +30,8 @@ extension AbilityRosterArbitrator {
     static func evidence(
         policy: RoutingPolicySchema,
         requirements: SkillRequirements?,
-        context: AbilityRoutingContext
+        context: AbilityRoutingContext,
+        skillID: SkillID? = nil
     ) -> AbilityRoutingEvidenceScore {
         let directIDs = Set(requirements?.interactions ?? [])
             .union(requirements?.optionalInteractions ?? [])
@@ -56,12 +57,21 @@ extension AbilityRosterArbitrator {
             policy: policy,
             requirements: requirements,
             context: context)
+        // ADDITIVE, BOUNDED, AND LAST. A Skill the index has no opinion about
+        // contributes zero and scores exactly what it scored before this seam
+        // existed — which is the property that makes turning embeddings on
+        // safe to reason about. The cap sits under `utterancePhrase`'s 50 so
+        // an authored phrase always outranks a similarity.
+        let semanticEvidence = skillID
+            .flatMap { context.semanticSkillAffinity[$0] }
+            .map { SemanticSkillRequestIndex.bonus(for: $0) } ?? 0
         return AbilityRoutingEvidenceScore(
             total: predicateEvidence
                 + perceptionEvidence
                 + optionalPerceptionEvidence
                 + capabilityEvidence
-                + direct,
+                + direct
+                + semanticEvidence,
             directInteraction: direct,
             focusedWorkspace: focused,
             preference: policy.preference)

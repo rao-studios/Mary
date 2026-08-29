@@ -288,6 +288,12 @@ extension AbilityLibrary {
             semanticIndex: NLUtteranceVectorizer.shared.flatMap {
                 SemanticAbilityRequestIndex.build(
                     records: discovery.records, vectorizer: $0)
+            },
+            // The Skill tier is built in the same breath and for the same
+            // reason: one model load, two corpora, both off the turn path.
+            semanticSkillIndex: NLUtteranceVectorizer.shared.flatMap {
+                SemanticSkillRequestIndex.build(
+                    records: discovery.records, vectorizer: $0)
             })
         lock.lock()
         state.snapshot = next

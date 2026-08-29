@@ -1186,8 +1186,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                     .isDisjoint(with: normalizedApplicationIDs) {
             targets.formUnion(profile.targetClasses)
         }
+        // ONE VECTORIZATION FOR THE WHOLE TURN, computed here rather than per
+        // Skill inside the scorer, which the arbitrator calls several times
+        // for the same Skill across its passes.
+        let utterance = ambient.utterance()
         return AbilityRoutingContext(
-            utterance: ambient.utterance(),
+            utterance: utterance,
             intent: route?.intent.rawValue,
             namedApplications: namedApplications,
             targetClasses: targets,
@@ -1197,7 +1201,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             capabilities: capabilities,
             grantedPermissions: grantedPermissions,
             sourceResolution: sourceResolution,
-            workspaceFamily: workspaceFamily)
+            workspaceFamily: workspaceFamily,
+            semanticSkillAffinity: abilitySnapshot.semanticSkillIndex?
+                .affinities(in: utterance) ?? [:])
     }
 
     /// The window-classifier's view of the turn.
