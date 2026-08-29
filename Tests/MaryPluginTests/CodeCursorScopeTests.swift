@@ -255,4 +255,23 @@ final class CodeCursorScopeTests: XCTestCase {
             "middle of one very long line", cutAtStart: true, cutAtEnd: true)
         XCTAssertEqual(snapped, "middle of one very long line")
     }
+
+    // MARK: - The speaking lane's live section
+
+    func testLiveWorkCarriesFileScopeExcerptAndDeixis() {
+        let content = CodeCursorScope.content(
+            .init(line: 112, chain: ["submitTurn"], excerpt: "for try await event in events {"))
+        let section = CodeCursorScope.liveWork(
+            editorName: "Xcode",
+            fileName: "VoicePipeline+Turn.swift",
+            content: content)
+        XCTAssertTrue(section.contains("Current file:"))
+        XCTAssertTrue(section.contains("VoicePipeline+Turn.swift"))
+        XCTAssertTrue(section.contains("In Xcode."))
+        XCTAssertTrue(section.contains("Cursor scope: submitTurn (line 112)"))
+        XCTAssertTrue(section.contains("What they see (from line 112):"))
+        XCTAssertTrue(section.contains("for try await event in events {"))
+        XCTAssertTrue(section.contains("\"this\" / \"here\""))
+        XCTAssertTrue(section.contains("This snapshot is LIVE"))
+    }
 }

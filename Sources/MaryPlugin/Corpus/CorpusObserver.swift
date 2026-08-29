@@ -105,7 +105,10 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return "Working in \(settled.projectName) — \(settled.relativePath)"
     }
 
-    public func promptContribution() -> String? { ambientLine }
+    /// Identity only. The live buffer window belongs to `CodeSurfaceObserver`;
+    /// putting this line in `full` made it occupy `leadContext` and left the
+    /// voice with a path instead of source.
+    public func promptContribution() -> String? { nil }
 
     public var ambientSenses: Set<AmbientSense> { [.workspace] }
 

@@ -209,6 +209,46 @@ public enum CodeCursorScope {
         return body.isEmpty ? scope : scope + "\n" + body
     }
 
+    /// THE SPEAKING LANE'S LIVE SECTION — Bonnie's `promptContribution`
+    /// shape, without naming an application: file, scope, the window of
+    /// source around the caret, and the deixis that makes "this" mean it.
+    public static func liveWork(
+        editorName: String,
+        fileName: String,
+        content: String
+    ) -> String {
+        var lines = [
+            "Current file:",
+            fileName,
+            "In \(editorName).",
+        ]
+        let parts = content.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+        let scope = parts.first.map(String.init) ?? content
+        if !scope.isEmpty { lines.append(scope) }
+        let body = parts.count > 1
+            ? String(parts[1]).trimmingCharacters(in: .newlines) : ""
+        if !body.isEmpty {
+            if let line = lineNumber(inScopeLine: scope) {
+                lines.append("What they see (from line \(line)):\n\(body)")
+            } else {
+                lines.append("What they see:\n\(body)")
+            }
+        }
+        lines.append(
+            "\"this\" / \"here\" / \"what I just wrote\" refer to this file and selection.")
+        lines.append(
+            "This snapshot is LIVE and supersedes anything earlier in the conversation about this file — treat older reads of it as stale.")
+        return lines.joined(separator: "\n")
+    }
+
+    /// The measured line out of a scope line this file itself minted.
+    static func lineNumber(inScopeLine scope: String) -> Int? {
+        guard let match = scope.range(of: #"line (\d+)"#, options: .regularExpression)
+        else { return nil }
+        let digits = scope[match].split(separator: " ").last.map(String.init) ?? ""
+        return Int(digits)
+    }
+
     // MARK: - The window around the caret
 
     /// The character range to read around `caret`, centred on it and clipped

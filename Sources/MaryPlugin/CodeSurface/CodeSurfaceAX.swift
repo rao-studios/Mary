@@ -117,11 +117,27 @@ public enum CodeSurfaceAX {
         surfaces(pid: pid, registration: registration).first
     }
 
+    /// One declared-role candidate inside a window. Exposed so the pick
+    /// (focused pane vs largest) is unit-testable without a live editor.
+    public struct EditorCandidate: Sendable, Equatable {
+        public var role: String
+        public var area: CGFloat
+        public var focused: Bool
+
+        public init(role: String, area: CGFloat, focused: Bool) {
+            self.role = role
+            self.area = area
+            self.focused = focused
+        }
+    }
+
     /// THE TEXT ELEMENT, by the roles the package declared.
     ///
-    /// Roles are tried in declared order, and within a role the LARGEST
-    /// element wins — a jump-bar search field is a real `AXTextField`, and
-    /// the source buffer is the big one.
+    /// Roles are tried in declared order. When the package prefers a focused
+    /// element (the family default), a focused match of that role wins even
+    /// if a larger sibling sits beside it — the split-editor case. Otherwise
+    /// the largest element of the first matching role wins: a jump-bar search
+    /// field is a real `AXTextField`, and the source buffer is the big one.
     ///
     /// PUBLIC ONLY SO `CodeSurfaceEditorCache` CAN NAME IT as the default
     /// walk behind its own seam. This is the ~330 ms half of a code-surface
@@ -130,7 +146,7 @@ public enum CodeSurfaceAX {
     public static func editor(
         in window: AXUIElement, registration: CodeSurfaceRegistration
     ) -> AXUIElement? {
-        var byRole: [String: [(element: AXUIElement, area: CGFloat)]] = [:]
+        var found: [(element: AXUIElement, candidate: EditorCandidate)] = []
         AXTreeWalker.walk(
             from: window,
             budget: .init(maxDepth: descentDepth, maxNodes: descentNodes)
@@ -138,15 +154,47 @@ public enum CodeSurfaceAX {
             guard let role = AX.string(element, kAXRoleAttribute) else { return }
             guard registration.editorRoleNames.contains(role) else { return }
             let frame = AX.frame(of: element)
-            byRole[role, default: []].append(
-                (element, (frame?.width ?? 0) * (frame?.height ?? 0)))
+            let area = (frame?.width ?? 0) * (frame?.height ?? 0)
+            found.append((
+                element,
+                EditorCandidate(role: role, area: area, focused: isFocused(element))))
         }
-        for role in registration.editorRoleNames {
-            if let best = byRole[role]?.max(by: { $0.area < $1.area }) {
-                return best.element
+        guard let index = pickEditor(
+            from: found.map(\.candidate),
+            preferredRoles: registration.editorRoleNames,
+            preferFocused: registration.preferFocusedElement)
+        else { return nil }
+        return found[index].element
+    }
+
+    /// Which candidate is the editor. Pure: focused-of-preferred-role, else
+    /// largest-of-preferred-role, walking the declared role order.
+    public static func pickEditor(
+        from candidates: [EditorCandidate],
+        preferredRoles: [String],
+        preferFocused: Bool
+    ) -> Int? {
+        if preferFocused {
+            for role in preferredRoles {
+                if let index = candidates.firstIndex(where: { $0.role == role && $0.focused }) {
+                    return index
+                }
+            }
+        }
+        for role in preferredRoles {
+            let matching = candidates.enumerated().filter { $0.element.role == role }
+            if let best = matching.max(by: { $0.element.area < $1.element.area }) {
+                return best.offset
             }
         }
         return nil
+    }
+
+    /// `kAXFocusedAttribute` arrives as Bool or NSNumber depending on the
+    /// application; both are a focused editor.
+    public static func isFocused(_ element: AXUIElement) -> Bool {
+        if let flag = AX.attribute(element, kAXFocusedAttribute) as? Bool { return flag }
+        return AX.number(element, kAXFocusedAttribute)?.boolValue ?? false
     }
 
     /// A window's stable name for its document, per the declared rule.

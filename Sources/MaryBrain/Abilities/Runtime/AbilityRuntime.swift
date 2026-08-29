@@ -340,6 +340,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 if let served = plugin.servedWorld, served.pluginOwner != plugin.name {
                     reads[served.pluginOwner] = targeted
                 }
+                for alias in plugin.targetedReadAliases where alias != plugin.name {
+                    reads[alias] = targeted
+                }
             }
             // BOTH HALVES OR NEITHER. A verb with no backing has nothing to
             // locate against, and a backing with no verb has nowhere to send

@@ -147,4 +147,15 @@ import Testing
     func spendStaysAccounted() {
         #expect(render(conversational: true).isAccounted)
     }
+
+    @Test("Who she is is not restated in instructions")
+    func preambleOmitsIdentity() {
+        // Identity rides `SeerWire.Persona` into Seer's personality section.
+        // Repeating it here stacked "You are Mary" under "Your name is Mary".
+        let text = render().text
+        #expect(!text.contains("always identify as Mary"))
+        #expect(!text.hasPrefix("You are Mary"))
+        #expect(text.contains("Right now it is"))
+        #expect(text.contains("good company first"))
+    }
 }

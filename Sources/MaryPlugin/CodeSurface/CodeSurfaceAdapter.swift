@@ -89,7 +89,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     public let summary =
         "reads a code editor's live buffer and current selection through Accessibility"
 
-    private let support: CodeSurfaceSupport
+    let support: CodeSurfaceSupport
 
     public init(support: CodeSurfaceSupport = .shared) {
         self.support = support

@@ -63,15 +63,38 @@ enum SeerWire {
         /// Rides both transports — the realtime turn.start wraps this same
         /// request. Old servers ignore the unknown key.
         var client = "mary"
+        /// Who she is on this request. Seer's prompt otherwise says
+        /// "Your name is Seer". Rides both transports — the realtime
+        /// turn.start wraps this same request.
+        var persona = Persona.mary
         var seer: SeerScope
 
         enum CodingKeys: String, CodingKey {
-            case messages, model, temperature, stream, stop, instructions, seer, client
+            case messages, model, temperature, stream, stop, instructions, seer, client, persona
             case maxTokens = "max_tokens"
             case topP = "top_p"
             case repetitionPenalty = "repetition_penalty"
             case repetitionContextSize = "repetition_context_size"
         }
+    }
+
+    /// Mary's identity for Seer's personality section — the only place the
+    /// voice lane states who she is. Clock and TTS stay on `seerPreamble`;
+    /// repeating this in `instructions` made Seer wrap "Your name is Mary"
+    /// around a second "You are Mary".
+    struct Persona: Encodable, Equatable {
+        var name: String
+        var voice: String
+
+        static let mary = Persona(
+            name: "Mary",
+            voice: """
+            You are Mary — that is your name; always identify as Mary, never \
+            any other assistant name. You are a voice assistant living on the \
+            user's Mac: a warm, knowledgeable sibling who ACTS — not a \
+            read-only chat.
+            """
+        )
     }
 
     /// The `seer` object steering RAG. `owner_id` is overridden server-side
@@ -218,6 +241,26 @@ enum SeerWire {
     }
 
     struct VisionLookResponse: Decodable {
+        var text: String
+    }
+
+    // MARK: - Complete
+
+    /// Mirrors Seer's `CompleteRequest` (Sources/API/Routes/Complete.swift):
+    /// one bounded generation, no `seer` scope, no streaming.
+    struct CompleteRequest: Encodable {
+        var instructions: String?
+        var messages: [SeerChatMessage]
+        var maxTokens: Int?
+        var temperature: Float?
+
+        enum CodingKeys: String, CodingKey {
+            case instructions, messages, temperature
+            case maxTokens = "max_tokens"
+        }
+    }
+
+    struct CompleteResponse: Decodable {
         var text: String
     }
 }

@@ -99,6 +99,8 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerVision.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerComplete.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
     }
@@ -111,14 +113,16 @@ extension MaryRuntime {
         await brain.setSeerRealtime(choice == .realtime ? seerRealtime : nil)
     }
 
-    /// The hosted annotator over the app's own chat lane.
+    /// The hosted annotator over the app's own complete lane.
     ///
-    /// A FACTORY RATHER THAN A LITERAL, because `seerChat` is internal to this
-    /// module and `mary-corpus-probe annotate` has to build the SAME annotator
-    /// the app wires — a probe that constructed its own client would be
-    /// verifying a different object than the one that ships.
+    /// A FACTORY RATHER THAN A LITERAL, because `seerComplete` is internal to
+    /// this module and `mary-corpus-probe annotate` has to build the SAME
+    /// annotator the app wires — a probe that constructed its own client
+    /// would be verifying a different object than the one that ships.
+    /// Spoken turns stay on `seerChat` (`/v1/chat/completions`); this
+    /// factory must not be reused as a voice.
     package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
-        SeerUnitAnnotator(chat: seerChat)
+        SeerUnitAnnotator(complete: seerComplete)
     }
 
     /// Sign in with the configured account. Returns error text or nil.
@@ -233,10 +237,11 @@ extension MaryRuntime {
         // unrecoverable crash into a sentence naming the script to run.
         // THE ANNOTATOR FOLLOWS THE CHOICE, and it is the one job the hosted
         // lane is strictly better at. Summarising a unit needs no tools —
-        // the single thing Seer's chat cannot do — while the on-device engine
-        // requires exclusive generation and would make a background summary
-        // queue behind the user's own turn. On device, units keep their
-        // structure and go without a précis, and the ledger says why.
+        // which is why it uses `/v1/complete` rather than the persona chat
+        // lane — while the on-device engine requires exclusive generation
+        // and would make a background summary queue behind the user's own
+        // turn. On device, units keep their structure and go without a
+        // précis, and the ledger says why.
         let hosted = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
         await unitIndexer.setAnnotator(
             hosted ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: engine))

@@ -111,7 +111,8 @@ public enum CodeSurfaceEditorCache {
         registration: CodeSurfaceRegistration,
         locate: (AXUIElement, CodeSurfaceRegistration) -> AXUIElement? =
             { CodeSurfaceAX.editor(in: $0, registration: $1) },
-        role: (AXUIElement) -> String? = { AX.string($0, kAXRoleAttribute) }
+        role: (AXUIElement) -> String? = { AX.string($0, kAXRoleAttribute) },
+        focused: (AXUIElement) -> Bool = { CodeSurfaceAX.isFocused($0) }
     ) -> AXUIElement? {
         if let cached = box.withLock({ $0 }),
            cached.pid == pid,
@@ -123,7 +124,12 @@ public enum CodeSurfaceEditorCache {
            // file the user is no longer in.
            let live = role(cached.editor),
            live == cached.role,
-           registration.editorRoleNames.contains(live) {
+           registration.editorRoleNames.contains(live),
+           // A SPLIT EDITOR can keep the same window and swap which pane
+           // holds the caret. Largest-wins would keep the cached (often
+           // larger) sibling; when the package prefers focus, an unfocused
+           // cache entry is as stale as a dead role.
+           !registration.preferFocusedElement || focused(cached.editor) {
             return cached.editor
         }
         walkCountBox.withLock { $0 += 1 }
@@ -160,6 +166,7 @@ public enum CodeSurfaceEditorCache {
         locate: (AXUIElement, CodeSurfaceRegistration) -> AXUIElement? =
             { CodeSurfaceAX.editor(in: $0, registration: $1) },
         role: (AXUIElement) -> String? = { AX.string($0, kAXRoleAttribute) },
+        focused: (AXUIElement) -> Bool = { CodeSurfaceAX.isFocused($0) },
         locateAll: (pid_t, CodeSurfaceRegistration) -> CodeSurfaceAX.Surface? =
             { CodeSurfaceAX.frontSurface(pid: $0, registration: $1) }
     ) -> CodeSurfaceAX.Surface? {
@@ -174,7 +181,7 @@ public enum CodeSurfaceEditorCache {
         guard let window = focusedWindow(application),
               let editor = editor(
                 pid: pid, window: window, registration: registration,
-                locate: locate, role: role)
+                locate: locate, role: role, focused: focused)
         else { return locateAll(pid, registration) }
 
         // ORDINAL 1, AND IT IS NOT AN APPROXIMATION OF THE WALK'S OWN COUNT.

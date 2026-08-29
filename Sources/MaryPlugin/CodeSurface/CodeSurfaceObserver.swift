@@ -18,9 +18,11 @@
 //  AT ALL. The model's only route to "what am I looking at" was to decide, on
 //  its own, to call `read_buffer` first.
 //
-//  SO THIS IS THE FOURTH THING, AND IT IS DELIBERATELY THE NARROWEST: the
-//  declared excerpt budget's worth of text around the insertion point, and the
-//  declarations still open above it.
+//  SO THIS IS THE FOURTH THING, AND IT IS THE EYES: the declared excerpt
+//  budget's worth of text around the insertion point, the declarations still
+//  open above it, and a Bonnie-shaped live section that rides `leadContext`
+//  so the speaking lane already holds the window. Corpus keeps the identity
+//  line as `ambientLine` and no longer occupies `full`.
 //
 //  IT PUBLISHES ONLY WHEN NOTHING IS SELECTED, and that is not an
 //  optimization. A highlight is a stronger statement of intent than a caret
@@ -40,14 +42,11 @@
 //  observer possible at all — see that file for what it re-proves on every
 //  hit, which is the one real correctness risk in this feature.
 //
-//  WHAT IT CONTRIBUTES TO THE PROMPT DIRECTLY: nothing. `promptContribution`
-//  is nil and `observedPlace` is nil, on `AmbientSurfaceObserver`'s exact
-//  reasoning — the output channel is the ambient store, where budget, ranking
-//  and lead order are decided once for every lane rather than negotiated per
-//  observer. Answering a place here would also enter this observer into the
-//  focus arbiter's weighing beside `CorpusObserver`, which already speaks for
-//  the same place; two observers voting for one lane is not more evidence, it
-//  is the same evidence counted twice.
+//  WHAT IT CONTRIBUTES TO THE PROMPT: the live window. `observedPlace` is the
+//  focused registration so the arbiter can grant this observer `leadContext`;
+//  `CorpusObserver` still speaks a one-line ambient identity for the same
+//  place and must not also fill `full`, or two contributions for one lane
+//  would leave the identity line winning and the excerpt on the floor.
 //
 
 import AppKit
@@ -91,7 +90,8 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     /// key to forget without re-deriving a place it may no longer be able to
     /// resolve.
     private let publishedBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
-    private let briefBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+    private let lineBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+    private let liveBox = OSAllocatedUnfairLock<String?>(initialState: nil)
 
     public init(
         store: AmbientContextStore = .shared,
@@ -105,12 +105,28 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
     // MARK: - MaryObserver
 
-    /// Live identity from the focused registration — file, editor, and a
-    /// caret excerpt when one was just published. Distinct from
-    /// `CorpusObserver`'s project-root line.
-    public func promptContribution() -> String? {
-        briefBox.withLock { $0 }
+    /// The focused code-surface application, while a caret window is standing.
+    /// Nil when this observer has nothing to say, so it does not enter the
+    /// arbiter empty and steal a lead from a live writing place.
+    public var observedPlace: AmbientPlace? {
+        publishedBox.withLock { $0 }
     }
+
+    /// One-line identity for a turn this place did not lead.
+    public var ambientLine: String? {
+        lineBox.withLock { $0 }
+    }
+
+    /// The Bonnie-shaped live window — file, scope, excerpt, deixis.
+    public func promptContribution() -> String? {
+        liveBox.withLock { $0 }
+    }
+
+    /// A WINDOW ONTO THE BUFFER, never the whole file. The speaking lane
+    /// holds the caret excerpt; `read_buffer` remains the Skill for a deep
+    /// read. Stated here so `MaryRuntime+Focus` cannot promote this lead
+    /// into a `.document` world whose only text is a path.
+    public var holdsWholeDocument: Bool { false }
 
     public func refreshAmbientContext() async { pollOnce() }
 
@@ -189,10 +205,24 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         store.register(fact, at: now)
         publishedBox.withLock { $0 = place }
-        let file = Self.subject(of: window) ?? registration.displayName
-        briefBox.withLock {
+        let file = fact.subject ?? registration.displayName
+        lineBox.withLock {
             $0 = "In \(registration.displayName): \(file)"
         }
+        liveBox.withLock {
+            $0 = CodeCursorScope.liveWork(
+                editorName: registration.displayName,
+                fileName: file,
+                content: fact.content)
+        }
+    }
+
+    /// Test seam: the arbiter contract after a caret is standing, without
+    /// Accessibility. Production only ever writes these boxes from `pollOnce`.
+    func adoptStandingCaretForTests(place: AmbientPlace, line: String, live: String) {
+        publishedBox.withLock { $0 = place }
+        lineBox.withLock { $0 = line }
+        liveBox.withLock { $0 = live }
     }
 
     /// The fact, or nil when this editor has nothing honest to say about a
@@ -291,7 +321,8 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             return place
         }
         guard let place else { return }
-        briefBox.withLock { $0 = nil }
+        lineBox.withLock { $0 = nil }
+        liveBox.withLock { $0 = nil }
         store.forget(key: AmbientKey(place: place, slot: .cursor))
     }
 }

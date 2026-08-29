@@ -58,14 +58,15 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
     /// across installed packages.
     public var handlePrefix: String
 
-    /// Accessibility roles to descend to, in preference order. The largest
-    /// element of the first role that matches wins — an editor window
-    /// commonly holds several text-shaped elements (a jump-bar search field,
-    /// a console) and only one of them is the source buffer. Measured
-    /// against Xcode: the real source editor is a completely standard
-    /// `AXTextArea`, and a stray click can land on the jump bar's
-    /// `AXTextField` instead — disambiguated by exact role name, never by
-    /// "text-shaped" alone.
+    /// Accessibility roles to descend to, in preference order. A focused
+    /// match of the first matching role wins when `preferFocusedElement` is
+    /// true (the family default) — that is the split-editor pane the caret
+    /// is in. Otherwise the largest element of that role wins: a jump-bar
+    /// search field is a real `AXTextField`, and the source buffer is the
+    /// big one. Measured against Xcode: the real source editor is a
+    /// completely standard `AXTextArea`, and a stray click can land on the
+    /// jump bar's `AXTextField` instead — disambiguated by exact role name,
+    /// never by "text-shaped" alone.
     public var editorRoles: [PluginAccessibilityRole]
 
     /// How a document in this application earns a stable name across polls.
@@ -78,18 +79,27 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
     /// not declare a corpus can still say how its window names the file.
     public var workspaceIdentity: PluginWorkspaceIdentitySchema
 
+    /// When true (the family default), a declared-role element that is
+    /// focused wins over the largest matching element. A split editor's
+    /// focused pane is often the smaller one; largest-wins would keep
+    /// answering out of the other side. False restores largest-wins only,
+    /// for an application whose focused field is not the source buffer.
+    public var preferFocusedElement: Bool
+
     public init(
         handlePrefix: String,
         editorRoles: [PluginAccessibilityRole] = [.textArea],
         documentKey: PluginProseDocumentKey = .documentPathThenWindow,
         budgets: PluginProseBudgetSchema = .init(),
-        workspaceIdentity: PluginWorkspaceIdentitySchema = .default
+        workspaceIdentity: PluginWorkspaceIdentitySchema = .default,
+        preferFocusedElement: Bool = true
     ) {
         self.handlePrefix = handlePrefix
         self.editorRoles = editorRoles
         self.documentKey = documentKey
         self.budgets = budgets
         self.workspaceIdentity = workspaceIdentity
+        self.preferFocusedElement = preferFocusedElement
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -98,6 +108,7 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
         case documentKey
         case budgets
         case workspaceIdentity
+        case preferFocusedElement
     }
 
     public init(from decoder: Decoder) throws {
@@ -112,6 +123,8 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
             PluginProseBudgetSchema.self, forKey: .budgets) ?? .init()
         workspaceIdentity = try values.decodeIfPresent(
             PluginWorkspaceIdentitySchema.self, forKey: .workspaceIdentity) ?? .default
+        preferFocusedElement = try values.decodeIfPresent(
+            Bool.self, forKey: .preferFocusedElement) ?? true
     }
 
     /// Hand-written so the field order stays stable across the codec, for
@@ -125,6 +138,9 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
         try container.encode(budgets, forKey: .budgets)
         if workspaceIdentity != .default {
             try container.encode(workspaceIdentity, forKey: .workspaceIdentity)
+        }
+        if !preferFocusedElement {
+            try container.encode(preferFocusedElement, forKey: .preferFocusedElement)
         }
     }
 }

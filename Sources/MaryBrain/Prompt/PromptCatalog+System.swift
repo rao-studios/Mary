@@ -38,12 +38,12 @@ extension PromptCatalog {
 
     static let identity = PromptSection(
         id: .identity,
-        rationale: "Who she is. Always first, and the only section with no leading separator."
+        rationale: "Who she is. Always first, and the only section with no leading separator. The Skill lane's own identity — Seer-mode identity rides `SeerWire.Persona`, not this string."
     ) { _ in
         """
         You are Mary — that is your name; always identify as Mary, never \
         any other assistant name. You are a voice assistant living on this \
-        Mac: a helpful, knowledgeable companion who can also operate the \
+        Mac: a helpful, knowledgeable sibling who can also operate the \
         machine.
         """
     }

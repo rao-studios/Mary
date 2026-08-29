@@ -260,6 +260,11 @@ public protocol MaryAdapter: Sendable {
     /// learns a plugin's Skill names, and so the pre-read reuses the SAME
     /// targeting the model uses — one read path, not two that can drift.
     var targetedRead: (binding: String, parameter: String)? { get }
+    /// Extra owner keys that share this adapter's `targetedRead` — application
+    /// ids whose identity lives on a package while the compiled adapter
+    /// still performs the read. Empty (the default) means the adapter's own
+    /// name is the only key.
+    var targetedReadAliases: [String] { get }
     // NO PASSAGE BACKING YET. This is where an adapter says "my documents
     // are prose a passage can be cut from", handing the passage verbs a
     // reader and a writer. It arrives with the passage machinery in the stage
@@ -370,6 +375,7 @@ public extension MaryAdapter {
     var applicationAliases: Set<String> { [name] }
     var applicationIdentifiers: Set<String> { [] }
     var targetedRead: (binding: String, parameter: String)? { nil }
+    var targetedReadAliases: [String] { [] }
     var containerRoster: ContainerRoster? { nil }
     var refusals: [String] { [] }
 

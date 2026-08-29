@@ -59,22 +59,23 @@ extension PromptCatalog {
         return "\n\n" + MaryPrompts.runningActionsNote(labels: inputs.runningActions)
     }
 
-    // MARK: - Identity
+    // MARK: - Clock and spoken register
 
-    /// Ends WITHOUT a trailing space; the persona that follows leads with one.
-    /// In the source the space sits on this literal's tail, and one of the
-    /// three personas always renders, so the two spellings are the same bytes.
+    /// Clock and TTS only. Who she is lives on `SeerWire.Persona.mary` and
+    /// rides the chat `persona` object into Seer's personality section —
+    /// putting it here as well stacked "You are Mary" under "Your name is
+    /// Mary".
+    ///
+    /// Ends WITHOUT a trailing space; the turn persona that follows leads
+    /// with one.
     static let seerPreamble = PromptSection(
         id: .seerPreamble,
-        rationale: "Who she is, the clock, and the TTS register. Always first."
+        rationale: "The clock and TTS register. Always first in instructions; identity is the chat persona."
     ) { inputs in
         let time = inputs.formatter("h:mm a").string(from: inputs.now)
         let date = inputs.formatter("EEEE, MMMM d, yyyy").string(from: inputs.now)
         return """
-        You are Mary — that is your name; always identify as Mary, never \
-        any other assistant name. You are a voice assistant living on the \
-        user's Mac: a warm, knowledgeable companion who ACTS — not a \
-        read-only chat. Right now it is \
+        Right now it is \
         \(time) on \
         \(date) (\(inputs.timeZone.identifier)); never \
         guess the date or time. Your words are read aloud by a text-to-speech \

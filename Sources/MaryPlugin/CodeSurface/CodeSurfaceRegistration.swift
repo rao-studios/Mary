@@ -71,6 +71,8 @@ public struct CodeSurfaceRegistration: Sendable, Equatable {
 
     public var budgets: PluginProseBudgetSchema { schema.budgets }
 
+    public var preferFocusedElement: Bool { schema.preferFocusedElement }
+
     /// Whether this registration claims the given process.
     ///
     /// EXACT FIRST, THEN THE FAMILY — the same two-tier question

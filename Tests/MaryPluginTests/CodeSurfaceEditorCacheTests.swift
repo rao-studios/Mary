@@ -62,12 +62,14 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
         pid: pid_t,
         window: AXUIElement,
         editor: AXUIElement?,
-        role: String? = "AXTextArea"
+        role: String? = "AXTextArea",
+        focused: Bool = true
     ) -> AXUIElement? {
         CodeSurfaceEditorCache.editor(
             pid: pid, window: window, registration: registration,
             locate: { _, _ in editor },
-            role: { _ in role })
+            role: { _ in role },
+            focused: { _ in focused })
     }
 
     // MARK: - The point of the whole file
@@ -123,7 +125,8 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
         _ = CodeSurfaceEditorCache.editor(
             pid: 7, window: window, registration: registration,
             locate: { _, _ in self.element(14) },
-            role: { _ in nil })
+            role: { _ in nil },
+            focused: { _ in true })
         XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 2)
     }
 
@@ -163,6 +166,7 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
                 focusedWindow: { _ in window },
                 locate: { _, _ in editor },
                 role: { _ in "AXTextArea" },
+                focused: { _ in true },
                 locateAll: { _, _ in XCTFail("must not fall back"); return nil })
             XCTAssertTrue(CFEqual(surface?.editor, editor))
         }
@@ -181,6 +185,7 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
             focusedWindow: { _ in self.element(11) },
             locate: { _, _ in nil },
             role: { _ in "AXTextArea" },
+            focused: { _ in true },
             locateAll: { _, _ in fallback })
         XCTAssertEqual(surface?.documentKey, "file:///tmp/x.swift")
     }
@@ -195,6 +200,7 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
             focusedWindow: { _ in nil },
             locate: { _, _ in XCTFail("must not walk one window"); return nil },
             role: { _ in nil },
+            focused: { _ in true },
             locateAll: { _, _ in walked = true; return nil })
         XCTAssertTrue(walked)
     }
@@ -210,5 +216,57 @@ final class CodeSurfaceEditorCacheTests: XCTestCase {
 
         _ = lookup(pid: 7, window: window, editor: editor)
         XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 2)
+    }
+
+    /// A SPLIT PANE SWAP: same window, same role, the caret moved to the
+    /// other text area. The cached element is no longer focused, so the next
+    /// poll must walk rather than keep reading the idle sibling.
+    func testAnUnfocusedCachedEditorWalksAgainWhenFocusIsPreferred() {
+        let window = element(11)
+        let first = element(12)
+        XCTAssertNotNil(lookup(pid: 7, window: window, editor: first, focused: true))
+        XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 1)
+
+        let second = element(13)
+        XCTAssertTrue(CFEqual(
+            lookup(pid: 7, window: window, editor: second, focused: false),
+            second))
+        XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 2)
+    }
+
+    /// LARGEST-WINS APPLICATIONS keep the cached editor even when it is
+    /// not focused — the focused field there is often a search box, not
+    /// the buffer.
+    func testAnUnfocusedCachedEditorStaysWhenFocusIsNotPreferred() {
+        let unfocused = CodeSurfaceRegistration(
+            applicationID: "editor",
+            bundleIdentifiers: ["com.example.editor"],
+            displayName: "Editor",
+            schema: PluginCodeSurfaceSchema(
+                handlePrefix: "C",
+                editorRoles: [.textArea],
+                documentKey: .documentPathThenWindow,
+                budgets: PluginProseBudgetSchema(
+                    wholeDocumentCharacters: 20_000,
+                    regionCharacters: 4_000,
+                    ambientExcerptCharacters: 500),
+                preferFocusedElement: false))
+        let window = element(11)
+        let editor = element(12)
+        XCTAssertNotNil(CodeSurfaceEditorCache.editor(
+            pid: 7, window: window, registration: unfocused,
+            locate: { _, _ in editor },
+            role: { _ in "AXTextArea" },
+            focused: { _ in false }))
+        XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 1)
+
+        XCTAssertTrue(CFEqual(
+            CodeSurfaceEditorCache.editor(
+                pid: 7, window: window, registration: unfocused,
+                locate: { _, _ in XCTFail("must not walk"); return nil },
+                role: { _ in "AXTextArea" },
+                focused: { _ in false }),
+            editor))
+        XCTAssertEqual(CodeSurfaceEditorCache.walkCount, 1)
     }
 }

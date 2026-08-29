@@ -57,13 +57,9 @@ final class CodeSurfaceObserverTests: XCTestCase {
             "a vacuous pass — the roster must really provide workspace focus")
     }
 
-    /// IT SPEAKS FOR NO PLACE AND CONTRIBUTES NO PROMPT TEXT. Both are
-    /// deliberate and both are load-bearing: `WorkspaceFocusArbiter` weighs
-    /// the observers that answer a place, and `CorpusObserver` already speaks
-    /// for the same one — two observers voting for a lane is the same
-    /// evidence counted twice, not more of it. The prompt text goes through
-    /// the ambient store instead, where the budget is decided once.
-    func testItIsInfrastructureRatherThanAVoiceInTheArbiter() {
+    /// IT SPEAKS FOR A PLACE ONLY AFTER A CARET IS STANDING. A fresh
+    /// observer must not enter the arbiter empty and steal a writing lead.
+    func testAFreshObserverHasNothingToSayToTheArbiter() {
         let observer = CodeSurfaceObserver()
         XCTAssertNil(observer.observedPlace)
         XCTAssertNil(observer.ambientLine)
@@ -80,5 +76,26 @@ final class CodeSurfaceObserverTests: XCTestCase {
             store: store, support: CodeSurfaceSupport(), corpus: CorpusSupport())
         observer.pollOnce()
         XCTAssertTrue(store.facts().filter { $0.slot == .cursor }.isEmpty)
+    }
+
+    /// THE SPEAKING LANE GETS THE WINDOW, not a path. After a caret is
+    /// standing this observer votes for the application and contributes the
+    /// Bonnie-shaped excerpt — the inversion that used to leave
+    /// `CorpusObserver`'s identity line as `leadContext`.
+    func testAStandingCaretSpeaksTheLiveWindowToTheArbiter() {
+        let observer = CodeSurfaceObserver()
+        let live = CodeCursorScope.liveWork(
+            editorName: "Xcode",
+            fileName: "VoicePipeline+Turn.swift",
+            content: CodeCursorScope.content(
+                .init(line: 112, chain: ["submitTurn"], excerpt: "for try await event in events {")))
+        observer.adoptStandingCaretForTests(
+            place: .application("xcode"),
+            line: "In Xcode: VoicePipeline+Turn.swift",
+            live: live)
+        XCTAssertEqual(observer.observedPlace, .application("xcode"))
+        XCTAssertEqual(observer.ambientLine, "In Xcode: VoicePipeline+Turn.swift")
+        XCTAssertEqual(observer.promptContribution(), live)
+        XCTAssertFalse(observer.holdsWholeDocument)
     }
 }

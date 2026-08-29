@@ -138,6 +138,8 @@ final class SeerRealtimeClientTests: XCTestCase {
         let request = try XCTUnwrap(object["request"] as? [String: Any])
         XCTAssertNil(request["model"])   // empty chatModel omits the field
         XCTAssertEqual(request["stream"] as? Bool, true)
+        let persona = try XCTUnwrap(request["persona"] as? [String: Any])
+        XCTAssertEqual(persona["name"] as? String, "Mary")
         let seer = try XCTUnwrap(request["seer"] as? [String: Any])
         XCTAssertEqual(seer["personal_totem_id"] as? String, "totem-1")
         XCTAssertEqual(seer["owner_id"] as? String, "owner-abc")

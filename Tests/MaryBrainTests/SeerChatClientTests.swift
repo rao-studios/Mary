@@ -308,6 +308,11 @@ final class SeerChatClientTests: XCTestCase {
         // Identifies Mary so the server applies SUPPORT framing to retrieved
         // context; rides the realtime turn.start too (same ChatRequest).
         XCTAssertEqual(json["client"] as? String, "mary")
+        let persona = try XCTUnwrap(json["persona"] as? [String: Any])
+        XCTAssertEqual(persona["name"] as? String, "Mary")
+        XCTAssertEqual(
+            persona["voice"] as? String,
+            SeerWire.Persona.mary.voice)
         let seer = try XCTUnwrap(json["seer"] as? [String: Any])
         XCTAssertEqual(seer["owner_id"] as? String, "owner-abc")
         XCTAssertEqual(seer["scope"] as? String, "personal")

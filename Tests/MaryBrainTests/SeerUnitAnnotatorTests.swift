@@ -3,22 +3,17 @@
 //  MaryBrainTests
 //
 //  THE CONTRACT MUST RIDE THE REQUEST, and the reason this suite exists is
-//  that for a while it did not.
+//  that for a while it did not — and then it rode the WRONG route.
 //
-//  `SeerUnitAnnotator` streamed with `instructions: nil`, so
-//  `InferenceUnitAnnotator.systemPrompt` — the JSON shape `parse` enforces on
-//  the way out — never reached the server. Seer's chat is a persona lane with
-//  retrieval, not a completion endpoint: handed a bare list of declarations
-//  and no instruction, it answered in prose about the file, `parse` returned
-//  nil, and every unit in hosted mode landed in the ledger as `.failed`. The
-//  Corpus pane read "structure only — the summariser returned nothing" for the
-//  whole project, in the mode most installs actually run.
+//  `SeerUnitAnnotator` streamed through `/v1/chat/completions` with
+//  `instructions: nil`, so `InferenceUnitAnnotator.systemPrompt` never
+//  reached the server. Seer's chat is a persona lane with retrieval: it
+//  answered in prose about the file, `parse` returned nil, and every unit
+//  in hosted mode landed in the ledger as `.failed`.
 //
-//  Nothing caught it. The parser was tested against strings, the annotator
-//  against nothing, and the two halves of the round — what is SENT and what is
-//  ACCEPTED — had no test that held them to each other. That is the gap these
-//  cases close: the first asserts the bytes, the rest assert the outcomes the
-//  ledger distinguishes.
+//  The complete route is the fix: `/v1/complete`, the JSON contract in
+//  `instructions`, no `seer` RAG object. These cases still hold the two
+//  halves of the round — what is SENT and what is ACCEPTED — to each other.
 //
 
 import Foundation
@@ -33,7 +28,7 @@ import Testing
     /// Records what it was ASKED, then answers a scripted body. The recording
     /// is the point: the defect was invisible in the reply and plain in the
     /// request.
-    final class RecordingSeer: SeerChatProviding, @unchecked Sendable {
+    final class RecordingComplete: SeerCompleteProviding, @unchecked Sendable {
         private let lock = NSLock()
         private let reply: String
         private let failure: Error?
@@ -53,23 +48,17 @@ import Testing
         }
 
         func isReady() async -> Bool { ready }
-        func ownerID() async -> String? { "owner-test" }
 
-        func stream(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+        func complete(
+            instructions: String?,
+            messages: [SeerChatMessage]
+        ) async throws -> String {
             lock.lock()
             instructionsSeen.append(instructions)
             messagesSeen.append(messages)
             lock.unlock()
-            return AsyncThrowingStream { continuation in
-                if let failure {
-                    continuation.finish(throwing: failure)
-                    return
-                }
-                continuation.yield(.token(reply))
-                continuation.finish()
-            }
+            if let failure { throw failure }
+            return reply
         }
     }
 
@@ -94,8 +83,8 @@ import Testing
 
     @Test("the JSON contract is sent as the request's instructions")
     func sendsSystemPromptAsInstructions() async {
-        let seer = RecordingSeer(reply: Self.wellFormed)
-        _ = await SeerUnitAnnotator(chat: seer).annotate(Self.request())
+        let seer = RecordingComplete(reply: Self.wellFormed)
+        _ = await SeerUnitAnnotator(complete: seer).annotate(Self.request())
 
         let (instructions, messages) = seer.snapshot()
         #expect(instructions.count == 1)
@@ -113,9 +102,6 @@ import Testing
 
     @Test("the instructions actually name the shape the parser demands")
     func systemPromptDescribesTheParsedShape() {
-        // Belt and braces on the pin above: a future edit that renames the
-        // keys in one half and not the other would leave the `#expect` on
-        // equality green and the round broken again.
         let prompt = InferenceUnitAnnotator.systemPrompt
         #expect(prompt.contains("precis"))
         #expect(prompt.contains("labels"))
@@ -126,49 +112,44 @@ import Testing
 
     @Test("a well-formed reply becomes an annotation")
     func parsesWellFormedReply() async {
-        let annotation = await SeerUnitAnnotator(chat: RecordingSeer(reply: Self.wellFormed))
-            .annotate(Self.request())
+        let annotation = await SeerUnitAnnotator(
+            complete: RecordingComplete(reply: Self.wellFormed)
+        ).annotate(Self.request())
         #expect(annotation?.precis == "coordinates delayed, deduplicated indexing of units")
         #expect(annotation?.labels == ["debounce-throttling", "manifest-tracking"])
     }
 
-    @Test("a prose reply — what the server sent before the fix — yields nothing")
+    @Test("a prose reply — what the chat lane sent before the fix — yields nothing")
     func proseReplyYieldsNil() async {
-        // Verbatim shape of what the live server returned to the instruction-
-        // less request. Kept as a case rather than a comment: this is the
-        // answer the annotator must still refuse, contract or no contract.
         let prose = """
             In your `UnitIndex.swift`, the `AmbientUnitIndexingCoordinator` handles \
             delayed indexing until user movement stops, annotates per file revision, \
             and publishes the results.
             """
-        let annotation = await SeerUnitAnnotator(chat: RecordingSeer(reply: prose))
-            .annotate(Self.request())
+        let annotation = await SeerUnitAnnotator(
+            complete: RecordingComplete(reply: prose)
+        ).annotate(Self.request())
         #expect(annotation == nil)
     }
 
-    @Test("a signed-out session never opens a stream")
+    @Test("a signed-out session never opens a request")
     func notReadyDeclinesWithoutAsking() async {
-        let seer = RecordingSeer(reply: Self.wellFormed, ready: false)
-        let annotation = await SeerUnitAnnotator(chat: seer).annotate(Self.request())
+        let seer = RecordingComplete(reply: Self.wellFormed, ready: false)
+        let annotation = await SeerUnitAnnotator(complete: seer).annotate(Self.request())
         #expect(annotation == nil)
-        // NOT MERELY NIL: the point of `isReady` is that no request is made.
         #expect(seer.snapshot().instructions.isEmpty)
     }
 
-    @Test("a stream failure yields nothing rather than throwing")
-    func streamFailureYieldsNil() async {
-        let seer = RecordingSeer(failure: SeerChatError.notAuthenticated)
-        let annotation = await SeerUnitAnnotator(chat: seer).annotate(Self.request())
+    @Test("a complete failure yields nothing rather than throwing")
+    func completeFailureYieldsNil() async {
+        let seer = RecordingComplete(failure: SeerCompleteError.notAuthenticated)
+        let annotation = await SeerUnitAnnotator(complete: seer).annotate(Self.request())
         #expect(annotation == nil)
     }
 
     @Test("it never refuses by policy — an unreachable server is a failure, not a refusal")
     func neverRefusesByPolicy() {
-        // The distinction the ledger renders: `.refusedExclusiveEngine` is a
-        // deliberate decline the pane explains, `.failed` is a summariser that
-        // returned nothing. This annotator can only ever produce the latter.
-        #expect(SeerUnitAnnotator(chat: RecordingSeer()).refusesToAnnotate == false)
+        #expect(SeerUnitAnnotator(complete: RecordingComplete()).refusesToAnnotate == false)
     }
 
     // MARK: - Through the coordinator
@@ -178,7 +159,7 @@ import Testing
         let ledger = UnitIndexLedger()
         let indexer = AmbientUnitIndexingCoordinator(
             idleFor: 0.1,
-            annotator: SeerUnitAnnotator(chat: RecordingSeer(reply: Self.wellFormed)),
+            annotator: SeerUnitAnnotator(complete: RecordingComplete(reply: Self.wellFormed)),
             ledger: ledger) { _, _ in }
         await indexer.ingest(Self.unit())
         await indexer.flush()
@@ -193,14 +174,12 @@ import Testing
         let ledger = UnitIndexLedger()
         let indexer = AmbientUnitIndexingCoordinator(
             idleFor: 0.1,
-            annotator: SeerUnitAnnotator(chat: RecordingSeer(reply: "a paragraph, not JSON")),
+            annotator: SeerUnitAnnotator(
+                complete: RecordingComplete(reply: "a paragraph, not JSON")),
             ledger: ledger) { _, _ in }
         await indexer.ingest(Self.unit())
         await indexer.flush()
 
-        // THE EXACT SYMPTOM THAT WAS REPORTED, pinned so its cause stays
-        // legible: `.failed` is what the pane turns into "the summariser
-        // returned nothing".
         #expect(ledger.allUnits().first?.annotation == .failed)
     }
 

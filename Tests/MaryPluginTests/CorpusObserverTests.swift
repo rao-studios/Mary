@@ -54,6 +54,12 @@ import Testing
         #expect(CorpusObserver.activeName(inTitle: "Mary — ") == nil)
     }
 
+    /// IDENTITY ONLY. The live buffer window belongs to `CodeSurfaceObserver`;
+    /// this line used to occupy `leadContext` and leave the voice with a path.
+    @Test func promptContributionIsNeverTheIdentityLine() {
+        #expect(CorpusObserver().promptContribution() == nil)
+    }
+
     // MARK: - Name to path
 
     @Test func anUnambiguousNameResolves() throws {

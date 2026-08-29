@@ -28,6 +28,13 @@ extension CodeSurfaceAdapter {
         ("read_symbol", "symbol")
     }
 
+    /// Each package that declares a `codeSurface` is a place whose lead owner
+    /// is the application id (`"xcode"`), not `"code-surface"`. Fetch-first
+    /// and `wouldServeLook` look the targeted-read table up by that owner.
+    public var targetedReadAliases: [String] {
+        support.all().map(\.applicationID)
+    }
+
     // MARK: - Writes onto disk
 
     func writeLiveFile(

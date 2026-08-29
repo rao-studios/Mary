@@ -112,6 +112,44 @@ final class CodeSurfaceLaneTests: XCTestCase {
         XCTAssertEqual(Self.xcodeLikeRegistration().editorRoleNames, ["AXTextArea"])
     }
 
+    // MARK: - Focused pane vs largest-wins
+
+    /// TWO TEXT AREAS IN ONE WINDOW: the smaller one is focused (a split
+    /// editor's right pane). Focused-of-role must win, or Mary keeps reading
+    /// the idle sibling the way largest-wins did.
+    func testASmallerFocusedTextAreaWinsOverALargerSibling() {
+        let candidates = [
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 80_000, focused: false),
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 12_000, focused: true),
+        ]
+        XCTAssertEqual(
+            CodeSurfaceAX.pickEditor(
+                from: candidates, preferredRoles: ["AXTextArea"], preferFocused: true),
+            1)
+    }
+
+    func testLargestWinsWhenFocusIsNotPreferred() {
+        let candidates = [
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 80_000, focused: false),
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 12_000, focused: true),
+        ]
+        XCTAssertEqual(
+            CodeSurfaceAX.pickEditor(
+                from: candidates, preferredRoles: ["AXTextArea"], preferFocused: false),
+            0)
+    }
+
+    func testLargestWinsWhenNothingIsFocused() {
+        let candidates = [
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 12_000, focused: false),
+            CodeSurfaceAX.EditorCandidate(role: "AXTextArea", area: 80_000, focused: false),
+        ]
+        XCTAssertEqual(
+            CodeSurfaceAX.pickEditor(
+                from: candidates, preferredRoles: ["AXTextArea"], preferFocused: true),
+            1)
+    }
+
     /// A REGISTRATION SHAPED LIKE `xcode.mary`'s OWN DECLARATION, built in
     /// Swift rather than read from the `.mary` file so this test needs
     /// nothing on disk — the same reason `PackageFixtures` builds its own

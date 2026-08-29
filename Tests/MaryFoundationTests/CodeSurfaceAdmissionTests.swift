@@ -129,6 +129,32 @@ import Testing
         #expect(try encoder.encode(decoded) == data)
     }
 
+    /// THE FAMILY DEFAULT IS OMITTED, so shipping `xcode.mary` without the
+    /// key keeps the same digest it had before the field existed.
+    @Test func aDefaultFocusPreferenceIsOmittedFromTheCodec() throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(PackageFixtures.codeSurface)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect(object["preferFocusedElement"] == nil)
+        #expect(PackageFixtures.codeSurface.preferFocusedElement == true)
+    }
+
+    /// AN APPLICATION WHOSE FOCUSED FIELD IS NOT THE BUFFER can opt out,
+    /// and that opt-out must survive the codec or the walk silently
+    /// reverts to focused-wins.
+    @Test func anOptOutOfFocusedWalkRoundTrips() throws {
+        var surface = PackageFixtures.codeSurface
+        surface.preferFocusedElement = false
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(surface)
+        let decoded = try JSONDecoder().decode(PluginCodeSurfaceSchema.self, from: data)
+        #expect(decoded.preferFocusedElement == false)
+        let object = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect(object["preferFocusedElement"] as? Bool == false)
+    }
+
     /// UNKNOWN KEYS ARE REFUSED, like everywhere else in a `.mary` package —
     /// in particular, `grammar` and `chords`, the two fields
     /// `PluginProseSurfaceSchema` carries that this schema deliberately does
