@@ -208,6 +208,7 @@ extension MaryRuntime {
             return MediaSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
                 schema: surface)
         }
@@ -241,6 +242,7 @@ extension MaryRuntime {
             return CodeSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
                 schema: surface)
         }

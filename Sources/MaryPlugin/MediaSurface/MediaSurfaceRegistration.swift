@@ -34,20 +34,46 @@ public struct MediaSurfaceRegistration: Sendable, Equatable {
     /// The declared block, verbatim.
     public let schema: PluginMediaSurfaceSchema
 
+    /// The process FAMILY, when the package declared one. Same field,
+    /// same reason as `ApplicationRegistration.bundleIdentifierPrefix`:
+    /// `bundleIdentifiers` is exact and stays the authority for launching,
+    /// but membership — "is the running player one of this package's?" — is
+    /// a prefix question for any vendor who ships `…player3` and then
+    /// `…player4`. Absent means the exact identifiers are the whole answer.
+    public let bundleIdentifierPrefix: String?
+
     public init(
         applicationID: String,
         bundleIdentifiers: [String],
+        bundleIdentifierPrefix: String? = nil,
         displayName: String,
         schema: PluginMediaSurfaceSchema
     ) {
         self.applicationID = applicationID
         self.bundleIdentifiers = bundleIdentifiers
+        self.bundleIdentifierPrefix = bundleIdentifierPrefix
         self.displayName = displayName
         self.schema = schema
     }
 
+    /// EXACT FIRST, THEN THE FAMILY — the same two-tier question
+    /// `ApplicationRegistration.owns(bundleID:)` answers for ambient routing
+    /// and `TypingSurface.isRunning` answers for the taught-writing-surface
+    /// rung (`[Corpus P]`), asked here through the identical boundary
+    /// predicate, `ApplicationRegistration.isInFamily`. This registration
+    /// used to compare only the exact declared id — the same latent shape
+    /// `[Corpus P]` fixed elsewhere and noted, but deliberately left
+    /// unchanged, here (no currently-taught media application declares a
+    /// versioned bundle id, so nothing live broke) — closed now rather than
+    /// waiting for a fourth incident.
     public func owns(bundleID: String) -> Bool {
-        bundleIdentifiers.contains { $0.caseInsensitiveCompare(bundleID) == .orderedSame }
+        let lowered = bundleID.lowercased()
+        if bundleIdentifiers.contains(where: { $0.lowercased() == lowered }) {
+            return true
+        }
+        guard let prefix = bundleIdentifierPrefix?.lowercased(), !prefix.isEmpty
+        else { return false }
+        return ApplicationRegistration.isInFamily(lowered, prefix: prefix)
     }
 
     /// What the user calls one item here — "track", "episode".
