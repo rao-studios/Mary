@@ -306,6 +306,12 @@ extension MaryBrain {
         // mutates `activeRoutines` — the lane spawn is a detached Task.
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
+            // THE ROUTER'S OWN VERDICT, carried rather than re-derived. Lane A
+            // has never been told what SHAPE the turn is, only what it holds —
+            // so a greeting and an unfulfilled action request arrived here
+            // indistinguishable, and both got the action persona. Nil (a pass
+            // with no route) stays false: unknown is not conversation.
+            conversational: routeIntent == .converse,
             runningActionLabels: activeRoutines.values.map(\.label),
             lookUnderway: lookUnderway,
             exchangeID: originUserTurnID))

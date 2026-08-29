@@ -270,6 +270,14 @@ public struct SeerPass: Sendable {
     public var readPassages: [String]
     /// This pass exists only to speak `readPassages` back — the read persona.
     public var readReport: Bool
+    /// THE TURN ASKED FOR NOTHING — `AmbientIntent.converse`. Selects the
+    /// converse persona, which is third in the ladder: a read or a finished
+    /// action still outranks it, so this being true on a pass that also
+    /// carries one of those changes nothing.
+    ///
+    /// FALSE ON EVERY DETACHED FOLLOW-UP, by default and correctly: those
+    /// passes exist to report work that ran, which is the opposite claim.
+    public var conversational: Bool
     /// The world to resolve against. Nil = resolve LIVE, which is what every
     /// in-turn pass wants; callers that outlive their turn (a detached
     /// routine's follow-up) pass the world they were spawned in.
@@ -299,6 +307,7 @@ public struct SeerPass: Sendable {
         groundedResults: String? = nil,
         readPassages: [String] = [],
         readReport: Bool = false,
+        conversational: Bool = false,
         assertedFocus: WorkspaceFocus? = nil,
         runningActionLabels: [String] = [],
         lookUnderway: Bool = false,
@@ -307,6 +316,7 @@ public struct SeerPass: Sendable {
         self.groundedResults = groundedResults
         self.readPassages = readPassages
         self.readReport = readReport
+        self.conversational = conversational
         self.assertedFocus = assertedFocus
         self.runningActionLabels = runningActionLabels
         self.lookUnderway = lookUnderway

@@ -337,6 +337,7 @@ extension MaryRuntime {
                 heldMentions: held.mentions,
                 readPassages: pass.readPassages,
                 readReport: pass.readReport,
+                conversational: pass.conversational,
                 runningActions: pass.runningActionLabels,
                 lookUnderway: pass.lookUnderway)
             let assembled = promptWithTails(

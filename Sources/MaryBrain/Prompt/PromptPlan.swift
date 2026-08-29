@@ -140,7 +140,7 @@ public extension PromptPlan {
 
     /// THE VOICE LANE, byte for byte.
     ///
-    /// The three personas are listed in the source's own `if / else if / else`
+    /// The four personas are listed in the source's own `if / else if / else`
     /// order, which is how their precedence is expressed: they share the
     /// `seerPersona` exclusive group, and the renderer gives the group to the
     /// first member that has something to say. `readReport` therefore wins
@@ -149,11 +149,18 @@ public extension PromptPlan {
     /// load-bearing, because the grounded persona says "never repeat the
     /// content that was written", which is literally an instruction not to
     /// read a passage aloud.
+    ///
+    /// `seerPersonaConverse` is third for the same reason, and its position IS
+    /// half its gate: it asks only "was this turn conversation?", and the two
+    /// personas ahead of it supply the rest of the condition by claiming the
+    /// group first. A turn that both reads something and chats still reports
+    /// the read.
     static let voice = PromptPlan(
         name: "voice",
         order: [
             .seerPreamble,
-            .seerPersonaRead, .seerPersonaGrounded, .seerPersonaInTurn,
+            .seerPersonaRead, .seerPersonaGrounded, .seerPersonaConverse,
+            .seerPersonaInTurn,
             .seerCapability, .seerRetrieval,
             .seerSightPending,
             // BEFORE the live work, not after it. The turn loop used to append

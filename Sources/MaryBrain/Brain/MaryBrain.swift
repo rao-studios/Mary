@@ -100,6 +100,7 @@ public actor MaryBrain: LanguageResponder {
             groundedResults: pass.groundedResults,
             readPassages: pass.readPassages,
             readReport: pass.readReport,
+            conversational: pass.conversational,
             // The running-actions note is a SECTION now rather than a string
             // the turn loop appends afterwards, so every provider — including
             // this default, which is what the tests run against — has to pass
