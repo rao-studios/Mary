@@ -78,6 +78,20 @@ enum CodeSurfaceProbe {
         check(registrations.contains { $0.applicationID == "xcode" },
               "xcode.mary declares a codeSurface",
               registrations.map(\.applicationID).joined(separator: ", "))
+
+        // list_declarations READS ITS PATTERNS FROM `CorpusSupport`, NOT
+        // `CodeSurfaceSupport` — see `CodeSurfaceAdapter.listDeclarations`'s
+        // own header. The app's real install path (`MaryRuntime
+        // +BrainInstall.installBrainConfiguration`) reconciles both
+        // registries from the same snapshot; this probe drove only the
+        // `codeSurface` half, so `list_declarations` dispatched real but
+        // always answered "no declared outline patterns" here — not because
+        // the Skill or the shipped `xcode.mary` package were broken, but
+        // because this probe process's `CorpusSupport.shared` was never
+        // told the package existed. Mirrored from `main.swift`'s own
+        // `CorpusSupport.shared.reconcile` call, which this early-exit path
+        // (line 44 below) never reaches.
+        CorpusSupport.shared.reconcile(MaryRuntime.corpusRegistrations(from: load.snapshot))
         let profiles = adapters.map(\.applicationProfile)
             + load.snapshot.plugins.applicationProfiles
         AmbientApplicationBridge.install(profiles: profiles)
