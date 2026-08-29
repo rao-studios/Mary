@@ -215,6 +215,32 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public static let digestFreshWindow: TimeInterval = digestRefreshFloor * 3   // 9 min
     public static let digestRetention: TimeInterval = digestRefreshFloor * 5     // 15 min
 
+    /// A CARET'S OWN WINDOWS — the shortest pair in the store, and separated
+    /// from the defaults for the opposite reason a digest's are.
+    ///
+    /// A digest needed LONGER windows because "3 events today" does not go
+    /// stale in a minute. A cursor needs SHORTER ones because it does. The
+    /// standing doctrine is that a stale fact is held knowledge while a stale
+    /// screen is a confidently wrong screen, and a caret sits closer to the
+    /// screen end of that than anything else the store holds: the user moves
+    /// it several times a minute and never announces it.
+    ///
+    /// - FRESHNESS. Twice the observer's own poll interval plus slack, so a
+    ///   reading that survives one missed tick still reads as current and
+    ///   anything older starts saying "so it may have moved on since" — the
+    ///   honest degradation, in the fact's own words, rather than a silent
+    ///   confident claim about a cursor that has since moved.
+    /// - RETENTION. One minute, against the perceived default's five.
+    ///   `isPerceived` is false for `.cursor` (see `AmbientSlot.cursor`), and
+    ///   the `!isPerceived` default is the READ retention — twenty minutes,
+    ///   for a passage the user actually asked for. Carrying an unasked-for
+    ///   caret position that long is exactly the hazard above. A minute is
+    ///   long enough to survive an alt-tab to Slack and back, and short
+    ///   enough that a cursor left behind stops being mentioned at all.
+    public static let cursorRefreshFloor: TimeInterval = 5
+    public static let cursorFreshWindow: TimeInterval = cursorRefreshFloor * 2 + 2  // 12 s
+    public static let cursorRetention: TimeInterval = 60
+
     /// Perceived slots are superseded every poll, so their retention only has
     /// to outlive a watcher going quiet. A READ is the continuity headline —
     /// it has to survive several turns of conversation, because "ask for the
@@ -223,6 +249,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public static func defaultRetention(slot: AmbientSlot) -> TimeInterval {
         switch slot {
         case .digest: return digestRetention
+        case .cursor: return cursorRetention
         case .namedRead: return 1200
         default: return 300
         }
@@ -237,6 +264,10 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
         provenance: AmbientProvenance, slot: AmbientSlot
     ) -> TimeInterval {
         if case .digest = slot { return digestFreshWindow }
+        // A caret is `.liveAX` like any other Accessibility read, and the
+        // provenance window (5 s) is keyed to a 2.5 s document cadence this
+        // observer does not run at. Its own window follows its own poll.
+        if case .cursor = slot { return cursorFreshWindow }
         return defaultFreshWindow(provenance: provenance)
     }
 

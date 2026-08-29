@@ -23,6 +23,12 @@
 //                                                ← asserts the live buffer contains this exact
 //                                                  string, for proving the unsaved-edit-tracking
 //                                                  property against a manually typed marker
+//    mary-corpus-probe --dispatch-code-surface --caret-at 4200 [--select 120]
+//                                                ← sets the editor's range for this run and
+//                                                  RESTORES the user's own before exiting. The
+//                                                  only way to prove, on demand, both a
+//                                                  particular scope chain and the standing-cursor
+//                                                  lane standing down under a live highlight.
 //
 //  WHAT THIS PROVES THAT A DIRECT ADAPTER CALL CANNOT — the browsing-lane
 //  lesson this whole branch keeps re-learning: that `read_buffer`/
@@ -133,6 +139,47 @@ enum CodeSurfaceProbe {
                 for (role, count) in byRole.sorted(by: { $0.value > $1.value }) {
                     print("      DEBUG   \(role): \(count)")
                 }
+            }
+        }
+
+        // AN OPTIONAL, RESTORED RANGE. Two claims below depend on where the
+        // caret is and whether anything is highlighted, which makes them the
+        // only ones here that cannot be proved on demand against a real
+        // editor without asking the editor to put its insertion point
+        // somewhere: the scope line's two-level "struct X → func y" shape,
+        // and the standing-cursor lane STANDING DOWN while a highlight is
+        // live. `--caret-at`/`--select` do exactly that and nothing else —
+        // record the live range, set a new one, and put the original back in
+        // a `defer` before this function returns. No text is read, written,
+        // or typed, and no synthetic keystroke is sent: `coding.mary`'s
+        // "never type into a code surface" guardrail is untouched, because
+        // moving an insertion point is not an edit.
+        var restoreRange: (() -> Void)?
+        defer { restoreRange?() }
+        if let requested = value("--caret-at"), let offset = Int(requested) {
+            let length = value("--select").flatMap(Int.init) ?? 0
+            let application = AXUIElementCreateApplication(pid)
+            AXUIElementSetMessagingTimeout(application, 2.0)
+            if let focusedWindow = AX.element(application, kAXFocusedWindowAttribute),
+               let editor = CodeSurfaceEditorCache.editor(
+                pid: pid, window: focusedWindow, registration: registration) {
+                let original = CodeSurfaceAX.selectedRange(of: editor)
+                func setRange(_ range: Range<Int>) {
+                    var cfRange = CFRange(
+                        location: range.lowerBound, length: range.count)
+                    guard let value = withUnsafePointer(
+                        to: &cfRange, { AXValueCreate(.cfRange, $0) })
+                    else { return }
+                    AXUIElementSetAttributeValue(
+                        editor, kAXSelectedTextRangeAttribute as CFString, value)
+                }
+                setRange(offset..<(offset + max(0, length)))
+                restoreRange = { if let original { setRange(original) } }
+                check(true,
+                      "the editor's range was set for this run (restored on exit)",
+                      length > 0
+                        ? "\(offset)…\(offset + length) selected"
+                        : "caret at \(offset)")
             }
         }
 
@@ -312,6 +359,108 @@ enum CodeSurfaceProbe {
                 half above still holds, but the MINTING half is unproven. \
                 Highlight a real span in Xcode's editor and run this again.
             """)
+        }
+
+        // THE STANDING CURSOR SCOPE — Bonnie's "Cursor scope: struct X → var
+        // body" parity, and the one property it exists for: the fact is in
+        // the ambient store BEFORE the model is asked anything, so a turn can
+        // be grounded with NO tool call. Everything above this heading
+        // dispatched a Skill to get its answer; nothing below one does.
+        heading("the standing cursor scope, with no tool call")
+        let cursorPlace = AmbientPlace.application(registration.applicationID)
+        AmbientContextStore.shared.forget(key: AmbientKey(place: cursorPlace, slot: .cursor))
+
+        // THE MEASUREMENT THE CACHE EXISTS FOR, taken live rather than
+        // reasoned about. `CodeSurfaceAX.editor` is the ~330 ms bounded walk
+        // every code-surface read used to pay per call; the cache pays it
+        // once per window and re-proves the entry with one attribute read.
+        let application = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(application, 2.0)
+        if let focusedWindow = AX.element(application, kAXFocusedWindowAttribute) {
+            var coldMs: [Double] = []
+            for _ in 0..<3 {
+                CodeSurfaceEditorCache.invalidate()
+                let started = Date()
+                _ = CodeSurfaceAX.editor(in: focusedWindow, registration: registration)
+                coldMs.append(Date().timeIntervalSince(started) * 1000)
+            }
+            CodeSurfaceEditorCache.invalidate()
+            CodeSurfaceEditorCache.resetWalkCount()
+            let primeStarted = Date()
+            _ = CodeSurfaceEditorCache.editor(
+                pid: pid, window: focusedWindow, registration: registration)
+            let primeMs = Date().timeIntervalSince(primeStarted) * 1000
+            var warmMs: [Double] = []
+            for _ in 0..<20 {
+                let started = Date()
+                _ = CodeSurfaceEditorCache.editor(
+                    pid: pid, window: focusedWindow, registration: registration)
+                warmMs.append(Date().timeIntervalSince(started) * 1000)
+            }
+            func stamp(_ values: [Double]) -> String {
+                let mean = values.reduce(0, +) / Double(max(1, values.count))
+                return String(format: "mean %.2f ms over %d", mean, values.count)
+            }
+            print("      uncached walk:  \(stamp(coldMs))")
+            print("      cache prime:    " + String(format: "%.2f ms", primeMs))
+            print("      cached lookup:  \(stamp(warmMs))")
+            check(CodeSurfaceEditorCache.walkCount == 1,
+                  "21 lookups of one unchanged window cost exactly one walk",
+                  "\(CodeSurfaceEditorCache.walkCount)")
+            let warmMean = warmMs.reduce(0, +) / Double(max(1, warmMs.count))
+            let coldMean = coldMs.reduce(0, +) / Double(max(1, coldMs.count))
+            check(warmMean * 10 < coldMean,
+                  "a cached lookup is more than an order of magnitude cheaper",
+                  String(format: "%.2f ms vs %.2f ms", warmMean, coldMean))
+        }
+
+        // THE POLL ITSELF, exactly as the turn preparer calls it.
+        let pollStarted = Date()
+        CodeSurfaceObserver.shared.pollOnce()
+        print(String(format: "      one poll: %.2f ms",
+                     Date().timeIntervalSince(pollStarted) * 1000))
+        let cursor = AmbientContextStore.shared.fact(
+            world: cursorPlace.world, application: cursorPlace.application, slot: .cursor)
+        if let cursor {
+            check(true, "a standing cursor fact is held", cursor.subject ?? "—")
+            check(cursor.anchor == .caret, "and it is anchored on the caret",
+                  cursor.anchor.map(String.init(describing:)) ?? "none")
+            check(cursor.content.hasPrefix("Cursor scope: ")
+                    || cursor.content.hasPrefix("Cursor at line "),
+                  "and it leads with a measured scope line",
+                  String(cursor.content.prefix(80)))
+            check(cursor.content.count
+                    <= registration.budgets.ambientExcerptCharacters + 200,
+                  "and it respects the declared ambientExcerptCharacters budget",
+                  "\(cursor.content.count) chars, budget "
+                    + "\(registration.budgets.ambientExcerptCharacters)")
+            print("      ── the block the prompt would carry ──")
+            print("      " + cursor.block(limit: 2000)
+                    .replacingOccurrences(of: "\n", with: "\n      "))
+        } else if selectionOutcome.foundNothing {
+            print("""
+
+              ⚠︎ No cursor fact, and nothing was selected either — so this is \
+                the "no source file open" state rather than the stand-down. \
+                Click into a real function and run this again.
+            """)
+        }
+
+        // THE STAND-DOWN, WHICH IS THE OTHER HALF OF THE PROPERTY. A live
+        // highlight belongs to the selection lane — its handoff, its
+        // Interaction, the `.selection` fact only `recordSelection` may
+        // write. Two claims about "where the user is" in one prompt under two
+        // different authorities is the hazard the store's ordering exists to
+        // close, so this lane publishes NOTHING while a selection stands.
+        // Asserted in both directions, from the same run's own evidence.
+        if selectionOutcome.foundNothing {
+            check(cursor != nil,
+                  "with nothing selected, the cursor lane holds the ground")
+        } else {
+            check(cursor == nil,
+                  "with a live highlight, the cursor lane stands down for the "
+                    + "selection lane",
+                  cursor == nil ? "no cursor fact" : "BOTH published")
         }
 
         // THE NEGATIVE THIS FIX MUST NOT DISTURB — "why-does-mary-keep-

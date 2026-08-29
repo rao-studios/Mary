@@ -30,6 +30,12 @@ public extension AmbientFact {
         case .selection:           return "their highlight"
         case .objectSelection:     return "what they have selected"
         case .viewport:            return anchor?.displayName ?? "what they're looking at"
+        // "their cursor" is `PerceptionAnchor.caret.displayName`, which is
+        // where this fact's anchor comes from — asked of the anchor for the
+        // same reason `.viewport` asks it, so the two slots can never end up
+        // with two spellings of one idea. The fallback is that same word,
+        // written out, for a fact that somehow arrived without an anchor.
+        case .cursor:              return anchor?.displayName ?? "their cursor"
         case .file:
             // A coding place has files; everywhere else has documents. Bonnie
             // asked `world == .xcode` here, which was the same question while
