@@ -429,7 +429,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6d4ba39cd8e06a1550ac5cd27b4a23cc9758a1e30d742f342e09827c6d2d369c"
+    "digest" : "5c7dd74c250a1d125412d5c793b162681af96bef76b8dfc163221a06ce1da5ed"
   },
   "interactions" : [
 
@@ -579,10 +579,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.code-workspace-focus"
         ],
         "perceptions" : [
-          "perception.code-workspace-focus"
+
         ],
         "supportingAbilities" : [
 
@@ -656,10 +656,10 @@
 
         ],
         "optionalPerceptions" : [
-
+          "perception.code-workspace-focus"
         ],
         "perceptions" : [
-          "perception.code-workspace-focus"
+
         ],
         "supportingAbilities" : [
 

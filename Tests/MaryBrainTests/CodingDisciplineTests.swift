@@ -328,6 +328,67 @@ import Testing
         }
     }
 
+    // MARK: - The read-only Skills must not hard-gate on a momentary perception
+
+    /// PINS THE FIX FOR "why does Mary keep mutable rabbit": `coding.mary`
+    /// used to declare `perceptions: ["perception.code-workspace-focus"]` as
+    /// a HARD requirement on `read_buffer`/`read_selection` — the two
+    /// read-only, `.native`-bound Skills in this package. `AbilityRuntime
+    /// .isEligible`'s `hasPerception` predicate hard-excludes a Skill from
+    /// the model-visible roster the instant a required perception is
+    /// momentarily absent, so an ambiguous, non-imperative turn ("let's take
+    /// a look at the code I have written here") could refuse both Skills
+    /// even with Xcode genuinely frontmost.
+    ///
+    /// `writing.read-corpus-document`/`writing.search-corpus` already solved
+    /// this exact class of bug: `perceptions: []` with the same perception
+    /// moved to `optionalPerceptions`, which only steers routing preference
+    /// and never hard-blocks. This test pins `coding.read-selection`/
+    /// `coding.read-buffer` onto that identical shape, so a future author
+    /// re-tightening either declaration back to a hard requirement fails
+    /// here instead of silently reintroducing the refusal.
+    ///
+    /// `coding.build-project`/`run-project`/`test-project`/`save-all`/
+    /// `stop-execution` are deliberately NOT covered — they are mutating
+    /// managed-UI chords, a separate, still-open case per the plan this test
+    /// accompanies, and this test would fail if their requirement were
+    /// loosened by mistake alongside the two read-only Skills.
+    @Test func readOnlyCodeSurfaceSkillsDoNotHardGateOnWorkspaceFocus() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let coding = try loadRootPackage("coding")
+
+        let readOnlySkillIDs: Set<String> = ["coding.read-buffer", "coding.read-selection"]
+        var seen: Set<String> = []
+        for skill in coding.skills where readOnlySkillIDs.contains(skill.id.rawValue) {
+            seen.insert(skill.id.rawValue)
+            #expect(skill.requirements.perceptions.isEmpty, """
+                \(skill.id.rawValue) must not hard-require any perception — a \
+                momentarily unresolved fact must never exclude a read-only Skill \
+                from the roster outright. Found: \(skill.requirements.perceptions)
+                """)
+            #expect(skill.requirements.optionalPerceptions.contains(.codeWorkspaceFocus), """
+                \(skill.id.rawValue) must still declare code-workspace-focus as OPTIONAL, \
+                so routing can prefer it without being able to block on it.
+                """)
+        }
+        #expect(seen == readOnlySkillIDs, "both read-only code-surface Skills must be present to check")
+
+        // THE CHORD SKILLS ARE UNTOUCHED, on purpose — this plan's scope is
+        // just the two read-only Skills. If a future edit loosens these too,
+        // that's a deliberate, separate decision this test should not silently
+        // ratify by staying green.
+        let chordSkillIDs: Set<String> = [
+            "coding.build-project", "coding.run-project", "coding.test-project",
+            "coding.save-all", "coding.stop-execution",
+        ]
+        for skill in coding.skills where chordSkillIDs.contains(skill.id.rawValue) {
+            #expect(skill.requirements.perceptions.contains(.codeWorkspaceFocus), """
+                \(skill.id.rawValue) still hard-requires code-workspace-focus — \
+                out of scope for this fix, unchanged by design.
+                """)
+        }
+    }
+
     private func loadRootPackage(_ name: String) throws -> MaryAbilityPackage {
         guard let abilities = InstalledPackages.installed() else {
             throw CocoaError(.fileNoSuchFile)
