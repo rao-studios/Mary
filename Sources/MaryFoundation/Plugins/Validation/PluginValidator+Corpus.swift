@@ -42,11 +42,15 @@ public extension PluginValidator {
     ) {
         let path = "\(root).corpus"
 
-        if corpus.include.isEmpty {
+        // A CRAWLED CORPUS MUST MATCH SOMETHING. A corpus with a `structure`
+        // is reached through its manifest and part templates instead, so it
+        // legitimately names no extension — and requiring one there would
+        // make a package crawl a project's RTF as if it were prose.
+        if corpus.include.isEmpty, corpus.structure == nil {
             error(
                 "corpus-includes-nothing",
                 "\(path).include",
-                "A corpus must name at least one file extension: one that matches nothing is a declaration that does nothing.")
+                "A corpus with no structure must name at least one file extension: one that matches nothing is a declaration that does nothing.")
         }
         for (index, extensionName) in corpus.include.enumerated()
         where extensionName.hasPrefix(".") || extensionName.isEmpty {

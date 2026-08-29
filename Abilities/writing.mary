@@ -87,18 +87,30 @@
       "preference" : 120
     },
     "skills" : [
+      "writing.add-corpus-container",
+      "writing.add-corpus-item",
       "writing.compose-draft",
+      "writing.corpus-progress",
       "writing.delete-passage",
       "writing.find-passage",
       "writing.insert-passage",
+      "writing.move-corpus-item",
+      "writing.read-corpus-document",
+      "writing.read-corpus-outline",
       "writing.replace-passage",
       "writing.resume-typing",
       "writing.revert-last-edit",
       "writing.revise-selection",
       "writing.save-document",
+      "writing.search-corpus",
+      "writing.split-document",
+      "writing.split-editor-horizontally",
+      "writing.split-editor-vertically",
       "writing.start-dictation",
       "writing.stop-dictation",
-      "writing.type-at-cursor"
+      "writing.trash-corpus-item",
+      "writing.type-at-cursor",
+      "writing.unsplit-editor"
     ],
     "summary" : "Compose and revise prose, then place it safely in a source-resolved text surface.",
     "tint" : "#B77AFF",
@@ -146,6 +158,52 @@
     "version" : "1.0.0"
   },
   "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "writing-project"
+        }
+      ],
+      "effect" : "read",
+      "id" : "corpus.read",
+      "inputType" : "writing.corpus-query",
+      "outputType" : "writing.corpus-outline",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the project from disk and ask its application what it has open."
+        }
+      ],
+      "summary" : "Read a writing project's outline and the text of its documents.",
+      "title" : "Read the Project",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "writing-project"
+        },
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "corpus.restructure",
+      "inputType" : "writing.corpus-query",
+      "outputType" : "writing.corpus-progress",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Choose the application's own menu command while it owns the screen."
+        }
+      ],
+      "summary" : "Add, move or trash a document through the application's own menu commands.",
+      "title" : "Change the Project's Shape",
+      "version" : "1.0.0"
+    },
     {
       "constraints" : [
         {
@@ -286,6 +344,31 @@
       ],
       "summary" : "Commit the open document through the application's own save command.",
       "title" : "Save Document",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "writing-project"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "editor.arrange",
+      "inputType" : "writing.corpus-query",
+      "outputType" : "writing.corpus-progress",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the application's own shortcut while it owns the screen."
+        }
+      ],
+      "summary" : "Arrange the editor's panes, or split a document, through the application's own shortcut.",
+      "title" : "Arrange the Editor",
       "version" : "1.0.0"
     },
     {
@@ -433,13 +516,33 @@
       ],
       "targetClass" : "code-workspace",
       "utterance" : "Type this paragraph at the cursor."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.read-corpus-outline",
+      "id" : "read-the-outline",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "What's the outline of my manuscript?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "search-the-manuscript",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Which chapters mention the comet?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "20bba5cb13a467af66fd1f3f9964a6c749be66085e605dd106feeaab3dc9b420"
+    "digest" : "d1c58602dbedb958d665c4a7637b1a6a79fd50139a86ec2c67bab72119632faf"
   },
   "interactions" : [
     {
@@ -505,13 +608,13 @@
   },
   "perceptions" : [
     {
-      "freshnessSeconds" : 8,
-      "id" : "perception.workspace-focus",
+      "freshnessSeconds" : 60,
+      "id" : "perception.project-corpus",
       "ownership" : "observed",
       "privacy" : "private",
-      "summary" : "Observed active workspace and application identity used for honest source routing.",
-      "title" : "Workspace Focus",
-      "valueType" : "writing.surface-focus",
+      "summary" : "The writing project an application currently has open: its outline and size.",
+      "title" : "Document Corpus",
+      "valueType" : "writing.corpus-outline",
       "version" : "1.0.0"
     },
     {
@@ -523,9 +626,173 @@
       "title" : "Text Surface Focus",
       "valueType" : "writing.surface-focus",
       "version" : "1.0.0"
+    },
+    {
+      "freshnessSeconds" : 8,
+      "id" : "perception.workspace-focus",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "Observed active workspace and application identity used for honest source routing.",
+      "title" : "Workspace Focus",
+      "valueType" : "writing.surface-focus",
+      "version" : "1.0.0"
     }
   ],
   "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "add_corpus_container",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.add-corpus-container",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "add_corpus_container",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.restructure"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Add a new folder to a writing project through its own New command.",
+      "title" : "Add a Folder",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "add_corpus_item",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.add-corpus-item",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "add_corpus_item",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.restructure"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Add a new document to a writing project through its own New command.",
+      "title" : "Add a Document",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
     {
       "access" : "seamless",
       "execution" : {
@@ -629,6 +896,83 @@
       },
       "summary" : "Transform an intent into coherent new prose without mutating an application.",
       "title" : "Compose Draft",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "corpus_progress",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.corpus-progress",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "corpus_progress",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Report a writing project's size — its documents and word count.",
+      "title" : "Say How the Project Stands",
       "usesStage" : false,
       "version" : "1.0.0"
     },
@@ -980,6 +1324,264 @@
       "summary" : "Add one complete block before or after a located passage without rewriting the anchor passage.",
       "title" : "Insert Passage",
       "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "move_corpus_item",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.move-corpus-item",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "move_corpus_item",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "destination",
+            "required" : true,
+            "summary" : "The folder to move it into, as the outline names it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.restructure"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Move the document being written into another folder, through the project's own Move command.",
+      "title" : "Move a Document",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "read_corpus_document",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.read-corpus-document",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_corpus_document",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "document",
+            "required" : true,
+            "summary" : "The document's title, as the outline shows it.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 220
+      },
+      "summary" : "Read one document's text out of a writing project, by its title.",
+      "title" : "Read a Document",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "read_corpus_outline",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.read-corpus-outline",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_corpus_outline",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "under",
+            "required" : false,
+            "summary" : "Only the part under this folder. Omit for the whole project.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 225
+      },
+      "summary" : "Read a writing project's folders and documents, in binder order.",
+      "title" : "Read the Project Outline",
+      "usesStage" : false,
       "version" : "1.0.0"
     },
     {
@@ -1414,6 +2016,281 @@
       "version" : "1.0.0"
     },
     {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "search_corpus",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.search-corpus",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "search_corpus",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "The word or phrase to look for.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Find which documents in a writing project mention a word or phrase.",
+      "title" : "Search the Project",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.split-document",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "split_document",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "editor.arrange"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Split the document being written into two at the cursor.",
+      "title" : "Split the Document Here",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.split-editor-horizontally",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "split_editor_horizontally",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "editor.arrange"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Split the editor into two panes, one above the other.",
+      "title" : "Split the Editor Across",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.split-editor-vertically",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "split_editor_vertically",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "editor.arrange"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Split the editor into two panes, side by side.",
+      "title" : "Split the Editor Down",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
       "access" : "reversible",
       "execution" : {
         "bindings" : [
@@ -1575,6 +2452,83 @@
       "execution" : {
         "bindings" : [
           {
+            "adapterID" : "project-corpus",
+            "operation" : "trash_corpus_item",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.trash-corpus-item",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "trash_corpus_item",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project. Omit when only one is open.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.restructure"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Move the document being written to the project's trash. Nothing is deleted.",
+      "title" : "Move a Document to the Trash",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
             "adapterID" : "typer",
             "operation" : "type_at_cursor",
             "preference" : 100,
@@ -1676,6 +2630,69 @@
       "title" : "Type at Cursor",
       "usesStage" : true,
       "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.unsplit-editor",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "unsplit_editor",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "editor.arrange"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 190
+      },
+      "summary" : "Return the editor to a single pane.",
+      "title" : "Close the Split",
+      "usesStage" : true,
+      "version" : "1.0.0"
     }
   ],
   "totemProjections" : [
@@ -1737,10 +2754,104 @@
       "fields" : [
 
       ],
-      "id" : "writing.text",
+      "id" : "writing.application-name",
       "shape" : "string",
-      "summary" : "Unicode prose kept private unless a projection explicitly permits it.",
-      "title" : "Text",
+      "summary" : "A display name or bundle identifier for a text surface.",
+      "title" : "Application Name",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.boolean",
+      "shape" : "boolean",
+      "summary" : "A true or false value.",
+      "title" : "Boolean",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+        "accessibilityUTF16",
+        "documentUTF16",
+        "unicodeScalar",
+        "swiftCharacter"
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.coordinate-space",
+      "shape" : "enumeration",
+      "summary" : "Offset coordinate system for a text range.",
+      "title" : "Coordinate Space",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.corpus-outline",
+      "shape" : "string",
+      "summary" : "A project's folders and documents, in binder order.",
+      "title" : "Corpus Outline",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.corpus-progress",
+      "shape" : "string",
+      "summary" : "How a project stands, or what a change to its shape did.",
+      "title" : "Corpus Progress",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.corpus-query",
+      "shape" : "string",
+      "summary" : "Which project, document or phrase a corpus request addresses.",
+      "title" : "Corpus Query",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.corpus-text",
+      "shape" : "string",
+      "summary" : "One document's text, read from the project on disk.",
+      "title" : "Corpus Text",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.document-identity",
+      "shape" : "string",
+      "summary" : "A stable source-provided document identity.",
+      "title" : "Document Identity",
       "version" : "1.0.0"
     },
     {
@@ -1763,10 +2874,43 @@
       "fields" : [
 
       ],
-      "id" : "writing.application-name",
-      "shape" : "string",
-      "summary" : "A display name or bundle identifier for a text surface.",
-      "title" : "Application Name",
+      "id" : "writing.integer",
+      "shape" : "integer",
+      "summary" : "An integer value.",
+      "title" : "Integer",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "succeeded",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Whether the operation completed.",
+          "valueType" : "writing.boolean"
+        },
+        {
+          "name" : "summary",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Short user-facing outcome.",
+          "valueType" : "writing.text"
+        },
+        {
+          "name" : "passage",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Returned passage handle.",
+          "valueType" : "writing.passage-handle"
+        }
+      ],
+      "id" : "writing.operation-result",
+      "shape" : "object",
+      "summary" : "A bounded status result that excludes raw user prose.",
+      "title" : "Writing Operation Result",
       "version" : "1.0.0"
     },
     {
@@ -1780,6 +2924,92 @@
       "shape" : "string",
       "summary" : "A turn-scoped stable handle for a located document passage.",
       "title" : "Passage Handle",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "passage",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Existing passage handle.",
+          "valueType" : "writing.passage-handle"
+        },
+        {
+          "name" : "target",
+          "privacy" : "sensitive",
+          "required" : false,
+          "summary" : "Spoken passage locator.",
+          "valueType" : "writing.text"
+        },
+        {
+          "name" : "text",
+          "privacy" : "sensitive",
+          "required" : false,
+          "summary" : "Replacement or inserted prose.",
+          "valueType" : "writing.text"
+        },
+        {
+          "name" : "application",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Requested application.",
+          "valueType" : "writing.application-name"
+        }
+      ],
+      "id" : "writing.passage-request",
+      "shape" : "object",
+      "summary" : "A passage handle or spoken target plus optional replacement prose.",
+      "title" : "Passage Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "application",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Frontmost application.",
+          "valueType" : "writing.application-name"
+        },
+        {
+          "name" : "document",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "Focused document identity.",
+          "valueType" : "writing.document-identity"
+        },
+        {
+          "name" : "editable",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Whether the focused surface can receive prose.",
+          "valueType" : "writing.boolean"
+        }
+      ],
+      "id" : "writing.surface-focus",
+      "shape" : "object",
+      "summary" : "Observed workspace and text-surface ownership without selected content.",
+      "title" : "Text Surface Focus",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "writing.text",
+      "shape" : "string",
+      "summary" : "Unicode prose kept private unless a projection explicitly permits it.",
+      "title" : "Text",
       "version" : "1.0.0"
     },
     {
@@ -1857,90 +3087,16 @@
     },
     {
       "enumValues" : [
-
+        "compose",
+        "replace_selection"
       ],
       "fields" : [
 
       ],
-      "id" : "writing.integer",
-      "shape" : "integer",
-      "summary" : "An integer value.",
-      "title" : "Integer",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-        "accessibilityUTF16",
-        "documentUTF16",
-        "unicodeScalar",
-        "swiftCharacter"
-      ],
-      "fields" : [
-
-      ],
-      "id" : "writing.coordinate-space",
+      "id" : "writing.write-mode",
       "shape" : "enumeration",
-      "summary" : "Offset coordinate system for a text range.",
-      "title" : "Coordinate Space",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-
-      ],
-      "id" : "writing.document-identity",
-      "shape" : "string",
-      "summary" : "A stable source-provided document identity.",
-      "title" : "Document Identity",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-        {
-          "name" : "application",
-          "privacy" : "private",
-          "required" : true,
-          "summary" : "Frontmost application.",
-          "valueType" : "writing.application-name"
-        },
-        {
-          "name" : "document",
-          "privacy" : "private",
-          "required" : false,
-          "summary" : "Focused document identity.",
-          "valueType" : "writing.document-identity"
-        },
-        {
-          "name" : "editable",
-          "privacy" : "private",
-          "required" : true,
-          "summary" : "Whether the focused surface can receive prose.",
-          "valueType" : "writing.boolean"
-        }
-      ],
-      "id" : "writing.surface-focus",
-      "shape" : "object",
-      "summary" : "Observed workspace and text-surface ownership without selected content.",
-      "title" : "Text Surface Focus",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-
-      ],
-      "id" : "writing.boolean",
-      "shape" : "boolean",
-      "summary" : "A true or false value.",
-      "title" : "Boolean",
+      "summary" : "How a live text surface should change.",
+      "title" : "Write Mode",
       "version" : "1.0.0"
     },
     {
@@ -1974,93 +3130,6 @@
       "shape" : "object",
       "summary" : "Prose and targeting metadata for a live text surface.",
       "title" : "Write Request",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-        "compose",
-        "replace_selection"
-      ],
-      "fields" : [
-
-      ],
-      "id" : "writing.write-mode",
-      "shape" : "enumeration",
-      "summary" : "How a live text surface should change.",
-      "title" : "Write Mode",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-        {
-          "name" : "passage",
-          "privacy" : "private",
-          "required" : false,
-          "summary" : "Existing passage handle.",
-          "valueType" : "writing.passage-handle"
-        },
-        {
-          "name" : "target",
-          "privacy" : "sensitive",
-          "required" : false,
-          "summary" : "Spoken passage locator.",
-          "valueType" : "writing.text"
-        },
-        {
-          "name" : "text",
-          "privacy" : "sensitive",
-          "required" : false,
-          "summary" : "Replacement or inserted prose.",
-          "valueType" : "writing.text"
-        },
-        {
-          "name" : "application",
-          "privacy" : "private",
-          "required" : false,
-          "summary" : "Requested application.",
-          "valueType" : "writing.application-name"
-        }
-      ],
-      "id" : "writing.passage-request",
-      "shape" : "object",
-      "summary" : "A passage handle or spoken target plus optional replacement prose.",
-      "title" : "Passage Request",
-      "version" : "1.0.0"
-    },
-    {
-      "enumValues" : [
-
-      ],
-      "fields" : [
-        {
-          "name" : "succeeded",
-          "privacy" : "private",
-          "required" : true,
-          "summary" : "Whether the operation completed.",
-          "valueType" : "writing.boolean"
-        },
-        {
-          "name" : "summary",
-          "privacy" : "private",
-          "required" : true,
-          "summary" : "Short user-facing outcome.",
-          "valueType" : "writing.text"
-        },
-        {
-          "name" : "passage",
-          "privacy" : "private",
-          "required" : false,
-          "summary" : "Returned passage handle.",
-          "valueType" : "writing.passage-handle"
-        }
-      ],
-      "id" : "writing.operation-result",
-      "shape" : "object",
-      "summary" : "A bounded status result that excludes raw user prose.",
-      "title" : "Writing Operation Result",
       "version" : "1.0.0"
     }
   ]

@@ -94,6 +94,12 @@ extension MaryRuntime {
             proseSurfaceRegistrations(from: load.snapshot))
         // AND THE CORPORA. Same reconcile, same reason: which applications
         // Mary can learn the shape of is a fact about the installed packages.
+        //
+        // ONE ROSTER FOR BOTH CORPUS CONSUMERS — the passive style crawl and
+        // the project lane that answers the model. They ask different
+        // questions of a corpus; they must not disagree about which
+        // applications have one, so the project lane filters this roster on
+        // `structure` rather than keeping a second copy of it.
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
         installCorpusPipeline()
         // AND THE TRANSPORTS, on the same activation and for the same reason:

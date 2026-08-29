@@ -441,8 +441,13 @@ public struct PluginCorpusBudgets: Codable, Hashable, Sendable {
 /// One application's project shape, as its package describes it.
 public struct PluginCorpusSchema: Codable, Hashable, Sendable {
 
-    /// File extensions that are units, without the dot. Empty is invalid:
-    /// a corpus that matches nothing is a declaration that does nothing.
+    /// File extensions that are units, without the dot.
+    ///
+    /// EMPTY IS INVALID FOR A CRAWLED CORPUS — one that matches nothing is a
+    /// declaration that does nothing — but legitimately empty for a corpus
+    /// that declares a `structure`: a project's items are reached through its
+    /// manifest and part templates, not by walking the directory for a file
+    /// extension, and a `.scriv` holds RTF nobody should crawl as prose.
     public var include: [String]
     /// Directory names never walked. Build products and vendored dependencies
     /// are not how the user writes, and a crawl through them is expensive and
@@ -497,7 +502,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     public init(from decoder: Decoder) throws {
         try decoder.rejectUnknownKeys(CodingKeys.self)
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        include = try values.decode([String].self, forKey: .include)
+        include = try values.decodeIfPresent([String].self, forKey: .include) ?? []
         exclude = try values.decodeIfPresent([String].self, forKey: .exclude) ?? []
         notation = try values.decode(String.self, forKey: .notation)
         relations = try values.decodeIfPresent(
@@ -511,7 +516,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(include, forKey: .include)
+        if !include.isEmpty { try container.encode(include, forKey: .include) }
         if !exclude.isEmpty { try container.encode(exclude, forKey: .exclude) }
         try container.encode(notation, forKey: .notation)
         if relations != PluginCorpusRelations() {

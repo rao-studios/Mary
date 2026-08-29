@@ -15,16 +15,89 @@
 //
 //    mary-corpus-probe project --project ~/path/to/thing.scriv
 //    mary-corpus-probe project --project … --read "Prologue"
+//    mary-corpus-probe project --live      ← through the shipped packages
 //
 
+import ApplicationServices
 import Foundation
+import MaryBrain
 import MaryFoundation
 import MaryPlugin
+import MaryRuntime
 
 enum ProjectProbe {
 
     static func shouldRun(_ arguments: [String]) -> Bool {
         arguments.contains("project")
+    }
+
+    /// THE WHOLE CHAIN, not the reader alone: the shipped packages, the
+    /// corpus roster they produce, and the project a running application
+    /// actually has open — found through its own `AXDocument` rather than
+    /// through a path anybody typed.
+    ///
+    /// This is the half `--project <path>` cannot answer. Handing the reader a
+    /// path proves the reader; it says nothing about whether `scrivener.mary`
+    /// declares the right extension, whether the roster reaches the lane, or
+    /// whether the application publishes the project root at all.
+    static func runLive() async {
+        guard AXIsProcessTrusted() else {
+            print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
+            exit(1)
+        }
+
+        let adapters = MaryAdapterCatalog.adapters()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: MaryAdapterCatalog.observers()),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+        print("▸ the roster")
+        print("  packages    \(load.snapshot.records.count) loaded"
+            + (load.activated ? "" : "  ⚠︎ NOT ACTIVATED"))
+        for issue in load.issues where issue.severity == .error {
+            print("  ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.corpusRegistrations(from: load.snapshot)
+        CorpusSupport.shared.reconcile(registrations)
+        print("  corpora     \(registrations.map(\.applicationID).joined(separator: ", "))")
+        let projects = ProjectCorpusSupport.all()
+        print("  projects    "
+            + (projects.isEmpty
+                ? "⚠︎ NONE — no corpus declares a structure"
+                : projects.map(\.applicationID).joined(separator: ", ")))
+
+        // THE SKILLS THE MODEL WOULD SEE. A lane whose Skills install blocked
+        // is a lane that does not exist as far as the model is concerned,
+        // which is exactly the failure `DerivedPerceptions` was about.
+        let corpusSkills = load.snapshot.skills.filter {
+            $0.skill.id.rawValue.contains("corpus")
+        }
+        for skill in corpusSkills.sorted(by: { $0.skill.id.rawValue < $1.skill.id.rawValue }) {
+            let mark = skill.availability.readiness == .blocked ? "✗" : "✓"
+            print("  \(mark) \(skill.skill.id.rawValue)  \(skill.availability.readiness)"
+                + (skill.availability.reasons.isEmpty
+                    ? "" : "  — \(skill.availability.reasons.joined(separator: " "))"))
+        }
+
+        print("\n▸ what is open")
+        switch ProjectCorpusSupport.resolve(nil) {
+        case .failure(let refusal):
+            print("  ✗ \(refusal.spoken)")
+        case .success(let corpus):
+            print("  project     \(corpus.name)  (\(corpus.registration.displayName))")
+            print("  root        \(corpus.projectRoot.path)")
+            print("  editable    \(ProjectCorpusSupport.isOpenForEditing(corpus))")
+            switch ProjectCorpusReader.outline(
+                projectRoot: corpus.projectRoot, structure: corpus.structure) {
+            case .failure(let failure): print("  ✗ \(failure.spoken)")
+            case .success(let items):
+                let flat = items.flatMap(\.flattened)
+                print("  outline     \(flat.count) items · "
+                    + "\(flat.filter(\.isContainer).count) containers")
+            }
+        }
     }
 
     /// The declaration `scrivener.mary` will carry, written from the measured
@@ -38,7 +111,10 @@ enum ProjectProbe {
             discovery: .directoryExtension,
             projectExtension: "scriv",
             openState: [.lockFile, .runningApplication],
-            lockFilePath: "user.lock",
+            // MEASURED: the lock lives inside `Files/`, not at the project
+            // root. A path that is merely plausible reports every project as
+            // closed, and reports it silently.
+            lockFilePath: "Files/user.lock",
             manifest: .init(
                 kind: .xmlManifest,
                 pathTemplate: "{name}.scrivx",
@@ -72,8 +148,13 @@ enum ProjectProbe {
             return arguments[index + 1]
         }
 
+        if arguments.contains("--live") {
+            await runLive()
+            return
+        }
+
         guard let raw = value("--project") else {
-            print("Pass --project <path to a .scriv>")
+            print("Pass --project <path to a .scriv>, or --live to go through the shipped packages")
             exit(1)
         }
         let root = URL(fileURLWithPath: (raw as NSString).expandingTildeInPath)
