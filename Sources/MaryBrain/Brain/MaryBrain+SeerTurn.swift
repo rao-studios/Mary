@@ -176,7 +176,7 @@ extension MaryBrain {
         // one resolver, no drift: two roads to "which part do they mean?" would
         // be two answers, and the gates below have to be able to name the same
         // passage the edit verb will act on. That locate happens one level up,
-        // in `runTurn`, so the LEGACY loop is fed by the same call — see
+        // in `runTurn`, so the LOCAL loop is fed by the same call — see
         // `locateTarget`, and `runTurn`'s note on why it sits above the Seer
         // guard rather than below it.
         //
@@ -939,7 +939,7 @@ extension MaryBrain {
         // started with, the words it ended with, roughly how much — because
         // those are the only bounds a person can act on.
         //
-        // Through `revisionReport` rather than inline, because `legacyTurn`
+        // Through `revisionReport` rather than inline, because `localTurn`
         // owes the identical sentence and two copies of it would drift.
         //
         // AND IT IS THE FIRST BENEFICIARY OF THE TAKEOVER ABOVE. `after:` takes

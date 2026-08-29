@@ -4,7 +4,7 @@
 //
 //  The turn loop, moved out of MaryBrain.swift: `runTurn` (supersede,
 //  epoch reservation, unwind) and `runTurnBody` (the whole turn — route
-//  resolution, pre-reads, gates, and the seer/legacy handoff). Both moved
+//  resolution, pre-reads, gates, and the seer/local handoff). Both moved
 //  WHOLE and verbatim — no function was split; no behavior change.
 //
 //  Depends on the internal-for-split promotions of the core file's stored
@@ -193,7 +193,7 @@ extension MaryBrain {
 
         let userTurn = BrainTurn(role: .user, text: userText)
         // The turn's identity leads every path — deterministic decision,
-        // bare-stop, legacy, seer — so the app can stamp the exchange before
+        // bare-stop, local, seer — so the app can stamp the exchange before
         // any token or chip arrives.
         continuation.yield(.turnBegan(id: userTurn.id))
         // A turn arriving on the heels of a remark is that remark being
@@ -342,7 +342,7 @@ extension MaryBrain {
         // THEY USED TO SIT BELOW THE `guard seerReady`, AND THAT WAS THE BUG.
         // Seer being unavailable is an ordinary condition — a dropped network,
         // an expired token, the local-MLX configuration — not an edge case, and
-        // on every one of those turns the legacy loop got NONE of G1–G4: no
+        // on every one of those turns the local loop got NONE of G1–G4: no
         // intent, no locate, no passage in the prompt, no caret-write veto, no
         // report. "Replace the Purpose section with the tighter version" typed
         // at the caret again, exactly as shipped, the moment the voice went
@@ -904,7 +904,7 @@ extension MaryBrain {
         if let seerChat { seerReady = await seerChat.isReady() }
 
         guard seerReady, let seerChat else {
-            await legacyTurn(
+            await localTurn(
                 userText: userText,
                 systemPrompt: systemPrompt,
                 actionTurn: actionTurn,

@@ -1,9 +1,9 @@
 //
-//  MaryBrain+LegacyTurn.swift
+//  MaryBrain+LocalTurn.swift
 //  MaryBrain
 //
-//  Legacy mode, moved out of MaryBrain.swift: the single-engine
-//  `legacyTurn` loop (whole, verbatim) and the two synthetic nudges it and
+//  Local mode, moved out of MaryBrain.swift: the single-engine
+//  `localTurn` loop (whole, verbatim) and the two synthetic nudges it and
 //  the orchestrator share (`confirmRelayNudge`, `budgetNudge`).
 //
 //  Moved verbatim; no behavior change, no prompt-text change. Depends on
@@ -17,9 +17,9 @@ import os
 
 extension MaryBrain {
 
-    // MARK: - Legacy mode (single engine, unchanged loop)
+    // MARK: - Local mode (single engine, unchanged loop)
 
-    /// LEGACY IS NOT A LESSER TURN, and this is the parity that says so.
+    /// LOCAL IS NOT A LESSER TURN, and this is the parity that says so.
     ///
     /// THE FAILURE THIS FIXES (confirmed by the phase's own gate): every one of
     /// G1–G4 lived below `runTurn`'s `guard seerReady`, so the whole revision
@@ -44,7 +44,7 @@ extension MaryBrain {
     /// - G4 is the same `revisionReport`, yielded onto whatever prose the
     ///   single engine produced.
     // internal for file split — treat as private
-    func legacyTurn(
+    func localTurn(
         userText: String,
         systemPrompt: String,
         actionTurn: Bool = false,
@@ -77,7 +77,7 @@ extension MaryBrain {
         // over there.
         var veto = RevisionVeto(target: target)
         var worldVeto = WorldVeto(arming: worldVetoArming)
-        // G4's fuel. The legacy loop never needed settled outcomes before —
+        // G4's fuel. The local loop never needed settled outcomes before —
         // it speaks from the model's own prose — so this collects the same
         // `LaneOutcome` values the orchestrator lane does, for the same
         // consumer.
@@ -92,11 +92,11 @@ extension MaryBrain {
                 let schemas = dispatcher?.schemas ?? []
 
                 // Same engine-gate rule as the orchestrator lane: a detached
-                // routine may still be generating when a legacy turn starts.
+                // routine may still be generating when a local turn starts.
                 do {
                     var holdsGate = false
                     if engine.requiresExclusiveGeneration {
-                        // The legacy path runs inside the turn and never
+                        // The local path runs inside the turn and never
                         // detaches, so its rounds are always ones a person
                         // is waiting on.
                         holdsGate = await engineGate.acquire(priority: .attached)
@@ -206,7 +206,7 @@ extension MaryBrain {
                     // Plain reply (or nothing left to execute) — the turn is done.
                     //
                     // G4 — A REVISION REPORTS ITSELF HERE TOO. This is the
-                    // legacy loop's ordinary exit: earlier rounds ran the edit,
+                    // local loop's ordinary exit: earlier rounds ran the edit,
                     // this round is the model finally speaking. The sentence
                     // goes onto BOTH accumulations — `roundText` is what
                     // history keeps, `fullText` is what `.completed` carries —
@@ -433,7 +433,7 @@ extension MaryBrain {
             do {
                 var holdsGate = false
                 if engine.requiresExclusiveGeneration {
-                    // The legacy path runs inside the turn and never
+                    // The local path runs inside the turn and never
                     // detaches, so its rounds are always ones a person is
                     // waiting on.
                     holdsGate = await engineGate.acquire(priority: .attached)

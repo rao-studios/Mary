@@ -1,8 +1,8 @@
 //
-//  LegacyTurnGroundedRetryTests.swift
+//  LocalTurnGroundedRetryTests.swift
 //  MaryBrainTests
 //
-//  The empty-round retry in `legacyTurn` (MaryBrain+LegacyTurn.swift) beat a
+//  The empty-round retry in `localTurn` (MaryBrain+LocalTurn.swift) beat a
 //  blank page for quantized local models by silently re-rolling the same
 //  prompt. Live-reproduced on `--probe-chat` with Xcode genuinely frontmost:
 //  a Skill ran, a real result landed in history, and the retry's blind
@@ -25,7 +25,7 @@ import MaryFoundation
 @testable import MaryPlugin
 @testable import MaryBrain
 
-@Suite struct LegacyTurnGroundedRetryTests {
+@Suite struct LocalTurnGroundedRetryTests {
 
     private func call(_ name: String) -> ModelSkillInvocation {
         ModelSkillInvocation(id: UUID().uuidString, name: name, argumentsJSON: "{}")
@@ -48,7 +48,7 @@ import MaryFoundation
         ])
         let dispatcher = BrainFakes.StubDispatcher()
         dispatcher.results["probe"] = "the file's real content"
-        // No seerChat configured — every turn takes the legacy path.
+        // No seerChat configured — every turn takes the local path.
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
 
         let events = try await collect(brain.respond(to: "what does this file do"))
