@@ -30,7 +30,27 @@
 //    mary-corpus-probe --dispatch-scrivener-typing
 //    mary-corpus-probe --dispatch-scrivener-typing --marker "[[MARY-PROBE]]"
 //
+//  THE EXPLICIT-APP RUNG, SEPARATELY — `--dispatch-scrivener-typing-
+//  explicit-app`. `run` above deliberately dispatches with NO `app`
+//  argument (the frontmost rung, what an ordinary turn takes with
+//  Scrivener already in front — see its own comment at the dispatch site).
+//  `TypingSurface.resolve`'s taught-application rung, which only an
+//  EXPLICIT `app:` argument reaches, used to hand `TypingSurface.isRunning`
+//  the package's exact declared id with no family
+//  (`com.literatureandlatte.scrivener`) and compare it against every
+//  running process exactly — so it answered false for the real, installed,
+//  versioned Scrivener 3 (`com.literatureandlatte.scrivener3`) and
+//  misfired "Open Scrivener first" even with Scrivener genuinely running.
+//  Fixed by carrying `bundleIdentifierPrefix` onto `TypingSurface
+//  .matchPrefix` in `taughtSurface(named:)` (`[Corpus P]`). This mode
+//  brings a different real application forward FIRST, so Scrivener starts
+//  in the background, then dispatches with an explicit `app` and proves the
+//  taught rung finds and activates it from there.
+//
+//    mary-corpus-probe --dispatch-scrivener-typing-explicit-app
+//
 
+import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
@@ -43,6 +63,15 @@ enum ScrivenerPerceptionProbe {
 
     static func shouldRun(_ arguments: [String]) -> Bool {
         arguments.contains("--dispatch-scrivener-typing")
+            && !arguments.contains("--dispatch-scrivener-typing-explicit-app")
+    }
+
+    static func shouldRunExplicitApp(_ arguments: [String]) -> Bool {
+        arguments.contains("--dispatch-scrivener-typing-explicit-app")
+    }
+
+    static func shouldRunFrontmostOnly(_ arguments: [String]) -> Bool {
+        arguments.contains("--dispatch-scrivener-typing-frontmost-only")
     }
 
     static func run(_ arguments: [String]) async {
@@ -169,11 +198,13 @@ enum ScrivenerPerceptionProbe {
         // .resolve`'s frontmost rung (its bundle id compared against
         // `SelectionSurfacePolicy.permitsProseApplication`, a blocklist
         // check) is what a model call with Scrivener already in front
-        // actually exercises, not the taught-application rung (which
-        // resolves through `scrivener.mary`'s DECLARED bundle id and would
-        // fail `isRunning`'s exact-match against the real
-        // `com.literatureandlatte.scrivener3` process — a separate,
-        // pre-existing version-suffix gap, not this fix's concern).
+        // actually exercises, not the taught-application rung — which
+        // resolves through `scrivener.mary`'s DECLARED bundle id and, before
+        // `[Corpus P]`, failed `isRunning`'s exact-match against the real
+        // `com.literatureandlatte.scrivener3` process. That rung is now
+        // exercised on its own, with Scrivener starting in the BACKGROUND,
+        // by `runExplicitApp` below (`--dispatch-scrivener-typing-explicit-
+        // app`).
         let marker = value("--marker") ?? " [[MARY-PROBE-\(Int(Date().timeIntervalSince1970))]]"
         let typeOutcome = await runtime.dispatch(
             name: "type_at_cursor",
@@ -189,5 +220,176 @@ enum ScrivenerPerceptionProbe {
         }
 
         AmbientContextStore.shared.noteRoute(route)
+    }
+
+    // MARK: - The explicit-app rung, on its own
+
+    /// `[Corpus P]`'s live proof. Unlike `run` above, this never brings
+    /// Scrivener forward first — it brings a DIFFERENT application forward,
+    /// confirms Scrivener is genuinely in the background, and only then
+    /// dispatches `type_at_cursor` with an explicit `app`. That is the only
+    /// way to actually exercise `TypingSurface.resolve`'s taught-application
+    /// rung rather than its frontmost one.
+    static func runExplicitApp(_ arguments: [String]) async {
+        func value(_ name: String) -> String? {
+            guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
+            else { return nil }
+            return arguments[index + 1]
+        }
+
+        guard AXIsProcessTrusted() else {
+            print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
+            exit(1)
+        }
+
+        heading("the roster")
+        let adapters = MaryAdapterCatalog.adapters()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: MaryAdapterCatalog.observers()),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+        check(load.activated, "the packages loaded", "\(load.snapshot.records.count)")
+        for issue in load.issues where issue.severity == .error {
+            print("      ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.corpusRegistrations(from: load.snapshot)
+        CorpusSupport.shared.reconcile(registrations)
+        let profiles = adapters.map(\.applicationProfile)
+            + load.snapshot.plugins.applicationProfiles
+        AmbientApplicationBridge.install(profiles: profiles)
+
+        guard NSWorkspace.shared.runningApplications.contains(where: {
+            $0.bundleIdentifier?.hasPrefix("com.literatureandlatte.scrivener") == true
+        }) else {
+            print("  ✗ Scrivener isn't running. Open it with a project and try again.")
+            exit(1)
+        }
+
+        heading("bringing a DIFFERENT application forward first")
+        // Finder is always running and never Scrivener's family, so this is
+        // a clean way to guarantee Scrivener starts the dispatch below in
+        // the background — the scenario the taught rung has to recover from.
+        let awayActivation = await VerifiedActivation.bringForward(
+            bundleID: "com.apple.finder", requireVisibleWindow: false)
+        check(awayActivation.succeeded, "Finder came forward",
+              awayActivation.road.map(String.init(describing:))
+                  ?? awayActivation.reason(app: "Finder") ?? "refused")
+        let frontBefore = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        check(
+            frontBefore?.hasPrefix("com.literatureandlatte.scrivener") != true,
+            "Scrivener is NOT frontmost going into the dispatch below",
+            frontBefore ?? "none")
+
+        heading("dispatching type_at_cursor with an EXPLICIT app, Scrivener in the background")
+        let log = AbilityExecutionLog()
+        let runtime = AbilityRuntime(
+            plugins: adapters, executionLog: log,
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        // THE FIX UNDER TEST: `TypingSurface.resolve(requested: "Scrivener",
+        // ...)` tries `taughtSurface(named:)` FIRST — the only rung an
+        // explicit `app` argument reaches, and the one `[Corpus P]` fixed.
+        // Before the fix this refused "Open Scrivener first" even with
+        // Scrivener genuinely running (as the real, versioned
+        // `com.literatureandlatte.scrivener3`), because `TypingSurface
+        // .isRunning` compared the package's exact declared id
+        // (`com.literatureandlatte.scrivener`) against every running
+        // process with no family.
+        let marker = value("--marker")
+            ?? " [[MARY-PROBE-EXPLICIT-\(Int(Date().timeIntervalSince1970))]]"
+        let typeOutcome = await runtime.dispatch(
+            name: "type_at_cursor",
+            argumentsJSON: #"{"app":"Scrivener","text":"\#(marker)"}"#)
+        check(typeOutcome.ok, "type_at_cursor dispatched without a refusal", typeOutcome.summary)
+        check(
+            !typeOutcome.summary.lowercased().contains("open scrivener first"),
+            "and specifically not the exact-match misfire this probe exists to catch",
+            typeOutcome.summary)
+        if !typeOutcome.ok {
+            print("""
+
+              ✗ type_at_cursor refused. If the refusal text mentions "a text \
+                cursor", place a real cursor in a Scrivener document's editor \
+                pane (click into it) and run this again.
+            """)
+        }
+
+        let frontAfter = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        check(
+            frontAfter?.hasPrefix("com.literatureandlatte.scrivener") == true,
+            "Scrivener came forward on its own, driven entirely by the explicit-app dispatch",
+            frontAfter ?? "none")
+    }
+
+    // MARK: - The frontmost rung, on its own, with no corpus precondition
+
+    /// THE NON-REGRESSION CHECK: `run` above additionally requires
+    /// `ProjectCorpusSupport.resolve(nil)` to name Scrivener unambiguously —
+    /// right for proving the fourth-channel perception fix, wrong when all
+    /// that is needed is "does the frontmost rung still work", which does
+    /// not touch the corpus feature at all. This mode asks only for
+    /// Scrivener to already be frontmost (the caller's job — this probe
+    /// never activates it, so the scenario stays an honest "ordinary
+    /// conversational turn with Scrivener already in front") and dispatches
+    /// `type_at_cursor` with NO `app`, the same call shape `run` above uses.
+    static func runFrontmostOnly(_ arguments: [String]) async {
+        func value(_ name: String) -> String? {
+            guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
+            else { return nil }
+            return arguments[index + 1]
+        }
+
+        guard AXIsProcessTrusted() else {
+            print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
+            exit(1)
+        }
+
+        heading("the roster")
+        let adapters = MaryAdapterCatalog.adapters()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: MaryAdapterCatalog.observers()),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+        check(load.activated, "the packages loaded", "\(load.snapshot.records.count)")
+        for issue in load.issues where issue.severity == .error {
+            print("      ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.corpusRegistrations(from: load.snapshot)
+        CorpusSupport.shared.reconcile(registrations)
+        let profiles = adapters.map(\.applicationProfile)
+            + load.snapshot.plugins.applicationProfiles
+        AmbientApplicationBridge.install(profiles: profiles)
+
+        heading("what is frontmost")
+        let front = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        guard front?.hasPrefix("com.literatureandlatte.scrivener") == true else {
+            print("  ✗ Scrivener isn't frontmost (front: \(front ?? "none")). Bring it forward "
+                + "yourself first — this mode never activates it — and run this again.")
+            exit(1)
+        }
+        check(true, "Scrivener is frontmost", front ?? "")
+
+        heading("dispatching type_at_cursor for real — NO explicit app")
+        let log = AbilityExecutionLog()
+        let runtime = AbilityRuntime(
+            plugins: adapters, executionLog: log,
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        let marker = value("--marker")
+            ?? " [[MARY-PROBE-FRONTMOST-\(Int(Date().timeIntervalSince1970))]]"
+        let typeOutcome = await runtime.dispatch(
+            name: "type_at_cursor",
+            argumentsJSON: #"{"text":"\#(marker)"}"#)
+        check(typeOutcome.ok, "type_at_cursor dispatched without a refusal", typeOutcome.summary)
+        if !typeOutcome.ok {
+            print("""
+
+              ✗ type_at_cursor refused. If the refusal text mentions "a text \
+                cursor", place a real cursor in a Scrivener document's editor \
+                pane (click into it) and run this again.
+            """)
+        }
     }
 }

@@ -60,6 +60,21 @@ if ScrivenerPerceptionProbe.shouldRun(CommandLine.arguments) {
     exit(failures == 0 ? 0 : 1)
 }
 
+// THE EXPLICIT-APP RUNG, on its own — see `ScrivenerPerceptionProbe`'s
+// header. Checked right after the flag above so the two live beside each
+// other, same as `CodeSurfaceProbe`/`CodeSurfaceWriteProbe`.
+if ScrivenerPerceptionProbe.shouldRunExplicitApp(CommandLine.arguments) {
+    await ScrivenerPerceptionProbe.runExplicitApp(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
+// THE FRONTMOST RUNG, on its own, with no corpus precondition — see
+// `ScrivenerPerceptionProbe.runFrontmostOnly`'s header.
+if ScrivenerPerceptionProbe.shouldRunFrontmostOnly(CommandLine.arguments) {
+    await ScrivenerPerceptionProbe.runFrontmostOnly(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
 // READING A PROJECT off disk is its own question — the shape of one
 // manuscript, not the style of a body of files — and needs no AX at all,
 // so it runs before the grant check below.

@@ -53,14 +53,57 @@ struct TypingSurface: Sendable, Equatable {
     let matchPrefix: String
     let spokenName: String
 
-    init(bundleID: String, spokenName: String?) {
+    init(bundleID: String, matchPrefix: String? = nil, spokenName: String?) {
         self.bundleID = bundleID
-        self.matchPrefix = bundleID
+        self.matchPrefix = matchPrefix ?? bundleID
         self.spokenName = spokenName.flatMap { $0.isEmpty ? nil : $0 } ?? bundleID
     }
 
+    /// EXACT FIRST, THEN THE FAMILY — the same two-tier question
+    /// `ApplicationRegistration.owns(bundleID:)` answers for ambient routing
+    /// and `VerifiedActivation.regularApplication` answers for activation,
+    /// asked here through the identical boundary predicate,
+    /// `ApplicationRegistration.isInFamily`.
+    ///
+    /// THE INCIDENT THIS FIXES: a taught application's `TypingSurface` used
+    /// to carry `matchPrefix == bundleID` — the package's exact DECLARED id
+    /// — and this property compared it exactly against every running
+    /// process. `scrivener.mary` declares `com.literatureandlatte.scrivener`;
+    /// the real, installed Scrivener 3 runs as
+    /// `com.literatureandlatte.scrivener3`. An explicit `app: "Scrivener"`
+    /// argument to `type_at_cursor` resolves through `taughtSurface(named:)`
+    /// below, which used to hand this property the declared id with no
+    /// family — so it answered false against a genuinely running Scrivener
+    /// and misfired "Open Scrivener first". `taughtSurface(named:)` now
+    /// carries the package's declared `bundleIdentifierPrefix` as
+    /// `matchPrefix`, and this reads it with the SAME family rule ambient
+    /// routing already trusts — one mechanism, not a second one invented
+    /// here. The frontmost rung (no explicit `app`) was never routed through
+    /// `taughtSurface`, so it was already unaffected and stays that way.
     var isRunning: Bool {
-        !NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).isEmpty
+        Self.isRunning(
+            bundleID: bundleID,
+            matchPrefix: matchPrefix,
+            runningBundleIdentifiers: NSWorkspace.shared.runningApplications
+                .compactMap(\.bundleIdentifier))
+    }
+
+    /// The pure decision, pulled out of the live-process read above so the
+    /// exact-then-family rule is testable without a live process of either
+    /// vintage actually running.
+    static func isRunning(
+        bundleID: String,
+        matchPrefix: String,
+        runningBundleIdentifiers: [String]
+    ) -> Bool {
+        let bundleID = bundleID.lowercased()
+        let matchPrefix = matchPrefix.lowercased()
+        if runningBundleIdentifiers.contains(where: { $0.lowercased() == bundleID }) {
+            return true
+        }
+        return runningBundleIdentifiers.contains {
+            ApplicationRegistration.isInFamily($0.lowercased(), prefix: matchPrefix)
+        }
     }
 
     /// `type_at_cursor` must never turn an ordinary writing request into a
@@ -179,8 +222,13 @@ struct TypingSurface: Sendable, Equatable {
               registration.place.focus == .writing,
               let bundleID = registration.bundleIdentifiers.sorted().first
         else { return nil }
+        // THE FAMILY, CARRIED THROUGH — not just the exact declared id. See
+        // `isRunning`'s header: this is what lets it recognize a running
+        // process one major version ahead of what the package declared.
         return TypingSurface(
-            bundleID: bundleID, spokenName: registration.displayName)
+            bundleID: bundleID,
+            matchPrefix: registration.bundleIdentifierPrefix ?? bundleID,
+            spokenName: registration.displayName)
     }
 
     private static func names(_ app: RunningApplication, requested: String) -> Bool {
