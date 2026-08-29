@@ -2482,6 +2482,17 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 namedWritingApplication: namedWriting?.displayName) {
                 summary += clause
             }
+        } else if contract.primitive == .reviseSelection {
+            // revise_selection's mirror of the seam above: no surface to
+            // name, only whether the turn's routed selection is still there
+            // to write back into. Same predicate `type_at_cursor(mode:
+            // "replace_selection")` itself checks at dispatch, so the clause
+            // is never a promise dispatch would go on to refuse.
+            if let clause = CognitivePrimitiveCatalog.revisionPlacementClause(
+                hasRoutedSelection: ambient.routedSelectionHandoff(
+                    requiringWritingTarget: true) != nil) {
+                summary += clause
+            }
         }
         var typedOutputs: [String: ValueEnvelope] = [:]
         for output in runtime.skill.outputs {
