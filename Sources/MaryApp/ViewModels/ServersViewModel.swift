@@ -58,21 +58,19 @@ final class ServersViewModel: ObservableObject {
         graphStats = try? await reader.graphStats(ownerID: owner)
     }
 
-    /// Wipes Mary's deposited context — BOTH pools: the legacy owner-wide
-    /// `mary-context-<owner>` group and the per-document/project
-    /// `mary-scope-…` groups deposits are filed into when something is in
-    /// view. Missing the second set would leave "Clear Mary's context"
-    /// quietly partial, which is the failure mode that button exists to
-    /// prevent. Saved memories and other groups stay intact.
+    /// Wipes Mary's deposited context — project scopes, Ability codec,
+    /// Personal interactions, and style profiles. Node identity stays.
     func clearMaryContext() {
         clear(label: "Mary's context") { reader, owner in
-            let legacy = try await reader.clearGroups(
-                prefix: "mary-context-\(owner)", ownerID: owner)
             let scoped = try await reader.clearGroups(
                 prefix: "mary-scope-", ownerID: owner)
             let ability = try await reader.clearGroups(
                 prefix: "mary-ability-", ownerID: owner)
-            return legacy + scoped + ability
+            let interactions = try await reader.clearGroups(
+                prefix: "mary-behavior-", ownerID: owner)
+            let style = try await reader.clearGroups(
+                prefix: "mary-style-", ownerID: owner)
+            return scoped + ability + interactions + style
         }
     }
 

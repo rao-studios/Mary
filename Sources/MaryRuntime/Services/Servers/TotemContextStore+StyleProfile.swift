@@ -62,7 +62,7 @@ extension TotemContextStore {
                 subject: subject, predicate: "applies to", object: application))
         }
 
-        let destination = ("mary-context-\(owner)", "Mary Context")
+        let destination = TotemMemoryTopology.styleGroup(ownerID: owner)
         let item = DepositItem(
             documentID: TotemMemoryTopology.styleProfileDocumentID(
                 subject: subject, ownerID: owner),
@@ -74,7 +74,8 @@ extension TotemContextStore {
             relationships: relationships)
         _ = try? await client.deposit(
             [item], ownerID: owner,
-            groupID: destination.0, groupLabel: destination.1)
+            groupID: destination.id, groupLabel: destination.label,
+            scope: TotemLane.personal.rawValue)
     }
 
     /// Restore the profile. A profile this build cannot read is refused by the

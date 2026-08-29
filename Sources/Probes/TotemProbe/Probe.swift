@@ -95,8 +95,8 @@ enum Probe {
             )
             let count = try await client.deposit(
                 [item], ownerID: owner,
-                groupID: args.option("group") ?? "mary-context-\(owner)",
-                groupLabel: "Mary Context")
+                groupID: args.option("group") ?? "mary-behavior-interaction-\(owner)",
+                groupLabel: "Interactions")
             print("deposited \(count) — document_id=\(documentID)")
 
         case "search":
@@ -167,7 +167,7 @@ enum Probe {
             )
             let deposited = try await client.deposit(
                 [item], ownerID: owner,
-                groupID: "mary-context-\(owner)", groupLabel: "Mary Context")
+                groupID: "mary-behavior-interaction-\(owner)", groupLabel: "Interactions")
             print("deposit: indexed_count=\(deposited) document_id=\(documentID)")
 
             // Index responds before Totem's write queue drains — the doc is

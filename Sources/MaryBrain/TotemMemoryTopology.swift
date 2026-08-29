@@ -77,11 +77,37 @@ public enum TotemMemoryTopology {
     // dropped as already-owned — the reason `DepositSubject` gives.
     //
 
+    /// Seer chat: Personal interaction records plus Seer's own memory.
+    /// Never Ability groups, never project scopes, never `mary-context-*`.
+    public static func seerPersonalScope(ownerID: String) -> RetrievalScope {
+        RetrievalScope(
+            groups: [interactionGroup(ownerID: ownerID)]
+                + RetrievalScope.memoryGroups(ownerID: ownerID),
+            aggregate: false)
+    }
+
+    /// Same as `seerPersonalScope(ownerID:)` — subject no longer steers Seer.
     public static func seerPersonalScope(
         subject: DepositSubject,
         ownerID: String
     ) -> RetrievalScope {
-        subject.retrievalScope(ownerID: ownerID)
+        seerPersonalScope(ownerID: ownerID)
+    }
+
+    public static func interactionGroup(ownerID: String) -> RetrievalScope.Group {
+        .init(id: "mary-behavior-interaction-\(ownerID)", label: "Interactions")
+    }
+
+    public static func styleGroup(ownerID: String) -> RetrievalScope.Group {
+        .init(id: "mary-style-\(ownerID)", label: "Style")
+    }
+
+    public static func behaviorDocumentID(episodeID: UUID) -> String {
+        "mary-behavior-\(episodeID.uuidString.lowercased())"
+    }
+
+    public static func interactionDocumentID(episodeID: UUID) -> String {
+        "mary-behavior-interaction-\(episodeID.uuidString.lowercased())"
     }
 
     /// Ability Totem groups Mary searches over gRPC. Empty when the turn has

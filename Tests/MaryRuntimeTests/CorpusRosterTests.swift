@@ -65,6 +65,50 @@ import MaryTotem
         #expect(live.family == .abilityGroup)
     }
 
+    @Test func leftoverContextAddressesAreUnknown() {
+        let group = TotemAddressClassifier.classifyGroup(id: "mary-context-owner-abc")
+        #expect(group.family == .unknown)
+        #expect(group.lane == nil)
+        let document = TotemAddressClassifier.classifyDocument(id: "mary-context-owner-abc")
+        #expect(document.family == .unknown)
+    }
+
+    @Test func destinationWithoutAScopeDoesNotMintAContextPool() {
+        #expect(TotemContextStore.destination(subject: .unfocused, ownerID: "o") == nil)
+        let focused = DepositSubject(app: "xcode", projectIdentity: "/repos/Mary")
+        let dest = TotemContextStore.destination(subject: focused, ownerID: "o")
+        #expect(dest?.id.hasPrefix("mary-scope-") == true)
+        #expect(dest?.id.hasPrefix("mary-context-") != true)
+    }
+
+    @Test func styleFilesToTheStyleGroup() {
+        let group = TotemMemoryTopology.styleGroup(ownerID: "o")
+        #expect(group.id == "mary-style-o")
+        #expect(group.label == "Style")
+        let classified = TotemAddressClassifier.classifyGroup(id: group.id)
+        #expect(classified.family == .styleGroup)
+        #expect(classified.lane == .personal)
+        let profile = TotemMemoryTopology.styleProfileDocumentID(
+            subject: "writing", ownerID: "o")
+        #expect(profile.hasPrefix("mary-style-profile-"))
+        #expect(TotemAddressClassifier.classifyDocument(id: profile).family == .styleProfile)
+    }
+
+    @Test func behaviorFamiliesPreferTheLongerPrefix() {
+        let interactionGroup = TotemMemoryTopology.interactionGroup(ownerID: "o")
+        #expect(TotemAddressClassifier.classifyGroup(id: interactionGroup.id).family
+                == .behaviorInteraction)
+        let episodeID = UUID(uuidString: "22222222-2222-2222-2222-222222222222")!
+        let episodeDoc = TotemMemoryTopology.behaviorDocumentID(episodeID: episodeID)
+        let interactionDoc = TotemMemoryTopology.interactionDocumentID(episodeID: episodeID)
+        #expect(TotemAddressClassifier.classifyDocument(id: episodeDoc).family
+                == .behaviorEpisode)
+        #expect(TotemAddressClassifier.classifyDocument(id: episodeDoc).lane == .ability)
+        #expect(TotemAddressClassifier.classifyDocument(id: interactionDoc).family
+                == .behaviorInteractionDocument)
+        #expect(TotemAddressClassifier.classifyDocument(id: interactionDoc).lane == .personal)
+    }
+
     @Test func durableExpertiseReceiptsIndexTheSignaledDiscipline() {
         let projection = ResolvedTotemProjection(
             id: "xcode.receipts",

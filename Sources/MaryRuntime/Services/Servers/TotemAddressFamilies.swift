@@ -7,12 +7,10 @@
 //  and family of everything in the node can only be recovered from the
 //  address prefixes the minters chose. This lives in the app layer because
 //  the app is the only layer that sees every minter: MaryAmbient mints
-//  mary-scope-/mary-doc-/mary-context- (and spells Seer's own memory-/
-//  resonance- groups), MaryBrain mints mary-ability-*/mary-unit-*/
-//  mary-style-profile-/mary-project-schema-, and the app's own
-//  TotemContextStore mints mary-skill-. A classifier lower in the stack
-//  could not be tested against addresses it cannot see, and an untested
-//  prefix table is drift waiting to be retrieved.
+//  mary-scope-/mary-doc- (and spells Seer's own memory-/resonance- groups),
+//  MaryBrain mints mary-ability-*/mary-unit-*/mary-style-profile-/
+//  mary-project-schema-/mary-behavior-*, and the runtime mints
+//  mary-behavior-interaction- / mary-style- groups.
 //
 
 import MaryFoundation
@@ -29,9 +27,10 @@ package enum TotemAddressFamily: String, CaseIterable {
     case abilityGroup
     /// `mary-scope-…` — `DepositSubject.groupID`.
     case scopeGroup
-    /// `mary-context-<owner>` — the owner-wide pool.
-    /// `RetrievalScope.legacyPool`, mirrored by `TotemContextStore.destination`.
-    case legacyContextPool
+    /// `mary-behavior-interaction-<owner>` — `TotemMemoryTopology.interactionGroup`.
+    case behaviorInteraction
+    /// `mary-style-<owner>` — `TotemMemoryTopology.styleGroup`.
+    case styleGroup
     /// `memory-<owner>` — written by the Seer server, never by Mary.
     case seerMemory
     /// `resonance-<owner>` — written by the Seer server, never by Mary.
@@ -51,7 +50,7 @@ package enum TotemAddressFamily: String, CaseIterable {
     /// projection suffixes `TotemContextStore.documentID` append keep the
     /// prefix, so suffixed snapshots stay in this family.
     case stateSnapshot
-    /// `mary-skill-<uuid>` — `TotemContextStore.documentID`'s episodic fallback.
+    /// `mary-skill-<uuid>` — leftover episodic skill dumps; no longer minted.
     case skillRecord
     /// `mary-unit-manifest-…` — `TotemMemoryTopology.unitManifestID`.
     case unitManifest
@@ -59,6 +58,10 @@ package enum TotemAddressFamily: String, CaseIterable {
     case unitCard
     /// `mary-style-profile-…` — `TotemMemoryTopology.styleProfileDocumentID`.
     case styleProfile
+    /// `mary-behavior-interaction-…` — Personal interaction stub.
+    case behaviorInteractionDocument
+    /// `mary-behavior-…` — sealed BehavioralEpisode on Ability Totem.
+    case behaviorEpisode
 
     /// No minter Mary knows about. Kept as its own bucket rather than
     /// folded into a nearest neighbour, so foreign or future addresses show
@@ -82,10 +85,11 @@ package struct TotemAddressClassification: Equatable {
         self.family = family
         switch family {
         case .abilityGroup, .abilityDocument,
-             .abilitySchemaManifest, .abilitySchema:
+             .abilitySchemaManifest, .abilitySchema, .behaviorEpisode:
             lane = .ability
-        case .scopeGroup, .legacyContextPool, .projectSchema, .stateSnapshot,
-             .skillRecord, .unitManifest, .unitCard, .styleProfile:
+        case .scopeGroup, .behaviorInteraction, .styleGroup, .projectSchema,
+             .stateSnapshot, .skillRecord, .unitManifest, .unitCard,
+             .styleProfile, .behaviorInteractionDocument:
             lane = .personal
         case .seerMemory, .seerResonance, .unknown:
             lane = nil
@@ -111,17 +115,15 @@ package enum TotemAddressClassifier {
     // CORRECTNESS RULE — LONGEST PREFIX FIRST. Several families share a
     // spine: `mary-ability-schema-manifest-` begins with
     // `mary-ability-schema-`, which begins with `mary-ability-`;
-    // `mary-unit-manifest-` begins with `mary-unit-`. Matching in
-    // declaration order would let a shorter prefix swallow the longer
-    // family, so the tables are sorted by prefix length at construction —
-    // the rule is structural, not a discipline the next added case could
-    // forget.
+    // `mary-unit-manifest-` begins with `mary-unit-`;
+    // `mary-behavior-interaction-` begins with `mary-behavior-`.
 
     private static let groupTable: [(prefix: String, family: TotemAddressFamily)] =
         byLongestPrefix([
+            ("mary-behavior-interaction-", .behaviorInteraction),
             ("mary-ability-", .abilityGroup),
             ("mary-scope-", .scopeGroup),
-            ("mary-context-", .legacyContextPool),
+            ("mary-style-", .styleGroup),
             ("memory-", .seerMemory),
             ("resonance-", .seerResonance),
         ])
@@ -131,6 +133,8 @@ package enum TotemAddressClassifier {
             ("mary-ability-schema-manifest-", .abilitySchemaManifest),
             ("mary-ability-schema-", .abilitySchema),
             ("mary-ability-document-", .abilityDocument),
+            ("mary-behavior-interaction-", .behaviorInteractionDocument),
+            ("mary-behavior-", .behaviorEpisode),
             ("mary-project-schema-", .projectSchema),
             ("mary-doc-", .stateSnapshot),
             ("mary-skill-", .skillRecord),

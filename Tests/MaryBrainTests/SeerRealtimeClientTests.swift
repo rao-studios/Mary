@@ -149,23 +149,15 @@ final class SeerRealtimeClientTests: XCTestCase {
         XCTAssertEqual(messages.first?["content"] as? String, "hello there")
     }
 
-    /// The realtime lane wraps the IDENTICAL ChatRequest, so scoping has to
-    /// ride here too. Pinned separately because the failure mode is
-    /// invisible: flip Settings to realtime and retrieval silently widens
-    /// back to owner-wide.
+    /// Spoken retrieval is Personal interactions plus Seer's own memory on
+    /// both transports. Project scopes stay off this request.
     func testTurnStartCarriesTheFocusedDocumentScope() async throws {
         let ws = ScriptedWS([.init(frames: [.text(#"{"type":"turn.end"}"#)])])
         let client = await makeClient(ws)
         await client.configure(
             baseURL: URL(string: "http://127.0.0.1:8080")!,
             personalTotemID: "totem-1",
-            retrievalScope: { owner in
-                DepositSubject(
-                    app: "xcode",
-                    documentIdentity: "/Users/r/Mary/Sources/main.swift",
-                    projectIdentity: "/Users/r/Mary"
-                ).retrievalScope(ownerID: owner)
-            })
+            retrievalScope: { TotemMemoryTopology.seerPersonalScope(ownerID: $0) })
         _ = try await collect(client)
 
         guard case .text(let json) = ws.sent[0] else { return XCTFail("expected text frame") }
@@ -175,19 +167,17 @@ final class SeerRealtimeClientTests: XCTestCase {
         let seer = try XCTUnwrap(request["seer"] as? [String: Any])
         XCTAssertEqual(seer["aggregate"] as? Bool, false)
         let groups = try XCTUnwrap(seer["groups"] as? [[String: Any]])
-        XCTAssertEqual(groups[0]["label"] as? String, "Xcode — Mary",
-                       "a coding turn scopes to the PROJECT, not the one file")
+        XCTAssertEqual(groups[0]["label"] as? String, "Interactions")
         XCTAssertEqual(groups[0]["owner_id"] as? String, "owner-abc")
-        // The memory groups ride BOTH transports. Scoping the SSE lane to the
-        // document alone blacked out long-term memory; fixing it there and
-        // not here would present as "memory works until I switch transports
-        // in Settings" — a bug with no visible cause.
-        // Four now — the legacy owner-wide pool joins them, because every
-        // EYELESS deposit lands there and excluding it made a focused turn
-        // unable to recall anything about the user's calendar or mail.
-        XCTAssertEqual(groups.count, 4)
-        XCTAssertEqual(groups.map { $0["id"] as? String }.dropFirst(),
-                       ["memory-owner-abc", "resonance-owner-abc", "mary-context-owner-abc"])
+        XCTAssertEqual(groups.count, 3)
+        XCTAssertEqual(groups.map { $0["id"] as? String },
+                       ["mary-behavior-interaction-owner-abc",
+                        "memory-owner-abc",
+                        "resonance-owner-abc"])
+        let ids = groups.compactMap { $0["id"] as? String }
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-scope-") })
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-ability-") })
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-context-") })
     }
 
     /// The realtime twin of the SSE scope pin: the `.scoped` trace and the
@@ -199,13 +189,7 @@ final class SeerRealtimeClientTests: XCTestCase {
         await client.configure(
             baseURL: URL(string: "http://127.0.0.1:8080")!,
             personalTotemID: "totem-1",
-            retrievalScope: { owner in
-                DepositSubject(
-                    app: "xcode",
-                    documentIdentity: "/Users/r/Mary/Sources/main.swift",
-                    projectIdentity: "/Users/r/Mary"
-                ).retrievalScope(ownerID: owner)
-            })
+            retrievalScope: { TotemMemoryTopology.seerPersonalScope(ownerID: $0) })
         let events = try await collect(client)
 
         guard case .scoped(let request)? = events.first else {

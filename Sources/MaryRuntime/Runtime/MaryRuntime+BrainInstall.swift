@@ -174,7 +174,6 @@ extension MaryRuntime {
             systemPromptText(plugins: adapters, projects: projects, deps: deps)
         }
         await brain.setTurnContextPreparer {
-            await refreshAbilityMemory()
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }

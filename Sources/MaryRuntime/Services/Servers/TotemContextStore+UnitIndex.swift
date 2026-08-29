@@ -27,8 +27,9 @@ extension TotemContextStore {
     /// this only writes it down.
     func depositUnitIndex(_ unit: IndexedUnit, manifest: UnitIndexManifest) async {
         guard let owner = await session.userID,
-              let projectID = unit.projectID, !projectID.isEmpty else { return }
-        let destination = Self.destination(subject: unit.subject, ownerID: owner)
+              let projectID = unit.projectID, !projectID.isEmpty,
+              let destination = Self.destination(subject: unit.subject, ownerID: owner)
+        else { return }
         let composition = Self.unitComposition(unit)
         let documentID = TotemMemoryTopology.unitDocumentID(
             unitKey: unit.unitKey, ownerID: owner)
@@ -108,11 +109,12 @@ extension TotemContextStore {
     ) async {
         guard let manifest = unitManifests[projectID],
               let data = try? UnitIndexManifest.encoder().encode(manifest),
-              let content = String(data: data, encoding: .utf8) else { return }
-        let destination = Self.destination(
-            subject: DepositSubject(
-                app: unitManifestOwners[projectID], projectIdentity: projectID),
-            ownerID: ownerID)
+              let content = String(data: data, encoding: .utf8),
+              let destination = Self.destination(
+                subject: DepositSubject(
+                    app: unitManifestOwners[projectID], projectIdentity: projectID),
+                ownerID: ownerID)
+        else { return }
         let item = DepositItem(
             documentID: TotemMemoryTopology.unitManifestID(
                 projectID: projectID, ownerID: ownerID),

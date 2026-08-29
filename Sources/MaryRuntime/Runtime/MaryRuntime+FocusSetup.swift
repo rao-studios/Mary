@@ -18,9 +18,9 @@ extension MaryRuntime {
     /// deposits under it, and chat retrieval scopes to it. Installed by
     /// `installBrainConfiguration` from the same `resolveFocus()` the prompt
     /// uses, so the prompt, the archive and retrieval can never name
-    /// different documents. Unfocused until then — which is exactly today's
-    /// behavior (owner-wide pool, `aggregate: true`), so nothing here depends
-    /// on boot order.
+    /// different documents. Unfocused until then — Seer still uses the
+    /// Personal interaction group plus memory/resonance, so nothing here
+    /// depends on boot order.
     ///
     /// LOCK-GUARDED, not `nonisolated(unsafe)`: this closure is WRITTEN from
     /// the main actor whenever settings change (plugins toggled, projects
@@ -70,11 +70,6 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<Bool>(initialState: false)
     static let totemArchivingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    /// Ability Totem hits for the acting prompt, filled during turn-context
-    /// refresh over gRPC. Empty when there is nothing to search or Totem is
-    /// unreachable.
-    static let abilityMemoryBriefBox =
-        OSAllocatedUnfairLock<String>(initialState: "")
     /// The Brain card's choice, as `applyEngine` last applied it.
     ///
     /// HERE FOR THE SAME REASON AS `projectRootsBox` above: the wiring
@@ -138,63 +133,13 @@ extension MaryRuntime {
                 // its declared cadence, a removed one loses its lane and its
                 // perceived facts in the same breath.
                 AmbientApplicationObserver.shared.activate()
-                if totemArchivingEnabledBox.withLock({ $0 }) {
-                }
             }
         }
     }
 
-    /// What Seer may retrieve RIGHT NOW — Personal lane of the active Totem
-    /// only. Ability groups travel Mary's gRPC search, not the chat `seer`
-    /// object, so a future Seer-network fan-out stays a person-memory query.
+    /// What Seer may retrieve RIGHT NOW — Personal interaction records plus
+    /// Seer's own memory and resonance. Ability codec stays off this request.
     static func retrievalScope(ownerID: String) -> RetrievalScope {
-        TotemMemoryTopology.seerPersonalScope(
-            subject: focusSubject(), ownerID: ownerID)
+        TotemMemoryTopology.seerPersonalScope(ownerID: ownerID)
     }
-
-    /// Ability Totem over local gRPC, for the acting prompt. Skipped when
-    /// there are no Ability targets or the user is not signed in.
-    static func refreshAbilityMemory() async {
-        abilityMemoryBriefBox.withLock { $0 = "" }
-        guard let owner = await seerSession.userID else { return }
-        let plan = AmbientContextStore.shared.route()?.gate.memory ?? .personal
-        let scope = TotemMemoryTopology.maryAbilityScope(for: plan, ownerID: owner)
-        guard !scope.groups.isEmpty else { return }
-        let query = AmbientContextStore.shared.utterance()
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return }
-        RetrievalTraceLedger.shared.stageAbilityRequest(
-            SeerRequestTrace(
-                grpcAbilitySearch: owner,
-                groups: scope.groups,
-                relationshipHints: scope.relationshipHints))
-        do {
-            let hits = try await makeTotemReader().search(
-                query: query,
-                ownerID: owner,
-                scope: TotemLane.ability.rawValue,
-                topK: 5,
-                groupIDs: scope.groups.map(\.id),
-                timeout: .milliseconds(800))
-            abilityMemoryBriefBox.withLock { $0 = abilityMemoryBrief(hits) }
-        } catch {
-            return
-        }
-    }
-
-    private static func abilityMemoryBrief(_ hits: [PartitionHit]) -> String {
-        let lines = hits.prefix(5).compactMap { hit -> String? in
-            let text = hit.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty else { return nil }
-            let clipped = text.count > 400 ? String(text.prefix(400)) + "…" : text
-            return "- \(clipped)"
-        }
-        guard !lines.isEmpty else { return "" }
-        return """
-
-        Ability Totem (this Mac, craft receipts — not Seer's personal memory):
-        \(lines.joined(separator: "\n"))
-        """
-    }
-
 }

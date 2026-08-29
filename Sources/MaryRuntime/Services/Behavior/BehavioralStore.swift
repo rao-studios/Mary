@@ -58,13 +58,16 @@ public actor BehavioralStore: BehavioralRecording {
     /// READ AT APPEND TIME, not captured at construction, so switching the
     /// setting off takes effect on the next turn rather than the next launch.
     private let isEnabled: @Sendable () -> Bool
+    private let companion: (any BehavioralRecording)?
 
     public init(
         directory: URL = BehavioralStore.defaultDirectory(),
-        isEnabled: @escaping @Sendable () -> Bool = { true }
+        isEnabled: @escaping @Sendable () -> Bool = { true },
+        companion: (any BehavioralRecording)? = nil
     ) {
         self.directory = directory
         self.isEnabled = isEnabled
+        self.companion = companion
     }
 
     // MARK: - Writing
@@ -81,6 +84,9 @@ public actor BehavioralStore: BehavioralRecording {
             // full; the act really happened, and the user has no way to act
             // on a storage problem mid-sentence.
             log.error("episode \(episode.id, privacy: .public) not written: \(error.localizedDescription, privacy: .public)")
+        }
+        if let companion {
+            await companion.append(episode)
         }
     }
 

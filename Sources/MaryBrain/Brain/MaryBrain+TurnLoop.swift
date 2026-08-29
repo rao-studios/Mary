@@ -581,6 +581,8 @@ extension MaryBrain {
                 elementIndex: wiring.elementIndex,
                 focusTracker: focusTracker)))
         ambient.noteRoute(route)
+        wiring.behavior.noteAbilityTargets(
+            route.gate.memory.abilityTargets, forEpisode: userTurn.id)
         // Explicit language outranks a live but unrelated window. Otherwise a
         // recognized frontmost application becomes the next short follow-up's
         // referent. Merely inheriting a referent does not refresh its lifetime.

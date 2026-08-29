@@ -315,15 +315,18 @@ final class TotemExplorerViewModel: ObservableObject {
         // Primary: real content by id (TotemLibrary.Documents).
         if let contents = try? await reader.documents(ids: [id], ownerID: owner),
            let document = contents.first {
+            let body = document.content
             selectedDocument = TotemDocumentDetail(
                 id: document.id,
                 name: document.name.isEmpty ? document.id : document.name,
                 groupLabel: document.groupLabel,
                 createdAt: Self.documentDate(fromCreatedAt: document.createdAt),
-                body: document.content,
+                body: body,
                 preview: nil,
                 family: family,
-                notice: nil)
+                notice: nil,
+                codec: BehavioralTotemInspect.codec(from: body),
+                interaction: BehavioralTotemInspect.interaction(from: body))
             return
         }
 
@@ -356,7 +359,9 @@ final class TotemExplorerViewModel: ObservableObject {
             body: nil,
             preview: preview,
             family: family,
-            notice: "Full body unavailable on this Totem build — metadata and a search preview only.")
+            notice: "Full body unavailable on this Totem build — metadata and a search preview only.",
+            codec: preview.flatMap(BehavioralTotemInspect.codec(from:)),
+            interaction: preview.flatMap(BehavioralTotemInspect.interaction(from:)))
     }
 
     // MARK: - Graph query (on-demand, cancel-replace)
@@ -629,10 +634,10 @@ final class TotemExplorerViewModel: ObservableObject {
         // they are instead of being misfiled — the classifier's own rule.
         let sections: [(id: String, title: String, subtitle: String, groups: [TotemGroupRow])] = [
             ("ability", "Ability lane",
-             "Craft receipts and packaged skill memory, keyed by Ability and paradigm.",
+             "Behavioral codec for the activated discipline — input and output of each sealed turn.",
              rows.filter { $0.lane == .ability }),
             ("personal", "Personal lane",
-             "The user's own record — scopes, snapshots, units, style.",
+             "Interactions that produced an Ability deposit, plus project units and style.",
              rows.filter { $0.lane == .personal }),
             ("seer", "Seer's own",
              "Written by the Seer server on its own; never Mary's to rewrite.",
@@ -648,12 +653,16 @@ final class TotemExplorerViewModel: ObservableObject {
         built.libraryHasMore = inputs.hasMoreGroups
     }
 
-    /// The view's chip filter — pure, so selection is a question the view
-    /// asks, not state the builder stores. Nil family = everything.
+    /// The view's chip filter — lane raw value (`ability`/`personal`) or a
+    /// family raw value. Nil = everything.
     nonisolated static func sections(
-        _ sections: [TotemLaneSection], matching family: TotemAddressFamily?
+        _ sections: [TotemLaneSection], matching filter: String?
     ) -> [TotemLaneSection] {
-        guard let family else { return sections }
+        guard let filter, !filter.isEmpty else { return sections }
+        if sections.contains(where: { $0.id == filter }) {
+            return sections.filter { $0.id == filter }
+        }
+        guard let family = TotemAddressFamily(rawValue: filter) else { return sections }
         return sections.compactMap { section in
             let groups = section.groups.filter { $0.family == family }
             guard !groups.isEmpty else { return nil }
@@ -667,7 +676,8 @@ final class TotemExplorerViewModel: ObservableObject {
         switch family {
         case .abilityGroup: return "Ability"
         case .scopeGroup: return "Scope"
-        case .legacyContextPool: return "Context pool"
+        case .behaviorInteraction: return "Interactions"
+        case .styleGroup: return "Style"
         case .seerMemory: return "Memory"
         case .seerResonance: return "Resonance"
         case .abilityDocument: return "Ability document"
@@ -679,6 +689,8 @@ final class TotemExplorerViewModel: ObservableObject {
         case .unitManifest: return "Unit manifest"
         case .unitCard: return "Unit card"
         case .styleProfile: return "Style profile"
+        case .behaviorEpisode: return "Behavioral codec"
+        case .behaviorInteractionDocument: return "Interaction"
         case .unknown: return "Unknown"
         }
     }
@@ -831,26 +843,25 @@ final class TotemExplorerViewModel: ObservableObject {
         promptSpend: [PromptSpendTrace]
     ) -> [TotemRetrievalWarning] {
         var warnings: [TotemRetrievalWarning] = []
+        _ = plan
         let seerRequests = requests.filter { $0.transport != .grpc }
         let grpcRequests = requests.filter { $0.transport == .grpc }
         let seerFamilies = Set(seerRequests.flatMap { request in
-            request.groups.map { TotemAddressClassifier.classifyGroup(id: $0.id).family }
-        })
-        let grpcFamilies = Set(grpcRequests.flatMap { request in
             request.groups.map { TotemAddressClassifier.classifyGroup(id: $0.id).family }
         })
 
         if seerFamilies.contains(.abilityGroup) {
             warnings.append(.init(
                 kind: .planScopeMismatch,
-                message: "Seer chat was sent an Ability Totem group. Spoken retrieval is Personal only; craft receipts go over local gRPC."))
+                message: "Seer chat was sent an Ability Totem group. Spoken retrieval is Personal interactions only."))
         }
 
-        if let plan, !plan.abilityTargets.isEmpty, !grpcRequests.isEmpty,
-           !grpcFamilies.contains(.abilityGroup) {
+        if grpcRequests.contains(where: { request in
+            request.groups.contains { TotemAddressClassifier.classifyGroup(id: $0.id).family == .abilityGroup }
+        }) {
             warnings.append(.init(
                 kind: .planScopeMismatch,
-                message: "Ability search ran over gRPC without an Ability Totem group."))
+                message: "Ability codec was searched on a turn. Ability Totem is training storage, not spoken retrieval."))
         }
 
         if !seerRequests.isEmpty, contribution == nil {

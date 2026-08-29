@@ -11,15 +11,13 @@ extension TotemContextStore {
 
     // MARK: - Addressing (pure, unit-tested — no server required)
 
-    /// The group a deposit belongs to. The legacy pool is the fallback, not
-    /// the rule: it is what "no specific document is in view" means.
+    /// The group a deposit belongs to. No owner-wide bag: without a project
+    /// or document scope there is nowhere to file.
     package static func destination(
         subject: DepositSubject, ownerID: String
-    ) -> (id: String, label: String) {
-        if let scoped = subject.groupID(ownerID: ownerID) {
-            return (scoped, subject.groupLabel)
-        }
-        return ("mary-context-\(ownerID)", "Mary Context")
+    ) -> (id: String, label: String)? {
+        guard let scoped = subject.groupID(ownerID: ownerID) else { return nil }
+        return (scoped, subject.groupLabel)
     }
 
     struct ProjectionDestination {

@@ -3,7 +3,8 @@
 //  MaryBrainTests
 //
 //  Ability Totem groups are keyed by ability and paradigm. Seer chat is
-//  Personal only; Mary gRPC search is Ability only.
+//  Personal interactions plus Seer's own memory; Ability codec stays off
+//  that request.
 //
 
 import Foundation
@@ -35,8 +36,13 @@ import Testing
             app: "xcode", projectIdentity: "/repos/Mary")
         let scope = TotemMemoryTopology.seerPersonalScope(
             subject: subject, ownerID: "o")
+        #expect(scope.groups.map(\.id) == [
+            "mary-behavior-interaction-o", "memory-o", "resonance-o",
+        ])
+        #expect(scope.aggregate == false)
         #expect(scope.groups.allSatisfy { !$0.id.hasPrefix("mary-ability-") })
-        #expect(scope.groups.contains { $0.id.hasPrefix("mary-scope-") })
+        #expect(!scope.groups.contains { $0.id.hasPrefix("mary-scope-") })
+        #expect(!scope.groups.contains { $0.id.hasPrefix("mary-context-") })
     }
 
     @Test func maryAbilityScopeIsTheAbilityGroup() {
@@ -66,7 +72,9 @@ import Testing
         let abilityID = TotemMemoryTopology.abilityGroup(target: coding, ownerID: "o").id
         #expect(seer.groups.allSatisfy { !$0.id.hasPrefix("mary-ability-") })
         #expect(ability.groups.map(\.id) == [abilityID])
-        #expect(seer.groups.contains { $0.id.hasPrefix("mary-scope-") })
+        #expect(seer.groups.contains { $0.id == "mary-behavior-interaction-o" })
+        #expect(!seer.groups.contains { $0.id.hasPrefix("mary-scope-") })
+        #expect(!seer.groups.contains { $0.id.hasPrefix("mary-context-") })
     }
 
     @Test func seerRetrievalScopeIgnoresAbilityTargets() {
@@ -78,5 +86,19 @@ import Testing
         let scope = TotemMemoryTopology.retrievalScope(
             for: plan, subject: subject, ownerID: "o")
         #expect(scope.groups.allSatisfy { !$0.id.hasPrefix("mary-ability-") })
+        #expect(!scope.groups.contains { $0.id.hasPrefix("mary-context-") })
+        #expect(scope.groups.contains { $0.id.hasPrefix("mary-behavior-interaction-") })
+    }
+
+    @Test func behaviorAndStyleAddressesAreStable() {
+        let episode = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!
+        #expect(TotemMemoryTopology.behaviorDocumentID(episodeID: episode)
+                == "mary-behavior-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+        #expect(TotemMemoryTopology.interactionDocumentID(episodeID: episode)
+                == "mary-behavior-interaction-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+        #expect(TotemMemoryTopology.styleGroup(ownerID: "Owner-ABC").id
+                == "mary-style-Owner-ABC")
+        #expect(TotemMemoryTopology.interactionGroup(ownerID: "Owner-ABC").id
+                == "mary-behavior-interaction-Owner-ABC")
     }
 }

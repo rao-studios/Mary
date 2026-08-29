@@ -118,6 +118,8 @@ struct TotemDocumentDetail: Identifiable, Equatable {
     var preview: String?
     var family: TotemAddressFamily
     var notice: String?
+    var codec: BehavioralCodecView? = nil
+    var interaction: BehavioralInteractionStub? = nil
 }
 
 // MARK: - Graph

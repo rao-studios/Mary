@@ -86,6 +86,17 @@ public final class BehavioralAssembler: @unchecked Sendable {
         }
     }
 
+    /// Stamp Ability Totem targets once the turn's route exists. Empty
+    /// targets mean JSONL only — Totem Ability is skipped.
+    public func noteAbilityTargets(
+        _ targets: [AbilityTotemTarget], forEpisode id: UUID
+    ) {
+        box.withLock { state in
+            guard state.open?.episode.id == id else { return }
+            state.open?.episode.abilityTargets = Array(Set(targets)).sorted()
+        }
+    }
+
     // MARK: - Lifecycle
 
     /// Open the episode for one user turn.

@@ -225,10 +225,7 @@ extension MaryRuntime {
                 render: render, lane: .system, held: held,
                 budget: AmbientRanker.abilityBudget,
                 route: AmbientContextStore.shared.route())
-            let abilityMemory = abilityMemoryBriefBox.withLock { $0 }
-            let text = abilityMemory.isEmpty
-                ? assembled.text
-                : assembled.text + abilityMemory
+            let text = assembled.text
             // STAGED, NOT BOOKED: this provider is zero-arg by design and
             // cannot name its exchange; the turn loop claims the stage onto
             // the row it opens a few statements after this returns, on the

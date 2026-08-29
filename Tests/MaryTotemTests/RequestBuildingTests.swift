@@ -32,12 +32,12 @@ final class RequestBuildingTests: XCTestCase {
             )
         ]
         let request = TotemProtoMap.indexRequest(
-            items: items, ownerID: "owner-1", groupID: "mary-context-owner-1",
-            groupLabel: "Mary Context", scope: "personal")
+            items: items, ownerID: "owner-1", groupID: "mary-behavior-interaction-owner-1",
+            groupLabel: "Interactions", scope: "personal")
 
         XCTAssertEqual(request.ownerID, "owner-1")
-        XCTAssertEqual(request.groupID, "mary-context-owner-1")
-        XCTAssertEqual(request.groupLabel, "Mary Context")
+        XCTAssertEqual(request.groupID, "mary-behavior-interaction-owner-1")
+        XCTAssertEqual(request.groupLabel, "Interactions")
         XCTAssertEqual(request.scope, "personal")
         XCTAssertEqual(request.items.count, 1)
 

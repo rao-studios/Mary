@@ -69,10 +69,8 @@ public actor TotemDirectClient {
         try await remove(documentIDs: [], ownerID: ownerID)
     }
 
-    /// Clears just the owner's groups whose id begins with `prefix` (e.g.
-    /// "mary-context-<owner>") by enumerating the library and removing their
-    /// documents. Leaves every other group — saved memories, other apps —
-    /// untouched. Returns the removed count (0 if nothing matched).
+    /// Clears just the owner's groups whose id begins with `prefix` by
+    /// enumerating the library and removing their documents.
     @discardableResult
     public func clearGroups(prefix: String, ownerID: String) async throws -> Int {
         var ids: [String] = []

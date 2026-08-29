@@ -183,7 +183,8 @@ package enum MaryRuntime {
     /// recording off takes effect on the next turn instead of the next launch
     /// — which is what a person expects of a switch.
     package static let behavioralStore = BehavioralStore(
-        isEnabled: { behavioralRecordingEnabledBox.withLock { $0 } })
+        isEnabled: { behavioralRecordingEnabledBox.withLock { $0 } },
+        companion: TotemBehavioralRecording())
 
     package static let behavioralRecordingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: true)
