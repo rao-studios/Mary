@@ -561,7 +561,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "9ff31d60155e3251a1d9276d17654b40e5bc7e85210dd366416dd925f1375a35"
+    "digest" : "b2d725d080b740213cb424b08cc25ee745160945cefccbc8378e0074924e8d4d"
   },
   "interactions" : [
     {
@@ -722,6 +722,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -799,6 +811,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -1089,10 +1113,27 @@
         "conflictPolicy" : "preferFocusedWorkspace",
         "eligibility" : {
           "children" : [
+            {
+              "children" : [
 
+              ],
+              "kind" : "targetClass",
+              "value" : "workspace"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+
+                  ],
+                  "kind" : "workspaceFamily",
+                  "value" : "coding"
+                }
+              ],
+              "kind" : "not"
+            }
           ],
-          "kind" : "targetClass",
-          "value" : "workspace"
+          "kind" : "all"
         },
         "excludes" : [
 
@@ -1194,10 +1235,27 @@
         "conflictPolicy" : "preferFocusedWorkspace",
         "eligibility" : {
           "children" : [
+            {
+              "children" : [
 
+              ],
+              "kind" : "targetClass",
+              "value" : "workspace"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+
+                  ],
+                  "kind" : "workspaceFamily",
+                  "value" : "coding"
+                }
+              ],
+              "kind" : "not"
+            }
           ],
-          "kind" : "targetClass",
-          "value" : "workspace"
+          "kind" : "all"
         },
         "excludes" : [
 
@@ -1326,10 +1384,27 @@
         "conflictPolicy" : "preferFocusedWorkspace",
         "eligibility" : {
           "children" : [
+            {
+              "children" : [
 
+              ],
+              "kind" : "targetClass",
+              "value" : "workspace"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+
+                  ],
+                  "kind" : "workspaceFamily",
+                  "value" : "coding"
+                }
+              ],
+              "kind" : "not"
+            }
           ],
-          "kind" : "targetClass",
-          "value" : "workspace"
+          "kind" : "all"
         },
         "excludes" : [
 
@@ -1418,6 +1493,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -1706,10 +1793,27 @@
         "conflictPolicy" : "preferFocusedWorkspace",
         "eligibility" : {
           "children" : [
+            {
+              "children" : [
 
+              ],
+              "kind" : "targetClass",
+              "value" : "workspace"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+
+                  ],
+                  "kind" : "workspaceFamily",
+                  "value" : "coding"
+                }
+              ],
+              "kind" : "not"
+            }
           ],
-          "kind" : "targetClass",
-          "value" : "workspace"
+          "kind" : "all"
         },
         "excludes" : [
 
@@ -1786,6 +1890,18 @@
       },
       "routing" : {
         "conflictPolicy" : "highestEvidence",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -1869,6 +1985,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -1952,10 +2080,27 @@
         "conflictPolicy" : "preferDirectInteraction",
         "eligibility" : {
           "children" : [
+            {
+              "children" : [
 
+              ],
+              "kind" : "hasInteraction",
+              "value" : "interaction.text-selection"
+            },
+            {
+              "children" : [
+                {
+                  "children" : [
+
+                  ],
+                  "kind" : "workspaceFamily",
+                  "value" : "coding"
+                }
+              ],
+              "kind" : "not"
+            }
           ],
-          "kind" : "hasInteraction",
-          "value" : "interaction.text-selection"
+          "kind" : "all"
         },
         "excludes" : [
 
@@ -2378,6 +2523,18 @@
       },
       "routing" : {
         "conflictPolicy" : "highestEvidence",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -2453,6 +2610,18 @@
       },
       "routing" : {
         "conflictPolicy" : "highestEvidence",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -2530,6 +2699,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],
@@ -2636,6 +2817,18 @@
       },
       "routing" : {
         "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
         "excludes" : [
 
         ],

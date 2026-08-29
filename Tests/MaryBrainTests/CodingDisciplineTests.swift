@@ -328,6 +328,146 @@ import Testing
         }
     }
 
+    /// [CORPUS Q] THE OVER-ADMISSION THE TIE FIX ABOVE ITSELF INTRODUCED.
+    ///
+    /// The tie this suite pins above solved a real loss (Coding losing
+    /// outright) by making `writing.mary`'s carve-out arm — `all(workspace
+    /// Family=="coding", targetClass=="writing-project")` — admit the WHOLE
+    /// Writing Ability whenever Xcode is fronted, because `xcode.mary`
+    /// unconditionally declares `writing-project` in its own `targetClasses`
+    /// (`Corpus G`, for the corpus lane's sake). Ability-level admission is
+    /// all-or-nothing: once Writing is active, every one of its Skills that
+    /// declares no NARROWER Skill-level `eligibility` of its own is offered
+    /// too — not just the four corpus-read Skills the arm exists for.
+    /// Confirmed live (`mary-corpus-probe`-equivalent, driven through this
+    /// exact harness) before this fix: `type_at_cursor`, `resume_typing`,
+    /// `start_dictation`/`stop_dictation`, `delete_passage`/`find_passage`/
+    /// `insert_passage`/`replace_passage`, `revert_last_edit`, and
+    /// `add_corpus_container`/`add_corpus_item`/`move_corpus_item`/
+    /// `trash_corpus_item` were ALL offered alongside `build_project` on
+    /// every single Xcode turn, regardless of utterance — directly
+    /// contradicting `xcode.mary`'s own doctrine, "NO PROSE SURFACE,
+    /// deliberately."
+    ///
+    /// THE FIX gives each of those Skills its own `eligibility` requiring
+    /// `not(workspaceFamily=="coding")` (merged via `all` where a Skill
+    /// already carried one, e.g. `revise_selection`'s `hasInteraction`
+    /// gate) — the same per-Skill narrowing mechanism `compose-draft`
+    /// (`intent=="compose"`) and `revise-selection` already used to sit
+    /// below the Ability's own blanket admission. The Ability-level arm
+    /// itself, and its mirror on `coding.mary`, are UNCHANGED: they still
+    /// admit Writing (so the four corpus Skills stay reachable) and still
+    /// keep the tie (so Coding still never loses). Only the blast radius of
+    /// that admission is narrowed, Skill by Skill — never the ambient
+    /// signal the plan's two alternatives ((a) a second targetClass, (b) a
+    /// `proseSurface` condition on the tie arm) both would have had to
+    /// touch, and both of which were rejected: renaming the targetClass
+    /// leaves the SAME single ability-wide admission, so it does not shrink
+    /// what a wholesale admission exposes; requiring `proseSurface` on the
+    /// tie arm makes it — and therefore Writing's admission for Xcode at
+    /// all — never fire, since Xcode declares no `proseSurface` by design,
+    /// which would silently kill `search_corpus`/`read_corpus_outline`/
+    /// `read_corpus_document`/`corpus_progress` for Xcode too (`Corpus G`'s
+    /// whole point).
+    ///
+    /// `revise_selection` is asserted absent even THOUGH this fixture's
+    /// utterance carries no `interaction.text-selection` — the point is
+    /// that it must never leak in Xcode by ability-admission ALONE, the
+    /// same standing this suite already holds `type_at_cursor` to.
+    @Test func aCodingTurnInXcodeOffersNoWritingSkill() async throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let xcode = try loadRootPackage("xcode")
+        let coding = try loadRootPackage("coding")
+        let writing = try loadRootPackage("writing")
+        let windowManagement = try loadRootPackage("window-management")
+        let allPackages = [xcode, coding, writing, windowManagement]
+
+        let compilation = PluginCompiler.compile(
+            packages: allPackages,
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility] })
+        let xcodeProfile = try #require(
+            compilation.applicationProfiles.first { $0.id == "xcode" })
+        let perception = try #require(xcodeProfile.perception)
+
+        let validation = AbilityPackageValidator.validateGraph(allPackages)
+        #expect(validation.isValid, "the shipped packages must load cleanly together")
+        func record(_ package: MaryAbilityPackage) -> AbilityPackageRecord {
+            AbilityPackageRecord(
+                package: package, source: .installed,
+                sourceURL: URL(fileURLWithPath: "/dev/null"),
+                validation: validation,
+                rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
+        }
+        let snapshot = AbilityRuntimeSnapshot(
+            records: allPackages.map(record),
+            validation: validation,
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: MaryAdapterCatalog.adapters(),
+                observers: MaryAdapterCatalog.observers()),
+            plugins: compilation)
+
+        let ambient = AmbientContextStore()
+
+        try await AmbientApplicationIndexProvider.$scoped.withValue(
+            AmbientApplicationRoster([
+                ApplicationRegistration(
+                    id: "xcode", profile: xcodeProfile,
+                    bundleIdentifiers: ["com.apple.dt.Xcode"],
+                    worldClass: .workspace, displayName: "Xcode",
+                    perception: perception),
+            ])
+        ) {
+            let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+                utterance: "add a comment to this function",
+                leadApplicationID: "xcode",
+                profiles: [xcodeProfile]))
+            #expect(route.leadPlace?.ability?.rawValue == "coding",
+                    "the turn must actually read as a coding workspace for this to be a real test")
+            ambient.noteUtterance("add a comment to this function")
+            ambient.noteRoute(route)
+
+            try await AbilityTurnContext.$snapshot.withValue(snapshot) {
+                let runtime = AbilityRuntime(
+                    plugins: MaryAdapterCatalog.adapters(),
+                    ambient: ambient,
+                    contextProvider: { AbilityExecutionContext(projects: [:]) })
+                let offered = Set(runtime.schemas.map(\.name))
+
+                // CODING SURVIVES, unchanged from the test above.
+                #expect(offered.contains("build_project"))
+                #expect(offered.contains("run_project"))
+                #expect(offered.contains("test_project"))
+                #expect(offered.contains("save_all"))
+                #expect(offered.contains("stop_execution"))
+
+                // THE CORPUS LANE SURVIVES — `Corpus G`'s whole point, and
+                // exactly what a `proseSurface`-gated tie arm would have lost.
+                #expect(offered.contains("search_corpus"))
+                #expect(offered.contains("read_corpus_outline"))
+                #expect(offered.contains("read_corpus_document"))
+                #expect(offered.contains("corpus_progress"))
+
+                // BUT NO WRITING PROSE-SURFACE SKILL LEAKS IN. This is the
+                // actual bug: before this fix every one of these showed up
+                // in `offered` on this exact turn.
+                let writingProseSkills = [
+                    "type_at_cursor", "revise_selection", "resume_typing",
+                    "start_dictation", "stop_dictation", "delete_passage",
+                    "find_passage", "insert_passage", "replace_passage",
+                    "revert_last_edit", "add_corpus_container",
+                    "add_corpus_item", "move_corpus_item", "trash_corpus_item",
+                ]
+                for skill in writingProseSkills {
+                    #expect(!offered.contains(skill), """
+                        \(skill) must not be offered on an unambiguous coding \
+                        turn in Xcode — Xcode has no prose surface, by design.
+                        """)
+                }
+            }
+        }
+    }
+
     // MARK: - The read-only Skills must not hard-gate on a momentary perception
 
     /// PINS THE FIX FOR "why does Mary keep mutable rabbit": `coding.mary`
@@ -387,6 +527,39 @@ import Testing
                 out of scope for this fix, unchanged by design.
                 """)
         }
+    }
+
+    // MARK: - [Corpus Q] revise_selection specifically, at the predicate level
+
+    /// THE NARROWER, PREDICATE-LEVEL PIN for the same fix. `revise_selection`
+    /// already carried its own `hasInteraction("interaction.text-selection")`
+    /// Skill-level eligibility — which does not mention workspace at all, so
+    /// a genuine selection made inside Xcode (not exercised by the
+    /// full-roster test above, which supplies no Interaction) would have
+    /// satisfied it regardless of Ability admission's cause. This drives
+    /// `AbilityRoutingEvaluator.isEligible` directly against the shipped
+    /// predicate tree with a live `interaction.text-selection` present, so
+    /// the fix is pinned even under the one condition the roster test can't
+    /// exercise. Writing's own Ability-level admission stays true — the
+    /// corpus arm this suite already proved must survive — while the Skill
+    /// itself now additionally requires `not(workspaceFamily=="coding")`.
+    @Test func reviseSelectionStaysExcludedFromCodingEvenWithALiveSelection() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let writing = try loadRootPackage("writing")
+        let reviseSelection = try #require(
+            writing.skills.first { $0.id.rawValue == "writing.revise-selection" })
+
+        let context = AbilityRoutingContext(
+            targetClasses: ["writing-project", "code-workspace"],
+            interactions: [InteractionID("interaction.text-selection")],
+            workspaceFamily: "coding")
+
+        #expect(
+            AbilityRoutingEvaluator.isEligible(writing.ability.routing, in: context),
+            "the corpus arm must still admit Writing's Ability")
+        #expect(
+            !AbilityRoutingEvaluator.isEligible(reviseSelection.routing, in: context),
+            "revise_selection must stay excluded from a coding workspace even with a live selection")
     }
 
     private func loadRootPackage(_ name: String) throws -> MaryAbilityPackage {
