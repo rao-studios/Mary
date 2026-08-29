@@ -144,7 +144,16 @@ struct InstalledAdapterInventory: Sendable {
     }
 
     func publishes(_ perception: PerceptionID) -> Bool {
-        providedPerceptions.contains(perception)
+        if providedPerceptions.contains(perception) { return true }
+        // A Perception Mary herself concludes counts as published whenever the
+        // one she concludes it FROM is: the adapter sensed the evidence, and
+        // the runtime performs the derivation on every turn. Reading only the
+        // static claim here installed every Skill requiring
+        // `code-workspace-focus` as `.blocked` — the whole coding lane, in
+        // silence. See `DerivedPerceptions` for the table and for what a row
+        // is allowed to promise.
+        guard let base = DerivedPerceptions.base[perception] else { return false }
+        return providedPerceptions.contains(base)
     }
 
     private struct OperationIdentity: Hashable, Sendable {
