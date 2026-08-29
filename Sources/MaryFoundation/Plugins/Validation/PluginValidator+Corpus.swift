@@ -97,6 +97,231 @@ public extension PluginValidator {
                 "\(path).budgets",
                 "Every corpus budget is a positive count.")
         }
+
+        if let structure = corpus.structure {
+            validateCorpusStructure(structure, path: "\(path).structure", error: error)
+        }
+    }
+
+    // MARK: - The project's shape on disk
+
+    /// THE SAME BARGAIN AS A PATTERN, one layer out: a structure block is a
+    /// claim about a directory nobody has looked in yet, and every field of it
+    /// can be individually well-formed JSON while the whole says nothing a
+    /// reader can act on. A manifest declared `xmlManifest` with no element
+    /// names parses, admits, and then fails at the moment a user asks for
+    /// their outline — which is the worst moment to find out, because by then
+    /// they have asked for something.
+    ///
+    /// WHAT IS NOT CHECKED HERE is anything about the disk. Whether the
+    /// project exists, whether the manifest is where the template says, and
+    /// whether the element names match that file are facts about a real
+    /// project, and they belong to `mary-corpus-probe project` rather than to
+    /// admission. This checks only that the declaration COULD be satisfied.
+    static func validateCorpusStructure(
+        _ structure: PluginCorpusStructureSchema,
+        path: String,
+        error: (String, String, String) -> Void
+    ) {
+        if structure.discovery == .directoryExtension,
+           (structure.projectExtension ?? "").trimmingCharacters(in: .whitespaces).isEmpty {
+            error(
+                "corpus-structure-extension-missing",
+                "\(path).projectExtension",
+                "Discovery by directory extension needs the extension to look for.")
+        }
+        if let projectExtension = structure.projectExtension, projectExtension.hasPrefix(".") {
+            error(
+                "corpus-structure-extension-malformed",
+                "\(path).projectExtension",
+                "A project extension is written without a leading dot.")
+        }
+        // A LOCK FILE IS THE ONE OPEN-STATE TEST THAT NEEDS COORDINATES. The
+        // others read the process table; this one reads a path, and without it
+        // the test silently answers "not open" for every project forever.
+        if structure.openState.contains(.lockFile),
+           (structure.lockFilePath ?? "").isEmpty {
+            error(
+                "corpus-structure-lock-path-missing",
+                "\(path).lockFilePath",
+                "An openState of lockFile needs the lock file's path, or the test can never find one.")
+        }
+        if structure.openState.isEmpty {
+            error(
+                "corpus-structure-open-state-empty",
+                "\(path).openState",
+                "A project declares how to tell it is open; an empty list answers nothing.")
+        }
+
+        validateCorpusManifest(
+            structure.manifest, path: "\(path).manifest", error: error)
+
+        for (index, part) in structure.parts.enumerated() {
+            let partPath = "\(path).parts[\(index)]"
+            if part.name.trimmingCharacters(in: .whitespaces).isEmpty {
+                error(
+                    "corpus-structure-part-unnamed",
+                    "\(partPath).name",
+                    "A part is named for what it holds — \"text\", \"synopsis\", \"annotations\".")
+            }
+            validateCorpusRelativePath(
+                part.pathTemplate, path: "\(partPath).pathTemplate",
+                mustSubstitute: "{id}", error: error)
+        }
+
+        if let template = structure.documentURLTemplate {
+            // BRACES LEFT OVER AFTER SUBSTITUTION ARE A REFUSAL AT READ TIME,
+            // so a placeholder nothing fills is a URL that never opens.
+            let remaining = template
+                .replacingOccurrences(of: "{project}", with: "")
+                .replacingOccurrences(of: "{id}", with: "")
+            if remaining.contains("{") || remaining.contains("}") {
+                error(
+                    "corpus-structure-url-placeholder-unknown",
+                    "\(path).documentURLTemplate",
+                    "A document URL fills {project} and {id}; any other placeholder is left in the URL and never opens.")
+            }
+        }
+
+        if let prefix = structure.handlePrefix, prefix.count != 1 {
+            error(
+                "corpus-structure-handle-prefix-invalid",
+                "\(path).handlePrefix",
+                "A handle prefix is one letter — it is the letter a spoken reference mints under, as in \"[D3]\".")
+        }
+
+        var seenActs: Set<PluginCorpusCeremony.Act> = []
+        for (index, ceremony) in structure.ceremonies.enumerated() {
+            let ceremonyPath = "\(path).ceremonies[\(index)]"
+            if ceremony.menuPath.isEmpty {
+                error(
+                    "corpus-structure-ceremony-pathless",
+                    "\(ceremonyPath).menuPath",
+                    "A ceremony is coordinates to a command: with no menu path there is nothing to choose.")
+            }
+            for (level, title) in ceremony.menuPath.enumerated()
+            where title.trimmingCharacters(in: .whitespaces).isEmpty {
+                error(
+                    "corpus-structure-ceremony-level-empty",
+                    "\(ceremonyPath).menuPath[\(level)]",
+                    "Every level of a menu path names a menu; an empty one matches nothing.")
+            }
+            // TWO CEREMONIES FOR ONE ACT is a package disagreeing with itself,
+            // and the reader would silently take whichever came first.
+            if !seenActs.insert(ceremony.act).inserted {
+                error(
+                    "corpus-structure-ceremony-duplicated",
+                    "\(ceremonyPath).act",
+                    "This package already declares a \(ceremony.act.rawValue) ceremony; two paths for one act means one of them is never used.")
+            }
+        }
+    }
+
+    static func validateCorpusManifest(
+        _ manifest: PluginCorpusManifest,
+        path: String,
+        error: (String, String, String) -> Void
+    ) {
+        switch manifest.kind {
+        case .xmlManifest:
+            // THE ID IS THE JOIN between the outline and the text on disk. An
+            // outline parsed without one reads perfectly and can open nothing
+            // — the probe reports it as "88/88 ids present" precisely because
+            // zero is the failure that looks like success.
+            let required: [(String, String?)] = [
+                ("pathTemplate", manifest.pathTemplate),
+                ("rootElement", manifest.rootElement),
+                ("itemElement", manifest.itemElement),
+                ("idAttribute", manifest.idAttribute),
+            ]
+            for (name, value) in required
+            where (value ?? "").trimmingCharacters(in: .whitespaces).isEmpty {
+                error(
+                    "corpus-manifest-incomplete",
+                    "\(path).\(name)",
+                    "An XML manifest is read by name: without \(name) the outline cannot be found or has no items to find.")
+            }
+            if let template = manifest.pathTemplate {
+                validateCorpusRelativePath(
+                    template, path: "\(path).pathTemplate",
+                    mustSubstitute: nil, error: error)
+            }
+
+        case .fileSystemTree:
+            // THE TREE IS THE OUTLINE, so element names describe nothing and
+            // are silently ignored at read time — a declaration that looks
+            // like it is working and is not.
+            let ignored: [(String, String?)] = [
+                ("pathTemplate", manifest.pathTemplate),
+                ("rootElement", manifest.rootElement),
+                ("itemElement", manifest.itemElement),
+                ("idAttribute", manifest.idAttribute),
+                ("titleElement", manifest.titleElement),
+                ("childrenElement", manifest.childrenElement),
+                ("typeAttribute", manifest.typeAttribute),
+            ]
+            for (name, value) in ignored where value != nil {
+                error(
+                    "corpus-manifest-field-ignored",
+                    "\(path).\(name)",
+                    "A fileSystemTree outline IS the directory tree: \(name) is never read, so declaring it describes behaviour this package does not get.")
+            }
+        }
+
+        // A TYPE THAT NAMES NOTHING IN THE LIST is the quiet version of the
+        // same bug: the trash type decides what is excluded, and one spelled
+        // differently from the manifest's excludes nothing at all. Only the
+        // internal agreement is checkable here — whether "TrashFolder" is
+        // really Scrivener's spelling is the probe's question.
+        for (name, value) in [
+            ("draftType", manifest.draftType), ("trashType", manifest.trashType),
+        ] {
+            if let value, value.trimmingCharacters(in: .whitespaces).isEmpty {
+                error(
+                    "corpus-manifest-type-empty",
+                    "\(path).\(name)",
+                    "An empty \(name) matches no item and quietly does nothing.")
+            }
+        }
+    }
+
+    /// A declared path is refused at READ time if it leaves the project, and
+    /// refusing it at admission instead turns a mid-ceremony failure into a
+    /// package that does not load.
+    static func validateCorpusRelativePath(
+        _ template: String,
+        path: String,
+        mustSubstitute placeholder: String?,
+        error: (String, String, String) -> Void
+    ) {
+        if template.trimmingCharacters(in: .whitespaces).isEmpty {
+            error(
+                "corpus-structure-path-empty",
+                path,
+                "A path template names a file beneath the project root.")
+            return
+        }
+        if template.hasPrefix("/") || template.hasPrefix("~") {
+            error(
+                "corpus-structure-path-absolute",
+                path,
+                "Corpus paths are relative to the project root: an absolute one is machine-local and reads the same file on every project.")
+        }
+        // `..` INSIDE A TEMPLATE is refused even when it would resolve back
+        // inside, because a template is written once and substituted many
+        // times — the id decides where it lands.
+        if template.split(separator: "/").contains("..") {
+            error(
+                "corpus-structure-path-traverses",
+                path,
+                "A path template does not climb out of the project; the reader refuses the resolved path anyway, and here it is still fixable.")
+        }
+        if let placeholder, !template.contains(placeholder) {
+            error(
+                "corpus-structure-path-not-per-item",
+                path,
+                "This template is the same file for every item: it needs \(placeholder) to name which one.")
+        }
     }
 
     // MARK: - One rule

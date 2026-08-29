@@ -35,6 +35,14 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
     if !passed { failures += 1 }
 }
 
+// READING A PROJECT off disk is its own question — the shape of one
+// manuscript, not the style of a body of files — and needs no AX at all,
+// so it runs before the grant check below.
+if ProjectProbe.shouldRun(CommandLine.arguments) {
+    await ProjectProbe.run(CommandLine.arguments)
+    exit(0)
+}
+
 // THE MENU MEASUREMENT is a different question from the corpus crawl below
 // — it asks what an application OFFERS rather than what a project holds —
 // so it runs instead of, not before.

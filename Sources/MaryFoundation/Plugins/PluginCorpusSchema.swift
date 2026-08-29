@@ -455,13 +455,25 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     public var style: [PluginCorpusStyleRule]
     public var budgets: PluginCorpusBudgets
 
+    /// How this project is SHAPED ON DISK, when it is a project rather than a
+    /// folder of files — a manifest naming its parts, an outline, a way to
+    /// tell whether the application has it open.
+    ///
+    /// ABSENT FOR A NOTATION-ONLY CORPUS, which is the whole point of it
+    /// being a sub-block: a package that declares `include` and `notation`
+    /// and nothing else describes a body of files to learn the style of, and
+    /// behaves exactly as it did before this existed. See
+    /// `PluginCorpusStructureSchema`.
+    public var structure: PluginCorpusStructureSchema?
+
     public init(
         include: [String],
         exclude: [String] = [],
         notation: String,
         relations: PluginCorpusRelations = .init(),
         style: [PluginCorpusStyleRule] = [],
-        budgets: PluginCorpusBudgets = .init()
+        budgets: PluginCorpusBudgets = .init(),
+        structure: PluginCorpusStructureSchema? = nil
     ) {
         self.include = include
         self.exclude = exclude
@@ -469,6 +481,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         self.relations = relations
         self.style = style
         self.budgets = budgets
+        self.structure = structure
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -478,6 +491,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         case relations
         case style
         case budgets
+        case structure
     }
 
     public init(from decoder: Decoder) throws {
@@ -491,6 +505,8 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         style = try values.decodeIfPresent([PluginCorpusStyleRule].self, forKey: .style) ?? []
         budgets = try values.decodeIfPresent(
             PluginCorpusBudgets.self, forKey: .budgets) ?? .init()
+        structure = try values.decodeIfPresent(
+            PluginCorpusStructureSchema.self, forKey: .structure)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -503,5 +519,6 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         }
         if !style.isEmpty { try container.encode(style, forKey: .style) }
         if budgets != PluginCorpusBudgets() { try container.encode(budgets, forKey: .budgets) }
+        if let structure { try container.encode(structure, forKey: .structure) }
     }
 }
