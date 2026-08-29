@@ -34,6 +34,13 @@
 //  when a selection appears this lane RETRACTS and stands down; when it is
 //  dropped, the next poll mints the caret again.
 //
+//  MARY'S WINDOW IS NOT A BLINDNESS. The poll samples the frontmost declared
+//  editor when one is in front, and the standing / tracker-led coding
+//  workspace when the frontmost process is workspace-transparent (Mary's
+//  overlay, system chrome). Asking "what do you think about this code" with
+//  Mary's window up is the turn this exists to ground; skipping the walk
+//  used to leave `liveWork` empty and Lane A asking for a paste.
+//
 //  THE 330 MS PROBLEM, AND WHY THIS COULD NOT SHIP BEFORE. Locating the editor
 //  element is a bounded tree walk measured at ~330 ms (`CodeSurfaceAX`'s own
 //  header); reading attributes off it once located costs ~0.1–0.2 ms. Every
@@ -128,7 +135,18 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     /// into a `.document` world whose only text is a path.
     public var holdsWholeDocument: Bool { false }
 
-    public func refreshAmbientContext() async { pollOnce() }
+    public func refreshAmbientContext() async {
+        pollOnce()
+        // WAIT FOR AN IN-FLIGHT WALK. The poll loop and the turn preparer
+        // share `inFlight`; a turn that arrived mid-walk used to return
+        // immediately with an empty `liveBox`, and Lane A spoke the
+        // blindness clause before the walk could publish. The outer
+        // one-second refresh budget still caps this.
+        while inFlight.withLock({ $0 }) {
+            try? await Task.sleep(nanoseconds: 20_000_000)
+            if Task.isCancelled { return }
+        }
+    }
 
     public func activate() async {
         poller.claim { [weak self] in
@@ -165,13 +183,25 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         guard entered else { return }
         defer { inFlight.withLock { $0 = false } }
 
-        guard AXIsProcessTrusted(),
-              let front = NSWorkspace.shared.frontmostApplication,
-              let bundleID = front.bundleIdentifier,
-              bundleID != Bundle.main.bundleIdentifier,
-              let registration = support.registration(bundleID: bundleID)
+        guard AXIsProcessTrusted() else { return }
+
+        let front = NSWorkspace.shared.frontmostApplication
+        let running = NSWorkspace.shared.runningApplications.compactMap {
+            application -> CodeSurfacePollTarget.Process? in
+            guard let bundleID = application.bundleIdentifier else { return nil }
+            return .init(bundleID: bundleID, pid: application.processIdentifier)
+        }
+        let standingID = publishedBox.withLock { $0 }?.application
+        let leadID = WorkspaceFocusTracker.shared.leadPlace()?.application
+        let preferred = [standingID, leadID].compactMap { $0 }
+        guard let hit = CodeSurfacePollTarget.resolve(
+            frontmostBundleID: front?.bundleIdentifier,
+            maryBundleID: Bundle.main.bundleIdentifier,
+            registrations: support.all(),
+            running: running,
+            preferredApplicationIDs: preferred)
         else {
-            // NOT AN EDITOR IN FRONT — and deliberately NOT a retraction.
+            // NOT AN EDITOR TO SAMPLE — and deliberately NOT a retraction.
             // `AmbientSurfaceObserver` states the rule this follows: "surfaces
             // are NOT retracted on switch … drop-at-expiry is its honesty."
             // Retracting here would be actively wrong, because the commonest
@@ -182,10 +212,14 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             return
         }
 
-        let pid = front.processIdentifier
+        let pid = hit.pid
+        let registration = hit.registration
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, CodeSurfaceAX.messagingTimeout)
         let place = AmbientPlace.application(registration.applicationID)
+        let bundleID = running.first { $0.pid == pid }?.bundleID
+            ?? registration.bundleIdentifiers.first
+            ?? registration.applicationID
 
         guard let window = AX.element(application, kAXFocusedWindowAttribute),
               let editor = CodeSurfaceEditorCache.editor(
@@ -194,12 +228,14 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 editor: editor, window: window, registration: registration,
                 place: place, bundleID: bundleID, at: now)
         else {
-            // THE EDITOR IS IN FRONT AND HAS NO CARET TO REPORT — no source
-            // file open, an unreadable buffer, or a live highlight that owns
-            // this ground instead. Standing knowledge about a cursor in a file
+            // A FRONTMOST EDITOR WITH NO CARET TO REPORT — no source file
+            // open, an unreadable buffer, or a live highlight that owns this
+            // ground instead. Standing knowledge about a cursor in a file
             // that is no longer open is the confidently-wrong-screen failure,
-            // so it goes.
-            retract()
+            // so it goes. A BACKGROUND editor that will not read must not
+            // retract: the user is speaking to Mary, and yesterday's caret
+            // is still the honest claim until `cursorRetention` expires it.
+            if hit.isFrontmost { retract() }
             return
         }
 

@@ -109,6 +109,25 @@ public final class WorkspaceFocusTracker: Sendable {
     ]
     public static let finderBundleID = "com.apple.finder"
 
+    /// Mary's overlay and system chrome do not count as leaving a workspace.
+    /// A nil bundle — no frontmost process at all — is the same situation:
+    /// the user is speaking to Mary, not working in a different application.
+    ///
+    /// THE FAILURE THIS NAMES. `CodeSurfaceObserver` used to walk only
+    /// `NSWorkspace.frontmostApplication`. Asking Mary with her own window
+    /// up made that read Mary's process, skipped the standing Xcode, and
+    /// Lane A spoke the blindness clause ("paste the code") while Xcode was
+    /// still the active coding workspace. Transparent frontmost is the
+    /// tracker's own rule, asked of the observer so both agree.
+    public static func isWorkspaceTransparent(
+        bundleID: String?,
+        maryBundleID: String? = Bundle.main.bundleIdentifier
+    ) -> Bool {
+        guard let bundleID else { return true }
+        if let maryBundleID, bundleID == maryBundleID { return true }
+        return leadExcludedBundlePrefixes.contains(where: bundleID.hasPrefix)
+    }
+
     /// Map a bundle id to a focus and record it. sample() and the app-layer
     /// activation observer both funnel here. Bundle ids are owned by their
     /// domain plugins (one constant each); the tracker owns only the mapping.
@@ -124,10 +143,7 @@ public final class WorkspaceFocusTracker: Sendable {
     public func record(bundleID: String?, localizedName: String? = nil) {
         guard let bundleID, signalsAllowed() else { return }
         // Mary's own window and system chrome never displace.
-        if bundleID == Bundle.main.bundleIdentifier { return }
-        if Self.leadExcludedBundlePrefixes.contains(where: bundleID.hasPrefix) {
-            return
-        }
+        if Self.isWorkspaceTransparent(bundleID: bundleID) { return }
         // NO COMPILED-APPLICATION ARMS. Bonnie opened this ladder with four
         // hardcoded bundle-id comparisons — Xcode, Pages, TextEdit, Keynote —
         // and every application taught by package had to be handled again
