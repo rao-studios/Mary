@@ -88,6 +88,46 @@ public final class BrowserSurfaceSupport: @unchecked Sendable {
         return (registration, target)
     }
 
+    /// The same resolution, permitted to OPEN one when none is running.
+    ///
+    /// Separate from `resolve` rather than a flag on it, and the separation is
+    /// the safeguard: this one is `async` and can put a window on the user's
+    /// screen, so a caller has to reach for it deliberately. Only destination
+    /// verbs do — `open_location` and `compose_in_web_canvas`. See
+    /// `BrowserLaunch`'s header for why reading verbs must not.
+    ///
+    /// REUSE BEFORE LAUNCH is structural here: the ordinary ladder runs first
+    /// and returns whatever it finds, so this can only ever fire on a machine
+    /// with no declared browser running at all.
+    public func resolveOrLaunch(
+        _ named: String? = nil,
+        pinned: BrowserTarget? = nil,
+        evidencedBundleID: String? = nil
+    ) async -> (BrowserSurfaceRegistration, BrowserTarget)? {
+        if let resolved = resolve(named, pinned: pinned, evidencedBundleID: evidencedBundleID) {
+            return resolved
+        }
+        let declared = all()
+        let plan = BrowserLaunch.plan(
+            named: named,
+            declared: declared.map {
+                BrowserLaunch.Declared(
+                    bundleIdentifiers: $0.bundleIdentifiers, displayName: $0.displayName)
+            },
+            runningBundleIDs: BrowserTargetResolver.runningBrowsers()
+                .filter(\.isRegularApplication).map(\.bundleID))
+        guard case .launch(let bundleID, let displayName) = plan else { return nil }
+        guard let target = await BrowserLaunch.launch(
+            bundleID: bundleID, displayName: displayName)
+        else { return nil }
+        // BACK THROUGH THE ROSTER, never straight to the caller. The launched
+        // process must map to the registration that claimed it, or the lane
+        // would drive a browser using another browser's declared coordinates.
+        guard let registration = declared.first(where: { $0.owns(bundleID: target.bundleID) })
+        else { return nil }
+        return (registration, target)
+    }
+
     /// Every declared browser currently running, for a caller that must name
     /// the rivals in a refusal rather than merely report that there were some.
     ///

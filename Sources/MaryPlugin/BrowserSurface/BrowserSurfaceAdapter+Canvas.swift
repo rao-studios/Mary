@@ -51,7 +51,12 @@ extension BrowserSurfaceAdapter {
             parameters: [
                 .init(
                     name: "content", type: "string",
-                    description: "The text to place in the tool's editor.",
+                    // DERIVED FROM THE DECLARATION, in Mary's words. A fixed
+                    // sentence here is what let a model call this Skill
+                    // without ever learning it was supposed to write a shader.
+                    // See `WebCanvasContract`.
+                    description: WebCanvasContract.parameterSentence(
+                        for: WebCanvasSupport.shared.all()),
                     required: true),
                 .init(
                     name: "opening", type: "string",
@@ -80,11 +85,16 @@ extension BrowserSurfaceAdapter {
 
                 let registration: BrowserSurfaceRegistration
                 let browser: BrowserTarget
-                switch await pageTarget(arguments["browser"]) {
-                case .ready(let found, let process):
+                // A DESTINATION, NOT A PAGE. The canvas is somewhere Mary is
+                // being sent, so a machine with no browser open gets one
+                // opened rather than a refusal — and `pageTarget`'s arrival
+                // check is skipped here because the tab does not exist yet.
+                // `WebCanvasComposition` does its own, after navigating.
+                switch await canvasTarget(arguments["browser"]) {
+                case .browser(let found, let process):
                     registration = found
                     browser = process
-                case .refusal(let outcome): return outcome
+                case .refused(let outcome): return outcome
                 }
 
                 // THE STAGE, before a tab is opened. Everything after this
@@ -101,7 +111,8 @@ extension BrowserSurfaceAdapter {
 
                 let noun = canvas.schema.contentNoun
                 switch await WebCanvasComposition.compose(
-                    content, canvas: canvas.schema, pid: browser.processIdentifier) {
+                    content, canvas: canvas.schema, pid: browser.processIdentifier,
+                    bundleID: browser.bundleID) {
                 case .failure(let failure):
                     return SkillOutcome(
                         ok: false,

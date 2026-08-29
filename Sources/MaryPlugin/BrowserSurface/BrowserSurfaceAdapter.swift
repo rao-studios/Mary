@@ -41,6 +41,20 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
         self.support = support
     }
 
+    /// WHAT A DECLARED CANVAS IS, said before the model has to guess.
+    ///
+    /// The tool schema can say what the `content` parameter must LOOK like; it
+    /// cannot say that the model is the one who has to write it. That second
+    /// half only fits in a fragment, and without it a feelings question loses
+    /// to the standing instruction to just talk — measured by the predecessor,
+    /// and the reason a schema-only fix is not a fix. See `WebCanvasContract`.
+    ///
+    /// Nil when no canvas is installed, so this costs a roster with no canvas
+    /// nothing at all.
+    public var promptFragment: String? {
+        WebCanvasContract.promptFragment(for: WebCanvasSupport.shared.all())
+    }
+
     public var skillBindings: [SkillBinding] {
         [listTabs, currentTab, activateTab, closeTab, openLocation, readPage]
             + pageBindings + canvasBindings + interactBindings
@@ -143,9 +157,16 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
     /// What resolving a browser produced: the pair, or the refusal ITSELF —
     /// composed here, where the rivals are in hand, rather than as a flag the
     /// caller has to turn back into a sentence.
-    private enum Resolved {
+    enum Resolved {
         case browser(BrowserSurfaceRegistration, BrowserTarget)
         case refused(SkillOutcome)
+    }
+
+    /// The canvas lane's door to the destination ladder. Named for its caller
+    /// rather than exposing `destinationTarget` wholesale, so the set of verbs
+    /// that may open a browser stays something you can grep for.
+    func canvasTarget(_ named: String?) async -> Resolved {
+        await destinationTarget(named)
     }
 
     /// Every act starts here.
@@ -173,6 +194,72 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                     ?? "\(running.joined(separator: " and ")) are both open — which one?"))
         }
         return .browser(resolved.0, resolved.1)
+    }
+
+    /// The same, for a verb that names somewhere to BE rather than something
+    /// on the page in front of the user — and so may open a browser when none
+    /// is running. See `BrowserLaunch`'s header for why that opt-in is a
+    /// separate door rather than a flag on the one above.
+    func destinationTarget(_ named: String?) async -> Resolved {
+        guard !support.all().isEmpty else {
+            return .refused(SkillOutcome(
+                ok: false,
+                summary: "I don't have a browser set up to work with yet."))
+        }
+        guard let resolved = await support.resolveOrLaunch(named) else {
+            let running = support.runningDisplayNames()
+            if running.isEmpty {
+                return .refused(SkillOutcome(
+                    ok: false,
+                    summary: named.map { "I couldn't open \($0)." }
+                        ?? "I couldn't open a browser."))
+            }
+            return .refused(SkillOutcome(
+                ok: false,
+                summary: named.map { "I couldn't find \($0) running." }
+                    ?? "\(running.joined(separator: " and ")) are both open — which one?"))
+        }
+        return .browser(resolved.0, resolved.1)
+    }
+
+    /// WHAT ARRIVED, once a destination verb has navigated.
+    ///
+    /// Returns the sentence to speak instead of the ordinary one, or nil when
+    /// the page is simply the page. Lives here rather than in `WebArrival`
+    /// because the decision it encodes is this lane's: a bot check on a page
+    /// Mary was ASKED to open is answered once (the person is right there),
+    /// and a consent wall is named and never pressed.
+    ///
+    /// ⚠️ THE TWO CASES DIFFER IN `ok`, AND IT IS NOT A SLIP. A bot check
+    /// blocked the errand: the tab holds an interstitial and nothing the user
+    /// wanted, so the run did NOT go through. A consent wall did not block
+    /// anything — Mary went exactly where she was sent, the tab is open, and
+    /// what she is reporting is a choice waiting on the other side. Marking
+    /// that failed would put "did not go through" on a navigation that worked
+    /// perfectly, and would teach the model to retry an open that needs no
+    /// retrying.
+    func arrivalOutcome(
+        pid: pid_t, browser: String
+    ) async -> SkillOutcome? {
+        let application = WebSurface.application(pid: pid)
+        switch WebArrival.read(inApp: application) {
+        case .page:
+            return nil
+        case .consentWall(let labels):
+            return SkillOutcome(
+                ok: true, summary: WebArrival.consentSentence(labels: labels))
+        case .challenge:
+            switch await WebPageChallenge.satisfy(in: application, pid: pid) {
+            case .cleared:
+                return nil
+            case .cancelled:
+                return SkillOutcome(
+                    ok: false, summary: WebSurface.Failure.cancelled.spoken(browser: browser))
+            case .standing:
+                return SkillOutcome(
+                    ok: false, summary: WebSurface.Failure.humanCheck.spoken(browser: browser))
+            }
+        }
     }
 
     /// ⚠️ AN ABSENT STRIP IS USUALLY ONE TAB, not a missing window — measured
@@ -518,7 +605,10 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
             backing: .native { arguments, _ in
                 let registration: BrowserSurfaceRegistration
                 let browser: BrowserTarget
-                switch target(arguments["browser"]) {
+                // A DESTINATION VERB, so it may open a browser when none is
+                // running rather than refusing a request that named somewhere
+                // to go.
+                switch await destinationTarget(arguments["browser"]) {
                 case .browser(let found, let process):
                     registration = found
                     browser = process
@@ -536,6 +626,17 @@ public struct BrowserSurfaceAdapter: MaryAdapter {
                     return SkillOutcome(
                         ok: false,
                         summary: failure.spoken(browser: registration.displayName))
+                }
+                // A LOAD THAT SETTLED IS NOT THE PAGE YOU ASKED FOR. Until
+                // this check existed here, an anti-bot interstitial was
+                // reported as a successful open and the NEXT verb blamed the
+                // site's layout for it — the exact misdiagnosis
+                // `WebPageChallenge` was written to prevent, committed one
+                // lane over. See `WebArrival`.
+                if var arrival = await arrivalOutcome(
+                    pid: browser.processIdentifier, browser: registration.displayName) {
+                    arrival.adapterTrail = [AdapterID.normalized(name)]
+                    return arrival
                 }
                 // THE SITE, NOT THE ADDRESS. A URL is held and never spoken —
                 // reading one aloud is noise, and reading a long one aloud is

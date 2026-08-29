@@ -52,6 +52,11 @@ public enum WebCanvasComposition {
         /// The page was read and said nothing that means failure. NOT
         /// success — see the header.
         case unconfirmed
+        /// The tool declared a marker it prints whenever it runs, and the
+        /// page does not have it. See the header: the marker is worthless as
+        /// evidence of SUCCESS and is the only evidence there is that the run
+        /// happened at all.
+        case didNotRun
         /// The page could not be read at all after the run.
         case unreadable
     }
@@ -89,7 +94,8 @@ public enum WebCanvasComposition {
     public static func compose(
         _ content: String,
         canvas: WebCanvasSchema,
-        pid: pid_t
+        pid: pid_t,
+        bundleID: String? = nil
     ) async -> Result<Outcome, Failure> {
         // ADMITTED BEFORE ANYTHING IS OPENED. Discovering that a shader has
         // no entry point costs a navigation, a wait and a paste if it is
@@ -110,7 +116,19 @@ public enum WebCanvasComposition {
         }
         guard !Task.isCancelled else { return .failure(.surface(.cancelled)) }
 
-        await BrowserAXReadiness.ensureWebContentAX(pid: pid, bundleID: nil)
+        // THE WAKE, AND ITS VERDICT. Chromium builds no page tree until an
+        // assistive client asks, and a page nobody woke reads as no page at
+        // all — which every step below would report as "I couldn't find the
+        // editor", blaming the site for the browser.
+        //
+        // THE VERDICT WAS BEING DISCARDED HERE. `pageTarget` refuses on
+        // `.axTreeAbsent` and this lane no longer goes through it (the canvas
+        // is a destination, so its tab does not exist until the line above),
+        // so the check has to be honoured here or it is not made anywhere.
+        if await BrowserAXReadiness.ensureWebContentAX(
+            pid: pid, bundleID: bundleID) == .axTreeAbsent {
+            return .failure(.surface(.pageNotExposed))
+        }
         let application = WebSurface.application(pid: pid)
 
         // IS THIS THE SITE, OR A BOT CHECK STANDING IN FRONT OF IT? Asked
@@ -118,13 +136,30 @@ public enum WebCanvasComposition {
         // text and no editor — so hunting first spends twelve seconds and
         // then blames the site's layout for something the site never did.
         // This port made exactly that mistake on its first live run.
+        //
+        // ANSWERED, ONCE, rather than refused: a canvas is somewhere the user
+        // ASKED Mary to open, they are looking at the tab, and the control is
+        // one she can see. If the press does not take, she hands over and
+        // waits a moment for the person rather than making them start the
+        // whole errand again. See `WebPageChallenge`.
         if let reading = WebPageText.read(inApp: application),
            WebPageChallenge.isChallenge(pageText: reading.text) {
-            return .failure(.surface(.humanCheck))
+            switch await WebPageChallenge.satisfy(in: application, pid: pid) {
+            case .cleared: break
+            case .cancelled: return .failure(.surface(.cancelled))
+            case .standing: return .failure(.surface(.humanCheck))
+            }
         }
 
+        // THE EDITOR, PREFERRING WHAT THE PACKAGE NAMED. `editorHints` is the
+        // declaration's answer to a page holding several text areas; without
+        // it this takes the first, which on a single-editor tool is right and
+        // on anything else is a coin toss between the editor and the site's
+        // own search box.
         guard let editor = await WebSurface.awaitEditableSurface(
-            in: application, consentLabels: Set(canvas.consentLabels))
+            in: application,
+            consentLabels: Set(canvas.consentLabels),
+            hints: canvas.editorHints)
         else { return .failure(.surface(.noEditableSurface)) }
 
         guard await WebSurface.takeFocus(editor, in: application, pid: pid) else {
@@ -174,6 +209,23 @@ public enum WebCanvasComposition {
                 .trimmingCharacters(in: .whitespaces)
             return .failed(line ?? phrase)
         }
+
+        // NO DIAGNOSTIC. Now the status marker earns its keep — in the ONE
+        // direction it can be trusted.
+        //
+        // Its presence still proves nothing and must never be read as success:
+        // the marker a shader editor prints reads "Compiled in 0.0 secs"
+        // whether or not the compile worked, which is why the package declares
+        // it to be DISBELIEVED. But a package that names such a marker is
+        // telling us the tool prints it WHENEVER IT RUNS — so its ABSENCE is
+        // positive evidence the run never happened: the chord missed, the
+        // paste landed somewhere inert, the page was still loading. Reporting
+        // that as "it's on screen and nothing complained" is the one lie this
+        // lane could still tell after the diagnostic check.
+        if let marker = canvas.statusMarker, !marker.isEmpty,
+           !lowered.contains(marker.lowercased()) {
+            return .didNotRun
+        }
         return .unconfirmed
     }
 
@@ -189,6 +241,13 @@ public enum WebCanvasComposition {
             // SAID PLAINLY. The run was delivered and the page did not
             // complain, which is not the same as knowing it worked.
             return ("\(opening) It's on screen; the editor didn't report a problem.", true)
+        case .didNotRun:
+            // NOT ok. Nothing is on screen, and saying otherwise would be the
+            // most convincing wrong answer this lane can give.
+            return (
+                "\(opening) I placed the \(noun), but the editor never reported "
+                    + "running it.",
+                false)
         case .unreadable:
             return (
                 "\(opening) I placed the \(noun) but couldn't read the page back "

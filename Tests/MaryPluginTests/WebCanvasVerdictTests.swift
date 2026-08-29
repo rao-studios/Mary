@@ -86,14 +86,64 @@ final class WebCanvasVerdictTests: XCTestCase {
 
     /// A canvas that declares no diagnostics can never report a failure, and
     /// that is correct rather than a gap: it has told Mary it knows no words
-    /// for failure, so every read is honestly unconfirmed.
-    func testACanvasWithNoDeclaredDiagnosticsIsAlwaysUnconfirmed() {
+    /// for failure, so a page that ran is honestly unconfirmed however it
+    /// looks.
+    func testACanvasWithNoDeclaredDiagnosticsNeverReportsAFailure() {
         var mute = shaderLike
         mute.diagnosticPhrases = []
         XCTAssertEqual(
             WebCanvasComposition.verdict(
-                pageText: "ERROR: 0:1: everything is broken", canvas: mute),
+                pageText: "ERROR: 0:1: everything is broken\nCompiled in 0.1 secs",
+                canvas: mute),
             .unconfirmed)
+    }
+
+    // MARK: - The marker, read in the one direction it can be trusted
+
+    /// ⚠️ THE OTHER HALF OF THE STATUS MARKER, and the one the lane was
+    /// missing. Its PRESENCE proves nothing — that is the trap this file opens
+    /// with. But a package that declares such a marker is saying the tool
+    /// prints it WHENEVER IT RUNS, so its ABSENCE is positive evidence the run
+    /// never happened: the chord missed, or the paste landed somewhere inert.
+    ///
+    /// Before this case existed, that page returned `.unconfirmed` and Mary
+    /// said "it's on screen; the editor didn't report a problem" about a
+    /// screen with nothing on it. That is the most convincing wrong answer
+    /// this lane can give.
+    func testAMissingStatusMarkerMeansTheRunNeverHappened() {
+        XCTAssertEqual(verdict("Shader Editor\nNew shader"), .didNotRun)
+    }
+
+    func testAPresentStatusMarkerLeavesTheVerdictUnconfirmed() {
+        XCTAssertEqual(verdict("Shader Editor\nCompiled in 0.4 secs"), .unconfirmed)
+    }
+
+    /// A DIAGNOSTIC STILL OUTRANKS IT. A page carrying an error and no marker
+    /// failed; it did not fail to run.
+    func testADiagnosticOutranksAMissingMarker() {
+        guard case .failed = verdict("ERROR: 0:2: undeclared identifier") else {
+            return XCTFail("a diagnostic is decisive whether or not the marker is there")
+        }
+    }
+
+    /// A canvas that declares NO marker has told Mary it has no way to know
+    /// whether the tool ran, so the honest answer stays the middle one. This
+    /// is what keeps the new case from becoming a false failure on every tool
+    /// that prints nothing.
+    func testACanvasWithNoStatusMarkerCannotReportThatItDidNotRun() {
+        var quiet = shaderLike
+        quiet.statusMarker = nil
+        XCTAssertEqual(
+            WebCanvasComposition.verdict(pageText: "Shader Editor", canvas: quiet),
+            .unconfirmed)
+    }
+
+    func testDidNotRunIsSpokenAsNotOkAndNeverClaimsTheScreen() {
+        let spoken = WebCanvasComposition.spoken(
+            .didNotRun, noun: "shader", opening: "Restless.")
+        XCTAssertFalse(spoken.ok)
+        XCTAssertTrue(spoken.summary.contains("never reported running it"))
+        XCTAssertFalse(spoken.summary.contains("It's on screen"))
     }
 
     // MARK: - What it says out loud

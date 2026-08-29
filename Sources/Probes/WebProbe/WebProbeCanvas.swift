@@ -86,14 +86,51 @@ enum WebProbeCanvas {
             return
         }
 
+        // ▸ WHAT THE MODEL IS ACTUALLY TOLD — the pass that reproduces the
+        // failure this lane was fixed for.
+        //
+        // The run that started it came back as "did not go through · {"text":
+        // "I'm feeling happy today."} · There was nothing to put in it." The
+        // model had invented a parameter and forwarded the user's own
+        // sentence, because nothing it could see mentioned a shader. Every
+        // other check passed: the package was valid, the graph activated, the
+        // Skill was offered, the guard was correct.
+        //
+        // So the contract is PRINTED rather than asserted. A person reading
+        // this output can see, in one glance, whether the declared facts
+        // reached the model — which is the only place that failure was ever
+        // visible.
+        print("▸ the contract the model sees")
+        for parameter in binding.parameters where parameter.required {
+            print("  \(parameter.name)  \(parameter.description)")
+        }
+        if let fragment = adapter.promptFragment {
+            print("  fragment    \(fragment)")
+        } else {
+            print("  ✗  no prompt fragment — the model is not told to author the content.")
+        }
+        let contract = binding.parameters.first { $0.name == "content" }?.description ?? ""
+        let noun = canvas.schema.contentNoun
+        let marker = canvas.schema.requiredContentMarker
+        print(contract.contains(noun)
+            ? "  ✓  the declared noun \"\(noun)\" reached the model"
+            : "  ✗  the declared noun \"\(noun)\" did NOT reach the model")
+        if let marker {
+            print(contract.contains(marker)
+                ? "  ✓  the required marker \"\(marker)\" reached the model"
+                : "  ✗  the required marker \"\(marker)\" did NOT reach the model")
+        }
+        print("")
+
         // A browser must be NAMED: this is a CLI, so the Terminal is
         // frontmost and the ladder correctly refuses to guess between two.
+        // A browser must be NAMED when one is running: this is a CLI, so the
+        // Terminal is frontmost and the ladder correctly refuses to guess
+        // between two. With NONE running the name is left empty on purpose —
+        // that is the launch rung, and it can only be exercised from here.
         let target = browser ?? BrowserSurfaceSupport.shared.runningDisplayNames().first
-        guard let target else {
-            print("  ✗  no declared browser is running.")
-            return
-        }
-        print("  browser     \(target)\n")
+        print(target.map { "  browser     \($0)\n" }
+            ?? "  browser     none running — the canvas should open one\n")
 
         // BOTH PATHS, because a lane that can only be seen succeeding has an
         // untested half — and the failure half is the one carrying the
@@ -102,10 +139,10 @@ enum WebProbeCanvas {
             print("▸ \(label)")
             let started = Date()
             do {
+                var arguments = ["content": shader, "opening": "Here's how it looks."]
+                if let target { arguments["browser"] = target }
                 let outcome = try await run(
-                    ["content": shader, "opening": "Here's how it looks.",
-                     "browser": target],
-                    AbilityExecutionContext(projects: [:]))
+                    arguments, AbilityExecutionContext(projects: [:]))
                 print(String(
                     format: "  %@  %.1f s\n    %@",
                     outcome.ok ? "ok" : "REPORTED A PROBLEM",
@@ -116,6 +153,21 @@ enum WebProbeCanvas {
             }
             print("")
         }
+        // ▸ THE FAILING SHAPE, kept as a pass of its own. The refusal is
+        // correct and always was; what it must never again be is the ONLY
+        // signal that the contract upstream was empty.
+        print("▸ the shape the failing run sent")
+        do {
+            var arguments = ["text": "I'm feeling happy today."]
+            if let target { arguments["browser"] = target }
+            let outcome = try await run(
+                arguments, AbilityExecutionContext(projects: [:]))
+            print("  \(outcome.ok ? "ok" : "refused")  \(outcome.summary)")
+        } catch {
+            print("  THREW  \(error.localizedDescription)")
+        }
+        print("")
+
         print("  Both tabs are left open — closing one raises a confirmation.")
     }
 }

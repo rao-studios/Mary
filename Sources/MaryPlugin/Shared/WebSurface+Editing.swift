@@ -80,7 +80,8 @@ public extension WebSurface {
         in application: AXUIElement,
         consentLabels: Set<String> = [],
         timeout: TimeInterval = 12,
-        strategy: WebAreaStrategy = .first
+        strategy: WebAreaStrategy = .first,
+        hints: [String] = []
     ) async -> AXUIElement? {
         let deadline = Date().addingTimeInterval(timeout)
         repeat {
@@ -88,12 +89,39 @@ public extension WebSurface {
             if !consentLabels.isEmpty {
                 dismissConsentBanner(in: application, labels: consentLabels)
             }
-            if let first = editableSurfaces(in: application, strategy: strategy).first {
-                return first
-            }
+            let surfaces = editableSurfaces(in: application, strategy: strategy)
+            if let chosen = choose(from: surfaces, hints: hints) { return chosen }
             do { try await Task.sleep(for: .milliseconds(500)) } catch { return nil }
         } while Date() < deadline
         return nil
+    }
+
+    /// The editor a declaration named, or the first one.
+    ///
+    /// A HINT IS A PREFERENCE, NOT A FILTER, and that is the whole design. A
+    /// site renames its editor and a hint that filtered would turn a working
+    /// lane into "I couldn't find the editor on the page" — a total failure
+    /// caused by a cosmetic change somewhere else. Preferring instead degrades
+    /// to exactly the behaviour that existed before hints did.
+    ///
+    /// Matched against what the element says about ITSELF — title, description,
+    /// help — never its contents: an editor's value is the user's text, and a
+    /// hint that matched it would pick whichever field happened to contain the
+    /// word.
+    static func choose(from surfaces: [AXUIElement], hints: [String]) -> AXUIElement? {
+        guard !surfaces.isEmpty else { return nil }
+        guard !hints.isEmpty else { return surfaces.first }
+        let wanted = hints.map { $0.lowercased() }.filter { !$0.isEmpty }
+        let hinted = surfaces.first { element in
+            let described = [
+                AX.string(element, kAXTitleAttribute),
+                AX.string(element, kAXDescriptionAttribute),
+                AX.string(element, kAXHelpAttribute),
+                AX.string(element, kAXPlaceholderValueAttribute),
+            ].compactMap { $0?.lowercased() }
+            return described.contains { text in wanted.contains(where: text.contains) }
+        }
+        return hinted ?? surfaces.first
     }
 
     /// Press a consent button by its declared label — a cookie notice sitting

@@ -26,6 +26,7 @@ public enum AbilityPackageValidator {
         validateRequirementsAndFixtures(package, sink)
         validateParadigm(package, sink)
         validateApplicationsAndPlugin(package, sink)
+        validateWebCanvas(package, sink)
         return AbilityPackageValidation(issues: sink.issues)
     }
 

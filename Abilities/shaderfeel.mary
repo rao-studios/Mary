@@ -153,7 +153,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b4324865ffdfe241c92dda5c7088eb1c1a2b3714bdcfd9500323b3815e5b30ef"
+    "digest" : "85062e02ba5962185672db902c65a44fc14d8c715cbc5b3416dfc5ca87144f33"
   },
   "interactions" : [
 
@@ -298,7 +298,6 @@
     "contentLimitBytes" : 32000,
     "contentNoun" : "shader",
     "diagnosticPhrases" : [
-      "ERROR:",
       "error:",
       "syntax error",
       "compilation failed"

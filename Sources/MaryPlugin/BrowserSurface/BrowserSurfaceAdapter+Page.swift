@@ -103,6 +103,15 @@ extension BrowserSurfaceAdapter {
                 }
                 let elements = PageControlsReader.read(
                     inApp: WebSurface.application(pid: found.1.processIdentifier))
+                // WHAT THIS PAGE IS, before what is on it. A consent wall's
+                // buttons enumerate perfectly and tell the reader nothing
+                // about why the page they asked for is not underneath them.
+                if let labels = WebArrival.consentWallLabels(among: elements) {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: WebArrival.consentSentence(labels: labels),
+                        adapterTrail: [AdapterID.normalized(name)])
+                }
                 guard !elements.isEmpty else {
                     return SkillOutcome(
                         ok: true,
@@ -257,6 +266,31 @@ extension BrowserSurfaceAdapter {
             return .refusal(SkillOutcome(
                 ok: false,
                 summary: WebSurface.Failure.pageNotExposed
+                    .spoken(browser: registration.displayName)))
+        }
+        // A BOT CHECK HAS A WEB AREA, TEXT, AND NO CONTROLS WORTH PRESSING,
+        // so every reader below this line would honestly report "there's
+        // nothing on that page I can press" — blaming the site's layout for
+        // something standing over it. Refused here, once, for all of them.
+        //
+        // NOTHING IS PRESSED HERE, and the difference from `open_location` is
+        // deliberate: these verbs act on a page the user is ALREADY looking
+        // at. They can see the check; Mary answering it unasked would be
+        // acting on a page she was not sent to. She says what is there and
+        // stops. See `WebArrival`.
+        //
+        // ⚠️ A CONSENT WALL IS NOT REFUSED HERE, and the asymmetry is the
+        // whole point. Its buttons ARE the pressable things on that page, and
+        // naming the choice is only useful if the user can then take it —
+        // refusing every page verb would leave "reject all" with no path to
+        // the button it names. So the wall is REPORTED by the verb that
+        // enumerates (see `listPageElements`) and pressed by the verb that
+        // presses, like any other control.
+        if case .challenge = WebArrival.read(
+            inApp: WebSurface.application(pid: browser.processIdentifier)) {
+            return .refusal(SkillOutcome(
+                ok: false,
+                summary: WebSurface.Failure.humanCheck
                     .spoken(browser: registration.displayName)))
         }
         return .ready(registration, browser)
