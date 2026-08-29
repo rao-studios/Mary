@@ -169,7 +169,7 @@ import Testing
         #expect(record?.labels == ["debounce-throttling", "manifest-tracking"])
     }
 
-    @Test("and an unparsable one reaches it as .failed, not as a refusal")
+    @Test("and an unparsable one reaches it as .unparsable, not as a refusal")
     func coordinatorRecordsFailed() async {
         let ledger = UnitIndexLedger()
         let indexer = AmbientUnitIndexingCoordinator(
@@ -180,7 +180,65 @@ import Testing
         await indexer.ingest(Self.unit())
         await indexer.flush()
 
+        #expect(ledger.allUnits().first?.annotation == .unparsable)
+    }
+
+    @Test("a signed-out session reaches the ledger as seerUnavailable")
+    func coordinatorRecordsSeerUnavailable() async {
+        let ledger = UnitIndexLedger()
+        let indexer = AmbientUnitIndexingCoordinator(
+            idleFor: 0.1,
+            annotator: SeerUnitAnnotator(
+                complete: RecordingComplete(reply: Self.wellFormed, ready: false)),
+            ledger: ledger) { _, _ in }
+        await indexer.ingest(Self.unit())
+        await indexer.flush()
+
+        #expect(ledger.allUnits().first?.annotation == .seerUnavailable)
+    }
+
+    @Test("an empty complete body reaches the ledger as .empty")
+    func coordinatorRecordsEmpty() async {
+        let ledger = UnitIndexLedger()
+        let indexer = AmbientUnitIndexingCoordinator(
+            idleFor: 0.1,
+            annotator: SeerUnitAnnotator(
+                complete: RecordingComplete(reply: "   ")),
+            ledger: ledger) { _, _ in }
+        await indexer.ingest(Self.unit())
+        await indexer.flush()
+
+        #expect(ledger.allUnits().first?.annotation == .empty)
+    }
+
+    @Test("an HTTP failure stays .failed, not a refusal")
+    func coordinatorRecordsHttpFailure() async {
+        let ledger = UnitIndexLedger()
+        let indexer = AmbientUnitIndexingCoordinator(
+            idleFor: 0.1,
+            annotator: SeerUnitAnnotator(
+                complete: RecordingComplete(failure: SeerCompleteError.http(503))),
+            ledger: ledger) { _, _ in }
+        await indexer.ingest(Self.unit())
+        await indexer.flush()
+
         #expect(ledger.allUnits().first?.annotation == .failed)
+    }
+
+    @Test("labels without a précis are unparsable, not a half card")
+    func labelsWithoutPrecisAreUnparsable() async {
+        let attempt = await SeerUnitAnnotator(
+            complete: RecordingComplete(reply: #"{"precis":"","labels":["ordering"]}"#)
+        ).annotationAttempt(Self.request())
+        #expect(attempt == .unparsable)
+    }
+
+    @Test("a signed-out session is seerUnavailable before any request")
+    func annotationAttemptNamesSeerUnavailable() async {
+        let seer = RecordingComplete(reply: Self.wellFormed, ready: false)
+        let attempt = await SeerUnitAnnotator(complete: seer).annotationAttempt(Self.request())
+        #expect(attempt == .seerUnavailable)
+        #expect(seer.snapshot().instructions.isEmpty)
     }
 
     static func unit() -> IndexedUnit {

@@ -27,12 +27,9 @@ package enum TotemAddressFamily: String, CaseIterable {
 
     /// `mary-ability-…` — `TotemMemoryTopology.abilityGroup`.
     case abilityGroup
-    /// Leftover `mary-application-…` groups from before Ability Totem.
-    /// Same lane as `abilityGroup`; the pane marks them legacy.
-    case legacyApplicationGroup
     /// `mary-scope-…` — `DepositSubject.groupID`.
     case scopeGroup
-    /// `mary-context-<owner>` — the legacy owner-wide pool.
+    /// `mary-context-<owner>` — the owner-wide pool.
     /// `RetrievalScope.legacyPool`, mirrored by `TotemContextStore.destination`.
     case legacyContextPool
     /// `memory-<owner>` — written by the Seer server, never by Mary.
@@ -48,16 +45,10 @@ package enum TotemAddressFamily: String, CaseIterable {
     case abilitySchemaManifest
     /// `mary-ability-schema-…` — `TotemMemoryTopology.abilitySchemaDocumentID`.
     case abilitySchema
-    /// Leftover `mary-application-document-…`.
-    case legacyApplicationDocument
-    /// Leftover `mary-application-schema-manifest-…`.
-    case legacyApplicationSchemaManifest
-    /// Leftover `mary-application-schema-…`.
-    case legacyApplicationSchema
     /// `mary-project-schema-…` — `TotemMemoryTopology.projectSchemaDocumentID`.
     case projectSchema
     /// `mary-doc-…` — `DepositSubject.stateDocumentID`. The lane and
-    /// projection suffixes `TotemContextStore.documentID` appends keep the
+    /// projection suffixes `TotemContextStore.documentID` append keep the
     /// prefix, so suffixed snapshots stay in this family.
     case stateSnapshot
     /// `mary-skill-<uuid>` — `TotemContextStore.documentID`'s episodic fallback.
@@ -86,18 +77,12 @@ package struct TotemAddressClassification: Equatable {
     /// True for groups the Seer server writes on its own. Repair and cleanup
     /// actions must never treat those as Mary's to rewrite.
     package var isSeerOwned: Bool
-    /// True for leftover `mary-application-…` addresses. They classify as
-    /// Ability lane; the pane marks them rather than keeping an Application
-    /// section.
-    package var isLegacy: Bool
 
     init(family: TotemAddressFamily) {
         self.family = family
         switch family {
         case .abilityGroup, .abilityDocument,
-             .abilitySchemaManifest, .abilitySchema,
-             .legacyApplicationGroup, .legacyApplicationDocument,
-             .legacyApplicationSchemaManifest, .legacyApplicationSchema:
+             .abilitySchemaManifest, .abilitySchema:
             lane = .ability
         case .scopeGroup, .legacyContextPool, .projectSchema, .stateSnapshot,
              .skillRecord, .unitManifest, .unitCard, .styleProfile:
@@ -106,13 +91,6 @@ package struct TotemAddressClassification: Equatable {
             lane = nil
         }
         isSeerOwned = family == .seerMemory || family == .seerResonance
-        switch family {
-        case .legacyApplicationGroup, .legacyApplicationDocument,
-             .legacyApplicationSchemaManifest, .legacyApplicationSchema:
-            isLegacy = true
-        default:
-            isLegacy = false
-        }
     }
 }
 
@@ -133,8 +111,6 @@ package enum TotemAddressClassifier {
     // CORRECTNESS RULE — LONGEST PREFIX FIRST. Several families share a
     // spine: `mary-ability-schema-manifest-` begins with
     // `mary-ability-schema-`, which begins with `mary-ability-`;
-    // leftover `mary-application-schema-manifest-` begins with
-    // `mary-application-schema-`, which begins with `mary-application-`;
     // `mary-unit-manifest-` begins with `mary-unit-`. Matching in
     // declaration order would let a shorter prefix swallow the longer
     // family, so the tables are sorted by prefix length at construction —
@@ -144,7 +120,6 @@ package enum TotemAddressClassifier {
     private static let groupTable: [(prefix: String, family: TotemAddressFamily)] =
         byLongestPrefix([
             ("mary-ability-", .abilityGroup),
-            ("mary-application-", .legacyApplicationGroup),
             ("mary-scope-", .scopeGroup),
             ("mary-context-", .legacyContextPool),
             ("memory-", .seerMemory),
@@ -156,9 +131,6 @@ package enum TotemAddressClassifier {
             ("mary-ability-schema-manifest-", .abilitySchemaManifest),
             ("mary-ability-schema-", .abilitySchema),
             ("mary-ability-document-", .abilityDocument),
-            ("mary-application-schema-manifest-", .legacyApplicationSchemaManifest),
-            ("mary-application-schema-", .legacyApplicationSchema),
-            ("mary-application-document-", .legacyApplicationDocument),
             ("mary-project-schema-", .projectSchema),
             ("mary-doc-", .stateSnapshot),
             ("mary-skill-", .skillRecord),

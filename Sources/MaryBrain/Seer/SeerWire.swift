@@ -262,5 +262,63 @@ enum SeerWire {
 
     struct CompleteResponse: Decodable {
         var text: String
+
+        enum CodingKeys: String, CodingKey {
+            case text, output, completion, content, choices
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            if let text = Self.firstNonEmpty(
+                try values.decodeIfPresent(String.self, forKey: .text),
+                try values.decodeIfPresent(String.self, forKey: .output),
+                try values.decodeIfPresent(String.self, forKey: .completion),
+                try values.decodeIfPresent(String.self, forKey: .content)
+            ) {
+                self.text = text
+                return
+            }
+            if let choices = try values.decodeIfPresent([Choice].self, forKey: .choices),
+               let text = choices.lazy.compactMap(\.text).first(where: { !$0.isEmpty }) {
+                self.text = text
+                return
+            }
+            self.text = ""
+        }
+
+        private struct Choice: Decodable {
+            var text: String?
+
+            enum CodingKeys: String, CodingKey {
+                case text, message
+            }
+
+            init(from decoder: Decoder) throws {
+                let values = try decoder.container(keyedBy: CodingKeys.self)
+                if let text = try values.decodeIfPresent(String.self, forKey: .text),
+                   !text.isEmpty {
+                    self.text = text
+                    return
+                }
+                if let message = try values.decodeIfPresent(Message.self, forKey: .message),
+                   let content = message.content, !content.isEmpty {
+                    self.text = content
+                    return
+                }
+                self.text = nil
+            }
+
+            struct Message: Decodable {
+                var content: String?
+            }
+        }
+
+        private static func firstNonEmpty(_ candidates: String?...) -> String? {
+            for candidate in candidates {
+                let value = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !value.isEmpty { return value }
+            }
+            return nil
+        }
     }
 }

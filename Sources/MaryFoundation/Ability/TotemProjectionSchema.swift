@@ -11,41 +11,9 @@
 
 import Foundation
 
-public enum TotemLane: String, Hashable, Sendable, CaseIterable {
+public enum TotemLane: String, Codable, Hashable, Sendable, CaseIterable {
     case ability
     case personal
-}
-
-extension TotemLane: Codable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let raw = try container.decode(String.self)
-        switch raw {
-        case "ability", "application":
-            self = .ability
-        case "personal":
-            self = .personal
-        default:
-            throw DecodingError.dataCorruptedError(
-                in: container,
-                debugDescription: "Unknown Totem lane '\(raw)'.")
-        }
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(rawValue)
-    }
-
-    /// Studio tags and other free-text entry. `"application"` is the same
-    /// one-way alias Codable admits; it is not a case.
-    public init?(admitting raw: String) {
-        switch raw {
-        case "ability", "application": self = .ability
-        case "personal": self = .personal
-        default: return nil
-        }
-    }
 }
 
 /// Where an Ability Totem group is addressed: one Ability, in one role.

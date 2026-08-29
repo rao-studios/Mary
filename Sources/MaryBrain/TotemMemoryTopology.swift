@@ -77,9 +77,17 @@ public enum TotemMemoryTopology {
     // dropped as already-owned — the reason `DepositSubject` gives.
     //
 
-    public static func retrievalScope(
-        for plan: TotemMemoryPlan,
+    public static func seerPersonalScope(
         subject: DepositSubject,
+        ownerID: String
+    ) -> RetrievalScope {
+        subject.retrievalScope(ownerID: ownerID)
+    }
+
+    /// Ability Totem groups Mary searches over gRPC. Empty when the turn has
+    /// no Ability targets — skip the search rather than scanning Personal.
+    public static func maryAbilityScope(
+        for plan: TotemMemoryPlan,
         ownerID: String
     ) -> RetrievalScope {
         let abilityGroups = plan.abilityTargets.map {
@@ -93,29 +101,21 @@ public enum TotemMemoryTopology {
                 .map(\.abilityID.rawValue))
             hints = Array(Set(hints)).sorted()
         }
-        guard plan.lanes.contains(.ability) else {
-            return subject.retrievalScope(ownerID: ownerID)
-        }
-        guard plan.lanes.contains(.personal) else {
-            return RetrievalScope(
-                groups: abilityGroups,
-                aggregate: false,
-                relationshipHints: hints)
-        }
-
-        let personal = subject.retrievalScope(ownerID: ownerID)
-        let personalGroups = personal.aggregate
-            ? RetrievalScope.memoryGroups(ownerID: ownerID) + [RetrievalScope.legacyPool(ownerID: ownerID)]
-            : personal.groups
-        let groupsByLane: [TotemLane: [RetrievalScope.Group]] = [
-            .ability: abilityGroups,
-            .personal: personalGroups,
-        ]
-        let ordered = plan.lanePriority.flatMap { groupsByLane[$0] ?? [] }
         return RetrievalScope(
-            groups: unique(ordered),
+            groups: unique(abilityGroups),
             aggregate: false,
             relationshipHints: hints)
+    }
+
+    /// Combined scope kept for callers that still ask "the whole plan".
+    /// Seer chat must use `seerPersonalScope`; Mary's gRPC search must use
+    /// `maryAbilityScope`.
+    public static func retrievalScope(
+        for plan: TotemMemoryPlan,
+        subject: DepositSubject,
+        ownerID: String
+    ) -> RetrievalScope {
+        seerPersonalScope(subject: subject, ownerID: ownerID)
     }
 
     private static func unique(_ groups: [RetrievalScope.Group]) -> [RetrievalScope.Group] {

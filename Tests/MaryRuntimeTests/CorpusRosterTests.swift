@@ -56,14 +56,12 @@ import MaryTotem
         #expect(registrations.map(\.schema.notation) == ["prose"])
     }
 
-    @Test func leftoverApplicationAddressesClassifyAsAbility() {
+    @Test func leftoverApplicationAddressesAreUnknown() {
         let group = TotemAddressClassifier.classifyGroup(id: "mary-application-deadbeef")
-        #expect(group.lane == .ability)
-        #expect(group.isLegacy)
-        #expect(group.family == .legacyApplicationGroup)
+        #expect(group.family == .unknown)
+        #expect(group.lane == nil)
         let live = TotemAddressClassifier.classifyGroup(id: "mary-ability-cafef00d")
         #expect(live.lane == .ability)
-        #expect(!live.isLegacy)
         #expect(live.family == .abilityGroup)
     }
 

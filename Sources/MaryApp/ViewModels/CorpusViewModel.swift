@@ -239,6 +239,9 @@ final class CorpusViewModel: ObservableObject {
         case .refusedExclusiveEngine:
             return "structure only — the on-device engine is reserved for your turns"
         case .failed: return "structure only — the summariser returned nothing"
+        case .seerUnavailable: return "structure only — Seer is not signed in"
+        case .empty: return "structure only — the summariser returned an empty reply"
+        case .unparsable: return "structure only — the summariser did not return a précis"
         // Written by a newer build and decayed on the way in. Named rather
         // than hidden: an unrecognised state is still a state.
         case .unknown: return "in a state this version doesn't recognise"

@@ -51,9 +51,18 @@ public struct SeerUnitAnnotator: UnitAnnotating {
     public nonisolated var refusesToAnnotate: Bool { false }
 
     public func annotate(_ request: UnitAnnotationRequest) async -> UnitAnnotation? {
+        if case .annotated(let annotation) = await annotationAttempt(request) {
+            return annotation
+        }
+        return nil
+    }
+
+    public func annotationAttempt(
+        _ request: UnitAnnotationRequest
+    ) async -> UnitAnnotationAttempt {
         guard await complete.isReady() else {
             Self.log.debug("annotation skipped: seer not ready")
-            return nil
+            return .seerUnavailable
         }
         let prompt = InferenceUnitAnnotator.prompt(for: request)
         let text: String
@@ -61,14 +70,25 @@ public struct SeerUnitAnnotator: UnitAnnotating {
             text = try await complete.complete(
                 instructions: InferenceUnitAnnotator.systemPrompt,
                 messages: [SeerChatMessage(role: "user", content: prompt)])
+        } catch let error as SeerCompleteError {
+            switch error {
+            case .notAuthenticated:
+                return .seerUnavailable
+            case .emptyReply:
+                return .empty
+            case .http, .unreachable:
+                Self.log.error(
+                    "annotation failed: \(error.localizedDescription, privacy: .public)")
+                return .failed
+            }
         } catch {
             Self.log.error(
                 "annotation failed: \(error.localizedDescription, privacy: .public)")
-            return nil
+            return .failed
         }
-        // THE SAME PARSER AS THE LOCAL PATH. Two annotators producing the same
-        // shape must agree about what a malformed answer is, or a unit's card
-        // depends on which engine happened to summarise it.
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return .empty
+        }
         guard let annotation = InferenceUnitAnnotator.parse(text) else {
             Self.log.error(
                 """
@@ -76,8 +96,8 @@ public struct SeerUnitAnnotator: UnitAnnotating {
                 \(text.count, privacy: .public) chars, begins \
                 \(text.prefix(160).trimmingCharacters(in: .whitespacesAndNewlines), privacy: .public)
                 """)
-            return nil
+            return .unparsable
         }
-        return annotation
+        return .annotated(annotation)
     }
 }

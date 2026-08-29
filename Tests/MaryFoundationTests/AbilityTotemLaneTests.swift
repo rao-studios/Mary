@@ -2,10 +2,9 @@
 //  AbilityTotemLaneTests.swift
 //  MaryFoundationTests
 //
-//  Application Totem is gone. Ability is the only craft lane; `"application"`
-//  on the wire is a one-way alias, not a case. Projection schemas do not
-//  name lanes — filing is derived from paradigm and required discipline
-//  dependencies.
+//  Application Totem is gone. Ability is the only craft lane. Projection
+//  schemas do not name lanes — filing is derived from paradigm and required
+//  discipline dependencies.
 //
 
 import Foundation
@@ -26,10 +25,11 @@ import MaryFoundationTestSupport
         #expect(String(data: data, encoding: .utf8) == "\"ability\"")
     }
 
-    @Test func decodingApplicationIsAbility() throws {
+    @Test func decodingApplicationIsRejected() {
         let data = Data("\"application\"".utf8)
-        #expect(try JSONDecoder().decode(TotemLane.self, from: data) == .ability)
-        #expect(TotemLane(admitting: "application") == .ability)
+        #expect(throws: DecodingError.self) {
+            _ = try JSONDecoder().decode(TotemLane.self, from: data)
+        }
         #expect(TotemLane(rawValue: "application") == nil)
     }
 

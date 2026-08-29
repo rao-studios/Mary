@@ -97,6 +97,14 @@ public struct UnitAnnotationRequest: Sendable, Equatable {
     }
 }
 
+public enum UnitAnnotationAttempt: Sendable, Equatable {
+    case annotated(UnitAnnotation)
+    case seerUnavailable
+    case empty
+    case unparsable
+    case failed
+}
+
 /// The seam to whatever can write a précis. Declared here because this package
 /// may name only `MaryFoundation` — the implementation lives above, over an
 /// inference engine, and is installed by the composition root.
@@ -106,18 +114,26 @@ public protocol UnitAnnotating: Sendable {
     /// rather than being dropped.
     func annotate(_ request: UnitAnnotationRequest) async -> UnitAnnotation?
 
-    /// True when this annotator will decline every request by policy rather
-    /// than having tried and failed — today, an engine that requires exclusive
-    /// generation, which a background annotator must never queue behind.
-    ///
-    /// It exists so the coordinator can say WHY a card has no précis instead
-    /// of inferring it from an empty result, which is how "declined on
-    /// purpose" and "tried and got nothing" became the same empty label list.
+    /// Distinguishes why `annotate` returned nil, so the Corpus card can name
+    /// "not signed in" separately from "the model answered in prose".
+    func annotationAttempt(
+        _ request: UnitAnnotationRequest
+    ) async -> UnitAnnotationAttempt
+
     var refusesToAnnotate: Bool { get }
 }
 
 public extension UnitAnnotating {
     var refusesToAnnotate: Bool { false }
+
+    func annotationAttempt(
+        _ request: UnitAnnotationRequest
+    ) async -> UnitAnnotationAttempt {
+        if let annotation = await annotate(request), !annotation.isEmpty {
+            return .annotated(annotation)
+        }
+        return .failed
+    }
 }
 
 /// One indexed file and its neighbourhood.

@@ -264,15 +264,28 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         _ unit: IndexedUnit, pinnedLabels: [String]?
     ) async -> (unit: IndexedUnit, outcome: UnitAnnotationOutcome) {
         guard let annotator else { return (unit, .noAnnotator) }
-        let annotation = await annotator.annotate(.init(
+        let attempt = await annotator.annotationAttempt(.init(
             projectName: unit.projectName,
             relativePath: unit.relativePath,
             declaredTypes: unit.declaredTypes,
             relations: unit.relations,
             apiHeaders: unit.apiHeaders,
             doc: unit.doc))
-        guard let annotation, !annotation.isEmpty else {
+        let annotation: UnitAnnotation?
+        switch attempt {
+        case .annotated(let value):
+            annotation = value
+        case .seerUnavailable:
+            return (unit, .seerUnavailable)
+        case .empty:
+            return (unit, .empty)
+        case .unparsable:
+            return (unit, .unparsable)
+        case .failed:
             return (unit, annotator.refusesToAnnotate ? .refusedExclusiveEngine : .failed)
+        }
+        guard let annotation, !annotation.isEmpty else {
+            return (unit, .failed)
         }
         var annotated = unit
         // A hand correction outranks the model, every time, for this unit —

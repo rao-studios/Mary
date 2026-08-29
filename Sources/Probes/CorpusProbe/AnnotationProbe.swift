@@ -236,6 +236,9 @@ enum AnnotationProbe {
         case .refusedExclusiveEngine:
             return "structure only — the on-device engine is reserved for your turns"
         case .failed: return "structure only — the summariser returned nothing"
+        case .seerUnavailable: return "structure only — Seer is not signed in"
+        case .empty: return "structure only — the summariser returned an empty reply"
+        case .unparsable: return "structure only — the summariser did not return a précis"
         case .unknown: return "in a state this version doesn't recognise"
         }
     }

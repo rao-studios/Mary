@@ -72,9 +72,7 @@ final class ServersViewModel: ObservableObject {
                 prefix: "mary-scope-", ownerID: owner)
             let ability = try await reader.clearGroups(
                 prefix: "mary-ability-", ownerID: owner)
-            let leftoverApplication = try await reader.clearGroups(
-                prefix: "mary-application-", ownerID: owner)
-            return legacy + scoped + ability + leftoverApplication
+            return legacy + scoped + ability
         }
     }
 

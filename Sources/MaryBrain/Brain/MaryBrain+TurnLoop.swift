@@ -161,16 +161,6 @@ extension MaryBrain {
             }
         }
 
-        if let prepare = turnContextPreparer {
-            _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
-                await prepare()
-                return Optional(())
-            }
-            if Task.isCancelled {
-                continuation.finish()
-                return
-            }
-        }
         dispatcher?.beginTurn()
 
         // The utterance may name a domain ("add a scene…", "fix the build…").
@@ -191,6 +181,20 @@ extension MaryBrain {
         // user said is still the situational moment, and a detached routine's
         // follow-up should rank against the request that spawned it.
         ambient.noteUtterance(userText)
+
+        // After the utterance is published so Ability Totem search can use
+        // this turn's words. Observers still refresh here so live facts and
+        // the search share one budget.
+        if let prepare = turnContextPreparer {
+            _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
+                await prepare()
+                return Optional(())
+            }
+            if Task.isCancelled {
+                continuation.finish()
+                return
+            }
+        }
 
         let userTurn = BrainTurn(role: .user, text: userText)
         // The turn's identity leads every path — deterministic decision,
@@ -832,6 +836,7 @@ extension MaryBrain {
         // consumer.
         wiring.retrieval.open(exchangeID: userTurn.id, routeTraceID: traceID)
         wiring.retrieval.claimStagedSystemPrompt(forExchange: userTurn.id)
+        wiring.retrieval.claimStagedAbilityRequest(forExchange: userTurn.id)
         // THE INPUT HALF OF THE EPISODE, claimed from the same prompt build
         // and for the same reason. See `BehavioralAssembler` on why the
         // capture is staged rather than passed.

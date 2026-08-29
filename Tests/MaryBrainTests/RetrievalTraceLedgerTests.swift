@@ -228,6 +228,31 @@ import Testing
         #expect(row.ambient.isEmpty)
     }
 
+    @Test func stagedAbilityRequestClaimsOntoTheRowOnce() throws {
+        let ledger = RetrievalTraceLedger()
+        let exchange = UUID()
+        let groups = [RetrievalScope.Group(id: "mary-ability-1", label: "Ability — coding")]
+        ledger.stageAbilityRequest(
+            SeerRequestTrace(
+                grpcAbilitySearch: "owner-test",
+                groups: groups,
+                relationshipHints: ["practices"],
+                sentAt: frozen))
+        ledger.open(exchangeID: exchange, date: frozen)
+        ledger.claimStagedAbilityRequest(forExchange: exchange)
+
+        let row = try #require(ledger.entries().first { $0.exchangeID == exchange })
+        #expect(row.requests.count == 1)
+        #expect(row.requests[0].transport == .grpc)
+        #expect(row.requests[0].groups.map(\.id) == ["mary-ability-1"])
+        #expect(row.requests[0].relationshipHints == ["practices"])
+        #expect(row.requests[0].personalTotemID == nil)
+
+        ledger.claimStagedAbilityRequest(forExchange: exchange)
+        let again = try #require(ledger.entries().first { $0.exchangeID == exchange })
+        #expect(again.requests.count == 1)
+    }
+
     // MARK: - Redaction pins
 
     /// The projection is the redaction: spans go in, ONLY counts and summed

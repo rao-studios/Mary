@@ -93,7 +93,6 @@ struct TotemGroupRow: Identifiable, Equatable {
     var familyTitle: String
     var lane: TotemLane?
     var isSeerOwned: Bool
-    var isLegacy: Bool
     var documents: [TotemDocumentRow]
 }
 

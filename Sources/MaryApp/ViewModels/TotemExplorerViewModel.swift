@@ -605,7 +605,6 @@ final class TotemExplorerViewModel: ObservableObject {
                 familyTitle: familyTitle(classification.family),
                 lane: classification.lane,
                 isSeerOwned: classification.isSeerOwned,
-                isLegacy: classification.isLegacy,
                 documents: group.documents.map { document in
                     let family = TotemAddressClassifier.classifyDocument(id: document.id).family
                     return TotemDocumentRow(
@@ -630,7 +629,7 @@ final class TotemExplorerViewModel: ObservableObject {
         // they are instead of being misfiled — the classifier's own rule.
         let sections: [(id: String, title: String, subtitle: String, groups: [TotemGroupRow])] = [
             ("ability", "Ability lane",
-             "Craft receipts and packaged skill memory, keyed by Ability and paradigm. Leftover application-group ids from before this lane sit here, marked legacy.",
+             "Craft receipts and packaged skill memory, keyed by Ability and paradigm.",
              rows.filter { $0.lane == .ability }),
             ("personal", "Personal lane",
              "The user's own record — scopes, snapshots, units, style.",
@@ -667,7 +666,6 @@ final class TotemExplorerViewModel: ObservableObject {
     nonisolated static func familyTitle(_ family: TotemAddressFamily) -> String {
         switch family {
         case .abilityGroup: return "Ability"
-        case .legacyApplicationGroup: return "Ability (legacy)"
         case .scopeGroup: return "Scope"
         case .legacyContextPool: return "Context pool"
         case .seerMemory: return "Memory"
@@ -675,9 +673,6 @@ final class TotemExplorerViewModel: ObservableObject {
         case .abilityDocument: return "Ability document"
         case .abilitySchemaManifest: return "Schema manifest"
         case .abilitySchema: return "Ability schema"
-        case .legacyApplicationDocument: return "Ability document (legacy)"
-        case .legacyApplicationSchemaManifest: return "Schema manifest (legacy)"
-        case .legacyApplicationSchema: return "Ability schema (legacy)"
         case .projectSchema: return "Project schema"
         case .stateSnapshot: return "State snapshot"
         case .skillRecord: return "Skill record"
@@ -836,42 +831,32 @@ final class TotemExplorerViewModel: ObservableObject {
         promptSpend: [PromptSpendTrace]
     ) -> [TotemRetrievalWarning] {
         var warnings: [TotemRetrievalWarning] = []
-        let anyAggregate = requests.contains { $0.aggregate }
-        // Family of every group actually sent. Keyed on FAMILY, not lane:
-        // unit cards, style profiles and application schemas live at
-        // application-family and manifest ADDRESSES, and a lane-keyed check
-        // would call the corpus reachable whenever any personal-lane group
-        // rode along — which is every focused turn.
-        let sentFamilies = Set(requests.flatMap { request in
+        let seerRequests = requests.filter { $0.transport != .grpc }
+        let grpcRequests = requests.filter { $0.transport == .grpc }
+        let seerFamilies = Set(seerRequests.flatMap { request in
+            request.groups.map { TotemAddressClassifier.classifyGroup(id: $0.id).family }
+        })
+        let grpcFamilies = Set(grpcRequests.flatMap { request in
             request.groups.map { TotemAddressClassifier.classifyGroup(id: $0.id).family }
         })
 
-        if let plan, plan.lanes == [.personal], !requests.isEmpty, !anyAggregate,
-           !sentFamilies.contains(.abilityGroup),
-           !sentFamilies.contains(.legacyApplicationGroup) {
+        if seerFamilies.contains(.abilityGroup) {
             warnings.append(.init(
-                kind: .behaviouralCorpusUnreachable,
-                message: "Discipline-wide usage is out of reach — no Ability Totem group in the sent scope, and aggregate is off. Craft receipts live in mary-ability-… groups. Unit cards live in project scope; style lives on Personal."))
+                kind: .planScopeMismatch,
+                message: "Seer chat was sent an Ability Totem group. Spoken retrieval is Personal only; craft receipts go over local gRPC."))
         }
 
-        if let plan, !requests.isEmpty, !anyAggregate {
-            let sentAbility = sentFamilies.contains(.abilityGroup)
-                || sentFamilies.contains(.legacyApplicationGroup)
-            if plan.lanes.contains(.ability), !sentAbility {
-                warnings.append(.init(
-                    kind: .planScopeMismatch,
-                    message: "Plan asked for the Ability lane, but no Ability-family group went out."))
-            } else if !plan.lanes.contains(.ability), sentAbility {
-                warnings.append(.init(
-                    kind: .planScopeMismatch,
-                    message: "An Ability-family group went out that the plan never asked for."))
-            }
+        if let plan, !plan.abilityTargets.isEmpty, !grpcRequests.isEmpty,
+           !grpcFamilies.contains(.abilityGroup) {
+            warnings.append(.init(
+                kind: .planScopeMismatch,
+                message: "Ability search ran over gRPC without an Ability Totem group."))
         }
 
-        if !requests.isEmpty, contribution == nil {
+        if !seerRequests.isEmpty, contribution == nil {
             warnings.append(.init(
                 kind: .askedNothingBack,
-                message: "Asked, nothing back — \(requests.count) request\(requests.count == 1 ? "" : "s") went out and no contribution returned."))
+                message: "Asked, nothing back — \(seerRequests.count) Seer request\(seerRequests.count == 1 ? "" : "s") went out and no contribution returned."))
         }
 
         // The stored counts cannot separate a DEMOTED fact from a mention

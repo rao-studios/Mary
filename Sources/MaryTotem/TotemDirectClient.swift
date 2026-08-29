@@ -100,12 +100,13 @@ public actor TotemDirectClient {
         ownerID: String,
         scope: String = "personal",
         topK: Int = 5,
-        groupIDs: [String] = []
+        groupIDs: [String] = [],
+        timeout: Duration = .seconds(30)
     ) async throws -> [PartitionHit] {
         let request = TotemProtoMap.searchRequest(
             query: query, ownerID: ownerID, scope: scope,
             topK: topK, groupIDs: groupIDs)
-        return try await withQueryStub(timeout: .seconds(30)) { stub, options in
+        return try await withQueryStub(timeout: timeout) { stub, options in
             let response = try await stub.search(request, options: options)
             return response.results.map(TotemProtoMap.hit(from:))
         }

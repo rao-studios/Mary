@@ -40,6 +40,8 @@ import Foundation
 public enum SeerTransportKind: String, Sendable, Equatable {
     case sse
     case realtime
+    /// Mary's direct Totem gRPC — Ability lane, not Seer RAG.
+    case grpc
 }
 
 /// Which of the two per-turn prompts a spend or injection row describes.
@@ -71,7 +73,7 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
     public var relationshipHints: [String]
     public var personalTotemID: String?
 
-    /// THE ONLY WAY IN, and internal on purpose: a trace is a projection of
+    /// THE ONLY WAY IN from a Seer chat request: a trace is a projection of
     /// the scope value the wire encodes, never a hand-assembled claim about
     /// it.
     init(
@@ -89,6 +91,24 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
         }
         self.relationshipHints = scope.entities ?? []
         self.personalTotemID = scope.personalTotemID
+    }
+
+    /// Mary's Ability-lane gRPC search. Ids and labels only — the same
+    /// redaction rule as the Seer projection.
+    public init(
+        grpcAbilitySearch ownerID: String,
+        groups: [RetrievalScope.Group],
+        relationshipHints: [String],
+        sentAt: Date = Date()
+    ) {
+        self.id = UUID().uuidString.lowercased()
+        self.sentAt = sentAt
+        self.transport = .grpc
+        self.ownerID = ownerID
+        self.aggregate = false
+        self.groups = groups
+        self.relationshipHints = relationshipHints
+        self.personalTotemID = nil
     }
 }
 
@@ -245,6 +265,8 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
     /// See `stageSystemPrompt`.
     private var stagedSystemPrompt:
         (spend: PromptSpendTrace, ambient: AmbientInjectionTrace)?
+    /// See `stageAbilityRequest`.
+    private var stagedAbilityRequest: SeerRequestTrace?
 
     public init(capacity: Int = 50) {
         self.capacity = max(1, capacity)
@@ -353,6 +375,24 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
         records[index].ambient.append(staged.ambient)
     }
 
+    /// Ability-lane gRPC search is asked during turn-context refresh, before
+    /// the retrieval row exists. Stage here; the turn loop claims it onto the
+    /// row it opens, same handshake as the system prompt.
+    public func stageAbilityRequest(_ request: SeerRequestTrace) {
+        lock.lock()
+        defer { lock.unlock() }
+        stagedAbilityRequest = request
+    }
+
+    public func claimStagedAbilityRequest(forExchange id: UUID) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let staged = stagedAbilityRequest else { return }
+        stagedAbilityRequest = nil
+        guard let index = records.firstIndex(where: { $0.exchangeID == id }) else { return }
+        records[index].requests.append(staged)
+    }
+
     public func entries() -> [RetrievalTraceRecord] {
         lock.lock()
         defer { lock.unlock() }
@@ -364,5 +404,6 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
         defer { lock.unlock() }
         records.removeAll()
         stagedSystemPrompt = nil
+        stagedAbilityRequest = nil
     }
 }

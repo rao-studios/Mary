@@ -100,7 +100,8 @@ extension TotemContextStore {
                 try await client.deposit(
                     [item], ownerID: ownerID,
                     groupID: destination.id,
-                    groupLabel: destination.label)
+                    groupLabel: destination.label,
+                    scope: destination.lane.rawValue)
             } catch {
                 // Fire-and-forget: a missing Totem is a Servers-sheet concern.
                 continue

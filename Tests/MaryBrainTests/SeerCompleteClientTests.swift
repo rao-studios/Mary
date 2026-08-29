@@ -125,4 +125,27 @@ final class SeerCompleteClientTests: XCTestCase {
             // expected
         }
     }
+
+    func testCompleteResponseReadsOutputWhenTextIsAbsent() throws {
+        let decoded = try JSONDecoder().decode(
+            SeerWire.CompleteResponse.self,
+            from: Data(#"{"output":"hello from output"}"#.utf8))
+        XCTAssertEqual(decoded.text, "hello from output")
+    }
+
+    func testCompleteResponseReadsChatChoices() throws {
+        let decoded = try JSONDecoder().decode(
+            SeerWire.CompleteResponse.self,
+            from: Data(#"{"choices":[{"message":{"content":"from choices"}}]}"#.utf8))
+        XCTAssertEqual(decoded.text, "from choices")
+    }
+
+    func testCompleteClientAcceptsOutputKey() async throws {
+        let transport = ScriptedCompleteTransport([(200, #"{"output":"ok"}"#)])
+        let client = await makeClient(transport: transport)
+        let text = try await client.complete(
+            instructions: nil,
+            messages: [SeerChatMessage(role: "user", content: "hi")])
+        XCTAssertEqual(text, "ok")
+    }
 }

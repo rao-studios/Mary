@@ -44,8 +44,15 @@ public enum UnitAnnotationOutcome: String, Sendable, Equatable, Codable {
     /// queued behind the turn path. Declined on purpose; the card still
     /// carries its structure.
     case refusedExclusiveEngine
-    /// An annotator was installed and returned nothing usable.
+    /// An annotator was installed and returned nothing usable (HTTP error,
+    /// unreachable server, or a catch-all the newer cases do not cover).
     case failed
+    /// Seer was not signed in, so `/v1/complete` was never asked.
+    case seerUnavailable
+    /// The complete route returned an empty body.
+    case empty
+    /// The complete route answered, but not with a précis and labels.
+    case unparsable
     /// Labels are pinned by hand, so the model's were discarded for this unit.
     case pinned
     /// An outcome this build does not know, met while reading a manifest a
