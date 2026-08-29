@@ -103,6 +103,12 @@ public enum AbilityPackageValidator {
         duplicates(package.ability.totemProjections.map(\.rawValue)).forEach {
             sink.error("duplicate-ability-projection", "ability.totemProjections", "Projection id \($0) appears more than once in the Ability schema.")
         }
+        duplicates(package.ability.operatingPolicy.guardrailCategories.map(\.rawValue)).forEach {
+            sink.error(
+                "duplicate-ability-guardrail-category",
+                "ability.operatingPolicy.guardrailCategories",
+                "Guardrail category \($0) appears more than once.")
+        }
         duplicates(package.dependencies.map { $0.packageID.rawValue }).forEach {
             sink.error("duplicate-dependency", "dependencies", "Package dependency \($0) appears more than once.")
         }

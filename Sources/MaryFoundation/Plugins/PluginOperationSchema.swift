@@ -52,6 +52,13 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
     /// the plugin's sole adapter — required exactly when several are declared.
     public var adapterID: AdapterID?
     public var semantics: PluginOperationSemantics?
+    /// Closed, bounded description extension — see `GuardrailCategory`.
+    /// Distinct from `title`/`summary` (inspector-only, never model
+    /// instruction text) and from `semantics.role`/`aliases` (tool-selection
+    /// hints). `AbilityRuntime.projectedBindingDescription` appends exactly
+    /// one fixed, Mary-owned sentence keyed by this value; the case is the
+    /// only thing a package chooses, never any wording.
+    public var caution: GuardrailCategory?
     public var inputs: [PluginOperationInputSchema]
     public var steps: [PluginRecipeStepSchema]
     /// Best-effort remote-hand cleanup performed before Mary restores the
@@ -67,6 +74,7 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         summary: String,
         adapterID: AdapterID? = nil,
         semantics: PluginOperationSemantics? = nil,
+        caution: GuardrailCategory? = nil,
         inputs: [PluginOperationInputSchema] = [],
         steps: [PluginRecipeStepSchema] = [],
         cleanupSteps: [PluginRecipeStepSchema] = [],
@@ -78,6 +86,7 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         self.summary = summary
         self.adapterID = adapterID
         self.semantics = semantics
+        self.caution = caution
         self.inputs = inputs
         self.steps = steps
         self.cleanupSteps = cleanupSteps
@@ -93,6 +102,7 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         case summary
         case adapterID
         case semantics
+        case caution
         case inputs
         case steps
         case cleanupSteps
@@ -113,6 +123,7 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         adapterID = try container.decodeIfPresent(AdapterID.self, forKey: .adapterID)
         semantics = try container.decodeIfPresent(
             PluginOperationSemantics.self, forKey: .semantics)
+        caution = try container.decodeIfPresent(GuardrailCategory.self, forKey: .caution)
         inputs = try container.decode([PluginOperationInputSchema].self, forKey: .inputs)
         if container.contains(.commands) || container.contains(.output) {
             let key: CodingKeys = container.contains(.commands) ? .commands : .output
@@ -139,6 +150,9 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         }
         if let semantics {
             try container.encode(semantics, forKey: .semantics)
+        }
+        if let caution {
+            try container.encode(caution, forKey: .caution)
         }
         try container.encode(inputs, forKey: .inputs)
         try container.encode(steps, forKey: .steps)

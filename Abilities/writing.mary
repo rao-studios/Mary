@@ -15,6 +15,9 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never type prose into code, terminal, or Mary request surfaces.",
         "A selection may authorize replacement only when fresh and source-matched.",
@@ -561,7 +564,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b2d725d080b740213cb424b08cc25ee745160945cefccbc8378e0074924e8d4d"
+    "digest" : "740a191e6238357ec67797ea471c886bb5999452ad9334a0e00e931ca4e7b91b"
   },
   "interactions" : [
     {

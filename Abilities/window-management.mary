@@ -12,6 +12,9 @@
       "defaultSupportingAbilities" : [
 
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never infer one window from an ambiguous title.",
         "Prefer stable adapter window identity over titles or z-order.",
@@ -362,7 +365,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "cefe718cc11a9299c30299155f99a1efc1482aed0bc77e0888833818db3c7213"
+    "digest" : "800421620fe6aa7905f89b599b7ffacee6a46ed31a7a5ab1170a259c76965c71"
   },
   "interactions" : [
     {

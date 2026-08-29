@@ -19,6 +19,9 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never bring the player forward to change what it is doing; the transport answers without focus.",
         "Report the track from a live read of the transport, never from the last one."
@@ -102,7 +105,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4f53004c5b8e23682573f512d3cfbd1accf991f850f97cc5a6159afd53c66d6a"
+    "digest" : "4626bbcc97e9e9caee69205c14cf74de50b20be20c34be89cb4acd7a3a4a269d"
   },
   "interactions" : [
 

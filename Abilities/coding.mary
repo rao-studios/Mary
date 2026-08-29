@@ -14,6 +14,10 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+        "domainMismatch",
+        "unscopedTarget"
+      ],
       "guardrails" : [
         "Never type prose into a code surface; the writing Ability owns prose.",
         "A build, run or test is the editor's own command, never a synthesized edit.",
@@ -472,7 +476,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b930dee631bb89315f888f9756a965ec2becc7aa78eb66a4654124fbbf383093"
+    "digest" : "78a2b6f9e33bf74fec892ece0b350cc5205cd3099f22aefb528bcb8e86dee2a7"
   },
   "interactions" : [
 

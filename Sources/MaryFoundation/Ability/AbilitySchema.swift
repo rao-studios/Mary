@@ -8,6 +8,36 @@
 
 import Foundation
 
+/// Closed, Mary-owned caution categories shared by ability-level operating
+/// policy (`AbilityOperatingPolicy.guardrailCategories`) and the
+/// per-operation description extension (`PluginOperationSchema.caution`).
+/// Modeled directly on `PluginOperationSemantics.role`: a package selects
+/// only which closed category applies, never any wording. Every case maps to
+/// exactly one fixed sentence the runtime owns outright, rendered in
+/// `AbilityPromptProjection.render` (ability level) and
+/// `AbilityRuntime.projectedBindingDescription` (operation level) — package
+/// prose never reaches either seam through this type.
+public enum GuardrailCategory: String, Codable, Hashable, Sendable, CaseIterable {
+    /// Does not apply outside the surface kind it was built for — the
+    /// recurring "never type prose into a code surface" shape.
+    case domainMismatch
+    /// Act only on the target the user explicitly named or focused, never an
+    /// inferred neighbor.
+    case unscopedTarget
+    /// Read live state before acting or reporting; never answer from a
+    /// remembered value.
+    case staleState
+    /// Never bring the target forward or steal focus merely to observe or
+    /// command it.
+    case noFocusSteal
+    /// Issue this through the target application's own command, never
+    /// synthesized input standing in for it.
+    case nativeCommandOnly
+    /// Can destroy or replace existing content; confirm the exact, fresh
+    /// target before acting.
+    case irreversibleAction
+}
+
 /// Human-readable annotations for Ability Studio and documentation. These
 /// strings never carry model instruction authority. Executable policy lives
 /// in closed routing predicates, Skill access/effect contracts, cognitive
@@ -18,19 +48,47 @@ public struct AbilityOperatingPolicy: Codable, Hashable, Sendable {
     public var successSignals: [String]
     public var stopConditions: [String]
     public var defaultSupportingAbilities: [AbilityID]
+    /// Closed, bounded companion to `guardrails` — see `GuardrailCategory`.
+    /// `guardrails` itself stays permanently free-text and UI-only, guarded
+    /// by `AbilityPromptProjectionSecurityTests`; this field is the only
+    /// ability-level caution signal the prompt projection ever reads.
+    public var guardrailCategories: [GuardrailCategory]
 
     public init(
         phases: [String] = [],
         guardrails: [String] = [],
         successSignals: [String] = [],
         stopConditions: [String] = [],
-        defaultSupportingAbilities: [AbilityID] = []
+        defaultSupportingAbilities: [AbilityID] = [],
+        guardrailCategories: [GuardrailCategory] = []
     ) {
         self.phases = phases
         self.guardrails = guardrails
         self.successSignals = successSignals
         self.stopConditions = stopConditions
         self.defaultSupportingAbilities = defaultSupportingAbilities
+        self.guardrailCategories = guardrailCategories
+    }
+
+    private enum CodingKeys: String, CodingKey, CaseIterable {
+        case phases
+        case guardrails
+        case successSignals
+        case stopConditions
+        case defaultSupportingAbilities
+        case guardrailCategories
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        phases = try values.decodeIfPresent([String].self, forKey: .phases) ?? []
+        guardrails = try values.decodeIfPresent([String].self, forKey: .guardrails) ?? []
+        successSignals = try values.decodeIfPresent([String].self, forKey: .successSignals) ?? []
+        stopConditions = try values.decodeIfPresent([String].self, forKey: .stopConditions) ?? []
+        defaultSupportingAbilities = try values.decodeIfPresent(
+            [AbilityID].self, forKey: .defaultSupportingAbilities) ?? []
+        guardrailCategories = try values.decodeIfPresent(
+            [GuardrailCategory].self, forKey: .guardrailCategories) ?? []
     }
 }
 

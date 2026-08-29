@@ -628,22 +628,56 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
               let operation = plugin.operations.first(where: {
                   $0.operation == selected.operation
                       && plugin.adapter(for: $0)?.id == selected.adapterID
-              }),
-              let semantics = operation.semantics
+              })
         else { return base }
 
-        let role: String
-        switch semantics.role {
-        case .utility: role = "utility"
-        case .observe: role = "observe"
-        case .createArtifact: role = "create artifact"
-        case .mutateArtifact: role = "mutate existing artifact"
+        var hint = ""
+        if let semantics = operation.semantics {
+            let role: String
+            switch semantics.role {
+            case .utility: role = "utility"
+            case .observe: role = "observe"
+            case .createArtifact: role = "create artifact"
+            case .mutateArtifact: role = "mutate existing artifact"
+            }
+            hint = "Semantic role: \(role). This hint distinguishes only among model tools already admitted by Ability, application, and Skill routing; it never grants application, target, or Skill authority."
+            if semantics.role == .createArtifact, !semantics.aliases.isEmpty {
+                hint += " Validated creation subjects: \(semantics.aliases.joined(separator: ", "))."
+            }
         }
-        var hint = "Semantic role: \(role). This hint distinguishes only among model tools already admitted by Ability, application, and Skill routing; it never grants application, target, or Skill authority."
-        if semantics.role == .createArtifact, !semantics.aliases.isEmpty {
-            hint += " Validated creation subjects: \(semantics.aliases.joined(separator: ", "))."
+        // CLOSED DESCRIPTION EXTENSION, distinct from `semantics.role`/
+        // `aliases` above and from `title`/`summary` (inspector-only, never
+        // model text) — see `PluginOperationSchema.caution`. Exactly one
+        // fixed, Mary-owned sentence is appended, keyed by the closed case;
+        // an absent value appends nothing, and there is no branch that could
+        // ever emit raw package text here.
+        if let caution = operation.caution {
+            if !hint.isEmpty { hint += " " }
+            hint += Self.cautionSentence(for: caution)
         }
+        guard !hint.isEmpty else { return base }
         return "\(base) \(hint)"
+    }
+
+    /// The fixed, Mary-owned sentence for one closed `GuardrailCategory` at
+    /// operation granularity. The switch is exhaustive, so a new case fails
+    /// to compile here until it is given real wording — there is no default
+    /// branch through which package data could supply the text instead.
+    static func cautionSentence(for category: GuardrailCategory) -> String {
+        switch category {
+        case .domainMismatch:
+            return "Domain caution: do not use this outside the surface kind it was built for (for example, prose vs. code)."
+        case .unscopedTarget:
+            return "Scope caution: applies only to the target the user explicitly named or focused, never an inferred neighbor."
+        case .staleState:
+            return "Freshness caution: read live state before acting or reporting; never answer from a remembered value."
+        case .noFocusSteal:
+            return "Focus caution: never bring the target forward or steal focus merely to observe or command it."
+        case .nativeCommandOnly:
+            return "Command caution: this issues the target application's own command; never substitute synthesized input for it."
+        case .irreversibleAction:
+            return "Irreversible caution: this can destroy or replace existing content; confirm the exact, fresh target before acting."
+        }
     }
 
     /// Cognitive and workflow Skills have no direct Plugin binding, so they

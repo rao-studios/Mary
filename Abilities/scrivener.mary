@@ -18,6 +18,9 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never write into the project on disk; the editor autosaves and would win that race silently.",
         "Never launch it; a closed project is an honest refusal.",
@@ -110,7 +113,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "a2c53aebb58fbfe6ddd101ef10356e0d183d4b2bf72cf485d9d7865733a2f36b"
+    "digest" : "978f14fe60a16e047239f4cac706ccfe70ac2e3aa3d9001daeb4d609481f6c0b"
   },
   "interactions" : [
 

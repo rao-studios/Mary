@@ -14,6 +14,9 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Transport verbs address the player, never a named application's window — a media key reaches whatever holds the system's now-playing role.",
         "Never report what is playing from memory; a stale track is worse than no answer.",
@@ -644,7 +647,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "040c8f40bcbe3eb6eafb2b4c8d0b6fd8d50fa451121f74b5a30a58edd70aa522"
+    "digest" : "5bf5fc9813d55d06822e8c0d1ed26028f8ef40d480c0d1db0b00be0cef5356c3"
   },
   "interactions" : [
 

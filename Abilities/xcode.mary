@@ -18,6 +18,10 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+        "domainMismatch",
+        "nativeCommandOnly"
+      ],
       "guardrails" : [
         "Never type prose into a code surface.",
         "Build, run and test are the editor's own commands, never synthesized edits.",
@@ -104,7 +108,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "2a3d09e0decbe4bdc417f777ef126a2bb42e0e2d2841f21a1f1c6fbc5d6a3142"
+    "digest" : "c37e10c92dce381309560291e2789a2275caba4efb709e15c96c5e95f067f924"
   },
   "interactions" : [
 
@@ -574,6 +578,7 @@
     "operations" : [
       {
         "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
         "inputs" : [
 
         ],
@@ -598,6 +603,7 @@
       },
       {
         "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
         "inputs" : [
 
         ],
@@ -646,6 +652,7 @@
       },
       {
         "adapterID" : "xcode.managed-ui",
+        "caution" : "nativeCommandOnly",
         "inputs" : [
 
         ],
