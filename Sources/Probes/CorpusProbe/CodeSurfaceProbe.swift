@@ -241,6 +241,79 @@ enum CodeSurfaceProbe {
         // evidence; cross-check it by eye against the open file's real
         // `func` names.
 
+        // THE INTERACTION THAT NEVER MINTED. `SchemaSignalRuntime
+        // .bridgeSelection` has always computed `interaction.code-selection`
+        // for a selection whose place codes — and until now no package
+        // declared that Interaction, so the registry lookup failed, nil came
+        // back, and a real Xcode highlight became no routable fact at all.
+        //
+        // WHAT THIS CAN AND CANNOT SEE FROM OUT HERE, honestly: the bridge
+        // itself (`snapshotForTurn(registry:ambientSelection:)`) and
+        // `SchemaSignalTurnContext` are MaryBrain-internal, so this binary
+        // cannot read `abilityRoutingContext().interactions` directly — the
+        // exact boundary `[Corpus N]` hit and documented. What it CAN do is
+        // prove the two things that decide the outcome, against real live
+        // data: that the shipped registry now resolves the schema, and that
+        // the genuine Xcode selection packet satisfies every guard
+        // `bridgeSelection` applies before minting. The turn-level proof is
+        // `CodeSelectionInteractionTests` (the real bridge, @testable) and a
+        // real `--probe-chat` turn.
+        heading("the code-selection Interaction")
+        let codeSelection = load.snapshot.interactionSchema(id: .codeSelection)
+        check(codeSelection != nil,
+              "the live registry resolves interaction.code-selection",
+              codeSelection?.valueType.rawValue ?? "undeclared")
+
+        let bundleID = registration.bundleIdentifiers.first ?? "com.apple.dt.Xcode"
+        let sample = AXSelectionReader.sourceSelectionSample(pid: pid)
+        SelectionHandoffPublisher.captureOutcome(
+            sample,
+            ambient: AmbientContextStore.shared,
+            place: .application(registration.applicationID),
+            applicationID: bundleID,
+            subject: registration.displayName,
+            channel: .applicationHandoff)
+        if let handoff = AmbientContextStore.shared.liveSelectionHandoff() {
+            check(handoff.place.focus == .coding,
+                  "the live selection's place codes",
+                  handoff.place.focus.map(String.init(describing:)) ?? "none")
+            check(handoff.interactionReference.schemaID == .codeSelection,
+                  "and the packet names interaction.code-selection",
+                  handoff.interactionReference.schemaID.rawValue)
+            if let schema = codeSelection {
+                check(schema.requiredScope.contains(handoff.scope.resolution),
+                      "the schema accepts this packet's source resolution",
+                      handoff.scope.resolution.rawValue)
+                check(handoff.scope.applicationID != nil,
+                      "and its sourceOwned ownership is satisfied",
+                      handoff.scope.applicationID ?? "none")
+                check(handoff.isFresh(), "and it is fresh")
+                // The channel `bridgeSelection` computes for THIS packet,
+                // resolved the same way it resolves it.
+                let channel: String
+                switch (handoff.sourceEvidence, handoff.payloadRecovery) {
+                case (_, .some(.applicationBodyRange)):
+                    channel = "application-body-range-hydration"
+                case (_, .some(.applicationCopy)):
+                    channel = "application-copy-probe"
+                case (.documentAtomic, nil): channel = "code-buffer-selection"
+                case (.discoveredDescendant, nil):
+                    channel = "workspace-descendant-discovery"
+                default: channel = "focused-accessibility-selection"
+                }
+                check(schema.evidence.contains { $0.channel == channel },
+                      "and declares this packet's evidence channel", channel)
+            }
+            print("      selected: \(handoff.text.prefix(160))")
+        } else {
+            print("""
+
+              ⚠︎ Nothing was selected in Xcode when this ran — the schema \
+                half above still holds, but the MINTING half is unproven. \
+                Highlight a real span in Xcode's editor and run this again.
+            """)
+        }
+
         // THE NEGATIVE THIS FIX MUST NOT DISTURB — "why-does-mary-keep-
         // mutable-rabbit.md"'s Step 3: Xcode's `type_at_cursor` refusal is
         // BY DESIGN ("Never type prose into a code surface" — `xcode.mary`

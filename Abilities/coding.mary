@@ -476,10 +476,67 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "78a2b6f9e33bf74fec892ece0b350cc5205cd3099f22aefb528bcb8e86dee2a7"
+    "digest" : "4c29a13c57701545eb2fafd24923010f1b5ee1ffcf2a1823851bb2ae7f6b5aab"
   },
   "interactions" : [
-
+    {
+      "claimPolicy" : "oneTurn",
+      "clearPolicies" : [
+        "explicitSourceEvent",
+        "sourceTermination",
+        "expiry",
+        "replacement"
+      ],
+      "evidence" : [
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "code-buffer-selection",
+          "rank" : 110
+        },
+        {
+          "canAuthorizeMutation" : true,
+          "channel" : "focused-accessibility-selection",
+          "rank" : 100
+        },
+        {
+          "canAuthorizeMutation" : false,
+          "channel" : "application-copy-probe",
+          "rank" : 90
+        },
+        {
+          "canAuthorizeMutation" : false,
+          "channel" : "application-body-range-hydration",
+          "rank" : 80
+        },
+        {
+          "canAuthorizeMutation" : false,
+          "channel" : "workspace-descendant-discovery",
+          "rank" : 60
+        }
+      ],
+      "freshnessSeconds" : 45,
+      "id" : "interaction.code-selection",
+      "ownership" : "sourceOwned",
+      "privacy" : "sensitive",
+      "requiredScope" : [
+        "application",
+        "window",
+        "workspace",
+        "document"
+      ],
+      "summary" : "A fresh source-owned highlight inside a code surface; it is a referent until an edit Skill claims it.",
+      "supersessionKeys" : [
+        "deviceID",
+        "applicationID",
+        "windowID",
+        "projectID",
+        "documentID",
+        "surfaceID"
+      ],
+      "title" : "Code Selection",
+      "valueType" : "coding.code-selection",
+      "version" : "1.0.0"
+    }
   ],
   "package" : {
     "id" : "coding",
@@ -1159,10 +1216,88 @@
       "fields" : [
 
       ],
+      "id" : "coding.application-identity",
+      "shape" : "string",
+      "summary" : "Which editor the code came from.",
+      "title" : "Editor Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+        {
+          "name" : "context",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "Where the highlighted code lives.",
+          "valueType" : "coding.selection-context"
+        },
+        {
+          "name" : "source",
+          "privacy" : "sensitive",
+          "required" : true,
+          "summary" : "The highlighted code, exactly as the editor holds it.",
+          "valueType" : "coding.code-text"
+        }
+      ],
+      "id" : "coding.code-selection",
+      "shape" : "object",
+      "summary" : "Source-owned highlighted code with the editor identity the source proved for it.",
+      "title" : "Code Selection",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
       "id" : "coding.code-text",
       "shape" : "string",
       "summary" : "Text read from a code editor's live buffer or selection.",
       "title" : "Code Text",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.file-identity",
+      "shape" : "string",
+      "summary" : "Which file the code came from, when the source proved one.",
+      "title" : "File Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.language-identity",
+      "shape" : "string",
+      "summary" : "The source language, read from the file's own extension.",
+      "title" : "Source Language",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.operation-result",
+      "shape" : "string",
+      "summary" : "What the editor reported back about the command.",
+      "title" : "Operation Result",
       "version" : "1.0.0"
     },
     {
@@ -1183,12 +1318,39 @@
 
       ],
       "fields" : [
-
+        {
+          "name" : "application",
+          "privacy" : "private",
+          "required" : true,
+          "summary" : "The editor that owns the highlight.",
+          "valueType" : "coding.application-identity"
+        },
+        {
+          "name" : "file",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "The file the highlight sits in, when the source proved a document identity.",
+          "valueType" : "coding.file-identity"
+        },
+        {
+          "name" : "language",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "The source language, present only when a file identity named one.",
+          "valueType" : "coding.language-identity"
+        },
+        {
+          "name" : "project",
+          "privacy" : "private",
+          "required" : false,
+          "summary" : "The project or workspace the file belongs to, when the source proved one.",
+          "valueType" : "coding.project-identity"
+        }
       ],
-      "id" : "coding.operation-result",
-      "shape" : "string",
-      "summary" : "What the editor reported back about the command.",
-      "title" : "Operation Result",
+      "id" : "coding.selection-context",
+      "shape" : "object",
+      "summary" : "Everything the source itself proved about where a highlighted span of code lives.",
+      "title" : "Selection Context",
       "version" : "1.0.0"
     },
     {
