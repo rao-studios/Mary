@@ -270,6 +270,33 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private let surfaceReferent = OSAllocatedUnfairLock<AbilitySurfaceReferent>(
         initialState: .currentLiveSelection)
 
+    /// `SemanticSkillRequestIndex.affinities(in:)` MEMOIZED FOR THE TURN, the
+    /// same "compute once, freeze" shape `providerSelection` already uses.
+    ///
+    /// `abilityRoutingContext()` is rebuilt from scratch on every round of the
+    /// local turn loop AND on every `dispatchCore` — up to ~20 times for one
+    /// utterance — and until this cache existed every one of those rebuilds
+    /// re-ran a full `NLEmbedding` sentence vectorization plus a dot-product
+    /// scan over the whole Skill library, serialized behind
+    /// `NLAmbientTextVectorizer`'s single process-wide lock. The rest of
+    /// `abilityRoutingContext()` is deliberately NOT folded into this cache:
+    /// `ambient.route()` reads a task-local `AmbientRouteTurnState` whose own
+    /// doc comment ("every overlapping request gets its own route holder")
+    /// makes clear it is a live, per-request read, not a value frozen at turn
+    /// start — caching the whole context could serve a stale application,
+    /// selection, or perception set to a later round. The utterance is
+    /// different: `noteUtterance` is called exactly once per turn, before the
+    /// round loop begins (`MaryBrain+TurnLoop.swift`), and never again until
+    /// the next turn's `beginTurn()`. So only the utterance and the affinity
+    /// map it produces are cached here — keyed on the utterance itself, not
+    /// just "first call wins", so a mismatched read (a detached routine
+    /// dispatching across a turn boundary, the same race `TurnOfferLedger`
+    /// already guards against) recomputes instead of silently answering for
+    /// the wrong words.
+    private let semanticSkillAffinityCache = OSAllocatedUnfairLock<
+        (utterance: String, affinities: [SkillID: Float])?
+    >(initialState: nil)
+
     public init(
         plugins: [any MaryAdapter],
         standalone: [SkillBinding] = [],
@@ -1202,8 +1229,20 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             grantedPermissions: grantedPermissions,
             sourceResolution: sourceResolution,
             workspaceFamily: workspaceFamily,
-            semanticSkillAffinity: abilitySnapshot.semanticSkillIndex?
-                .affinities(in: utterance) ?? [:])
+            semanticSkillAffinity: semanticSkillAffinities(for: utterance))
+    }
+
+    /// See `semanticSkillAffinityCache`. One vectorization and one library
+    /// scan per turn rather than one per `abilityRoutingContext()` call.
+    private func semanticSkillAffinities(for utterance: String) -> [SkillID: Float] {
+        if let cached = semanticSkillAffinityCache.withLock({ $0 }),
+           cached.utterance == utterance {
+            return cached.affinities
+        }
+        let computed = abilitySnapshot.semanticSkillIndex?
+            .affinities(in: utterance) ?? [:]
+        semanticSkillAffinityCache.withLock { $0 = (utterance, computed) }
+        return computed
     }
 
     /// The window-classifier's view of the turn.
@@ -1281,6 +1320,10 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Provider choices are a claim about this turn's signals — named,
         // interaction, focused — for exactly the same reason.
         providerSelection.withLock { $0 = nil }
+        // The embedding memo is a claim about THIS turn's utterance; a new
+        // turn notes a new one after this returns. See
+        // `semanticSkillAffinityCache`.
+        semanticSkillAffinityCache.withLock { $0 = nil }
         // WHICH BROWSER this turn means, for the same reason and with the
         // same lifetime. Held at the MaryAdapter contract root rather than
         // here because the bindings that read it are adapters, which this
