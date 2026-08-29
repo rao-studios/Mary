@@ -453,6 +453,22 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     /// are not how the user writes, and a crawl through them is expensive and
     /// misleading at once.
     public var exclude: [String]
+    /// Names that mark a project's ROOT — "Package.swift", ".xcodeproj".
+    ///
+    /// ⚠️ WHY THIS EXISTS, measured 2026-08-28 against a live editor: the
+    /// window's `AXDocument` is the ACTIVE FILE, not the workspace, and no
+    /// window attribute carries the workspace at all. Without markers the
+    /// root falls back to the folder the open file happens to sit in — so a
+    /// corpus "learns the project's style" from four neighbouring files, and
+    /// calls the project whatever that folder is named.
+    ///
+    /// A name beginning with a dot matches as a SUFFIX, so `.xcodeproj`
+    /// finds `Thing.xcodeproj`; any other name matches exactly. The walk
+    /// climbs from the file and stops at the nearest ancestor holding one.
+    ///
+    /// EMPTY MEANS THE OLD BEHAVIOUR — the containing folder — which keeps a
+    /// corpus that declares none working exactly as it did.
+    public var projectMarkers: [String]
     /// What this notation is called, in one word, for the style profile's
     /// scope. `swift`, `markdown`, `prose`.
     public var notation: String
@@ -474,6 +490,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     public init(
         include: [String],
         exclude: [String] = [],
+        projectMarkers: [String] = [],
         notation: String,
         relations: PluginCorpusRelations = .init(),
         style: [PluginCorpusStyleRule] = [],
@@ -482,6 +499,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     ) {
         self.include = include
         self.exclude = exclude
+        self.projectMarkers = projectMarkers
         self.notation = notation
         self.relations = relations
         self.style = style
@@ -492,6 +510,7 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case include
         case exclude
+        case projectMarkers
         case notation
         case relations
         case style
@@ -504,6 +523,8 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         include = try values.decodeIfPresent([String].self, forKey: .include) ?? []
         exclude = try values.decodeIfPresent([String].self, forKey: .exclude) ?? []
+        projectMarkers = try values.decodeIfPresent(
+            [String].self, forKey: .projectMarkers) ?? []
         notation = try values.decode(String.self, forKey: .notation)
         relations = try values.decodeIfPresent(
             PluginCorpusRelations.self, forKey: .relations) ?? .init()
@@ -518,6 +539,9 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         if !include.isEmpty { try container.encode(include, forKey: .include) }
         if !exclude.isEmpty { try container.encode(exclude, forKey: .exclude) }
+        if !projectMarkers.isEmpty {
+            try container.encode(projectMarkers, forKey: .projectMarkers)
+        }
         try container.encode(notation, forKey: .notation)
         if relations != PluginCorpusRelations() {
             try container.encode(relations, forKey: .relations)

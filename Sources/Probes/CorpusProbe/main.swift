@@ -76,7 +76,24 @@ CorpusSupport.shared.reconcile(registrations)
 check(!registrations.isEmpty, "a package declares a corpus",
       registrations.map(\.applicationID).joined(separator: ", "))
 
-guard let registration = registrations.first else { exit(1) }
+// THE CRAWL NEEDS DECLARED UNITS, and not every corpus has them. A corpus
+// that declares a `structure` is a PROJECT — read through its manifest by
+// `mary-corpus-probe project` — and may name no file extension at all. Taking
+// the first registration was right while one existed; with two it silently
+// measured the wrong one, reporting "units:" empty and then failing to settle
+// a file that was never going to be there.
+let crawlable = registrations.filter { !$0.schema.include.isEmpty }
+let wantedApp = CommandLine.arguments.firstIndex(of: "--app").flatMap { index -> String? in
+    index + 1 < CommandLine.arguments.count ? CommandLine.arguments[index + 1] : nil
+}
+guard let registration = wantedApp.flatMap({ named in
+    crawlable.first { $0.applicationID.caseInsensitiveCompare(named) == .orderedSame }
+}) ?? crawlable.first(where: { CorpusSupport.pid(of: $0) != nil }) ?? crawlable.first else {
+    print("  ✗ no declared corpus names any file extension to crawl.")
+    exit(1)
+}
+check(true, "the corpus under test", registration.applicationID
+    + (crawlable.count > 1 ? "  (of \(crawlable.count) crawlable)" : ""))
 let corpus = registration.schema
 print("      notation: \(corpus.notation)  units: \(corpus.include.joined(separator: ", "))")
 print("      style rules: \(corpus.style.count)  budgets: \(corpus.budgets.maximumFiles) files")

@@ -231,7 +231,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 2.0)
         guard let window = element(application, kAXFocusedWindowAttribute),
-              let root = documentRoot(of: window),
+              let root = documentRoot(of: window, corpus: registration.schema),
               let title = string(window, kAXTitleAttribute)
         else { return nil }
 
@@ -249,18 +249,68 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
                 .appendingPathComponent(relative).path)
     }
 
-    /// The workspace folder the window is showing, from its `AXDocument`.
-    static func documentRoot(of window: AXUIElement) -> String? {
+    /// The project folder the window is working in, from its `AXDocument`.
+    ///
+    /// ⚠️ `AXDocument` IS THE ACTIVE FILE, not the workspace — measured
+    /// 2026-08-28 against a live editor with a source file open, and it is the
+    /// opposite of what this code first assumed. No window attribute carries
+    /// the workspace at all: `AXProxy` and `AXTitleUIElement` are nil, and the
+    /// title carries only the project's NAME.
+    ///
+    /// So the root is found by climbing to the nearest ancestor holding a
+    /// DECLARED marker. Without that climb the fallback below takes the folder
+    /// the open file happens to sit in — which silently scopes "the project's
+    /// style" to a handful of neighbours and names the project after a
+    /// subdirectory.
+    static func documentRoot(
+        of window: AXUIElement, corpus: PluginCorpusSchema
+    ) -> String? {
         guard let raw = string(window, kAXDocumentAttribute) else { return nil }
         let path = URL(string: raw)?.path ?? raw
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
         else { return nil }
-        // A WINDOW SHOWING A LOOSE FILE gives that file rather than a folder;
-        // its project is the folder containing it.
-        return isDirectory.boolValue
-            ? path
-            : (path as NSString).deletingLastPathComponent
+        // A window that DOES give a folder is already the answer — an editor
+        // with no file open reports the workspace itself.
+        if isDirectory.boolValue { return path }
+
+        let containing = (path as NSString).deletingLastPathComponent
+        guard !corpus.projectMarkers.isEmpty else {
+            // A corpus that declares no marker keeps the behaviour it had.
+            return containing
+        }
+        // NOT FOUND IS NOTHING TO CRAWL, not a guess. A file outside any
+        // project this corpus describes — one opened from a download, or from
+        // another checkout — has no project, and inventing its folder as one
+        // is how a style profile learns from work that is not the user's.
+        return projectRoot(containing: containing, markers: corpus.projectMarkers)
+    }
+
+    /// The nearest ancestor of `directory` holding one of `markers`.
+    ///
+    /// A marker beginning with a dot matches as a SUFFIX, so `.xcodeproj`
+    /// finds `Thing.xcodeproj`; any other name matches exactly. The climb is
+    /// bounded because a path is data and a symlink loop is somebody else's
+    /// directory tree.
+    static func projectRoot(
+        containing directory: String, markers: [String], maximumDepth: Int = 24
+    ) -> String? {
+        var current = URL(fileURLWithPath: directory, isDirectory: true).standardizedFileURL
+        for _ in 0..<maximumDepth {
+            let entries = (try? FileManager.default.contentsOfDirectory(atPath: current.path)) ?? []
+            let found = entries.contains { entry in
+                markers.contains { marker in
+                    marker.hasPrefix(".") && marker.count > 1 && !marker.contains("/")
+                        ? entry.hasSuffix(marker) || entry == marker
+                        : entry == marker
+                }
+            }
+            if found { return current.path }
+            let parent = current.deletingLastPathComponent().standardizedFileURL
+            if parent.path == current.path || parent.path == "/" { return nil }
+            current = parent
+        }
+        return nil
     }
 
     /// `Project — Name` → `Name`. Nil when the title carries no file, which is

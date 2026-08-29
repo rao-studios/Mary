@@ -60,6 +60,24 @@ public extension PluginValidator {
                 "File extensions are written without a leading dot.")
         }
 
+        for (index, marker) in corpus.projectMarkers.enumerated() {
+            if marker.trimmingCharacters(in: .whitespaces).isEmpty {
+                error(
+                    "corpus-marker-empty",
+                    "\(path).projectMarkers[\(index)]",
+                    "A project marker names a file or folder that marks a root; an empty one matches nothing.")
+            }
+            // A MARKER IS A NAME, NOT A PATH. The climb looks at one directory
+            // level's entries, so a marker with a separator in it matches
+            // nothing and would silently make every file rootless.
+            if marker.contains("/") {
+                error(
+                    "corpus-marker-is-a-path",
+                    "\(path).projectMarkers[\(index)]",
+                    "A project marker is the NAME of an entry in the root directory, not a path to one.")
+            }
+        }
+
         if corpus.notation.trimmingCharacters(in: .whitespaces).isEmpty {
             error(
                 "corpus-notation-missing",

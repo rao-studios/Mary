@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "52fc566cc2b97f4a56fd94778de5ea230e0a7e1415b3a0f0ad43b743ab1d72d9"
+    "digest" : "e72bf85ee9336a4551dcad61841166b2fd0057511630dd1939aa67422f8f4198"
   },
   "interactions" : [
 
@@ -171,6 +171,12 @@
         "swift"
       ],
       "notation" : "swift",
+      "projectMarkers" : [
+        "Package.swift",
+        ".xcodeproj",
+        ".xcworkspace",
+        ".git"
+      ],
       "relations" : {
         "ancestry" : [
           "\\b(?:class|struct|enum|actor|protocol|extension)\\s+[A-Za-z_]\\w*\\s*:\\s*([A-Za-z_][A-Za-z0-9_,<>\\.\\s]*)"

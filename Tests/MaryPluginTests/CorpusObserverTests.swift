@@ -140,6 +140,82 @@ import Testing
         #expect(!isDirectory.boolValue)
     }
 
+    // MARK: - Climbing to the project
+
+    /// ⚠️ THE MEASUREMENT THAT MADE THIS NECESSARY: an editor's `AXDocument`
+    /// is the ACTIVE FILE, not the workspace, and no window attribute carries
+    /// the workspace at all. Taking the file's own folder as the project
+    /// scoped a live crawl to FIVE files in one subdirectory when the project
+    /// held 746 — a corpus confidently learning "the project's style" from
+    /// four neighbours.
+    @Test func theRootIsTheNearestAncestorHoldingAMarker() throws {
+        let root = try project([
+            "Package.swift": "// package",
+            "Sources/Deep/Nested/A.swift": "struct A {}",
+        ])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let nested = root.appendingPathComponent("Sources/Deep/Nested").path
+        #expect(
+            CorpusObserver.projectRoot(containing: nested, markers: ["Package.swift"])
+                == root.standardizedFileURL.path)
+    }
+
+    /// A dotted marker matches as a SUFFIX, which is the whole of how a
+    /// project bundle is recognised — the root holds `Thing.xcodeproj`, and no
+    /// package can know the name in front of the dot.
+    @Test func aDottedMarkerMatchesTheBundleThatEndsWithIt() throws {
+        let root = try project([
+            "Thing.xcodeproj/project.pbxproj": "// project",
+            "Sources/A.swift": "struct A {}",
+        ])
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(
+            CorpusObserver.projectRoot(
+                containing: root.appendingPathComponent("Sources").path,
+                markers: [".xcodeproj"]) == root.standardizedFileURL.path)
+    }
+
+    /// THE NEAREST ANCESTOR, not the outermost: a package inside a checkout
+    /// is its own project, and learning style across the whole monorepo would
+    /// mix one author's conventions with another's.
+    @Test func theNearestMarkerWinsOverAFurtherOne() throws {
+        let root = try project([
+            ".git/HEAD": "ref: refs/heads/main",
+            "Inner/Package.swift": "// package",
+            "Inner/Sources/A.swift": "struct A {}",
+        ])
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(
+            CorpusObserver.projectRoot(
+                containing: root.appendingPathComponent("Inner/Sources").path,
+                markers: ["Package.swift", ".git"])
+                == root.appendingPathComponent("Inner").standardizedFileURL.path)
+    }
+
+    /// NOT FOUND IS NOTHING TO CRAWL, not a guess. A file opened from a
+    /// download or another checkout belongs to no project this corpus
+    /// describes, and inventing its folder as one is how a style profile
+    /// learns from work that is not the user's.
+    @Test func aFileInNoProjectHasNoRoot() throws {
+        let root = try project(["Loose/A.swift": "struct A {}"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(
+            CorpusObserver.projectRoot(
+                containing: root.appendingPathComponent("Loose").path,
+                markers: ["Package.swift"]) == nil)
+    }
+
+    /// The climb is bounded because a path is data: a marker that is never
+    /// found must stop rather than walk to the root of the disk.
+    @Test func theClimbIsBounded() throws {
+        let root = try project(["A/B/C/D/E/A.swift": "struct A {}"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        #expect(
+            CorpusObserver.projectRoot(
+                containing: root.appendingPathComponent("A/B/C/D/E").path,
+                markers: ["Package.swift"], maximumDepth: 2) == nil)
+    }
+
     // MARK: - The cache
 
     /// The index is rebuilt at most once per lifetime — without which settling
