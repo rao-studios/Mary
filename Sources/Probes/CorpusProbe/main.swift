@@ -44,6 +44,14 @@ if CodeSurfaceProbe.shouldRun(CommandLine.arguments) {
     exit(failures == 0 ? 0 : 1)
 }
 
+// THE FOURTH-CHANNEL PERCEPTION LANE — its own unique flag, same reasoning
+// as `CodeSurfaceProbe` above: it must never be shadowed by `ProjectProbe
+// .shouldRun`'s broader match on the bare token "project".
+if ScrivenerPerceptionProbe.shouldRun(CommandLine.arguments) {
+    await ScrivenerPerceptionProbe.run(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
 // READING A PROJECT off disk is its own question — the shape of one
 // manuscript, not the style of a body of files — and needs no AX at all,
 // so it runs before the grant check below.

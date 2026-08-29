@@ -213,6 +213,22 @@ enum CodeSurfaceProbe {
             """)
         }
 
+        // THE NEGATIVE THIS FIX MUST NOT DISTURB — "why-does-mary-keep-
+        // mutable-rabbit.md"'s Step 3: Xcode's `type_at_cursor` refusal is
+        // BY DESIGN ("Never type prose into a code surface" — `xcode.mary`
+        // declares `codeSurface`, not `proseSurface`, and its `focus` is
+        // `.coding`). `PluginCompiler.perception`'s new `corpus`/
+        // `mediaSurface` channels only ever widen HOW `hasEyes` is earned;
+        // `isKnownProseEditor`'s OTHER half — `registration.place.focus ==
+        // .writing` — is untouched, and Xcode's focus is `.coding` regardless
+        // of `hasEyes`. Dispatched for real, not assumed, so a future change
+        // to that focus projection would fail here instead of silently
+        // starting to type into source files.
+        heading("dispatching type_at_cursor for real — must still refuse")
+        let typeOutcome = await runtime.dispatch(
+            name: "type_at_cursor", argumentsJSON: #"{"text":"should never land"}"#)
+        check(!typeOutcome.ok, "type_at_cursor is still refused for Xcode", typeOutcome.summary)
+
         AmbientContextStore.shared.noteRoute(route)
     }
 }
