@@ -58,6 +58,40 @@ final class CodeSurfaceLaneTests: XCTestCase {
         XCTAssertTrue(body.contains("needle"))
     }
 
+    // MARK: - The declaration outline
+
+    /// `declarations(in:patterns:)`'s whole job is one flatten-and-sort over
+    /// whatever patterns a package declared — `xcode.mary`'s type pattern
+    /// and its `func` sibling, in this test, matching the real shape those
+    /// two patterns take in the shipped package (pinned separately, against
+    /// the real bytes, in `CorpusStyleReaderTests`).
+    func testDeclarationsMergesAndOrdersAcrossPatterns() {
+        let source = """
+        struct A {
+            func one() {}
+        }
+        func two() {}
+        """
+        let found = CodeSurfaceAdapter.declarations(
+            in: source,
+            patterns: [
+                #"\b(?:struct|class|enum|actor|protocol|typealias)\s+([A-Za-z_][A-Za-z0-9_]*)"#,
+                #"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)"#,
+            ])
+        XCTAssertEqual(found.map(\.name), ["A", "one", "two"])
+        XCTAssertEqual(found.map(\.line), [1, 2, 4])
+    }
+
+    func testDeclarationsOnEmptyTextIsEmpty() {
+        XCTAssertTrue(CodeSurfaceAdapter.declarations(
+            in: "", patterns: [#"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)"#]).isEmpty)
+    }
+
+    func testDeclarationsWithNoMatchingPatternsIsEmpty() {
+        XCTAssertTrue(CodeSurfaceAdapter.declarations(
+            in: "let x = 1\n", patterns: [#"\bfunc\s+([A-Za-z_][A-Za-z0-9_]*)"#]).isEmpty)
+    }
+
     // MARK: - Which application
 
     /// EXACT-BUNDLE AND FAMILY MATCHING, on `ProseSurfaceRegistration.owns`'s

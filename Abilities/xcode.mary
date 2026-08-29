@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "42509d418015054f92e3d2e75f3ae35babb95a6a71efb3580ad716982113e1b4"
+    "digest" : "2a3d09e0decbe4bdc417f777ef126a2bb42e0e2d2841f21a1f1c6fbc5d6a3142"
   },
   "interactions" : [
 
@@ -195,7 +195,8 @@
           "\\b(?:class|struct|enum|actor|protocol|extension)\\s+[A-Za-z_]\\w*\\s*:\\s*([A-Za-z_][A-Za-z0-9_,<>\\.\\s]*)"
         ],
         "declarations" : [
-          "\\b(?:struct|class|enum|actor|protocol|typealias)\\s+([A-Za-z_][A-Za-z0-9_]*)"
+          "\\b(?:struct|class|enum|actor|protocol|typealias)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "\\bfunc\\s+([A-Za-z_][A-Za-z0-9_]*)"
         ],
         "references" : [
           ":\\s*\\[?([A-Z][A-Za-z0-9_]*)",

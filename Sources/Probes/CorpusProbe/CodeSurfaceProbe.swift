@@ -159,7 +159,7 @@ enum CodeSurfaceProbe {
         check(offered.contains("search_corpus"),
               "writing's search_corpus is admitted too — a tie, not a loss")
         var allOffered = true
-        for wanted in ["read_buffer", "read_selection"] {
+        for wanted in ["read_buffer", "read_selection", "list_declarations"] {
             let present = offered.contains(wanted)
             allOffered = allOffered && present
             check(present, "\(wanted) is in this turn's roster")
@@ -167,14 +167,15 @@ enum CodeSurfaceProbe {
         guard allOffered else {
             print("""
 
-              ✗ read_buffer/read_selection did not project for this turn. If \
+              ✗ read_buffer/read_selection/list_declarations did not project for this turn. If \
                 coding.mary's ability-level eligibility narrowed since this was \
                 written, try --utterance with a phrasing that matches one of \
                 its admitting arms.
             """)
             for decision in runtime.abilityRosterTrace.decisions
             where decision.reference.invocationName == "read_buffer"
-                || decision.reference.invocationName == "read_selection" {
+                || decision.reference.invocationName == "read_selection"
+                || decision.reference.invocationName == "list_declarations" {
                 print("      trace: \(decision.reference.invocationName) → "
                     + "\(decision.disposition.rawValue): \(decision.reason)")
             }
@@ -212,6 +213,19 @@ enum CodeSurfaceProbe {
                 the [[…]]-marked text above matches it exactly.
             """)
         }
+
+        heading("dispatching list_declarations for real")
+        let declarationsOutcome = await runtime.dispatch(name: "list_declarations", argumentsJSON: "{}")
+        check(declarationsOutcome.ok, "list_declarations dispatched without a refusal")
+        check(!declarationsOutcome.foundNothing, "and real declarations came back")
+        print("      \(declarationsOutcome.summary.replacingOccurrences(of: "\n", with: "\n      "))")
+        check(declarationsOutcome.summary.contains(" — line "),
+              "and each declaration reports an approximate line")
+        // FUNCTIONS AMONG THEM, NOT ONLY TYPES — the property that makes
+        // this the `func` pattern's live proof and not just `declarations`'
+        // pre-existing type-only one. The printed list above is the actual
+        // evidence; cross-check it by eye against the open file's real
+        // `func` names.
 
         // THE NEGATIVE THIS FIX MUST NOT DISTURB — "why-does-mary-keep-
         // mutable-rabbit.md"'s Step 3: Xcode's `type_at_cursor` refusal is

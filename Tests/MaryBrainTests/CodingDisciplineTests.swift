@@ -324,6 +324,7 @@ import Testing
                         "writing's corpus Skills must still be admitted too — a tie, not a loss")
                 #expect(offered.contains("read_buffer"))
                 #expect(offered.contains("read_selection"))
+                #expect(offered.contains("list_declarations"))
             }
         }
     }
@@ -493,11 +494,19 @@ import Testing
     /// managed-UI chords, a separate, still-open case per the plan this test
     /// accompanies, and this test would fail if their requirement were
     /// loosened by mistake alongside the two read-only Skills.
+    ///
+    /// `coding.list-declarations` ([Corpus T]) JOINS THE SAME SET — it is
+    /// the same shape of read-only, `.native`-bound Skill `read_buffer`/
+    /// `read_selection` already are, applying the exact `[Corpus L]`
+    /// reasoning this test exists to pin rather than re-deriving a third
+    /// answer for it.
     @Test func readOnlyCodeSurfaceSkillsDoNotHardGateOnWorkspaceFocus() throws {
         guard InstalledPackages.installed() != nil else { return }
         let coding = try loadRootPackage("coding")
 
-        let readOnlySkillIDs: Set<String> = ["coding.read-buffer", "coding.read-selection"]
+        let readOnlySkillIDs: Set<String> = [
+            "coding.read-buffer", "coding.read-selection", "coding.list-declarations",
+        ]
         var seen: Set<String> = []
         for skill in coding.skills where readOnlySkillIDs.contains(skill.id.rawValue) {
             seen.insert(skill.id.rawValue)

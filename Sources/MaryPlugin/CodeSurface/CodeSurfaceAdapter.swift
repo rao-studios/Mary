@@ -65,7 +65,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [readBuffer, readSelection, replaceSelection]
+        [readBuffer, readSelection, listDeclarations, replaceSelection]
     }
 
     /// A FULLY DECLARED MANIFEST, ON `ProjectCorpusAdapter`'s PATTERN rather
@@ -97,6 +97,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
             operations: [
                 operation("read_buffer", capability: "code.read-buffer"),
                 operation("read_selection", capability: "code.read-selection"),
+                operation("list_declarations", capability: "code.list-declarations"),
                 // NO `outputTypes` — an edit reports what happened, it does
                 // not hand back a value the way the two reads above do, the
                 // same shape `coding.mary`'s own build/run/test/save
@@ -238,6 +239,105 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                     target: ActedElementReader.record(of: surface.editor, pid: pid),
                     adapterTrail: [AdapterID.normalized(name)])
             })
+    }
+
+    // MARK: - Listing declarations
+
+    /// A LIGHTWEIGHT OUTLINE OVER THE SAME BUFFER `read_buffer` ALREADY
+    /// FETCHES — no new AX surface, no jump-bar reading. `xcode.mary`'s own
+    /// `relations.declarations` (the corpus lane's declaration-detection
+    /// regex, extended here to also recognize `func`) already names what a
+    /// unit of Swift declares; this Skill is that same declared pattern set,
+    /// run over the live in-memory buffer instead of a file the corpus crawl
+    /// reads from disk, so an unsaved edit shows up here too.
+    ///
+    /// THE CORPUS SCHEMA COMES FROM `CorpusSupport`, NOT `CodeSurfaceSupport`
+    /// — a package's `corpus` block and its `codeSurface` block are declared
+    /// side by side under the same `applicationID` (`xcode.mary`'s own
+    /// shape) but are two different schemas kept in two different registries
+    /// (`CorpusRegistration.swift`'s header explains why: one is walked
+    /// passively for style, one answers the model — this Skill is a third,
+    /// narrower use of the same declared patterns, reading neither disk nor
+    /// an outline, just the live buffer already in hand).
+    private var listDeclarations: SkillBinding {
+        SkillBinding(
+            name: "list_declarations",
+            description: """
+            List the declarations — structs, classes, enums, actors, \
+            protocols, typealiases and functions — found in the front \
+            editor's buffer, including unsaved edits, with their \
+            approximate line numbers. Call this for a quick outline of what \
+            a file contains — "what's in this file", "what functions does \
+            this have", "give me an outline" — before reading the whole \
+            buffer with read_buffer.
+            """,
+            parameters: [
+                .init(
+                    name: "app", type: "string",
+                    description: "Which editor. Omit for the one in front.",
+                    required: false),
+            ],
+            access: .read,
+            backing: .native { arguments, _ in
+                guard let (registration, pid) = resolve(arguments["app"]) else {
+                    return notRunning(arguments["app"])
+                }
+                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                else {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "\(registration.displayName) has no source file open.",
+                        foundNothing: true)
+                }
+                guard let text = CodeSurfaceAX.fullString(of: surface.editor) else {
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I couldn't read \"\(surface.title)\" just now.")
+                }
+                guard let corpus = CorpusSupport.shared
+                    .registration(applicationID: registration.applicationID)?.schema,
+                    !corpus.relations.declarations.isEmpty
+                else {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "\(registration.displayName) has no declared outline patterns.",
+                        foundNothing: true)
+                }
+                let bounded = String(text.prefix(registration.budgets.wholeDocumentCharacters))
+                let found = Self.declarations(in: bounded, patterns: corpus.relations.declarations)
+                let body = found.isEmpty
+                    ? nil
+                    : found.map { "\($0.name) — line \($0.line)" }.joined(separator: "\n")
+                var outcome = SkillOutcome(
+                    ok: true,
+                    summary: body.map { "\(surface.title):\n\($0)" }
+                        ?? "\"\(surface.title)\" has no recognizable declarations.",
+                    archivePolicy: .stateSnapshot,
+                    foundNothing: body == nil,
+                    target: ActedElementReader.record(of: surface.editor, pid: pid),
+                    adapterTrail: [AdapterID.normalized(name)])
+                if let body {
+                    outcome.typedOutputs["declarations"] = ValueEnvelope(
+                        typeID: "coding.code-text",
+                        value: .string(body),
+                        provenance: .init(
+                            adapterID: AdapterID.normalized(name), operation: name),
+                        privacy: .private)
+                }
+                return outcome
+            })
+    }
+
+    /// Every declaration `patterns` finds in `text`, ordered by line —
+    /// `CorpusPatterns.capturesWithLines` run once per declared pattern and
+    /// merged, the same flatten-and-order shape `CorpusCrawl` uses for the
+    /// same relation.
+    static func declarations(
+        in text: String, patterns: [String]
+    ) -> [CorpusPatterns.PositionedCapture] {
+        patterns
+            .flatMap { CorpusPatterns.capturesWithLines($0, in: text) }
+            .sorted { $0.line < $1.line }
     }
 
     // MARK: - Replacing the selection

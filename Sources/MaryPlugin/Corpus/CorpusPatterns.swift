@@ -60,4 +60,33 @@ public enum CorpusPatterns {
             return String(text[range])
         }
     }
+
+    /// One `captures(_:in:)` match, together with the 1-based line it starts
+    /// on.
+    public struct PositionedCapture: Sendable, Equatable {
+        public let name: String
+        public let line: Int
+    }
+
+    /// `captures(_:in:)`'s sibling for a reader — not a crawl edge — that
+    /// wants to say WHERE a name was found, not only that it was: an
+    /// outline, unlike a relation, is read by a person and has to point.
+    ///
+    /// Reuses the same compiled/cached expression `captures` does; this adds
+    /// only the line count `captures` deliberately leaves out (see that
+    /// function's header on why the name alone was enough for a relation
+    /// edge).
+    public static func capturesWithLines(_ pattern: String, in text: String) -> [PositionedCapture] {
+        guard !text.isEmpty, let expression = expression(pattern) else { return [] }
+        let full = NSRange(text.startIndex..., in: text)
+        return expression.matches(in: text, range: full).compactMap { match in
+            guard match.numberOfRanges > 1,
+                  let range = Range(match.range(at: 1), in: text)
+            else { return nil }
+            let line = text[text.startIndex..<range.lowerBound].reduce(1) {
+                $1 == "\n" ? $0 + 1 : $0
+            }
+            return PositionedCapture(name: String(text[range]), line: line)
+        }
+    }
 }

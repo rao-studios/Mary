@@ -179,6 +179,7 @@
     },
     "skills" : [
       "coding.build-project",
+      "coding.list-declarations",
       "coding.read-buffer",
       "coding.read-selection",
       "coding.replace-selection",
@@ -406,6 +407,26 @@
       "summary" : "Run the suite through the application's own test command.",
       "title" : "Test Project",
       "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.list-declarations",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live editor buffer through Accessibility."
+        }
+      ],
+      "summary" : "List the declarations — types and functions — in a code editor's live buffer, with their approximate line numbers.",
+      "title" : "List Declarations",
+      "version" : "1.0.0"
     }
   ],
   "dependencies" : [
@@ -451,7 +472,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "dfacdcbb4e7d89ec3ed0831d668ae403449bcf44830df6765de09fabaa88c197"
+    "digest" : "b930dee631bb89315f888f9756a965ec2becc7aa78eb66a4654124fbbf383093"
   },
   "interactions" : [
 
@@ -1038,6 +1059,88 @@
       "summary" : "Commit every modified file through the editor's own save command.",
       "title" : "Save Every File",
       "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "list_declarations",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.list-declarations",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_declarations",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "declarations",
+          "required" : true,
+          "summary" : "The declarations found in the buffer, one per line, with their approximate line numbers.",
+          "valueType" : "coding.code-text"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.list-declarations"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 208
+      },
+      "summary" : "List the declarations — structs, classes, enums, actors, protocols, typealiases and functions — found in the front editor's buffer, with their approximate line numbers.",
+      "title" : "List Declarations",
+      "usesStage" : false,
       "version" : "1.0.0"
     }
   ],

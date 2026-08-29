@@ -263,6 +263,61 @@ import Testing
         #expect(observation?.vocabulary.sorted() == ["provider", "store"])
     }
 
+    // MARK: - The `func` declaration pattern (`[Corpus T]`)
+
+    /// THE SHIPPED PATTERN, PROVEN AGAINST REAL SOURCE — `declarations`
+    /// used to name only types; this pins that its `func` sibling, added
+    /// for the outline Skill, captures alongside it rather than replacing
+    /// it or silently failing to compile.
+    @Test func theShippedDeclarationsPatternCapturesFunctionsToo() throws {
+        let corpus = try #require(Self.corpus)
+        let source = """
+        struct Greeter {
+            func hello() -> String { "hi" }
+            static func loud() {}
+        }
+        func topLevel() {}
+        """
+        let names = corpus.relations.declarations.flatMap {
+            CorpusPatterns.captures($0, in: source)
+        }
+        #expect(Set(names) == Set(["Greeter", "hello", "loud", "topLevel"]))
+    }
+
+    /// A LOCAL FUNCTION IS NOT EXCLUDED — deliberately. The pattern is a
+    /// flat scan with no nesting awareness, the same shape the existing
+    /// type pattern already has (a struct nested inside another struct
+    /// matches too), so a local helper shows up in the outline exactly
+    /// like a top-level one. That is an accepted property of a regex-based
+    /// outline, not a bug: telling "top-level" from "local" needs brace
+    /// depth, which needs a parser, and this is deliberately not one.
+    @Test func aLocalFunctionIsIncludedNotExcluded() throws {
+        let corpus = try #require(Self.corpus)
+        let source = """
+        func outer() {
+            func inner() {}
+            inner()
+        }
+        """
+        let names = corpus.relations.declarations.flatMap {
+            CorpusPatterns.captures($0, in: source)
+        }
+        #expect(names.contains("outer"))
+        #expect(names.contains("inner"))
+    }
+
+    /// `function` MUST NOT MATCH AS `func` — the pattern's own word
+    /// boundary is the only thing standing between "found a declaration"
+    /// and "found four characters of an unrelated identifier".
+    @Test func theWordFunctionIsNotMistakenForTheFuncKeyword() throws {
+        let corpus = try #require(Self.corpus)
+        let source = "let function = 1\n"
+        let names = corpus.relations.declarations.flatMap {
+            CorpusPatterns.captures($0, in: source)
+        }
+        #expect(names.isEmpty)
+    }
+
     // MARK: - Abstention
 
     @Test func anEmptyFileSaysNothing() {
