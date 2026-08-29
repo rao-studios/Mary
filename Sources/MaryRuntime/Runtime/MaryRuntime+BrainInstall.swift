@@ -92,6 +92,12 @@ extension MaryRuntime {
         // because importing or editing a package changes the answer.
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))
+        // AND THE CODE SURFACES — the read-only sibling of the prose
+        // surfaces above, reconciled the same way and for the same reason:
+        // an editor's declared buffer coordinates are only as current as the
+        // last activation.
+        CodeSurfaceSupport.shared.reconcile(
+            codeSurfaceRegistrations(from: load.snapshot))
         // AND THE CORPORA. Same reconcile, same reason: which applications
         // Mary can learn the shape of is a fact about the installed packages.
         //
@@ -216,6 +222,23 @@ extension MaryRuntime {
                   let surface = plugin.proseSurface
             else { return nil }
             return ProseSurfaceRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: surface)
+        }
+    }
+
+    /// `proseSurfaceRegistrations`'s read-only sibling.
+    package static func codeSurfaceRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [CodeSurfaceRegistration] {
+        snapshot.records.compactMap { record -> CodeSurfaceRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let surface = plugin.codeSurface
+            else { return nil }
+            return CodeSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,

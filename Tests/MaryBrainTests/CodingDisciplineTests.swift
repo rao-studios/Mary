@@ -8,10 +8,15 @@
 //  WHAT MAKES THIS WORTH ITS OWN SUITE. `WritingReachabilityTests` pins the
 //  same road for writing, and it exists because three separate defects had to
 //  line up before a manuscript could be typed into. Coding is the second
-//  discipline to travel that road and the first to do so with no compiled
-//  provider anywhere behind it: writing has the prose-surface adapter, coding
-//  has nothing but declarations. Every rung here is therefore load-bearing in
-//  a way the writing equivalents are not, because nothing else would catch a
+//  discipline to travel that road, and for its build/run/test/save/stop
+//  Skills alone it is still the one with no compiled provider anywhere
+//  behind it — writing has the prose-surface adapter, coding has only
+//  declarations there. `read_buffer`/`read_selection` broke that (the
+//  code-surface adapter), and the road they travel is exactly this suite's
+//  own — including a real ability-conflict regression the live probe found
+//  and this file now pins (see `codingStaysActiveAlongsideWritingWhenXcode
+//  HasAProjectCorpus`). Every rung here is therefore load-bearing in a way
+//  the writing equivalents are not, because nothing else would catch a
 //  break.
 //
 //  AND ONE RUNG IS NEWLY REPAIRED. `AmbientPlace.ability` used to break ties
@@ -28,6 +33,7 @@ import Testing
 @testable import MaryAmbient
 @testable import MaryBrain
 @testable import MaryFoundation
+@testable import MaryPlugin
 
 @Suite struct CodingDisciplineTests {
 
@@ -92,6 +98,14 @@ import Testing
             grantedPermissions: { _ in [.accessibility] })
         let profile = try #require(
             compilation.applicationProfiles.first { $0.id == "xcode" })
+        // THE COMPILED PERCEPTION, not a hand-picked stand-in — this used to
+        // be `ApplicationPerception(kind: .workspace, documentOperation: nil,
+        // pollSeconds: 3)`, written when both surfaces were nil for xcode and
+        // so happened to agree with `profile.perception` by coincidence.
+        // Threading the real compiled value through is what lets this test
+        // actually track `PluginCompiler.perception(from:proseSurface:
+        // codeSurface:)`'s behaviour rather than a fixed copy of it.
+        let perception = try #require(profile.perception)
 
         try AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([
@@ -101,20 +115,20 @@ import Testing
                     bundleIdentifiers: ["com.apple.dt.Xcode"],
                     worldClass: .workspace,
                     displayName: "Xcode",
-                    perception: ApplicationPerception(kind: .workspace, documentOperation: nil, pollSeconds: 3)),
+                    perception: perception),
             ])
         ) {
             let place = AmbientPlace.application("xcode")
             #expect(place.focus == .coding, "the discipline it realized")
-            // NO EYES, AND THAT IS THE HONEST ANSWER TODAY. `hasEyes` requires
-            // a channel that reads the application's documents, and this cut
-            // ships none for code: every value-returning code Skill — read a
-            // file, read a symbol, outline the project — needs a compiled
-            // provider Mary does not have. So Mary can DRIVE the editor and
-            // cannot SEE into it, and this line is where that stops being an
-            // oversight and becomes a recorded state. It flips when the
-            // code-surface adapter lands, and this test is where that shows.
-            #expect(!place.hasEyes, "no code-surface reader ships yet")
+            // EYES, NOW THAT THE CODE-SURFACE ADAPTER HAS LANDED. `hasEyes`
+            // requires a channel that reads the application's documents, and
+            // `xcode.mary` now declares `codeSurface` — the read-only live
+            // buffer/selection channel `PluginCompiler.perception(from:
+            // proseSurface:codeSurface:)` folds in alongside a prose surface
+            // for exactly this. This is the flip the comment here used to
+            // promise; see the fixed test's history for the "no eyes" state
+            // it replaced.
+            #expect(place.hasEyes, "the code-surface adapter gives it eyes")
             // THE SAME VALUE THE ROSTER GATE READS. `workspaceFamily` is
             // `leadPlace.ability?.rawValue`, and `coding.mary` admits itself
             // through a `workspaceFamily == "coding"` predicate — the one
@@ -125,22 +139,36 @@ import Testing
 
     // MARK: - What the packages promise
 
-    /// EVERY CODING SKILL IS REALIZED BY THE EDITOR. A discipline skill with
-    /// no realization anywhere is installed-but-blocked, which the validator
-    /// reports as a note and a user experiences as Mary agreeing to do
-    /// something and then not doing it.
+    /// EVERY CHORD-SHAPED CODING SKILL IS REALIZED BY THE EDITOR. A
+    /// discipline skill left with `.pluginRealizations` and no realization
+    /// anywhere is installed-but-blocked, which the validator reports as a
+    /// note and a user experiences as Mary agreeing to do something and then
+    /// not doing it.
+    ///
+    /// ONLY `.pluginRealizations` SKILLS ARE CHECKED HERE — build, run, test,
+    /// stop, save-all, the ones with no compiled provider behind them, which
+    /// is this suite's own header claim ("coding … has nothing but
+    /// declarations"). `read_buffer`/`read_selection` broke that claim on
+    /// purpose: they carry `.authoredBindings` straight to the code-surface
+    /// adapter, `writing.read-corpus-outline`'s exact shape for the
+    /// project-corpus adapter, and need no per-editor realization at all —
+    /// any application that declares a `codeSurface` answers them the same
+    /// way, without `xcode.mary` naming them.
     @Test func everyCodingSkillHasARealization() throws {
         guard InstalledPackages.installed() != nil else { return }
         let coding = try loadRootPackage("coding")
         let editor = try loadRootPackage("xcode")
 
-        let declared = Set(coding.skills.map(\.id.rawValue))
+        let declared = Set(
+            coding.skills
+                .filter { $0.execution.realizationPolicy == .pluginRealizations }
+                .map(\.id.rawValue))
         let realized = Set(
             (editor.plugin?.realizations ?? []).map(\.skillID.rawValue))
         #expect(declared == realized, """
-            Every Skill the coding discipline declares must be realized by the \
-            editor package, and the editor must realize nothing the discipline \
-            does not declare.
+            Every plugin-realized Skill the coding discipline declares must be \
+            realized by the editor package, and the editor must realize nothing \
+            the discipline does not declare.
             declared only: \(declared.subtracting(realized).sorted())
             realized only: \(realized.subtracting(declared).sorted())
             """)
@@ -163,6 +191,139 @@ import Testing
                 #expect(
                     performable.contains(step.kind),
                     "\(operation.operation) step \(step.id) is \(step.kind), which Mary's hands cannot post")
+            }
+        }
+    }
+
+    // MARK: - The ability-conflict regression: coding must not lose to writing
+
+    /// LIVE-ONLY BUG, found by `mary-corpus-probe --dispatch-code-surface`
+    /// against a real Xcode with this checkout open: `read_buffer`/
+    /// `read_selection` were absent from the turn's own projected roster —
+    /// and so, it turned out, was `build_project`, for the SAME reason and on
+    /// EVERY Xcode-led turn, not merely a code-surface one.
+    ///
+    /// THE MECHANISM. `xcode.mary` earned a `writing-project` target class
+    /// when the corpus lane landed (Corpus G), and `writing.mary`'s own
+    /// carve-out arm for it — `all(workspaceFamily=="coding",
+    /// targetClass=="writing-project")` — is an `.all` predicate, which SUMS
+    /// its children's scores: 100 (`workspaceFamily`) + 70 (`targetClass`) =
+    /// 170. `coding.mary`'s own eligibility never exceeded 100 (its bare
+    /// `workspaceFamily` arm, the highest of its `any` children). Both
+    /// Abilities share `routing.conflictGroup: "ability"`, so any turn where
+    /// BOTH read eligible enters a winner-take-all election
+    /// (`AbilityRosterArbitrator.arbitrate`) — and Coding's 100 always lost
+    /// to Writing's 170, for every utterance, because `targetClasses` comes
+    /// from the LEAD APPLICATION'S profile unconditionally, not from
+    /// anything the user said. Losing took Coding's ENTIRE discipline with
+    /// it: not just two new Skills, but `build_project`/`run_project`/
+    /// `test_project`/`stop_execution`/`save_all` too.
+    ///
+    /// WHY NO EXISTING TEST CAUGHT IT. `WritingReachabilityTests`'s own pins
+    /// (`aCodingWorkspaceWithItsOwnCorpusAdmitsWritingForTheCorpusLane` etc.)
+    /// check `AbilityRoutingEvaluator.isEligible` in ISOLATION — true for
+    /// Writing, and correctly so — never the ability-vs-ability arbitration
+    /// that eligibility feeds once a second Ability is also eligible. Only a
+    /// turn with BOTH packages loaded and BOTH eligible exercises the
+    /// conflict group at all.
+    ///
+    /// THE FIX adds the IDENTICAL arm to `coding.mary`'s own eligibility, so
+    /// the two Abilities TIE (170 apiece) instead of Coding losing outright.
+    /// `AbilityRosterArbitrator.arbitrate` already has a rule for a tie:
+    /// every Ability whose rank vector equals the best one stays active — the
+    /// same rule that already lets `design`/`sketch` and `browsing`/`chrome`
+    /// coexist (see that function's own comment, "an accident that the next
+    /// package to gate on `.intent` would have broken too" — this is that
+    /// next package). This test drives the real package graph and the real
+    /// arbitrator rather than the isolated predicate, which is exactly the
+    /// layer `WritingReachabilityTests` could not reach.
+    @Test func codingStaysActiveAlongsideWritingWhenXcodeHasAProjectCorpus() async throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let xcode = try loadRootPackage("xcode")
+        let coding = try loadRootPackage("coding")
+        let writing = try loadRootPackage("writing")
+        // BOTH DISCIPLINES DECLARE `window-management` A DEFAULT SUPPORTING
+        // ABILITY — omitted, every one of their Skills (not just the ones
+        // under test) reads `.blocked` with "requires supporting Ability
+        // window-management", which is a fact about this fixture's package
+        // set rather than about the routing this test exists to pin.
+        let windowManagement = try loadRootPackage("window-management")
+        let allPackages = [xcode, coding, writing, windowManagement]
+
+        let compilation = PluginCompiler.compile(
+            packages: allPackages,
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility] })
+        let xcodeProfile = try #require(
+            compilation.applicationProfiles.first { $0.id == "xcode" })
+        let perception = try #require(xcodeProfile.perception)
+
+        let validation = AbilityPackageValidator.validateGraph(allPackages)
+        #expect(validation.isValid, "the shipped packages must load cleanly together")
+        func record(_ package: MaryAbilityPackage) -> AbilityPackageRecord {
+            AbilityPackageRecord(
+                package: package, source: .installed,
+                sourceURL: URL(fileURLWithPath: "/dev/null"),
+                validation: validation,
+                rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
+        }
+        let snapshot = AbilityRuntimeSnapshot(
+            records: allPackages.map(record),
+            validation: validation,
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: MaryAdapterCatalog.adapters(),
+                // WITHOUT OBSERVERS, no manifest publishes
+                // `perception.code-workspace-focus` (or its base,
+                // `perception.workspace-focus`, via `DerivedPerceptions`) —
+                // `InstalledAdapterInventory`'s own comment names this exact
+                // mistake: "installed every Skill requiring
+                // code-workspace-focus as `.blocked` — the whole coding lane,
+                // in silence."
+                observers: MaryAdapterCatalog.observers()),
+            // WITHOUT THIS, `coding.build-project` (bound only through
+            // `xcode.mary`'s plugin realization, not an authored binding)
+            // has no local implementation at all in the snapshot and reads
+            // `.blocked` before routing is ever consulted — a snapshot built
+            // from `records` alone is NOT what `AbilityLibrary.configureAndLoad`
+            // produces; the realized Plugin bindings are a second input,
+            // joined in right here, and `compilation` (built above from the
+            // SAME packages) is that second input.
+            plugins: compilation)
+
+        // A FRESH, ISOLATED STORE — never `.shared` — so this test cannot
+        // race a concurrently running suite over the same global route.
+        let ambient = AmbientContextStore()
+
+        try await AmbientApplicationIndexProvider.$scoped.withValue(
+            AmbientApplicationRoster([
+                ApplicationRegistration(
+                    id: "xcode", profile: xcodeProfile,
+                    bundleIdentifiers: ["com.apple.dt.Xcode"],
+                    worldClass: .workspace, displayName: "Xcode",
+                    perception: perception),
+            ])
+        ) {
+            let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+                utterance: "what does this function do",
+                leadApplicationID: "xcode",
+                profiles: [xcodeProfile]))
+            #expect(route.leadPlace?.ability?.rawValue == "coding",
+                    "the turn must actually read as a coding workspace for this to be a real test")
+            ambient.noteUtterance("what does this function do")
+            ambient.noteRoute(route)
+
+            try await AbilityTurnContext.$snapshot.withValue(snapshot) {
+                let runtime = AbilityRuntime(
+                    plugins: MaryAdapterCatalog.adapters(),
+                    ambient: ambient,
+                    contextProvider: { AbilityExecutionContext(projects: [:]) })
+                let offered = Set(runtime.schemas.map(\.name))
+                #expect(offered.contains("build_project"),
+                        "coding's own chord Skills must survive the ability conflict")
+                #expect(offered.contains("search_corpus"),
+                        "writing's corpus Skills must still be admitted too — a tie, not a loss")
+                #expect(offered.contains("read_buffer"))
+                #expect(offered.contains("read_selection"))
             }
         }
     }

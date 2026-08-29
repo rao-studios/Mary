@@ -123,6 +123,9 @@ extension MaryRuntime {
                 // and unreadable, which is the worst of both.
                 ProseSurfaceSupport.shared.reconcile(
                     proseSurfaceRegistrations(from: snapshot))
+                // THE CODE SURFACES RIDE THE SAME EVENT, for the same reason.
+                CodeSurfaceSupport.shared.reconcile(
+                    codeSurfaceRegistrations(from: snapshot))
                 // The observer re-derives its lanes from the roster that just
                 // changed: a package imported mid-session starts polling on
                 // its declared cadence, a removed one loses its lane and its

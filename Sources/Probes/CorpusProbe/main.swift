@@ -35,6 +35,15 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
     if !passed { failures += 1 }
 }
 
+// THE LIVE BUFFER/SELECTION LANE — a distinct question from everything below
+// (the live in-memory buffer, not a disk read), checked FIRST and by its own
+// unique flag so it can never be shadowed by `ProjectProbe.shouldRun`'s
+// broader match on the bare token "project".
+if CodeSurfaceProbe.shouldRun(CommandLine.arguments) {
+    await CodeSurfaceProbe.run(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
 // READING A PROJECT off disk is its own question — the shape of one
 // manuscript, not the style of a body of files — and needs no AX at all,
 // so it runs before the grant check below.

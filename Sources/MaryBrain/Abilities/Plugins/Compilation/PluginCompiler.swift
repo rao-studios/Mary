@@ -502,7 +502,8 @@ public enum PluginCompiler {
             // no package operation is ever scheduled in the background.
             perception: providerIsAvailable
                 ? perception(from: plugin.application.perception,
-                             proseSurface: plugin.proseSurface)
+                             proseSurface: plugin.proseSurface,
+                             codeSurface: plugin.codeSurface)
                 : nil,
             // WHAT THIS APPLICATION CALLS ITS DOCUMENTS, straight from the
             // declaration. The word reaches the window classifier and the
@@ -518,19 +519,28 @@ public enum PluginCompiler {
     }
 
     /// A package projects MARY-OWNED perception only: the generic
-    /// Accessibility reader, and — when it declares a prose surface — Mary's
-    /// own document reader. `documentOperation` stays nil in both arms,
-    /// because a package-supplied operation is the one thing that would put
-    /// package code on a background timer against the user's document.
+    /// Accessibility reader, and — when it declares a prose surface OR a
+    /// code surface — Mary's own document reader. `documentOperation` stays
+    /// nil in both arms, because a package-supplied operation is the one
+    /// thing that would put package code on a background timer against the
+    /// user's document.
+    ///
+    /// EITHER SURFACE SATISFIES A WORKSPACE CLAIM, on
+    /// `PluginValidator+Validate`'s same reasoning (search that file for "A
+    /// CODE SURFACE IS THE FOURTH"): a code editor earns eyes through its
+    /// live buffer exactly as a prose editor does through its live document,
+    /// and refusing the read-only member of the pair a claim the read-write
+    /// one gets would be arbitrary.
     ///
     /// THE SURFACE IS CHECKED HERE, NOT ONLY IN THE VALIDATOR. The validator
     /// refuses the package at admission; this refuses the CLAIM at
-    /// compilation, so a graph that somehow reached this point without a
-    /// prose surface degrades to selection-only rather than being handed eyes
-    /// with nothing behind them.
+    /// compilation, so a graph that somehow reached this point without
+    /// either surface degrades to selection-only rather than being handed
+    /// eyes with nothing behind them.
     private static func perception(
         from schema: PluginApplicationPerceptionSchema?,
-        proseSurface: PluginProseSurfaceSchema?
+        proseSurface: PluginProseSurfaceSchema?,
+        codeSurface: PluginCodeSurfaceSchema?
     ) -> ApplicationPerception? {
         guard let schema else { return nil }
         switch schema.kind {
@@ -539,7 +549,7 @@ public enum PluginCompiler {
                 kind: .perceptionOnly, documentOperation: nil,
                 pollSeconds: ApplicationPerception.pollBounds.lowerBound)
         case .workspace:
-            guard proseSurface != nil else {
+            guard proseSurface != nil || codeSurface != nil else {
                 return ApplicationPerception(
                     kind: .perceptionOnly, documentOperation: nil,
                     pollSeconds: ApplicationPerception.pollBounds.lowerBound)

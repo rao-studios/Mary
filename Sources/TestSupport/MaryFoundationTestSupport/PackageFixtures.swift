@@ -153,4 +153,17 @@ public enum PackageFixtures {
                 regionCharacters: 1800,
                 ambientExcerptCharacters: 280))
     }
+
+    /// A well-formed code-surface declaration, `proseSurface`'s sibling for
+    /// tests that break one field of it at a time.
+    public static var codeSurface: PluginCodeSurfaceSchema {
+        PluginCodeSurfaceSchema(
+            handlePrefix: "C",
+            editorRoles: [.textArea],
+            documentKey: .documentPathThenWindow,
+            budgets: .init(
+                wholeDocumentCharacters: 20000,
+                regionCharacters: 4000,
+                ambientExcerptCharacters: 500))
+    }
 }

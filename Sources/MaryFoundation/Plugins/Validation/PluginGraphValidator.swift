@@ -50,9 +50,17 @@ public enum PluginGraphValidator {
         // "[W2]" — and a person saying it expects one window. Two packages
         // minting under the same letter is experienced not as an error but as
         // Mary reaching into the wrong document. Per-package well-formedness
-        // is checked in PluginValidator+ProseSurface; only here can two
-        // packages be compared.
-        for duplicate in duplicates(bearing.compactMap { $0.plugin.proseSurface?.handlePrefix }) {
+        // is checked in PluginValidator+ProseSurface / PluginValidator+CodeSurface;
+        // only here can two packages be compared.
+        //
+        // BOTH FAMILIES SHARE ONE NAMESPACE. A prose surface and a code
+        // surface mint the same shape of spoken handle, so a prose package's
+        // "W" and a code package's "W" would collide exactly as two prose
+        // packages would — checked together rather than in two separate
+        // passes that could each report clean.
+        for duplicate in duplicates(
+            bearing.compactMap { $0.plugin.proseSurface?.handlePrefix }
+                + bearing.compactMap { $0.plugin.codeSurface?.handlePrefix }) {
             error(
                 "duplicate-handle-prefix",
                 "packages",

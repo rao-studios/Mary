@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "415f84a7a925d9c07c43c3a4864ced171aa1782bb32d69914d7eeb81eed17992"
+    "digest" : "42509d418015054f92e3d2e75f3ae35babb95a6a71efb3580ad716982113e1b4"
   },
   "interactions" : [
 
@@ -113,7 +113,7 @@
     "id" : "xcode",
     "minimumMaryVersion" : "1.0.0",
     "publisher" : "Mary Project",
-    "summary" : "Teaches Mary one code editor: which application it is, and which of its own commands build, run, test and save. NO PROSE SURFACE, deliberately — a code editor is not a prose surface, and the selection policy already refuses to type prose into one.",
+    "summary" : "Teaches Mary one code editor: which application it is, which of its own commands build, run, test and save, the shape of its project on disk, and where its live code buffer lives. NO PROSE SURFACE, deliberately — a code editor is not a prose surface, and the selection policy already refuses to type prose into one. The codeSurface block below is its read-only sibling: it lets Mary read the live buffer and selection, never write one.",
     "version" : "1.0.0"
   },
   "perceptions" : [
@@ -157,6 +157,18 @@
         "writing-project"
       ],
       "title" : "Xcode"
+    },
+    "codeSurface" : {
+      "budgets" : {
+        "ambientExcerptCharacters" : 500,
+        "regionCharacters" : 4000,
+        "wholeDocumentCharacters" : 20000
+      },
+      "documentKey" : "documentPathThenWindow",
+      "editorRoles" : [
+        "textArea"
+      ],
+      "handlePrefix" : "C"
     },
     "corpus" : {
       "exclude" : [

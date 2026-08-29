@@ -58,6 +58,25 @@
           },
           {
             "children" : [
+              {
+                "children" : [
+
+                ],
+                "kind" : "workspaceFamily",
+                "value" : "coding"
+              },
+              {
+                "children" : [
+
+                ],
+                "kind" : "targetClass",
+                "value" : "writing-project"
+              }
+            ],
+            "kind" : "all"
+          },
+          {
+            "children" : [
 
             ],
             "kind" : "utteranceToken",
@@ -160,12 +179,14 @@
     },
     "skills" : [
       "coding.build-project",
+      "coding.read-buffer",
+      "coding.read-selection",
       "coding.run-project",
       "coding.save-all",
       "coding.stop-execution",
       "coding.test-project"
     ],
-    "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands. An application joins this discipline by realizing one of these Skills — which is what gives its place the coding focus. READING AND EDITING CODE ARE NOT HERE, and their absence is deliberate: a Skill that returns a value needs a compiled provider, and Mary has no code-surface adapter yet (the prose-surface lane's analogue for code). Every Skill below is a chord the managed-UI engine can actually press.",
+    "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands, and read its live code surface. An application joins this discipline by realizing one of the chord Skills — which is what gives its place the coding focus — or by declaring a `codeSurface` for the two reads. EDITING CODE IS STILL NOT HERE, and that absence stays deliberate: Mary has no code-writing lane, so nothing below ever presses a key to change a document. read_buffer and read_selection bind instead to the code-surface adapter, the same shape the writing Ability's own reads take for a prose document — a Skill that returns a value needs a compiled provider, never a recipe.",
     "tint" : "#B392F0",
     "title" : "Coding",
     "totemProjections" : [
@@ -199,6 +220,46 @@
     "version" : "1.0.0"
   },
   "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.read-buffer",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live editor buffer through Accessibility."
+        }
+      ],
+      "summary" : "Read a code editor's live buffer, including unsaved edits.",
+      "title" : "Read the Buffer",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.read-selection",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live selection through Accessibility."
+        }
+      ],
+      "summary" : "Read the current text selection in a code editor, with surrounding context.",
+      "title" : "Read the Selection",
+      "version" : "1.0.0"
+    },
     {
       "constraints" : [
         {
@@ -368,7 +429,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "529f1019827d9d2875429b0437d0183b15497c43d1576df45cf5161c9490c654"
+    "digest" : "6d4ba39cd8e06a1550ac5cd27b4a23cc9758a1e30d742f342e09827c6d2d369c"
   },
   "interactions" : [
 
@@ -454,6 +515,169 @@
       "summary" : "Compile the open project through the editor's own build command.",
       "title" : "Build the Project",
       "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_buffer",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.read-buffer",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_buffer",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor. Omit for the one in front.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "find",
+            "required" : false,
+            "summary" : "Return only the part around this phrase.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.read-buffer"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Read the live editor buffer — including unsaved edits — from the front source file.",
+      "title" : "Read the Buffer",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_selection",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.read-selection",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_selection",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.read-selection"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Read the current text selection in the editor, with a little surrounding context.",
+      "title" : "Read the Selection",
+      "usesStage" : false,
       "version" : "1.0.0"
     },
     {
@@ -713,6 +937,19 @@
 
   ],
   "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.code-text",
+      "shape" : "string",
+      "summary" : "Text read from a code editor's live buffer or selection.",
+      "title" : "Code Text",
+      "version" : "1.0.0"
+    },
     {
       "enumValues" : [
 

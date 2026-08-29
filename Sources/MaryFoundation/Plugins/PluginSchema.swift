@@ -88,6 +88,13 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
     /// values back declares where to look rather than shipping a reader.
     public var proseSurface: PluginProseSurfaceSchema?
 
+    /// Optional code-surface layout: where this application keeps its live
+    /// source buffer and how a document is identified. `proseSurface`'s
+    /// sibling for the other editable-text family — read-only, and answering
+    /// the same consequence (1): "read my buffer" cannot be a recipe either.
+    /// See `PluginCodeSurfaceSchema`.
+    public var codeSurface: PluginCodeSurfaceSchema?
+
     /// Where this application keeps its TRANSPORT, for the same reason and by
     /// the same road: a player's state has to come back as a value, and a
     /// recipe cannot return one. See `PluginMediaSurfaceSchema`.
@@ -127,6 +134,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
+        codeSurface: PluginCodeSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
         corpus: PluginCorpusSchema? = nil
     ) {
@@ -139,6 +147,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             operations: operations,
             realizations: realizations,
             proseSurface: proseSurface,
+            codeSurface: codeSurface,
             mediaSurface: mediaSurface,
             corpus: corpus)
     }
@@ -152,6 +161,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
+        codeSurface: PluginCodeSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
         corpus: PluginCorpusSchema? = nil
     ) {
@@ -163,6 +173,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         self.operations = operations
         self.realizations = realizations
         self.proseSurface = proseSurface
+        self.codeSurface = codeSurface
         self.mediaSurface = mediaSurface
         self.corpus = corpus
     }
@@ -177,6 +188,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         case operations
         case realizations
         case proseSurface
+        case codeSurface
         case mediaSurface
         case corpus
     }
@@ -198,6 +210,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             [PluginSkillRealizationSchema].self, forKey: .realizations)
         proseSurface = try container.decodeIfPresent(
             PluginProseSurfaceSchema.self, forKey: .proseSurface)
+        codeSurface = try container.decodeIfPresent(
+            PluginCodeSurfaceSchema.self, forKey: .codeSurface)
         mediaSurface = try container.decodeIfPresent(
             PluginMediaSurfaceSchema.self, forKey: .mediaSurface)
         corpus = try container.decodeIfPresent(
@@ -225,6 +239,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         try container.encode(realizations, forKey: .realizations)
         if let proseSurface {
             try container.encode(proseSurface, forKey: .proseSurface)
+        }
+        if let codeSurface {
+            try container.encode(codeSurface, forKey: .codeSurface)
         }
         if let mediaSurface {
             try container.encode(mediaSurface, forKey: .mediaSurface)
