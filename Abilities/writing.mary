@@ -74,6 +74,25 @@
             ],
             "kind" : "workspaceFamily",
             "value" : "writing"
+          },
+          {
+            "children" : [
+              {
+                "children" : [
+
+                ],
+                "kind" : "workspaceFamily",
+                "value" : "coding"
+              },
+              {
+                "children" : [
+
+                ],
+                "kind" : "targetClass",
+                "value" : "writing-project"
+              }
+            ],
+            "kind" : "all"
           }
         ],
         "kind" : "any"
@@ -542,7 +561,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "d1c58602dbedb958d665c4a7637b1a6a79fd50139a86ec2c67bab72119632faf"
+    "digest" : "9ff31d60155e3251a1d9276d17654b40e5bc7e85210dd366416dd925f1375a35"
   },
   "interactions" : [
     {

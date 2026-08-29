@@ -135,7 +135,14 @@ public struct ProjectCorpusAdapter: MaryAdapter {
 
     func outline(_ corpus: OpenCorpus) -> Outlined {
         switch ProjectCorpusReader.outline(
-            projectRoot: corpus.projectRoot, structure: corpus.structure) {
+            projectRoot: corpus.projectRoot, structure: corpus.structure,
+            // THE SAME EXCLUDE/INCLUDE THE PASSIVE CRAWL READS. A
+            // `.fileSystemTree` project has no manifest to bound it — without
+            // these a real checkout's outline (and every search_corpus scan
+            // over it) walks `.build`, `DerivedData` and `.git` right along
+            // with the source.
+            excludeNames: corpus.registration.schema.exclude,
+            includeExtensions: corpus.registration.schema.include) {
         case .success(let items): return .items(items)
         case .failure(let failure):
             return .refused(SkillOutcome(ok: false, summary: failure.spoken))

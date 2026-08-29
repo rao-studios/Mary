@@ -104,7 +104,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "e72bf85ee9336a4551dcad61841166b2fd0057511630dd1939aa67422f8f4198"
+    "digest" : "415f84a7a925d9c07c43c3a4864ced171aa1782bb32d69914d7eeb81eed17992"
   },
   "interactions" : [
 
@@ -153,7 +153,8 @@
       },
       "targetClasses" : [
         "code-workspace",
-        "document-window"
+        "document-window",
+        "writing-project"
       ],
       "title" : "Xcode"
     },
@@ -187,6 +188,19 @@
         "references" : [
           ":\\s*\\[?([A-Z][A-Za-z0-9_]*)",
           "\\b([A-Z][A-Za-z0-9_]*)\\s*\\("
+        ]
+      },
+      "structure" : {
+        "discovery" : "manifestPresence",
+        "manifest" : {
+          "kind" : "fileSystemTree"
+        },
+        "parts" : [
+          {
+            "format" : "plainText",
+            "name" : "text",
+            "pathTemplate" : "{id}"
+          }
         ]
       },
       "style" : [

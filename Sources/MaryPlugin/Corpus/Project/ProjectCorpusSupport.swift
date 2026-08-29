@@ -103,7 +103,9 @@ public enum ProjectCorpusSupport {
             let pid = application.processIdentifier
             let element = AXUIElementCreateApplication(pid)
             for window in AX.children(element, kAXWindowsAttribute) {
-                guard let root = projectRoot(ofWindow: window, structure: structure)
+                guard let root = projectRoot(
+                    ofWindow: window, structure: structure,
+                    projectMarkers: registration.schema.projectMarkers)
                 else { continue }
                 // ONE PROJECT, ONE ENTRY. An application shows the same
                 // project in several windows — an editor and an outliner — and
@@ -121,8 +123,21 @@ public enum ProjectCorpusSupport {
 
     /// The project one window is showing, if it is one this registration
     /// describes.
+    ///
+    /// `.fileSystemTree` TAKES A DIFFERENT ROAD, and the reason is the same
+    /// one `CorpusObserver`'s own header records: `AXDocument` on a workspace
+    /// editor is the ACTIVE FILE, not the project — measured live against
+    /// Xcode with a source file open, where no window attribute carries the
+    /// workspace at all. A bundle-style project (`.scriv`) never has this
+    /// problem because its window's `AXDocument` names the bundle itself; a
+    /// directory-of-source project does, because there is no bundle boundary
+    /// for the window to report. So this climbs to the nearest ancestor
+    /// holding a declared marker — the identical algorithm the passive style
+    /// crawl already uses, so the two lanes can never disagree about which
+    /// folder is "the project" for the same window.
     static func projectRoot(
-        ofWindow window: AXUIElement, structure: PluginCorpusStructureSchema
+        ofWindow window: AXUIElement, structure: PluginCorpusStructureSchema,
+        projectMarkers: [String] = []
     ) -> URL? {
         guard let raw = AX.string(window, kAXDocumentAttribute), !raw.isEmpty,
               let url = URL(string: raw), url.isFileURL
@@ -130,6 +145,27 @@ public enum ProjectCorpusSupport {
         // A trailing slash on a directory URL leaves `pathExtension` empty,
         // so the comparison is made on the standardized path.
         let standardized = URL(fileURLWithPath: url.path).standardizedFileURL
+
+        if structure.manifest.kind == .fileSystemTree {
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(
+                atPath: standardized.path, isDirectory: &isDirectory)
+            else { return nil }
+            // A window already showing a folder (no file open) is itself the
+            // answer — exactly `CorpusObserver.documentRoot`'s own rule.
+            if isDirectory.boolValue { return standardized }
+            // NOT FOUND IS NOTHING TO CRAWL, not a guess. A loose file this
+            // corpus's markers cannot place belongs to no project, and
+            // guessing its containing folder is how a read learns from work
+            // that is not the user's.
+            guard !projectMarkers.isEmpty,
+                  let rootPath = CorpusObserver.projectRoot(
+                    containing: standardized.deletingLastPathComponent().path,
+                    markers: projectMarkers)
+            else { return nil }
+            return URL(fileURLWithPath: rootPath, isDirectory: true)
+        }
+
         if let wanted = structure.projectExtension, !wanted.isEmpty {
             guard standardized.pathExtension.caseInsensitiveCompare(wanted) == .orderedSame
             else { return nil }

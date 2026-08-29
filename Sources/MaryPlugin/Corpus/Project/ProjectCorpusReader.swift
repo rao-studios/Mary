@@ -94,14 +94,26 @@ public enum ProjectCorpusReader {
     /// part of the work: counting it in a progress report or offering it as a
     /// destination would both be wrong, and there is no request for which
     /// including it is the right answer.
+    ///
+    /// `excludeNames`/`includeExtensions` matter ONLY for `.fileSystemTree` —
+    /// an `.xmlManifest` outline is already bounded by the binder, so a
+    /// manuscript's exclusions have nothing to filter. For a directory
+    /// project they are the same names its corpus's own `exclude`/`include`
+    /// already declare (`CorpusCrawl.projectFiles` reads the identical
+    /// fields for the passive style crawl): without them a walk over a real
+    /// checkout reads `.build`, `DerivedData` and `.git` right along with the
+    /// source, which is slow and not what "the project's outline" means.
     public static func outline(
-        projectRoot: URL, structure: PluginCorpusStructureSchema
+        projectRoot: URL, structure: PluginCorpusStructureSchema,
+        excludeNames: [String] = [], includeExtensions: [String] = []
     ) -> Result<[Item], Failure> {
         switch structure.manifest.kind {
         case .xmlManifest:
             return xmlOutline(projectRoot: projectRoot, structure: structure)
         case .fileSystemTree:
-            return .success(treeOutline(projectRoot: projectRoot, structure: structure))
+            return .success(treeOutline(
+                projectRoot: projectRoot, structure: structure,
+                excludeNames: excludeNames, includeExtensions: includeExtensions))
         }
     }
 
@@ -163,26 +175,55 @@ public enum ProjectCorpusReader {
 
     /// The directory tree AS the outline — a folder of markdown, where an
     /// item's id is its path relative to the root.
+    ///
+    /// ⚠️ EXCLUDED NAMES ARE PRUNED, NOT FILTERED — `walker.skipDescendants()`
+    /// has no direct analogue in a recursive build, so a matched directory
+    /// simply never recurses. Filtering entries after a full recursive walk
+    /// would still pay to enumerate every file inside `.build` or
+    /// `DerivedData` before throwing the results away.
     private static func treeOutline(
-        projectRoot: URL, structure: PluginCorpusStructureSchema
+        projectRoot: URL, structure: PluginCorpusStructureSchema,
+        excludeNames: [String], includeExtensions: [String]
     ) -> [Item] {
+        let excluded = Set(excludeNames)
+        let included = Set(includeExtensions)
         func build(_ directory: URL, depth: Int) -> [Item] {
             let contents = (try? FileManager.default.contentsOfDirectory(
                 at: directory, includingPropertiesForKeys: [.isDirectoryKey],
                 options: [.skipsHiddenFiles])) ?? []
             return contents.sorted { $0.lastPathComponent < $1.lastPathComponent }
                 .compactMap { url -> Item? in
+                    guard !excluded.contains(url.lastPathComponent) else { return nil }
                     let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?
                         .isDirectory ?? false
-                    let relative = url.path.replacingOccurrences(
-                        of: projectRoot.path + "/", with: "")
+                    // A FILE OUTSIDE THE DECLARED NOTATION is not part of the
+                    // outline either — empty `included` (no corpus declares
+                    // one) keeps every file, exactly as before this existed.
+                    if !isDirectory, !included.isEmpty, !included.contains(url.pathExtension) {
+                        return nil
+                    }
+                    // SYMLINKS RESOLVED ON BOTH SIDES, the same helper the
+                    // passive crawl uses (`CorpusCrawl.relativePath`) — a
+                    // naive prefix strip breaks the moment the root is
+                    // reached through a symlink (`/tmp` as `/private/tmp`,
+                    // exactly what a temporary-directory checkout hits),
+                    // silently making every id an absolute path instead of a
+                    // relative one.
+                    let relative = CorpusCrawl.relativePath(
+                        of: url.path, under: projectRoot.path)
+                    let children = isDirectory ? build(url, depth: depth + 1) : []
+                    // A FOLDER LEFT EMPTY BY FILTERING is not part of the
+                    // outline — it holds nothing this corpus reads, and
+                    // showing it as a container with nothing inside is worse
+                    // than not showing it.
+                    if isDirectory, children.isEmpty { return nil }
                     return Item(
                         id: relative,
                         title: url.deletingPathExtension().lastPathComponent,
                         type: isDirectory ? "folder" : "file",
                         isContainer: isDirectory,
                         depth: depth,
-                        children: isDirectory ? build(url, depth: depth + 1) : [])
+                        children: children)
                 }
         }
         return build(projectRoot, depth: 0)

@@ -15,9 +15,11 @@
 //
 //    mary-corpus-probe project --project ~/path/to/thing.scriv
 //    mary-corpus-probe project --project … --read "Prologue"
-//    mary-corpus-probe project --live       ← through the shipped packages
-//    mary-corpus-probe project --dispatch   ← through REAL AbilityRuntime.dispatch,
-//                                              with Scrivener as the real ambient lead
+//    mary-corpus-probe project --live            ← through the shipped packages
+//    mary-corpus-probe project --dispatch        ← through REAL AbilityRuntime.dispatch,
+//                                                   with Scrivener as the real ambient lead
+//    mary-corpus-probe project --dispatch-code   ← the same, with Xcode as the lead,
+//                                                   proving the fileSystemTree declaration
 //
 
 import ApplicationServices
@@ -261,6 +263,185 @@ enum ProjectProbe {
         AmbientContextStore.shared.noteRoute(route)
     }
 
+    /// THE SAME RIGOR AS `runDispatch`, aimed at Xcode instead of Scrivener —
+    /// Step 1/2 of the fluid-search plan: `xcode.mary` now declares
+    /// `corpus.structure` (`manifest.kind: fileSystemTree`), and this proves
+    /// it through the real `AbilityRuntime.dispatch` path against a real
+    /// Swift checkout, exactly the way `--dispatch` proved Scrivener.
+    ///
+    /// TWO THINGS THIS CANNOT ASSUME FROM `runDispatch`'S SUCCESS, and both
+    /// are checked rather than presumed:
+    ///
+    ///   1. `ProjectCorpusSupport.projectRoot(ofWindow:)` took a different
+    ///      road for `.fileSystemTree` than the one Scrivener exercises —
+    ///      Xcode's `AXDocument` is the ACTIVE FILE, not the project, so the
+    ///      root comes from climbing `corpus.projectMarkers`
+    ///      (`CorpusObserver.projectRoot(containing:markers:)`) rather than
+    ///      from a directory-extension match. A `.scriv` bundle never
+    ///      exercises that climb at all.
+    ///   2. `search_corpus`/`read_corpus_outline`/`read_corpus_document`/
+    ///      `corpus_progress` are declared inside `writing.mary`, gated by
+    ///      ITS OWN Ability-level routing policy —
+    ///      `any(compose, revise, hasInteraction(text-selection),
+    ///      workspaceFamily=="writing")`. `WritingReachabilityTests
+    ///      .aCodingWorkspaceStillDoesNotAdmitWriting` pins, DELIBERATELY,
+    ///      that `workspaceFamily=="coding"` alone does NOT satisfy that
+    ///      policy — so unlike Scrivener (admitted by the fourth arm alone,
+    ///      regardless of the utterance), an ordinary coding QUESTION reaches
+    ///      these skills only if intent classifies as `compose`/`revise` or a
+    ///      text-selection interaction is current. This probe measures which
+    ///      of those is true for a real coding-flavoured question rather than
+    ///      assuming either.
+    static func runDispatchCode(_ arguments: [String]) async {
+        func value(_ name: String) -> String? {
+            guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
+            else { return nil }
+            return arguments[index + 1]
+        }
+
+        guard AXIsProcessTrusted() else {
+            print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
+            exit(1)
+        }
+
+        heading("the roster")
+        let adapters = MaryAdapterCatalog.adapters()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: MaryAdapterCatalog.observers()),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+        check(load.activated, "the packages loaded", "\(load.snapshot.records.count)")
+        for issue in load.issues where issue.severity == .error {
+            print("      ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.corpusRegistrations(from: load.snapshot)
+        CorpusSupport.shared.reconcile(registrations)
+        let profiles = adapters.map(\.applicationProfile)
+            + load.snapshot.plugins.applicationProfiles
+        AmbientApplicationBridge.install(profiles: profiles)
+
+        heading("what is open")
+        // NAMED BY APPLICATION, not `ProjectCorpusSupport.resolve(nil)` —
+        // that call picks among every open corpus by PROJECT name, and with
+        // Scrivener possibly open too this probe needs specifically Xcode's.
+        guard let corpus = ProjectCorpusSupport.openCorpora()
+            .first(where: { $0.registration.applicationID == "xcode" })
+        else {
+            print("  ✗ no Xcode project is open. Open Xcode on a real Swift checkout"
+                + " (this repository works) and try again.")
+            exit(1)
+        }
+        check(true, "a project resolved off the marker climb", corpus.name)
+        check(true, "the root", corpus.projectRoot.path)
+
+        let activation = await VerifiedActivation.bringForward(
+            pid: corpus.processIdentifier, requireVisibleWindow: true)
+        check(activation.succeeded, "Xcode came forward",
+              activation.road.map(String.init(describing:))
+                  ?? activation.reason(app: corpus.registration.displayName) ?? "refused")
+
+        heading("the real lead")
+        WorkspaceFocusTracker.shared.sample()
+        let signal = WorkspaceFocusTracker.shared.signal()
+        let leadApplicationID = signal.lead?.application
+        check(leadApplicationID == corpus.registration.applicationID,
+              "the tracker's own frontmost read leads with the corpus's application",
+              leadApplicationID ?? "none")
+
+        let query = value("--query") ?? "PluginCorpusStructureSchema"
+        let utterance = value("--utterance") ?? "find where the code mentions \(query)"
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+            utterance: utterance,
+            leadApplicationID: leadApplicationID,
+            profiles: profiles))
+        AmbientContextStore.shared.noteUtterance(utterance)
+        AmbientContextStore.shared.noteRoute(route)
+        check(route.leadPlace?.application == corpus.registration.applicationID,
+              "the route's lead place names the corpus's application",
+              route.leadPlace?.token ?? "none")
+        // UNLIKE SCRIVENER, this is expected to read "coding" — the corpus
+        // skills' OWN Ability is still "writing", which is exactly the
+        // tension this probe measures below rather than assumes away.
+        print("      workspace family: \(route.leadPlace?.ability?.rawValue ?? "none")"
+            + "  (Scrivener reads \"writing\" here; Xcode reads \"coding\")")
+
+        heading("what the model would actually be offered")
+        let log = AbilityExecutionLog()
+        let runtime = AbilityRuntime(
+            plugins: adapters, executionLog: log,
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        let offered = Set(runtime.schemas.map(\.name))
+        var allOffered = true
+        for wanted in [
+            "search_corpus", "read_corpus_outline", "read_corpus_document", "corpus_progress",
+        ] {
+            let present = offered.contains(wanted)
+            allOffered = allOffered && present
+            check(present, "\(wanted) is in this turn's roster")
+        }
+
+        guard allOffered else {
+            print("""
+
+              ✗ The corpus skills did not project for this turn. This is the
+                known tension recorded above: they are declared inside
+                writing.mary, whose Ability-level routing policy admits a
+                coding workspace only via a classified compose/revise intent
+                or a live text-selection interaction — never via
+                workspaceFamily=="coding" alone
+                (WritingReachabilityTests.aCodingWorkspaceStillDoesNotAdmitWriting
+                pins this on purpose). Try --utterance with an imperative
+                phrasing, or see the probe's header for what this measures.
+            """)
+            AmbientContextStore.shared.noteRoute(route)
+            exit(1)
+        }
+
+        heading("dispatching search_corpus for real")
+        let searchOutcome = await runtime.dispatch(
+            name: "search_corpus",
+            argumentsJSON: #"{"query":"\#(query)"}"#)
+        check(searchOutcome.ok, "search_corpus dispatched without a refusal")
+        check(!searchOutcome.foundNothing, "and it found the word in a real file",
+              "query \"\(query)\"")
+        print("      \(searchOutcome.summary.replacingOccurrences(of: "\n", with: "\n      "))")
+
+        heading("dispatching read_corpus_outline and read_corpus_document for real")
+        let outlineOutcome = await runtime.dispatch(
+            name: "read_corpus_outline", argumentsJSON: "{}")
+        check(outlineOutcome.ok, "read_corpus_outline dispatched")
+        print("      \(outlineOutcome.summary.prefix(400))…")
+        // THE BLOAT CHECK. `treeOutline` used to walk every non-hidden file
+        // with no exclusion at all — `.build`, `.git`, `DerivedData` and all
+        // — which on a real checkout is thousands of files that are not the
+        // project's own shape. If the fix regressed, these names come back.
+        for leaked in [".build/", "DerivedData/", ".git/"] {
+            check(!outlineOutcome.summary.contains(leaked),
+                  "the outline does not leak \(leaked)")
+        }
+
+        let firstDocument = value("--read") ?? "ProjectCorpusReader"
+        let documentOutcome = await runtime.dispatch(
+            name: "read_corpus_document",
+            argumentsJSON: #"{"document":"\#(firstDocument)"}"#)
+        check(documentOutcome.ok, "read_corpus_document dispatched", firstDocument)
+        print("      \(documentOutcome.summary.prefix(200))…")
+        // REAL SOURCE, not markup or a decode artefact — the reader's
+        // `.plainText` branch is a raw UTF-8 read, so this should be Swift.
+        check(documentOutcome.summary.contains("func ") || documentOutcome.summary.contains("struct "),
+              "and it reads as real Swift, not a decode artefact")
+
+        heading("dispatching corpus_progress for real")
+        let progressOutcome = await runtime.dispatch(
+            name: "corpus_progress", argumentsJSON: "{}")
+        check(progressOutcome.ok, "corpus_progress dispatched")
+        print("      \(progressOutcome.summary)")
+
+        AmbientContextStore.shared.noteRoute(route)
+    }
+
     /// The declaration `scrivener.mary` will carry, written from the measured
     /// project rather than assumed — checked here first, because a package
     /// declaring it is a claim about somebody else's file format.
@@ -319,10 +500,16 @@ enum ProjectProbe {
             return
         }
 
+        if arguments.contains("--dispatch-code") {
+            await runDispatchCode(arguments)
+            return
+        }
+
         guard let raw = value("--project") else {
             print("""
             Pass --project <path to a .scriv>, --live to go through the shipped \
-            packages, or --dispatch to drive search_corpus through real dispatch
+            packages, --dispatch to drive search_corpus through real dispatch with \
+            Scrivener as the lead, or --dispatch-code to do the same with Xcode
             """)
             exit(1)
         }

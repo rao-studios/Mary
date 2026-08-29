@@ -224,4 +224,104 @@ final class ProjectCorpusReaderTests: XCTestCase {
             XCTAssertTrue(path.hasSuffix(".manifest"))
         }
     }
+
+    // MARK: - fileSystemTree — the directory IS the outline (xcode.mary)
+
+    /// A SECOND STRUCTURE, for the family the header describes: the tree
+    /// itself is the outline, an item's id is its path relative to the root,
+    /// and there is no manifest to read.
+    private var treeStructure: PluginCorpusStructureSchema {
+        .init(
+            discovery: .manifestPresence,
+            manifest: .init(kind: .fileSystemTree),
+            parts: [.init(name: "text", pathTemplate: "{id}", format: .plainText)])
+    }
+
+    private func write(_ text: String, at relativePath: String) throws {
+        let url = root.appendingPathComponent(relativePath)
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try text.write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    /// THE PLAIN CASE: no exclude, no include, everything on disk is the
+    /// outline — an item's id is its project-relative path.
+    func testFileSystemTreeWithNoFilteringShowsEveryFile() throws {
+        try write("struct A {}", at: "Sources/A.swift")
+        try write("# notes", at: "README.md")
+        let titles = try outlineItems(structure: treeStructure).flatMap(\.flattened)
+            .map(\.title).sorted()
+        XCTAssertEqual(titles, ["A", "README", "Sources"])
+    }
+
+    /// ⚠️ THE BUG A LIVE DISPATCH FOUND: an unfiltered walk over a real
+    /// checkout reads `.build`/`.git`/`DerivedData` right along with the
+    /// source — thousands of files that say nothing about the project's own
+    /// shape, and slow enough to matter. `excludeNames` prunes a matched
+    /// directory without recursing into it at all.
+    func testFileSystemTreeExcludesDeclaredDirectoryNamesEntirely() throws {
+        try write("struct A {}", at: "Sources/A.swift")
+        try write("// generated", at: ".build/Generated.swift")
+        try write("ref: refs/heads/main", at: ".git/HEAD")
+        let flat = try outlineItems(
+            structure: treeStructure, excludeNames: [".build", ".git"]
+        ).flatMap(\.flattened)
+        XCTAssertFalse(flat.contains { $0.title == ".build" })
+        XCTAssertFalse(flat.contains { $0.title == "Generated" })
+        XCTAssertFalse(flat.contains { $0.title == ".git" })
+        XCTAssertTrue(flat.contains { $0.title == "A" })
+    }
+
+    /// A FILE OUTSIDE THE DECLARED NOTATION is not part of the outline
+    /// either — the corpus's own `include`, the same field the passive style
+    /// crawl reads, scopes what a code corpus's outline shows to its one
+    /// notation.
+    func testFileSystemTreeOnlyIncludesDeclaredExtensions() throws {
+        try write("struct A {}", at: "A.swift")
+        try write("# notes", at: "NOTES.md")
+        let titles = try outlineItems(structure: treeStructure, includeExtensions: ["swift"])
+            .flatMap(\.flattened).map(\.title)
+        XCTAssertEqual(titles, ["A"])
+    }
+
+    /// A FOLDER LEFT EMPTY BY FILTERING drops out of the outline too — it
+    /// holds nothing this corpus reads, and a container with nothing inside
+    /// is worse than not showing it at all.
+    func testFileSystemTreeDropsAFolderEmptiedByFiltering() throws {
+        try write("# notes", at: "Docs/NOTES.md")
+        try write("struct A {}", at: "Sources/A.swift")
+        let titles = try outlineItems(structure: treeStructure, includeExtensions: ["swift"])
+            .flatMap(\.flattened).map(\.title)
+        XCTAssertEqual(titles.sorted(), ["A", "Sources"])
+        XCTAssertFalse(titles.contains("Docs"))
+    }
+
+    /// THE ID IS THE RELATIVE PATH, and reading through the declared part's
+    /// `{id}` template is the join that makes `search_corpus`/
+    /// `read_corpus_document` work for this family with no manifest at all.
+    func testFileSystemTreeItemIDIsItsRelativePathAndReadsThroughIt() throws {
+        try write("struct A {}", at: "Sources/Deep/A.swift")
+        let items = try outlineItems(structure: treeStructure).flatMap(\.flattened)
+        let file = try XCTUnwrap(items.first { $0.title == "A" })
+        XCTAssertEqual(file.id, "Sources/Deep/A.swift")
+        switch ProjectCorpusReader.text(
+            itemID: file.id, projectRoot: root, structure: treeStructure) {
+        case .success(let text): XCTAssertEqual(text, "struct A {}")
+        case .failure(let failure): XCTFail("expected text, got \(failure)")
+        }
+    }
+
+    private func outlineItems(
+        structure: PluginCorpusStructureSchema,
+        excludeNames: [String] = [], includeExtensions: [String] = []
+    ) throws -> [ProjectCorpusReader.Item] {
+        switch ProjectCorpusReader.outline(
+            projectRoot: root, structure: structure,
+            excludeNames: excludeNames, includeExtensions: includeExtensions) {
+        case .success(let items): return items
+        case .failure(let failure):
+            XCTFail("outline failed: \(failure)")
+            return []
+        }
+    }
 }
