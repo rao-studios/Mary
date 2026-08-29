@@ -113,7 +113,12 @@ public enum CodeSurfaceAX {
     /// Roles are tried in declared order, and within a role the LARGEST
     /// element wins — a jump-bar search field is a real `AXTextField`, and
     /// the source buffer is the big one.
-    static func editor(
+    ///
+    /// PUBLIC ONLY SO `CodeSurfaceEditorCache` CAN NAME IT as the default
+    /// walk behind its own seam. This is the ~330 ms half of a code-surface
+    /// read, and outside a cache it should be called once per window and not
+    /// once per question — see that file's header for the measurement.
+    public static func editor(
         in window: AXUIElement, registration: CodeSurfaceRegistration
     ) -> AXUIElement? {
         var byRole: [String: [(element: AXUIElement, area: CGFloat)]] = [:]
