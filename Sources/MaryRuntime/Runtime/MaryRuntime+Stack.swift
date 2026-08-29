@@ -109,6 +109,16 @@ extension MaryRuntime {
         await brain.setSeerRealtime(choice == .realtime ? seerRealtime : nil)
     }
 
+    /// The hosted annotator over the app's own chat lane.
+    ///
+    /// A FACTORY RATHER THAN A LITERAL, because `seerChat` is internal to this
+    /// module and `mary-corpus-probe annotate` has to build the SAME annotator
+    /// the app wires — a probe that constructed its own client would be
+    /// verifying a different object than the one that ships.
+    package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
+        SeerUnitAnnotator(chat: seerChat)
+    }
+
     /// Sign in with the configured account. Returns error text or nil.
     package static func applySeerAccount(email: String, password: String, seerPort: Int) async -> String? {
         await seerSession.configure(
@@ -227,7 +237,7 @@ extension MaryRuntime {
         // structure and go without a précis, and the ledger says why.
         let hosted = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
         await unitIndexer.setAnnotator(
-            hosted ? SeerUnitAnnotator(chat: seerChat) : InferenceUnitAnnotator(engine: engine))
+            hosted ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: engine))
         // A relaunch resumes from the durable manifest instead of treating
         // every file in the project as a first sighting.
         await unitIndexer.setManifestLoader { projectID in

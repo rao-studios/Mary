@@ -21,6 +21,19 @@
 //  background summariser that made the user wait would be a worse trade than
 //  no summary at all.
 //
+//  THE SYSTEM PROMPT RIDES `instructions`, AND FORGETTING IT COST EVERY
+//  SUMMARY IN HOSTED MODE. `InferenceUnitAnnotator.systemPrompt` is not
+//  decoration — it is the JSON contract `parse` enforces on the way out. Sent
+//  with `instructions: nil`, this annotator handed Seer a bare list of
+//  declarations and no instruction, and Seer's chat is a PERSONA lane with
+//  retrieval: it answered the way it answers anything, in prose about the
+//  file. `parse` requires an object with a précis and at least one label, so
+//  every one of those replies became nil — outcome `.failed`, and a Corpus
+//  pane that read "structure only — the summariser returned nothing" for every
+//  unit in the mode most installs actually run. Verified live against the
+//  local server: the identical request with `instructions` set returns exactly
+//  the required object, and without it returns a paragraph.
+//
 
 import Foundation
 import MaryAmbient
@@ -52,17 +65,35 @@ public struct SeerUnitAnnotator: UnitAnnotating {
         do {
             for try await event in chat.stream(
                 messages: [SeerChatMessage(role: "user", content: prompt)],
-                instructions: nil
+                // THE SAME CONTRACT THE LOCAL PATH SENDS, over the slot this
+                // transport carries a system prompt in. See the header.
+                instructions: InferenceUnitAnnotator.systemPrompt
             ) {
                 if case .token(let token) = event { text += token }
             }
         } catch {
-            Self.log.debug("annotation failed: \(error.localizedDescription, privacy: .public)")
+            Self.log.error(
+                "annotation failed: \(error.localizedDescription, privacy: .public)")
             return nil
         }
         // THE SAME PARSER AS THE LOCAL PATH. Two annotators producing the same
         // shape must agree about what a malformed answer is, or a unit's card
         // depends on which engine happened to summarise it.
-        return InferenceUnitAnnotator.parse(text)
+        guard let annotation = InferenceUnitAnnotator.parse(text) else {
+            // THE DIAGNOSTIC THAT WAS MISSING, and its absence is why the
+            // `instructions: nil` defect above survived: a reply that arrived
+            // and did not parse logged NOTHING, so the ledger's `.failed` was
+            // indistinguishable from a dead server. `.error` rather than
+            // `.debug` because debug records are not persisted, and this is
+            // precisely the line someone will go looking for afterwards.
+            Self.log.error(
+                """
+                annotation unparsable for \(request.relativePath, privacy: .public): \
+                \(text.count, privacy: .public) chars, begins \
+                \(text.prefix(160).trimmingCharacters(in: .whitespacesAndNewlines), privacy: .public)
+                """)
+            return nil
+        }
+        return annotation
     }
 }

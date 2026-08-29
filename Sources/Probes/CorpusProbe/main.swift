@@ -75,6 +75,13 @@ if ScrivenerPerceptionProbe.shouldRunFrontmostOnly(CommandLine.arguments) {
     exit(failures == 0 ? 0 : 1)
 }
 
+// THE ANNOTATION ROUND — the one step that costs a model round, and the only
+// one that can fail against a live server. Its own flag, checked before
+// `ProjectProbe.shouldRun`'s broader match, same reasoning as the lanes above.
+if AnnotationProbe.shouldRun(CommandLine.arguments) {
+    exit(Int32(await AnnotationProbe.run(CommandLine.arguments)))
+}
+
 // READING A PROJECT off disk is its own question — the shape of one
 // manuscript, not the style of a body of files — and needs no AX at all,
 // so it runs before the grant check below.
