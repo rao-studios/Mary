@@ -193,18 +193,12 @@ extension AbilityPackageValidator {
             if !semanticVersionIsValid(value.version.rawValue) {
                 sink.error("invalid-version", "\(path).version", "Use semantic versioning such as 1.0.0.")
             }
-            if value.lanes.isEmpty && value.persistence != .none {
-                sink.error("missing-totem-lane", "\(path).lanes", "A persisted Totem projection must name at least one lane.")
-            }
             if let retention = value.retentionSeconds,
                (!retention.isFinite || retention <= 0) {
                 sink.error("invalid-retention", "\(path).retentionSeconds", "Projection retention must be a finite number greater than zero.")
             }
             duplicates(value.skills.map(\.rawValue)).forEach {
                 sink.error("duplicate-projection-skill", "\(path).skills", "Skill selector \($0) appears more than once.")
-            }
-            duplicates(value.lanes.map(\.rawValue)).forEach {
-                sink.error("duplicate-totem-lane", "\(path).lanes", "Totem lane \($0) appears more than once.")
             }
             duplicates(value.include).forEach {
                 sink.error("duplicate-projection-field", "\(path).include", "Projected field \($0) appears more than once.")

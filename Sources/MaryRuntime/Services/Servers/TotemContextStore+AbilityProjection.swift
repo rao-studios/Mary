@@ -33,6 +33,7 @@ extension TotemContextStore {
         policy: ArchivePolicy,
         succeeded: Bool,
         projection: ResolvedTotemProjection,
+        targets: [AbilityTotemTarget],
         ownerID: String
     ) async {
         let fields = Self.projectedFields(
@@ -64,6 +65,7 @@ extension TotemContextStore {
             subject: projectedSubject,
             routingSubject: subject,
             applicationID: applicationID,
+            targets: targets,
             ownerID: ownerID
         ) {
             let item = DepositItem(

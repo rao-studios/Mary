@@ -134,10 +134,41 @@ extension MaryAbilityPackage {
         return ability.applications ?? []
     }
 
-    /// The disciplines this Ability extends — the "in conjunction" relation,
-    /// read from the operating policy that already declares it.
+    /// The disciplines this Ability extends. Required package dependencies are
+    /// the signal; optional support Abilities such as window-management are not.
     public var extendedDisciplines: [AbilityID] {
-        ability.operatingPolicy.defaultSupportingAbilities
+        dependencies.compactMap { dependency in
+            guard !dependency.optional else { return nil }
+            return AbilityID(dependency.packageID.rawValue)
+        }
+    }
+
+    /// Ability Totem groups a durable Skill projection from this package writes
+    /// to. Authors do not name lanes: this Ability is always included, and
+    /// application expertise also files to every required dependency that
+    /// resolves as a discipline.
+    public func abilityTotemTargets(
+        paradigmOfPackage: (PackageID) -> AbilityParadigm?
+    ) -> [AbilityTotemTarget] {
+        var seen = Set<AbilityTotemTarget>()
+        var targets: [AbilityTotemTarget] = []
+        func add(_ target: AbilityTotemTarget) {
+            if seen.insert(target).inserted {
+                targets.append(target)
+            }
+        }
+        add(AbilityTotemTarget(abilityID: ability.id, paradigm: paradigm))
+        if paradigm == .applicationExpertise {
+            for dependency in dependencies where !dependency.optional {
+                guard paradigmOfPackage(dependency.packageID) == .discipline else {
+                    continue
+                }
+                add(AbilityTotemTarget(
+                    abilityID: AbilityID(dependency.packageID.rawValue),
+                    paradigm: .discipline))
+            }
+        }
+        return targets
     }
 
     /// STRUCTURE, WHEN NOTHING WAS DECLARED. Three of the four roles are

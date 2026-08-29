@@ -346,7 +346,15 @@ let package = Package(
         ),
         .testTarget(
             name: "MaryRuntimeTests",
-            dependencies: ["MaryRuntime"],
+            dependencies: [
+                "MaryRuntime",
+                "MaryBrain",
+                "MaryPlugin",
+                "MaryFoundation",
+                "MaryFoundationTestSupport",
+                "MaryAmbient",
+                "MaryTotem",
+            ],
             path: "Tests/MaryRuntimeTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

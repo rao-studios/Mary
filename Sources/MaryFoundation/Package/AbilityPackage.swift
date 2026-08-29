@@ -87,6 +87,10 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     public var dependencies: [AbilityPackageDependency]
     public var fixtures: [AbilityFixture]
     public var plugin: PluginSchema?
+    /// Craft grammar a discipline can declare without carrying an application
+    /// Plugin. Expertise packages bind this to a live app, or override it with
+    /// `plugin.corpus`.
+    public var corpus: PluginCorpusSchema?
     public var integrity: AbilityPackageIntegrity?
 
     public init(
@@ -101,6 +105,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         dependencies: [AbilityPackageDependency] = [],
         fixtures: [AbilityFixture] = [],
         plugin: PluginSchema? = nil,
+        corpus: PluginCorpusSchema? = nil,
         integrity: AbilityPackageIntegrity? = nil
     ) {
         self.format = Self.format
@@ -116,6 +121,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         self.dependencies = dependencies
         self.fixtures = fixtures
         self.plugin = plugin
+        self.corpus = corpus
         self.integrity = integrity
     }
 
@@ -133,6 +139,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         case dependencies
         case fixtures
         case plugin
+        case corpus
         case integrity
     }
 
@@ -155,8 +162,29 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
         fixtures = try values.decode([AbilityFixture].self, forKey: .fixtures)
         plugin = try values.decodeIfPresent(
             PluginSchema.self, forKey: .plugin)
+        corpus = try values.decodeIfPresent(
+            PluginCorpusSchema.self, forKey: .corpus)
         integrity = try values.decodeIfPresent(
             AbilityPackageIntegrity.self, forKey: .integrity)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(format, forKey: .format)
+        try values.encode(formatVersion, forKey: .formatVersion)
+        try values.encode(package, forKey: .package)
+        try values.encode(ability, forKey: .ability)
+        try values.encode(skills, forKey: .skills)
+        try values.encode(capabilities, forKey: .capabilities)
+        try values.encode(interactions, forKey: .interactions)
+        try values.encode(perceptions, forKey: .perceptions)
+        try values.encode(valueTypes, forKey: .valueTypes)
+        try values.encode(totemProjections, forKey: .totemProjections)
+        try values.encode(dependencies, forKey: .dependencies)
+        try values.encode(fixtures, forKey: .fixtures)
+        try values.encodeIfPresent(plugin, forKey: .plugin)
+        try values.encodeIfPresent(corpus, forKey: .corpus)
+        try values.encodeIfPresent(integrity, forKey: .integrity)
     }
 }
 

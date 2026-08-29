@@ -605,6 +605,7 @@ final class TotemExplorerViewModel: ObservableObject {
                 familyTitle: familyTitle(classification.family),
                 lane: classification.lane,
                 isSeerOwned: classification.isSeerOwned,
+                isLegacy: classification.isLegacy,
                 documents: group.documents.map { document in
                     let family = TotemAddressClassifier.classifyDocument(id: document.id).family
                     return TotemDocumentRow(
@@ -628,9 +629,9 @@ final class TotemExplorerViewModel: ObservableObject {
         // (the server has no lanes), and unknown addresses are shown as what
         // they are instead of being misfiled — the classifier's own rule.
         let sections: [(id: String, title: String, subtitle: String, groups: [TotemGroupRow])] = [
-            ("application", "Application lane",
-             "What Mary knows about each application — schemas, manifests, documents.",
-             rows.filter { $0.lane == .application }),
+            ("ability", "Ability lane",
+             "Craft receipts and packaged skill memory, keyed by Ability and paradigm. Leftover application-group ids from before this lane sit here, marked legacy.",
+             rows.filter { $0.lane == .ability }),
             ("personal", "Personal lane",
              "The user's own record — scopes, snapshots, units, style.",
              rows.filter { $0.lane == .personal }),
@@ -665,14 +666,18 @@ final class TotemExplorerViewModel: ObservableObject {
 
     nonisolated static func familyTitle(_ family: TotemAddressFamily) -> String {
         switch family {
-        case .applicationGroup: return "Application"
+        case .abilityGroup: return "Ability"
+        case .legacyApplicationGroup: return "Ability (legacy)"
         case .scopeGroup: return "Scope"
         case .legacyContextPool: return "Context pool"
         case .seerMemory: return "Memory"
         case .seerResonance: return "Resonance"
-        case .applicationDocument: return "Application document"
-        case .applicationSchemaManifest: return "Schema manifest"
-        case .applicationSchema: return "Application schema"
+        case .abilityDocument: return "Ability document"
+        case .abilitySchemaManifest: return "Schema manifest"
+        case .abilitySchema: return "Ability schema"
+        case .legacyApplicationDocument: return "Ability document (legacy)"
+        case .legacyApplicationSchemaManifest: return "Schema manifest (legacy)"
+        case .legacyApplicationSchema: return "Ability schema (legacy)"
         case .projectSchema: return "Project schema"
         case .stateSnapshot: return "State snapshot"
         case .skillRecord: return "Skill record"
@@ -802,7 +807,8 @@ final class TotemExplorerViewModel: ObservableObject {
             plan: plan.map { plan in
                 TotemMemoryPlanRow(
                     lanes: plan.lanes.map(\.rawValue).sorted(),
-                    applicationIDs: plan.applicationIDs,
+                    abilityTargets: plan.abilityTargets.map(\.label),
+                    expandDisciplineUsage: plan.expandDisciplineUsage,
                     lanePriority: plan.lanePriority.map(\.rawValue),
                     relationshipHints: plan.relationshipHints)
             },
@@ -841,21 +847,24 @@ final class TotemExplorerViewModel: ObservableObject {
         })
 
         if let plan, plan.lanes == [.personal], !requests.isEmpty, !anyAggregate,
-           !sentFamilies.contains(.applicationGroup) {
+           !sentFamilies.contains(.abilityGroup),
+           !sentFamilies.contains(.legacyApplicationGroup) {
             warnings.append(.init(
                 kind: .behaviouralCorpusUnreachable,
-                message: "Behavioural corpus unreachable — no application-family group in the sent scope, and aggregate is off. Unit cards, style profiles and application schemas live in mary-application-… groups."))
+                message: "Discipline-wide usage is out of reach — no Ability Totem group in the sent scope, and aggregate is off. Craft receipts live in mary-ability-… groups. Unit cards live in project scope; style lives on Personal."))
         }
 
         if let plan, !requests.isEmpty, !anyAggregate {
-            if plan.lanes.contains(.application), !sentFamilies.contains(.applicationGroup) {
+            let sentAbility = sentFamilies.contains(.abilityGroup)
+                || sentFamilies.contains(.legacyApplicationGroup)
+            if plan.lanes.contains(.ability), !sentAbility {
                 warnings.append(.init(
                     kind: .planScopeMismatch,
-                    message: "Plan asked for the application lane, but no application-family group went out."))
-            } else if !plan.lanes.contains(.application), sentFamilies.contains(.applicationGroup) {
+                    message: "Plan asked for the Ability lane, but no Ability-family group went out."))
+            } else if !plan.lanes.contains(.ability), sentAbility {
                 warnings.append(.init(
                     kind: .planScopeMismatch,
-                    message: "An application-family group went out that the plan never asked for."))
+                    message: "An Ability-family group went out that the plan never asked for."))
             }
         }
 

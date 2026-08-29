@@ -227,7 +227,7 @@ struct ServersSheet: View {
             Button("Clear everything", role: .destructive) { viewModel.clearEverything() }
             Button("Cancel", role: .cancel) {}
         }
-        Text("Clearing Mary's context wipes the project lane and learned application lane. Node identity and storage paths stay in place; only Mary's contents go.")
+        Text("Clearing Mary's context wipes the project lane and learned Ability lane. Node identity and storage paths stay in place; only Mary's contents go.")
             .font(.marySans(10))
             .foregroundStyle(Color.maryInk.opacity(0.4))
         if let notice = viewModel.clearNotice {

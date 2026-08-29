@@ -629,7 +629,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "ce60b531b75094b21925c9c6b09be760caddecad809a50c7f331aba75f22c4ef"
+    "digest" : "8af0aa2cf5dc0b926d029b215c7e608fd381b5543a6019cec1511f961ae2ed84"
   },
   "interactions" : [
     {
@@ -3449,10 +3449,6 @@
         "outputTypes",
         "summary"
       ],
-      "lanes" : [
-        "application",
-        "personal"
-      ],
       "persistence" : "durable",
       "purpose" : "receipt",
       "redactContent" : true,
@@ -3470,9 +3466,6 @@
       "id" : "writing.interaction-ephemera",
       "include" : [
 
-      ],
-      "lanes" : [
-        "application"
       ],
       "persistence" : "none",
       "purpose" : "interaction",

@@ -93,6 +93,7 @@ struct TotemGroupRow: Identifiable, Equatable {
     var familyTitle: String
     var lane: TotemLane?
     var isSeerOwned: Bool
+    var isLegacy: Bool
     var documents: [TotemDocumentRow]
 }
 
@@ -155,7 +156,8 @@ struct TotemRetrievalRequestRow: Identifiable, Equatable {
 
 struct TotemMemoryPlanRow: Equatable {
     var lanes: [String]
-    var applicationIDs: [String]
+    var abilityTargets: [String]
+    var expandDisciplineUsage: Bool
     var lanePriority: [String]
     var relationshipHints: [String]
 }

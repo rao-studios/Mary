@@ -14,6 +14,7 @@
 //
 
 import Foundation
+import MaryAmbient
 import MaryFoundation
 import Testing
 @testable import MaryPlugin
@@ -278,5 +279,20 @@ import Testing
         cache.forget(root: root.path)
         _ = cache.index(root: root.path, corpus: corpus, at: now, build: build)
         #expect(builds == 2)
+    }
+
+    // MARK: - View-activated neighbours
+
+    @Test func aGrownNeighbourhoodHasADifferentStructureKey() {
+        let focused = IndexedUnit(
+            subject: DepositSubject(app: "xcode", documentIdentity: "A.swift"),
+            projectName: "demo",
+            relativePath: "A.swift",
+            contentHash: "aaa")
+        var withNeighbour = focused
+        withNeighbour.neighbours = ["B.swift"]
+        #expect(
+            CorpusObserver.structureKey(for: [focused])
+                != CorpusObserver.structureKey(for: [withNeighbour]))
     }
 }

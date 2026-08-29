@@ -251,7 +251,8 @@ public enum CorpusCrawl {
         corpus: PluginCorpusSchema,
         index: CorpusTypeIndex,
         applicationID: String,
-        at now: Date = Date()
+        at now: Date = Date(),
+        discipline: AbilityID? = nil
     ) -> [IndexedUnit] {
         let focusedRelative = relativePath(of: focusedPath, under: root)
         guard corpus.include.contains((focusedRelative as NSString).pathExtension),
@@ -320,7 +321,8 @@ public enum CorpusCrawl {
                 relations: relations,
                 apiHeaders: [],
                 neighbours: relations.map(\.object),
-                capturedAt: now)
+                capturedAt: now,
+                discipline: discipline)
         }
     }
 }

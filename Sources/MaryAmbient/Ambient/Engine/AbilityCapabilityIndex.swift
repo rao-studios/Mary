@@ -26,6 +26,14 @@ public protocol AbilityCapabilityIndex: Sendable {
 
     /// The Abilities this utterance is asking for.
     func requestedAbilities(in utterance: String) -> Set<AbilityID>
+
+    /// The role an Ability plays in the installed graph. Nil when this index
+    /// does not know the Ability — the caller then falls back to structure.
+    func paradigm(of abilityID: AbilityID) -> AbilityParadigm?
+}
+
+public extension AbilityCapabilityIndex {
+    func paradigm(of abilityID: AbilityID) -> AbilityParadigm? { nil }
 }
 
 /// The answer when nothing has been installed: no Abilities requested.
@@ -38,6 +46,7 @@ public struct EmptyAbilityCapabilityIndex: AbilityCapabilityIndex {
     public init() {}
     public var revision: UUID { Self.revisionID }
     public func requestedAbilities(in _: String) -> Set<AbilityID> { [] }
+    public func paradigm(of _: AbilityID) -> AbilityParadigm? { nil }
 }
 
 /// Where the ambient layer looks when a caller did not hand it an index.

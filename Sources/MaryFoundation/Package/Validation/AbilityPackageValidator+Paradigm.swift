@@ -35,7 +35,7 @@ extension AbilityPackageValidator {
                 if package.extendedDisciplines.isEmpty {
                     sink.warning(
                         "paradigm-expertise-without-discipline", path,
-                        "An application-expertise Ability usually extends a discipline; declare it in operatingPolicy.defaultSupportingAbilities so the two compose.")
+                        "An application-expertise Ability usually extends a discipline; depend on that discipline package so the two compose.")
                 }
             case .systemControl:
                 // The whole point of the role is that it is not about one app.

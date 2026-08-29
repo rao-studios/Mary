@@ -9,6 +9,7 @@
 
 import CryptoKit
 import Foundation
+import MaryFoundation
 
 
 /// One edge between two named things in a unit's neighbourhood.
@@ -27,6 +28,9 @@ public enum UnitRelationPredicate: String, Sendable, Equatable, Codable, CaseIte
     case holds
     /// A unit sits inside a project.
     case partOf = "part of"
+    /// A project practices a discipline — the join that lets skill-time
+    /// retrieval find other work in the same craft without merging repos.
+    case practices
     /// A unit expresses a concept — the label edge that lets a code
     /// neighbourhood be reachable from an unrelated domain.
     case expresses
@@ -133,6 +137,10 @@ public struct IndexedUnit: Sendable, Equatable {
     public var doc: String?
     public var annotation: UnitAnnotation?
     public var capturedAt: Date
+    /// The craft this unit's project practices, when the place can name one.
+    /// Nil rather than invented: a unit with no discipline is not filed as
+    /// coding.
+    public var discipline: AbilityID?
 
     public init(
         subject: DepositSubject,
@@ -145,7 +153,8 @@ public struct IndexedUnit: Sendable, Equatable {
         neighbours: [String] = [],
         doc: String? = nil,
         annotation: UnitAnnotation? = nil,
-        capturedAt: Date = Date()
+        capturedAt: Date = Date(),
+        discipline: AbilityID? = nil
     ) {
         self.subject = subject
         self.projectName = projectName
@@ -158,6 +167,7 @@ public struct IndexedUnit: Sendable, Equatable {
         self.doc = doc
         self.annotation = annotation
         self.capturedAt = capturedAt
+        self.discipline = discipline
     }
 
     public var projectID: String? {

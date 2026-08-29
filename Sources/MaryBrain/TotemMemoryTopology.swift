@@ -1,31 +1,48 @@
 import Foundation
+import MaryAmbient
+import MaryFoundation
 
 /// Names the two logical Totems while they share the local Totem service.
 public enum TotemMemoryTopology {
-    public static func applicationGroup(
-        applicationID: String, ownerID: String
+    public static func abilityGroup(
+        target: AbilityTotemTarget, ownerID: String
     ) -> RetrievalScope.Group {
-        let key = canonical(ownerID) + "|" + canonical(applicationID)
+        let key = [
+            canonical(ownerID),
+            canonical(target.abilityID.rawValue),
+            canonical(target.paradigm.rawValue),
+        ].joined(separator: "|")
         return .init(
-            id: "mary-application-\(hash(key))",
-            label: "Application — \(applicationID)")
+            id: "mary-ability-\(hash(key))",
+            label: "Ability — \(target.label)")
     }
 
-    public static func applicationDocumentID(applicationID: String, ownerID: String) -> String {
-        "mary-application-document-\(hash(canonical(ownerID) + "|" + canonical(applicationID)))"
+    public static func abilityDocumentID(
+        target: AbilityTotemTarget, ownerID: String
+    ) -> String {
+        let key = [
+            canonical(ownerID),
+            canonical(target.abilityID.rawValue),
+            canonical(target.paradigm.rawValue),
+        ].joined(separator: "|")
+        return "mary-ability-document-\(hash(key))"
     }
 
-    /// One durable document per learned application relationship. Keeping the
+    /// One durable document per learned ability relationship. Keeping the
     /// fact id in the address lets a new observation replace only that fact,
     /// so schema growth never rewrites an unrelated capability or workflow.
-    public static func applicationSchemaDocumentID(
-        applicationID: String,
+    public static func abilitySchemaDocumentID(
+        target: AbilityTotemTarget,
         schemaID: String,
         ownerID: String
     ) -> String {
-        let key = [canonical(ownerID), canonical(applicationID), canonical(schemaID)]
-            .joined(separator: "|")
-        return "mary-application-schema-\(hash(key))"
+        let key = [
+            canonical(ownerID),
+            canonical(target.abilityID.rawValue),
+            canonical(target.paradigm.rawValue),
+            canonical(schemaID),
+        ].joined(separator: "|")
+        return "mary-ability-schema-\(hash(key))"
     }
 
     /// The structural snapshot for one project. It is separate from episodic
@@ -35,11 +52,18 @@ public enum TotemMemoryTopology {
         "mary-project-schema-\(hash(canonical(ownerID) + "|" + canonical(projectID)))"
     }
 
-    /// A compact durable catalogue for one application's active schema facts.
+    /// A compact durable catalogue for one Ability's active schema facts.
     /// It lets a new Mary process resume evidence and retire stale facts
     /// instead of treating every launch as a fresh integration.
-    public static func applicationSchemaManifestID(applicationID: String, ownerID: String) -> String {
-        "mary-application-schema-manifest-\(hash(canonical(ownerID) + "|" + canonical(applicationID)))"
+    public static func abilitySchemaManifestID(
+        target: AbilityTotemTarget, ownerID: String
+    ) -> String {
+        let key = [
+            canonical(ownerID),
+            canonical(target.abilityID.rawValue),
+            canonical(target.paradigm.rawValue),
+        ].joined(separator: "|")
+        return "mary-ability-schema-manifest-\(hash(key))"
     }
 
     // MARK: - Unit index
@@ -58,17 +82,25 @@ public enum TotemMemoryTopology {
         subject: DepositSubject,
         ownerID: String
     ) -> RetrievalScope {
-        let applicationGroups = plan.applicationIDs.map {
-            applicationGroup(applicationID: $0, ownerID: ownerID)
+        let abilityGroups = plan.abilityTargets.map {
+            abilityGroup(target: $0, ownerID: ownerID)
         }
-        guard plan.lanes.contains(.application) else {
+        var hints = plan.relationshipHints
+        if plan.expandDisciplineUsage {
+            hints.append("practices")
+            hints.append(contentsOf: plan.abilityTargets
+                .filter { $0.paradigm == .discipline }
+                .map(\.abilityID.rawValue))
+            hints = Array(Set(hints)).sorted()
+        }
+        guard plan.lanes.contains(.ability) else {
             return subject.retrievalScope(ownerID: ownerID)
         }
         guard plan.lanes.contains(.personal) else {
             return RetrievalScope(
-                groups: applicationGroups,
+                groups: abilityGroups,
                 aggregate: false,
-                relationshipHints: plan.relationshipHints)
+                relationshipHints: hints)
         }
 
         let personal = subject.retrievalScope(ownerID: ownerID)
@@ -76,14 +108,14 @@ public enum TotemMemoryTopology {
             ? RetrievalScope.memoryGroups(ownerID: ownerID) + [RetrievalScope.legacyPool(ownerID: ownerID)]
             : personal.groups
         let groupsByLane: [TotemLane: [RetrievalScope.Group]] = [
-            .application: applicationGroups,
+            .ability: abilityGroups,
             .personal: personalGroups,
         ]
         let ordered = plan.lanePriority.flatMap { groupsByLane[$0] ?? [] }
         return RetrievalScope(
             groups: unique(ordered),
             aggregate: false,
-            relationshipHints: plan.relationshipHints)
+            relationshipHints: hints)
     }
 
     private static func unique(_ groups: [RetrievalScope.Group]) -> [RetrievalScope.Group] {

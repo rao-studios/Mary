@@ -59,6 +59,10 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
     }
 
     private let settledBox = OSAllocatedUnfairLock<Settled?>(initialState: nil)
+    /// Identity of the last structure crawl that produced units, so a view
+    /// that has not grown neighbours can skip the sink without skipping the
+    /// walk that would discover them.
+    private let lastStructureBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let poller = SinglePollerClaim()
     /// One crawl at a time. The claim above owns the LOOP; this owns a single
     /// pass, so a per-turn refresh cannot start a second walk over the same
@@ -133,11 +137,21 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
     public func deactivate() async {
         poller.release()
         settledBox.withLock { $0 = nil }
+        lastStructureBox.withLock { $0 = nil }
     }
 
-    /// Cadence. Slow on purpose: settling on a file is a human-scale event,
-    /// and the expensive half of a poll is gated behind the file CHANGING.
+    /// Cadence. Slow on purpose: settling on a file is a human-scale event.
+    /// Viewing is enough to crawl structure and neighbours; a fresh edit is
+    /// only required for style.
     public static let pollSeconds: TimeInterval = 5
+
+    /// Identity of a crawl's structure, so a view can retry neighbours
+    /// without re-sending an unchanged neighbourhood.
+    package static func structureKey(for units: [IndexedUnit]) -> String {
+        units.map {
+            "\($0.relativePath)|\($0.contentHash)|\($0.neighbours.sorted().joined(separator: ","))"
+        }.sorted().joined(separator: ";")
+    }
 
     // MARK: - The poll
 
@@ -182,13 +196,12 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             projectRoot: focus.root,
             projectName: focus.projectName,
             relativePath: focus.relativePath)
-        // SAME FILE, NOTHING TO DO. The content gate downstream would catch a
-        // repeat anyway; stopping here saves reading the whole project to
-        // rebuild an index that would answer identically.
-        guard settledBox.withLock({ $0 }) != settled else { return }
-        settledBox.withLock { $0 = settled }
+        let sameFile = settledBox.withLock { $0 } == settled
 
-        guard let sink = sinkBox.withLock({ $0 }) else { return }
+        guard let sink = sinkBox.withLock({ $0 }) else {
+            settledBox.withLock { $0 = settled }
+            return
+        }
 
         let corpus = registration.schema
         let index = CorpusTypeIndexCache.shared.index(
@@ -204,6 +217,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
                         corpus: corpus)?.declaredNames ?? [])
                 })
         }
+        let discipline = AmbientPlace.application(registration.applicationID).ability
         let units = CorpusCrawl.crawl(
             focusedPath: focus.absolutePath,
             root: focus.root,
@@ -211,8 +225,24 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             corpus: corpus,
             index: index,
             applicationID: registration.applicationID,
-            at: now)
-        guard !units.isEmpty else { return }
+            at: now,
+            discipline: discipline)
+        if units.isEmpty {
+            // A claimed unit that produced nothing may be briefly unreadable;
+            // do not lock the settle, so the next poll retries neighbours.
+            let claimed = corpus.include.contains(
+                (focus.relativePath as NSString).pathExtension)
+            if !claimed {
+                settledBox.withLock { $0 = settled }
+            }
+            return
+        }
+
+        let structureKey = Self.structureKey(for: units)
+        let structureUnchanged = sameFile
+            && lastStructureBox.withLock({ $0 }) == structureKey
+        settledBox.withLock { $0 = settled }
+        lastStructureBox.withLock { $0 = structureKey }
 
         // STYLE ONLY FROM A FRESH EDIT, and only from the focused file — the
         // neighbours were pulled in because this one points at them, not
@@ -224,12 +254,13 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             observations = CorpusStyleReader.observe(
                 text: read.text, declaredTypes: read.declaredNames, corpus: corpus)
         }
+        if structureUnchanged && observations.isEmpty { return }
 
         // AWAITED, NOT FIRE-AND-FORGET. Two detached ingests have no ordering
         // guarantee, and a stale crawl landing second would pin an older hash
         // into the manifest — a file permanently "changed". The poller claim
         // already serializes crawls, so awaiting here serializes ingests free.
-        await sink(units, observations, registration)
+        await sink(structureUnchanged ? [] : units, observations, registration)
     }
 
     // MARK: - Reading the front

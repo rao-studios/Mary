@@ -37,22 +37,27 @@ public struct AmbientQuestionSignature: Sendable, Equatable {
 /// A retrieval decision for the two logical Totems.
 public struct TotemMemoryPlan: Sendable, Equatable {
     public var lanes: Set<TotemLane>
-    public var applicationIDs: [String]
+    public var abilityTargets: [AbilityTotemTarget]
     public var lanePriority: [TotemLane]
     public var relationshipHints: [String]
+    /// When true, relationship hints should reach other projects that
+    /// practice the same discipline — without merging those projects' groups.
+    public var expandDisciplineUsage: Bool
 
     public init(
         lanes: Set<TotemLane> = [.personal],
-        applicationIDs: [String] = [],
+        abilityTargets: [AbilityTotemTarget] = [],
         lanePriority: [TotemLane]? = nil,
-        relationshipHints: [String] = []
+        relationshipHints: [String] = [],
+        expandDisciplineUsage: Bool = false
     ) {
         self.lanes = lanes
-        self.applicationIDs = Array(Set(applicationIDs)).sorted()
-        let defaultPriority: [TotemLane] = [.application, .personal].filter(lanes.contains)
+        self.abilityTargets = Array(Set(abilityTargets)).sorted()
+        let defaultPriority: [TotemLane] = [.ability, .personal].filter(lanes.contains)
         let requestedPriority = (lanePriority ?? defaultPriority).filter(lanes.contains)
         self.lanePriority = requestedPriority.isEmpty ? defaultPriority : requestedPriority
         self.relationshipHints = Array(Set(relationshipHints)).sorted()
+        self.expandDisciplineUsage = expandDisciplineUsage
     }
 
     public static let personal = TotemMemoryPlan()
@@ -116,25 +121,41 @@ public struct AmbientIntentGate: Sendable, Equatable {
                 || profiles.first(where: { $0.id == leadApplicationID })?.abilities.contains(.writing) == true)
         let inheritsApplication = leadApplicationID != nil
             && AmbientRanker.referencesApplicationAnaphorically(utterance)
-        let prefersApplication = !applicationIDs.isEmpty
+        let prefersAbility = !applicationIDs.isEmpty
             || isArchitecture
             || (questions.contains(.how) && !namedAbilities.isEmpty)
             || inheritsApplication
-        let targets = applicationIDs.isEmpty && prefersApplication
-            ? leadApplicationID.map { [$0] } ?? []
-            : applicationIDs
-        let hasApplicationTarget = !targets.isEmpty
+            || !requestedAbilities.isEmpty
+        var abilityIDs = requestedAbilities.union(namedAbilities)
+        if abilityIDs.isEmpty, prefersAbility, let lead = leadApplicationID,
+           let profile = profiles.first(where: { $0.id == lead }) {
+            abilityIDs = profile.abilities
+        }
+        let targets = abilityIDs.sorted { $0.rawValue < $1.rawValue }.map { id in
+            AbilityTotemTarget(
+                abilityID: id,
+                paradigm: abilities.paradigm(of: id) ?? Self.inferredParadigm(id))
+        }
+        let hasAbilityTarget = !targets.isEmpty
+        let expandDisciplineUsage = targets.contains { $0.paradigm == .discipline }
 
         let lanes: Set<TotemLane>
-        if hasApplicationTarget && (
+        if hasAbilityTarget && (
             isArchitecture || isWriting
-                || (prefersApplication && questions.intersection([.what, .which, .`where`, .why]).isEmpty == false)
+                || (prefersAbility && questions.intersection([.what, .which, .`where`, .why]).isEmpty == false)
         ) {
-            lanes = [.application, .personal]
-        } else if hasApplicationTarget && prefersApplication {
-            lanes = [.application]
+            lanes = [.ability, .personal]
+        } else if hasAbilityTarget && prefersAbility {
+            lanes = [.ability]
         } else {
             lanes = [.personal]
+        }
+        var hints = Array(signature.predicateFamilies)
+        if expandDisciplineUsage {
+            hints.append("practices")
+            hints.append(contentsOf: targets
+                .filter { $0.paradigm == .discipline }
+                .map(\.abilityID.rawValue))
         }
         return AmbientIntentGate(
             questions: questions,
@@ -144,9 +165,17 @@ public struct AmbientIntentGate: Sendable, Equatable {
             signature: signature,
             memory: TotemMemoryPlan(
                 lanes: lanes,
-                applicationIDs: targets,
+                abilityTargets: targets,
                 lanePriority: signature.lanePriority,
-                relationshipHints: Array(signature.predicateFamilies)))
+                relationshipHints: hints,
+                expandDisciplineUsage: expandDisciplineUsage && lanes.contains(.ability)))
+    }
+
+    /// When the index has no paradigm, the craft axis is the honest fallback:
+    /// coding and writing are disciplines; anything else is expertise until
+    /// a package says otherwise.
+    private static func inferredParadigm(_ id: AbilityID) -> AbilityParadigm {
+        WorkspaceFocus.abilityOrder.contains(id) ? .discipline : .applicationExpertise
     }
 
     private static func questionForms(in utterance: String) -> Set<AmbientQuestion> {
@@ -172,11 +201,11 @@ public struct AmbientIntentGate: Sendable, Equatable {
         })
         let priority: [TotemLane]
         if !questions.intersection([.how, .`where`]).isEmpty {
-            priority = [.application, .personal]
+            priority = [.ability, .personal]
         } else if !questions.intersection([.who, .why, .when]).isEmpty {
-            priority = [.personal, .application]
+            priority = [.personal, .ability]
         } else {
-            priority = [.application, .personal]
+            priority = [.ability, .personal]
         }
         let cue = predicateFamilies.sorted().joined(separator: ", ")
         return .init(

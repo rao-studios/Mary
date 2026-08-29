@@ -128,6 +128,9 @@ struct TotemsLibraryView: View {
                                 .font(.marySans(12, weight: .medium))
                                 .lineLimit(1)
                             MaryBadge(text: group.familyTitle)
+                            if group.isLegacy {
+                                MaryBadge(text: "legacy")
+                            }
                             Spacer()
                             Text("\(group.documentCount)")
                                 .font(.maryMono(9))

@@ -4,6 +4,7 @@
 
 import MaryBrain
 import MaryTotem
+import MaryFoundation
 import Foundation
 
 extension TotemContextStore {
@@ -129,11 +130,14 @@ extension TotemContextStore {
         if !unit.neighbours.isEmpty {
             lines.append("Related: \(unit.neighbours.joined(separator: ", "))")
         }
+        if let discipline = unit.discipline {
+            lines.append("Discipline: \(discipline.rawValue)")
+        }
         return lines.joined(separator: "\n")
     }
 
     static func unitMetadata(_ unit: IndexedUnit) -> Data {
-        let fields: [String: Any] = [
+        var fields: [String: Any] = [
             "kind": "code_unit",
             "application": unit.subject.app ?? "",
             "project": unit.projectName,
@@ -142,6 +146,10 @@ extension TotemContextStore {
             "labels": (unit.annotation?.labels ?? []).sorted(),
             "captured_at": ISO8601DateFormatter().string(from: unit.capturedAt),
         ]
+        if let discipline = unit.discipline {
+            fields["ability_id"] = discipline.rawValue
+            fields["paradigm"] = AbilityParadigm.discipline.rawValue
+        }
         return (try? JSONSerialization.data(
             withJSONObject: fields, options: [.sortedKeys])) ?? Data()
     }
@@ -164,6 +172,12 @@ extension TotemContextStore {
                 predicate: UnitRelationPredicate.expresses.rawValue,
                 object: label))
         }
+        if let discipline = unit.discipline {
+            relationships.append(TotemRelationIn(
+                subject: unit.projectName,
+                predicate: UnitRelationPredicate.practices.rawValue,
+                object: discipline.rawValue))
+        }
 
         // Kinds for the names we know about; anything else reached only as a
         // relation endpoint is a type, which is what an unresolved edge always
@@ -172,6 +186,9 @@ extension TotemContextStore {
             unit.relativePath: "file",
             unit.projectName: "project",
         ]
+        if let discipline = unit.discipline {
+            kinds[discipline.rawValue] = "ability"
+        }
         for type in unit.declaredTypes { kinds[type] = "type" }
         for label in unit.annotation?.labels ?? [] { kinds[label] = "concept" }
 

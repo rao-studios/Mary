@@ -10,7 +10,6 @@ import Foundation
 public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
     public var id: ProjectionID
     public var purpose: TotemProjectionPurpose
-    public var lanes: Set<TotemLane>
     public var persistence: ProjectionPersistence
     public var includedFields: Set<String>
     public var excludedFields: Set<String>
@@ -20,7 +19,6 @@ public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
     public init(
         id: ProjectionID,
         purpose: TotemProjectionPurpose,
-        lanes: Set<TotemLane>,
         persistence: ProjectionPersistence,
         includedFields: Set<String>,
         excludedFields: Set<String>,
@@ -29,7 +27,6 @@ public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
     ) {
         self.id = id
         self.purpose = purpose
-        self.lanes = lanes
         self.persistence = persistence
         self.includedFields = includedFields
         self.excludedFields = excludedFields
@@ -38,7 +35,7 @@ public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
     }
 
     public var permitsDurableStorage: Bool {
-        persistence == .durable && !lanes.isEmpty
+        persistence == .durable
     }
 
     /// Exclusion is always authoritative, even if a malformed package somehow
@@ -60,6 +57,8 @@ public struct AbilityTotemProjectionPlan: Sendable, Equatable {
     public var packageDigest: String?
     public var abilityID: AbilityID
     public var skillID: SkillID
+    public var paradigm: AbilityParadigm
+    public var abilityTargets: [AbilityTotemTarget]
     public var receipts: [ResolvedTotemProjection]
     public var content: [ResolvedTotemProjection]
 
@@ -69,6 +68,8 @@ public struct AbilityTotemProjectionPlan: Sendable, Equatable {
         packageDigest: String?,
         abilityID: AbilityID,
         skillID: SkillID,
+        paradigm: AbilityParadigm,
+        abilityTargets: [AbilityTotemTarget],
         receipts: [ResolvedTotemProjection],
         content: [ResolvedTotemProjection]
     ) {
@@ -77,6 +78,8 @@ public struct AbilityTotemProjectionPlan: Sendable, Equatable {
         self.packageDigest = packageDigest
         self.abilityID = abilityID
         self.skillID = skillID
+        self.paradigm = paradigm
+        self.abilityTargets = abilityTargets
         self.receipts = receipts.sorted { $0.id.rawValue < $1.id.rawValue }
         self.content = content.sorted { $0.id.rawValue < $1.id.rawValue }
     }
@@ -88,6 +91,8 @@ public struct AbilityTotemProjectionPlan: Sendable, Equatable {
             packageDigest: reference.packageDigest,
             abilityID: reference.abilityID,
             skillID: reference.skillID,
+            paradigm: .discipline,
+            abilityTargets: [],
             receipts: [],
             content: [])
     }
@@ -155,6 +160,10 @@ public extension AbilityRuntimeSnapshot {
             packageDigest: actualDigest,
             abilityID: reference.abilityID,
             skillID: reference.skillID,
+            paradigm: record.package.paradigm,
+            abilityTargets: record.package.abilityTotemTargets { id in
+                package(id: id)?.package.paradigm
+            },
             receipts: resolved.filter { $0.purpose == .receipt },
             content: resolved.filter { $0.purpose == .content })
     }
@@ -165,7 +174,6 @@ public extension AbilityRuntimeSnapshot {
         ResolvedTotemProjection(
             id: schema.id,
             purpose: schema.purpose,
-            lanes: Set(schema.lanes),
             persistence: schema.persistence,
             includedFields: Set(schema.include),
             excludedFields: Set(schema.exclude),

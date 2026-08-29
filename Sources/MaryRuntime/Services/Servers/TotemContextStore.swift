@@ -62,6 +62,7 @@ package actor TotemContextStore: ContextDepositing {
                     policy: policy,
                     succeeded: succeeded,
                     projection: projection,
+                    targets: projectionPlan.abilityTargets,
                     ownerID: owner)
             }
             return

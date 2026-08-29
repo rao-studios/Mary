@@ -140,5 +140,10 @@ public enum AbilityPackageValidator {
                 plugin,
                 in: package).issues)
         }
+        if let corpus = package.corpus {
+            PluginValidator.validateCorpus(corpus, root: package.package.id.rawValue) {
+                sink.error($0, $1, $2)
+            }
+        }
     }
 }

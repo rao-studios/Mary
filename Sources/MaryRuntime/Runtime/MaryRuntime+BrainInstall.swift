@@ -226,20 +226,56 @@ extension MaryRuntime {
     /// never a stale copy from the last activation.
     /// The corpus declarations, in the same shape and for the same reason as
     /// the prose registrations below.
+    /// Every corpus the admitted ability graph is willing to learn from.
+    ///
+    /// Expertise packages bind a live app (bundle identity). Discipline
+    /// packages may own the walk grammar (`package.corpus`); an expertise
+    /// Plugin may override with `plugin.corpus`. A discipline with no
+    /// expertise in front of the user is not crawled — Mary does not guess
+    /// editors. Disable the discipline or the expertise and that surface
+    /// drops off the next reconcile.
     package static func corpusRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [CorpusRegistration] {
-        snapshot.records.compactMap { record -> CorpusRegistration? in
+        let activated = Dictionary(
+            uniqueKeysWithValues: snapshot.records
+                .filter(\.validation.isValid)
+                .map { ($0.package.package.id, $0.package) })
+        return snapshot.records.compactMap { record -> CorpusRegistration? in
             guard record.validation.isValid,
                   let plugin = record.package.plugin,
-                  let corpus = plugin.corpus
+                  !plugin.application.bundleIdentifiers.isEmpty
+            else { return nil }
+            let required = record.package.dependencies.filter { !$0.optional }
+            guard required.allSatisfy({ activated[$0.packageID] != nil }) else {
+                return nil
+            }
+            guard let schema = plugin.corpus
+                    ?? Self.inheritedCorpus(for: record.package, activated: activated)
             else { return nil }
             return CorpusRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,
-                schema: corpus)
+                schema: schema)
         }
+    }
+
+    /// Grammar owned by an activated discipline this expertise depends on,
+    /// when the expertise package itself did not declare a corpus.
+    private static func inheritedCorpus(
+        for package: MaryAbilityPackage,
+        activated: [PackageID: MaryAbilityPackage]
+    ) -> PluginCorpusSchema? {
+        for dependency in package.dependencies {
+            guard let donor = activated[dependency.packageID],
+                  donor.paradigm == .discipline
+            else { continue }
+            if let corpus = donor.corpus ?? donor.plugin?.corpus {
+                return corpus
+            }
+        }
+        return nil
     }
 
     /// `package` so the behavior probe can install the SAME registrations the

@@ -136,8 +136,11 @@ struct TotemsRetrievalView: View {
             if !plan.lanePriority.isEmpty {
                 line("Priority", plan.lanePriority.joined(separator: " → "))
             }
-            if !plan.applicationIDs.isEmpty {
-                line("Applications", plan.applicationIDs.joined(separator: ", "))
+            if !plan.abilityTargets.isEmpty {
+                line("Abilities", plan.abilityTargets.joined(separator: ", "))
+            }
+            if plan.expandDisciplineUsage {
+                line("Discipline fan-out", "on")
             }
             if !plan.relationshipHints.isEmpty {
                 line("Hints", plan.relationshipHints.joined(separator: ", "))

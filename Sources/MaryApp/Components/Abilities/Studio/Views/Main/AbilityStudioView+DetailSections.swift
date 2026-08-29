@@ -136,7 +136,7 @@ extension AbilityStudioView {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(projection.id.rawValue)
                                     .font(.system(.body, design: .monospaced))
-                                Text("\(projection.purpose.rawValue) · \(projection.persistence.rawValue) · \(projection.lanes.map(\.rawValue).joined(separator: ", "))")
+                                Text("\(projection.purpose.rawValue) · \(projection.persistence.rawValue)")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                 Text(projection.skills.isEmpty
