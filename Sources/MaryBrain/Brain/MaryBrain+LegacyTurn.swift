@@ -167,8 +167,37 @@ extension MaryBrain {
 
                 // Quantized local models occasionally emit an entirely empty
                 // round; one silent retry beats a blank page.
+                //
+                // THE FAILURE THIS FIXES, live and reproduced on tape: Xcode
+                // frontmost, `read_buffer` called successfully, a real result
+                // landed in history ("[skill result — read_buffer]: ..." with
+                // the file's actual code) — and the very next round came back
+                // completely empty. The retry above already existed for that
+                // shape, but re-rolled the SAME prompt blind to the fact that
+                // a real result was sitting right there: the model sampled
+                // again with nothing telling it the read had already
+                // happened, and produced ungrounded small talk ("Good
+                // evening… how was your day?") instead of describing what it
+                // had just read. `groundedRetryNudge` is the one addition —
+                // spoken only when `outcomes` already holds a landed,
+                // non-blocked result to ground on, so a genuinely empty FIRST
+                // round (nothing has run yet — plain conversation, or the
+                // model declining every Skill) gets the same silent re-roll
+                // it always did.
                 if roundText.isEmpty, skillInvocations.isEmpty, !usedEmptyRetry {
                     usedEmptyRetry = true
+                    // `foundNothing` excluded too: a Skill that ran and
+                    // reported nothing there ("no code editor in front of me
+                    // right now") is `ok: true` by this codebase's own
+                    // convention, but there is still no content to ground a
+                    // "state what it actually says" instruction on.
+                    if outcomes.contains(where: {
+                        $0.ok && !$0.blocked && !$0.requested && !$0.foundNothing
+                    }) {
+                        appendHistory(
+                            BrainTurn(role: .user, text: Self.groundedRetryNudge),
+                            epoch: epoch)
+                    }
                     round -= 1
                     continue
                 }
@@ -452,4 +481,12 @@ extension MaryBrain {
     // internal for file split — treat as private
     static let budgetNudge =
         "(Stop. You have used your command budget for this turn. Tell the user in one or two short spoken sentences what you accomplished and what remains. Do not call any Skill.)"
+
+    /// The empty-round retry's grounding half — see the call site's comment
+    /// for the live failure this closes. Fires only when a real result is
+    /// already sitting in history to ground on; never on a turn that has run
+    /// nothing yet.
+    // internal for file split — treat as private
+    static let groundedRetryNudge =
+        "(A Skill already ran this turn and its result is in the messages above — read it and answer with what it actually says. Do not greet, ask how their day was, or say anything generic; nothing here calls for small talk.)"
 }
