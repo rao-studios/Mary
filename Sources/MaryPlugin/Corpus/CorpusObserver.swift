@@ -170,26 +170,21 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         guard AXIsProcessTrusted() else { return }
 
         let front = NSWorkspace.shared.frontmostApplication
-        let frontBundleID = front?.bundleIdentifier
-        let targeted: (registration: CorpusRegistration, pid: pid_t)?
-        if let front, let frontBundleID,
-           let registration = support.registration(bundleID: frontBundleID) {
-            targeted = (registration, front.processIdentifier)
-        } else if WorkspaceFocusTracker.isWorkspaceTransparent(bundleID: frontBundleID) {
-            let preferred = [
-                settledBox.withLock { $0 }?.applicationID,
-                WorkspaceFocusTracker.shared.leadPlace()?.application,
-            ].compactMap { $0 }
-            targeted = Self.standingCorpus(
-                preferredApplicationIDs: preferred, support: support)
-        } else {
-            targeted = nil
-        }
-        guard let targeted,
+        let preferred = [
+            settledBox.withLock { $0 }?.applicationID,
+            WorkspaceFocusTracker.shared.leadPlace()?.application,
+        ].compactMap { $0 }
+        guard let hit = SurfacePollTarget.resolve(
+            frontmostBundleID: front?.bundleIdentifier,
+            maryBundleID: Bundle.main.bundleIdentifier,
+            claims: support.all,
+            running: SurfacePollTarget.runningProcesses(),
+            preferredApplicationIDs: preferred),
+              let registration = support.registration(
+                applicationID: hit.applicationID),
               let focus = Self.focus(
-                pid: targeted.pid, registration: targeted.registration)
+                pid: hit.pid, registration: registration)
         else { return }
-        let registration = targeted.registration
 
         let settled = Settled(
             applicationID: registration.applicationID,
@@ -396,33 +391,6 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
     /// directly still describe that common editor shape.
     static func activeName(inTitle title: String) -> String? {
         PluginWorkspaceIdentitySchema.default.focusedFileName(inTitle: title)
-    }
-
-    /// A running corpus to sample when Mary's window (or system chrome) is
-    /// frontmost — the same standing-workspace rule `CodeSurfacePollTarget`
-    /// applies to the caret walk. Preferred ids are the last settled
-    /// application, then the tracker lead; any running corpus is the last
-    /// rung so a project Xcode already has open is understood before Lane A
-    /// speaks.
-    static func standingCorpus(
-        preferredApplicationIDs: [String],
-        support: CorpusSupport
-    ) -> (registration: CorpusRegistration, pid: pid_t)? {
-        func running(_ registration: CorpusRegistration) -> pid_t? {
-            CorpusSupport.pid(of: registration)
-        }
-        for applicationID in preferredApplicationIDs {
-            if let registration = support.registration(applicationID: applicationID),
-               let pid = running(registration) {
-                return (registration, pid)
-            }
-        }
-        for registration in support.all {
-            if let pid = running(registration) {
-                return (registration, pid)
-            }
-        }
-        return nil
     }
 
     /// A NAME IS NOT A PATH. Match it against the project's own units and

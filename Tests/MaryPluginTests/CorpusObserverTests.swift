@@ -61,11 +61,6 @@ import Testing
         #expect(CorpusObserver().promptContribution() == nil)
     }
 
-    @Test func standingCorpusWithNoRosterIsNothing() {
-        #expect(CorpusObserver.standingCorpus(
-            preferredApplicationIDs: ["xcode"], support: CorpusSupport()) == nil)
-    }
-
     // MARK: - Name to path
 
     @Test func anUnambiguousNameResolves() throws {

@@ -29,12 +29,13 @@
 
 import AppKit
 import Foundation
+import MaryAmbient
 import MaryFoundation
 import os
 
 /// One application's corpus declaration, bound to the application it came
 /// from.
-public struct CorpusRegistration: Sendable, Equatable {
+public struct CorpusRegistration: Sendable, Equatable, SurfaceClaim {
     public let applicationID: String
     public let bundleIdentifiers: [String]
     public let displayName: String
@@ -107,9 +108,7 @@ public final class CorpusSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: CorpusRegistration) -> pid_t? {
-        NSWorkspace.shared.runningApplications.first { application in
-            guard let bundleID = application.bundleIdentifier else { return false }
-            return registration.owns(bundleID: bundleID)
-        }?.processIdentifier
+        SurfacePollTarget.pid(
+            of: registration, running: SurfacePollTarget.runningProcesses())
     }
 }

@@ -47,7 +47,7 @@ import Foundation
 /// Recognition is separate from execution availability on purpose: a provider
 /// blocked by a missing macOS permission may still teach Mary that an exact
 /// running bundle is Sketch.
-public struct ApplicationRegistration: Sendable, Equatable {
+public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
 
     /// The validated logical application id — `"sketch"`. This is what the
     /// dispatcher stamps on a binding as its owner, and what memory attribution
@@ -120,6 +120,9 @@ public struct ApplicationRegistration: Sendable, Equatable {
         self.perception = perception
         self.legacyWorld = legacyWorld
     }
+
+    /// `SurfaceClaim` identity — the logical id, never a bundle identifier.
+    public var applicationID: String { id }
 
     /// IS THIS RUNNING PROCESS THIS APPLICATION? — the ONE membership
     /// predicate, exact ids first and then the declared family.

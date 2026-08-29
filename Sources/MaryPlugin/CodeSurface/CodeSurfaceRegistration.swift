@@ -15,9 +15,10 @@
 //
 
 import Foundation
+import MaryAmbient
 import MaryFoundation
 
-public struct CodeSurfaceRegistration: Sendable, Equatable {
+public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
 
     /// The package's logical id for the application — the same id its place
     /// is spelled with (`applications:xcode`).

@@ -17,7 +17,6 @@
 //  started with rather than half of two.
 //
 
-import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
@@ -59,8 +58,7 @@ public final class CodeSurfaceSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: CodeSurfaceRegistration) -> pid_t? {
-        NSWorkspace.shared.runningApplications.first { application in
-            application.bundleIdentifier.map(registration.owns) ?? false
-        }?.processIdentifier
+        SurfacePollTarget.pid(
+            of: registration, running: SurfacePollTarget.runningProcesses())
     }
 }

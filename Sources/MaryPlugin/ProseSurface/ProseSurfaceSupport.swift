@@ -151,9 +151,8 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: ProseSurfaceRegistration) -> pid_t? {
-        NSWorkspace.shared.runningApplications.first { application in
-            application.bundleIdentifier.map(registration.owns) ?? false
-        }?.processIdentifier
+        SurfacePollTarget.pid(
+            of: registration, running: SurfacePollTarget.runningProcesses())
     }
 }
 

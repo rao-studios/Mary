@@ -11,6 +11,7 @@
 
 import CoreGraphics
 import Foundation
+import MaryAmbient
 import XCTest
 @testable import MaryPlugin
 
@@ -107,6 +108,35 @@ final class AmbientSurfaceObserverTests: XCTestCase {
                 front: (7, prefix))
             XCTAssertNil(observer.target(), "\(prefix) must not be read")
         }
+    }
+
+    /// MARY'S OVERLAY IS TRANSPARENT. An injected standing lead is the hit;
+    /// Mary's own bundle is never walked. Empty seams keep the test above
+    /// nil so a live Xcode on the machine cannot leak in.
+    func testMaryFrontmostWithAnInjectedStandingLeadTargetsThatApplication() {
+        let xcode = ApplicationRegistration(
+            id: "xcode",
+            profile: ApplicationProfile(
+                id: "xcode", title: "Xcode", summary: "One code editor.",
+                abilities: ["coding"]),
+            bundleIdentifiers: ["com.apple.dt.Xcode"],
+            worldClass: .workspace)
+        let observer = AmbientSurfaceObserver(
+            store: AmbientContextStore(),
+            elementIndex: AmbientElementIndexStore(),
+            capture: { _ in nil },
+            frontmost: { (1, "nyc.rao.mary") },
+            trusted: { true },
+            standingClaims: { [xcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { ["xcode"] },
+            maryBundleID: "nyc.rao.mary")
+        let target = observer.target()
+        XCTAssertEqual(target?.pid, 42)
+        XCTAssertEqual(target?.bundleID, "com.apple.dt.Xcode")
+        XCTAssertNotEqual(target?.bundleID, "nyc.rao.mary")
     }
 
     /// A BROWSER IS A BROWSER BECAUSE A PACKAGE SAYS SO. No bundle id is

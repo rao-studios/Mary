@@ -76,6 +76,13 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
     private let capture: @Sendable (pid_t) -> AXAmbientContext?
     private let frontmost: @Sendable () -> (pid: pid_t, bundleID: String)?
     private let trusted: @Sendable () -> Bool
+    /// Standing-workspace inputs. Empty by default so tests that only inject
+    /// `frontmost` never walk a live Xcode. Production supplies the index,
+    /// running processes, and tracker lead.
+    private let standingClaims: @Sendable () -> [ApplicationRegistration]
+    private let standingRunning: @Sendable () -> [SurfacePollTarget.Process]
+    private let standingPreferred: @Sendable () -> [String]
+    private let maryBundleID: String?
 
     private let taskBox = OSAllocatedUnfairLock<Task<Void, Never>?>(initialState: nil)
     private let runningBox = OSAllocatedUnfairLock<Bool>(initialState: false)
@@ -99,7 +106,14 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
                       let bundleID = front.bundleIdentifier else { return nil }
                 return (front.processIdentifier, bundleID)
             },
-            trusted: { AXIsProcessTrusted() })
+            trusted: { AXIsProcessTrusted() },
+            standingClaims: { AmbientApplicationIndexProvider.current.all },
+            standingRunning: { SurfacePollTarget.runningProcesses() },
+            standingPreferred: {
+                [WorkspaceFocusTracker.shared.leadPlace()?.application]
+                    .compactMap { $0 }
+            },
+            maryBundleID: Bundle.main.bundleIdentifier)
     }
 
     init(
@@ -107,13 +121,21 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         elementIndex: AmbientElementIndexStore,
         capture: @escaping @Sendable (pid_t) -> AXAmbientContext?,
         frontmost: @escaping @Sendable () -> (pid: pid_t, bundleID: String)?,
-        trusted: @escaping @Sendable () -> Bool
+        trusted: @escaping @Sendable () -> Bool,
+        standingClaims: @escaping @Sendable () -> [ApplicationRegistration] = { [] },
+        standingRunning: @escaping @Sendable () -> [SurfacePollTarget.Process] = { [] },
+        standingPreferred: @escaping @Sendable () -> [String] = { [] },
+        maryBundleID: String? = Bundle.main.bundleIdentifier
     ) {
         self.store = store
         self.elementIndex = elementIndex
         self.capture = capture
         self.frontmost = frontmost
         self.trusted = trusted
+        self.standingClaims = standingClaims
+        self.standingRunning = standingRunning
+        self.standingPreferred = standingPreferred
+        self.maryBundleID = maryBundleID
     }
 
     public var isActive: Bool { taskBox.withLock { $0 != nil } }
@@ -194,20 +216,37 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
     /// The application worth reading, or nil. BROWSERS ARE INCLUDED — the
     /// engine's web sub-engine handles them, and the surface tier has no
     /// competing writer; only the AFFORDANCE publication below keeps the
-    /// browser carve-out. Excluded: Mary itself, and the tracker's own
-    /// system-chrome list (Spotlight, the Dock — artifacts, not reading
-    /// targets).
+    /// browser carve-out. Mary's own tree is never the hit. A workspace-
+    /// transparent frontmost (Mary, system chrome) falls through to the
+    /// standing claimed application when the test/production seam supplies
+    /// one; an empty seam keeps the old nil so unit tests cannot walk a
+    /// live Xcode.
     public func target() -> Target? {
         guard trusted() else { return nil }
-        guard let front = frontmost(),
-              front.bundleID != Bundle.main.bundleIdentifier,
-              !WorkspaceFocusTracker.leadExcludedBundlePrefixes
-                  .contains(where: front.bundleID.hasPrefix)
+        let front = frontmost()
+        if let front,
+           !WorkspaceFocusTracker.isWorkspaceTransparent(
+            bundleID: front.bundleID, maryBundleID: maryBundleID) {
+            return Target(
+                pid: front.pid,
+                bundleID: front.bundleID,
+                place: AmbientPlaceResolver.applicationPlace(forBundleID: front.bundleID))
+        }
+        let running = standingRunning()
+        guard let hit = SurfacePollTarget.resolve(
+            frontmostBundleID: front?.bundleID,
+            maryBundleID: maryBundleID,
+            claims: standingClaims(),
+            running: running,
+            preferredApplicationIDs: standingPreferred(),
+            unpreferredFallback: false),
+              let process = running.first(where: { $0.pid == hit.pid }),
+              process.bundleID != maryBundleID
         else { return nil }
         return Target(
-            pid: front.pid,
-            bundleID: front.bundleID,
-            place: AmbientPlaceResolver.applicationPlace(forBundleID: front.bundleID))
+            pid: hit.pid,
+            bundleID: process.bundleID,
+            place: AmbientPlaceResolver.applicationPlace(forBundleID: process.bundleID))
     }
 
     public func pollOnce(at now: Date = Date()) {

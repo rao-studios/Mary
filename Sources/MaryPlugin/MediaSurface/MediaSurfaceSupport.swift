@@ -52,9 +52,8 @@ public final class MediaSurfaceSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: MediaSurfaceRegistration) -> pid_t? {
-        NSWorkspace.shared.runningApplications.first { application in
-            application.bundleIdentifier.map(registration.owns) ?? false
-        }?.processIdentifier
+        SurfacePollTarget.pid(
+            of: registration, running: SurfacePollTarget.runningProcesses())
     }
 
     /// The declared player that is actually running, preferring the one named.

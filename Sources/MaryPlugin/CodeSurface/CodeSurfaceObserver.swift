@@ -186,20 +186,18 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         guard AXIsProcessTrusted() else { return }
 
         let front = NSWorkspace.shared.frontmostApplication
-        let running = NSWorkspace.shared.runningApplications.compactMap {
-            application -> CodeSurfacePollTarget.Process? in
-            guard let bundleID = application.bundleIdentifier else { return nil }
-            return .init(bundleID: bundleID, pid: application.processIdentifier)
-        }
+        let running = SurfacePollTarget.runningProcesses()
         let standingID = publishedBox.withLock { $0 }?.application
         let leadID = WorkspaceFocusTracker.shared.leadPlace()?.application
         let preferred = [standingID, leadID].compactMap { $0 }
-        guard let hit = CodeSurfacePollTarget.resolve(
+        guard let hit = SurfacePollTarget.resolve(
             frontmostBundleID: front?.bundleIdentifier,
             maryBundleID: Bundle.main.bundleIdentifier,
-            registrations: support.all(),
+            claims: support.all(),
             running: running,
-            preferredApplicationIDs: preferred)
+            preferredApplicationIDs: preferred),
+              let registration = support.registration(
+                applicationID: hit.applicationID)
         else {
             // NOT AN EDITOR TO SAMPLE — and deliberately NOT a retraction.
             // `AmbientSurfaceObserver` states the rule this follows: "surfaces
@@ -213,7 +211,6 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         }
 
         let pid = hit.pid
-        let registration = hit.registration
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, CodeSurfaceAX.messagingTimeout)
         let place = AmbientPlace.application(registration.applicationID)
