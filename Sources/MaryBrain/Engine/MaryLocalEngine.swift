@@ -76,6 +76,18 @@ public actor MaryLocalEngine: InferenceEngine {
     ) async throws {
         let ctx = try await loadedContext()
 
+        // MARY_DUMP_PROMPT=1: print the exact system text, mapped history and
+        // raw (pre-interception) model output for this round to stderr. The
+        // tool this codebase otherwise lacked to answer "what did the model
+        // actually see, and what did it actually say" for an on-device round
+        // — how a live-reproduced report of an ungrounded reply ("Hi Mary!
+        // How was your day?") was traced to two distinct real causes rather
+        // than guessed at: a fenced ```tool_call the interceptor didn't
+        // recognize (see `SkillCallTextInterceptor.toolCallFenceInfoStrings`),
+        // and a genuinely empty retry round after a real Skill result (see
+        // `MaryBrain.groundedRetryNudge`). Silent unless the flag is set.
+        let dumpPrompt = ProcessInfo.processInfo.environment["MARY_DUMP_PROMPT"] != nil
+
         // Frigate's ToolCallProcessor parses the mlx-lm default wrapper; a 7B
         // Mistral needs the contract spelled out or it narrates the call in
         // markdown instead of making it.
@@ -125,6 +137,16 @@ public actor MaryLocalEngine: InferenceEngine {
             messages.append(entry.isUser ? .user(entry.text) : .assistant(entry.text))
         }
 
+        if dumpPrompt {
+            FileHandle.standardError.write("\n===== MARY_DUMP_PROMPT: round begin =====\n".data(using: .utf8)!)
+            FileHandle.standardError.write("--- system (\(systemText.count) chars) ---\n\(systemText)\n".data(using: .utf8)!)
+            for (index, message) in messages.enumerated() where index > 0 {
+                FileHandle.standardError.write("--- [\(index)] \(message.role.rawValue) ---\n\(message.content)\n".data(using: .utf8)!)
+            }
+            FileHandle.standardError.write("--- skills (\(skills.count)) ---\n\(skills.map(\.name).joined(separator: ", "))\n".data(using: .utf8)!)
+            FileHandle.standardError.write("===== MARY_DUMP_PROMPT: round end =====\n\n".data(using: .utf8)!)
+        }
+
         let input = try await ctx.processor.prepare(
             input: UserInput(
                 chat: messages,
@@ -145,11 +167,13 @@ public actor MaryLocalEngine: InferenceEngine {
         // surfaces raw JSON (or the hallucinated chatter models append).
         var interceptor = SkillCallTextInterceptor(
             knownSkillNames: Set(skills.map(\.name)))
+        var rawTranscript = ""
 
         for await item in stream {
             if Task.isCancelled { break }
             switch item {
             case .chunk(let text):
+                if dumpPrompt { rawTranscript += text }
                 let speakable = interceptor.ingest(text)
                 if !speakable.isEmpty {
                     continuation.yield(.text(speakable))
@@ -173,7 +197,20 @@ public actor MaryLocalEngine: InferenceEngine {
             }
         }
 
-        switch interceptor.finish() {
+        let resolution = interceptor.finish()
+        if dumpPrompt {
+            let label: String
+            switch resolution {
+            case .speech: label = "speech"
+            case .skillInvocations: label = "skillInvocations"
+            case .dropped: label = "dropped"
+            case .nothing: label = "nothing"
+            }
+            FileHandle.standardError.write(
+                "--- RAW MODEL OUTPUT (\(rawTranscript.count) chars, resolution=\(label)) ---\n\(rawTranscript)\n--- end raw ---\n"
+                    .data(using: .utf8)!)
+        }
+        switch resolution {
         case .speech(let text):
             if !text.isEmpty { continuation.yield(.text(text)) }
         case .skillInvocations(let invocations):

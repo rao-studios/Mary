@@ -158,11 +158,24 @@ struct SkillCallTextInterceptor {
         return .flush
     }
 
+    /// Fence info strings that plausibly label a tool call rather than a
+    /// code sample — checked case-insensitively, alongside the empty string.
+    ///
+    /// THE FAILURE THIS FIXES, live: Xcode genuinely frontmost,
+    /// `read_buffer` genuinely offered, and the on-device model reached for
+    /// it — but wrapped the call as ` ```tool_call\n{"name": "read_buffer"}\n``` `
+    /// rather than the `<tool_call>` tag the prompt names or a bare/`json`
+    /// fence this gate already knew. `json` was the only accepted label, so
+    /// the whole block fell through to `flushAllToProse()` and the raw fence
+    /// — literally "```tool_call" — was SPOKEN, and the call never ran. The
+    /// call was real; only the label was unrecognized.
+    static let toolCallFenceInfoStrings: Set<String> = ["json", "tool_call", "tool_calls"]
+
     /// While suppressing a fence: once the opening line is complete, keep
-    /// suppressing only when it plausibly wraps a tool call (empty/`json`
-    /// info string, first content char "{" or "["). A ```swift coding
-    /// answer resumes streaming immediately instead of being withheld to
-    /// end of round.
+    /// suppressing only when it plausibly wraps a tool call (empty/`json`/
+    /// `tool_call`/`tool_calls` info string, first content char "{" or "[").
+    /// A ```swift coding answer resumes streaming immediately instead of
+    /// being withheld to end of round.
     private mutating func checkFenceEarlyOut() -> String {
         let head = pending.drop(while: \.isWhitespace)
         guard head.count >= 3 else { return "" }
@@ -170,7 +183,7 @@ struct SkillCallTextInterceptor {
         let infoStart = head.index(head.startIndex, offsetBy: 3)
         guard infoStart <= newline else { return "" }
         let info = head[infoStart..<newline].trimmingCharacters(in: .whitespaces)
-        if !info.isEmpty, info.lowercased() != "json" {
+        if !info.isEmpty, !Self.toolCallFenceInfoStrings.contains(info.lowercased()) {
             return flushAllToProse()
         }
         let content = head[head.index(after: newline)...].drop(while: \.isWhitespace)

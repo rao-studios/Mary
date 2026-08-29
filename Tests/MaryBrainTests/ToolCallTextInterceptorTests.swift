@@ -93,6 +93,29 @@ import Testing
         #expect(calls(native.resolution).map(\.name) == ["probe", "run_shell"])
     }
 
+    /// THE LIVE BUG: a fenced call labeled ```tool_call (not ```json, not
+    /// bare, not the `<tool_call>` tag) — the shape a real on-device round
+    /// produced for `read_buffer` with Xcode genuinely frontmost. Before this
+    /// fix the label wasn't in `checkFenceEarlyOut`'s allowlist, so the fence
+    /// fell through to prose and "```tool_call\n{...}\n```" was SPOKEN
+    /// verbatim while the call itself silently never ran.
+    @Test func fencedToolCallLabelIntercepted() {
+        let (emitted, resolution) = drive([
+            "```tool_call\n", #"{"name": "now_playing"}"#, "\n```",
+        ])
+        #expect(emitted.isEmpty)
+        #expect(calls(resolution).map(\.name) == ["now_playing"])
+    }
+
+    /// The plural label, and multi-chunk delivery of the fence line itself.
+    @Test func fencedToolCallsLabelIntercepted() {
+        let (emitted, resolution) = drive([
+            "```tool_", "calls\n", #"{"name": "probe", "arguments": {}}"#, "\n```",
+        ])
+        #expect(emitted.isEmpty)
+        #expect(calls(resolution).map(\.name) == ["probe"])
+    }
+
     /// Mistral's own demanded tag format is finally recognized.
     @Test func toolCallTagIntercepted() {
         let (emitted, resolution) = drive([
