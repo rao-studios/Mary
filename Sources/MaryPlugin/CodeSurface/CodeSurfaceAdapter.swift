@@ -351,16 +351,20 @@ public struct CodeSurfaceAdapter: MaryAdapter {
         SkillBinding(
             name: "replace_selection",
             description: """
-            Replace the code currently selected in the editor with new code, \
-            written straight to the file on disk — the editor reloads it \
-            automatically within a second or two. Refuses if the file has \
-            unsaved changes; save first (Cmd-S), then ask again. Call \
-            read_selection first if you're not certain what's selected.
+            Replace the code currently selected in the editor with code YOU \
+            write, straight to the file on disk — the editor reloads it \
+            automatically within a second or two. This is how you carry out \
+            "reword this comment", "make this more concise", "tidy this up", \
+            "simplify this function": write the revised version yourself and \
+            pass it as `text`. Refuses if the file has unsaved changes; save \
+            first (Cmd-S), then ask again. Call read_selection first if \
+            you're not certain what's selected.
             """,
             parameters: [
                 .init(
                     name: "text", type: "string",
-                    description: "The replacement code, exactly as it should read.",
+                    description: "The replacement code, exactly as it should "
+                        + "read — including any revision you were asked to make.",
                     required: true),
                 .init(
                     name: "app", type: "string",

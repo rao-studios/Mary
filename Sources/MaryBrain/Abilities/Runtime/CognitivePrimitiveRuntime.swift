@@ -12,6 +12,7 @@ import Foundation
 enum MaryCognitivePrimitive: String, Sendable, CaseIterable {
     case composeDraft = "mary.cognition.compose-draft"
     case reviseSelection = "mary.cognition.revise-selection"
+    case reviseCodeSelection = "mary.cognition.revise-code-selection"
     case frameProblem = "mary.cognition.frame-problem"
     case compareOptions = "mary.cognition.compare-options"
     case reviewDesign = "mary.cognition.review-design"
@@ -66,6 +67,26 @@ enum CognitivePrimitiveCatalog {
             description: "Activate Mary's selection-bounded revision procedure. It drafts a replacement for the current verified selection but does not mutate the source application.",
             parameters: [
                 .init(name: "instruction", type: "string", description: "The requested change to the verified selection.", required: true),
+            ]),
+        // THE CODING HALF OF THE SAME PROCEDURE, and a separate contract
+        // rather than a widened `allowedAbility` on the one above: the
+        // catalog's lookup is exact-match on (Ability, Skill, invocation),
+        // which is what stops a package granting itself a reasoning
+        // procedure it did not earn. `.reviseSelection` is `.writing`'s,
+        // gated on `interaction.text-selection` — an identity a coding
+        // place's selection NEVER mints (`SchemaSignalRuntime
+        // .bridgeSelection`), so widening that contract would have produced
+        // a Skill permanently blocked at dispatch. This one is gated on
+        // `interaction.code-selection`, which [Corpus W] declared.
+        .init(
+            primitive: .reviseCodeSelection,
+            allowedAbility: .coding,
+            directSkillID: "coding.revise-selection",
+            invocationName: "revise_code_selection",
+            workflowOperation: nil,
+            description: "Activate Mary's selection-bounded code revision procedure. Use it when the user asks for the selected code — a comment, a line, a function — to be reworded, tightened, simplified or rewritten. It drafts a replacement for the verified selection but does not itself write to the file.",
+            parameters: [
+                .init(name: "instruction", type: "string", description: "The requested change to the selected code.", required: true),
             ]),
         .init(
             primitive: .frameProblem,
@@ -287,6 +308,23 @@ enum CognitivePrimitiveCatalog {
         return " Deliver it now — in this same response, call type_at_cursor with mode: \"replace_selection\" to replace exactly what's selected, and never claim the selection was replaced until that call returns ok."
     }
 
+    /// The code lane's mirror of `revisionPlacementClause`, differing in the
+    /// one place the two lanes genuinely differ: the call that places the
+    /// result. Prose goes back through `type_at_cursor(mode:
+    /// "replace_selection")`, which refuses unless the route named the
+    /// selection as its writing target — so that clause gates on exactly
+    /// that predicate. Code goes through `coding.replace-selection`, which
+    /// consults no route at all: it re-reads the front code surface's live
+    /// selection itself at dispatch and refuses on its own terms (nothing
+    /// selected, unsaved changes). The honest gate here is therefore the
+    /// weaker, truer one — a routed selection whose place codes — and the
+    /// clause still never claims the write happened, only that it must be
+    /// made before anything is said about it.
+    static func codeRevisionPlacementClause(hasRoutedCodeSelection: Bool) -> String? {
+        guard hasRoutedCodeSelection else { return nil }
+        return " Deliver it now — in this same response, call replace_selection with the revised code as `text`, and never claim the file changed until that call returns ok."
+    }
+
     static func missingRequiredArgument(
         for contract: CognitivePrimitiveContract,
         arguments: [String: String]
@@ -331,6 +369,13 @@ enum CognitivePrimitiveCatalog {
             return "Drafting procedure activated. Write the requested prose, preserving the requested audience and tone. If the user asked for it to go into a document or app, do not read it aloud — in this same response, call type_at_cursor (creating or opening the document first with its create Skill if needed) with the complete draft as text, and never claim it was inserted until that call returns ok. If no destination was asked for, present the draft in your response."
         case .reviseSelection:
             return "Selection revision procedure activated. Draft a bounded replacement for the verified selection, preserving its intent and register, and do not claim the source was mutated until it is."
+        case .reviseCodeSelection:
+            // THE CORPUS IS REACHABLE, NOT ATTACHED. Nothing wires a
+            // selection-driven coding turn to the project corpus — the two
+            // lanes share no code path — so the honest thing is to name the
+            // tools that DO reach it rather than to imply the surrounding
+            // context is already in hand.
+            return "Code revision procedure activated. Draft a bounded replacement for the selected code, preserving its surrounding style, indentation and intent, and changing nothing the request did not ask for. If you need the code around it first, read_selection, read_buffer and search_corpus are the tools that reach it. Do not claim the file changed until it has."
         case .frameProblem:
             return "Problem-framing procedure activated. In the next response, state Goal, Constraints, Non-goals, Material unknowns, and Success signals. Separate evidence from assumptions."
         case .compareOptions:

@@ -187,6 +187,7 @@
       "coding.read-buffer",
       "coding.read-selection",
       "coding.replace-selection",
+      "coding.revise-selection",
       "coding.run-project",
       "coding.save-all",
       "coding.stop-execution",
@@ -212,7 +213,11 @@
         "run the project",
         "stop it",
         "run the tests",
-        "save everything"
+        "save everything",
+        "make this more concise",
+        "clean this up",
+        "refactor this",
+        "rewrite this comment"
       ],
       "tokens" : [
         "build",
@@ -220,7 +225,12 @@
         "run",
         "tests",
         "scheme",
-        "project"
+        "project",
+        "concise",
+        "refactor",
+        "simplify",
+        "comment",
+        "selection"
       ]
     },
     "version" : "1.0.0"
@@ -476,7 +486,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4c29a13c57701545eb2fafd24923010f1b5ee1ffcf2a1823851bb2ae7f6b5aab"
+    "digest" : "8b349cdfe33b2bb101ed6dd2f3369f2bed453ff822084b8f88055bbe892a3113"
   },
   "interactions" : [
     {
@@ -818,7 +828,7 @@
             ],
             "name" : "text",
             "required" : true,
-            "summary" : "The replacement code, exactly as it should read.",
+            "summary" : "The replacement code, exactly as it should read — including any revision you were asked to make.",
             "type" : "string"
           },
           {
@@ -865,7 +875,7 @@
         ],
         "preference" : 175
       },
-      "summary" : "Replace the code currently selected in the editor with new code, written straight to the file on disk. Refuses if the file has unsaved changes.",
+      "summary" : "Replace the code currently selected in the editor with new code you have written — a reworded comment, a tightened function, a fixed line — written straight to the file on disk. Refuses if the file has unsaved changes.",
       "title" : "Replace the Selection",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -1201,6 +1211,100 @@
       },
       "summary" : "List the declarations — structs, classes, enums, actors, protocols, typealiases and functions — found in the front editor's buffer, with their approximate line numbers.",
       "title" : "List Declarations",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "cognitive",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.revise-selection",
+      "inputs" : [
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Typed cognitive request.",
+          "valueType" : "coding.code-text"
+        }
+      ],
+      "kind" : "cognitive",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : false,
+        "invocationName" : "revise_code_selection",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "instruction",
+            "required" : true,
+            "summary" : "How the highlighted code should change.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Typed cognitive result.",
+          "valueType" : "coding.code-text"
+        }
+      ],
+      "requirements" : {
+        "capabilities" : [
+
+        ],
+        "interactions" : [
+          "interaction.code-selection"
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictGroup" : "coding-cognition",
+        "conflictPolicy" : "preferDirectInteraction",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "hasInteraction",
+              "value" : "interaction.code-selection"
+            }
+          ],
+          "kind" : "all"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 220,
+        "requiredSourceResolution" : "application"
+      },
+      "summary" : "Produce a bounded revision of the exact code the editor has highlighted, preserving its surrounding style and intent.",
+      "title" : "Revise the Selected Code",
       "usesStage" : false,
       "version" : "1.0.0"
     }

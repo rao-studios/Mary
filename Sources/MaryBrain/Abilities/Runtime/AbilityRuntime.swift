@@ -2570,6 +2570,20 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                     requiringWritingTarget: true) != nil) {
                 summary += clause
             }
+        } else if contract.primitive == .reviseCodeSelection {
+            // The same seam for the code lane, gated on the predicate THAT
+            // lane's placing Skill actually uses. `replace_selection` reads
+            // no route: it re-reads the front code surface's live selection
+            // at dispatch and refuses on its own terms. So the honest
+            // question here is only whether the turn's routed selection is a
+            // coding place's at all — asking `requiringWritingTarget` would
+            // suppress the clause on turns where the write would in fact
+            // have succeeded.
+            if let clause = CognitivePrimitiveCatalog.codeRevisionPlacementClause(
+                hasRoutedCodeSelection:
+                    ambient.routedSelectionHandoff()?.place.focus == .coding) {
+                summary += clause
+            }
         }
         var typedOutputs: [String: ValueEnvelope] = [:]
         for output in runtime.skill.outputs {
