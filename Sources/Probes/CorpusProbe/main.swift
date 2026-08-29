@@ -44,6 +44,14 @@ if CodeSurfaceProbe.shouldRun(CommandLine.arguments) {
     exit(failures == 0 ? 0 : 1)
 }
 
+// THE WRITE-SIDE SIBLING — its own unique flag, same reasoning as
+// `CodeSurfaceProbe` above, checked right after it so the two live beside
+// each other in both files.
+if CodeSurfaceWriteProbe.shouldRun(CommandLine.arguments) {
+    await CodeSurfaceWriteProbe.run(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
 // THE FOURTH-CHANNEL PERCEPTION LANE — its own unique flag, same reasoning
 // as `CodeSurfaceProbe` above: it must never be shadowed by `ProjectProbe
 // .shouldRun`'s broader match on the bare token "project".

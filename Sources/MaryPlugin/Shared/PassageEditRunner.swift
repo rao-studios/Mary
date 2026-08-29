@@ -12,7 +12,8 @@
 //  IDE; rewriting proven machinery to prove a point is how it breaks. What is
 //  shared instead is the dangerous arithmetic: `PassageEdit` computes,
 //  `PassageResolver` re-anchors, `PassageWidening` locates, and
-//  `XcodePassageWriter` calls `XcodePlugin`'s own `bufferState`/`hash` statics.
+//  `CodeSurfaceWriter` reads and hashes the file directly through Foundation
+//  — no `XcodePlugin` survives the port, only the shape of what it proved.
 //
 //  THE NINE STEPS, and every one of them is a failure someone already paid for:
 //
@@ -66,12 +67,12 @@ public enum PassageEditRunner {
     /// contract already uses for "which document", and a ledger keyed on
     /// anything else would be a second answer to that question.
     ///
-    /// `XcodePassageWriter` is handed THIS store at the backing (its `undo:`
-    /// parameter exists for exactly that), so its own pre-write record and the
-    /// post-write record below land in one entry rather than two ledgers that
-    /// disagree about whether a change can be taken back. Xcode's key is
-    /// `BufferSnapshot.path`, which IS its `documentKey`, so they agree by
-    /// construction rather than by coincidence.
+    /// `CodeSurfaceWriter` uses THIS store too, through the very same `edit`
+    /// entry point every other writer goes through — no separate ledger, no
+    /// separate write path. A code surface's `documentKey` is the file's own
+    /// resolved location (`CodeSurfaceWriter.fileURL(fromDocumentKey:)`), so
+    /// it agrees with every other write recorded here by construction rather
+    /// than by coincidence.
     public static let undoStore = ContentUndoStore()
 
     // MARK: - What one lookup produced

@@ -181,12 +181,13 @@
       "coding.build-project",
       "coding.read-buffer",
       "coding.read-selection",
+      "coding.replace-selection",
       "coding.run-project",
       "coding.save-all",
       "coding.stop-execution",
       "coding.test-project"
     ],
-    "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands, and read its live code surface. An application joins this discipline by realizing one of the chord Skills — which is what gives its place the coding focus — or by declaring a `codeSurface` for the two reads. EDITING CODE IS STILL NOT HERE, and that absence stays deliberate: Mary has no code-writing lane, so nothing below ever presses a key to change a document. read_buffer and read_selection bind instead to the code-surface adapter, the same shape the writing Ability's own reads take for a prose document — a Skill that returns a value needs a compiled provider, never a recipe.",
+    "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands, and read and edit its live code surface. An application joins this discipline by realizing one of the chord Skills — which is what gives its place the coding focus — or by declaring a `codeSurface` for the reads and the one write. read_buffer and read_selection bind to the code-surface adapter, the same shape the writing Ability's own reads take for a prose document — a Skill that returns a value needs a compiled provider, never a recipe. replace_selection binds to the same adapter for the one reason a write needs a compiled provider too: an atomic disk write, Xcode's own proven chain, has no managed-UI recipe equivalent — it changes the file on disk, never types a keystroke, and refuses rather than overwrite a buffer with unsaved changes.",
     "tint" : "#B392F0",
     "title" : "Coding",
     "totemProjections" : [
@@ -258,6 +259,27 @@
       ],
       "summary" : "Read the current text selection in a code editor, with surrounding context.",
       "title" : "Read the Selection",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "code.replace-selection",
+      "inputType" : "coding.code-text",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live selection and buffer through Accessibility before writing."
+        }
+      ],
+      "summary" : "Replace the code currently selected in the editor with new code, written atomically to the file on disk. Refuses if the file has unsaved changes.",
+      "title" : "Replace Selection",
       "version" : "1.0.0"
     },
     {
@@ -429,7 +451,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "5c7dd74c250a1d125412d5c793b162681af96bef76b8dfc163221a06ce1da5ed"
+    "digest" : "dfacdcbb4e7d89ec3ed0831d668ae403449bcf44830df6765de09fabaa88c197"
   },
   "interactions" : [
 
@@ -677,6 +699,92 @@
       },
       "summary" : "Read the current text selection in the editor, with a little surrounding context.",
       "title" : "Read the Selection",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "replace_selection",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.replace-selection",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "replace_selection",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "text",
+            "required" : true,
+            "summary" : "The replacement code, exactly as it should read.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor. Omit for the one in front.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.replace-selection"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 175
+      },
+      "summary" : "Replace the code currently selected in the editor with new code, written straight to the file on disk. Refuses if the file has unsaved changes.",
+      "title" : "Replace the Selection",
       "usesStage" : false,
       "version" : "1.0.0"
     },

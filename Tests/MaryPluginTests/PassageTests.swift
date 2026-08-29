@@ -1091,12 +1091,19 @@ enum PassageErrands {
             // The writer's own in-session content guard — typing raced the
             // write. States the condition and the standing repair; no errand.
             .raced(document: "Essay"),
+            // THE DISK-WRITE LANE'S OWN THREE. `.unsavedChanges` is the
+            // clean-buffer gate's refusal — states the condition and the
+            // standing repair ("once it's saved") without an imperative.
+            .unsavedChanges(document: "ContentView.swift"),
+            .noDiskLocation(document: "Untitled.swift"),
+            .diskWriteFailed(document: "ContentView.swift", reason: "the volume is read-only."),
         ]
         for error in errors {
             switch error {
             case .documentMoved, .passageGone, .spanTooLarge,
                  .worldCannotWrite, .axRefused, .verificationFailed,
-                 .ambiguousInDocument, .raced:
+                 .ambiguousInDocument, .raced,
+                 .unsavedChanges, .noDiskLocation, .diskWriteFailed:
                 break
             }
             let spoken = try! #require(error.errorDescription)

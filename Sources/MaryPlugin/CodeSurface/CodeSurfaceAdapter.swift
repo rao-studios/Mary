@@ -3,16 +3,19 @@
 //  MaryPlugin
 //
 //  THE SKILLS A DECLARED CODE SURFACE CAN ANSWER — read the live buffer, read
-//  the live selection.
+//  the live selection, replace the live selection.
 //
 //  WHY THESE ARE HERE AND NOT IN A PACKAGE. A managed-UI recipe presses keys
 //  and reports whether the press landed; it has no channel for handing a
-//  value back (`PluginSchema`'s header, consequence 1). So a Skill that must
-//  give the model a VALUE — the buffer's text, the selection's text — has to
-//  bind to a compiled provider, and this is that provider for the code
-//  family. `ProseSurfaceAdapter`'s sibling, minus its whole write half: Mary
-//  has no code-writing lane, so there is no `create_document` here and
-//  neither Skill below ever presses a key.
+//  value back (`PluginSchema`'s header, consequence 1), and — confirmed
+//  against `PluginRecipeStepKind` — no disk-write primitive either. So a
+//  Skill that must give the model a VALUE, or must write a byte Mary did not
+//  type, has to bind to a compiled provider, and this is that provider for
+//  the code family. `ProseSurfaceAdapter`'s sibling, still without
+//  `create_document` (a new source file is `coding.mary`'s own ceremony, not
+//  this adapter's), and none of the Skills below ever presses a key or
+//  drives Accessibility's text setter — the buffer stays Xcode's own to
+//  type into; `replace_selection` changes the file on disk instead.
 //
 //  NO APPLICATION IS NAMED. Each Skill takes an optional `app`; the
 //  registration behind it decides everything else.
@@ -24,6 +27,24 @@
 //  in-memory buffer instead, verified by the spike this file's sibling
 //  (`CodeSurfaceAX`) replaces: an unsaved edit shows up on the very next
 //  read, while the file's own mtime never moves.
+//
+//  `replace_selection` IS THE ONE WRITE, and it is not a third read. Mary
+//  now HAS a code-writing lane — `CodeSurfaceWriter`'s atomic disk write,
+//  Bonnie's own proven chain for the one application that never let a
+//  keystroke land in it — and this is its narrowest useful shape: replace
+//  exactly what `read_selection` already reports as selected, nothing
+//  broader. It pairs the live selection's own range (an exact, already-
+//  disambiguated location) with `PassageEditRunner`'s full nine-step guard
+//  chain — locate, snapshot, identity, compute, re-check, apply, verify,
+//  undo-record, re-mint — reused rather than re-implemented, exactly as that
+//  file's own header asks of a new `PassageWriter` conformer. The clean-
+//  buffer gate below is this operation's OWN addition to that chain: it is
+//  checked here, up front, so a dirty buffer is refused in its own clear
+//  words rather than surfacing as a confusing "I couldn't find that
+//  passage" once the stale disk snapshot no longer contains the live
+//  selection's exact text — and `CodeSurfaceWriter` checks it again,
+//  immediately before writing, against the race that Steps 1 through 6 open
+//  by taking hundreds of milliseconds while the user keeps typing.
 //
 
 import AppKit
@@ -44,7 +65,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [readBuffer, readSelection]
+        [readBuffer, readSelection, replaceSelection]
     }
 
     /// A FULLY DECLARED MANIFEST, ON `ProjectCorpusAdapter`'s PATTERN rather
@@ -76,6 +97,15 @@ public struct CodeSurfaceAdapter: MaryAdapter {
             operations: [
                 operation("read_buffer", capability: "code.read-buffer"),
                 operation("read_selection", capability: "code.read-selection"),
+                // NO `outputTypes` — an edit reports what happened, it does
+                // not hand back a value the way the two reads above do, the
+                // same shape `coding.mary`'s own build/run/test/save
+                // capabilities already declare.
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "replace_selection",
+                    capabilities: ["code.replace-selection"],
+                    inputTypes: ["coding.code-text"],
+                    targetClasses: ["code-workspace"]),
             ],
             supportedValueTypes: ["coding.code-text"],
             grantedPermissions: [.accessibility])
@@ -207,6 +237,127 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                     archivePolicy: .stateSnapshot,
                     target: ActedElementReader.record(of: surface.editor, pid: pid),
                     adapterTrail: [AdapterID.normalized(name)])
+            })
+    }
+
+    // MARK: - Replacing the selection
+
+    /// THE ONE WRITE. Narrower than the five shared passage verbs on
+    /// purpose — see this file's header — it needs no `passage`/`target`
+    /// argument because the location is never in question: it is exactly
+    /// what `read_selection` already reports, read fresh here rather than
+    /// trusted from an earlier turn.
+    private var replaceSelection: SkillBinding {
+        SkillBinding(
+            name: "replace_selection",
+            description: """
+            Replace the code currently selected in the editor with new code, \
+            written straight to the file on disk — the editor reloads it \
+            automatically within a second or two. Refuses if the file has \
+            unsaved changes; save first (Cmd-S), then ask again. Call \
+            read_selection first if you're not certain what's selected.
+            """,
+            parameters: [
+                .init(
+                    name: "text", type: "string",
+                    description: "The replacement code, exactly as it should read.",
+                    required: true),
+                .init(
+                    name: "app", type: "string",
+                    description: "Which editor. Omit for the one in front.",
+                    required: false),
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let (registration, pid) = resolve(arguments["app"]) else {
+                    return notRunning(arguments["app"])
+                }
+                guard let replacement = arguments["text"], !replacement.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "There's no replacement text to write.")
+                }
+                guard let surface = CodeSurfaceAX.frontSurface(pid: pid, registration: registration)
+                else {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "\(registration.displayName) has no source file open.",
+                        foundNothing: true)
+                }
+                guard let selection = CodeSurfaceAX.selectedRange(of: surface.editor),
+                      !selection.isEmpty
+                else {
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "Nothing is selected in \"\(surface.title)\", so there's "
+                            + "nothing to replace.",
+                        foundNothing: true)
+                }
+                guard let selected = CodeSurfaceAX.substring(of: surface.editor, range: selection)
+                else {
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I couldn't read the selection in \"\(surface.title)\" just now.")
+                }
+
+                // A FILE THAT HAS NEVER BEEN SAVED HAS NO DISK LOCATION TO
+                // WRITE TO — refused here, in its own clear words, rather
+                // than reaching the writer only to fail on the same fact.
+                // `documentKey` is Xcode's own `AXDocument` string, measured
+                // live to be a `file://` URL rather than a bare path — see
+                // `CodeSurfaceWriter.fileURL`, the one place both this
+                // up-front check and the writer's own read resolve it.
+                guard let diskURL = CodeSurfaceWriter.fileURL(fromDocumentKey: surface.documentKey)
+                else {
+                    return SkillOutcome(
+                        ok: false,
+                        summary: PassageWriteError.noDiskLocation(document: surface.title)
+                            .errorDescription ?? "")
+                }
+
+                // THE CLEAN-BUFFER GATE, UP FRONT — see this file's header
+                // and `CodeSurfaceWriter`'s own. Checked again, redundantly,
+                // inside the writer immediately before it writes.
+                guard let diskText = try? String(contentsOf: diskURL, encoding: .utf8) else {
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I couldn't read \"\(surface.title)\" from disk just now.")
+                }
+                guard let liveText = CodeSurfaceAX.fullString(of: surface.editor) else {
+                    return SkillOutcome(
+                        ok: false,
+                        summary: "I couldn't read \"\(surface.title)\" just now.")
+                }
+                if let refusal = CodeSurfaceWriter.cleanBufferRefusal(
+                    live: liveText, disk: diskText, documentTitle: surface.title) {
+                    return SkillOutcome(ok: false, summary: refusal.errorDescription ?? "")
+                }
+
+                // THE BACKING — built for this one call, not installed
+                // globally: this is a `.native`-bound Skill on `coding.mary`,
+                // not one of the five shared passage verbs, so it never
+                // touches `PassageRecipes`' process-wide resolver. Its
+                // `body()` re-reads disk fresh every time it is asked, which
+                // is what gives `PassageEditRunner`'s own step 6 re-check a
+                // real, current answer rather than the snapshot above.
+                let documentKey = surface.documentKey
+                let documentTitle = surface.title
+                let backing = PassageBacking(
+                    place: .application(registration.applicationID),
+                    units: { text in ProseStructure.units(in: text, rules: .lines) },
+                    body: {
+                        guard let text = try? String(contentsOf: diskURL, encoding: .utf8)
+                        else { return nil }
+                        return BodySnapshot(
+                            text: text, documentKey: documentKey, documentTitle: documentTitle)
+                    },
+                    writer: CodeSurfaceWriter(registration: registration))
+
+                // TARGET, NOT HANDLE — the location is the live selection's
+                // own exact words, searched for verbatim
+                // (`PassageWidening`'s rung 0) rather than named by heading
+                // or phrase, which is what makes this narrower and safer
+                // than the general-purpose `replace_passage`.
+                return await PassageEditRunner.edit(
+                    .replace, handle: nil, target: selected, text: replacement, backing: backing)
             })
     }
 

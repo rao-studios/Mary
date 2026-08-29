@@ -208,6 +208,19 @@ public enum PassageWriteError: LocalizedError, Equatable {
     /// somebody typed. Distinct from `.documentMoved` (identity) because the
     /// repair is different: same document, try again, no re-pointing needed.
     case raced(document: String)
+    /// XCODE'S OWN HAZARD, AND THE ONE `.diskWrite` EXISTS TO REFUSE RATHER
+    /// THAN RISK: the live buffer holds words the file on disk does not.
+    /// Xcode's scripting has no save verb (this file's own writers cannot
+    /// make the buffer clean), so the only honest move is to say so and wait
+    /// — never silently overwrite the user's live, unsaved typing with a
+    /// stale disk read, and never race Xcode's own file-watcher reload.
+    case unsavedChanges(document: String)
+    /// The document has never been saved, so its key is not a real path —
+    /// there is nowhere on disk yet to write the change.
+    case noDiskLocation(document: String)
+    /// The write reached the filesystem and failed there — permissions, a
+    /// full disk, a path that moved mid-write.
+    case diskWriteFailed(document: String, reason: String)
 
     public var errorDescription: String? {
         switch self {
@@ -251,6 +264,14 @@ public enum PassageWriteError: LocalizedError, Equatable {
             return "You changed \(document) while I was working, so I stopped — "
                 + "nothing was written. The same request will land once the "
                 + "typing has settled."
+        case .unsavedChanges(let document):
+            return "\(document) has changes in the editor that aren't saved to disk yet, "
+                + "so I've left the file alone — once it's saved, I can make this change."
+        case .noDiskLocation(let document):
+            return "\(document) hasn't been saved to disk yet, so there's nowhere for me "
+                + "to write this — once it's saved, I'll be able to."
+        case .diskWriteFailed(let document, let reason):
+            return "I couldn't write to \(document) — \(reason)."
         }
     }
 }
