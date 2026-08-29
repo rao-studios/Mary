@@ -87,8 +87,12 @@ public struct CodeSurfaceAdapter: MaryAdapter {
         SkillBinding(
             name: "read_buffer",
             description: """
-            Read the live editor buffer — including unsaved edits — from the \
-            front source file.
+            Read the live source code in the front editor's buffer, including \
+            unsaved edits not yet on disk. Call this before describing, \
+            explaining, or answering any question about code that's open \
+            right now — "what does this do", "what does this function do", \
+            "what am I looking at" — rather than guessing at code you have \
+            not actually read this turn.
             """,
             parameters: [
                 .init(
@@ -140,8 +144,10 @@ public struct CodeSurfaceAdapter: MaryAdapter {
         SkillBinding(
             name: "read_selection",
             description: """
-            Read the current text selection in the editor, with a little \
-            surrounding context.
+            Read the text currently highlighted/selected in the editor, with \
+            a little surrounding context. Call this whenever the user says \
+            "this", "this code", "the selected code", or asks you to read or \
+            explain what's selected — never assume or guess what's selected.
             """,
             parameters: [
                 .init(

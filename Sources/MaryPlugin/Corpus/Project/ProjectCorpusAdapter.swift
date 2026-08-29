@@ -151,7 +151,11 @@ public struct ProjectCorpusAdapter: MaryAdapter {
 
     static let projectParameter = ModelSkillSchema.Parameter(
         name: "project", type: "string",
-        description: "Which project. Omit when only one is open.",
+        description: """
+        Which project. ALWAYS pass this when the user names a project, or \
+        when more than one might be open — omit only when there is clearly \
+        just one.
+        """,
         required: false)
 
     // MARK: - Reading
@@ -160,8 +164,9 @@ public struct ProjectCorpusAdapter: MaryAdapter {
         SkillBinding(
             name: "read_corpus_outline",
             description: """
-            Read a writing project's outline — its folders and documents, in \
-            order, as the binder shows them.
+            List a writing project's or code repository's folders and \
+            documents, in order — the manuscript's outline, or a repo's file \
+            tree. Call this before guessing at how a project is laid out.
             """,
             parameters: [
                 .init(
@@ -216,7 +221,11 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     private var readDocument: SkillBinding {
         SkillBinding(
             name: "read_corpus_document",
-            description: "Read one document's text out of a writing project, by its title.",
+            description: """
+            Read one document's or source file's full text out of a writing \
+            project or code repository, by its title or filename. Prefer \
+            this over describing content you have not actually read this turn.
+            """,
             parameters: [
                 .init(
                     name: "document", type: "string",
@@ -276,7 +285,13 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     private var searchCorpus: SkillBinding {
         SkillBinding(
             name: "search_corpus",
-            description: "Find which documents in a writing project mention a word or phrase.",
+            description: """
+            Search every file in a writing project or code repository for a \
+            word or phrase, and return the real matching text. Any "where \
+            do I mention X", "where do I handle X", or "find the place that \
+            does Y" goes here — call this before falling back to a generic \
+            answer about content you have not actually read this turn.
+            """,
             parameters: [
                 .init(
                     name: "query", type: "string",
@@ -335,7 +350,10 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     private var corpusProgress: SkillBinding {
         SkillBinding(
             name: "corpus_progress",
-            description: "Say how big a writing project is — its documents and word count.",
+            description: """
+            Say how big a writing project or code repository is — its \
+            documents or files, and word count.
+            """,
             parameters: [Self.projectParameter],
             access: .read,
             backing: .native { arguments, _ in
