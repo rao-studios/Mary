@@ -97,6 +97,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
 
     public var skillBindings: [SkillBinding] {
         [readBuffer, readSelection, listDeclarations, replaceSelection]
+            + familyReadBindings + familyEditBindings
     }
 
     /// A FULLY DECLARED MANIFEST, ON `ProjectCorpusAdapter`'s PATTERN rather
@@ -129,18 +130,37 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 operation("read_buffer", capability: "code.read-buffer"),
                 operation("read_selection", capability: "code.read-selection"),
                 operation("list_declarations", capability: "code.list-declarations"),
-                // NO `outputTypes` — an edit reports what happened, it does
-                // not hand back a value the way the two reads above do, the
-                // same shape `coding.mary`'s own build/run/test/save
-                // capabilities already declare.
+                operation("current_file", capability: "code.workspace.inspect"),
+                operation("read_symbol", capability: "code.buffer.read-symbol"),
+                operation("read_lines", capability: "code.buffer.read-lines"),
                 InstalledAdapterBinding(
                     adapterID: adapterID, operation: "replace_selection",
                     capabilities: ["code.replace-selection"],
                     inputTypes: ["coding.code-text"],
                     targetClasses: ["code-workspace"]),
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "replace_symbol",
+                    capabilities: ["code.replace-symbol"],
+                    inputTypes: ["coding.code-text"],
+                    targetClasses: ["code-workspace"]),
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "insert_code",
+                    capabilities: ["code.insert-code"],
+                    inputTypes: ["coding.code-text"],
+                    targetClasses: ["code-workspace"]),
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "apply_edit",
+                    capabilities: ["code.apply-edit"],
+                    inputTypes: ["coding.code-text"],
+                    targetClasses: ["code-workspace"]),
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "create_file",
+                    capabilities: ["code.create-file"],
+                    inputTypes: ["coding.code-text"],
+                    targetClasses: ["code-workspace"]),
             ],
             supportedValueTypes: ["coding.code-text"],
-            grantedPermissions: [.accessibility])
+            grantedPermissions: [.accessibility, .files])
     }
 
     // MARK: - Reading the buffer
@@ -507,7 +527,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     /// .resolve`'s same rule, and the same reason: with several editors
     /// installed, "read my buffer" with nothing in front is a question, not a
     /// guess to answer from whichever package happens to be alone.
-    private func resolve(_ requested: String?) -> (CodeSurfaceRegistration, pid_t)? {
+    func resolve(_ requested: String?) -> (CodeSurfaceRegistration, pid_t)? {
         if let requested, !requested.isEmpty {
             let wanted = requested.lowercased()
             if let match = support.all().first(where: {
@@ -526,7 +546,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
         return (registration, front.processIdentifier)
     }
 
-    private func notRunning(_ requested: String?) -> SkillOutcome {
+    func notRunning(_ requested: String?) -> SkillOutcome {
         guard let requested, !requested.isEmpty else {
             return SkillOutcome(
                 ok: true,

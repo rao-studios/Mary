@@ -13,6 +13,7 @@ extension VoicePipeline {
     /// correction; no extra model pass sanitizes it.
     static let amendJoinSeparator = " — "
 
+    // ROUTE: Entry point for processing a completed turn from the transcriber
     func runTurn() async {
         let text: String
         do {
@@ -58,6 +59,7 @@ extension VoicePipeline {
         }
     }
 
+    // ROUTE: SubmitTurn is reused by continous hearing
     /// Composes the amended query and submits it, superseding the aborted
     /// turn when it had already reached the responder.
     private func submitTurn(correction: String) async {
@@ -80,7 +82,8 @@ extension VoicePipeline {
         emit(.amendedTranscript(query))
         await submitTurn(query: query, superseding: amend.wasSubmitted)
     }
-
+    
+    // ROUTE: Execute turn
     func submitTurn(query: String, superseding: Bool) async {
         guard !terminated else { return }
         // The user has the floor with a NEW utterance. Any old detached

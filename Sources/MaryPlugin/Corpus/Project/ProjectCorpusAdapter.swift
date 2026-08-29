@@ -45,12 +45,13 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     /// serving whichever applications declare a corpus, and claiming one
     /// would collide with the package that legitimately owns it.
     public let applicationIdentifiers: Set<String> = []
-    public let abilities: Set<AbilityID> = [.writing]
+    public let abilities: Set<AbilityID> = [.writing, .coding]
 
     public init() {}
 
     public var skillBindings: [SkillBinding] {
-        [readOutline, readDocument, searchCorpus, corpusProgress]
+        [readOutline, readDocument, searchCorpus, corpusProgress,
+         locateDeclaration, findReferences, openCorpusDocument, setDocumentInfo]
             + ceremonyBindings
     }
 
@@ -62,10 +63,12 @@ public struct ProjectCorpusAdapter: MaryAdapter {
         ) -> InstalledAdapterBinding {
             InstalledAdapterBinding(
                 adapterID: adapterID, operation: name,
-                capabilities: [capability],
+                capabilities: capability == "corpus.read"
+                    ? [capability, "code.corpus.read"]
+                    : [capability],
                 inputTypes: [input], outputTypes: [output],
                 observesPerceptions: ["perception.project-corpus"],
-                targetClasses: ["writing-project"])
+                targetClasses: ["writing-project", "code-workspace"])
         }
         return InstalledAdapterManifest(
             adapterID: adapterID,
@@ -98,6 +101,18 @@ public struct ProjectCorpusAdapter: MaryAdapter {
                     input: "writing.corpus-query", output: "writing.corpus-progress"),
                 operation(
                     "trash_corpus_item", capability: "corpus.restructure",
+                    input: "writing.corpus-query", output: "writing.corpus-progress"),
+                operation(
+                    "locate_declaration", capability: "corpus.read",
+                    input: "writing.corpus-query", output: "writing.corpus-outline"),
+                operation(
+                    "find_references", capability: "corpus.read",
+                    input: "writing.corpus-query", output: "writing.corpus-outline"),
+                operation(
+                    "open_corpus_document", capability: "corpus.read",
+                    input: "writing.corpus-query", output: "writing.corpus-progress"),
+                operation(
+                    "set_document_info", capability: "corpus.restructure",
                     input: "writing.corpus-query", output: "writing.corpus-progress"),
             ],
             providesPerceptions: ["perception.project-corpus"],

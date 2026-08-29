@@ -9,7 +9,8 @@ import Foundation
 extension VoicePipeline {
 
     // MARK: - Frame handling
-
+    
+    // ROUTE: The CORE mic loop
     func handle(frame: MicFrame) async {
         // Cancellation alone cannot retract an actor call already dispatched
         // by the mic loop. Once a stop command matches, logical hearing is
@@ -63,6 +64,7 @@ extension VoicePipeline {
                 partialTask?.cancel()
                 partialTask = nil
                 transition(to: .transcribing)
+                // ROUTE: Run Turn
                 turnTask = Task { await self.runTurn() }
             case .discardedNoise:
                 if amendCapture.amendContext != nil {

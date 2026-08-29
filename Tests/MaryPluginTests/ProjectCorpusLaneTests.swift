@@ -103,11 +103,10 @@ final class ProjectCorpusLaneTests: XCTestCase {
 
     // MARK: - Which project
 
-    /// A LANE THAT SERVES PROJECTS MUST NOT SERVE A BODY OF SOURCE FILES.
-    /// `xcode.mary` declares a corpus with no `structure` — it is learned from
-    /// by style and has no outline to read — and the filter is what keeps the
-    /// two consumers of one roster apart.
-    func testOnlyACorpusWithStructureReachesTheProjectLane() {
+    /// A LANE THAT SERVES PROJECTS NOW SERVES BOTH MANUSCRIPTS AND SOURCE
+    /// TREES. A notation-only corpus still has a file-tree outline; the
+    /// `withStructure` filter remains the ceremony half.
+    func testANotationCorpusAlsoReachesTheProjectLane() {
         let notation = CorpusRegistration(
             applicationID: "editor", bundleIdentifiers: ["com.example.editor"],
             displayName: "Editor",
@@ -123,8 +122,10 @@ final class ProjectCorpusLaneTests: XCTestCase {
 
         let support = CorpusSupport()
         support.reconcile([notation, project])
-        XCTAssertEqual(support.all.count, 2)
+        XCTAssertEqual(Set(support.all.map(\.applicationID)), ["editor", "manuscripts"])
         XCTAssertEqual(support.withStructure.map(\.applicationID), ["manuscripts"])
+        XCTAssertFalse(notation.schema.include.isEmpty)
+        XCTAssertNotNil(project.structure)
     }
 
     /// PREFIX-MATCHED ON PURPOSE: Scrivener's bundle id carries its major

@@ -227,12 +227,10 @@ extension MaryBrain {
         var lookUnderway = false
         var lookServed = false
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
-           // A LOOK CLASSIFIER USED TO WIDEN THIS RUNG — "what does this look
-           // like", "can you see the…". It belonged to the vision lane, which
-           // is not in this cut, so the rung narrows to the routed intent.
-           // Narrower is the safe direction: a missed pre-look costs a round
-           // trip, and a spurious one costs a screenshot nobody asked for.
-           routeIntent == .perceive,
+           // Perceive (routing's deixis) OR the conservative LookClassifier
+           // (the "that"-shapes routing keeps as `.converse`). The
+           // dispatcher declines cheaply when a world with its own eyes leads.
+           routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil,
            dispatcher.wouldServeLook() {
             let description = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
                 await dispatcher.lookAtScreen(userText)

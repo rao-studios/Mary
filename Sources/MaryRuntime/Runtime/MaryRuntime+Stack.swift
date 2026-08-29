@@ -97,6 +97,8 @@ extension MaryRuntime {
             retrievalScope: { retrievalScope(ownerID: $0) })
         await seerTTS.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerVision.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
     }

@@ -113,18 +113,23 @@
       "writing.add-corpus-item",
       "writing.compose-draft",
       "writing.corpus-progress",
+      "writing.create-document",
       "writing.delete-passage",
       "writing.find-passage",
       "writing.insert-passage",
+      "writing.list-documents",
       "writing.move-corpus-item",
+      "writing.open-corpus-document",
       "writing.read-corpus-document",
       "writing.read-corpus-outline",
+      "writing.read-document",
       "writing.replace-passage",
       "writing.resume-typing",
       "writing.revert-last-edit",
       "writing.revise-selection",
       "writing.save-document",
       "writing.search-corpus",
+      "writing.set-document-info",
       "writing.split-document",
       "writing.split-editor-horizontally",
       "writing.split-editor-vertically",
@@ -481,6 +486,66 @@
       "summary" : "Write prose at a validated caret or replace a source-matched live selection.",
       "title" : "Write at Text Surface",
       "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "editable-prose-surface"
+        }
+      ],
+      "effect" : "read",
+      "id" : "prose.list-documents",
+      "outputType" : "writing.text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "List open documents."
+        }
+      ],
+      "summary" : "List open documents in a prose editor.",
+      "title" : "List Documents",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "editable-prose-surface"
+        }
+      ],
+      "effect" : "read",
+      "id" : "prose.read-document",
+      "outputType" : "writing.text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read an open document."
+        }
+      ],
+      "summary" : "Read an open document.",
+      "title" : "Read Document",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "editable-prose-surface"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "prose.create-document",
+      "outputType" : "writing.text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Create a document."
+        }
+      ],
+      "summary" : "Create a new document.",
+      "title" : "Create Document",
+      "version" : "1.0.0"
     }
   ],
   "dependencies" : [
@@ -564,7 +629,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "740a191e6238357ec67797ea471c886bb5999452ad9334a0e00e931ca4e7b91b"
+    "digest" : "ce60b531b75094b21925c9c6b09be760caddecad809a50c7f331aba75f22c4ef"
   },
   "interactions" : [
     {
@@ -2906,6 +2971,463 @@
       },
       "summary" : "Return the editor to a single pane.",
       "title" : "Close the Split",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "prose-surface",
+            "operation" : "list_documents",
+            "preference" : 100,
+            "targetClasses" : [
+              "editable-prose-surface"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.list-documents",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_documents",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "prose.list-documents"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "List the open documents in the front prose editor.",
+      "title" : "List Documents",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "prose-surface",
+            "operation" : "read_document",
+            "preference" : 100,
+            "targetClasses" : [
+              "editable-prose-surface"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.read-document",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_document",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "document",
+            "required" : false,
+            "summary" : "Handle or title.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "prose.read-document"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read an open document's text.",
+      "title" : "Read Document",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "prose-surface",
+            "operation" : "create_document",
+            "preference" : 100,
+            "targetClasses" : [
+              "editable-prose-surface"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.create-document",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "create_document",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "prose.create-document"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "workspaceFamily",
+              "value" : "coding"
+            }
+          ],
+          "kind" : "not"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Make a new document in the front prose editor.",
+      "title" : "Create Document",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "open_corpus_document",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.open-corpus-document",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "open_corpus_document",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "document",
+            "required" : true,
+            "summary" : "Title or path.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Open a document from the live project.",
+      "title" : "Open Corpus Document",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "set_document_info",
+            "preference" : 100,
+            "targetClasses" : [
+              "writing-project"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "writing.set-document-info",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "set_document_info",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "document",
+            "required" : true,
+            "summary" : "Title or path.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "info",
+            "required" : true,
+            "summary" : "The note.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "corpus.restructure"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.project-corpus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Record a note about a document. Refuses to write a bundle project.",
+      "title" : "Set Document Info",
       "usesStage" : true,
       "version" : "1.0.0"
     }

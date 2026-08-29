@@ -61,20 +61,17 @@ extension PluginRecipeStepSchema {
 }
 
 extension PluginRecipeStepKind {
-    /// WHAT THE EXECUTOR CAN ACTUALLY PERFORM — not every kind the grammar
-    /// can hold.
-    ///
-    /// IT USED TO BE `allCases`, and that was right in a build whose hands
-    /// drove the pointer. Mary's do not: `MaryHands` posts exactly these four,
-    /// and `PluginCompiler` refuses a pointer step at COMPILE time with
-    /// `.pointerUnavailable` — before the stage is ever taken. The grammar
-    /// still carries the pointer kinds, deliberately, so a package authored
-    /// elsewhere round-trips without losing them; offering them HERE would be
-    /// different, because it would let someone build a recipe in this editor,
-    /// save it clean, and watch it refuse at first use. An editor must not
-    /// author what the runtime will not run.
+    /// WHAT THE EXECUTOR CAN ACTUALLY PERFORM. Mary's hands post keys, text,
+    /// waits, window rebinds, and the pointer family — move, click, drag,
+    /// scroll, and a read-only Accessibility capture used as a later
+    /// coordinate space. An editor must not author what the runtime will
+    /// not run; these cases are exactly that set.
     static var authorableCases: [Self] {
-        [.keyChord, .typeText, .wait, .rebindFocusedWindow]
+        [
+            .keyChord, .typeText, .pointerMove, .pointerClick, .pointerDrag,
+            .pointerSquareDrag, .scroll, .captureAccessibilityAnchor,
+            .wait, .rebindFocusedWindow,
+        ]
     }
 
     var editorTitle: String {

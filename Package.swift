@@ -131,7 +131,10 @@ let package = Package(
             name: "MaryPlugin",
             dependencies: ["MaryFoundation", "MaryAmbient"],
             path: "Sources/MaryPlugin",
-            swiftSettings: [.swiftLanguageMode(.v5)]
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: [
+                .linkedFramework("EventKit")
+            ]
         ),
         // Validates and seals the shipped .mary packages. A package that
         // fails to decode is a package that quietly is not installed, which

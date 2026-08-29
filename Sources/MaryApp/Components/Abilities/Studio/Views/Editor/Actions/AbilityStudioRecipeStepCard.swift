@@ -50,9 +50,6 @@ struct AbilityStudioRecipeStepCard: View {
     }
     var authorableKinds: [PluginRecipeStepKind] {
         if lane == .cleanup { return [.keyChord, .wait] }
-        // THE SURFACE-NAVIGATION BRANCH WENT WITH THE DESIGN LANE, and with
-        // it the only path that offered pointer steps — which Mary's compiler
-        // refuses anyway (`PluginCompiledStep`, `.pointerUnavailable`).
         return PluginRecipeStepKind.authorableCases
     }
 

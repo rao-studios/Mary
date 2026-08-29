@@ -320,8 +320,9 @@ import Testing
                 let offered = Set(runtime.schemas.map(\.name))
                 #expect(offered.contains("build_project"),
                         "coding's own chord Skills must survive the ability conflict")
-                #expect(offered.contains("search_corpus"),
-                        "writing's corpus Skills must still be admitted too — a tie, not a loss")
+                #expect(offered.contains("search_project")
+                    || offered.contains("search_corpus"),
+                        "a project-corpus search Skill must still be admitted — a tie, not a loss")
                 #expect(offered.contains("read_buffer"))
                 #expect(offered.contains("read_selection"))
                 #expect(offered.contains("list_declarations"))
@@ -444,8 +445,10 @@ import Testing
 
                 // THE CORPUS LANE SURVIVES — `Corpus G`'s whole point, and
                 // exactly what a `proseSurface`-gated tie arm would have lost.
-                #expect(offered.contains("search_corpus"))
-                #expect(offered.contains("read_corpus_outline"))
+                #expect(offered.contains("search_project")
+                    || offered.contains("search_corpus"))
+                #expect(offered.contains("project_outline")
+                    || offered.contains("read_corpus_outline"))
                 #expect(offered.contains("read_corpus_document"))
                 #expect(offered.contains("corpus_progress"))
 
@@ -458,6 +461,7 @@ import Testing
                     "find_passage", "insert_passage", "replace_passage",
                     "revert_last_edit", "add_corpus_container",
                     "add_corpus_item", "move_corpus_item", "trash_corpus_item",
+                    "list_documents", "read_document", "create_document",
                 ]
                 for skill in writingProseSkills {
                     #expect(!offered.contains(skill), """

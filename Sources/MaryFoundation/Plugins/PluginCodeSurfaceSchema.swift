@@ -74,16 +74,22 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
     /// How much text may be taken at once.
     public var budgets: PluginProseBudgetSchema
 
+    /// Same identity the corpus observer uses, so a code editor that does
+    /// not declare a corpus can still say how its window names the file.
+    public var workspaceIdentity: PluginWorkspaceIdentitySchema
+
     public init(
         handlePrefix: String,
         editorRoles: [PluginAccessibilityRole] = [.textArea],
         documentKey: PluginProseDocumentKey = .documentPathThenWindow,
-        budgets: PluginProseBudgetSchema = .init()
+        budgets: PluginProseBudgetSchema = .init(),
+        workspaceIdentity: PluginWorkspaceIdentitySchema = .default
     ) {
         self.handlePrefix = handlePrefix
         self.editorRoles = editorRoles
         self.documentKey = documentKey
         self.budgets = budgets
+        self.workspaceIdentity = workspaceIdentity
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -91,6 +97,7 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
         case editorRoles
         case documentKey
         case budgets
+        case workspaceIdentity
     }
 
     public init(from decoder: Decoder) throws {
@@ -103,6 +110,8 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
             PluginProseDocumentKey.self, forKey: .documentKey) ?? .documentPathThenWindow
         budgets = try values.decodeIfPresent(
             PluginProseBudgetSchema.self, forKey: .budgets) ?? .init()
+        workspaceIdentity = try values.decodeIfPresent(
+            PluginWorkspaceIdentitySchema.self, forKey: .workspaceIdentity) ?? .default
     }
 
     /// Hand-written so the field order stays stable across the codec, for
@@ -114,5 +123,8 @@ public struct PluginCodeSurfaceSchema: Codable, Hashable, Sendable {
         try container.encode(editorRoles, forKey: .editorRoles)
         try container.encode(documentKey, forKey: .documentKey)
         try container.encode(budgets, forKey: .budgets)
+        if workspaceIdentity != .default {
+            try container.encode(workspaceIdentity, forKey: .workspaceIdentity)
+        }
     }
 }

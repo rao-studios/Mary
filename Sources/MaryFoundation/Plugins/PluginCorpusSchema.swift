@@ -487,6 +487,16 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
     /// `PluginCorpusStructureSchema`.
     public var structure: PluginCorpusStructureSchema?
 
+    /// How this application's window names the project root and the focused
+    /// file. Defaults match the common editor shape (AXDocument auto, title
+    /// `Project — File`). A second IDE declares a different identity rather
+    /// than requiring a compiled observer change.
+    public var workspaceIdentity: PluginWorkspaceIdentitySchema
+
+    /// Optional CLI templates for `build_check` / `run_tests`. Absent means
+    /// the build adapter picks a backend from `projectMarkers`.
+    public var build: PluginProjectBuildSchema?
+
     public init(
         include: [String],
         exclude: [String] = [],
@@ -495,7 +505,9 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         relations: PluginCorpusRelations = .init(),
         style: [PluginCorpusStyleRule] = [],
         budgets: PluginCorpusBudgets = .init(),
-        structure: PluginCorpusStructureSchema? = nil
+        structure: PluginCorpusStructureSchema? = nil,
+        workspaceIdentity: PluginWorkspaceIdentitySchema = .default,
+        build: PluginProjectBuildSchema? = nil
     ) {
         self.include = include
         self.exclude = exclude
@@ -505,6 +517,8 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         self.style = style
         self.budgets = budgets
         self.structure = structure
+        self.workspaceIdentity = workspaceIdentity
+        self.build = build
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -516,6 +530,8 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         case style
         case budgets
         case structure
+        case workspaceIdentity
+        case build
     }
 
     public init(from decoder: Decoder) throws {
@@ -533,6 +549,10 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
             PluginCorpusBudgets.self, forKey: .budgets) ?? .init()
         structure = try values.decodeIfPresent(
             PluginCorpusStructureSchema.self, forKey: .structure)
+        workspaceIdentity = try values.decodeIfPresent(
+            PluginWorkspaceIdentitySchema.self, forKey: .workspaceIdentity) ?? .default
+        build = try values.decodeIfPresent(
+            PluginProjectBuildSchema.self, forKey: .build)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -549,5 +569,9 @@ public struct PluginCorpusSchema: Codable, Hashable, Sendable {
         if !style.isEmpty { try container.encode(style, forKey: .style) }
         if budgets != PluginCorpusBudgets() { try container.encode(budgets, forKey: .budgets) }
         if let structure { try container.encode(structure, forKey: .structure) }
+        if workspaceIdentity != .default {
+            try container.encode(workspaceIdentity, forKey: .workspaceIdentity)
+        }
+        if let build { try container.encode(build, forKey: .build) }
     }
 }

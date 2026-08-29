@@ -7,9 +7,9 @@
 //
 //  These are small because the transaction is. A package declares a bounded
 //  sequence of local acts; Mary compiles it against the turn's arguments,
-//  brings the target forward, performs the acts, and reports. There is no
-//  planner, no coordinate space, no verification ladder — every one of those
-//  belonged to the pointer lane, which this cut does not have.
+//  brings the target forward, performs the acts, and reports. Pointer
+//  coordinates stay normalized until the hands denormalize them against the
+//  focused window (or a captured Accessibility frame) at perform time.
 //
 
 import Foundation
@@ -46,10 +46,8 @@ enum PluginManagedUIError: LocalizedError, Equatable {
     case argumentOutOfRange(String, minimum: Double?, maximum: Double?)
     /// A step named a key or text the compiled grammar cannot express.
     case unsupportedStep(String)
-    /// THE POINTER LANE IS ABSENT BY DESIGN, and this is how a package finds
-    /// out. Mary has hands for keys and text; she has no hands for the mouse,
-    /// so a recipe that moves, clicks, drags or scrolls is refused at compile
-    /// time rather than half-performed.
+    /// A pointer step named a coordinate space that this transaction never
+    /// captured, or an Accessibility locator that found nothing unique.
     case pointerUnavailable(String)
     case textContainsNewline
     case stepFailed(String)
@@ -90,11 +88,8 @@ enum PluginManagedUIError: LocalizedError, Equatable {
             }
         case .unsupportedStep(let detail):
             return "That recipe asks for something I can't do: \(detail)."
-        case .pointerUnavailable(let step):
-            return """
-                That recipe drives the mouse (\(step)), and I only have hands \
-                for keys and text right now.
-                """
+        case .pointerUnavailable(let detail):
+            return "I couldn't aim the pointer: \(detail)."
         case .textContainsNewline:
             return "I can't type a line break as part of that step."
         case .stepFailed(let detail):
@@ -131,6 +126,22 @@ enum PluginCompiledStep: Sendable, Equatable {
     case typeText(String)
     case wait(seconds: Double)
     case rebindFocusedWindow(requiresChange: Bool)
+    /// Normalized into the coordinate space named by `space` (`content` is
+    /// the focused window). Resolved to screen points only at perform time.
+    case pointerMove(x: Double, y: Double, space: String)
+    case pointerClick(
+        x: Double, y: Double, space: String,
+        button: PluginPointerButton, count: Int)
+    case pointerDrag(
+        fromX: Double, fromY: Double,
+        toX: Double, toY: Double, space: String)
+    case pointerSquareDrag(
+        x: Double, y: Double, side: Double, space: String)
+    case scroll(
+        x: Double, y: Double, space: String,
+        deltaX: Double, deltaY: Double)
+    case captureAccessibilityAnchor(
+        locator: PluginAccessibilityAnchorLocatorSchema, name: String)
 
     var spokenName: String {
         switch self {
@@ -138,6 +149,11 @@ enum PluginCompiledStep: Sendable, Equatable {
         case .typeText: return "typing"
         case .wait: return "a pause"
         case .rebindFocusedWindow: return "waiting for a new window"
+        case .pointerMove: return "moving the pointer"
+        case .pointerClick: return "a click"
+        case .pointerDrag, .pointerSquareDrag: return "a drag"
+        case .scroll: return "a scroll"
+        case .captureAccessibilityAnchor: return "finding a control"
         }
     }
 }

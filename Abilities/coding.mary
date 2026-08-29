@@ -182,16 +182,48 @@
       "preference" : 200
     },
     "skills" : [
+      "coding.apply-edit",
+      "coding.build-check",
       "coding.build-project",
+      "coding.code-changes",
+      "coding.coding-list",
+      "coding.coding-send",
+      "coding.coding-start",
+      "coding.coding-status",
+      "coding.coding-stop",
+      "coding.commit-changes",
+      "coding.complete-change",
+      "coding.create-file",
+      "coding.current-file",
+      "coding.delegate-coding",
+      "coding.explain-code-change",
+      "coding.find-references",
+      "coding.insert-code",
       "coding.list-declarations",
+      "coding.list-quirks",
+      "coding.locate-declaration",
+      "coding.pair-program",
+      "coding.plan-minimal-code-change",
+      "coding.project-outline",
+      "coding.push-changes",
       "coding.read-buffer",
+      "coding.read-lines",
       "coding.read-selection",
+      "coding.read-symbol",
+      "coding.recent-commits",
+      "coding.record-quirk",
       "coding.replace-selection",
+      "coding.replace-symbol",
+      "coding.restore-undone",
       "coding.revise-selection",
       "coding.run-project",
+      "coding.run-tests",
       "coding.save-all",
+      "coding.search-corpus",
+      "coding.show-diff",
       "coding.stop-execution",
-      "coding.test-project"
+      "coding.test-project",
+      "coding.undo-file-changes"
     ],
     "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands, and read and edit its live code surface. An application joins this discipline by realizing one of the chord Skills — which is what gives its place the coding focus — or by declaring a `codeSurface` for the reads and the one write. read_buffer and read_selection bind to the code-surface adapter, the same shape the writing Ability's own reads take for a prose document — a Skill that returns a value needs a compiled provider, never a recipe. replace_selection binds to the same adapter for the one reason a write needs a compiled provider too: an atomic disk write, Xcode's own proven chain, has no managed-UI recipe equivalent — it changes the file on disk, never types a keystroke, and refuses rather than overwrite a buffer with unsaved changes.",
     "tint" : "#B392F0",
@@ -441,6 +473,526 @@
       "summary" : "List the declarations — types and functions — in a code editor's live buffer, with their approximate line numbers.",
       "title" : "List Declarations",
       "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.workspace.inspect",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the focused file identity."
+        }
+      ],
+      "summary" : "Read the focused file identity.",
+      "title" : "Inspect Workspace",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.buffer.read-symbol",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read a declaration by name."
+        }
+      ],
+      "summary" : "Read a declaration by name.",
+      "title" : "Read Symbol",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.buffer.read-lines",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read a line range from the open file."
+        }
+      ],
+      "summary" : "Read a line range from the open file.",
+      "title" : "Read Lines",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "code.replace-symbol",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Replace a whole declaration."
+        }
+      ],
+      "summary" : "Replace a whole declaration.",
+      "title" : "Replace Symbol",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "code.insert-code",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Insert a declaration."
+        }
+      ],
+      "summary" : "Insert a declaration.",
+      "title" : "Insert Code",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "code.apply-edit",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Replace one unique snippet."
+        }
+      ],
+      "summary" : "Replace one unique snippet.",
+      "title" : "Apply Edit",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.create-file",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Create a source file in the project."
+        }
+      ],
+      "summary" : "Create a source file in the project.",
+      "title" : "Create File",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.git.status",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Show uncommitted changes."
+        }
+      ],
+      "summary" : "Show uncommitted changes.",
+      "title" : "Git Status",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.git.diff",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Show the diff."
+        }
+      ],
+      "summary" : "Show the diff.",
+      "title" : "Git Diff",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.git.log",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Show recent commits."
+        }
+      ],
+      "summary" : "Show recent commits.",
+      "title" : "Git Log",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.git.undo",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Stash uncommitted changes."
+        }
+      ],
+      "summary" : "Stash uncommitted changes.",
+      "title" : "Git Undo",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.git.restore",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Pop the last undo stash."
+        }
+      ],
+      "summary" : "Pop the last undo stash.",
+      "title" : "Git Restore",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.git.commit",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Commit current changes."
+        }
+      ],
+      "summary" : "Commit current changes.",
+      "title" : "Git Commit",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.git.push",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Push the current branch."
+        }
+      ],
+      "summary" : "Push the current branch.",
+      "title" : "Git Push",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.build.check",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Compile and report errors."
+        }
+      ],
+      "summary" : "Compile and report errors.",
+      "title" : "Build Check",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.test.run",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Run the project's tests."
+        }
+      ],
+      "summary" : "Run the project's tests.",
+      "title" : "Run Tests",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.quirks.list",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Read on-the-job notes."
+        }
+      ],
+      "summary" : "Read on-the-job notes.",
+      "title" : "List Quirks",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.quirks.record",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Append an on-the-job note."
+        }
+      ],
+      "summary" : "Append an on-the-job note.",
+      "title" : "Record Quirk",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.agent.delegate",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Start a background coding agent."
+        }
+      ],
+      "summary" : "Start a background coding agent.",
+      "title" : "Delegate Coding",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.agent.complete",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Report the latest agent session."
+        }
+      ],
+      "summary" : "Report the latest agent session.",
+      "title" : "Complete Coding Change",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.agent.start",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Start a background coding session."
+        }
+      ],
+      "summary" : "Start a background coding session.",
+      "title" : "Start Coding Agent",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.agent.status",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Check a coding session."
+        }
+      ],
+      "summary" : "Check a coding session.",
+      "title" : "Coding Agent Status",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.agent.list",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "List coding sessions."
+        }
+      ],
+      "summary" : "List coding sessions.",
+      "title" : "List Coding Agents",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.agent.send",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Follow up a coding session."
+        }
+      ],
+      "summary" : "Follow up a coding session.",
+      "title" : "Send to Coding Agent",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "mutation",
+      "id" : "code.agent.stop",
+      "outputType" : "coding.operation-result",
+      "permissions" : [
+        {
+          "kind" : "files",
+          "reason" : "Stop a coding session."
+        }
+      ],
+      "summary" : "Stop a coding session.",
+      "title" : "Stop Coding Agent",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "code-workspace"
+        }
+      ],
+      "effect" : "read",
+      "id" : "code.corpus.read",
+      "outputType" : "coding.code-text",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the live project's files."
+        }
+      ],
+      "summary" : "Read the live project's files.",
+      "title" : "Read Code Corpus",
+      "version" : "1.0.0"
     }
   ],
   "dependencies" : [
@@ -486,7 +1038,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8b349cdfe33b2bb101ed6dd2f3369f2bed453ff822084b8f88055bbe892a3113"
+    "digest" : "0f52fc9c046b2b775ed42a86fedf56de909f2a1fc6c762302737133d9640def9"
   },
   "interactions" : [
     {
@@ -1305,6 +1857,2504 @@
       },
       "summary" : "Produce a bounded revision of the exact code the editor has highlighted, preserving its surrounding style and intent.",
       "title" : "Revise the Selected Code",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "current_file",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.current-file",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "current_file",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.workspace.inspect"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "What file is open in the front editor.",
+      "title" : "Current File",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_symbol",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.read-symbol",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_symbol",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "summary" : "The name to read.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.buffer.read-symbol"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read a function or type by name from the open file.",
+      "title" : "Read Symbol",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_lines",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.read-lines",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_lines",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "start",
+            "required" : true,
+            "summary" : "First line number.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "end",
+            "required" : false,
+            "summary" : "Last line number.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.buffer.read-lines"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read a line range from the open file.",
+      "title" : "Read Lines",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "replace_symbol",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.replace-symbol",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "replace_symbol",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "summary" : "The name to replace.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "new_source",
+            "required" : true,
+            "summary" : "The complete new declaration.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.replace-symbol"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Replace a whole declaration. Refuses a dirty buffer.",
+      "title" : "Replace Symbol",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "insert_code",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.insert-code",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "insert_code",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "source",
+            "required" : true,
+            "summary" : "The code to add.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "after_symbol",
+            "required" : false,
+            "summary" : "Insert after this name.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.insert-code"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Add a complete declaration after a symbol, or at the end.",
+      "title" : "Insert Code",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "apply_edit",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.apply-edit",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "apply_edit",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "find",
+            "required" : true,
+            "summary" : "Exact text to find.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "replace",
+            "required" : true,
+            "summary" : "Replacement text.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.apply-edit"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Replace one unique snippet in the open file.",
+      "title" : "Apply Edit",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "create_file",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.create-file",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "create_file",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "path",
+            "required" : true,
+            "summary" : "Project-relative path.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "contents",
+            "required" : true,
+            "summary" : "File contents.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.create-file"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Create a source file under the live project root.",
+      "title" : "Create File",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "read_corpus_outline",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.project-outline",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "project_outline",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "List the files in the live project.",
+      "title" : "Project Outline",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "search_corpus",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.search-corpus",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "search_project",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "summary" : "The word or phrase.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Which project.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Search every file in the live project.",
+      "title" : "Search the Project",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "locate_declaration",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.locate-declaration",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "locate_declaration",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "summary" : "The name to locate.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Find which file declares a name.",
+      "title" : "Locate Declaration",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-corpus",
+            "operation" : "find_references",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.find-references",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "find_references",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "symbol",
+            "required" : true,
+            "summary" : "The name to search for.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.corpus.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Find files that refer to a name.",
+      "title" : "Find References",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "code_changes",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.code-changes",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "code_changes",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.status"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "What has changed in the live project.",
+      "title" : "Code Changes",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "show_diff",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.show-diff",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "show_diff",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "file",
+            "required" : false,
+            "summary" : "File, or all.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.diff"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "The diff of what changed.",
+      "title" : "Show Diff",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "recent_commits",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.recent-commits",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "recent_commits",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "count",
+            "required" : false,
+            "summary" : "How many.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.log"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "The latest commits.",
+      "title" : "Recent Commits",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "undo_file_changes",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.undo-file-changes",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "undo_file_changes",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "file",
+            "required" : false,
+            "summary" : "File, or all.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.undo"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Stash uncommitted changes.",
+      "title" : "Undo File Changes",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "restore_undone",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.restore-undone",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "restore_undone",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.restore"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Pop the last undo stash.",
+      "title" : "Restore Undone",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "commit_changes",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.commit-changes",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "commit_changes",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "message",
+            "required" : true,
+            "summary" : "Commit message.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.commit"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Commit with the user's message.",
+      "title" : "Commit Changes",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-git",
+            "operation" : "push_changes",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.push-changes",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "push_changes",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.git.push"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Push the current branch.",
+      "title" : "Push Changes",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-build",
+            "operation" : "build_check",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.build-check",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "build_check",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.build.check"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Compile the live project and report the first error.",
+      "title" : "Build Check",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-build",
+            "operation" : "run_tests",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.run-tests",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "run_tests",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "filter",
+            "required" : false,
+            "summary" : "Optional test name.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.test.run"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Run the live project's tests.",
+      "title" : "Run Tests",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-quirks",
+            "operation" : "list_quirks",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.list-quirks",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_quirks",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.quirks.list"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read on-the-job notes for the live project.",
+      "title" : "List Quirks",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "project-quirks",
+            "operation" : "record_quirk",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.record-quirk",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "record_quirk",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "note",
+            "required" : true,
+            "summary" : "What to remember.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.quirks.record"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Append an on-the-job note.",
+      "title" : "Record Quirk",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "delegate_coding",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.delegate-coding",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "delegate_coding",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "task",
+            "required" : true,
+            "summary" : "What the agent should do.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.delegate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Hand a task to a background coding agent.",
+      "title" : "Delegate Coding",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "complete_coding_change",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.complete-change",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "complete_coding_change",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.complete"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Report the latest coding-agent session.",
+      "title" : "Complete Coding Change",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_selection",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.pair-program",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "pair_program",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.read-selection"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read the live selection so a pairing turn starts from real code.",
+      "title" : "Pair Program",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_selection",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.plan-minimal-code-change",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "plan_minimal_code_change",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.read-selection"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read the live selection before planning an edit.",
+      "title" : "Plan a Minimal Change",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "code-surface",
+            "operation" : "read_buffer",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.explain-code-change",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "explain_code_change",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "summary" : "Which editor.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.read-buffer"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Read the live buffer before explaining what changed.",
+      "title" : "Explain a Code Change",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "coding_start",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.coding-start",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "coding_start",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "task",
+            "required" : true,
+            "summary" : "What to do.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "project",
+            "required" : false,
+            "summary" : "Project name.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.start"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Start Coding Agent.",
+      "title" : "Start Coding Agent",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "coding_status",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.coding-status",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "coding_status",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "session",
+            "required" : false,
+            "summary" : "Handle like C1.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.status"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Coding Agent Status.",
+      "title" : "Coding Agent Status",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "coding_list",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.coding-list",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "coding_list",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.list"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "List Coding Agents.",
+      "title" : "List Coding Agents",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "coding_send",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.coding-send",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "coding_send",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "session",
+            "required" : true,
+            "summary" : "Handle like C1.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "message",
+            "required" : true,
+            "summary" : "Follow-up.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.send"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Send to Coding Agent.",
+      "title" : "Send to Coding Agent",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "coding-agent",
+            "operation" : "coding_stop",
+            "preference" : 100,
+            "targetClasses" : [
+              "code-workspace"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "coding.coding-stop",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "coding_stop",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "session",
+            "required" : false,
+            "summary" : "Handle like C1.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "code.agent.stop"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.code-workspace-focus"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Stop Coding Agent.",
+      "title" : "Stop Coding Agent",
       "usesStage" : false,
       "version" : "1.0.0"
     }

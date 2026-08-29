@@ -91,6 +91,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     /// key to forget without re-deriving a place it may no longer be able to
     /// resolve.
     private let publishedBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
+    private let briefBox = OSAllocatedUnfairLock<String?>(initialState: nil)
 
     public init(
         store: AmbientContextStore = .shared,
@@ -104,10 +105,12 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
     // MARK: - MaryObserver
 
-    /// Nil — the surface observer's reason verbatim: this lane's output is the
-    /// ambient store, and the prompt reads it through `heldContext`, where the
-    /// budget and the lead order are decided.
-    public func promptContribution() -> String? { nil }
+    /// Live identity from the focused registration — file, editor, and a
+    /// caret excerpt when one was just published. Distinct from
+    /// `CorpusObserver`'s project-root line.
+    public func promptContribution() -> String? {
+        briefBox.withLock { $0 }
+    }
 
     public func refreshAmbientContext() async { pollOnce() }
 
@@ -186,6 +189,10 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         store.register(fact, at: now)
         publishedBox.withLock { $0 = place }
+        let file = Self.subject(of: window) ?? registration.displayName
+        briefBox.withLock {
+            $0 = "In \(registration.displayName): \(file)"
+        }
     }
 
     /// The fact, or nil when this editor has nothing honest to say about a
@@ -284,6 +291,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             return place
         }
         guard let place else { return }
+        briefBox.withLock { $0 = nil }
         store.forget(key: AmbientKey(place: place, slot: .cursor))
     }
 }

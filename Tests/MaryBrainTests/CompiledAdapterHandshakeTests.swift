@@ -47,7 +47,14 @@ import Testing
 
         // THE REAL ROSTER, exactly as `installBrainConfiguration` builds it.
         // A hand-built manifest here would test the hand-built manifest.
+        // THE REAL ROSTER, including faculties appended at the composition
+        // root (Affordance, Looking, CodingAgent) — not catalogued as apps.
         let adapters = MaryAdapterCatalog.adapters()
+            + [
+                AffordancePlugin(),
+                LookingPlugin { _ in SkillOutcome(ok: true, summary: "") },
+                CodingAgentAdapter(),
+            ]
         let manifests = MaryAdapterCatalog.adapterManifests(
             adapters: adapters,
             observers: MaryAdapterCatalog.observers())

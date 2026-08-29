@@ -236,7 +236,28 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         else { return nil }
 
         let projectName = (root as NSString).lastPathComponent
-        guard let name = activeName(inTitle: title) else { return nil }
+        let identity = registration.schema.workspaceIdentity
+        let name: String?
+        if let fromTitle = identity.focusedFileName(inTitle: title) {
+            name = fromTitle
+        } else if identity.rootSource == .documentFile || identity.focusedFileTitleSeparator.isEmpty {
+            // Title unused: the document path itself is the focused file.
+            var isDirectory: ObjCBool = false
+            if let raw = string(window, kAXDocumentAttribute) {
+                let path = URL(string: raw)?.path ?? raw
+                if FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+                   !isDirectory.boolValue {
+                    name = (path as NSString).lastPathComponent
+                } else {
+                    name = nil
+                }
+            } else {
+                name = nil
+            }
+        } else {
+            name = nil
+        }
+        guard let name else { return nil }
         guard let relative = resolve(
             name: name, root: root, corpus: registration.schema)
         else { return nil }
@@ -270,20 +291,22 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
         else { return nil }
-        // A window that DOES give a folder is already the answer — an editor
-        // with no file open reports the workspace itself.
-        if isDirectory.boolValue { return path }
 
-        let containing = (path as NSString).deletingLastPathComponent
-        guard !corpus.projectMarkers.isEmpty else {
-            // A corpus that declares no marker keeps the behaviour it had.
-            return containing
+        let identity = corpus.workspaceIdentity
+        switch identity.rootSource {
+        case .documentDirectory:
+            return isDirectory.boolValue ? path : nil
+        case .documentFile:
+            guard !isDirectory.boolValue else { return nil }
+            let containing = (path as NSString).deletingLastPathComponent
+            guard !corpus.projectMarkers.isEmpty else { return containing }
+            return projectRoot(containing: containing, markers: corpus.projectMarkers)
+        case .documentAuto:
+            if isDirectory.boolValue { return path }
+            let containing = (path as NSString).deletingLastPathComponent
+            guard !corpus.projectMarkers.isEmpty else { return containing }
+            return projectRoot(containing: containing, markers: corpus.projectMarkers)
         }
-        // NOT FOUND IS NOTHING TO CRAWL, not a guess. A file outside any
-        // project this corpus describes — one opened from a download, or from
-        // another checkout — has no project, and inventing its folder as one
-        // is how a style profile learns from work that is not the user's.
-        return projectRoot(containing: containing, markers: corpus.projectMarkers)
     }
 
     /// The nearest ancestor of `directory` holding one of `markers`.
@@ -313,15 +336,11 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return nil
     }
 
-    /// `Project — Name` → `Name`. Nil when the title carries no file, which is
-    /// an ordinary state (a settings tab, a welcome window) and not an error.
+    /// `Project — Name` → `Name`, using the package's declared separator.
+    /// Kept as the default identity's parse so existing tests that call this
+    /// directly still describe that common editor shape.
     static func activeName(inTitle title: String) -> String? {
-        // The em dash is the editor's own separator. A title without one is
-        // the workspace alone.
-        let parts = title.components(separatedBy: " — ")
-        guard parts.count >= 2, let last = parts.last else { return nil }
-        let name = last.trimmingCharacters(in: .whitespaces)
-        return name.isEmpty ? nil : name
+        PluginWorkspaceIdentitySchema.default.focusedFileName(inTitle: title)
     }
 
     /// A NAME IS NOT A PATH. Match it against the project's own units and

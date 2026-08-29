@@ -39,6 +39,34 @@ public struct ProseSurfaceAdapter: MaryAdapter {
         [listDocuments, readDocument, createDocument]
     }
 
+    public var adapterManifest: InstalledAdapterManifest {
+        let adapterID = AdapterID.normalized(name)
+        func operation(
+            _ name: String, capability: CapabilityID
+        ) -> InstalledAdapterBinding {
+            InstalledAdapterBinding(
+                adapterID: adapterID, operation: name,
+                capabilities: [capability],
+                outputTypes: ["writing.text"],
+                targetClasses: ["editable-prose-surface", "document-workspace"])
+        }
+        return InstalledAdapterManifest(
+            adapterID: adapterID,
+            title: "Prose Surface",
+            transport: .accessibility,
+            operations: [
+                operation("list_documents", capability: "prose.list-documents"),
+                operation("read_document", capability: "prose.read-document"),
+                InstalledAdapterBinding(
+                    adapterID: adapterID, operation: "create_document",
+                    capabilities: ["prose.create-document"],
+                    outputTypes: ["writing.text"],
+                    targetClasses: ["editable-prose-surface", "document-workspace"]),
+            ],
+            supportedValueTypes: ["writing.text"],
+            grantedPermissions: [.accessibility])
+    }
+
     // MARK: - Reads
 
     private var listDocuments: SkillBinding {

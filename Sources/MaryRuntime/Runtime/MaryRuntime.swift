@@ -229,6 +229,9 @@ package enum MaryRuntime {
     static let seerRealtime = SeerRealtimeClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
         session: seerSession)
+    static let seerVision = SeerVisionClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
+        session: seerSession)
     // No session: /v1/totems is on Seer's open router, and the Totems pane
     // must see the fleet before (or without) a sign-in.
     package static let seerTotems = SeerTotemsClient(

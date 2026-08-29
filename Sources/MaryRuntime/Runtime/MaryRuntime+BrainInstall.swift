@@ -49,7 +49,60 @@ extension MaryRuntime {
         projectRootsBox.withLock { $0 = Array(Set(projects.values)).sorted() }
         let hadBrainConfiguration = brainConfigurationInstalledBox.withLock { $0 }
 
+        let looking = LookingPlugin { query in
+            await ScreenLookFaculty.look(
+                query: query,
+                capture: {
+                    do {
+                        let view = try await ScreenRegionCapture.captureFocusRegion(hint: query)
+                        return ScreenLookFaculty.Sight(
+                            appTitle: view.appTitle,
+                            bundleID: view.bundleID,
+                            windowTitle: view.windowTitle,
+                            provenanceLabel: view.provenance.spokenLabel,
+                            imageData: view.imageData,
+                            mediaType: view.mediaType)
+                    } catch let failure as ScreenRegionCapture.Failure {
+                        switch failure {
+                        case .accessibilityDenied, .screenRecordingUnavailable:
+                            PermissionsCenter.promptLookingConsents()
+                        case .nothingFrontmost, .windowUnavailable:
+                            break
+                        }
+                        throw failure
+                    }
+                },
+                describe: { sight, direction in
+                    try await seerVision.describe(
+                        imageData: sight.imageData,
+                        mediaType: sight.mediaType,
+                        appTitle: sight.appTitle,
+                        windowTitle: sight.windowTitle,
+                        query: direction)
+                },
+                home: { sight, description in
+                    guard let bundleID = sight.bundleID else { return false }
+                    let place = AmbientPlaceResolver.applicationPlace(forBundleID: bundleID)
+                    WorkspaceFocusTracker.shared.noteGlance(place: place)
+                    let spoken = sight.windowTitle.map { "\(sight.appTitle) — \($0)" }
+                        ?? sight.appTitle
+                    guard let fact = AmbientBridge.readFact(
+                        world: .applications,
+                        application: place.application,
+                        phrase: sight.windowTitle ?? sight.appTitle,
+                        summary: "Looked at \(spoken) (\(sight.provenanceLabel)): \(description)",
+                        document: nil,
+                        passageHandle: nil)
+                    else { return false }
+                    AmbientContextStore.shared.register(fact)
+                    return true
+                })
+        }
+        // Faculties, not applications: appended beside the catalog so they
+        // stay reachable on a turn led by ANY taught app. They declare no
+        // bundle id and never appear in MaryAdapterCatalog.
         let adapters = MaryAdapterCatalog.adapters()
+            + [AffordancePlugin(), looking, CodingAgentAdapter()]
         let observers = MaryAdapterCatalog.observers()
 
         // 1. THE SEAMS, INSTALLED BEFORE ANYTHING READS THEM.

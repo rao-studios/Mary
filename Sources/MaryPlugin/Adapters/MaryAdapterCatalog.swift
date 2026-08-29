@@ -33,6 +33,7 @@ public enum MaryAdapterCatalog {
     /// raises whatever has windows. Adding an application adds no entry.
     public static func adapters() -> [any MaryAdapter] {
         [ApplicationsAdapter(), CodeSurfaceAdapter(), MediaSurfaceAdapter(), ProjectCorpusAdapter(),
+         ProjectGitAdapter(), ProjectBuildAdapter(), ProjectQuirksAdapter(), EventKitAdapter(),
          ProseSurfaceAdapter(), TyperPlugin(), WindowManagementPlugin()]
     }
 

@@ -108,7 +108,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "c37e10c92dce381309560291e2789a2275caba4efb709e15c96c5e95f067f924"
+    "digest" : "7c25e6847078fbbc056cced0658d3508b594e0273f849362b8630518c07e56b3"
   },
   "interactions" : [
 
@@ -175,6 +175,17 @@
       "handlePrefix" : "C"
     },
     "corpus" : {
+      "build" : {
+        "checkCommand" : [
+          "swift",
+          "build"
+        ],
+        "testCommand" : [
+          "swift",
+          "test"
+        ],
+        "testFilterFlag" : "--filter"
+      },
       "exclude" : [
         ".build",
         "DerivedData",

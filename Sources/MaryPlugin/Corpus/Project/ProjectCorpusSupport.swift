@@ -78,7 +78,19 @@ public enum ProjectCorpusSupport {
     /// The declared corpora that are PROJECTS. Read from the one roster, not
     /// kept in a second one — see the header.
     public static func all() -> [CorpusRegistration] {
-        CorpusSupport.shared.withStructure.sorted { $0.applicationID < $1.applicationID }
+        CorpusSupport.shared.all
+            .filter { $0.structure != nil || !$0.schema.include.isEmpty }
+            .sorted { $0.applicationID < $1.applicationID }
+    }
+
+    /// A notation-only corpus still has a file-tree outline so coding and
+    /// writing share one reader. Ceremonies still require a declared
+    /// `structure` — menus belong to manuscript packages.
+    static func projectStructure(for registration: CorpusRegistration) -> PluginCorpusStructureSchema {
+        registration.structure ?? PluginCorpusStructureSchema(
+            discovery: .manifestPresence,
+            openState: [.runningApplication],
+            manifest: .init(kind: .fileSystemTree))
     }
 
     // MARK: - What is open
@@ -96,9 +108,9 @@ public enum ProjectCorpusSupport {
         for application in NSWorkspace.shared.runningApplications {
             guard application.activationPolicy == .regular,
                   let bundleID = application.bundleIdentifier,
-                  let registration = declared.first(where: { $0.owns(bundleID: bundleID) }),
-                  let structure = registration.structure
+                  let registration = declared.first(where: { $0.owns(bundleID: bundleID) })
             else { continue }
+            let structure = projectStructure(for: registration)
 
             let pid = application.processIdentifier
             let element = AXUIElementCreateApplication(pid)
@@ -215,7 +227,7 @@ public enum ProjectCorpusSupport {
         public var spoken: String {
             switch self {
             case .noneDeclared:
-                return "I don't have a writing project set up to read."
+                return "I don't have a project set up to read."
             case .noneOpen(let applications):
                 return "Nothing is open in \(applications.joined(separator: " or ")) just now."
             case .noSuchProject(let named, let open):
