@@ -319,10 +319,80 @@ public enum CorpusCrawl {
                 contentHash: read.contentHash,
                 declaredTypes: read.declaredNames,
                 relations: relations,
-                apiHeaders: [],
+                apiHeaders: headers(from: read, declarations: corpus.relations.declarations),
                 neighbours: relations.map(\.object),
+                doc: leadingDoc(in: read.text),
                 capturedAt: now,
                 discipline: discipline)
         }
+    }
+
+    /// The declaration lines themselves — what the annotator calls Public API,
+    /// and what a neighbourhood digest can name without sending a file body.
+    ///
+    /// HARDCODED EMPTY WAS THE GAP. `UnitAnnotationRequest` is allowed
+    /// headers and the author's own doc comment; the crawl produced neither,
+    /// so the summariser was asked to describe a file from a list of names.
+    static func headers(
+        from read: Read, declarations: [String], limit: Int = 20
+    ) -> [String] {
+        let lines = read.text.source.split(
+            separator: "\n", omittingEmptySubsequences: false)
+        var seen: Set<String> = []
+        var headers: [String] = []
+        for pattern in declarations {
+            for capture in CorpusPatterns.capturesWithLines(pattern, in: read.text.code) {
+                let index = capture.line - 1
+                guard index >= 0, index < lines.count else { continue }
+                let line = lines[index].trimmingCharacters(in: .whitespaces)
+                guard !line.isEmpty, seen.insert(line).inserted else { continue }
+                headers.append(line)
+                if headers.count >= limit { return headers }
+            }
+        }
+        return headers
+    }
+
+    /// The first comment paragraph that is not the filename / module banner.
+    /// Nil rather than a short leftover: a half-sentence of boilerplate is
+    /// worse than an honest missing doc.
+    static func leadingDoc(in text: CorpusText, limit: Int = 400) -> String? {
+        let lines = text.comments.split(
+            separator: "\n", omittingEmptySubsequences: false)
+        var collected: [String] = []
+        var banner = 0
+        for raw in lines {
+            let trimmed = raw.trimmingCharacters(in: .whitespaces)
+            let stripped = trimmed.drop {
+                $0 == "/" || $0 == "*" || $0.isWhitespace
+            }
+            let line = String(stripped)
+            if line.isEmpty {
+                if collected.isEmpty {
+                    banner += 1
+                    continue
+                }
+                break
+            }
+            if collected.isEmpty, banner < 6 {
+                let isBanner = line.hasSuffix(".swift")
+                    || line.hasSuffix(".m")
+                    || !line.contains(" ")
+                    || line.hasPrefix("Created by")
+                    || line.hasPrefix("Copyright")
+                if isBanner {
+                    banner += 1
+                    continue
+                }
+            }
+            collected.append(line)
+            if collected.joined(separator: " ").count >= limit { break }
+        }
+        let joined = collected.joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard joined.count >= 20 else { return nil }
+        return joined.count > limit
+            ? String(joined.prefix(limit)) + "…"
+            : joined
     }
 }

@@ -98,6 +98,12 @@ extension MaryRuntime {
         observer.setEnabled { corpusIndexingEnabledBox.withLock { $0 } }
 
         observer.setSink { units, observations, registration in
+            if let first = units.first {
+                UnitIndexLedger.shared.noteCrawl(
+                    projectName: first.projectName,
+                    focusedPath: first.relativePath,
+                    unitCount: units.count)
+            }
             for unit in units {
                 await unitIndexer.ingest(unit)
             }

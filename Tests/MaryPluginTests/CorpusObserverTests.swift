@@ -55,10 +55,38 @@ import Testing
         #expect(CorpusObserver.activeName(inTitle: "Mary — ") == nil)
     }
 
-    /// IDENTITY ONLY. The live buffer window belongs to `CodeSurfaceObserver`;
-    /// this line used to occupy `leadContext` and leave the voice with a path.
+    /// Identity stays on `ambientLine`. A fresh observer has no crawl yet,
+    /// so `promptContribution` is nil rather than a path occupying lead.
     @Test func promptContributionIsNeverTheIdentityLine() {
-        #expect(CorpusObserver().promptContribution() == nil)
+        let observer = CorpusObserver()
+        #expect(observer.promptContribution() == nil)
+        #expect(observer.ambientLine == nil)
+    }
+
+    @Test func aCrawledNeighbourhoodIsThePromptContribution() {
+        let observer = CorpusObserver()
+        let unit = IndexedUnit(
+            subject: DepositSubject(
+                app: "xcode",
+                documentIdentity: "Sources/Foo.swift",
+                projectIdentity: "/tmp/demo"),
+            projectName: "Demo",
+            relativePath: "Sources/Foo.swift",
+            contentHash: "abc",
+            declaredTypes: ["Foo"],
+            neighbours: ["Sources/Bar.swift"])
+        observer.adoptNeighborhoodForTests(
+            place: .application("xcode"),
+            projectName: "Demo",
+            relativePath: "Sources/Foo.swift",
+            units: [unit])
+        let digest = observer.promptContribution()
+        #expect(digest?.contains("Project neighbourhood") == true)
+        #expect(digest?.contains("Sources/Foo.swift") == true)
+        #expect(digest?.contains("Foo") == true)
+        #expect(digest?.contains("Bar.swift") == true)
+        #expect(digest?.contains("Working in") != true)
+        #expect(observer.ambientLine == "Working in Demo — Sources/Foo.swift")
     }
 
     // MARK: - Name to path

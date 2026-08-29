@@ -50,10 +50,9 @@
 //  hit, which is the one real correctness risk in this feature.
 //
 //  WHAT IT CONTRIBUTES TO THE PROMPT: the live window. `observedPlace` is the
-//  focused registration so the arbiter can grant this observer `leadContext`;
-//  `CorpusObserver` still speaks a one-line ambient identity for the same
-//  place and must not also fill `full`, or two contributions for one lane
-//  would leave the identity line winning and the excerpt on the floor.
+//  focused registration so the arbiter can grant this observer `leadContext`.
+//  `CorpusObserver` speaks a neighbourhood digest for the same place; the
+//  arbiter merges the two fulls. Identity stays on `ambientLine`.
 //
 
 import AppKit

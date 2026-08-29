@@ -79,12 +79,12 @@ public struct SeerUnitAnnotator: UnitAnnotating {
             case .http, .unreachable:
                 Self.log.error(
                     "annotation failed: \(error.localizedDescription, privacy: .public)")
-                return .failed
+                return .failed(error.localizedDescription)
             }
         } catch {
             Self.log.error(
                 "annotation failed: \(error.localizedDescription, privacy: .public)")
-            return .failed
+            return .failed(error.localizedDescription)
         }
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return .empty

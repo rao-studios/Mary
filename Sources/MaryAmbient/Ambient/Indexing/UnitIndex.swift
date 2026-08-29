@@ -82,6 +82,9 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         self.annotator = annotator
     }
 
+    /// True while a unit is waiting on the 12s idle timer. Life pulses wait.
+    public var hasPendingIdle: Bool { !pending.isEmpty || !tasks.isEmpty }
+
     /// A new loader may know projects the old one did not (a sign-in), so the
     /// attempted set starts over with it.
     public func setManifestLoader(
@@ -253,7 +256,9 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         enqueueAnnotation { [weak self] in
             guard let self else { return }
             let result = await self.annotated(unit, pinnedLabels: pinned)
-            await self.publish(result.unit, outcome: result.outcome, projectID: projectID)
+            await self.publish(
+                result.unit, outcome: result.outcome, note: result.note,
+                projectID: projectID)
         }
     }
 
@@ -262,8 +267,8 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
     /// made "not annotated", "no annotator" and "refused" indistinguishable.
     private func annotated(
         _ unit: IndexedUnit, pinnedLabels: [String]?
-    ) async -> (unit: IndexedUnit, outcome: UnitAnnotationOutcome) {
-        guard let annotator else { return (unit, .noAnnotator) }
+    ) async -> (unit: IndexedUnit, outcome: UnitAnnotationOutcome, note: String?) {
+        guard let annotator else { return (unit, .noAnnotator, nil) }
         let attempt = await annotator.annotationAttempt(.init(
             projectName: unit.projectName,
             relativePath: unit.relativePath,
@@ -276,16 +281,18 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         case .annotated(let value):
             annotation = value
         case .seerUnavailable:
-            return (unit, .seerUnavailable)
+            return (unit, .seerUnavailable, nil)
         case .empty:
-            return (unit, .empty)
+            return (unit, .empty, nil)
         case .unparsable:
-            return (unit, .unparsable)
-        case .failed:
-            return (unit, annotator.refusesToAnnotate ? .refusedExclusiveEngine : .failed)
+            return (unit, .unparsable, nil)
+        case .failed(let reason):
+            let outcome: UnitAnnotationOutcome = annotator.refusesToAnnotate
+                ? .refusedExclusiveEngine : .failed
+            return (unit, outcome, reason)
         }
         guard let annotation, !annotation.isEmpty else {
-            return (unit, .failed)
+            return (unit, .failed, nil)
         }
         var annotated = unit
         // A hand correction outranks the model, every time, for this unit —
@@ -294,14 +301,15 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         if let pinnedLabels, !pinnedLabels.isEmpty {
             annotated.annotation = UnitAnnotation(
                 precis: annotation.precis, labels: pinnedLabels)
-            return (annotated, .pinned)
+            return (annotated, .pinned, nil)
         }
         annotated.annotation = annotation
-        return (annotated, .ran)
+        return (annotated, .ran, nil)
     }
 
     private func publish(
-        _ unit: IndexedUnit, outcome: UnitAnnotationOutcome, projectID: String
+        _ unit: IndexedUnit, outcome: UnitAnnotationOutcome, note: String?,
+        projectID: String
     ) async {
         if let labels = unit.annotation?.labels, !labels.isEmpty {
             manifests[projectID]?.entries[unit.relativePath]?.labels = labels
@@ -311,6 +319,7 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
             outcome,
             precis: unit.annotation?.precis,
             labels: unit.annotation?.labels ?? [],
+            annotationNote: note,
             forUnit: unit.unitKey)
         // THE MANIFEST TRAVELS WITH THE UNIT. It used to be rebuilt
         // independently on the far side of the sink, so a hand-edited label

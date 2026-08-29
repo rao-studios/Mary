@@ -2,7 +2,7 @@
 //  ServersSheet.swift
 //  Mary
 //
-//  The local stack's control room: Seer and Totem status with start/stop/
+//  The local stack's control room: Seer, Totem, and Fleet status with start/stop/
 //  restart/build, the account that authenticates the APIs, and the stack
 //  configuration (checkouts, ports, totem identity). Servers auto-launch at
 //  boot and die with the app; this sheet is for watching and overriding.
@@ -119,34 +119,33 @@ struct ServersSheet: View {
                         .foregroundStyle(Color.maryInk.opacity(0.5))
                 }
                 HStack(spacing: .layer2) {
-                    if snapshot.status == .external {
-                        Text("Managed outside Mary")
-                            .font(.marySans(10))
-                            .foregroundStyle(Color.maryInk.opacity(0.4))
-                    } else {
-                        switch snapshot.status {
-                        case .stopped, .notBuilt, .unhealthy:
-                            if snapshot.binaryPath != nil {
-                                Button("Start") { viewModel.startServer(snapshot.kind) }
-                                    .buttonStyle(.mary)
-                            }
-                        case .healthy, .launching:
-                            Button("Stop") { viewModel.stopServer(snapshot.kind) }
-                                .buttonStyle(.maryQuiet)
-                            Button("Restart") { viewModel.restartServer(snapshot.kind) }
-                                .buttonStyle(.maryQuiet)
-                        case .external, .building:
-                            EmptyView()
+                    switch snapshot.status {
+                    case .stopped, .notBuilt, .unhealthy:
+                        if snapshot.binaryPath != nil {
+                            Button("Start") { viewModel.startServer(snapshot.kind) }
+                                .buttonStyle(.mary)
                         }
-                        if snapshot.status != .building {
-                            Button(snapshot.binaryPath == nil ? "Build" : "Rebuild") {
-                                viewModel.build(snapshot.kind)
-                            }
+                    case .healthy, .launching, .external:
+                        Button("Stop") { viewModel.stopServer(snapshot.kind) }
                             .buttonStyle(.maryQuiet)
-                            .disabled(viewModel.buildingKinds.contains(snapshot.kind))
+                        Button("Restart") { viewModel.restartServer(snapshot.kind) }
+                            .buttonStyle(.maryQuiet)
+                    case .building:
+                        EmptyView()
+                    }
+                    if snapshot.status != .building {
+                        Button(snapshot.binaryPath == nil ? "Build" : "Rebuild") {
+                            viewModel.build(snapshot.kind)
                         }
+                        .buttonStyle(.maryQuiet)
+                        .disabled(viewModel.buildingKinds.contains(snapshot.kind))
                     }
                     Spacer()
+                }
+                if snapshot.status == .external {
+                    Text("Launched outside Mary — Stop still ends it.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.4))
                 }
                 if let tail = viewModel.buildTails[snapshot.kind], !tail.isEmpty {
                     VStack(alignment: .leading, spacing: 2) {

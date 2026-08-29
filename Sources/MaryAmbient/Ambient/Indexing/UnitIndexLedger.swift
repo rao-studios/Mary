@@ -115,6 +115,10 @@ public struct UnitIndexRecord: Sendable, Equatable, Identifiable {
     public var labels: [String]
     public var pinnedLabels: [String]?
     public var annotation: UnitAnnotationOutcome
+    /// Why annotation settled the way it did, when that is more specific than
+    /// the outcome enum — an HTTP status, an unreachable host. Nil for
+    /// successes and for outcomes that already name themselves.
+    public var annotationNote: String?
     public var deposit: UnitDepositOutcome
     public var indexedAt: Date
     /// The exact document id this unit occupies in Totem, so the pane can
@@ -141,6 +145,7 @@ public struct UnitIndexRecord: Sendable, Equatable, Identifiable {
         labels: [String] = [],
         pinnedLabels: [String]? = nil,
         annotation: UnitAnnotationOutcome = .pending,
+        annotationNote: String? = nil,
         deposit: UnitDepositOutcome = .pending,
         indexedAt: Date = Date(),
         documentID: String? = nil
@@ -160,6 +165,7 @@ public struct UnitIndexRecord: Sendable, Equatable, Identifiable {
         self.labels = labels
         self.pinnedLabels = pinnedLabels
         self.annotation = annotation
+        self.annotationNote = annotationNote
         self.deposit = deposit
         self.indexedAt = indexedAt
         self.documentID = documentID
@@ -342,6 +348,7 @@ public final class UnitIndexLedger: @unchecked Sendable {
         _ outcome: UnitAnnotationOutcome,
         precis: String? = nil,
         labels: [String] = [],
+        annotationNote: String? = nil,
         forUnit unitKey: String,
         at now: Date = Date()
     ) {
@@ -350,6 +357,7 @@ public final class UnitIndexLedger: @unchecked Sendable {
         lock.lock()
         if var record = units[unitKey] {
             record.annotation = outcome
+            record.annotationNote = annotationNote
             if let precis { record.precis = precis }
             if !labels.isEmpty { record.labels = labels }
             units[unitKey] = record
@@ -358,11 +366,15 @@ public final class UnitIndexLedger: @unchecked Sendable {
         }
         lock.unlock()
         guard !subject.isEmpty else { return }
+        let detail = [outcome.rawValue, annotationNote]
+            .compactMap { $0 }
+            .filter { !$0.isEmpty }
+            .joined(separator: " — ")
         note(.init(
             kind: .annotated,
             projectName: project,
             subject: subject,
-            detail: outcome.rawValue,
+            detail: detail,
             at: now))
     }
 

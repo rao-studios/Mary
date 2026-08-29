@@ -66,6 +66,37 @@ import Testing
         #expect(!lead.contains("Working in Mary"))
     }
 
+    /// THE NEIGHBOURHOOD JOINS THE CARET, rather than competing with it.
+    /// Two observers, one place, two full sections: both belong in
+    /// `leadContext`, and the identity line still does not.
+    @Test func aCaretExcerptAndACorpusDigestShareTheLead() {
+        let digest = """
+            Project neighbourhood (from disk, around VoicePipeline+Turn.swift):
+            Sources/VoicePipeline+Turn.swift — VoicePipeline. Related: MaryBrain.swift
+            """
+        let sections = WorkspaceFocusArbiter.sections(
+            focus: .coding,
+            contributions: [
+                .init(
+                    place: xcode,
+                    discipline: .coding,
+                    full: [liveWindow],
+                    ambient: "In Xcode: VoicePipeline+Turn.swift",
+                    liveDocumentIsWhole: false),
+                .init(
+                    place: xcode,
+                    discipline: .coding,
+                    full: [digest],
+                    ambient: "Working in Mary — Sources/VoicePipeline+Turn.swift"),
+            ])
+        #expect(sections.leadPlace == xcode)
+        #expect(sections.leadContext.count == 2)
+        #expect(sections.leadContext[0].contains("Current file:"))
+        #expect(sections.leadContext[1].contains("Project neighbourhood"))
+        #expect(sections.leadContext[1].contains("VoicePipeline+Turn.swift"))
+        #expect(!sections.leadContext.joined().contains("Working in Mary"))
+    }
+
     // MARK: - Pixel look
 
     @Test func aCodeSurfaceApplicationDeclinesThePixelLook() {

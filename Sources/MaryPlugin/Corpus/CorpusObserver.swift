@@ -63,6 +63,9 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
     /// that has not grown neighbours can skip the sink without skipping the
     /// walk that would discover them.
     private let lastStructureBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+    /// Rendered neighbourhood, ready for the prompt. Written after a crawl,
+    /// cleared on deactivate — never the identity line.
+    private let digestBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let poller = SinglePollerClaim()
     /// One crawl at a time. The claim above owns the LOOP; this owns a single
     /// pass, so a per-turn refresh cannot start a second walk over the same
@@ -109,10 +112,15 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return "Working in \(settled.projectName) — \(settled.relativePath)"
     }
 
-    /// Identity only. The live buffer window belongs to `CodeSurfaceObserver`;
-    /// putting this line in `full` made it occupy `leadContext` and left the
-    /// voice with a path instead of source.
-    public func promptContribution() -> String? { nil }
+    /// The neighbourhood digest, once a crawl has produced units. Identity
+    /// stays on `ambientLine` — putting THAT in `full` occupied `leadContext`
+    /// and left the voice with a path instead of source. The digest is the
+    /// other half of the live coding section: the files around the open one,
+    /// so a generic "what's this project" turn is not answering from a caret
+    /// excerpt alone.
+    public func promptContribution() -> String? {
+        digestBox.withLock { $0 }
+    }
 
     public var ambientSenses: Set<AmbientSense> { [.workspace] }
 
@@ -138,6 +146,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         poller.release()
         settledBox.withLock { $0 = nil }
         lastStructureBox.withLock { $0 = nil }
+        digestBox.withLock { $0 = nil }
     }
 
     /// Cadence. Slow on purpose: settling on a file is a human-scale event.
@@ -151,6 +160,55 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         units.map {
             "\($0.relativePath)|\($0.contentHash)|\($0.neighbours.sorted().joined(separator: ","))"
         }.sorted().joined(separator: ";")
+    }
+
+    /// Compact enough for a prompt section, structural enough to explore from.
+    /// Never a file body — declarations, related paths, and the focused file
+    /// named first because that is where the walk started.
+    package static func neighborhoodDigest(
+        units: [IndexedUnit], focusedPath: String, limit: Int = 12
+    ) -> String {
+        let focusedName = (focusedPath as NSString).lastPathComponent
+        var lines = [
+            "Project neighbourhood (from disk, around \(focusedName)):"
+        ]
+        for unit in units.prefix(limit) {
+            var line = unit.relativePath
+            let names = unit.declaredTypes.prefix(6)
+            if !names.isEmpty {
+                line += " — \(names.joined(separator: ", "))"
+            }
+            let related = unit.neighbours.prefix(4).map {
+                ($0 as NSString).lastPathComponent
+            }
+            if !related.isEmpty {
+                line += ". Related: \(related.joined(separator: ", "))"
+            }
+            lines.append(line)
+        }
+        if units.count > limit {
+            lines.append("…and \(units.count - limit) more neighbouring files")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// Test seam: a standing neighbourhood without Accessibility.
+    func adoptNeighborhoodForTests(
+        place: AmbientPlace,
+        projectName: String,
+        relativePath: String,
+        units: [IndexedUnit]
+    ) {
+        settledBox.withLock {
+            $0 = Settled(
+                applicationID: place.application ?? "",
+                projectRoot: units.first?.subject.projectIdentity ?? "",
+                projectName: projectName,
+                relativePath: relativePath)
+        }
+        digestBox.withLock {
+            $0 = Self.neighborhoodDigest(units: units, focusedPath: relativePath)
+        }
     }
 
     // MARK: - The poll
@@ -193,11 +251,6 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             relativePath: focus.relativePath)
         let sameFile = settledBox.withLock { $0 } == settled
 
-        guard let sink = sinkBox.withLock({ $0 }) else {
-            settledBox.withLock { $0 = settled }
-            return
-        }
-
         let corpus = registration.schema
         let index = CorpusTypeIndexCache.shared.index(
             root: focus.root, corpus: corpus, at: now
@@ -233,11 +286,22 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             return
         }
 
+        // THE PROMPT SEES THIS CRAWL, not only Totem after the idle timer.
+        // Generic exploration turns used to arrive with a caret excerpt and
+        // no neighbourhood, because `promptContribution` was nil by policy
+        // and the units sat in the indexer until annotation finished.
+        digestBox.withLock {
+            $0 = Self.neighborhoodDigest(
+                units: units, focusedPath: focus.relativePath)
+        }
+
         let structureKey = Self.structureKey(for: units)
         let structureUnchanged = sameFile
             && lastStructureBox.withLock({ $0 }) == structureKey
         settledBox.withLock { $0 = settled }
         lastStructureBox.withLock { $0 = structureKey }
+
+        guard let sink = sinkBox.withLock({ $0 }) else { return }
 
         // STYLE ONLY FROM A FRESH EDIT, and only from the focused file — the
         // neighbours were pulled in because this one points at them, not

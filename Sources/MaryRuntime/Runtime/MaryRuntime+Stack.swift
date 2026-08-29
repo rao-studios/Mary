@@ -58,6 +58,7 @@ extension MaryRuntime {
     /// spec changes apply on restart (Servers sheet).
     /// Where Totem's direct gRPC lives right now — read by makeTotemReader.
     nonisolated(unsafe) private(set) static var totemGRPCPort = ServerSpec.Defaults.totemGRPCPort
+    nonisolated(unsafe) private(set) static var fleetGRPCPort = ServerSpec.Defaults.fleetGRPCPort
 
     /// A fresh read client for inspector/library queries (connections are
     /// per-call, so clients are cheap to make at the current port).
@@ -65,8 +66,14 @@ extension MaryRuntime {
         TotemDirectClient(port: totemGRPCPort)
     }
 
+    package static func makeFleetClient() -> FleetDirectClient {
+        FleetDirectClient(port: fleetGRPCPort)
+    }
+
     package static func applyServers(config: ConfigService.Center.State, nodeID: String) async {
         totemGRPCPort = config.totemGRPCPort
+        fleetGRPCPort = config.fleetGRPCPort
+        totemNodeIDBox.withLock { $0 = nodeID }
         await localStack.configure([
             .seer(
                 checkoutPath: config.seerCheckoutPath,
@@ -79,6 +86,11 @@ extension MaryRuntime {
                 mothershipGRPCPort: config.seerGRPCPort,
                 nodeID: nodeID,
                 graphBackend: config.totemGraphBackend),
+            .fleet(
+                checkoutPath: config.fleetCheckoutPath,
+                port: config.fleetPort,
+                grpcPort: config.fleetGRPCPort,
+                totemGRPCPort: config.totemGRPCPort),
         ])
         await totemContext.configure(port: config.totemGRPCPort)
         // Both transports get the SAME scope closure — they wrap the identical

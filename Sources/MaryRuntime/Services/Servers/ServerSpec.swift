@@ -15,6 +15,7 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     package enum Kind: String, Sendable, CaseIterable, Identifiable {
         case seer = "Seer"
         case totem = "Totem"
+        case fleet = "Fleet"
         package var id: String { rawValue }
     }
 
@@ -104,6 +105,29 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         )
     }
 
+    /// Fleet: HTTP `/health` on `port`, FleetLoRA gRPC on `grpcPort`. Pulls
+    /// training corpora from Totem's direct gRPC.
+    package static func fleet(
+        checkoutPath: String,
+        port: Int,
+        grpcPort: Int,
+        totemGRPCPort: Int
+    ) -> ServerSpec {
+        ServerSpec(
+            kind: .fleet,
+            executableName: "fleet",
+            checkoutPath: expand(checkoutPath),
+            arguments: [
+                "serve",
+                "--port", String(port),
+                "--grpc-port", String(grpcPort),
+                "--totem-host", "127.0.0.1",
+                "--totem-grpc-port", String(totemGRPCPort),
+            ],
+            healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
+        )
+    }
+
     static func expand(_ path: String) -> String {
         (path as NSString).expandingTildeInPath
     }
@@ -119,6 +143,9 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         package static let totemPort = 8081
         package static let totemGRPCPort = 9090
         package static let totemGraphBackend = "mistral"
+        package static let fleetCheckoutPath = "~/Documents/rao/repositories/Fleet"
+        package static let fleetPort = 8083
+        package static let fleetGRPCPort = 9093
         package static let seerEmail = "admin@seer.social"
         package static let seerPassword = "cogqab-jazhEv-5rudhi"
 

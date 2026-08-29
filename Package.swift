@@ -76,6 +76,7 @@ let package = Package(
         // notices.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
+        .package(path: "../Fleet"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
@@ -215,6 +216,8 @@ let package = Package(
                 .product(name: "MLX", package: "Frigate"),
                 .product(name: "MLXLMCommon", package: "Frigate"),
                 .product(name: "MLXLLM", package: "Frigate"),
+                .product(name: "FleetCore", package: "Fleet"),
+                .product(name: "FleetInference", package: "Fleet"),
             ],
             path: "Sources/MaryBrain",
             swiftSettings: [.swiftLanguageMode(.v5)]

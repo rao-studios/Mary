@@ -89,6 +89,12 @@ final class SeerCompleteClientTests: XCTestCase {
         XCTAssertEqual(messages.count, 1)
         XCTAssertEqual(messages[0]["role"] as? String, "user")
         XCTAssertEqual(messages[0]["content"] as? String, "struct Foo {}")
+        XCTAssertEqual(object["max_tokens"] as? Int, 256)
+        if let temperature = object["temperature"] as? NSNumber {
+            XCTAssertEqual(temperature.doubleValue, 0)
+        } else {
+            XCTFail("complete must send temperature 0")
+        }
     }
 
     func test401RefreshesAndRetriesOnce() async throws {

@@ -103,6 +103,33 @@ struct TotemLaneSection: Identifiable, Equatable {
     var groups: [TotemGroupRow]
 }
 
+/// One Fleet LoRA slot for a discipline. Fleet is the source of truth —
+/// this is not a Totem document family.
+struct TotemLoRASlotRow: Identifiable, Equatable {
+    var abilityID: String
+    var generation: Int
+    var pairCount: Int
+    var trainedAt: Date?
+    var ready: Bool
+    var training: Bool
+    var artifactPath: String
+    var schemaJSON: Data
+    var modelID: String
+    var cid: String
+
+    var id: String { abilityID }
+
+    var statusLine: String {
+        if training { return "training" }
+        if ready { return "ready" }
+        return "not ready"
+    }
+
+    var pairsLine: String {
+        "\(pairCount) pair\(pairCount == 1 ? "" : "s") · gen \(generation)"
+    }
+}
+
 /// One drilled document, as a snapshot: either the full body (Documents RPC)
 /// or the ContributionInspector fallback tier — library metadata plus a
 /// search-hit preview — with the degradation NAMED in `notice`.

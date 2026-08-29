@@ -78,8 +78,8 @@ public actor SeerCompleteClient: SeerCompleteProviding {
         let body = try JSONEncoder().encode(SeerWire.CompleteRequest(
             instructions: instructions,
             messages: messages,
-            maxTokens: 1024,
-            temperature: nil))
+            maxTokens: 256,
+            temperature: 0))
 
         var attempt = try await open(body: body, bearer: token)
         if attempt.status == 401 {
@@ -122,10 +122,13 @@ public struct URLSessionCompleteTransport: SeerCompleteTransport {
     /// A small dedicated session — never `URLSession.shared` (its resource
     /// timeout is seven days) and deliberately not `StreamingHTTP.session`
     /// (a complete hanging that session's 300 s idle window would starve
-    /// the turn). One non-streaming POST: 30 s idle, 120 s wall clock.
+    /// the turn). One non-streaming POST: 90 s idle (a thinking utility
+    /// model can sit that long before the first token; 30 s made every
+    /// annotation look like "the summariser returned nothing"), 120 s wall
+    /// clock.
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 30
+        configuration.timeoutIntervalForRequest = 90
         configuration.timeoutIntervalForResource = 120
         return URLSession(configuration: configuration)
     }()

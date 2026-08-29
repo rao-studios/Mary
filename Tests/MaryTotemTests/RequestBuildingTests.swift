@@ -249,4 +249,18 @@ final class RequestBuildingTests: XCTestCase {
         XCTAssertEqual(mapped.relationshipCount, 4)
         XCTAssertEqual(mapped.topEntities, [GraphTopEntity(id: "e1", name: "mary", kind: "project", mentionCount: 3)])
     }
+
+    func testExportCorpusRequestMapsAllFields() {
+        let request = TotemProtoMap.exportCorpusRequest(
+            ownerID: "owner-1",
+            groupIDs: ["g1", "g2"],
+            documentIDPrefix: "mary-behavior-",
+            afterID: "cursor",
+            limit: 50)
+        XCTAssertEqual(request.ownerID, "owner-1")
+        XCTAssertEqual(request.groupIds, ["g1", "g2"])
+        XCTAssertEqual(request.documentIDPrefix, "mary-behavior-")
+        XCTAssertEqual(request.afterID, "cursor")
+        XCTAssertEqual(request.limit, 50)
+    }
 }

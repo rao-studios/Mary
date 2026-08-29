@@ -60,12 +60,26 @@ public actor InferenceUnitAnnotator: UnitAnnotating {
     }
 
     public func annotate(_ request: UnitAnnotationRequest) async -> UnitAnnotation? {
+        if case .annotated(let annotation) = await annotationAttempt(request) {
+            return annotation
+        }
+        return nil
+    }
+
+    public func annotationAttempt(
+        _ request: UnitAnnotationRequest
+    ) async -> UnitAnnotationAttempt {
         guard !engine.requiresExclusiveGeneration else {
             Self.log.debug("annotation skipped: engine requires exclusive generation")
-            return nil
+            return .failed(nil)
         }
-        guard let raw = await complete(prompt: Self.prompt(for: request)) else { return nil }
-        return Self.parse(raw)
+        guard let raw = await complete(prompt: Self.prompt(for: request)) else {
+            return .empty
+        }
+        guard let annotation = Self.parse(raw) else {
+            return .unparsable
+        }
+        return .annotated(annotation)
     }
 
     // MARK: - The round

@@ -114,6 +114,9 @@ extension ConfigService {
             /// default: the mlx default silently degrades to keyword-only
             /// when the build lacks a metallib.
             package var totemGraphBackend: String = ServerSpec.Defaults.totemGraphBackend
+            package var fleetCheckoutPath: String = ServerSpec.Defaults.fleetCheckoutPath
+            package var fleetPort: Int = ServerSpec.Defaults.fleetPort
+            package var fleetGRPCPort: Int = ServerSpec.Defaults.fleetGRPCPort
             /// Whether Mary pushes its graph policy (custom ontology kinds,
             /// co-mention edges) to Totem after boot.
             package var totemGraphPolicyManaged: Bool = true
@@ -129,7 +132,7 @@ extension ConfigService {
                 case llmEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
-                case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, totemGraphPolicyManaged, seerChatModel, seerTransport
+                case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
             }
 
             package init() {}
@@ -205,6 +208,9 @@ extension ConfigService {
                 seerEmail = try c.decodeIfPresent(String.self, forKey: .seerEmail) ?? ServerSpec.Defaults.seerEmail
                 seerPassword = try c.decodeIfPresent(String.self, forKey: .seerPassword) ?? ServerSpec.Defaults.seerPassword
                 totemGraphBackend = try c.decodeIfPresent(String.self, forKey: .totemGraphBackend) ?? ServerSpec.Defaults.totemGraphBackend
+                fleetCheckoutPath = try c.decodeIfPresent(String.self, forKey: .fleetCheckoutPath) ?? ServerSpec.Defaults.fleetCheckoutPath
+                fleetPort = try c.decodeIfPresent(Int.self, forKey: .fleetPort) ?? ServerSpec.Defaults.fleetPort
+                fleetGRPCPort = try c.decodeIfPresent(Int.self, forKey: .fleetGRPCPort) ?? ServerSpec.Defaults.fleetGRPCPort
                 totemGraphPolicyManaged = try c.decodeIfPresent(Bool.self, forKey: .totemGraphPolicyManaged) ?? true
                 seerChatModel = try c.decodeIfPresent(String.self, forKey: .seerChatModel) ?? ""
                 seerTransport = try c.decodeIfPresent(SeerTransportChoice.self, forKey: .seerTransport) ?? .classic

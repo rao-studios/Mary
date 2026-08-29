@@ -42,6 +42,9 @@ extension ConfigService {
             seerEmail: String? = nil,
             seerPassword: String? = nil,
             totemGraphBackend: String? = nil,
+            fleetCheckoutPath: String? = nil,
+            fleetPort: Int? = nil,
+            fleetGRPCPort: Int? = nil,
             totemGraphPolicyManaged: Bool? = nil,
             seerChatModel: String? = nil,
             seerTransport: SeerTransportChoice? = nil
@@ -73,6 +76,9 @@ extension ConfigService {
             self.seerEmail = seerEmail
             self.seerPassword = seerPassword
             self.totemGraphBackend = totemGraphBackend
+            self.fleetCheckoutPath = fleetCheckoutPath
+            self.fleetPort = fleetPort
+            self.fleetGRPCPort = fleetGRPCPort
             self.totemGraphPolicyManaged = totemGraphPolicyManaged
             self.seerChatModel = seerChatModel
             self.seerTransport = seerTransport
@@ -106,6 +112,9 @@ extension ConfigService {
             package var seerEmail: String? = nil
             package var seerPassword: String? = nil
             package var totemGraphBackend: String? = nil
+            package var fleetCheckoutPath: String? = nil
+            package var fleetPort: Int? = nil
+            package var fleetGRPCPort: Int? = nil
             package var totemGraphPolicyManaged: Bool? = nil
             package var seerChatModel: String? = nil
             package var seerTransport: SeerTransportChoice? = nil
@@ -151,6 +160,9 @@ extension ConfigService {
             if let value = meta.seerEmail, !value.isEmpty { state.seerEmail = value }
             if let value = meta.seerPassword, !value.isEmpty { state.seerPassword = value }
             if let value = meta.totemGraphBackend, !value.isEmpty { state.totemGraphBackend = value }
+            if let value = meta.fleetCheckoutPath, !value.isEmpty { state.fleetCheckoutPath = value }
+            if let value = meta.fleetPort, value > 0 { state.fleetPort = value }
+            if let value = meta.fleetGRPCPort, value > 0 { state.fleetGRPCPort = value }
             if let value = meta.totemGraphPolicyManaged { state.totemGraphPolicyManaged = value }
             // Empty is meaningful (reverts to Seer's default model).
             if let value = meta.seerChatModel { state.seerChatModel = value }

@@ -11,6 +11,9 @@
 import Foundation
 import MLXLLM
 import MLXLMCommon
+import FleetCore
+import FleetInference
+import MaryFoundation
 
 public actor MaryLocalEngine: InferenceEngine {
 
@@ -31,6 +34,8 @@ public actor MaryLocalEngine: InferenceEngine {
     private var context: ModelContext?
     /// 0…1 while the first-use download runs (surfaced by Boot state).
     private(set) var downloadProgress: Double = 1.0
+    private var adapterPath: URL?
+    private var codecSession: StructuredSession?
 
     public nonisolated let displayName: String
 
@@ -64,6 +69,40 @@ public actor MaryLocalEngine: InferenceEngine {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    public func loadAdapter(path: URL) {
+        if adapterPath != path {
+            adapterPath = path
+            codecSession = nil
+        }
+    }
+
+    public func unloadAdapter() {
+        adapterPath = nil
+        codecSession = nil
+    }
+
+    public func completeCodec(
+        input: BehavioralTrainingInput,
+        schemaJSON: Data,
+        adapterPath: URL
+    ) async throws -> BehavioralTrainingOutput {
+        loadAdapter(path: adapterPath)
+        guard let schema = try? JSONDecoder().decode(SchemaTemplate.self, from: schemaJSON)
+        else { throw CodecCompleteError.invalidSchema }
+        if codecSession == nil {
+            codecSession = StructuredSession(
+                modelId: modelID, adapterDirectory: adapterPath)
+        }
+        let bytes = try BehavioralCodec.encoder().encode(input)
+        guard let text = String(data: bytes, encoding: .utf8) else {
+            throw CodecCompleteError.invalidSchema
+        }
+        let json = try JSONParser.parse(text)
+        let result = try await codecSession!.complete(input: json, schema: schema)
+        return try BehavioralCodec.decoder().decode(
+            BehavioralTrainingOutput.self, from: Data(result.rawText.utf8))
     }
 
     // MARK: - Private
@@ -252,10 +291,10 @@ public actor MaryLocalEngine: InferenceEngine {
     /// second consumer without the identical map collides with WhisperKit's
     /// copy.
     ///
-    /// NOTE THE NAME: "Fleet" is a sibling product this app ported its palette
-    /// and Sendable precedent from, not a package here — there is nothing to
-    /// integrate under that name. The on-device stack is Frigate/MLX, and it
-    /// is this file.
+    /// NOTE THE NAME: "Fleet" is a sibling product. MaryBrain now depends on
+    /// FleetCore + FleetInference for JSONGate / StructuredSession — LoRA
+    /// adapters load here, and only here. Spoken `stream` stays unadapted
+    /// tool-calling; `completeCodec` is the gated acting path.
     ///
     /// What such a router may and may not decide is in
     /// `docs/PROMPT-ASSEMBLY.md` §3 and on `AmbientRoute`. Nothing is

@@ -143,8 +143,9 @@ extension MaryBrain {
                         gateWaitMs = Self.elapsedMs(since: roundStart)
                     }
                     defer { if holdsGate { engineGate.release() } }
-                    let events = engine.stream(
-                        system: orchestratorPrompt, history: laneHistory, skills: dispatcher.schemas)
+                    let events = await actingEvents(
+                        system: orchestratorPrompt, history: laneHistory,
+                        skills: dispatcher.schemas)
                     for try await event in events {
                         if Task.isCancelled { break }
                         switch event {

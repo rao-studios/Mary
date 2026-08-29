@@ -102,7 +102,8 @@ extension MaryBrain {
                         holdsGate = await engineGate.acquire(priority: .attached)
                     }
                     defer { if holdsGate { engineGate.release() } }
-                    let events = engine.stream(system: turnPrompt, history: history, skills: schemas)
+                    let events = await actingEvents(
+                        system: turnPrompt, history: history, skills: schemas)
                     for try await event in events {
                         if Task.isCancelled { break }
                         switch event {

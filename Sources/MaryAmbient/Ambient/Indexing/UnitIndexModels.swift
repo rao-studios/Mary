@@ -102,7 +102,9 @@ public enum UnitAnnotationAttempt: Sendable, Equatable {
     case seerUnavailable
     case empty
     case unparsable
-    case failed
+    /// The round failed before a body arrived. The associated reason is what
+    /// the Corpus card should name instead of "returned nothing".
+    case failed(String?)
 }
 
 /// The seam to whatever can write a précis. Declared here because this package
@@ -132,7 +134,7 @@ public extension UnitAnnotating {
         if let annotation = await annotate(request), !annotation.isEmpty {
             return .annotated(annotation)
         }
-        return .failed
+        return .failed(nil)
     }
 }
 

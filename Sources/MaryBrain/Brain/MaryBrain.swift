@@ -225,6 +225,9 @@ public actor MaryBrain: LanguageResponder {
     /// and idempotent under any unwind interleaving.
     // internal for file split — treat as private
     var openExchange: (userTurnID: UUID, epoch: UInt64)?
+    /// Ready LoRAs by discipline, supplied by Runtime. Nil lookup = no Life.
+    // internal for file split — treat as private
+    var lifeLoRALookup: (@Sendable (AbilityID) -> LifeLoRASlot?)?
     // internal for file split — treat as private
     let turnBox = TurnBox()
     /// Brain-initiated events outside turns — routine progress + follow-ups.

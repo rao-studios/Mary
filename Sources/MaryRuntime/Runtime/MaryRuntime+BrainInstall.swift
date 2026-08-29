@@ -217,6 +217,7 @@ extension MaryRuntime {
         for observer in observers { await observer.activate() }
 
         brainConfigurationInstalledBox.withLock { $0 = true }
+        startLifeLoopIfNeeded()
     }
 
     /// Every prose surface the admitted packages declare.

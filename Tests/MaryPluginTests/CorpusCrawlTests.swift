@@ -213,4 +213,24 @@ import Testing
             to: root.appendingPathComponent("A.swift"), atomically: true, encoding: .utf8)
         #expect(crawl(root, from: "A.swift").first?.contentHash != first)
     }
+
+    @Test func aUnitKeepsDeclarationHeadersAndTheLeadingDoc() throws {
+        let root = try project([
+            "Parser.swift": """
+            //
+            //  Parser.swift
+            //  Demo
+            //
+            //  Turns tokens into a tree.
+            //
+            struct Parser {
+                func parse() {}
+            }
+            """,
+        ])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let unit = crawl(root, from: "Parser.swift").first
+        #expect(unit?.apiHeaders.contains { $0.contains("struct Parser") } == true)
+        #expect(unit?.doc?.contains("Turns tokens into a tree") == true)
+    }
 }

@@ -136,6 +136,26 @@ public actor TotemDirectClient {
         }
     }
 
+    /// Paged full-document export (TotemLibrary.ExportCorpus). Training must
+    /// not reconstruct pairs from search snippets.
+    public func exportCorpus(
+        ownerID: String,
+        groupIDs: [String] = [],
+        documentIDPrefix: String = "mary-behavior-",
+        afterID: String = "",
+        limit: Int = 200
+    ) async throws -> (documents: [DocumentContent], hasMore: Bool) {
+        let request = TotemProtoMap.exportCorpusRequest(
+            ownerID: ownerID, groupIDs: groupIDs,
+            documentIDPrefix: documentIDPrefix, afterID: afterID, limit: limit)
+        return try await withLibraryStub(timeout: .seconds(60)) { stub, options in
+            let response = try await stub.exportCorpus(request, options: options)
+            return (
+                response.documents.map(TotemProtoMap.documentContent(from:)),
+                response.hasMore_p)
+        }
+    }
+
     /// Groups containing any of the given documents — the inspector's
     /// document-id → group-label lookup.
     public func groups(
@@ -307,6 +327,19 @@ enum TotemProtoMap {
         var request = Totem_V1_TotemDocumentsRequest()
         request.ownerID = ownerID
         request.documentIds = ids
+        return request
+    }
+
+    static func exportCorpusRequest(
+        ownerID: String, groupIDs: [String],
+        documentIDPrefix: String, afterID: String, limit: Int
+    ) -> Totem_V1_TotemExportCorpusRequest {
+        var request = Totem_V1_TotemExportCorpusRequest()
+        request.ownerID = ownerID
+        request.groupIds = groupIDs
+        request.documentIDPrefix = documentIDPrefix
+        request.afterID = afterID
+        request.limit = Int32(limit)
         return request
     }
 

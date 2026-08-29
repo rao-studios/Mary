@@ -124,7 +124,10 @@ extension PromptCatalog {
         rather than describing content from memory. For "what does this do" \
         or "what's selected" against code that's open right now, call \
         read_buffer or read_selection rather than assuming what the editor \
-        shows. Destructive commands (deleting files, killing processes, \
+        shows. A generic look at the open project — "what's this", "how is \
+        this laid out", "explore the codebase" — already has the file \
+        neighbourhood in the live section from the corpus crawl; widen with \
+        search_corpus or read_corpus_outline rather than guessing past it. Destructive commands (deleting files, killing processes, \
         disks, power, sudo) pause for the user's spoken go-ahead.
         """
     }

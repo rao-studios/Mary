@@ -223,6 +223,7 @@ import Testing
         await indexer.flush()
 
         #expect(ledger.allUnits().first?.annotation == .failed)
+        #expect(ledger.allUnits().first?.annotationNote == "Seer complete failed (503).")
     }
 
     @Test("labels without a précis are unparsable, not a half card")

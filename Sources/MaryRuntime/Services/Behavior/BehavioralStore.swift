@@ -88,6 +88,7 @@ public actor BehavioralStore: BehavioralRecording {
         if let companion {
             await companion.append(episode)
         }
+        MaryRuntime.noteSealedEpisode(episode)
     }
 
     /// One file per day, named so `ls` sorts chronologically.

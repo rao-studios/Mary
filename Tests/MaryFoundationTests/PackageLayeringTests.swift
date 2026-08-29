@@ -6,7 +6,7 @@
 //
 //  These are the rules about which GRAPHS a target may join: MaryAmbient
 //  stands on MaryFoundation alone, neither it nor MaryPlugin touches
-//  inference or transport, only MaryBrain names Frigate, only MaryRuntime and
+//  inference or transport, only MaryBrain names Frigate and Fleet, only MaryRuntime and
 //  the app consume MaryTotem, and nothing anywhere names WhisperKit.
 //
 //  WHY THE COMPILER DOES NOT CATCH IT. It is tempting to assume a violation
@@ -198,7 +198,7 @@ import Testing
         let manifest = try Self.manifest()
         for name in ["MaryAmbient", "MaryPlugin", "MaryVoice"] {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
-            for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC"] {
+            for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC", "Fleet"] {
                 #expect(
                     !target.contains(forbidden),
                     "\(name)'s target block names \(forbidden). It may not join that graph.")
@@ -220,6 +220,18 @@ import Testing
             #expect(
                 !target.contains("Frigate"),
                 "\(name)'s target block names Frigate — only MaryBrain may hold that edge.")
+        }
+    }
+
+    /// ONLY MARYBRAIN NAMES FLEET. JSONGate / StructuredSession live behind
+    /// MaryBrain; Runtime dials Fleet through MaryTotem's generated facade.
+    @Test func onlyBrainNamesFleet() throws {
+        let manifest = try Self.manifest()
+        for name in Self.plannedTargets where name != "MaryBrain" {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            #expect(
+                !Self.dependencyNames(target).contains(where: { $0.contains("Fleet") }),
+                "\(name) depends on Fleet — only MaryBrain may hold that edge.")
         }
     }
 
