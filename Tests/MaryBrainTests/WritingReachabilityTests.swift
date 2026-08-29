@@ -32,6 +32,62 @@ import Testing
 
 @Suite struct WritingReachabilityTests {
 
+    // MARK: - 0. The real installed Scrivener has to be RECOGNIZED at all
+
+    /// THE LIVE-ONLY BUG THIS PINS: `mary-corpus-probe project --dispatch`
+    /// against a real Scrivener 3 with a real manuscript open found
+    /// `search_corpus`/`read_corpus_outline`/`read_corpus_document`/
+    /// `corpus_progress` unreachable through real `AbilityRuntime.dispatch` —
+    /// every one of them missing from the turn's own projected roster —
+    /// even though every unit test and `mary-package-probe check` passed and
+    /// `mary-corpus-probe project --live` read the manuscript fine.
+    ///
+    /// THE CAUSE was a split between two independent "does this bundle id
+    /// belong to us" implementations. `ProjectCorpusSupport.openCorpora()`
+    /// (which found the project) asks `CorpusRegistration.owns(bundleID:)`,
+    /// a raw `hasPrefix` over `bundleIdentifiers` — lenient enough that it
+    /// matched `com.literatureandlatte.scrivener3` (the real installed
+    /// Scrivener 3) against the declared `com.literatureandlatte.scrivener`
+    /// on its own. Ambient routing asks a DIFFERENT type,
+    /// `ApplicationRegistration.owns(bundleID:)`, which requires an exact
+    /// match unless the package separately declares `bundleIdentifierPrefix`
+    /// — and `scrivener.mary` never did. So `WorkspaceFocusTracker` could
+    /// never recognize the real Scrivener 3 as the taught `scrivener`
+    /// application; it fell to the generic "some app I don't know" terminal
+    /// arm, the lead carried no `writing` discipline, and every Skill this
+    /// file's other tests prove reachable from a writing workspace was
+    /// silently never reachable from the one manuscript application shipped
+    /// to actually be a writing workspace. Fixed by declaring
+    /// `plugin.application.bundleIdentifierPrefix` on `scrivener.mary`
+    /// (2026-08-28); this test is the fast, no-GUI pin so it cannot come
+    /// back silently.
+    @Test func theRealScrivener3BundleIDIsRecognizedAsTheScrivenerApplication() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let compilation = PluginCompiler.compile(
+            packages: [try loadRootPackage("scrivener"), try loadRootPackage("writing")],
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility] })
+
+        let profile = try #require(
+            compilation.applicationProfiles.first { $0.id == "scrivener" })
+        // THE FIELD ITSELF, not just its effect: a future edit that removes
+        // the prefix should fail exactly here, one line from the cause.
+        #expect(
+            profile.applicationBundlePrefix == "com.literatureandlatte.scrivener",
+            "the package must declare the family, not just the exact identity")
+
+        // THE EFFECT `WorkspaceFocusTracker`/`AmbientApplicationIndexProvider`
+        // actually depend on — the same `registration(for:)` join
+        // `AmbientApplicationBridge.install` performs in the shipped app.
+        let registration = AmbientApplicationBridge.registration(for: profile)
+        #expect(registration.owns(bundleID: "com.literatureandlatte.scrivener3"),
+                "the real, versioned Scrivener 3 bundle id must resolve to this registration")
+        #expect(registration.owns(bundleID: "com.literatureandlatte.scrivener"),
+                "the exact declared id still resolves too")
+        #expect(!registration.owns(bundleID: "com.example.scrivener"),
+                "a different vendor's app merely containing the name must not")
+    }
+
     // MARK: - 1. The profile carries the discipline that claims the app
 
     /// AN APPLICATION JOINS A DISCIPLINE BY REALIZING ONE OF ITS SKILLS —

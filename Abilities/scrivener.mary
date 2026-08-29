@@ -110,7 +110,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6775736ed2cf125c3deec74a4fe270400ac44f442b603bd125925a17469cfb3b"
+    "digest" : "a2c53aebb58fbfe6ddd101ef10356e0d183d4b2bf72cf485d9d7865733a2f36b"
   },
   "interactions" : [
 
@@ -140,6 +140,7 @@
       "aliases" : [
         "scrivener"
       ],
+      "bundleIdentifierPrefix" : "com.literatureandlatte.scrivener",
       "bundleIdentifiers" : [
         "com.literatureandlatte.scrivener"
       ],

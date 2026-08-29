@@ -15,11 +15,14 @@
 //
 //    mary-corpus-probe project --project ~/path/to/thing.scriv
 //    mary-corpus-probe project --project … --read "Prologue"
-//    mary-corpus-probe project --live      ← through the shipped packages
+//    mary-corpus-probe project --live       ← through the shipped packages
+//    mary-corpus-probe project --dispatch   ← through REAL AbilityRuntime.dispatch,
+//                                              with Scrivener as the real ambient lead
 //
 
 import ApplicationServices
 import Foundation
+import MaryAmbient
 import MaryBrain
 import MaryFoundation
 import MaryPlugin
@@ -100,6 +103,164 @@ enum ProjectProbe {
         }
     }
 
+    /// DRIVEN THROUGH REAL DISPATCH, not a direct call to the reader or the
+    /// adapter. `outline`/`text` above prove the reader; `runLive()` proves
+    /// the declaration loads and a project resolves off `AXDocument`. Neither
+    /// proves the thing a live turn actually depends on: that
+    /// `AbilityRuntime.dispatch("search_corpus", …)` — the exact path a model
+    /// call takes — is REACHABLE when Scrivener is this turn's ambient lead,
+    /// and REFUSED when it is not.
+    ///
+    /// This is the same class of check the browsing lane's own history
+    /// warns about: a whole skill family was structurally valid and answered
+    /// correctly when called directly, and was unreachable through real
+    /// dispatch because nothing produced its `targetClasses` — a routing
+    /// carve-out invisible to a direct call or a fixture test.
+    ///
+    /// THE LEAD IS REAL, NOT ASSERTED. A bare CLI process has no NSWorkspace
+    /// or Accessibility observers running the way the app does, so it cannot
+    /// produce an ambient lead by osmosis. `WorkspaceFocusTracker.sample()` is
+    /// the seam built for exactly this gap — a TCC-free NSWorkspace frontmost
+    /// read whose own header says it exists "so headless probes work with
+    /// zero app-layer machinery." Scrivener has to actually be the frontmost
+    /// application when this runs, or the check honestly fails rather than
+    /// fabricating a lead.
+    static func runDispatch(_ arguments: [String]) async {
+        func value(_ name: String) -> String? {
+            guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
+            else { return nil }
+            return arguments[index + 1]
+        }
+
+        guard AXIsProcessTrusted() else {
+            print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
+            exit(1)
+        }
+
+        heading("the roster")
+        let adapters = MaryAdapterCatalog.adapters()
+        let load = AbilityLibrary.shared.configureAndLoad(
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: adapters, observers: MaryAdapterCatalog.observers()),
+            nativeApplicationProfiles: adapters.map(\.applicationProfile),
+            primitiveBindings: [])
+        check(load.activated, "the packages loaded", "\(load.snapshot.records.count)")
+        for issue in load.issues where issue.severity == .error {
+            print("      ! \(issue.code): \(issue.message)")
+        }
+
+        let registrations = MaryRuntime.corpusRegistrations(from: load.snapshot)
+        CorpusSupport.shared.reconcile(registrations)
+        let profiles = adapters.map(\.applicationProfile)
+            + load.snapshot.plugins.applicationProfiles
+        AmbientApplicationBridge.install(profiles: profiles)
+
+        heading("what is open")
+        guard case .success(let corpus) = ProjectCorpusSupport.resolve(nil) else {
+            print("  ✗ no project is open. Open Scrivener on a real manuscript and try again.")
+            exit(1)
+        }
+        check(true, "a project resolved off AXDocument", corpus.name)
+
+        // BRING IT FORWARD, VERIFIED — not assumed. A real turn only ever
+        // happens while the user is looking at the app; the lead this probe
+        // reads has to be earned the same way, or the "real" lead this probe
+        // measures is really whatever the terminal happened to be.
+        let activation = await VerifiedActivation.bringForward(
+            pid: corpus.processIdentifier, requireVisibleWindow: true)
+        check(activation.succeeded, "Scrivener came forward",
+              activation.road.map(String.init(describing:))
+                  ?? activation.reason(app: corpus.registration.displayName) ?? "refused")
+
+        heading("the real lead")
+        WorkspaceFocusTracker.shared.sample()
+        let signal = WorkspaceFocusTracker.shared.signal()
+        let leadApplicationID = signal.lead?.application
+        check(leadApplicationID == corpus.registration.applicationID,
+              "the tracker's own frontmost read leads with the corpus's application",
+              leadApplicationID ?? "none")
+
+        let query = value("--query") ?? "comet"
+        let utterance = "find where the manuscript mentions \(query)"
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+            utterance: utterance,
+            leadApplicationID: leadApplicationID,
+            profiles: profiles))
+        AmbientContextStore.shared.noteUtterance(utterance)
+        AmbientContextStore.shared.noteRoute(route)
+        check(route.leadPlace?.application == corpus.registration.applicationID,
+              "the route's lead place names the corpus's application",
+              route.leadPlace?.token ?? "none")
+        check(route.leadPlace?.ability?.rawValue == "writing",
+              "and the place registers a writing discipline",
+              route.leadPlace?.ability?.rawValue ?? "none")
+
+        heading("what the model would actually be offered")
+        let log = AbilityExecutionLog()
+        let runtime = AbilityRuntime(
+            plugins: adapters, executionLog: log,
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        let offered = Set(runtime.schemas.map(\.name))
+        for wanted in [
+            "search_corpus", "read_corpus_outline", "read_corpus_document", "corpus_progress",
+        ] {
+            check(offered.contains(wanted), "\(wanted) is in this turn's roster")
+        }
+
+        heading("dispatching search_corpus for real")
+        let searchOutcome = await runtime.dispatch(
+            name: "search_corpus",
+            argumentsJSON: #"{"query":"\#(query)"}"#)
+        check(searchOutcome.ok, "search_corpus dispatched without a refusal")
+        check(!searchOutcome.foundNothing, "and it found the word in a real document",
+              "query \"\(query)\"")
+        print("      \(searchOutcome.summary.replacingOccurrences(of: "\n", with: "\n      "))")
+
+        heading("dispatching read_corpus_outline and read_corpus_document for real")
+        let outlineOutcome = await runtime.dispatch(
+            name: "read_corpus_outline", argumentsJSON: "{}")
+        check(outlineOutcome.ok, "read_corpus_outline dispatched")
+        print("      \(outlineOutcome.summary.prefix(160))…")
+
+        // A TITLE THAT IS ACTUALLY UNIQUE. `gitas-ballad` repeats "Section
+        // 1.1" across three acts by design — the same ambiguity
+        // `ProjectCorpusLaneTests` pins — so a repeated title here would
+        // read as a dispatch failure when it is really the adapter's own
+        // correct refusal. "Novel Format" is Scrivener's own template
+        // document and appears exactly once.
+        let firstDocument = value("--read") ?? "Novel Format"
+        let documentOutcome = await runtime.dispatch(
+            name: "read_corpus_document",
+            argumentsJSON: #"{"document":"\#(firstDocument)"}"#)
+        check(documentOutcome.ok, "read_corpus_document dispatched", firstDocument)
+        print("      \(documentOutcome.summary.prefix(160))…")
+
+        heading("the negative: no writing lead, offered to nobody")
+        // THE OTHER HALF OF THE PROOF. A gate that always says yes is not a
+        // gate — the browsing-lane bug's shape was exactly a check that could
+        // never fail. A FRESH runtime's offer ledger starts empty, so this is
+        // this turn's own projection deciding, not leftover grace from the
+        // turn dispatched above.
+        let neutralRoute = AmbientEngine.resolve(AmbientEngine.Inputs(
+            utterance: "what's the weather like", profiles: profiles))
+        AmbientContextStore.shared.noteRoute(neutralRoute)
+        check(neutralRoute.leadPlace == nil, "this turn carries no application lead")
+        let neutralRuntime = AbilityRuntime(
+            plugins: adapters, executionLog: log,
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        let neutralOffered = Set(neutralRuntime.schemas.map(\.name))
+        check(!neutralOffered.contains("search_corpus"),
+              "search_corpus is NOT offered without a writing lead")
+        let neutralOutcome = await neutralRuntime.dispatch(
+            name: "search_corpus", argumentsJSON: #"{"query":"\#(query)"}"#)
+        check(!neutralOutcome.ok, "and calling it anyway is refused", neutralOutcome.summary)
+
+        // RESTORE THE REAL LEAD before this process exits, so nothing else
+        // sharing `AmbientContextStore.shared` in-process reads a stale
+        // "nothing is happening" route on the way out.
+        AmbientContextStore.shared.noteRoute(route)
+    }
+
     /// The declaration `scrivener.mary` will carry, written from the measured
     /// project rather than assumed — checked here first, because a package
     /// declaring it is a claim about somebody else's file format.
@@ -153,8 +314,16 @@ enum ProjectProbe {
             return
         }
 
+        if arguments.contains("--dispatch") {
+            await runDispatch(arguments)
+            return
+        }
+
         guard let raw = value("--project") else {
-            print("Pass --project <path to a .scriv>, or --live to go through the shipped packages")
+            print("""
+            Pass --project <path to a .scriv>, --live to go through the shipped \
+            packages, or --dispatch to drive search_corpus through real dispatch
+            """)
             exit(1)
         }
         let root = URL(fileURLWithPath: (raw as NSString).expandingTildeInPath)

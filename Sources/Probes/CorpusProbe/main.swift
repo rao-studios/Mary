@@ -40,7 +40,10 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
 // so it runs before the grant check below.
 if ProjectProbe.shouldRun(CommandLine.arguments) {
     await ProjectProbe.run(CommandLine.arguments)
-    exit(0)
+    // `--dispatch` accumulates into the same `check`/`failures` this file
+    // declares; every other mode leaves `failures` at 0, so this stays
+    // byte-identical for them.
+    exit(failures == 0 ? 0 : 1)
 }
 
 // THE MENU MEASUREMENT is a different question from the corpus crawl below
