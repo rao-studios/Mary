@@ -8,6 +8,7 @@
 
 import Foundation
 import MaryFoundation
+import os
 
 public enum CodingAgentWorkspace {
 
@@ -139,6 +140,7 @@ public enum CodingAgentWorkspace {
                 at: url.deletingLastPathComponent(),
                 withIntermediateDirectories: true)
             try (arguments["contents"] ?? "").write(to: url, atomically: true, encoding: .utf8)
+            CodingAgentAuthorship.noteWrite(at: url)
             return "Wrote \(relative(url, workdir: workdir))."
         case "apply_patch":
             guard let path = arguments["path"], !path.isEmpty else {
@@ -148,6 +150,7 @@ public enum CodingAgentWorkspace {
             let original = try String(contentsOf: url, encoding: .utf8)
             let patched = try apply(patch: arguments["patch"] ?? "", to: original)
             try patched.write(to: url, atomically: true, encoding: .utf8)
+            CodingAgentAuthorship.noteWrite(at: url)
             return "Patched \(relative(url, workdir: workdir))."
         default:
             throw CodingAgentBackendError.failed("Unknown coding tool \(name).")
@@ -243,5 +246,26 @@ public enum CodingAgentWorkspace {
             return String(path.dropFirst(root.count).drop(while: { $0 == "/" }))
         }
         return url.lastPathComponent
+    }
+}
+
+/// Paths the on-device coding agent wrote this session. Corpus style must
+/// not treat those mtimes as the user's hand.
+public enum CodingAgentAuthorship {
+    private static let box = OSAllocatedUnfairLock<Set<String>>(initialState: [])
+
+    public static func noteWrite(at url: URL) {
+        let path = url.standardizedFileURL.path
+        box.withLock { _ = $0.insert(path) }
+    }
+
+    public static func contains(_ absolutePath: String) -> Bool {
+        let path = URL(fileURLWithPath: absolutePath).standardizedFileURL.path
+        return box.withLock { $0.contains(path) }
+    }
+
+    /// Test seam.
+    public static func reset() {
+        box.withLock { $0 = [] }
     }
 }

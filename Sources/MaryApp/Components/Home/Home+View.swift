@@ -337,6 +337,7 @@ struct HomeSessionView: View {
         MaryRuntime.behavioralRecordingEnabledBox.withLock {
             $0 = config.state.behavioralRecording
         }
+        MaryRuntime.applySkillRunTimeout(config.state.skillRunTimeoutSeconds)
         await MaryRuntime.brain.setHistoryLimit(config.state.historyMessageLimit)
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)
         MaryRuntime.styleSelection = config.state.speechStyle

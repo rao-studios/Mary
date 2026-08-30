@@ -32,9 +32,9 @@
 //  THE FRESH-EDIT GATE. A file whose last write predates this session is a
 //  checkout or another tool's work, not the user's hand — it is indexed for
 //  structure and contributes NO style evidence. Reading a colleague's branch
-//  must not file the colleague's habits as yours. The source build had a
-//  second exclusion here, asking its coding agent "did you write this?"; Mary
-//  has no delegated coding yet, and when it lands this is the gate it joins.
+//  must not file the colleague's habits as yours. Delegated coding-agent
+//  writes join the same gate: `CodingAgentAuthorship` records paths the
+//  on-device agent just wrote, so those mtimes do not file as the user's style.
 //
 
 import AppKit
@@ -227,17 +227,9 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
 
         guard AXIsProcessTrusted() else { return }
 
-        let front = NSWorkspace.shared.frontmostApplication
-        let preferred = [
-            settledBox.withLock { $0 }?.applicationID,
-            WorkspaceFocusTracker.shared.leadPlace()?.application,
-        ].compactMap { $0 }
-        guard let hit = SurfacePollTarget.resolve(
-            frontmostBundleID: front?.bundleIdentifier,
-            maryBundleID: Bundle.main.bundleIdentifier,
+        guard let hit = SurfacePollTarget.pairHit(
             claims: support.all,
-            running: SurfacePollTarget.runningProcesses(),
-            preferredApplicationIDs: preferred),
+            standingApplicationID: settledBox.withLock { $0 }?.applicationID),
               let registration = support.registration(
                 applicationID: hit.applicationID),
               let focus = Self.focus(
@@ -300,6 +292,10 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             && lastStructureBox.withLock({ $0 }) == structureKey
         settledBox.withLock { $0 = settled }
         lastStructureBox.withLock { $0 = structureKey }
+        WorkspaceFocusTracker.shared.noteWork(
+            place: AmbientPlace.application(registration.applicationID),
+            processBundleID: SurfacePollTarget.runningProcesses()
+                .first { $0.pid == hit.pid }?.bundleID)
 
         guard let sink = sinkBox.withLock({ $0 }) else { return }
 
@@ -477,6 +473,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
 
     /// Whether this file was written recently enough to be this session's work.
     public static func isFreshEdit(_ absolutePath: String, at now: Date) -> Bool {
+        if CodingAgentAuthorship.contains(absolutePath) { return false }
         guard let attributes = try? FileManager.default
             .attributesOfItem(atPath: absolutePath),
               let modified = attributes[.modificationDate] as? Date

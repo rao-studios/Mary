@@ -58,6 +58,12 @@ public protocol AbilityDispatching: Sendable {
     /// honest answer rather than a fatal.
     func cancelRun(id: String)
 
+    /// Calls still running, keyed by the id the chip shows. Default empty.
+    var runningRunIDs: Set<String> { get }
+
+    /// Live ceiling on ordinary Skill dispatch (1…10 s). Named long jobs ignore it.
+    func setOrdinarySkillTimeout(_ seconds: TimeInterval)
+
     /// RUN A SEQUENCE OF ACTIONS — the door a future model's emitted plan
     /// walks through.
     ///
@@ -186,6 +192,10 @@ public extension AbilityDispatching {
     /// The loop, defaulted, so every conformer — the real runtime and every
     /// fake — gets identical sequence semantics for free.
     func cancelRun(id: String) {}
+
+    var runningRunIDs: Set<String> { [] }
+
+    func setOrdinarySkillTimeout(_ seconds: TimeInterval) {}
 
     func perform(
         sequence: [BehavioralAction], episodeID: UUID? = nil

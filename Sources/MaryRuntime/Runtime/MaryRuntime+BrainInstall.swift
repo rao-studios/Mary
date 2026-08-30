@@ -211,6 +211,7 @@ extension MaryRuntime {
             ) {
                 AbilityExecutionContext(projects: projects)
             })
+        await brain.setOrdinarySkillTimeout(skillRunTimeoutBox.withLock { $0 })
 
         // 5. THE SENSES, LAST. An observer that starts polling before the
         // roster is installed publishes facts under a place nothing yet

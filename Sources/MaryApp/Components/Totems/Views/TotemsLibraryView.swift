@@ -56,6 +56,13 @@ struct TotemsLibraryView: View {
             }
         }
 
+        if let hint = vm.abilityDepositHint,
+           laneFilter == nil || laneFilter == TotemLane.ability.rawValue {
+            Text(hint)
+                .font(.marySans(11))
+                .foregroundStyle(Color.maryInk.opacity(0.55))
+        }
+
         FlowLayout(spacing: 4, lineSpacing: 4) {
             MaryChip(label: "Ability", isOn: laneFilter == TotemLane.ability.rawValue) {
                 toggleFilter(TotemLane.ability.rawValue)

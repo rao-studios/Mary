@@ -47,6 +47,7 @@ final class AbilityExecutionLogViewModel: ObservableObject {
 
 struct AbilityExecutionLogSheet: View {
     @Relay var chat: ChatService
+    @Relay var config: ConfigService
     @Environment(\.dismiss) private var dismiss
 
     @StateObject private var viewModel = AbilityExecutionLogViewModel()
@@ -55,6 +56,7 @@ struct AbilityExecutionLogSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: .layer4) {
                 header
+                timeoutCard
                 if viewModel.records.isEmpty {
                     emptyCard
                 } else {
@@ -84,6 +86,36 @@ struct AbilityExecutionLogSheet: View {
             Button("Done") { dismiss() }
                 .buttonStyle(.mary)
         }
+    }
+
+    private var timeoutCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                SectionLabel("still working")
+                HStack(spacing: .layer3) {
+                    Slider(value: timeoutBinding, in: 1...10, step: 1)
+                    Text("\(Int(config.state.skillRunTimeoutSeconds.rounded()))s")
+                        .font(.maryMono(10))
+                        .frame(width: 28, alignment: .trailing)
+                }
+                Text("Ordinary Skills stop after this many seconds so they cannot stack. Builds and tests keep their own longer ceilings.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var timeoutBinding: Binding<Double> {
+        Binding(
+            get: { config.state.skillRunTimeoutSeconds },
+            set: { seconds in
+                let clamped = AbilityRuntime.clampedOrdinarySkillTimeout(seconds)
+                config.center.update.send(
+                    ConfigService.Update.Meta(skillRunTimeoutSeconds: clamped))
+                MaryRuntime.applySkillRunTimeout(clamped)
+            }
+        )
     }
 
     private var emptyCard: some View {

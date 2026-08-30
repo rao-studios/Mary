@@ -104,34 +104,31 @@ enum CodingAgentDelegation {
     }
 
     static func dirtyBufferRefusal(workdir: String) -> String? {
-        for registration in CodeSurfaceSupport.shared.all() {
-            guard let pid = CodeSurfaceSupport.pid(of: registration),
-                  let surface = CodeSurfaceEditorCache.frontSurface(
-                    pid: pid, registration: registration),
-                  let diskURL = CodeSurfaceWriter.fileURL(fromDocumentKey: surface.documentKey)
-            else { continue }
-            let diskPath = diskURL.standardizedFileURL.path
-            let root = URL(fileURLWithPath: workdir).standardizedFileURL.path
-            guard diskPath == root || diskPath.hasPrefix(root.hasSuffix("/") ? root : root + "/")
-            else { continue }
-            let live = CodeSurfaceAX.fullString(of: surface.editor)
-            let disk = try? String(contentsOf: diskURL, encoding: .utf8)
-            if let disk, let refusal = CodeSurfaceWriter.cleanBufferRefusal(
-                live: live, disk: disk, documentTitle: surface.title)
-            {
-                return refusal.errorDescription
-                    ?? "Save the file first — there are unsaved changes."
-            }
+        guard let (registration, pid) = CodeSurfaceSupport.shared.resolve(nil),
+              let surface = CodeSurfaceEditorCache.frontSurface(
+                pid: pid, registration: registration),
+              let diskURL = CodeSurfaceWriter.fileURL(fromDocumentKey: surface.documentKey)
+        else { return nil }
+        let diskPath = diskURL.standardizedFileURL.path
+        let root = URL(fileURLWithPath: workdir).standardizedFileURL.path
+        guard diskPath == root || diskPath.hasPrefix(root.hasSuffix("/") ? root : root + "/")
+        else { return nil }
+        let live = CodeSurfaceAX.fullString(of: surface.editor)
+        let disk = try? String(contentsOf: diskURL, encoding: .utf8)
+        if let disk, let refusal = CodeSurfaceWriter.cleanBufferRefusal(
+            live: live, disk: disk, documentTitle: surface.title)
+        {
+            return refusal.errorDescription
+                ?? "Save the file first — there are unsaved changes."
         }
         return nil
     }
 
     static func liveContext(workdir: String) -> LiveContext? {
-        for registration in CodeSurfaceSupport.shared.all() {
-            guard let pid = CodeSurfaceSupport.pid(of: registration),
-                  let surface = CodeSurfaceEditorCache.frontSurface(
-                    pid: pid, registration: registration)
-            else { continue }
+        guard let (registration, pid) = CodeSurfaceSupport.shared.resolve(nil),
+              let surface = CodeSurfaceEditorCache.frontSurface(
+                pid: pid, registration: registration)
+        else { return nil }
             let diskURL = CodeSurfaceWriter.fileURL(fromDocumentKey: surface.documentKey)
             let absolute = diskURL?.standardizedFileURL.path
             var filePath = surface.title
@@ -169,15 +166,13 @@ enum CodingAgentDelegation {
             } else if text.count > 4_000 {
                 windowText = String(text.prefix(4_000))
             }
-            return LiveContext(
-                filePath: filePath,
-                editorName: registration.displayName,
-                selectedSymbolName: symbol,
-                selectedLine: line,
-                windowText: windowText,
-                selectedRange: range)
-        }
-        return nil
+        return LiveContext(
+            filePath: filePath,
+            editorName: registration.displayName,
+            selectedSymbolName: symbol,
+            selectedLine: line,
+            windowText: windowText,
+            selectedRange: range)
     }
 
     static func enclosingSymbol(in text: String, at offset: Int) -> String? {

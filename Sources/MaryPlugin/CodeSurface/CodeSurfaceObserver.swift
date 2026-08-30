@@ -184,17 +184,10 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         guard AXIsProcessTrusted() else { return }
 
-        let front = NSWorkspace.shared.frontmostApplication
-        let running = SurfacePollTarget.runningProcesses()
         let standingID = publishedBox.withLock { $0 }?.application
-        let leadID = WorkspaceFocusTracker.shared.leadPlace()?.application
-        let preferred = [standingID, leadID].compactMap { $0 }
-        guard let hit = SurfacePollTarget.resolve(
-            frontmostBundleID: front?.bundleIdentifier,
-            maryBundleID: Bundle.main.bundleIdentifier,
+        guard let hit = SurfacePollTarget.pairHit(
             claims: support.all(),
-            running: running,
-            preferredApplicationIDs: preferred),
+            standingApplicationID: standingID),
               let registration = support.registration(
                 applicationID: hit.applicationID)
         else {
@@ -213,7 +206,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, CodeSurfaceAX.messagingTimeout)
         let place = AmbientPlace.application(registration.applicationID)
-        let bundleID = running.first { $0.pid == pid }?.bundleID
+        let bundleID = SurfacePollTarget.runningProcesses().first { $0.pid == pid }?.bundleID
             ?? registration.bundleIdentifiers.first
             ?? registration.applicationID
 
@@ -247,6 +240,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 fileName: file,
                 content: fact.content)
         }
+        WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
     }
 
     /// Test seam: the arbiter contract after a caret is standing, without

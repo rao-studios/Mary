@@ -579,7 +579,9 @@ extension MaryBrain {
             addressCandidates: Self.addressCandidates(
                 profiles: applicationProfiles,
                 elementIndex: wiring.elementIndex,
-                focusTracker: focusTracker)))
+                focusTracker: focusTracker),
+            focus: focusTracker.signal(),
+            evidence: focusTracker.freshEvidence()))
         ambient.noteRoute(route)
         wiring.behavior.noteAbilityTargets(
             route.gate.memory.abilityTargets, forEpisode: userTurn.id)

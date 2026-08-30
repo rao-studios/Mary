@@ -157,8 +157,31 @@ import Testing
         #expect(!CorpusObserver.isFreshEdit(path, at: Date()))
     }
 
-    @Test func aMissingFileIsNotAFreshEdit() {
-        #expect(!CorpusObserver.isFreshEdit("/nowhere/at/all.swift", at: Date()))
+    @Test func aCodingAgentWriteIsNotAFreshEdit() throws {
+        let root = try project(["A.swift": "struct A {}"])
+        defer {
+            CodingAgentAuthorship.reset()
+            try? FileManager.default.removeItem(at: root)
+        }
+        let path = root.appendingPathComponent("A.swift").path
+        CodingAgentAuthorship.noteWrite(at: URL(fileURLWithPath: path))
+        #expect(!CorpusObserver.isFreshEdit(path, at: Date()))
+    }
+
+    @Test func corpusOwnsKeepsTheDeclaredStem() {
+        let registration = CorpusRegistration(
+            applicationID: "editor",
+            bundleIdentifiers: ["com.example.editor"],
+            displayName: "Editor",
+            schema: PluginCorpusSchema(
+                include: ["swift"],
+                exclude: [],
+                notation: "swift",
+                relations: .init(declarations: [])))
+        #expect(registration.owns(bundleID: "com.example.editor"))
+        #expect(
+            registration.owns(bundleID: "com.example.editor-beta"),
+            "corpus stem-match still claims a hyphenated beta id; unifying to isInFamily would drop it")
     }
 
     // MARK: - The root

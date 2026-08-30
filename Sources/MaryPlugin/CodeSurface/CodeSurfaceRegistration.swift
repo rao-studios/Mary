@@ -18,7 +18,7 @@ import Foundation
 import MaryAmbient
 import MaryFoundation
 
-public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
+public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim, DeclaredTextSurface {
 
     /// The package's logical id for the application — the same id its place
     /// is spelled with (`applications:xcode`).
@@ -74,6 +74,8 @@ public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
 
     public var preferFocusedElement: Bool { schema.preferFocusedElement }
 
+    public var editorWalkBudget: AXTreeWalker.Budget { .standard }
+
     /// Whether this registration claims the given process.
     ///
     /// EXACT FIRST, THEN THE FAMILY — the same two-tier question
@@ -87,12 +89,9 @@ public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
     /// versioned bundle id, so nothing live broke) — closed now rather than
     /// waiting for a fourth incident.
     public func owns(bundleID: String) -> Bool {
-        let lowered = bundleID.lowercased()
-        if bundleIdentifiers.contains(where: { $0.lowercased() == lowered }) {
-            return true
-        }
-        guard let prefix = bundleIdentifierPrefix?.lowercased(), !prefix.isEmpty
-        else { return false }
-        return ApplicationRegistration.isInFamily(lowered, prefix: prefix)
+        SurfaceClaimOwnership.exactThenFamily(
+            bundleID: bundleID,
+            identifiers: bundleIdentifiers,
+            prefix: bundleIdentifierPrefix)
     }
 }

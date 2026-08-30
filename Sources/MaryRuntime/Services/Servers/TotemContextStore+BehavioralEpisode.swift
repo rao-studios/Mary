@@ -10,6 +10,7 @@ import MaryTotem
 import MaryFoundation
 import MaryAmbient
 import Foundation
+import os
 
 struct TotemBehavioralRecording: BehavioralRecording {
     func append(_ episode: BehavioralEpisode) async {
@@ -19,15 +20,23 @@ struct TotemBehavioralRecording: BehavioralRecording {
 
 extension TotemContextStore {
 
+    private static let log = Logger(subsystem: "nyc.rao.mary", category: "totem-behavior")
+
     func depositBehavioralEpisode(_ episode: BehavioralEpisode) async {
-        guard let owner = await session.userID,
-              !episode.abilityTargets.isEmpty,
-              let body = try? String(
-                data: BehavioralCodec.line(episode), encoding: .utf8),
-              let stub = BehavioralTotemInspect.interactionStub(
-                from: episode, ownerID: owner),
-              let stubJSON = try? BehavioralTotemInspect.stubJSON(stub)
-        else { return }
+        guard let owner = await session.userID else {
+            Self.log.debug("Ability Totem skipped: not signed in")
+            MaryRuntime.abilityDepositNoticeBox.withLock {
+                $0 = "Sign in to Seer first — Totem holds Ability turns per owner."
+            }
+            return
+        }
+        guard !episode.abilityTargets.isEmpty else { return }
+        guard let body = try? String(
+            data: BehavioralCodec.line(episode), encoding: .utf8)
+        else {
+            Self.log.error("Ability Totem skipped: episode would not encode")
+            return
+        }
 
         let documentID = TotemMemoryTopology.behaviorDocumentID(episodeID: episode.id)
         for target in episode.abilityTargets {
@@ -40,12 +49,28 @@ extension TotemContextStore {
                 metadata: Self.behaviorMetadata(episode, target: target),
                 entities: Self.behaviorEntities(episode),
                 relationships: Self.behaviorRelationships(episode))
-            _ = try? await client.deposit(
-                [item], ownerID: owner,
-                groupID: group.id, groupLabel: group.label,
-                scope: TotemLane.ability.rawValue)
+            do {
+                _ = try await client.deposit(
+                    [item], ownerID: owner,
+                    groupID: group.id, groupLabel: group.label,
+                    scope: TotemLane.ability.rawValue)
+                MaryRuntime.abilityDepositNoticeBox.withLock { $0 = nil }
+            } catch {
+                Self.log.error(
+                    "Ability Totem deposit failed: \(error.localizedDescription, privacy: .public)")
+                MaryRuntime.abilityDepositNoticeBox.withLock {
+                    $0 = "Couldn't deposit Ability turns: \(error.localizedDescription)"
+                }
+            }
         }
 
+        guard let stub = BehavioralTotemInspect.interactionStub(
+                from: episode, ownerID: owner),
+              let stubJSON = try? BehavioralTotemInspect.stubJSON(stub)
+        else {
+            Self.log.error("Personal interaction stub skipped — Ability deposit still ran")
+            return
+        }
         let interactions = TotemMemoryTopology.interactionGroup(ownerID: owner)
         let pointer = DepositItem(
             documentID: TotemMemoryTopology.interactionDocumentID(episodeID: episode.id),
@@ -61,10 +86,15 @@ extension TotemContextStore {
                 TotemEntityIn(name: episode.id.uuidString.lowercased(), kind: "episode"),
             ],
             relationships: [])
-        _ = try? await client.deposit(
-            [pointer], ownerID: owner,
-            groupID: interactions.id, groupLabel: interactions.label,
-            scope: TotemLane.personal.rawValue)
+        do {
+            _ = try await client.deposit(
+                [pointer], ownerID: owner,
+                groupID: interactions.id, groupLabel: interactions.label,
+                scope: TotemLane.personal.rawValue)
+        } catch {
+            Self.log.error(
+                "Personal interaction deposit failed: \(error.localizedDescription, privacy: .public)")
+        }
     }
 
     private static func behaviorMetadata(

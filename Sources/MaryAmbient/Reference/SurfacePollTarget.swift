@@ -20,6 +20,25 @@
 //       and for application expertise the disciplines it extends. Not a
 //       code-totem, prose-totem, or web-totem.
 //
+//  PAIR SESSION — THE OBSERVER CONTRACT THIS HIT SERVES. Mary sits in the
+//  live work before she speaks: compose and revise as you talk, across every
+//  discipline, not only coding. Surface observers (and unnamed Skill /
+//  faculty targeting) must keep:
+//    · Eyes before Skills. Standing caret/window text rides the turn so Lane A
+//      does not ask for a paste. A Skill is not how Mary first sees the work.
+//    · Mary's overlay is not blindness. Resolve through this file, never
+//      `frontmostApplication` alone.
+//    · A highlight outranks a caret. Retract the pair-caret fact when
+//      selection owns the ground; do not publish two authorities for "where
+//      they are."
+//    · No application-shaped observer API. `observedPlace` comes from the
+//      registration this hit named. Adding an ingested app must not add a
+//      Swift case.
+//    · One pair lead. Caret liveWork and corpus neighbourhood may merge for
+//      the same place; coding and writing fulls must not coexist.
+//    · Hands stay discipline-specific. Disk vs AX write policy is not this
+//      file's question.
+//
 //  WHAT STAYS PER SURFACE is the walk AFTER the pid (caret excerpt, corpus
 //  title, AX ambient context, later a page or transport) and the schema of
 //  the declaration. Write policy stays specific too.
@@ -33,11 +52,48 @@ import Foundation
 
 /// A roster member that can own a running process.
 ///
-/// Logical `applicationID` is never a bundle identifier. `owns(bundleID:)`
-/// is the one membership predicate — exact ids first, then a declared family.
+/// Logical `applicationID` is never a bundle identifier. `displayName` is
+/// what the user called it, for named Skill targeting. `owns(bundleID:)` is
+/// the one membership predicate — exact ids first, then a declared family
+/// (`SurfaceClaimOwnership.exactThenFamily`). A corpus may still prefix-match
+/// declared identities; that looser rule is pinned, not silent.
 public protocol SurfaceClaim: Sendable {
     var applicationID: String { get }
+    var displayName: String { get }
     func owns(bundleID: String) -> Bool
+}
+
+/// Exact identity, then `ApplicationRegistration.isInFamily` on an optional
+/// prefix. The default membership answer for a declared surface.
+public enum SurfaceClaimOwnership {
+
+    public static func exactThenFamily(
+        bundleID: String,
+        identifiers: some Sequence<String>,
+        prefix: String?
+    ) -> Bool {
+        let lowered = bundleID.lowercased()
+        if identifiers.contains(where: { $0.lowercased() == lowered }) {
+            return true
+        }
+        guard let prefix = prefix?.lowercased(), !prefix.isEmpty else { return false }
+        return ApplicationRegistration.isInFamily(lowered, prefix: prefix)
+    }
+
+    /// CORPUS MEMBERSHIP. Each declared identity is a stem: `…scrivener`
+    /// claims `…scrivener3`, and `…Xcode` claims `…Xcode-beta`. `isInFamily`
+    /// refuses a hyphen after the stem, so unifying corpus onto that
+    /// predicate would drop those processes. Keep the stem match, and refuse
+    /// a different word with no separator (`…XcodeHelper` still matches
+    /// `hasPrefix` — that looseness is why family-boundary owns is preferred
+    /// everywhere a package can declare a prefix).
+    public static func declaredStem(
+        bundleID: String,
+        identifiers: some Sequence<String>
+    ) -> Bool {
+        let lowered = bundleID.lowercased()
+        return identifiers.contains { lowered.hasPrefix($0.lowercased()) }
+    }
 }
 
 public enum SurfacePollTarget {
@@ -135,5 +191,31 @@ public enum SurfacePollTarget {
             }
         }
         return nil
+    }
+
+    /// Preferred ids for a pair-session poll: the standing publication, then
+    /// the tracker lead. Empty entries are dropped; order is the ladder.
+    public static func preferredApplicationIDs(
+        standing: String?,
+        lead: String? = WorkspaceFocusTracker.shared.leadPlace()?.application
+    ) -> [String] {
+        [standing, lead].compactMap { $0 }
+    }
+
+    /// Production poll: live frontmost, live running list, Mary as transparent.
+    public static func pairHit<C: SurfaceClaim>(
+        claims: [C],
+        standingApplicationID: String?,
+        unpreferredFallback: Bool = true
+    ) -> Hit? {
+        let front = NSWorkspace.shared.frontmostApplication
+        return resolve(
+            frontmostBundleID: front?.bundleIdentifier,
+            maryBundleID: Bundle.main.bundleIdentifier,
+            claims: claims,
+            running: runningProcesses(),
+            preferredApplicationIDs: preferredApplicationIDs(
+                standing: standingApplicationID),
+            unpreferredFallback: unpreferredFallback)
     }
 }

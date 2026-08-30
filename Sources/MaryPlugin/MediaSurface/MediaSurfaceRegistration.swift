@@ -68,13 +68,10 @@ public struct MediaSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
     /// versioned bundle id, so nothing live broke) — closed now rather than
     /// waiting for a fourth incident.
     public func owns(bundleID: String) -> Bool {
-        let lowered = bundleID.lowercased()
-        if bundleIdentifiers.contains(where: { $0.lowercased() == lowered }) {
-            return true
-        }
-        guard let prefix = bundleIdentifierPrefix?.lowercased(), !prefix.isEmpty
-        else { return false }
-        return ApplicationRegistration.isInFamily(lowered, prefix: prefix)
+        SurfaceClaimOwnership.exactThenFamily(
+            bundleID: bundleID,
+            identifiers: bundleIdentifiers,
+            prefix: bundleIdentifierPrefix)
     }
 
     /// What the user calls one item here — "track", "episode".

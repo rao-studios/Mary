@@ -138,9 +138,10 @@ struct TotemsPaneView: View {
                 Button {
                     showsLife = true
                 } label: {
-                    Image(systemName: "gauge.with.dots.needle")
+                    Image(systemName: "gauge.with.needle")
                         .font(.system(size: 12))
                         .foregroundStyle(Paper.ink.opacity(0.7))
+                        .frame(width: 14, height: 14)
                         .overlay(alignment: .topTrailing) {
                             if vm.lifeIsTraining {
                                 StatusDot(color: .maryGold)

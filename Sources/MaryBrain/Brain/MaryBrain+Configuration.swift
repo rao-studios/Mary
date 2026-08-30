@@ -116,9 +116,16 @@ extension MaryBrain {
         lifeLoRALookup = lookup
     }
 
+    public func setOrdinarySkillTimeout(_ seconds: TimeInterval) {
+        dispatcher?.setOrdinarySkillTimeout(seconds)
+    }
+
     public var hasOpenTurn: Bool { openExchange != nil }
 
     public var isBusy: Bool {
-        openExchange != nil || wiring.behavior.openEpisodeID != nil
+        openExchange != nil
+            || wiring.behavior.openEpisodeID != nil
+            || !activeRoutines.isEmpty
+            || !(dispatcher?.runningRunIDs.isEmpty ?? true)
     }
 }

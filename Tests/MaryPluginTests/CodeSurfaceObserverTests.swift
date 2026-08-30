@@ -57,6 +57,12 @@ final class CodeSurfaceObserverTests: XCTestCase {
             "a vacuous pass — the roster must really provide workspace focus")
     }
 
+    func testTheProseCursorObserverIsInTheShippedRoster() {
+        XCTAssertTrue(
+            observers.contains { $0.id == ProseSurfaceObserver.shared.id },
+            "co-writing needs pair eyes, the same catalog ungating as code")
+    }
+
     /// IT SPEAKS FOR A PLACE ONLY AFTER A CARET IS STANDING. A fresh
     /// observer must not enter the arbiter empty and steal a writing lead.
     func testAFreshObserverHasNothingToSayToTheArbiter() {

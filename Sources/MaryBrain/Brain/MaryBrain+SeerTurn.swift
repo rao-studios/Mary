@@ -473,6 +473,7 @@ extension MaryBrain {
             // is background work — both for the log and for its place in the
             // engine gate's queue.
             laneAttachment.detach()
+            makeRoomForDetachedRoutine()
             // DETACH: the turn completes now; the lane becomes a routine and
             // reports through the proactive channel when it finishes. Its
             // Skill turns never enter shared history — results reach context

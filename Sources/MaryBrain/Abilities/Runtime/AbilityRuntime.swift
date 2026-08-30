@@ -2647,9 +2647,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Packages may ask for a shorter budget but may not enlarge Mary's
         // ten-minute ceiling. The default accommodates a real Xcode build;
         // every nested adapter retains its own tighter deadline as well.
-        let budget = min(
-            min(runtime.skill.timeoutSeconds ?? 600, 600),
-            policy.maximumDurationSeconds ?? 600)
+        let userCap = ordinarySkillTimeout.withLock { $0 }
+        let budget = Self.effectiveWorkflowBudget(
+            invocationName: runtime.reference.invocationName,
+            packageTimeout: runtime.skill.timeoutSeconds ?? 600,
+            policyCap: policy.maximumDurationSeconds ?? 600,
+            userCap: userCap)
         let supplementalPorts = workflowSupplementalPorts(
             for: runtime,
             arguments: arguments,
@@ -3730,8 +3733,50 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
     ]
 
+    public static let ordinarySkillTimeoutMinimum: TimeInterval = 1
+    public static let ordinarySkillTimeoutMaximum: TimeInterval = 10
+    public static let ordinarySkillTimeoutDefault: TimeInterval = 2
+
+    public static func clampedOrdinarySkillTimeout(_ seconds: TimeInterval) -> TimeInterval {
+        min(max(seconds, ordinarySkillTimeoutMinimum), ordinarySkillTimeoutMaximum)
+    }
+
+    /// Ordinary bindings take `userCap`; named long jobs keep `declared`.
+    public static func effectiveBudget(
+        bindingName: String,
+        declared: TimeInterval,
+        userCap: TimeInterval,
+        maximumDurationSeconds: TimeInterval? = nil
+    ) -> TimeInterval {
+        let capped: TimeInterval
+        if skillBudgets[bindingName] != nil {
+            capped = declared
+        } else {
+            capped = min(declared, clampedOrdinarySkillTimeout(userCap))
+        }
+        return min(capped, maximumDurationSeconds ?? capped)
+    }
+
+    public static func effectiveWorkflowBudget(
+        invocationName: String,
+        packageTimeout: TimeInterval,
+        policyCap: TimeInterval,
+        userCap: TimeInterval
+    ) -> TimeInterval {
+        let budget = min(min(packageTimeout, 600), policyCap)
+        if skillBudgets[invocationName] != nil { return budget }
+        return min(budget, clampedOrdinarySkillTimeout(userCap))
+    }
+
     static func budget(for binding: SkillBinding) -> TimeInterval {
         skillBudgets[binding.name] ?? defaultSkillBudget
+    }
+
+    private let ordinarySkillTimeout = OSAllocatedUnfairLock<TimeInterval>(
+        initialState: ordinarySkillTimeoutDefault)
+
+    public func setOrdinarySkillTimeout(_ seconds: TimeInterval) {
+        ordinarySkillTimeout.withLock { $0 = Self.clampedOrdinarySkillTimeout(seconds) }
     }
 
     /// THE BUDGET SCALE, and it exists for the reason `MaryBrain`'s watchdog
@@ -3767,9 +3812,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     ) async -> SkillOutcome {
         let scale = budgetScale.withLock { $0 }
         let declaredBudget = Self.budget(for: binding)
-        let unscaledBudget = min(
-            declaredBudget,
-            maximumDurationSeconds ?? declaredBudget)
+        let userCap = ordinarySkillTimeout.withLock { $0 }
+        let unscaledBudget = Self.effectiveBudget(
+            bindingName: binding.name,
+            declared: declaredBudget,
+            userCap: userCap,
+            maximumDurationSeconds: maximumDurationSeconds)
         let budget = unscaledBudget * scale
         var boundedContext = context
         boundedContext.deadline = Date().addingTimeInterval(budget)

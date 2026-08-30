@@ -528,22 +528,7 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     /// installed, "read my buffer" with nothing in front is a question, not a
     /// guess to answer from whichever package happens to be alone.
     func resolve(_ requested: String?) -> (CodeSurfaceRegistration, pid_t)? {
-        if let requested, !requested.isEmpty {
-            let wanted = requested.lowercased()
-            if let match = support.all().first(where: {
-                $0.applicationID.lowercased() == wanted
-                    || $0.displayName.lowercased() == wanted
-                    || $0.owns(bundleID: requested)
-            }), let pid = CodeSurfaceSupport.pid(of: match) {
-                return (match, pid)
-            }
-            return nil
-        }
-        guard let front = NSWorkspace.shared.frontmostApplication,
-              let bundleID = front.bundleIdentifier,
-              let registration = support.registration(bundleID: bundleID)
-        else { return nil }
-        return (registration, front.processIdentifier)
+        support.resolve(requested)
     }
 
     func notRunning(_ requested: String?) -> SkillOutcome {

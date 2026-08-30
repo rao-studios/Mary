@@ -23,7 +23,7 @@ import Foundation
 import MaryAmbient
 import MaryFoundation
 
-public struct ProseSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
+public struct ProseSurfaceRegistration: Sendable, Equatable, SurfaceClaim, DeclaredTextSurface {
 
     /// The package's logical id for the application — the same id its place
     /// is spelled with (`applications:textedit`).
@@ -84,8 +84,19 @@ public struct ProseSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
     public var watch: PluginProseWatchSchema { schema.watch }
     public var budgets: PluginProseBudgetSchema { schema.budgets }
 
+    /// Largest declared-role element. Split-pane focus pick is the code
+    /// family's; a prose window's document is the big text area.
+    public var preferFocusedElement: Bool { false }
+
+    public var editorWalkBudget: AXTreeWalker.Budget {
+        AXTreeWalker.Budget(maxDepth: 12, maxNodes: 400)
+    }
+
     /// Whether this registration claims the given process.
     public func owns(bundleID: String) -> Bool {
-        bundleIdentifiers.contains { bundleID.caseInsensitiveCompare($0) == .orderedSame }
+        SurfaceClaimOwnership.exactThenFamily(
+            bundleID: bundleID,
+            identifiers: bundleIdentifiers,
+            prefix: nil)
     }
 }

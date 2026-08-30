@@ -49,7 +49,8 @@ extension ConfigService {
             seerChatModel: String? = nil,
             seerTransport: SeerTransportChoice? = nil,
             codingAgentEnabled: Bool? = nil,
-            codingAgentModelID: String? = nil
+            codingAgentModelID: String? = nil,
+            skillRunTimeoutSeconds: Double? = nil
         ) {
             self.llmEngine = llmEngine
             self.localModelID = localModelID
@@ -86,6 +87,7 @@ extension ConfigService {
             self.seerTransport = seerTransport
             self.codingAgentEnabled = codingAgentEnabled
             self.codingAgentModelID = codingAgentModelID
+            self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
         }
             package var llmEngine: LLMEngineChoice? = nil
             package var localModelID: String? = nil
@@ -124,6 +126,7 @@ extension ConfigService {
             package var seerTransport: SeerTransportChoice? = nil
             package var codingAgentEnabled: Bool? = nil
             package var codingAgentModelID: String? = nil
+            package var skillRunTimeoutSeconds: Double? = nil
         }
 
         @Payload package var meta: Meta?
@@ -174,6 +177,9 @@ extension ConfigService {
             if let value = meta.codingAgentEnabled { state.codingAgentEnabled = value }
             if let value = meta.codingAgentModelID, !value.isEmpty {
                 state.codingAgentModelID = value
+            }
+            if let value = meta.skillRunTimeoutSeconds {
+                state.skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(value)
             }
         }
     }

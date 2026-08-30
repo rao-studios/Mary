@@ -46,6 +46,7 @@ final class TotemExplorerViewModel: ObservableObject {
     @Published private(set) var libraryHasMore = false
     @Published private(set) var isLoadingLibrary = false
     @Published private(set) var libraryNotice: String?
+    @Published private(set) var abilityDepositHint: String?
     @Published private(set) var selectedDocument: TotemDocumentDetail?
     @Published private(set) var isLoadingDocument = false
 
@@ -269,6 +270,7 @@ final class TotemExplorerViewModel: ObservableObject {
         let (owner, notice) = await totemReadPreflight()
         guard let owner else {
             libraryNotice = notice
+            await refreshAbilityDepositHint()
             return
         }
         let cursor = reset ? "" : libraryCursor
@@ -290,6 +292,28 @@ final class TotemExplorerViewModel: ObservableObject {
             libraryNotice = "Couldn't read the library: \(error.localizedDescription)"
         }
         refresh()
+        await refreshAbilityDepositHint()
+    }
+
+    private func refreshAbilityDepositHint() async {
+        let hasAbilityGroup = libraryGroups.contains { $0.id.hasPrefix("mary-ability-") }
+        // Preflight already named Totem-down / not-signed-in — do not stack a
+        // second line that says the same thing.
+        if hasAbilityGroup || libraryNotice != nil {
+            abilityDepositHint = nil
+            return
+        }
+        let episodes = await MaryRuntime.behavioralStore.allEpisodes().episodes
+        let hasDiscipline = episodes.contains { episode in
+            episode.sealedReason == .completed
+                && episode.abilityTargets.contains { $0.paradigm == .discipline }
+        }
+        guard hasDiscipline else {
+            abilityDepositHint = nil
+            return
+        }
+        abilityDepositHint = MaryRuntime.abilityDepositNoticeBox.withLock { $0 }
+            ?? "Turns are on disk; Ability Totem did not accept deposits — sign in and start Totem."
     }
 
     // MARK: - Document drill (two-tier, ContributionInspector's fallback)

@@ -27,11 +27,9 @@
 //  corpus WITH one is a project with an outline to read.
 //
 
-import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
-import os
 
 /// One application's corpus declaration, bound to the application it came
 /// from.
@@ -67,7 +65,9 @@ public struct CorpusRegistration: Sendable, Equatable, SurfaceClaim {
     /// Membership only. Nothing here launches anything, and launching needs
     /// an exact id.
     public func owns(bundleID: String) -> Bool {
-        bundleIdentifiers.contains { bundleID.lowercased().hasPrefix($0.lowercased()) }
+        SurfaceClaimOwnership.declaredStem(
+            bundleID: bundleID,
+            identifiers: bundleIdentifiers)
     }
 }
 
@@ -76,7 +76,7 @@ public final class CorpusSupport: @unchecked Sendable {
 
     public static let shared = CorpusSupport()
 
-    private let box = OSAllocatedUnfairLock<[CorpusRegistration]>(initialState: [])
+    private let roster = SurfaceRoster<CorpusRegistration>()
 
     public init() {}
 
@@ -84,15 +84,13 @@ public final class CorpusSupport: @unchecked Sendable {
     /// whole answer, and a reader mid-poll must see one consistent roster
     /// rather than half of each.
     public func reconcile(_ registrations: [CorpusRegistration]) {
-        box.withLock { $0 = registrations }
+        roster.reconcile(registrations)
     }
 
-    public var all: [CorpusRegistration] { box.withLock { $0 } }
+    public var all: [CorpusRegistration] { roster.all() }
 
     public func registration(bundleID: String) -> CorpusRegistration? {
-        box.withLock { registrations in
-            registrations.first { $0.owns(bundleID: bundleID) }
-        }
+        roster.registration(bundleID: bundleID)
     }
 
     /// The corpora that are PROJECTS — the ones a project lane can read an
@@ -102,13 +100,10 @@ public final class CorpusSupport: @unchecked Sendable {
     }
 
     public func registration(applicationID: String) -> CorpusRegistration? {
-        box.withLock { registrations in
-            registrations.first { $0.applicationID == applicationID }
-        }
+        roster.registration(applicationID: applicationID)
     }
 
     public static func pid(of registration: CorpusRegistration) -> pid_t? {
-        SurfacePollTarget.pid(
-            of: registration, running: SurfacePollTarget.runningProcesses())
+        SurfaceRoster.pid(of: registration)
     }
 }

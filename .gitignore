@@ -71,3 +71,4 @@ build/
 # Editor state. The Swift extension generates launch configs per target;
 # they are per-developer, not project contract.
 .vscode/
+.DS_Store

@@ -95,6 +95,14 @@ import MaryFoundation
         #expect(realm.candidates.count == 2)
     }
 
+    @Test func anEmptyNeedSettlesOnTheCurrentlyActiveLead() {
+        let realm = AmbientRealmResolver.resolve(
+            inputs("what's that?", registrations: [quill, forge],
+                   lead: .application("forge")))
+        #expect(realm.need.isEmpty)
+        #expect(realm.place == .application("forge"))
+    }
+
     @Test func theNeedCarriesBothAxesWhenBothArePresent() {
         let realm = AmbientRealmResolver.resolve(
             inputs("tidy the draft", registrations: [quill],

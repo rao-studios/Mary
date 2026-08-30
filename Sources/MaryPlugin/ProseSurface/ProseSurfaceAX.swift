@@ -59,30 +59,7 @@ public enum ProseSurfaceAX {
 
     // MARK: - Finding the surface
 
-    /// One open window of an application, with the text element inside it.
-    public struct Surface: Sendable {
-        /// The window element, for titles and raising.
-        public let window: AXUIElement
-        /// The text element the document lives in.
-        public let editor: AXUIElement
-        /// This application's own stable name for the document, per its
-        /// declared `documentKey` rule.
-        public let documentKey: String
-        public let title: String
-        /// Reading-order position among this application's windows, 1-based.
-        public let ordinal: Int
-
-        public init(
-            window: AXUIElement, editor: AXUIElement,
-            documentKey: String, title: String, ordinal: Int
-        ) {
-            self.window = window
-            self.editor = editor
-            self.documentKey = documentKey
-            self.title = title
-            self.ordinal = ordinal
-        }
-    }
+    public typealias Surface = DeclaredTextAX.Surface
 
     /// Every window of `pid` that holds text, in reading order.
     ///
@@ -92,112 +69,35 @@ public enum ProseSurfaceAX {
     public static func surfaces(
         pid: pid_t, registration: ProseSurfaceRegistration
     ) -> [Surface] {
-        guard AXIsProcessTrusted() else { return [] }
-        let application = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(application, messagingTimeout)
-        let windows = AX.children(application, kAXWindowsAttribute)
-
-        var found: [Surface] = []
-        for window in windows {
-            guard let editor = editor(in: window, registration: registration) else { continue }
-            let title = AX.string(window, kAXTitleAttribute) ?? ""
-            found.append(Surface(
-                window: window,
-                editor: editor,
-                documentKey: documentKey(of: window, registration: registration, ordinal: found.count + 1),
-                title: title,
-                ordinal: found.count + 1))
-        }
-        return found
+        DeclaredTextAX.surfaces(pid: pid, registration: registration)
     }
 
     /// The surface of the FRONT window, which is what "this document" means.
     public static func frontSurface(
         pid: pid_t, registration: ProseSurfaceRegistration
     ) -> Surface? {
-        surfaces(pid: pid, registration: registration).first
+        DeclaredTextAX.frontSurface(pid: pid, registration: registration)
     }
 
     /// THE TEXT ELEMENT, by the roles the package declared.
-    ///
-    /// Roles are tried in declared order, and within a role the LARGEST
-    /// element wins. An editor window commonly holds several text areas — a
-    /// search field, a sidebar filter, a footer — and the document is the big
-    /// one. Bonnie's equivalent picked by descent order and was correct only
-    /// because the applications it named happened to expose the document
-    /// first.
     static func editor(
         in window: AXUIElement, registration: ProseSurfaceRegistration
     ) -> AXUIElement? {
-        var byRole: [String: [(element: AXUIElement, area: CGFloat)]] = [:]
-        AXTreeWalker.walk(
-            from: window,
-            budget: .init(maxDepth: descentDepth, maxNodes: descentNodes)
-        ) { element, _ in
-            guard let role = AX.string(element, kAXRoleAttribute) else { return }
-            guard registration.editorRoleNames.contains(role) else { return }
-            let frame = AX.frame(of: element)
-            byRole[role, default: []].append(
-                (element, (frame?.width ?? 0) * (frame?.height ?? 0)))
-        }
-        for role in registration.editorRoleNames {
-            if let best = byRole[role]?.max(by: { $0.area < $1.area }) {
-                return best.element
-            }
-        }
-        return nil
+        DeclaredTextAX.editor(in: window, registration: registration)
     }
 
-    /// A window's stable name for its document, per the declared rule.
-    ///
-    /// `AXDocument` is a file URL and the right answer wherever it exists.
-    /// MEASURED: five TextEdit windows all titled "Untitled NN" carried five
-    /// distinct iCloud autosave URLs, which is exactly the case this rule
-    /// exists for — titles collide constantly and URLs do not.
-    ///
-    /// THE ORDINAL FALLBACK IS WEAKER THAN IT LOOKS, and the probe found the
-    /// case: a note created SECONDS AGO has no autosave URL yet, so it keys
-    /// as `textedit:win1` until one is assigned. Within the turn that made it
-    /// that is fine — the staged-surface handshake carries the identity, not
-    /// this key — but an ordinal is a POSITION, and a window that moves takes
-    /// its key with it. Nothing durable may be filed under one.
     static func documentKey(
         of window: AXUIElement,
         registration: ProseSurfaceRegistration,
         ordinal: Int
     ) -> String {
-        if registration.documentKeyKind == .documentPathThenWindow,
-           let path = AX.string(window, kAXDocumentAttribute), !path.isEmpty {
-            return path
-        }
-        return "\(registration.applicationID):win\(ordinal)"
+        DeclaredTextAX.documentKey(of: window, registration: registration, ordinal: ordinal)
     }
 
     // MARK: - Reading
 
-    /// The whole document, capped.
-    ///
-    /// `AXStringForRange` first because it is bounded — it asks for exactly
-    /// the characters wanted. `kAXValue` is the SAME element's text and not a
-    /// different source, so the invariant that a write re-locates in the
-    /// string this element handed back holds either way; it exists because
-    /// the parameterized attribute is one an application may simply not
-    /// implement, and an editor that answers only `kAXValue` would otherwise
-    /// be silently unreadable.
     public static func fullString(of element: AXUIElement) -> String? {
-        if let total = AX.number(element, kAXNumberOfCharactersAttribute)?.intValue, total > 0 {
-            var wanted = CFRange(location: 0, length: min(total, bodyCap))
-            if let parameter = withUnsafePointer(to: &wanted, { AXValueCreate(.cfRange, $0) }) {
-                var ref: CFTypeRef?
-                if AXUIElementCopyParameterizedAttributeValue(
-                    element, kAXStringForRangeParameterizedAttribute as CFString,
-                    parameter, &ref) == .success,
-                   let text = ref as? String, !text.isEmpty {
-                    return text
-                }
-            }
-        }
-        return AX.string(element, kAXValueAttribute).map { String($0.prefix(bodyCap)) }
+        DeclaredTextAX.fullString(of: element)
     }
 
     // MARK: - Writing

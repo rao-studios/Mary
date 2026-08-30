@@ -255,22 +255,7 @@ public struct ProseSurfaceAdapter: MaryAdapter {
     /// nothing in front is a question, and answering it from whichever
     /// package happens to be alone is a guess wearing a fact's clothes.
     private func resolve(_ requested: String?) -> (ProseSurfaceRegistration, pid_t)? {
-        if let requested, !requested.isEmpty {
-            let wanted = requested.lowercased()
-            if let match = support.all().first(where: {
-                $0.applicationID.lowercased() == wanted
-                    || $0.displayName.lowercased() == wanted
-                    || $0.owns(bundleID: requested)
-            }), let pid = ProseSurfaceSupport.pid(of: match) {
-                return (match, pid)
-            }
-            return nil
-        }
-        guard let front = NSWorkspace.shared.frontmostApplication,
-              let bundleID = front.bundleIdentifier,
-              let registration = support.registration(bundleID: bundleID)
-        else { return nil }
-        return (registration, front.processIdentifier)
+        support.resolve(requested)
     }
 
     private func notRunning(_ requested: String?) -> SkillOutcome {

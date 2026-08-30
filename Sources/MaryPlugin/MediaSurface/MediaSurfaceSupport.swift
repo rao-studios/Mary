@@ -10,38 +10,30 @@
 //  longer claims it.
 //
 
-import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
-import os
 
 public final class MediaSurfaceSupport: @unchecked Sendable {
 
     public static let shared = MediaSurfaceSupport()
 
-    private let box = OSAllocatedUnfairLock<[String: MediaSurfaceRegistration]>(
-        initialState: [:])
+    private let roster = SurfaceRoster<MediaSurfaceRegistration>()
 
     public init() {}
 
     public func reconcile(_ registrations: [MediaSurfaceRegistration]) {
-        let map = Dictionary(
-            registrations.map { ($0.applicationID, $0) },
-            uniquingKeysWith: { first, _ in first })
-        box.withLock { $0 = map }
+        roster.reconcile(registrations)
     }
 
-    public func all() -> [MediaSurfaceRegistration] {
-        box.withLock { Array($0.values) }.sorted { $0.applicationID < $1.applicationID }
-    }
+    public func all() -> [MediaSurfaceRegistration] { roster.all() }
 
     public func registration(applicationID: String) -> MediaSurfaceRegistration? {
-        box.withLock { $0[applicationID] }
+        roster.registration(applicationID: applicationID)
     }
 
     public func registration(bundleID: String) -> MediaSurfaceRegistration? {
-        box.withLock { map in map.values.first { $0.owns(bundleID: bundleID) } }
+        roster.registration(bundleID: bundleID)
     }
 
     /// The registration behind a place, when that place is a declared player.
@@ -52,29 +44,15 @@ public final class MediaSurfaceSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: MediaSurfaceRegistration) -> pid_t? {
-        SurfacePollTarget.pid(
-            of: registration, running: SurfacePollTarget.runningProcesses())
+        SurfaceRoster.pid(of: registration)
     }
 
-    /// The declared player that is actually running, preferring the one named.
-    ///
-    /// NAMED FIRST, THEN WHICHEVER IS RUNNING. With one player installed the
-    /// distinction is invisible; with two it is the difference between "pause
-    /// the music" pausing what the user meant and pausing whichever package
-    /// happened to sort first.
+    /// Named first, else the standing pair-session hit, else whichever
+    /// declared player is running.
     public func resolve(_ named: String?) -> (MediaSurfaceRegistration, pid_t)? {
-        if let named, !named.isEmpty {
-            let match = all().first {
-                $0.applicationID.caseInsensitiveCompare(named) == .orderedSame
-                    || $0.displayName.caseInsensitiveCompare(named) == .orderedSame
-                    || $0.owns(bundleID: named)
-            }
-            if let match, let pid = Self.pid(of: match) { return (match, pid) }
-            if match != nil { return nil }
-        }
-        for registration in all() {
-            if let pid = Self.pid(of: registration) { return (registration, pid) }
-        }
-        return nil
+        roster.resolve(
+            named: named,
+            unpreferredFallback: true,
+            anyRunningFallback: true)
     }
 }

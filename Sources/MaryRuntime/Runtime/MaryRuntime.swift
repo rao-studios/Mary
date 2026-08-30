@@ -188,6 +188,16 @@ package enum MaryRuntime {
 
     package static let behavioralRecordingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: true)
+    package static let skillRunTimeoutBox = OSAllocatedUnfairLock<TimeInterval>(
+        initialState: AbilityRuntime.ordinarySkillTimeoutDefault)
+    package static let abilityDepositNoticeBox =
+        OSAllocatedUnfairLock<String?>(initialState: nil)
+
+    package static func applySkillRunTimeout(_ seconds: TimeInterval) {
+        let clamped = AbilityRuntime.clampedOrdinarySkillTimeout(seconds)
+        skillRunTimeoutBox.withLock { $0 = clamped }
+        Task { await brain.setOrdinarySkillTimeout(clamped) }
+    }
     static let voiceSession = VoiceSessionBox()
 
     /// Admission happens before `VoiceService.Start` is sent to Granite.

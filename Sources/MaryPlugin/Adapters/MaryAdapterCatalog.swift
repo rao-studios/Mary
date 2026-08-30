@@ -47,7 +47,8 @@ public enum MaryAdapterCatalog {
     /// takes a week to diagnose.
     public static func observers() -> [any MaryObserver] {
         AmbientSurfaceSupport.all + ApplicationsSupport.shared.all
-            + CodeSurfaceObserverSupport.all + CorpusObserverSupport.all
+            + CodeSurfaceObserverSupport.all + ProseSurfaceObserverSupport.all
+            + CorpusObserverSupport.all
     }
 
     /// The value-only adapter handshake for one runtime configuration.

@@ -30,42 +30,34 @@ import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
-import os
 
 public final class ProseSurfaceSupport: @unchecked Sendable {
 
     public static let shared = ProseSurfaceSupport()
 
-    private let box = OSAllocatedUnfairLock<[String: ProseSurfaceRegistration]>(
-        initialState: [:])
+    private let roster = SurfaceRoster<ProseSurfaceRegistration>()
 
     public init() {}
 
     // MARK: - The roster
 
-    /// Replaces the declared surfaces wholesale.
-    ///
-    /// Called on every package activation. Reconciliation is a REPLACE rather
-    /// than a merge because a package that stops declaring a prose surface
-    /// must stop having one — a merge would leave the old declaration
-    /// answering for an application that no longer claims it.
     public func reconcile(_ registrations: [ProseSurfaceRegistration]) {
-        let map = Dictionary(
-            registrations.map { ($0.applicationID, $0) },
-            uniquingKeysWith: { first, _ in first })
-        box.withLock { $0 = map }
+        roster.reconcile(registrations)
     }
 
-    public func all() -> [ProseSurfaceRegistration] {
-        box.withLock { Array($0.values) }.sorted { $0.applicationID < $1.applicationID }
-    }
+    public func all() -> [ProseSurfaceRegistration] { roster.all() }
 
     public func registration(applicationID: String) -> ProseSurfaceRegistration? {
-        box.withLock { $0[applicationID] }
+        roster.registration(applicationID: applicationID)
     }
 
     public func registration(bundleID: String) -> ProseSurfaceRegistration? {
-        box.withLock { map in map.values.first { $0.owns(bundleID: bundleID) } }
+        roster.registration(bundleID: bundleID)
+    }
+
+    /// Named editor if running; else the standing pair-session hit.
+    public func resolve(_ named: String?) -> (ProseSurfaceRegistration, pid_t)? {
+        roster.resolve(named: named)
     }
 
     /// The registration behind a place, when that place is a declared prose
@@ -118,7 +110,8 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
     /// A snapshot of the front document.
     static func snapshot(front registration: ProseSurfaceRegistration) -> BodySnapshot? {
         guard let pid = pid(of: registration),
-              let surface = ProseSurfaceAX.frontSurface(pid: pid, registration: registration)
+              let surface = CodeSurfaceEditorCache.frontSurface(
+                pid: pid, registration: registration)
         else { return nil }
         return snapshot(of: surface, registration: registration)
     }
@@ -151,8 +144,7 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
     }
 
     public static func pid(of registration: ProseSurfaceRegistration) -> pid_t? {
-        SurfacePollTarget.pid(
-            of: registration, running: SurfacePollTarget.runningProcesses())
+        SurfaceRoster.pid(of: registration)
     }
 }
 

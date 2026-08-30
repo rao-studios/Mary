@@ -134,13 +134,10 @@ public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
     /// inspector that exists to explain it. Anything that needs to LAUNCH
     /// still asks `bundleIdentifiers` — a family cannot be launched.
     public func owns(bundleID: String) -> Bool {
-        let lowered = bundleID.lowercased()
-        if bundleIdentifiers.contains(where: { $0.lowercased() == lowered }) {
-            return true
-        }
-        guard let prefix = bundleIdentifierPrefix?.lowercased(), !prefix.isEmpty
-        else { return false }
-        return Self.isInFamily(lowered, prefix: prefix)
+        SurfaceClaimOwnership.exactThenFamily(
+            bundleID: bundleID,
+            identifiers: bundleIdentifiers,
+            prefix: bundleIdentifierPrefix)
     }
 
     /// A FAMILY MATCH ENDS ON A BOUNDARY, not anywhere in the middle of a word.

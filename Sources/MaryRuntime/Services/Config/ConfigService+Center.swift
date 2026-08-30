@@ -130,6 +130,9 @@ extension ConfigService {
             /// and selects it — Hub fetch, never vendored weights.
             package var codingAgentEnabled: Bool = false
             package var codingAgentModelID: String = MaryCodingEngine.defaultModelID
+            /// How long an ordinary Skill may stay running (1…10 s). Named
+            /// build/test bindings keep their own ceilings.
+            package var skillRunTimeoutSeconds: Double = 2
 
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
@@ -138,6 +141,7 @@ extension ConfigService {
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
                 case codingAgentEnabled, codingAgentModelID
+                case skillRunTimeoutSeconds
             }
 
             package init() {}
@@ -222,6 +226,8 @@ extension ConfigService {
                 codingAgentEnabled = try c.decodeIfPresent(Bool.self, forKey: .codingAgentEnabled) ?? false
                 codingAgentModelID = try c.decodeIfPresent(String.self, forKey: .codingAgentModelID)
                     ?? MaryCodingEngine.defaultModelID
+                skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(
+                    try c.decodeIfPresent(Double.self, forKey: .skillRunTimeoutSeconds) ?? 2)
             }
 
             /// name → path for prompt building and activity dispatch.
