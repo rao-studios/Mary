@@ -22,9 +22,7 @@ struct TotemsLibraryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: .layer3) {
-            if let lora = vm.selectedLoRA {
-                loraDetail(lora)
-            } else if let document = vm.selectedDocument {
+            if let document = vm.selectedDocument {
                 documentDetail(document)
             } else {
                 listing
@@ -38,8 +36,6 @@ struct TotemsLibraryView: View {
             // probe per visit, never a spin.
             if vm.laneSections.isEmpty, !vm.isLoadingLibrary {
                 vm.loadLibrary(reset: true)
-            } else if vm.loraSlots.isEmpty, vm.loraNotice == nil {
-                Task { await vm.refreshLoRAs() }
             }
         }
     }
@@ -79,9 +75,6 @@ struct TotemsLibraryView: View {
 
         let sections = TotemExplorerViewModel.sections(
             vm.laneSections, matching: laneFilter)
-        if showsLoRAs {
-            lorasBlock
-        }
         ForEach(sections) { section in
             laneSection(section)
         }
@@ -93,7 +86,7 @@ struct TotemsLibraryView: View {
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.5))
             }
-        } else if sections.isEmpty, vm.libraryNotice == nil, vm.loraSlots.isEmpty {
+        } else if sections.isEmpty, vm.libraryNotice == nil {
             Text("Nothing here yet. Groups appear as Mary deposits into the totem.")
                 .font(.marySans(11))
                 .foregroundStyle(Color.maryInk.opacity(0.5))
@@ -104,132 +97,6 @@ struct TotemsLibraryView: View {
             Button("Load more") { vm.loadMore() }
                 .buttonStyle(.maryQuiet)
         }
-    }
-
-    private var showsLoRAs: Bool {
-        laneFilter == nil || laneFilter == TotemLane.ability.rawValue
-    }
-
-    private var lorasBlock: some View {
-        VStack(alignment: .leading, spacing: .layer2) {
-            SectionLabel("LoRAs")
-                .padding(.top, .layer2)
-            Text("One adapter per installed discipline, trained by Fleet from sealed episodes.")
-                .font(.marySans(10))
-                .foregroundStyle(Color.maryInk.opacity(0.45))
-            if let notice = vm.loraNotice {
-                Text(notice)
-                    .font(.marySans(11))
-                    .foregroundStyle(Color.maryError)
-            } else if vm.loraSlots.isEmpty {
-                Text("No LoRAs yet. A discipline trains after 24 completed episodes.")
-                    .font(.marySans(11))
-                    .foregroundStyle(Color.maryInk.opacity(0.5))
-            }
-            ForEach(vm.loraSlots) { slot in
-                loraCard(slot)
-            }
-        }
-    }
-
-    private func loraCard(_ slot: TotemLoRASlotRow) -> some View {
-        MaryCard(padding: 12) {
-            Button {
-                vm.selectLoRA(slot)
-            } label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: .layer2) {
-                        Text(slot.abilityID)
-                            .font(.marySans(12, weight: .medium))
-                            .lineLimit(1)
-                        MaryBadge(text: slot.statusLine)
-                        Spacer()
-                        Text(slot.pairsLine)
-                            .font(.maryMono(9))
-                            .foregroundStyle(Color.maryInk.opacity(0.4))
-                    }
-                    if let trainedAt = slot.trainedAt {
-                        Text(trainedAt, style: .relative)
-                            .font(.maryMono(9))
-                            .foregroundStyle(Color.maryInk.opacity(0.35))
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func loraDetail(_ slot: TotemLoRASlotRow) -> some View {
-        VStack(alignment: .leading, spacing: .layer3) {
-            Button {
-                vm.clearSelectedLoRA()
-            } label: {
-                HStack(spacing: .layer1) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 9))
-                    Text("Library")
-                        .font(.marySans(11))
-                }
-                .foregroundStyle(Color.maryInk.opacity(0.6))
-            }
-            .buttonStyle(.plain)
-
-            MaryCard {
-                VStack(alignment: .leading, spacing: .layer2) {
-                    HStack(spacing: .layer2) {
-                        Text(slot.abilityID)
-                            .font(.marySans(13, weight: .medium))
-                        MaryBadge(text: slot.statusLine)
-                        Spacer()
-                    }
-                    Text(slot.pairsLine)
-                        .font(.maryMono(9))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                    if let trainedAt = slot.trainedAt {
-                        Text(trainedAt, style: .relative)
-                            .font(.maryMono(9))
-                            .foregroundStyle(Color.maryInk.opacity(0.4))
-                    }
-                    if !slot.modelID.isEmpty {
-                        Text(slot.modelID)
-                            .font(.maryMono(9))
-                            .foregroundStyle(Color.maryInk.opacity(0.45))
-                            .textSelection(.enabled)
-                    }
-                    Text(slot.artifactPath)
-                        .font(.maryMono(9))
-                        .foregroundStyle(Color.maryInk.opacity(0.35))
-                        .textSelection(.enabled)
-                    if !slot.cid.isEmpty {
-                        Text("cid \(slot.cid)")
-                            .font(.maryMono(9))
-                            .foregroundStyle(Color.maryInk.opacity(0.35))
-                            .textSelection(.enabled)
-                    }
-                    Divider()
-                    Text("Schema")
-                        .font(.marySans(11, weight: .medium))
-                    Text(prettyJSON(slot.schemaJSON))
-                        .font(.maryMono(9))
-                        .foregroundStyle(Color.maryInk.opacity(0.75))
-                        .textSelection(.enabled)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-    }
-
-    private func prettyJSON(_ data: Data) -> String {
-        guard !data.isEmpty else { return "No schema stored yet." }
-        if let object = try? JSONSerialization.jsonObject(with: data),
-           let pretty = try? JSONSerialization.data(
-            withJSONObject: object, options: [.prettyPrinted, .sortedKeys]),
-           let text = String(data: pretty, encoding: .utf8)
-        {
-            return text
-        }
-        return String(data: data, encoding: .utf8) ?? "Unreadable schema bytes."
     }
 
     private func laneSection(_ section: TotemLaneSection) -> some View {

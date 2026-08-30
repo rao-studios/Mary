@@ -18,6 +18,8 @@ public struct LifeLoRASlot: Sendable, Equatable {
     public var ready: Bool
     public var trainedAt: Date?
     public var training: Bool
+    public var modelID: String
+    public var cid: String
 
     public init(
         abilityID: AbilityID,
@@ -27,7 +29,9 @@ public struct LifeLoRASlot: Sendable, Equatable {
         schemaJSON: Data,
         ready: Bool,
         trainedAt: Date? = nil,
-        training: Bool = false
+        training: Bool = false,
+        modelID: String = "",
+        cid: String = ""
     ) {
         self.abilityID = abilityID
         self.generation = generation
@@ -37,5 +41,7 @@ public struct LifeLoRASlot: Sendable, Equatable {
         self.ready = ready
         self.trainedAt = trainedAt
         self.training = training
+        self.modelID = modelID
+        self.cid = cid
     }
 }

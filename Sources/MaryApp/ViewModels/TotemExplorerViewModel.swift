@@ -49,11 +49,6 @@ final class TotemExplorerViewModel: ObservableObject {
     @Published private(set) var selectedDocument: TotemDocumentDetail?
     @Published private(set) var isLoadingDocument = false
 
-    /// Fleet LoRA slots for the Ability lane. Not a Totem document family.
-    @Published private(set) var loraSlots: [TotemLoRASlotRow] = []
-    @Published private(set) var loraNotice: String?
-    @Published private(set) var selectedLoRA: TotemLoRASlotRow?
-
     // Graph
     @Published private(set) var graph: GraphQueryResult?
     @Published private(set) var isQuerying = false
@@ -74,6 +69,8 @@ final class TotemExplorerViewModel: ObservableObject {
     /// For gating repair buttons in the view without a second status stream.
     @Published private(set) var isTotemHealthy = false
     @Published private(set) var isFleetHealthy = false
+    /// Gold overlay on the Life button while a discipline is training.
+    @Published private(set) var lifeIsTraining = false
 
     /// SEEDED VIA `configure(...)` from the pane's config relay —
     /// `ConfigService` state lives behind a Granite `@Relay` only views hold,
@@ -170,6 +167,8 @@ final class TotemExplorerViewModel: ObservableObject {
         if built.libraryHasMore != libraryHasMore { libraryHasMore = built.libraryHasMore }
         if built.graph != graph { graph = built.graph }
         if built.retrievalRows != retrievalRows { retrievalRows = built.retrievalRows }
+        let training = MaryRuntime.lifeIsTraining()
+        if training != lifeIsTraining { lifeIsTraining = training }
     }
 
     // MARK: - Impure
@@ -243,7 +242,6 @@ final class TotemExplorerViewModel: ObservableObject {
             fleetNotice = "Seer offline — node list unavailable"
         }
         refresh()
-        await refreshLoRAs()
     }
 
     // MARK: - Library (user-driven, never polled)
@@ -258,7 +256,6 @@ final class TotemExplorerViewModel: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             await self.fetchLibraryPage(reset: reset)
-            await self.refreshLoRAs()
             self.isLoadingLibrary = false
         }
     }
@@ -293,48 +290,6 @@ final class TotemExplorerViewModel: ObservableObject {
             libraryNotice = "Couldn't read the library: \(error.localizedDescription)"
         }
         refresh()
-    }
-
-    // MARK: - Fleet LoRAs (Ability lane; Fleet is the source of truth)
-
-    func selectLoRA(_ row: TotemLoRASlotRow) {
-        selectedLoRA = row
-        selectedDocument = nil
-    }
-
-    func clearSelectedLoRA() {
-        selectedLoRA = nil
-    }
-
-    func refreshLoRAs() async {
-        let totemID = TotemNodeIdentity.persisted(configured: configuredTotemNodeID)
-            ?? TotemNodeIdentity.canonical(configuredTotemNodeID)
-            ?? configuredTotemNodeID
-        guard !totemID.isEmpty else {
-            loraNotice = "No Totem node identity yet — LoRAs address by totem id."
-            return
-        }
-        do {
-            let slots = try await MaryRuntime.makeFleetClient().listAdapters(totemID: totemID)
-            loraSlots = slots
-                .sorted { $0.abilityID < $1.abilityID }
-                .map { slot in
-                    TotemLoRASlotRow(
-                        abilityID: slot.abilityID,
-                        generation: slot.generation,
-                        pairCount: slot.pairCount,
-                        trainedAt: slot.trainedAt,
-                        ready: slot.ready,
-                        training: slot.training,
-                        artifactPath: slot.artifactPath,
-                        schemaJSON: slot.schemaJSON,
-                        modelID: slot.modelID,
-                        cid: slot.cid)
-                }
-            loraNotice = nil
-        } catch {
-            loraNotice = "Fleet isn't running — start it from the Servers sheet."
-        }
     }
 
     // MARK: - Document drill (two-tier, ContributionInspector's fallback)

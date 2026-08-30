@@ -23,6 +23,11 @@ extension MaryRuntime {
     private static let lifeLoopBox = OSAllocatedUnfairLock<Task<Void, Never>?>(initialState: nil)
     private static let trainingDisciplinesBox =
         OSAllocatedUnfairLock<Set<String>>(initialState: [])
+    private static let lifeTrainProgressBox =
+        OSAllocatedUnfairLock<[AbilityID: LifeTrainTick]>(initialState: [:])
+    private static let lifeTrainTailBox =
+        OSAllocatedUnfairLock<[AbilityID: [String]]>(initialState: [:])
+    private static let fleetReachableBox = OSAllocatedUnfairLock<Bool>(initialState: true)
     private static let lifeLog = Logger(subsystem: "nyc.rao.mary", category: "life")
 
     /// Called from `BehavioralStore.append` after a seal. User turns stamp the
@@ -49,7 +54,7 @@ extension MaryRuntime {
         }
     }
 
-    static func refreshReadyLoRAs() async {
+    package static func refreshReadyLoRAs() async {
         let totemID = totemNodeIDBox.withLock { $0 }
         guard !totemID.isEmpty else { return }
         do {
@@ -64,12 +69,42 @@ extension MaryRuntime {
                     schemaJSON: slot.schemaJSON,
                     ready: slot.ready,
                     trainedAt: slot.trainedAt,
-                    training: slot.training))
+                    training: slot.training,
+                    modelID: slot.modelID,
+                    cid: slot.cid))
             })
             lifeSlotsBox.withLock { $0 = mapped }
+            fleetReachableBox.withLock { $0 = true }
         } catch {
+            fleetReachableBox.withLock { $0 = false }
             lifeLog.debug("listAdapters: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    /// Cheap overlay flag: a train is claimed, streaming, or listed as in flight.
+    package static func lifeIsTraining() -> Bool {
+        if !trainingDisciplinesBox.withLock({ $0.isEmpty }) { return true }
+        if !lifeTrainProgressBox.withLock({ $0.isEmpty }) { return true }
+        return lifeSlotsBox.withLock { $0.values.contains(where: \.training) }
+    }
+
+    /// Join installed disciplines, JSONL counts, and in-memory Fleet slots.
+    /// Does not dial Fleet — call `refreshReadyLoRAs` once when the sheet opens.
+    package static func lifeCalibration() async -> LifeCalibrationSnapshot {
+        let disciplines = LifeCalibration.disciplines(
+            in: AbilityLibrary.shared.snapshot().records.map(\.package))
+        let episodes = await behavioralStore.allEpisodes().episodes
+        let slots = lifeSlotsBox.withLock { $0 }
+        let ticks = lifeTrainProgressBox.withLock { $0 }
+        let tails = lifeTrainTailBox.withLock { $0 }
+        let reachable = fleetReachableBox.withLock { $0 }
+        return LifeCalibration.snapshot(
+            disciplines: disciplines,
+            episodes: episodes,
+            slots: slots,
+            ticks: ticks,
+            tails: tails,
+            fleetReachable: reachable)
     }
 
     static func considerTrain(_ episode: BehavioralEpisode) async {
@@ -118,16 +153,20 @@ extension MaryRuntime {
                         modelID: MaryLocalEngine.defaultModelID,
                         pairs: pairs)
                     for try await progress in stream {
+                        noteTrainProgress(abilityID, progress)
                         if progress.stage == "finished" {
                             lifeLog.info(
                                 "trained \(abilityID.rawValue, privacy: .public)")
+                            clearTrainProgress(abilityID)
                             await refreshReadyLoRAs()
                         } else if progress.stage == "error" {
                             lifeLog.error(
                                 "train \(abilityID.rawValue, privacy: .public): \(progress.message, privacy: .public)")
+                            clearTrainProgress(abilityID)
                         }
                     }
                 } catch {
+                    clearTrainProgress(abilityID)
                     lifeLog.error(
                         "train \(abilityID.rawValue, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 }
@@ -188,5 +227,24 @@ extension MaryRuntime {
             lifeLog.error(
                 "idle pulse dropped: \(error.localizedDescription, privacy: .public)")
         }
+    }
+
+    private static func noteTrainProgress(_ abilityID: AbilityID, _ progress: FleetTrainProgress) {
+        let tick = LifeTrainTick(
+            stage: progress.stage,
+            iteration: progress.iteration,
+            loss: progress.loss,
+            message: progress.message)
+        lifeTrainProgressBox.withLock { $0[abilityID] = tick }
+        lifeTrainTailBox.withLock { tails in
+            var tail = tails[abilityID] ?? []
+            tail.append(tick.line)
+            if tail.count > 6 { tail.removeFirst(tail.count - 6) }
+            tails[abilityID] = tail
+        }
+    }
+
+    private static func clearTrainProgress(_ abilityID: AbilityID) {
+        lifeTrainProgressBox.withLock { $0.removeValue(forKey: abilityID) }
     }
 }
