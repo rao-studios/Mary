@@ -3,7 +3,8 @@
 //  Mary
 //
 //  The pane's frame: a bar that never scrolls away, five tabs, and the
-//  server-rack door into the control room the navbar used to open directly.
+//  server-rack / Life doors into the control room the navbar used to
+//  open directly.
 //
 
 import Granite
@@ -36,6 +37,7 @@ struct TotemsPaneView: View {
     /// rebuild. Closing the panel mid-sheet dismisses the sheet with it —
     /// acceptable for a control room reached from inside the panel.
     @State private var showsServers = false
+    @State private var showsLife = false
 
     private var selectedTab: TotemsTab {
         TotemsTab(rawValue: tab) ?? .nodes
@@ -90,6 +92,7 @@ struct TotemsPaneView: View {
             // the live-node diff keeps the old identity.
             seedConfig()
         }) { ServersSheet() }
+        .sheet(isPresented: $showsLife) { LifeCalibrationSheet() }
         .onAppear {
             // Seeded BEFORE start(): the live-node identity diff and the
             // repair port ride these two scalars, and the VM cannot hold a
@@ -127,9 +130,28 @@ struct TotemsPaneView: View {
                 } label: {
                     Image(systemName: "server.rack")
                         .font(.system(size: 12))
+                        .foregroundStyle(Paper.ink.opacity(0.7))
                 }
                 .buttonStyle(.plain)
+                .help("Servers")
                 .accessibilityLabel("Servers")
+                Button {
+                    showsLife = true
+                } label: {
+                    Image(systemName: "gauge.with.needle")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Paper.ink.opacity(0.7))
+                        .frame(width: 14, height: 14)
+                        .overlay(alignment: .topTrailing) {
+                            if vm.lifeIsTraining {
+                                StatusDot(color: .maryGold)
+                                    .offset(x: 3, y: -3)
+                            }
+                        }
+                }
+                .buttonStyle(.plain)
+                .help("Life")
+                .accessibilityLabel("Life")
                 Button {
                     // Both entry points: the sync ledger pass answers now,
                     // the fleet/disk fetch lands when Seer does.
@@ -138,8 +160,10 @@ struct TotemsPaneView: View {
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 12))
+                        .foregroundStyle(Paper.ink.opacity(0.7))
                 }
                 .buttonStyle(.plain)
+                .help("Refresh")
                 .accessibilityLabel("Refresh")
             }
 

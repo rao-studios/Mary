@@ -28,7 +28,7 @@
 import AppKit
 import ApplicationServices
 import MaryAmbient
-import MaryAdapters
+import MaryPlugin
 import Foundation
 
 enum ProbeAmbientSurface {

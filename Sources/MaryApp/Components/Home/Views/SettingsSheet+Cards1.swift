@@ -4,7 +4,7 @@
 
 import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryVoice
 import Granite
 import SwiftUI
@@ -68,12 +68,83 @@ extension SettingsSheet {
         .task { await refreshSeerSignIn() }
     }
 
+    /// ON-DEVICE CODING DELEGATE. Weights come from Hugging Face at runtime
+    /// when the user downloads them here. Frigate only loads the architecture.
+    var codingAgentCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                SectionLabel("Coding Agent")
+                Toggle("Use the on-device coding model", isOn: codingAgentEnabledBinding)
+                    .disabled(codingDownloading)
+                Text("Pair-coding edits run on this Mac. Download a model, then switch it on — selecting a downloaded snapshot is what turns the faculty on.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+                TextField("MLX Hub id", text: codingAgentModelBinding)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.maryMono(11))
+                    .disabled(codingDownloading)
+                HStack(spacing: .layer3) {
+                    Button("Download") { downloadCodingModel() }
+                        .buttonStyle(.mary)
+                        .disabled(codingDownloading)
+                    Button("Default model") { restoreDefaultCodingModel() }
+                        .buttonStyle(.maryQuiet)
+                        .disabled(codingDownloading)
+                    Spacer()
+                }
+                if codingDownloading {
+                    ProgressView(value: codingDownloadProgress, total: 1)
+                    Text("Downloading \(Int(codingDownloadProgress * 100))% — about 6.7 GB the first time.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                } else if codingPrepared || config.state.codingAgentEnabled {
+                    Text("Ready. The coding agent will edit the focused project on disk.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                }
+                if let codingStatus {
+                    Text(codingStatus)
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryError)
+                }
+            }
+        }
+        .task(id: codingDownloading) {
+            guard codingDownloading else { return }
+            while !Task.isCancelled, codingDownloading {
+                codingDownloadProgress = await CodingAgentSessions.shared.downloadProgress()
+                try? await Task.sleep(nanoseconds: 250_000_000)
+            }
+            await refreshCodingAgentStatus()
+        }
+        .task { await refreshCodingAgentStatus() }
+    }
+
     /// WHAT MARY REMEMBERS DOING.
     ///
     /// Recording is on by default, which is only defensible next to a switch
     /// that is easy to find and a delete that really deletes — see
     /// `BehavioralStore`. The size is shown because "delete my recordings"
     /// should be a decision rather than a leap.
+    /// WHAT SHE LEARNS FROM YOUR WORK — the other half of memory, and a
+    /// separate switch from the one below on purpose: recording what she DID
+    /// and learning how you WRITE are different promises, and somebody may
+    /// want one without the other.
+    var corpusCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                SectionLabel("What she learns from your work")
+                Toggle("Index the projects I work in", isOn: corpusIndexingBinding)
+                Text("When you settle on a file, Mary reads its neighbourhood and remembers the shape — and notices how you tend to write. Only declaration headers and short generated summaries are kept; never the body of your work.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+                Text("Open the Corpus pane to see every unit, pin a label, or forget one.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+            }
+        }
+    }
+
     var behaviorCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
@@ -118,6 +189,22 @@ extension SettingsSheet {
                 Text("Each prompt appears at most once — macOS remembers every answer. Gray dots haven't been asked yet; the three at the bottom are flipped by hand in System Settings.")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
+
+                // WHOSE GRANT IS THIS, ANYWAY. A development build launched
+                // from a terminal is that terminal's responsibility as far as
+                // TCC is concerned, so Accessibility reads granted, "Grant
+                // everything" skips it as already done, and Mary never
+                // appears in the Accessibility list. Every part of that is
+                // correct and the screen still looked broken, because it
+                // reported the permission without reporting who holds it.
+                if let holder = PermissionsCenter.accessibilityGrantHolder {
+                    HStack(alignment: .top, spacing: .layer2) {
+                        StatusDot(color: .maryGold)
+                        Text("Accessibility here is inherited from \(holder), not Mary's own — which is why she isn't in the Accessibility list and why granting again changes nothing. Run build/Mary.app (./scripts/make-app.sh) for Mary to hold it herself.")
+                            .font(.marySans(11))
+                            .foregroundStyle(Color.maryInk.opacity(0.7))
+                    }
+                }
 
                 ForEach(permissions) { item in
                     HStack(spacing: .layer3) {

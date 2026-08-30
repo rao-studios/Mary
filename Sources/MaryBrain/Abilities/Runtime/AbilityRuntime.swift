@@ -270,6 +270,33 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private let surfaceReferent = OSAllocatedUnfairLock<AbilitySurfaceReferent>(
         initialState: .currentLiveSelection)
 
+    /// `SemanticSkillRequestIndex.affinities(in:)` MEMOIZED FOR THE TURN, the
+    /// same "compute once, freeze" shape `providerSelection` already uses.
+    ///
+    /// `abilityRoutingContext()` is rebuilt from scratch on every round of the
+    /// local turn loop AND on every `dispatchCore` — up to ~20 times for one
+    /// utterance — and until this cache existed every one of those rebuilds
+    /// re-ran a full `NLEmbedding` sentence vectorization plus a dot-product
+    /// scan over the whole Skill library, serialized behind
+    /// `NLAmbientTextVectorizer`'s single process-wide lock. The rest of
+    /// `abilityRoutingContext()` is deliberately NOT folded into this cache:
+    /// `ambient.route()` reads a task-local `AmbientRouteTurnState` whose own
+    /// doc comment ("every overlapping request gets its own route holder")
+    /// makes clear it is a live, per-request read, not a value frozen at turn
+    /// start — caching the whole context could serve a stale application,
+    /// selection, or perception set to a later round. The utterance is
+    /// different: `noteUtterance` is called exactly once per turn, before the
+    /// round loop begins (`MaryBrain+TurnLoop.swift`), and never again until
+    /// the next turn's `beginTurn()`. So only the utterance and the affinity
+    /// map it produces are cached here — keyed on the utterance itself, not
+    /// just "first call wins", so a mismatched read (a detached routine
+    /// dispatching across a turn boundary, the same race `TurnOfferLedger`
+    /// already guards against) recomputes instead of silently answering for
+    /// the wrong words.
+    private let semanticSkillAffinityCache = OSAllocatedUnfairLock<
+        (utterance: String, affinities: [SkillID: Float])?
+    >(initialState: nil)
+
     public init(
         plugins: [any MaryAdapter],
         standalone: [SkillBinding] = [],
@@ -312,6 +339,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 reads[plugin.name] = targeted
                 if let served = plugin.servedWorld, served.pluginOwner != plugin.name {
                     reads[served.pluginOwner] = targeted
+                }
+                for alias in plugin.targetedReadAliases where alias != plugin.name {
+                    reads[alias] = targeted
                 }
             }
             // BOTH HALVES OR NEITHER. A verb with no backing has nothing to
@@ -601,22 +631,56 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
               let operation = plugin.operations.first(where: {
                   $0.operation == selected.operation
                       && plugin.adapter(for: $0)?.id == selected.adapterID
-              }),
-              let semantics = operation.semantics
+              })
         else { return base }
 
-        let role: String
-        switch semantics.role {
-        case .utility: role = "utility"
-        case .observe: role = "observe"
-        case .createArtifact: role = "create artifact"
-        case .mutateArtifact: role = "mutate existing artifact"
+        var hint = ""
+        if let semantics = operation.semantics {
+            let role: String
+            switch semantics.role {
+            case .utility: role = "utility"
+            case .observe: role = "observe"
+            case .createArtifact: role = "create artifact"
+            case .mutateArtifact: role = "mutate existing artifact"
+            }
+            hint = "Semantic role: \(role). This hint distinguishes only among model tools already admitted by Ability, application, and Skill routing; it never grants application, target, or Skill authority."
+            if semantics.role == .createArtifact, !semantics.aliases.isEmpty {
+                hint += " Validated creation subjects: \(semantics.aliases.joined(separator: ", "))."
+            }
         }
-        var hint = "Semantic role: \(role). This hint distinguishes only among model tools already admitted by Ability, application, and Skill routing; it never grants application, target, or Skill authority."
-        if semantics.role == .createArtifact, !semantics.aliases.isEmpty {
-            hint += " Validated creation subjects: \(semantics.aliases.joined(separator: ", "))."
+        // CLOSED DESCRIPTION EXTENSION, distinct from `semantics.role`/
+        // `aliases` above and from `title`/`summary` (inspector-only, never
+        // model text) — see `PluginOperationSchema.caution`. Exactly one
+        // fixed, Mary-owned sentence is appended, keyed by the closed case;
+        // an absent value appends nothing, and there is no branch that could
+        // ever emit raw package text here.
+        if let caution = operation.caution {
+            if !hint.isEmpty { hint += " " }
+            hint += Self.cautionSentence(for: caution)
         }
+        guard !hint.isEmpty else { return base }
         return "\(base) \(hint)"
+    }
+
+    /// The fixed, Mary-owned sentence for one closed `GuardrailCategory` at
+    /// operation granularity. The switch is exhaustive, so a new case fails
+    /// to compile here until it is given real wording — there is no default
+    /// branch through which package data could supply the text instead.
+    static func cautionSentence(for category: GuardrailCategory) -> String {
+        switch category {
+        case .domainMismatch:
+            return "Domain caution: do not use this outside the surface kind it was built for (for example, prose vs. code)."
+        case .unscopedTarget:
+            return "Scope caution: applies only to the target the user explicitly named or focused, never an inferred neighbor."
+        case .staleState:
+            return "Freshness caution: read live state before acting or reporting; never answer from a remembered value."
+        case .noFocusSteal:
+            return "Focus caution: never bring the target forward or steal focus merely to observe or command it."
+        case .nativeCommandOnly:
+            return "Command caution: this issues the target application's own command; never substitute synthesized input for it."
+        case .irreversibleAction:
+            return "Irreversible caution: this can destroy or replace existing content; confirm the exact, fresh target before acting."
+        }
     }
 
     /// Cognitive and workflow Skills have no direct Plugin binding, so they
@@ -1186,8 +1250,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                     .isDisjoint(with: normalizedApplicationIDs) {
             targets.formUnion(profile.targetClasses)
         }
+        // ONE VECTORIZATION FOR THE WHOLE TURN, computed here rather than per
+        // Skill inside the scorer, which the arbitrator calls several times
+        // for the same Skill across its passes.
+        let utterance = ambient.utterance()
         return AbilityRoutingContext(
-            utterance: ambient.utterance(),
+            utterance: utterance,
             intent: route?.intent.rawValue,
             namedApplications: namedApplications,
             targetClasses: targets,
@@ -1197,7 +1265,21 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             capabilities: capabilities,
             grantedPermissions: grantedPermissions,
             sourceResolution: sourceResolution,
-            workspaceFamily: workspaceFamily)
+            workspaceFamily: workspaceFamily,
+            semanticSkillAffinity: semanticSkillAffinities(for: utterance))
+    }
+
+    /// See `semanticSkillAffinityCache`. One vectorization and one library
+    /// scan per turn rather than one per `abilityRoutingContext()` call.
+    private func semanticSkillAffinities(for utterance: String) -> [SkillID: Float] {
+        if let cached = semanticSkillAffinityCache.withLock({ $0 }),
+           cached.utterance == utterance {
+            return cached.affinities
+        }
+        let computed = abilitySnapshot.semanticSkillIndex?
+            .affinities(in: utterance) ?? [:]
+        semanticSkillAffinityCache.withLock { $0 = (utterance, computed) }
+        return computed
     }
 
     /// The window-classifier's view of the turn.
@@ -1275,6 +1357,10 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Provider choices are a claim about this turn's signals — named,
         // interaction, focused — for exactly the same reason.
         providerSelection.withLock { $0 = nil }
+        // The embedding memo is a claim about THIS turn's utterance; a new
+        // turn notes a new one after this returns. See
+        // `semanticSkillAffinityCache`.
+        semanticSkillAffinityCache.withLock { $0 = nil }
         // WHICH BROWSER this turn means, for the same reason and with the
         // same lifetime. Held at the MaryAdapter contract root rather than
         // here because the bindings that read it are adapters, which this
@@ -2476,6 +2562,31 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 namedWritingApplication: namedWriting?.displayName) {
                 summary += clause
             }
+        } else if contract.primitive == .reviseSelection {
+            // revise_selection's mirror of the seam above: no surface to
+            // name, only whether the turn's routed selection is still there
+            // to write back into. Same predicate `type_at_cursor(mode:
+            // "replace_selection")` itself checks at dispatch, so the clause
+            // is never a promise dispatch would go on to refuse.
+            if let clause = CognitivePrimitiveCatalog.revisionPlacementClause(
+                hasRoutedSelection: ambient.routedSelectionHandoff(
+                    requiringWritingTarget: true) != nil) {
+                summary += clause
+            }
+        } else if contract.primitive == .reviseCodeSelection {
+            // The same seam for the code lane, gated on the predicate THAT
+            // lane's placing Skill actually uses. `replace_selection` reads
+            // no route: it re-reads the front code surface's live selection
+            // at dispatch and refuses on its own terms. So the honest
+            // question here is only whether the turn's routed selection is a
+            // coding place's at all — asking `requiringWritingTarget` would
+            // suppress the clause on turns where the write would in fact
+            // have succeeded.
+            if let clause = CognitivePrimitiveCatalog.codeRevisionPlacementClause(
+                hasRoutedCodeSelection:
+                    ambient.routedSelectionHandoff()?.place.focus == .coding) {
+                summary += clause
+            }
         }
         var typedOutputs: [String: ValueEnvelope] = [:]
         for output in runtime.skill.outputs {
@@ -2536,9 +2647,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Packages may ask for a shorter budget but may not enlarge Mary's
         // ten-minute ceiling. The default accommodates a real Xcode build;
         // every nested adapter retains its own tighter deadline as well.
-        let budget = min(
-            min(runtime.skill.timeoutSeconds ?? 600, 600),
-            policy.maximumDurationSeconds ?? 600)
+        let userCap = ordinarySkillTimeout.withLock { $0 }
+        let budget = Self.effectiveWorkflowBudget(
+            invocationName: runtime.reference.invocationName,
+            packageTimeout: runtime.skill.timeoutSeconds ?? 600,
+            policyCap: policy.maximumDurationSeconds ?? 600,
+            userCap: userCap)
         let supplementalPorts = workflowSupplementalPorts(
             for: runtime,
             arguments: arguments,
@@ -3619,8 +3733,50 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
     ]
 
+    public static let ordinarySkillTimeoutMinimum: TimeInterval = 1
+    public static let ordinarySkillTimeoutMaximum: TimeInterval = 10
+    public static let ordinarySkillTimeoutDefault: TimeInterval = 2
+
+    public static func clampedOrdinarySkillTimeout(_ seconds: TimeInterval) -> TimeInterval {
+        min(max(seconds, ordinarySkillTimeoutMinimum), ordinarySkillTimeoutMaximum)
+    }
+
+    /// Ordinary bindings take `userCap`; named long jobs keep `declared`.
+    public static func effectiveBudget(
+        bindingName: String,
+        declared: TimeInterval,
+        userCap: TimeInterval,
+        maximumDurationSeconds: TimeInterval? = nil
+    ) -> TimeInterval {
+        let capped: TimeInterval
+        if skillBudgets[bindingName] != nil {
+            capped = declared
+        } else {
+            capped = min(declared, clampedOrdinarySkillTimeout(userCap))
+        }
+        return min(capped, maximumDurationSeconds ?? capped)
+    }
+
+    public static func effectiveWorkflowBudget(
+        invocationName: String,
+        packageTimeout: TimeInterval,
+        policyCap: TimeInterval,
+        userCap: TimeInterval
+    ) -> TimeInterval {
+        let budget = min(min(packageTimeout, 600), policyCap)
+        if skillBudgets[invocationName] != nil { return budget }
+        return min(budget, clampedOrdinarySkillTimeout(userCap))
+    }
+
     static func budget(for binding: SkillBinding) -> TimeInterval {
         skillBudgets[binding.name] ?? defaultSkillBudget
+    }
+
+    private let ordinarySkillTimeout = OSAllocatedUnfairLock<TimeInterval>(
+        initialState: ordinarySkillTimeoutDefault)
+
+    public func setOrdinarySkillTimeout(_ seconds: TimeInterval) {
+        ordinarySkillTimeout.withLock { $0 = Self.clampedOrdinarySkillTimeout(seconds) }
     }
 
     /// THE BUDGET SCALE, and it exists for the reason `MaryBrain`'s watchdog
@@ -3656,9 +3812,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     ) async -> SkillOutcome {
         let scale = budgetScale.withLock { $0 }
         let declaredBudget = Self.budget(for: binding)
-        let unscaledBudget = min(
-            declaredBudget,
-            maximumDurationSeconds ?? declaredBudget)
+        let userCap = ordinarySkillTimeout.withLock { $0 }
+        let unscaledBudget = Self.effectiveBudget(
+            bindingName: binding.name,
+            declared: declaredBudget,
+            userCap: userCap,
+            maximumDurationSeconds: maximumDurationSeconds)
         let budget = unscaledBudget * scale
         var boundedContext = context
         boundedContext.deadline = Date().addingTimeInterval(budget)

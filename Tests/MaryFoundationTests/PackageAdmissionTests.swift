@@ -229,4 +229,39 @@ import Testing
             !(pluginIssues.isEmpty && graphIssues.isEmpty),
             "a realization naming no declared operation was admitted")
     }
+
+    /// A SECOND CODE EDITOR IS TAUGHT BY DECLARATION. The family adapters
+    /// already exist; what changes is the package — bundle id, AX identity,
+    /// markers, optional CLI — not a compiled provider named after the app.
+    @Test func aSecondCodeEditorIsTaughtByDeclarationAlone() throws {
+        var package = PackageFixtures.applicationExpertise
+        var plugin = try #require(package.plugin)
+        plugin.proseSurface = nil
+        var surface = PackageFixtures.codeSurface
+        surface.handlePrefix = "F"
+        surface.workspaceIdentity = PluginWorkspaceIdentitySchema(
+            rootSource: .documentFile,
+            focusedFileTitleSeparator: " · ",
+            focusedFileTitlePart: .first)
+        plugin.codeSurface = surface
+        plugin.corpus = PluginCorpusSchema(
+            include: ["swift"],
+            projectMarkers: ["Package.swift"],
+            notation: "swift",
+            workspaceIdentity: surface.workspaceIdentity,
+            build: PluginProjectBuildSchema(
+                checkCommand: ["swift", "build"],
+                testCommand: ["swift", "test"],
+                testFilterFlag: "--filter"))
+        plugin.application.targetClasses = ["code-workspace", "document-window"]
+        plugin.application.perception = .init(kind: .workspace)
+        package.plugin = plugin
+
+        let pluginIssues = PluginValidator.validate(plugin, in: package).issues
+            .filter { $0.severity == .error }
+        #expect(pluginIssues.isEmpty, "\(pluginIssues)")
+        #expect(
+            surface.workspaceIdentity.focusedFileName(inTitle: "Buffer.swift · Forge")
+                == "Buffer.swift")
+    }
 }

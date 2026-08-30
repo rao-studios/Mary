@@ -24,7 +24,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryFoundation
 
@@ -133,7 +133,9 @@ final class PluginManagedUIExecutor: @unchecked Sendable {
                 reason: activation.reason(app: application.title)))
         }
 
-        // 4. PERFORM.
+        // 4. PERFORM. Pointer spaces are per-transaction; a captured
+        // Accessibility frame from the last recipe must not aim this one.
+        MaryHands.resetPointerSpaces()
         for step in compiled {
             if Task.isCancelled { return refusal(.cancelled) }
             let result = await MaryHands.perform(
@@ -159,9 +161,10 @@ final class PluginManagedUIExecutor: @unchecked Sendable {
 
     /// Resolve every step's expressions against the turn's arguments.
     ///
-    /// THIS IS WHERE THE POINTER LANE IS REFUSED — at compile time, with the
-    /// step named, before the application has been brought forward. A recipe
-    /// that cannot run should not first steal the user's focus to find out.
+    /// POINTER EXPRESSIONS RESOLVE HERE; SCREEN POINTS DO NOT. A missing
+    /// argument still fails before the stage is taken. Denormalizing against
+    /// the focused window happens in the hands, once the application is
+    /// actually in front.
     static func compile(
         _ steps: [PluginRecipeStepSchema],
         inputs: [PluginOperationInputSchema],
@@ -201,9 +204,51 @@ final class PluginManagedUIExecutor: @unchecked Sendable {
                 compiled.append(.rebindFocusedWindow(
                     requiresChange: step.requiresWindowChange ?? false))
 
-            case .pointerMove, .pointerClick, .pointerDrag,
-                 .pointerSquareDrag, .scroll, .captureAccessibilityAnchor:
-                return .failure(.pointerUnavailable(step.kind.rawValue))
+            case .pointerMove:
+                switch resolvePoint(step.point, inputs: inputs, arguments: arguments) {
+                case .failure(let error): return .failure(error)
+                case .success(let point):
+                    compiled.append(.pointerMove(
+                        x: point.x, y: point.y, space: step.coordinateSpace ?? "content"))
+                }
+
+            case .pointerClick:
+                switch resolvePoint(step.point, inputs: inputs, arguments: arguments) {
+                case .failure(let error): return .failure(error)
+                case .success(let point):
+                    compiled.append(.pointerClick(
+                        x: point.x, y: point.y,
+                        space: step.coordinateSpace ?? "content",
+                        button: step.button ?? .left,
+                        count: step.clickCount ?? 1))
+                }
+
+            case .pointerDrag:
+                switch resolveDrag(step, inputs: inputs, arguments: arguments) {
+                case .failure(let error): return .failure(error)
+                case .success(let drag): compiled.append(drag)
+                }
+
+            case .pointerSquareDrag:
+                switch resolveSquareDrag(step, inputs: inputs, arguments: arguments) {
+                case .failure(let error): return .failure(error)
+                case .success(let drag): compiled.append(drag)
+                }
+
+            case .scroll:
+                switch resolveScroll(step, inputs: inputs, arguments: arguments) {
+                case .failure(let error): return .failure(error)
+                case .success(let scroll): compiled.append(scroll)
+                }
+
+            case .captureAccessibilityAnchor:
+                guard let locator = step.accessibilityLocator,
+                      let name = step.captureAnchor, !name.isEmpty
+                else {
+                    return .failure(.unsupportedStep(
+                        "an Accessibility capture with no locator or name"))
+                }
+                compiled.append(.captureAccessibilityAnchor(locator: locator, name: name))
             }
         }
         return .success(compiled)
@@ -229,6 +274,128 @@ final class PluginManagedUIExecutor: @unchecked Sendable {
             return .success(declared)
         }
         return .failure(.missingArgument(name))
+    }
+
+    static func resolve(
+        _ expression: PluginScalarExpression,
+        inputs: [PluginOperationInputSchema],
+        arguments: [String: String]
+    ) -> Result<Double, PluginManagedUIError> {
+        let offset = expression.offset ?? 0
+        if let literal = expression.value { return .success(literal + offset) }
+        guard let name = expression.input else {
+            return .failure(.unsupportedStep("a number with neither a value nor an input"))
+        }
+        let raw: String?
+        if let supplied = arguments[name], !supplied.isEmpty {
+            raw = supplied
+        } else if let fallback = expression.defaultValue {
+            return .success(fallback + offset)
+        } else if let declared = inputs.first(where: { $0.name == name })?.defaultValue {
+            raw = declared
+        } else {
+            return .failure(.missingArgument(name))
+        }
+        guard let raw, let number = Double(raw) else {
+            return .failure(.argumentNotANumber(name))
+        }
+        return .success(number + offset)
+    }
+
+    static func resolvePoint(
+        _ expression: PluginPointExpression?,
+        inputs: [PluginOperationInputSchema],
+        arguments: [String: String]
+    ) -> Result<(x: Double, y: Double), PluginManagedUIError> {
+        guard let expression else {
+            return .success((0.5, 0.5))
+        }
+        switch (resolve(expression.x, inputs: inputs, arguments: arguments),
+                resolve(expression.y, inputs: inputs, arguments: arguments)) {
+        case (.failure(let error), _), (_, .failure(let error)):
+            return .failure(error)
+        case (.success(let x), .success(let y)):
+            return .success((x, y))
+        }
+    }
+
+    static func resolveDrag(
+        _ step: PluginRecipeStepSchema,
+        inputs: [PluginOperationInputSchema],
+        arguments: [String: String]
+    ) -> Result<PluginCompiledStep, PluginManagedUIError> {
+        guard let rect = step.rect else {
+            return .failure(.unsupportedStep("a drag with no rectangle"))
+        }
+        switch (
+            resolve(rect.x, inputs: inputs, arguments: arguments),
+            resolve(rect.y, inputs: inputs, arguments: arguments),
+            resolve(rect.width, inputs: inputs, arguments: arguments),
+            resolve(rect.height, inputs: inputs, arguments: arguments)
+        ) {
+        case (.failure(let error), _, _, _),
+             (_, .failure(let error), _, _),
+             (_, _, .failure(let error), _),
+             (_, _, _, .failure(let error)):
+            return .failure(error)
+        case (.success(let x), .success(let y), .success(let width), .success(let height)):
+            return .success(.pointerDrag(
+                fromX: x, fromY: y, toX: x + width, toY: y + height,
+                space: step.coordinateSpace ?? "content"))
+        }
+    }
+
+    static func resolveSquareDrag(
+        _ step: PluginRecipeStepSchema,
+        inputs: [PluginOperationInputSchema],
+        arguments: [String: String]
+    ) -> Result<PluginCompiledStep, PluginManagedUIError> {
+        guard let rect = step.rect else {
+            return .failure(.unsupportedStep("a square drag with no rectangle"))
+        }
+        switch (
+            resolve(rect.x, inputs: inputs, arguments: arguments),
+            resolve(rect.y, inputs: inputs, arguments: arguments),
+            resolve(rect.width, inputs: inputs, arguments: arguments)
+        ) {
+        case (.failure(let error), _, _),
+             (_, .failure(let error), _),
+             (_, _, .failure(let error)):
+            return .failure(error)
+        case (.success(let x), .success(let y), .success(let side)):
+            return .success(.pointerSquareDrag(
+                x: x, y: y, side: side, space: step.coordinateSpace ?? "content"))
+        }
+    }
+
+    static func resolveScroll(
+        _ step: PluginRecipeStepSchema,
+        inputs: [PluginOperationInputSchema],
+        arguments: [String: String]
+    ) -> Result<PluginCompiledStep, PluginManagedUIError> {
+        let point: (x: Double, y: Double)
+        switch resolvePoint(step.point, inputs: inputs, arguments: arguments) {
+        case .failure(let error): return .failure(error)
+        case .success(let resolved): point = resolved
+        }
+        var deltaX = 0.0
+        var deltaY = 0.0
+        if let expression = step.deltaX {
+            switch resolve(expression, inputs: inputs, arguments: arguments) {
+            case .failure(let error): return .failure(error)
+            case .success(let value): deltaX = value
+            }
+        }
+        if let expression = step.deltaY {
+            switch resolve(expression, inputs: inputs, arguments: arguments) {
+            case .failure(let error): return .failure(error)
+            case .success(let value): deltaY = value
+            }
+        }
+        return .success(.scroll(
+            x: point.x, y: point.y,
+            space: step.coordinateSpace ?? "content",
+            deltaX: deltaX, deltaY: deltaY))
     }
 
     // MARK: - Refusals

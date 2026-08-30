@@ -34,6 +34,10 @@ public struct AbilityRuntimeSnapshot: Sendable {
     /// direct construction and every test that does not opt in — means
     /// exact-only matching, today's behavior byte for byte.
     private let semanticIndex: SemanticAbilityRequestIndex?
+    /// Optional embedding recall one tier down, consulted ONLY as additive
+    /// evidence when the arbitrator scores a Skill. Nil is exact-only, and a
+    /// Skill it has no opinion about scores exactly what it scores today.
+    public let semanticSkillIndex: SemanticSkillRequestIndex?
 
     public init(
         revision: UUID = UUID(),
@@ -43,9 +47,11 @@ public struct AbilityRuntimeSnapshot: Sendable {
         adapterManifests: [InstalledAdapterManifest],
         primitiveBindings: [LocalSkillBinding] = [],
         plugins: PluginCompilation = .init(),
-        semanticIndex: SemanticAbilityRequestIndex? = nil
+        semanticIndex: SemanticAbilityRequestIndex? = nil,
+        semanticSkillIndex: SemanticSkillRequestIndex? = nil
     ) {
         self.semanticIndex = semanticIndex
+        self.semanticSkillIndex = semanticSkillIndex
         let inventory = InstalledAdapterInventory(
             manifests: adapterManifests + plugins.adapterManifests,
             primitiveBindings: primitiveBindings)

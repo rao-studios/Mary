@@ -34,7 +34,7 @@
 
 import AppKit
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryBrain
 import MaryFoundation
@@ -49,12 +49,65 @@ extension MaryRuntime {
         projectRootsBox.withLock { $0 = Array(Set(projects.values)).sorted() }
         let hadBrainConfiguration = brainConfigurationInstalledBox.withLock { $0 }
 
+        let looking = LookingPlugin { query in
+            await ScreenLookFaculty.look(
+                query: query,
+                capture: {
+                    do {
+                        let view = try await ScreenRegionCapture.captureFocusRegion(hint: query)
+                        return ScreenLookFaculty.Sight(
+                            appTitle: view.appTitle,
+                            bundleID: view.bundleID,
+                            windowTitle: view.windowTitle,
+                            provenanceLabel: view.provenance.spokenLabel,
+                            imageData: view.imageData,
+                            mediaType: view.mediaType)
+                    } catch let failure as ScreenRegionCapture.Failure {
+                        switch failure {
+                        case .accessibilityDenied, .screenRecordingUnavailable:
+                            PermissionsCenter.promptLookingConsents()
+                        case .nothingFrontmost, .windowUnavailable:
+                            break
+                        }
+                        throw failure
+                    }
+                },
+                describe: { sight, direction in
+                    try await seerVision.describe(
+                        imageData: sight.imageData,
+                        mediaType: sight.mediaType,
+                        appTitle: sight.appTitle,
+                        windowTitle: sight.windowTitle,
+                        query: direction)
+                },
+                home: { sight, description in
+                    guard let bundleID = sight.bundleID else { return false }
+                    let place = AmbientPlaceResolver.applicationPlace(forBundleID: bundleID)
+                    WorkspaceFocusTracker.shared.noteGlance(place: place)
+                    let spoken = sight.windowTitle.map { "\(sight.appTitle) — \($0)" }
+                        ?? sight.appTitle
+                    guard let fact = AmbientBridge.readFact(
+                        world: .applications,
+                        application: place.application,
+                        phrase: sight.windowTitle ?? sight.appTitle,
+                        summary: "Looked at \(spoken) (\(sight.provenanceLabel)): \(description)",
+                        document: nil,
+                        passageHandle: nil)
+                    else { return false }
+                    AmbientContextStore.shared.register(fact)
+                    return true
+                })
+        }
+        // Faculties, not applications: appended beside the catalog so they
+        // stay reachable on a turn led by ANY taught app. They declare no
+        // bundle id and never appear in MaryAdapterCatalog.
         let adapters = MaryAdapterCatalog.adapters()
+            + [AffordancePlugin(), looking, CodingAgentAdapter()]
         let observers = MaryAdapterCatalog.observers()
 
         // 1. THE SEAMS, INSTALLED BEFORE ANYTHING READS THEM.
         //
-        // Each of these is an inversion: MaryAmbient sits below MaryAdapters
+        // Each of these is an inversion: MaryAmbient sits below MaryPlugin
         // and MaryBrain, and needs answers only they have — which
         // applications exist, where a place's prose lives, what words map to
         // which ability. A direct call would be an upward edge and the
@@ -92,6 +145,23 @@ extension MaryRuntime {
         // because importing or editing a package changes the answer.
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))
+        // AND THE CODE SURFACES — the read-only sibling of the prose
+        // surfaces above, reconciled the same way and for the same reason:
+        // an editor's declared buffer coordinates are only as current as the
+        // last activation.
+        CodeSurfaceSupport.shared.reconcile(
+            codeSurfaceRegistrations(from: load.snapshot))
+        // AND THE CORPORA. Same reconcile, same reason: which applications
+        // Mary can learn the shape of is a fact about the installed packages.
+        //
+        // ONE ROSTER FOR BOTH CORPUS CONSUMERS — the passive style crawl and
+        // the project lane that answers the model. They ask different
+        // questions of a corpus; they must not disagree about which
+        // applications have one, so the project lane filters this roster on
+        // `structure` rather than keeping a second copy of it.
+        CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
+        registerCodingStyleProducer(profiles: profiles, snapshot: load.snapshot)
+        installCorpusPipeline()
         // AND THE TRANSPORTS, on the same activation and for the same reason:
         // a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(
@@ -108,6 +178,11 @@ extension MaryRuntime {
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }
+            // A DECLARED PERCEPTION IS REFRESHED HERE TOO, for the same reason
+            // the observers above are: the dispatch gate asks what Mary
+            // observes RIGHT NOW, and a reading taken any earlier than the
+            // turn that uses it has already begun going stale.
+            publishPlayerTransportPerception()
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)
@@ -136,6 +211,7 @@ extension MaryRuntime {
             ) {
                 AbilityExecutionContext(projects: projects)
             })
+        await brain.setOrdinarySkillTimeout(skillRunTimeoutBox.withLock { $0 })
 
         // 5. THE SENSES, LAST. An observer that starts polling before the
         // roster is installed publishes facts under a place nothing yet
@@ -143,6 +219,33 @@ extension MaryRuntime {
         for observer in observers { await observer.activate() }
 
         brainConfigurationInstalledBox.withLock { $0 = true }
+        startCodingFollowUpBridge()
+        startLifeLoopIfNeeded()
+    }
+
+    /// Ability-keyed style learning for every taught application that realizes
+    /// coding. Application ids come from the loaded packages, never a compiled
+    /// product name.
+    private static func registerCodingStyleProducer(
+        profiles: [ApplicationProfile],
+        snapshot: AbilityRuntimeSnapshot
+    ) {
+        let applications = profiles
+            .filter { $0.abilities.contains(.coding) }
+            .map(\.id)
+            .sorted()
+        guard !applications.isEmpty else { return }
+        let languages = Set(
+            corpusRegistrations(from: snapshot)
+                .filter { applications.contains($0.applicationID) }
+                .map(\.schema.notation)
+                .filter { !$0.isEmpty }
+        ).sorted()
+        StyleProducerRegistry.shared.register(StyleProducer(
+            ability: .coding,
+            applications: applications,
+            languages: languages,
+            heading: "How this person writes code"))
     }
 
     /// Every prose surface the admitted packages declare.
@@ -150,6 +253,60 @@ extension MaryRuntime {
     /// A DECLARATION BECOMES A REGISTRATION HERE and nowhere else, so the set
     /// the passage verbs can reach is exactly the set the graph admitted —
     /// never a stale copy from the last activation.
+    /// The corpus declarations, in the same shape and for the same reason as
+    /// the prose registrations below.
+    /// Every corpus the admitted ability graph is willing to learn from.
+    ///
+    /// Expertise packages bind a live app (bundle identity). Discipline
+    /// packages may own the walk grammar (`package.corpus`); an expertise
+    /// Plugin may override with `plugin.corpus`. A discipline with no
+    /// expertise in front of the user is not crawled — Mary does not guess
+    /// editors. Disable the discipline or the expertise and that surface
+    /// drops off the next reconcile.
+    package static func corpusRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [CorpusRegistration] {
+        let activated = Dictionary(
+            uniqueKeysWithValues: snapshot.records
+                .filter(\.validation.isValid)
+                .map { ($0.package.package.id, $0.package) })
+        return snapshot.records.compactMap { record -> CorpusRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  !plugin.application.bundleIdentifiers.isEmpty
+            else { return nil }
+            let required = record.package.dependencies.filter { !$0.optional }
+            guard required.allSatisfy({ activated[$0.packageID] != nil }) else {
+                return nil
+            }
+            guard let schema = plugin.corpus
+                    ?? Self.inheritedCorpus(for: record.package, activated: activated)
+            else { return nil }
+            return CorpusRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: schema)
+        }
+    }
+
+    /// Grammar owned by an activated discipline this expertise depends on,
+    /// when the expertise package itself did not declare a corpus.
+    private static func inheritedCorpus(
+        for package: MaryAbilityPackage,
+        activated: [PackageID: MaryAbilityPackage]
+    ) -> PluginCorpusSchema? {
+        for dependency in package.dependencies {
+            guard let donor = activated[dependency.packageID],
+                  donor.paradigm == .discipline
+            else { continue }
+            if let corpus = donor.corpus ?? donor.plugin?.corpus {
+                return corpus
+            }
+        }
+        return nil
+    }
+
     /// `package` so the behavior probe can install the SAME registrations the
     /// app does. A probe that hand-built its own would be measuring a fixture.
     /// The declared transports in one activation's package graph.
@@ -169,6 +326,7 @@ extension MaryRuntime {
             return MediaSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
                 schema: surface)
         }
@@ -185,6 +343,24 @@ extension MaryRuntime {
             return ProseSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
+                displayName: plugin.application.title,
+                schema: surface)
+        }
+    }
+
+    /// `proseSurfaceRegistrations`'s read-only sibling.
+    package static func codeSurfaceRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [CodeSurfaceRegistration] {
+        snapshot.records.compactMap { record -> CodeSurfaceRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let surface = plugin.codeSurface
+            else { return nil }
+            return CodeSurfaceRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
                 schema: surface)
         }

@@ -32,6 +32,62 @@ import Testing
 
 @Suite struct WritingReachabilityTests {
 
+    // MARK: - 0. The real installed Scrivener has to be RECOGNIZED at all
+
+    /// THE LIVE-ONLY BUG THIS PINS: `mary-corpus-probe project --dispatch`
+    /// against a real Scrivener 3 with a real manuscript open found
+    /// `search_corpus`/`read_corpus_outline`/`read_corpus_document`/
+    /// `corpus_progress` unreachable through real `AbilityRuntime.dispatch` —
+    /// every one of them missing from the turn's own projected roster —
+    /// even though every unit test and `mary-package-probe check` passed and
+    /// `mary-corpus-probe project --live` read the manuscript fine.
+    ///
+    /// THE CAUSE was a split between two independent "does this bundle id
+    /// belong to us" implementations. `ProjectCorpusSupport.openCorpora()`
+    /// (which found the project) asks `CorpusRegistration.owns(bundleID:)`,
+    /// a raw `hasPrefix` over `bundleIdentifiers` — lenient enough that it
+    /// matched `com.literatureandlatte.scrivener3` (the real installed
+    /// Scrivener 3) against the declared `com.literatureandlatte.scrivener`
+    /// on its own. Ambient routing asks a DIFFERENT type,
+    /// `ApplicationRegistration.owns(bundleID:)`, which requires an exact
+    /// match unless the package separately declares `bundleIdentifierPrefix`
+    /// — and `scrivener.mary` never did. So `WorkspaceFocusTracker` could
+    /// never recognize the real Scrivener 3 as the taught `scrivener`
+    /// application; it fell to the generic "some app I don't know" terminal
+    /// arm, the lead carried no `writing` discipline, and every Skill this
+    /// file's other tests prove reachable from a writing workspace was
+    /// silently never reachable from the one manuscript application shipped
+    /// to actually be a writing workspace. Fixed by declaring
+    /// `plugin.application.bundleIdentifierPrefix` on `scrivener.mary`
+    /// (2026-08-28); this test is the fast, no-GUI pin so it cannot come
+    /// back silently.
+    @Test func theRealScrivener3BundleIDIsRecognizedAsTheScrivenerApplication() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let compilation = PluginCompiler.compile(
+            packages: [try loadRootPackage("scrivener"), try loadRootPackage("writing")],
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility] })
+
+        let profile = try #require(
+            compilation.applicationProfiles.first { $0.id == "scrivener" })
+        // THE FIELD ITSELF, not just its effect: a future edit that removes
+        // the prefix should fail exactly here, one line from the cause.
+        #expect(
+            profile.applicationBundlePrefix == "com.literatureandlatte.scrivener",
+            "the package must declare the family, not just the exact identity")
+
+        // THE EFFECT `WorkspaceFocusTracker`/`AmbientApplicationIndexProvider`
+        // actually depend on — the same `registration(for:)` join
+        // `AmbientApplicationBridge.install` performs in the shipped app.
+        let registration = AmbientApplicationBridge.registration(for: profile)
+        #expect(registration.owns(bundleID: "com.literatureandlatte.scrivener3"),
+                "the real, versioned Scrivener 3 bundle id must resolve to this registration")
+        #expect(registration.owns(bundleID: "com.literatureandlatte.scrivener"),
+                "the exact declared id still resolves too")
+        #expect(!registration.owns(bundleID: "com.example.scrivener"),
+                "a different vendor's app merely containing the name must not")
+    }
+
     // MARK: - 1. The profile carries the discipline that claims the app
 
     /// AN APPLICATION JOINS A DISCIPLINE BY REALIZING ONE OF ITS SKILLS —
@@ -163,6 +219,64 @@ import Testing
             workspaceFamily: "coding")
 
         #expect(!AbilityRoutingEvaluator.isEligible(writing.routing, in: inXcode))
+    }
+
+    // MARK: - 4. A coding workspace's OWN project corpus is the one exception
+
+    /// LIVE-ONLY BUG, found by `mary-corpus-probe project --dispatch-code`
+    /// against a real Xcode with this checkout open: `xcode.mary` declaring
+    /// `corpus.structure` (fileSystemTree) gave Xcode `search_corpus` /
+    /// `read_corpus_outline` / `read_corpus_document` / `corpus_progress`
+    /// structurally — `mary-package-probe check` was green — and every one
+    /// of them was still missing from the turn's own projected roster,
+    /// because those four Skills are declared inside `writing.mary` and
+    /// gated by ITS Ability-level routing policy, which
+    /// `aCodingWorkspaceStillDoesNotAdmitWriting` above pins as NOT admitting
+    /// a bare coding workspace. Unlike Scrivener (admitted by
+    /// `workspaceFamily=="writing"` alone, regardless of the utterance), an
+    /// ordinary coding question — "find where the code mentions X" — reads
+    /// as neither `compose`/`revise` nor a text-selection interaction, so
+    /// none of the other three arms fired either.
+    ///
+    /// THE FIX IS A FIFTH ARM, doubly-qualified rather than widened: `all(
+    /// workspaceFamily=="coding", targetClass=="writing-project")`. A bare
+    /// coding workspace never carries `writing-project` — only one that ALSO
+    /// declares a `corpus.structure` does, because that target class is what
+    /// `AbilityRuntime.abilityRoutingContext()` unions in from the LEAD
+    /// application's own `plugin.application.targetClasses`
+    /// (`xcode.mary` added it alongside `code-workspace`/`document-window`
+    /// for exactly this). So this admits Writing for a project-reading
+    /// question in Xcode without reopening `aCodingWorkspaceStillDoesNotAdmitWriting`'s
+    /// door — that fixture carries no target classes at all, so the new arm
+    /// stays shut for it, which is the pin below.
+    @Test func aCodingWorkspaceWithItsOwnCorpusAdmitsWritingForTheCorpusLane() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let writing = try loadRootPackage("writing").ability
+        let inXcodeWithACorpus = AbilityRoutingContext(
+            utterance: "find where the code mentions PluginCorpusStructureSchema",
+            intent: AmbientIntent.operate.rawValue,
+            targetClasses: ["writing-project"],
+            workspaceFamily: "coding")
+
+        #expect(AbilityRoutingEvaluator.isEligible(writing.routing, in: inXcodeWithACorpus))
+    }
+
+    /// THE NARROWNESS, pinned separately from the positive: a coding
+    /// workspace that does NOT declare `writing-project` — the ordinary case
+    /// `aCodingWorkspaceStillDoesNotAdmitWriting` already covers — must stay
+    /// shut even with the new arm in place. Restated here with an EXPLICIT
+    /// `targetClasses: []` so a future edit that widens the new arm's second
+    /// child fails exactly on this line rather than on the older test above.
+    @Test func aCodingWorkspaceWithNoCorpusStillDoesNotAdmitWriting() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let writing = try loadRootPackage("writing").ability
+        let inXcodeWithNoCorpus = AbilityRoutingContext(
+            utterance: "run the tests",
+            intent: AmbientIntent.operate.rawValue,
+            targetClasses: [],
+            workspaceFamily: "coding")
+
+        #expect(!AbilityRoutingEvaluator.isEligible(writing.routing, in: inXcodeWithNoCorpus))
     }
 
     /// THE SHIPPED PACKAGES, not fixtures. What broke here was the real

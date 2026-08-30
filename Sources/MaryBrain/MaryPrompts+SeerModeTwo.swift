@@ -94,6 +94,7 @@ extension MaryPrompts {
         heldMentions: [String] = [],
         readPassages: [String] = [],
         readReport: Bool = false,
+        conversational: Bool = false,
         runningActions: [String] = [],
         lookUnderway: Bool = false
     ) -> String {
@@ -103,6 +104,7 @@ extension MaryPrompts {
             liveWork: liveWork, liveWorkWorld: liveWorkWorld,
             heldFacts: heldFacts, heldMentions: heldMentions,
             readPassages: readPassages, readReport: readReport,
+            conversational: conversational,
             runningActions: runningActions,
             lookUnderway: lookUnderway
         ).text
@@ -121,6 +123,7 @@ extension MaryPrompts {
         heldMentions: [String] = [],
         readPassages: [String] = [],
         readReport: Bool = false,
+        conversational: Bool = false,
         runningActions: [String] = [],
         lookUnderway: Bool = false,
         plan: PromptPlan = .voice
@@ -131,6 +134,7 @@ extension MaryPrompts {
             capability: capability, groundedResults: groundedResults,
             liveWork: liveWork, liveWorkWorld: liveWorkWorld,
             readPassages: readPassages, readReport: readReport,
+            conversational: conversational,
             runningActions: runningActions,
             lookUnderway: lookUnderway))
     }

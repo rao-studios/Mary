@@ -176,7 +176,7 @@ extension MaryBrain {
         // one resolver, no drift: two roads to "which part do they mean?" would
         // be two answers, and the gates below have to be able to name the same
         // passage the edit verb will act on. That locate happens one level up,
-        // in `runTurn`, so the LEGACY loop is fed by the same call — see
+        // in `runTurn`, so the LOCAL loop is fed by the same call — see
         // `locateTarget`, and `runTurn`'s note on why it sits above the Seer
         // guard rather than below it.
         //
@@ -227,12 +227,10 @@ extension MaryBrain {
         var lookUnderway = false
         var lookServed = false
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
-           // A LOOK CLASSIFIER USED TO WIDEN THIS RUNG — "what does this look
-           // like", "can you see the…". It belonged to the vision lane, which
-           // is not in this cut, so the rung narrows to the routed intent.
-           // Narrower is the safe direction: a missed pre-look costs a round
-           // trip, and a spurious one costs a screenshot nobody asked for.
-           routeIntent == .perceive,
+           // Perceive (routing's deixis) OR the conservative LookClassifier
+           // (the "that"-shapes routing keeps as `.converse`). The
+           // dispatcher declines cheaply when a world with its own eyes leads.
+           routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil,
            dispatcher.wouldServeLook() {
             let description = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
                 await dispatcher.lookAtScreen(userText)
@@ -306,6 +304,12 @@ extension MaryBrain {
         // mutates `activeRoutines` — the lane spawn is a detached Task.
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
+            // THE ROUTER'S OWN VERDICT, carried rather than re-derived. Lane A
+            // has never been told what SHAPE the turn is, only what it holds —
+            // so a greeting and an unfulfilled action request arrived here
+            // indistinguishable, and both got the action persona. Nil (a pass
+            // with no route) stays false: unknown is not conversation.
+            conversational: routeIntent == .converse,
             runningActionLabels: activeRoutines.values.map(\.label),
             lookUnderway: lookUnderway,
             exchangeID: originUserTurnID))
@@ -469,6 +473,7 @@ extension MaryBrain {
             // is background work — both for the log and for its place in the
             // engine gate's queue.
             laneAttachment.detach()
+            makeRoomForDetachedRoutine()
             // DETACH: the turn completes now; the lane becomes a routine and
             // reports through the proactive channel when it finishes. Its
             // Skill turns never enter shared history — results reach context
@@ -939,7 +944,7 @@ extension MaryBrain {
         // started with, the words it ended with, roughly how much — because
         // those are the only bounds a person can act on.
         //
-        // Through `revisionReport` rather than inline, because `legacyTurn`
+        // Through `revisionReport` rather than inline, because `localTurn`
         // owes the identical sentence and two copies of it would drift.
         //
         // AND IT IS THE FIRST BENEFICIARY OF THE TAKEOVER ABOVE. `after:` takes

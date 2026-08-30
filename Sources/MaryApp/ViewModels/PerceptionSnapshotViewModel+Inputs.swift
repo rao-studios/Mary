@@ -23,7 +23,7 @@
 
 import AppKit
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryAmbient
 import MaryBrain
 import MaryFoundation

@@ -336,4 +336,31 @@ import MaryFoundation
         #expect(assembler.openEpisodeID == nil)
         #expect(assembler.droppedRecords == 0)
     }
+
+    @Test func abilityTargetsStampTheOpenEpisodeBeforeSeal() async {
+        let recorder = Recorder()
+        let assembler = BehavioralAssembler(recorder: recorder)
+        let turn = UUID()
+        let coding = AbilityTotemTarget(abilityID: .coding, paradigm: .discipline)
+
+        assembler.openEpisode(id: turn, query: "tidy", provenance: provenance)
+        assembler.noteAbilityTargets([coding], forEpisode: turn)
+        assembler.seal(turn, reason: .completed)
+        await recorder.settle(expecting: 1)
+
+        #expect(recorder.episodes[0].abilityTargets == [coding])
+    }
+
+    @Test func abilityTargetsForTheWrongEpisodeAreIgnored() async {
+        let recorder = Recorder()
+        let assembler = BehavioralAssembler(recorder: recorder)
+        let turn = UUID()
+        assembler.openEpisode(id: turn, query: "q", provenance: provenance)
+        assembler.noteAbilityTargets(
+            [AbilityTotemTarget(abilityID: .coding, paradigm: .discipline)],
+            forEpisode: UUID())
+        assembler.seal(turn, reason: .completed)
+        await recorder.settle(expecting: 1)
+        #expect(recorder.episodes[0].abilityTargets.isEmpty)
+    }
 }

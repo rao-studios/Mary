@@ -26,7 +26,8 @@ extension PromptCatalog {
     static var voiceSections: [PromptSection] {
         [
             seerPreamble,
-            seerPersonaRead, seerPersonaGrounded, seerPersonaInTurn,
+            seerPersonaRead, seerPersonaGrounded, seerPersonaConverse,
+            seerPersonaInTurn,
             seerCapability, seerRetrieval, seerSightPending,
             seerRunningActions, seerLiveWork,
         ]
@@ -58,22 +59,23 @@ extension PromptCatalog {
         return "\n\n" + MaryPrompts.runningActionsNote(labels: inputs.runningActions)
     }
 
-    // MARK: - Identity
+    // MARK: - Clock and spoken register
 
-    /// Ends WITHOUT a trailing space; the persona that follows leads with one.
-    /// In the source the space sits on this literal's tail, and one of the
-    /// three personas always renders, so the two spellings are the same bytes.
+    /// Clock and TTS only. Who she is lives on `SeerWire.Persona.mary` and
+    /// rides the chat `persona` object into Seer's personality section —
+    /// putting it here as well stacked "You are Mary" under "Your name is
+    /// Mary".
+    ///
+    /// Ends WITHOUT a trailing space; the turn persona that follows leads
+    /// with one.
     static let seerPreamble = PromptSection(
         id: .seerPreamble,
-        rationale: "Who she is, the clock, and the TTS register. Always first."
+        rationale: "The clock and TTS register. Always first in instructions; identity is the chat persona."
     ) { inputs in
         let time = inputs.formatter("h:mm a").string(from: inputs.now)
         let date = inputs.formatter("EEEE, MMMM d, yyyy").string(from: inputs.now)
         return """
-        You are Mary — that is your name; always identify as Mary, never \
-        any other assistant name. You are a voice assistant living on the \
-        user's Mac: a warm, knowledgeable companion who ACTS — not a \
-        read-only chat. Right now it is \
+        Right now it is \
         \(time) on \
         \(date) (\(inputs.timeZone.identifier)); never \
         guess the date or time. Your words are read aloud by a text-to-speech \
@@ -134,6 +136,63 @@ extension PromptCatalog {
         mechanics of how, and never repeat the content that was written.
 
         \(grounded)
+        """
+    }
+
+    /// THE TURN ASKED FOR NOTHING — and until this section existed, no persona
+    /// said so.
+    ///
+    /// THE FAILURE THIS FIXES (confirmed against a live session): Mary
+    /// answering small conversational turns with "I'm adding that now.", "I'm
+    /// stopping that now." — present-progress action language over a turn
+    /// where nothing had been requested and nothing was running. Seer's
+    /// resonance pass then extracted those sentences as retrievable memory,
+    /// so yesterday's phantom work primed today's.
+    ///
+    /// IT COULD NOT HAVE GONE OTHERWISE. `seerPersonaInTurn` is the ladder's
+    /// catch-all: every turn that is not a read and not a grounded result gets
+    /// it, which includes every greeting and every joke. It is ~150 words
+    /// whose entire subject is acting, and it carries the ONLY concrete
+    /// example reply anywhere in the voice prompt — "Got it — a new event on
+    /// the calendar." A small model copies the exemplar it is shown, and on a
+    /// chat turn that exemplar was the only model of a reply it had. Against
+    /// it stood six words of the preamble: "good company first".
+    ///
+    /// THE COUNTERWEIGHT ALREADY EXISTED IN THE WRONG LANE. `system()`'s
+    /// `registerSwitch` has long said "when they're just chatting… simply
+    /// talk… leave the Skills alone unless they actually ask for something" —
+    /// but that is the Skill lane's prompt, and Lane A is handed
+    /// `instructions` only. Exactly the one-laned-doctrine shape called out on
+    /// `seerPersonaInTurn` below, one clause over.
+    ///
+    /// THIRD IN THE LADDER, NOT FIRST. It renders only when the read and
+    /// grounded personas have both declined, which is the plan expressing
+    /// "conversational AND no read AND no grounded result" through order
+    /// rather than through three guards restated inside this closure. A read
+    /// or a finished action still outranks it: those turns have something to
+    /// report, whatever the router made of the sentence.
+    ///
+    /// NO ANTI-ASKING CLAUSE, deliberately. `seerPersonaInTurn`'s exists
+    /// because the Skill pipeline enforces its own confirmation boundaries and
+    /// a second prose question wastes the user's breath. There is no pipeline
+    /// on a converse turn, and a question back is what company does.
+    static let seerPersonaConverse = PromptSection(
+        id: .seerPersonaConverse,
+        rationale: "The turn asked for nothing — talk, and announce no work.",
+        exclusive: .seerPersona
+    ) { inputs in
+        guard inputs.conversational else { return "" }
+        return " " + """
+        This turn is CONVERSATION, not a request: a greeting, an opinion, \
+        something they noticed, a joke, a question about the world. Nothing \
+        was asked of your hands, so nothing is underway and there is no \
+        result on its way. Do not announce work, do not acknowledge an \
+        intent, and do not name something you are about to go do — no "I'm on \
+        it", no "adding that now", no offering to run something they did not \
+        ask for. Just talk to them: a sentence or two, warm and specific, a \
+        quip if one is there. This is the register where being good company \
+        IS the whole job. Your hands are still yours — if they ask for \
+        something, act then, and never disclaim what you can do.
         """
     }
 

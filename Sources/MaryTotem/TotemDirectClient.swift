@@ -69,10 +69,8 @@ public actor TotemDirectClient {
         try await remove(documentIDs: [], ownerID: ownerID)
     }
 
-    /// Clears just the owner's groups whose id begins with `prefix` (e.g.
-    /// "mary-context-<owner>") by enumerating the library and removing their
-    /// documents. Leaves every other group — saved memories, other apps —
-    /// untouched. Returns the removed count (0 if nothing matched).
+    /// Clears just the owner's groups whose id begins with `prefix` by
+    /// enumerating the library and removing their documents.
     @discardableResult
     public func clearGroups(prefix: String, ownerID: String) async throws -> Int {
         var ids: [String] = []
@@ -100,12 +98,13 @@ public actor TotemDirectClient {
         ownerID: String,
         scope: String = "personal",
         topK: Int = 5,
-        groupIDs: [String] = []
+        groupIDs: [String] = [],
+        timeout: Duration = .seconds(30)
     ) async throws -> [PartitionHit] {
         let request = TotemProtoMap.searchRequest(
             query: query, ownerID: ownerID, scope: scope,
             topK: topK, groupIDs: groupIDs)
-        return try await withQueryStub(timeout: .seconds(30)) { stub, options in
+        return try await withQueryStub(timeout: timeout) { stub, options in
             let response = try await stub.search(request, options: options)
             return response.results.map(TotemProtoMap.hit(from:))
         }
@@ -134,6 +133,26 @@ public actor TotemDirectClient {
         return try await withLibraryStub(timeout: .seconds(30)) { stub, options in
             let response = try await stub.documents(request, options: options)
             return response.documents.map(TotemProtoMap.documentContent(from:))
+        }
+    }
+
+    /// Paged full-document export (TotemLibrary.ExportCorpus). Training must
+    /// not reconstruct pairs from search snippets.
+    public func exportCorpus(
+        ownerID: String,
+        groupIDs: [String] = [],
+        documentIDPrefix: String = "mary-behavior-",
+        afterID: String = "",
+        limit: Int = 200
+    ) async throws -> (documents: [DocumentContent], hasMore: Bool) {
+        let request = TotemProtoMap.exportCorpusRequest(
+            ownerID: ownerID, groupIDs: groupIDs,
+            documentIDPrefix: documentIDPrefix, afterID: afterID, limit: limit)
+        return try await withLibraryStub(timeout: .seconds(60)) { stub, options in
+            let response = try await stub.exportCorpus(request, options: options)
+            return (
+                response.documents.map(TotemProtoMap.documentContent(from:)),
+                response.hasMore_p)
         }
     }
 
@@ -308,6 +327,19 @@ enum TotemProtoMap {
         var request = Totem_V1_TotemDocumentsRequest()
         request.ownerID = ownerID
         request.documentIds = ids
+        return request
+    }
+
+    static func exportCorpusRequest(
+        ownerID: String, groupIDs: [String],
+        documentIDPrefix: String, afterID: String, limit: Int
+    ) -> Totem_V1_TotemExportCorpusRequest {
+        var request = Totem_V1_TotemExportCorpusRequest()
+        request.ownerID = ownerID
+        request.groupIds = groupIDs
+        request.documentIDPrefix = documentIDPrefix
+        request.afterID = afterID
+        request.limit = Int32(limit)
         return request
     }
 

@@ -23,11 +23,25 @@ import os
 
 extension MaryBrain {
 
+    /// Detached lanes beyond this cancel the oldest at the next detach.
+    public static let maxDetachedRoutines = 2
+
+    /// Which already-running detached routines must stop so one more can join
+    /// without exceeding `cap`. Oldest first.
+    public static func idsToCancelForDetachedCap(
+        existing: [(id: UUID, spawnedUptime: UInt64)],
+        cap: Int = maxDetachedRoutines
+    ) -> [UUID] {
+        guard cap > 0, existing.count >= cap else { return [] }
+        let overflow = existing.count - cap + 1
+        return existing
+            .sorted { $0.spawnedUptime < $1.spawnedUptime }
+            .prefix(overflow)
+            .map(\.id)
+    }
+
     /// A detached routine: an orchestrator lane that outlived its turn and
-    /// keeps executing in the background. SEVERAL may run concurrently
-    /// (typing a paragraph while a search runs) — each carries its own
-    /// watchdog and follow-up anchor. Resource conflicts are the
-    /// StageArbiter's job, not this registry's.
+    /// keeps executing in the background.
     // internal for file split — treat as private
     struct ActiveRoutine {
         let id: UUID
@@ -119,6 +133,15 @@ extension MaryBrain {
     }
 
     // MARK: - Detached routine completion (grounded follow-up)
+
+    func makeRoomForDetachedRoutine() {
+        let existing = activeRoutines.map {
+            (id: $0.key, spawnedUptime: $0.value.spawnedAt.uptimeNanoseconds)
+        }
+        for id in Self.idsToCancelForDetachedCap(existing: existing) {
+            cancelRoutine(id: id)
+        }
+    }
 
     /// Releases ONE routine and its two clocks together — every terminal path
     /// (finish, expiry, bare-stop) goes through here so no half can outlive

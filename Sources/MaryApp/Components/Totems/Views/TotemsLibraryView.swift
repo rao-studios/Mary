@@ -9,6 +9,8 @@
 //
 
 import SwiftUI
+import MaryBrain
+import MaryFoundation
 import MaryRuntime
 
 struct TotemsLibraryView: View {
@@ -17,10 +19,6 @@ struct TotemsLibraryView: View {
     @Binding var laneFilter: String?
     @Binding var selectedGroupID: String?
     @Binding var selectedDocumentID: String?
-
-    private var filterFamily: TotemAddressFamily? {
-        laneFilter.flatMap(TotemAddressFamily.init(rawValue:))
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: .layer3) {
@@ -58,23 +56,32 @@ struct TotemsLibraryView: View {
             }
         }
 
-        if !vm.familyChips.isEmpty {
-            FlowLayout(spacing: 4, lineSpacing: 4) {
-                ForEach(vm.familyChips) { chip in
-                    MaryChip(
-                        label: "\(chip.title) \(chip.count)",
-                        isOn: laneFilter == chip.family.rawValue
-                    ) {
-                        // Tapping the active chip clears it — nil means all.
-                        laneFilter = laneFilter == chip.family.rawValue
-                            ? nil : chip.family.rawValue
-                    }
+        if let hint = vm.abilityDepositHint,
+           laneFilter == nil || laneFilter == TotemLane.ability.rawValue {
+            Text(hint)
+                .font(.marySans(11))
+                .foregroundStyle(Color.maryInk.opacity(0.55))
+        }
+
+        FlowLayout(spacing: 4, lineSpacing: 4) {
+            MaryChip(label: "Ability", isOn: laneFilter == TotemLane.ability.rawValue) {
+                toggleFilter(TotemLane.ability.rawValue)
+            }
+            MaryChip(label: "Personal", isOn: laneFilter == TotemLane.personal.rawValue) {
+                toggleFilter(TotemLane.personal.rawValue)
+            }
+            ForEach(vm.familyChips) { chip in
+                MaryChip(
+                    label: "\(chip.title) \(chip.count)",
+                    isOn: laneFilter == chip.family.rawValue
+                ) {
+                    toggleFilter(chip.family.rawValue)
                 }
             }
         }
 
         let sections = TotemExplorerViewModel.sections(
-            vm.laneSections, matching: filterFamily)
+            vm.laneSections, matching: laneFilter)
         ForEach(sections) { section in
             laneSection(section)
         }
@@ -244,7 +251,15 @@ struct TotemsLibraryView: View {
                         }
                     }
 
-                    if let body = document.body {
+                    if let codec = document.codec,
+                       document.family == .behaviorEpisode {
+                        Divider()
+                        codecInspect(codec)
+                    } else if let interaction = document.interaction,
+                              document.family == .behaviorInteractionDocument {
+                        Divider()
+                        interactionInspect(interaction)
+                    } else if let body = document.body {
                         Divider()
                         Text(body)
                             .font(.marySans(11))
@@ -260,6 +275,110 @@ struct TotemsLibraryView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+        }
+    }
+
+    private func toggleFilter(_ value: String) {
+        laneFilter = laneFilter == value ? nil : value
+    }
+
+    private func codecInspect(_ codec: BehavioralCodecView) -> some View {
+        VStack(alignment: .leading, spacing: .layer3) {
+            Text("Input")
+                .font(.marySans(10, weight: .semibold))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+            inspectLine("Query", codec.query)
+            if let prior = codec.priorEpisodeID {
+                inspectLine("Prior episode", prior.uuidString.lowercased())
+            }
+            if let ambient = ambientSummary(codec) {
+                inspectLine("Ambient", ambient)
+            }
+
+            Text("Output")
+                .font(.marySans(10, weight: .semibold))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+                .padding(.top, .layer1)
+            inspectLine("Did act", codec.didAct ? "true" : "false")
+            if let reason = codec.sealedReason {
+                inspectLine("Sealed", reason)
+            }
+            if codec.actions.isEmpty {
+                Text("No actions — the turn was conversation.")
+                    .font(.marySans(11))
+                    .foregroundStyle(Color.maryInk.opacity(0.55))
+            }
+            ForEach(Array(codec.actions.enumerated()), id: \.offset) { _, action in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("\(action.intention) · \(action.disposition)")
+                        .font(.marySans(11, weight: .medium))
+                    Text(action.skillID)
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.4))
+                    if !action.summary.isEmpty {
+                        Text(action.summary)
+                            .font(.marySans(11))
+                            .foregroundStyle(Color.maryInk.opacity(0.7))
+                    }
+                }
+            }
+
+            if !codec.trainingTags.isEmpty {
+                Text("Tags")
+                    .font(.marySans(10, weight: .semibold))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+                    .padding(.top, .layer1)
+                Text(codec.trainingTags.joined(separator: "  "))
+                    .font(.maryMono(9))
+                    .foregroundStyle(Color.maryInk.opacity(0.55))
+                    .textSelection(.enabled)
+            }
+        }
+    }
+
+    private func interactionInspect(_ interaction: BehavioralInteractionStub) -> some View {
+        VStack(alignment: .leading, spacing: .layer2) {
+            inspectLine("Query", interaction.query)
+            inspectLine("Episode", interaction.episodeID.uuidString.lowercased())
+            inspectLine("Did act", interaction.didAct ? "true" : "false")
+            if let reason = interaction.sealedReason {
+                inspectLine("Sealed", reason)
+            }
+            Button {
+                selectedDocumentID = interaction.abilityDocumentID
+                vm.loadDocument(id: interaction.abilityDocumentID)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Ability document")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                    Text(interaction.abilityDocumentID)
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryGold)
+                        .textSelection(.enabled)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func ambientSummary(_ codec: BehavioralCodecView) -> String? {
+        guard let mode = codec.ambientMode else { return nil }
+        var ambient = mode
+        if let lead = codec.ambientLead { ambient += " · \(lead)" }
+        if codec.factCount > 0 { ambient += " · \(codec.factCount) facts" }
+        return ambient
+    }
+
+    private func inspectLine(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(label)
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+            Text(value)
+                .font(.marySans(11))
+                .foregroundStyle(Color.maryInk.opacity(0.85))
+                .textSelection(.enabled)
         }
     }
 }

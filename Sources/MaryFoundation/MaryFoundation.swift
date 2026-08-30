@@ -24,7 +24,7 @@
 //  a `.mary` file under Abilities/ describing an application, its skills, and
 //  the recipes that carry them out. It is never Swift code. The compiled
 //  providers that satisfy what a Plugin declares are ADAPTERS, and they live
-//  in MaryAdapters. This distinction is the reason the schema layer is where
+//  in MaryPlugin. This distinction is the reason the schema layer is where
 //  the interesting vocabulary lives: a Plugin is data all the way down.
 //
 

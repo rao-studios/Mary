@@ -197,7 +197,15 @@ public enum AmbientRealmResolver {
     public static func place(
         among candidates: [AmbientCandidate], need: AmbientNeed, _ inputs: Inputs
     ) -> AmbientPlace? {
-        let conforming = Set(candidates.filter(\.conforms).map(\.place))
+        let conforming: Set<AmbientPlace> = {
+            // An empty need admitted everyone with eyes. `AmbientCandidate.conforms`
+            // is ability/discipline axes only, so "what's that?" would otherwise
+            // find candidates and then refuse every lead.
+            if need.isEmpty {
+                return Set(candidates.map(\.place))
+            }
+            return Set(candidates.filter(\.conforms).map(\.place))
+        }()
 
         if !inputs.namedPlaces.isEmpty {
             // Sorted so several named places resolve the same way twice.

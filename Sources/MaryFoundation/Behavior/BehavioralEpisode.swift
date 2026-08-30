@@ -173,6 +173,9 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     public var input: BehavioralInput
     public var output: BehavioralOutput
     public var provenance: EpisodeProvenance
+    /// Ability Totem groups this episode files into. Empty means JSONL only —
+    /// no Totem Ability write, and no Personal interaction stub.
+    public var abilityTargets: [AbilityTotemTarget]
 
     public init(
         id: UUID,
@@ -181,7 +184,8 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
         sealedReason: EpisodeSealReason? = nil,
         input: BehavioralInput,
         output: BehavioralOutput = .init(),
-        provenance: EpisodeProvenance
+        provenance: EpisodeProvenance,
+        abilityTargets: [AbilityTotemTarget] = []
     ) {
         self.schema = Self.schemaName
         self.schemaVersion = Self.currentSchemaVersion
@@ -192,6 +196,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
         self.input = input
         self.output = output
         self.provenance = provenance
+        self.abilityTargets = Array(Set(abilityTargets)).sorted()
     }
 
     /// Whether this episode has stopped taking actions.
@@ -218,7 +223,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case schema, schemaVersion, id, openedAt, sealedAt, sealedReason
-        case input, output, provenance
+        case input, output, provenance, abilityTargets
     }
 
     public init(from decoder: Decoder) throws {
@@ -234,6 +239,48 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
         provenance = try values.decodeIfPresent(
             EpisodeProvenance.self, forKey: .provenance)
             ?? .init(engine: "", lane: "", appVersion: "")
+        abilityTargets = try values.decodeIfPresent(
+            [AbilityTotemTarget].self, forKey: .abilityTargets) ?? []
+    }
+}
+
+/// Personal-lane pointer from a query to the Ability codec document.
+/// Not a second copy of the episode — join on `episodeID` / `abilityDocumentID`.
+public struct BehavioralInteractionStub: Codable, Hashable, Sendable {
+    public var episodeID: UUID
+    public var query: String
+    public var priorEpisodeID: UUID?
+    public var abilityDocumentID: String
+    public var abilityGroupIDs: [String]
+    public var sealedReason: String?
+    public var didAct: Bool
+
+    public init(
+        episodeID: UUID,
+        query: String,
+        priorEpisodeID: UUID? = nil,
+        abilityDocumentID: String,
+        abilityGroupIDs: [String],
+        sealedReason: String? = nil,
+        didAct: Bool
+    ) {
+        self.episodeID = episodeID
+        self.query = query
+        self.priorEpisodeID = priorEpisodeID
+        self.abilityDocumentID = abilityDocumentID
+        self.abilityGroupIDs = abilityGroupIDs
+        self.sealedReason = sealedReason
+        self.didAct = didAct
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case episodeID = "episode_id"
+        case query
+        case priorEpisodeID = "prior_episode_id"
+        case abilityDocumentID = "ability_document_id"
+        case abilityGroupIDs = "ability_group_ids"
+        case sealedReason = "sealed_reason"
+        case didAct = "did_act"
     }
 }
 

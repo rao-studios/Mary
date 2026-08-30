@@ -23,11 +23,14 @@ extension Home {
             /// a route changes which world leads, and the eyes are where you
             /// see what that did.
             var showRouter: Bool = false
-            // NO `showCorpus`. A flag stood here for the corpus split — what
-            // indexing ingested and concluded — and the pane that read it was
-            // never ported, because the behavioural corpus lane is deferred.
-            // The toolbar button survived the drop and lit up on press while
-            // rendering nothing at all. It comes back with its pane.
+            /// The corpus split — what indexing ingested and what it
+            /// concluded about how you work. Transient like the three above.
+            ///
+            /// It was absent for a while, with a note here explaining that the
+            /// pane had not been ported and that the toolbar button would light
+            /// up while rendering nothing. Both are back, together, which is
+            /// the only order that was ever acceptable.
+            var showCorpus: Bool = false
         }
 
         @Store public var state: State

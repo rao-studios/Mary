@@ -2,7 +2,7 @@
 //  LocalStackManager.swift
 //  Mary
 //
-//  Owns the local Seer + Totem processes: spawn in order (Seer's mothership
+//  Owns the local Seer + Totem + Fleet processes: spawn in order (Seer's mothership
 //  first, then Totem which dials it), health-poll, restart, build-on-demand,
 //  and tear down on quit. Process handles never leave the actor; the UI gets
 //  Sendable snapshots and a change stream.
@@ -15,7 +15,9 @@
 //    we spawned. On boot: alive + our binary + healthy → adopt as owned;
 //    alive but unhealthy → reap (SIGTERM→SIGKILL) and respawn; dead → clear.
 //  - A server that answers /health with no PID-file claim is EXTERNAL (the
-//    user ran start-seer-totem.sh) — never stopped, never double-spawned.
+//    user ran start-seer-totem.sh). Mary will not spawn a second copy or
+//    kill it on quit. Stop and Restart still work: they find the process
+//    listening on the health port whose path ends in the expected binary.
 //  - applicationWillTerminate calls emergencyStopAllSync(); owned pids live
 //    in a static lock so the delegate needs no actor hop at quit.
 //
@@ -244,19 +246,30 @@ package actor LocalStackManager {
 
     package func stop(_ kind: ServerSpec.Kind) async {
         guard var managed = servers[kind] else { return }
-        if managed.status == .external { return }
-        guard let pid = managed.pid else { return }
-
-        managed.process?.terminate()          // SIGTERM
-        if managed.process == nil { kill(pid, SIGTERM) }
-
-        let deadline = Date().addingTimeInterval(2)
-        while Date() < deadline, isAlive(pid) {
-            try? await Task.sleep(nanoseconds: 100_000_000)
+        let ownedHandle = managed.process
+        let pids = stopTargets(for: managed)
+        if pids.isEmpty {
+            if managed.status == .external {
+                let port = managed.spec.healthURL.port.map(String.init)
+                    ?? managed.spec.healthURL.absoluteString
+                managed.detail =
+                    "couldn't find \(managed.spec.executableName) listening on \(port)"
+                servers[kind] = managed
+                publish()
+            }
+            return
         }
-        if isAlive(pid) { kill(pid, SIGKILL) }
 
-        Self.ownedPids.withLock { _ = $0.remove(pid) }
+        for pid in pids {
+            if ownedHandle != nil, managed.pid == pid {
+                ownedHandle?.terminate()
+            } else {
+                kill(pid, SIGTERM)
+            }
+            await waitForExit(pid)
+            Self.ownedPids.withLock { _ = $0.remove(pid) }
+        }
+
         removePidFile(kind)
         managed.process = nil
         managed.pid = nil
@@ -266,6 +279,46 @@ package actor LocalStackManager {
         managed.detail = nil
         servers[kind] = managed
         publish()
+    }
+
+    /// Owned pid if we have one; otherwise the listener on the health port
+    /// whose path is this spec's binary — the external / script-launched case.
+    private func stopTargets(for managed: Managed) -> [pid_t] {
+        if let pid = managed.pid, isAlive(pid) {
+            return [pid]
+        }
+        guard let port = managed.spec.healthURL.port else { return [] }
+        return StackListener.matching(
+            listed: pidsListening(on: port),
+            executableName: managed.spec.executableName,
+            commandPath: commandPath(of:))
+    }
+
+    private func waitForExit(_ pid: pid_t) async {
+        let deadline = Date().addingTimeInterval(2)
+        while Date() < deadline, isAlive(pid) {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        if isAlive(pid) { kill(pid, SIGKILL) }
+    }
+
+    /// `lsof -t` of TCP LISTEN on `port`. Empty when lsof is missing or
+    /// nothing is bound — Stop then leaves a note rather than guessing.
+    private func pidsListening(on port: Int) -> [pid_t] {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
+        process.arguments = ["-nP", "-t", "-iTCP:\(port)", "-sTCP:LISTEN"]
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return []
+        }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        return StackListener.parsePIDs(String(data: data, encoding: .utf8) ?? "")
     }
 
     package func restart(_ kind: ServerSpec.Kind) async -> String? {

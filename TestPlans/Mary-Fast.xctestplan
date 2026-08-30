@@ -27,8 +27,8 @@
     {
       "target": {
         "containerPath": "container:",
-        "identifier": "MaryAdaptersTests",
-        "name": "MaryAdaptersTests"
+        "identifier": "MaryPluginTests",
+        "name": "MaryPluginTests"
       }
     },
     {

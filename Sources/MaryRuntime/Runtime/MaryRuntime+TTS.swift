@@ -14,7 +14,7 @@
 //
 
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryTotem
 import MaryVoice
 import Foundation
@@ -167,15 +167,21 @@ extension MaryRuntime {
         }
     }
 
-    /// Install the plugins, prompt provider, and subshell registry — called
-    /// at boot and whenever the configured projects change. The prompt
-    /// provider runs every turn, keeping the injected date and time fresh.
     /// Bridge coding-agent session completions to the brain's proactive voice,
-    /// speaking ONLY on failure (a successful background edit lands silently —
-    /// it just appears in Xcode). EVERY terminal snapshot lands in the Ability
-    /// execution log regardless — the delegate ack binding logged the spawn; this row is
-    /// the edit's real result. Started once for the process; the delegate
-    /// recipe spawns on `CodingAgentManager.shared`, the same instance observed
-    /// here.
+    /// speaking ONLY on failure (a successful background edit lands silently
+    /// in the front editor). Awaited pair-program sessions return through
+    /// the workflow and must not be spoken twice here.
     nonisolated(unsafe) private static var codingFollowUpBridgeStarted = false
+    static func startCodingFollowUpBridge() {
+        guard !codingFollowUpBridgeStarted else { return }
+        codingFollowUpBridgeStarted = true
+        Task {
+            await CodingAgentSessions.shared.onCompletion { completion in
+                guard completion.delivery == .background, !completion.ok else { return }
+                Task {
+                    await brain.emitCodingFollowUp(failureReason: completion.summary)
+                }
+            }
+        }
+    }
 }

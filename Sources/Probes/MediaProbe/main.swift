@@ -10,6 +10,9 @@
 //    mary-media-probe                     # read the transport and the library
 //    mary-media-probe --drive             # press pause, then press it back
 //    mary-media-probe --play <playlist>   # actually start one, for real
+//    mary-media-probe --shuffle           # set shuffle, read it back, put it back
+//    mary-media-probe --shuffle-on|-off   # set it and LEAVE it there
+//    mary-media-probe --find <name>       # resolve a spoken name, press nothing
 //
 //  `--drive` TOUCHES REAL PLAYBACK, so it puts back what it changed: one
 //  toggle, a read, the opposite toggle. A probe that left the music paused
@@ -18,7 +21,7 @@
 
 import AppKit
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryBrain
 import MaryFoundation
 import MaryRuntime
@@ -33,6 +36,12 @@ func heading(_ text: String) {
 }
 
 let wantsDrive = CommandLine.arguments.dropFirst().contains("--drive")
+let wantsShuffle = CommandLine.arguments.dropFirst().contains("--shuffle")
+// SET AND LEAVE, unlike every other driving flag here. `--shuffle` puts back
+// what it found, which is right for a probe and useless for the one job of
+// returning a player to a state something else disturbed.
+let setsShuffle: Bool? = CommandLine.arguments.contains("--shuffle-on") ? true
+    : CommandLine.arguments.contains("--shuffle-off") ? false : nil
 
 guard AXIsProcessTrusted() else {
     print("Accessibility is not granted — the probe needs it to read a transport.")
@@ -52,6 +61,19 @@ let load = AbilityLibrary.shared.configureAndLoad(
 check(load.activated, "the packages loaded", "\(load.snapshot.records.count)")
 for issue in load.issues where issue.severity == .error {
     print("      ! \(issue.code): \(issue.message)")
+}
+
+// EVERY MEDIA SKILL, WITH THE READINESS THE RUNTIME ACTUALLY GAVE IT. Graph
+// validity is not availability: `mary-package-probe check` was green for the
+// whole stretch during which `control_playback`, `now_playing`,
+// `list_playlists` and `play_playlist` were installed and BLOCKED for want of
+// a declared target class (see MediaSurfaceAdapter's own header). That failure
+// is invisible everywhere except here, so it is asserted here.
+for runtime in load.snapshot.skills
+    where runtime.skill.id.rawValue.hasPrefix("multimedia.") {
+    let name = runtime.skill.modelExposure.invocationName ?? runtime.skill.id.rawValue
+    check(runtime.availability.readiness == .ready,
+          "\(name) is ready", "\(runtime.availability.readiness)")
 }
 
 let registrations = MaryRuntime.mediaSurfaceRegistrations(from: load.snapshot)
@@ -117,6 +139,58 @@ if wantsDrive {
           restored?.isPlaying.map { $0 ? "playing" : "paused" } ?? "unreadable")
 }
 
+// MARK: - Shuffle
+
+if let setsShuffle {
+    heading("shuffle, set to \(setsShuffle)")
+    let ok = await MediaSurfaceLibrary.pressShuffle(
+        pid: pid, registration: registration, desired: setsShuffle)
+    try? await Task.sleep(nanoseconds: 700_000_000)
+    let after = MediaSurfaceAX.read(pid: pid, registration: registration)?.isShuffling
+    check(ok, "the control answered")
+    check(after == setsShuffle, "and shuffle is now \(setsShuffle)",
+          after.map(String.init) ?? "unreadable")
+}
+
+// THE ONE CONTROL WHOSE LABEL IS ITS STATE, which is why setting it needs a
+// read first and why that is worth proving against a live player rather than
+// a fixture. `pressShuffle` is asked for a state it is ALREADY IN as well as
+// one it is not: the first must press nothing and still report success, and
+// getting that backwards is invisible in a unit test and audible here.
+if wantsShuffle {
+    heading("shuffle, driven")
+
+    let before = reading.isShuffling
+    check(before != nil, "shuffle read before touching it",
+          before.map(String.init) ?? "unreadable")
+
+    if let before {
+        let noop = await MediaSurfaceLibrary.pressShuffle(
+            pid: pid, registration: registration, desired: before)
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        let unmoved = MediaSurfaceAX.read(pid: pid, registration: registration)?.isShuffling
+        check(noop, "asking for the state it is already in succeeds")
+        check(unmoved == before, "and does not toggle it",
+              "\(before) → \(unmoved.map(String.init) ?? "?")")
+
+        let flipped = await MediaSurfaceLibrary.pressShuffle(
+            pid: pid, registration: registration, desired: !before)
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        let after = MediaSurfaceAX.read(pid: pid, registration: registration)?.isShuffling
+        check(flipped, "asking for the opposite presses the control")
+        check(after == !before, "and the state moved",
+              "\(before) → \(after.map(String.init) ?? "?")")
+
+        // PUT IT BACK, the same courtesy `--drive` pays the transport.
+        _ = await MediaSurfaceLibrary.pressShuffle(
+            pid: pid, registration: registration, desired: before)
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        let restored = MediaSurfaceAX.read(pid: pid, registration: registration)?.isShuffling
+        check(restored == before, "and was restored",
+              restored.map(String.init) ?? "unreadable")
+    }
+}
+
 // THE FALLBACK, EXERCISED ON PURPOSE. The named container is found in the
 // main window, so the content rule would otherwise never run here — and the
 // view it exists for (full-screen Now Playing, whose transport group carries
@@ -162,6 +236,25 @@ if !playlists.isEmpty {
     check(!playlists.contains(section), "the section header is not offered as a playlist")
     for skip in registration.schema.playlistSectionSkips {
         check(!playlists.contains(skip), "navigation is not offered as a playlist", skip)
+    }
+}
+
+// MARK: - Finding one, pressing nothing
+
+// THE READ-ONLY HALF OF THE SAME LADDER `--play` uses. Worth its own flag
+// because the interesting failure is a MATCH failure, and running `--play` to
+// discover one costs the user their music.
+if let index = CommandLine.arguments.firstIndex(of: "--find"),
+   index + 1 < CommandLine.arguments.count {
+    let wanted = CommandLine.arguments[index + 1]
+    heading("finding \"\(wanted)\"")
+    switch SpokenTitleMatcher.resolve(wanted, in: playlists) {
+    case .match(let title): check(true, "resolved", title)
+    case .ambiguous(let titles):
+        check(true, "more than one answered to it", titles.joined(separator: ", "))
+    case .none(let closest):
+        check(false, "no playlist answered to it",
+              "closest: \(closest.joined(separator: ", "))")
     }
 }
 

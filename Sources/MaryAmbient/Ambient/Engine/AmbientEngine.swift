@@ -103,8 +103,36 @@ public enum AmbientEngine {
         let conflictPlaces = explicitlyNamedPlaces.isEmpty && namedPlaces.count == 1
             ? namedPlaces
             : explicitlyNamedPlaces
+        // ONE IDENTITY, TWO NAMESPACES — bridged here exactly as the
+        // application test below already bridges it.
+        //
+        // `attention.place` is spelled with the BUNDLE id the watcher
+        // observed; that is deliberate and permanent (see
+        // `applicationProfile(_:represents:)`'s own note). Every NAMED place
+        // is spelled with the registration's logical id. Comparing the two as
+        // places asked whether `.application("xcode")` equals
+        // `.application("com.apple.dt.Xcode")`, decided it did not, and so
+        // concluded that the application the address probe had just named
+        // FROM the user's own highlight conflicted WITH that highlight.
+        // `selectionDefinesTurn` went false, `AbilityRuntime
+        // .routedSignalSnapshot` dropped the selection Interaction before the
+        // roster saw it, and every Skill gated on one — coding's
+        // `revise_code_selection`, writing's `revise_selection` — was
+        // ineligible on precisely the turns they exist for. Live: "make this
+        // comment more concise" on a real Xcode selection.
+        //
+        // A named place that names no application (a bare lane) keeps the
+        // place comparison it always had: there is no profile to bridge
+        // through, and lane identity is already one namespace.
         let conflictsWithNamedPlace = attention.map { attention in
-            conflictPlaces.contains { $0 != attention.place }
+            conflictPlaces.contains { place in
+                guard let application = place.application,
+                      let profile = inputs.profiles.first(where: {
+                          $0.id.caseInsensitiveCompare(application) == .orderedSame
+                      })
+                else { return place != attention.place }
+                return !applicationProfile(profile, represents: attention)
+            }
         } ?? false
         let conflictsWithNamedApplication = attention.map { attention in
             namedApplicationProfiles.contains {

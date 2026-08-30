@@ -56,7 +56,10 @@ final class PluginRuntimePurityTests: XCTestCase {
             at: executionRoot, includingPropertiesForKeys: nil)
         else { return XCTFail("Could not enumerate the execution sources") }
         let sources = try enumerator.compactMap { $0 as? URL }
-            .filter { $0.pathExtension == "swift" && $0.lastPathComponent != "MaryHands.swift" }
+            .filter {
+                $0.pathExtension == "swift"
+                    && !$0.lastPathComponent.hasPrefix("MaryHands")
+            }
             .map { (try String(contentsOf: $0, encoding: .utf8), $0.lastPathComponent) }
 
         for (source, name) in sources {
@@ -115,10 +118,10 @@ final class PluginRuntimePurityTests: XCTestCase {
             "the hands take the stage; only the transaction may")
     }
 
-    /// THE POINTER FAMILY IS REFUSED AT COMPILE TIME, before the stage is
-    /// taken — a recipe that cannot run must not first steal the user's focus
-    /// to find out.
-    func testPointerStepsAreRefusedBeforeTheStageIsTaken() throws {
+    /// POINTER STEPS COMPILE BEFORE THE STAGE IS TAKEN, so a missing
+    /// argument still fails before anything is brought forward. The hands
+    /// denormalize; they do not compile.
+    func testPointerStepsCompileBeforeTheStageIsTaken() throws {
         let executor = try String(
             contentsOf: Self.brainRoot.appendingPathComponent(
                 "Abilities/Plugins/Execution/PluginManagedUIExecutor.swift"),
@@ -127,13 +130,11 @@ final class PluginRuntimePurityTests: XCTestCase {
             executor.range(of: "static func compile(")).lowerBound
         let activateIndex = try XCTUnwrap(
             executor.range(of: "VerifiedActivation.bringForward")).lowerBound
-        let refusalIndex = try XCTUnwrap(
-            executor.range(of: ".pointerUnavailable(")).lowerBound
+        let pointerMoveIndex = try XCTUnwrap(
+            executor.range(of: "case .pointerMove:")).lowerBound
         XCTAssertTrue(
-            refusalIndex > compileIndex,
-            "the pointer refusal is not inside compile()")
-        // The transaction runs compile FIRST; the source order of the call is
-        // what the run order follows.
+            pointerMoveIndex > compileIndex,
+            "pointer compilation is not inside compile()")
         let compileCall = try XCTUnwrap(
             executor.range(of: "Self.compile(operation.steps")).lowerBound
         XCTAssertTrue(

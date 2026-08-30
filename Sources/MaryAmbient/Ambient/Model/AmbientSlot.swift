@@ -39,6 +39,38 @@ public enum AmbientSlot: Sendable, Equatable, Hashable {
     case git
     /// Project/binder-level statistics.
     case project
+    /// WHERE THE INSERTION POINT SITS, and enough of the text around it to
+    /// say what the user is working on — the standing grounding a code
+    /// editor's caret earns when nothing is highlighted.
+    ///
+    /// ITS WHOLE REASON FOR EXISTING IS TO NOT BE `.viewport`, and the
+    /// doctrine that forces the split is already written down one file over:
+    /// `PerceptionAnchor` says the viewport BEATS the caret, "a reader
+    /// scrolls away from their cursor constantly, and the thing in front of
+    /// their eyes is what they mean by this paragraph". Filing a caret
+    /// excerpt under `.viewport` would render it beneath that slot's phrase —
+    /// "what they're looking at" — and hand it to `PassageEditRunner
+    /// .attention`, whose viewport fallback exists to break ties between
+    /// candidate spans by where the user's EYES are. A cursor is not that
+    /// claim. `.file` is identity, not content, and `.selection` is refused by
+    /// `register` outright because a highlight may only arrive through
+    /// `recordSelection`.
+    ///
+    /// NOT PERCEIVED, for exactly the three reasons `.digest` states below —
+    /// and the middle one is decisive here rather than merely tidy.
+    /// `MaryRuntime.heldContext` dedups every PERCEIVED fact belonging to the
+    /// LEAD place, on the ground that "the live prompt section already renders
+    /// them in full". No live section renders this one: it is polled by an
+    /// observer that contributes no prompt text, so marking it perceived would
+    /// delete it from the prompt on precisely the turns it exists for — the
+    /// ones where the user is in the editor.
+    ///
+    /// It carries its own freshness and retention (`AmbientFact
+    /// .cursorFreshWindow`/`cursorRetention`), and they are the shortest in
+    /// the store. A caret is the most volatile thing on a screen; the standing
+    /// doctrine that a stale surface is a confidently wrong screen applies to
+    /// it more sharply than to anything else here.
+    case cursor
     /// A passage a READ produced, keyed by the phrase that found it. THE
     /// continuity slot: this is the one that used to vanish at the end of the
     /// turn that fetched it.
@@ -95,6 +127,7 @@ public enum AmbientSlot: Sendable, Equatable, Hashable {
         case .viewport:            return "viewport"
         case .selection:           return "selection"
         case .objectSelection:     return "object-selection"
+        case .cursor:              return "cursor"
         case .git:                 return "git"
         case .project:             return "project"
         case .namedRead(let document, let phrase):
@@ -117,7 +150,10 @@ public enum AmbientSlot: Sendable, Equatable, Hashable {
         switch self {
         // `.heard` and `.glimpsed` are deposited, never polled: a
         // watcher's wholesale lane replacement must not take them.
-        case .namedRead, .digest, .heard, .glimpsed: return false
+        // `.cursor` IS polled, and is still not perceived — see its own
+        // comment: no live prompt section renders it, so the lead-place
+        // dedup would erase it from the very turns it exists for.
+        case .namedRead, .digest, .heard, .glimpsed, .cursor: return false
         default: return true
         }
     }
@@ -138,12 +174,16 @@ public enum AmbientSlot: Sendable, Equatable, Hashable {
         case .selection:      return 1
         case .objectSelection: return 2  // what they are pointing at, next
         case .viewport:       return 3
-        case .file:           return 4
-        case .project:        return 5
-        case .git:            return 6
-        case .digest:         return 7   // background by construction
-        case .glimpsed:       return 8   // something she saw a while ago
-        case .heard:          return 9   // something said near her
+        // BELOW THE VIEWPORT, DELIBERATELY — `PerceptionAnchor`'s own rule
+        // ("the thing in front of their eyes" beats "where they last typed"),
+        // read here as sort order rather than restated as a second doctrine.
+        case .cursor:         return 4
+        case .file:           return 5
+        case .project:        return 6
+        case .git:            return 7
+        case .digest:         return 8   // background by construction
+        case .glimpsed:       return 9   // something she saw a while ago
+        case .heard:          return 10  // something said near her
         }
     }
 }

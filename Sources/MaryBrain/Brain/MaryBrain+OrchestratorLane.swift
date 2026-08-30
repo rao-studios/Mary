@@ -135,16 +135,22 @@ extension MaryBrain {
                 do {
                     var holdsGate = false
                     if engine.requiresExclusiveGeneration {
+                        let attached = attachment?.isAttached ?? true
+                        if !attached, engineGate.waiterCount >= Self.maxDetachedRoutines {
+                            Self.laneLog.info(
+                                "detached lane dropped — engine gate already at cap")
+                            break
+                        }
                         // A live turn goes ahead of background rounds; once
                         // this lane detaches it takes its place among them.
                         holdsGate = await engineGate.acquire(
-                            priority: (attachment?.isAttached ?? true)
-                                ? .attached : .detached)
+                            priority: attached ? .attached : .detached)
                         gateWaitMs = Self.elapsedMs(since: roundStart)
                     }
                     defer { if holdsGate { engineGate.release() } }
-                    let events = engine.stream(
-                        system: orchestratorPrompt, history: laneHistory, skills: dispatcher.schemas)
+                    let events = await actingEvents(
+                        system: orchestratorPrompt, history: laneHistory,
+                        skills: dispatcher.schemas)
                     for try await event in events {
                         if Task.isCancelled { break }
                         switch event {

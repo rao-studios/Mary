@@ -95,6 +95,41 @@ public struct PerceptionID: SchemaIdentifier {
     public static let windowFocus: Self = "perception.window-focus"
 }
 
+/// A PERCEPTION MARY HERSELF CONCLUDES, and the one she concludes it from.
+///
+/// WHY THIS TABLE EXISTS. An adapter publishes a Perception by claiming it in
+/// its manifest, and `InstalledAdapterInventory` refuses to install any binding
+/// whose required Perception nothing claims. That rule is right, and it has a
+/// blind spot: some Perceptions are not sensed by an adapter at all. They are
+/// CONCLUDED, by Mary, from one that was — a workspace lead whose declared
+/// focus is coding is a code workspace in focus, and no adapter needs to say so
+/// twice.
+///
+/// Without this table those conclusions are indistinguishable from a missing
+/// lane. Every Skill requiring `code-workspace-focus` installed `.blocked` and
+/// vanished from the model's roster — the whole `xcode.mary` lane, in silence —
+/// because the derivation happens at turn time while the inventory reads only
+/// the static claim. The claim was missing; the evidence never was.
+///
+/// ⚠️ THE ENTRIES ARE NOT A WISH LIST. Each row is a promise that
+/// `AbilityRuntime` actually performs this derivation on every turn, and there
+/// are exactly as many rows as there are insertion sites. A row for a
+/// derivation that does not exist un-blocks a Skill that will never have its
+/// Perception, which is strictly worse than the bug this fixes: the failure
+/// moves from "silently absent" to "offered and wrong".
+///
+/// `perception.text-surface-focus` is deliberately ABSENT. Nothing derives it
+/// and nothing publishes it — but it is only ever an OPTIONAL perception, so it
+/// blocks no Skill, and adding it here to tidy the ledger would be exactly the
+/// false promise above.
+public enum DerivedPerceptions {
+
+    public static let base: [PerceptionID: PerceptionID] = [
+        .codeWorkspaceFocus: .workspaceFocus,
+        .projectFocus: .workspaceFocus,
+    ]
+}
+
 public struct ValueTypeID: SchemaIdentifier {
     public let rawValue: String
     public init(_ rawValue: String) { self.rawValue = rawValue }

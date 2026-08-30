@@ -18,7 +18,7 @@ import Foundation
 import Testing
 
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 @Suite struct BareCorrectionTests {

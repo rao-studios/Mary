@@ -118,6 +118,8 @@ struct TotemDocumentDetail: Identifiable, Equatable {
     var preview: String?
     var family: TotemAddressFamily
     var notice: String?
+    var codec: BehavioralCodecView? = nil
+    var interaction: BehavioralInteractionStub? = nil
 }
 
 // MARK: - Graph
@@ -155,7 +157,8 @@ struct TotemRetrievalRequestRow: Identifiable, Equatable {
 
 struct TotemMemoryPlanRow: Equatable {
     var lanes: [String]
-    var applicationIDs: [String]
+    var abilityTargets: [String]
+    var expandDisciplineUsage: Bool
     var lanePriority: [String]
     var relationshipHints: [String]
 }

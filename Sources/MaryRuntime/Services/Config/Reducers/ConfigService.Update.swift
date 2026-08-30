@@ -1,6 +1,6 @@
 import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryVoice
 import Foundation
 import Granite
@@ -28,6 +28,7 @@ extension ConfigService {
             disabledPlugins: [String]? = nil,
             historyMessageLimit: Int? = nil,
             behavioralRecording: Bool? = nil,
+            ambientCorpusIndexing: Bool? = nil,
             wakeWordEnabled: Bool? = nil,
             seerEnabled: Bool? = nil,
             autoStartServers: Bool? = nil,
@@ -41,9 +42,15 @@ extension ConfigService {
             seerEmail: String? = nil,
             seerPassword: String? = nil,
             totemGraphBackend: String? = nil,
+            fleetCheckoutPath: String? = nil,
+            fleetPort: Int? = nil,
+            fleetGRPCPort: Int? = nil,
             totemGraphPolicyManaged: Bool? = nil,
             seerChatModel: String? = nil,
-            seerTransport: SeerTransportChoice? = nil
+            seerTransport: SeerTransportChoice? = nil,
+            codingAgentEnabled: Bool? = nil,
+            codingAgentModelID: String? = nil,
+            skillRunTimeoutSeconds: Double? = nil
         ) {
             self.llmEngine = llmEngine
             self.localModelID = localModelID
@@ -58,6 +65,7 @@ extension ConfigService {
             self.disabledPlugins = disabledPlugins
             self.historyMessageLimit = historyMessageLimit
             self.behavioralRecording = behavioralRecording
+            self.ambientCorpusIndexing = ambientCorpusIndexing
             self.wakeWordEnabled = wakeWordEnabled
             self.seerEnabled = seerEnabled
             self.autoStartServers = autoStartServers
@@ -71,9 +79,15 @@ extension ConfigService {
             self.seerEmail = seerEmail
             self.seerPassword = seerPassword
             self.totemGraphBackend = totemGraphBackend
+            self.fleetCheckoutPath = fleetCheckoutPath
+            self.fleetPort = fleetPort
+            self.fleetGRPCPort = fleetGRPCPort
             self.totemGraphPolicyManaged = totemGraphPolicyManaged
             self.seerChatModel = seerChatModel
             self.seerTransport = seerTransport
+            self.codingAgentEnabled = codingAgentEnabled
+            self.codingAgentModelID = codingAgentModelID
+            self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
         }
             package var llmEngine: LLMEngineChoice? = nil
             package var localModelID: String? = nil
@@ -90,6 +104,7 @@ extension ConfigService {
             package var disabledPlugins: [String]? = nil
             package var historyMessageLimit: Int?
         package var behavioralRecording: Bool? = nil
+        package var ambientCorpusIndexing: Bool? = nil
             package var wakeWordEnabled: Bool? = nil
             package var seerEnabled: Bool? = nil
             package var autoStartServers: Bool? = nil
@@ -103,9 +118,15 @@ extension ConfigService {
             package var seerEmail: String? = nil
             package var seerPassword: String? = nil
             package var totemGraphBackend: String? = nil
+            package var fleetCheckoutPath: String? = nil
+            package var fleetPort: Int? = nil
+            package var fleetGRPCPort: Int? = nil
             package var totemGraphPolicyManaged: Bool? = nil
             package var seerChatModel: String? = nil
             package var seerTransport: SeerTransportChoice? = nil
+            package var codingAgentEnabled: Bool? = nil
+            package var codingAgentModelID: String? = nil
+            package var skillRunTimeoutSeconds: Double? = nil
         }
 
         @Payload package var meta: Meta?
@@ -122,17 +143,16 @@ extension ConfigService {
             if let value = meta.vad { state.vad = value }
             if let value = meta.projects { state.projects = value }
             if let value = meta.customPronunciations { state.customPronunciations = value }
-            if let value = meta.disabledPlugins {
+                if let value = meta.disabledPlugins {
                 state.disabledPlugins = value
                 state.enabledPlugins = MaryAdapterCatalog.adapters().map(\.name)
                     .filter { !state.disabledPlugins.contains($0) }
-                if state.disabledPlugins.contains("coding_agent") {
-                }
             }
             // Empty is meaningful here (clears the custom id), unlike localModelID.
             // Empty is meaningful here too: custom with no alias follows config.
             if let value = meta.historyMessageLimit, value >= 4 { state.historyMessageLimit = value }
             if let value = meta.behavioralRecording { state.behavioralRecording = value }
+            if let value = meta.ambientCorpusIndexing { state.ambientCorpusIndexing = value }
             if let value = meta.wakeWordEnabled { state.wakeWordEnabled = value }
             if let value = meta.seerEnabled { state.seerEnabled = value }
             if let value = meta.autoStartServers { state.autoStartServers = value }
@@ -147,10 +167,20 @@ extension ConfigService {
             if let value = meta.seerEmail, !value.isEmpty { state.seerEmail = value }
             if let value = meta.seerPassword, !value.isEmpty { state.seerPassword = value }
             if let value = meta.totemGraphBackend, !value.isEmpty { state.totemGraphBackend = value }
+            if let value = meta.fleetCheckoutPath, !value.isEmpty { state.fleetCheckoutPath = value }
+            if let value = meta.fleetPort, value > 0 { state.fleetPort = value }
+            if let value = meta.fleetGRPCPort, value > 0 { state.fleetGRPCPort = value }
             if let value = meta.totemGraphPolicyManaged { state.totemGraphPolicyManaged = value }
             // Empty is meaningful (reverts to Seer's default model).
             if let value = meta.seerChatModel { state.seerChatModel = value }
             if let value = meta.seerTransport { state.seerTransport = value }
+            if let value = meta.codingAgentEnabled { state.codingAgentEnabled = value }
+            if let value = meta.codingAgentModelID, !value.isEmpty {
+                state.codingAgentModelID = value
+            }
+            if let value = meta.skillRunTimeoutSeconds {
+                state.skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(value)
+            }
         }
     }
 }

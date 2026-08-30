@@ -4,7 +4,7 @@
 //
 //  The turn loop, moved out of MaryBrain.swift: `runTurn` (supersede,
 //  epoch reservation, unwind) and `runTurnBody` (the whole turn — route
-//  resolution, pre-reads, gates, and the seer/legacy handoff). Both moved
+//  resolution, pre-reads, gates, and the seer/local handoff). Both moved
 //  WHOLE and verbatim — no function was split; no behavior change.
 //
 //  Depends on the internal-for-split promotions of the core file's stored
@@ -81,6 +81,7 @@ extension MaryBrain {
         }
     }
 
+    // ROUTE: After all of the ambient contexts are retrieved
     private func runTurnBody(
         userText: String,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
@@ -160,16 +161,6 @@ extension MaryBrain {
             }
         }
 
-        if let prepare = turnContextPreparer {
-            _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
-                await prepare()
-                return Optional(())
-            }
-            if Task.isCancelled {
-                continuation.finish()
-                return
-            }
-        }
         dispatcher?.beginTurn()
 
         // The utterance may name a domain ("add a scene…", "fix the build…").
@@ -191,9 +182,23 @@ extension MaryBrain {
         // follow-up should rank against the request that spawned it.
         ambient.noteUtterance(userText)
 
+        // After the utterance is published so Ability Totem search can use
+        // this turn's words. Observers still refresh here so live facts and
+        // the search share one budget.
+        if let prepare = turnContextPreparer {
+            _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
+                await prepare()
+                return Optional(())
+            }
+            if Task.isCancelled {
+                continuation.finish()
+                return
+            }
+        }
+
         let userTurn = BrainTurn(role: .user, text: userText)
         // The turn's identity leads every path — deterministic decision,
-        // bare-stop, legacy, seer — so the app can stamp the exchange before
+        // bare-stop, local, seer — so the app can stamp the exchange before
         // any token or chip arrives.
         continuation.yield(.turnBegan(id: userTurn.id))
         // A turn arriving on the heels of a remark is that remark being
@@ -342,7 +347,7 @@ extension MaryBrain {
         // THEY USED TO SIT BELOW THE `guard seerReady`, AND THAT WAS THE BUG.
         // Seer being unavailable is an ordinary condition — a dropped network,
         // an expired token, the local-MLX configuration — not an edge case, and
-        // on every one of those turns the legacy loop got NONE of G1–G4: no
+        // on every one of those turns the local loop got NONE of G1–G4: no
         // intent, no locate, no passage in the prompt, no caret-write veto, no
         // report. "Replace the Purpose section with the tighter version" typed
         // at the caret again, exactly as shipped, the moment the voice went
@@ -574,8 +579,12 @@ extension MaryBrain {
             addressCandidates: Self.addressCandidates(
                 profiles: applicationProfiles,
                 elementIndex: wiring.elementIndex,
-                focusTracker: focusTracker)))
+                focusTracker: focusTracker),
+            focus: focusTracker.signal(),
+            evidence: focusTracker.freshEvidence()))
         ambient.noteRoute(route)
+        wiring.behavior.noteAbilityTargets(
+            route.gate.memory.abilityTargets, forEpisode: userTurn.id)
         // Explicit language outranks a live but unrelated window. Otherwise a
         // recognized frontmost application becomes the next short follow-up's
         // referent. Merely inheriting a referent does not refresh its lifetime.
@@ -831,6 +840,7 @@ extension MaryBrain {
         // consumer.
         wiring.retrieval.open(exchangeID: userTurn.id, routeTraceID: traceID)
         wiring.retrieval.claimStagedSystemPrompt(forExchange: userTurn.id)
+        wiring.retrieval.claimStagedAbilityRequest(forExchange: userTurn.id)
         // THE INPUT HALF OF THE EPISODE, claimed from the same prompt build
         // and for the same reason. See `BehavioralAssembler` on why the
         // capture is staged rather than passed.
@@ -904,7 +914,7 @@ extension MaryBrain {
         if let seerChat { seerReady = await seerChat.isReady() }
 
         guard seerReady, let seerChat else {
-            await legacyTurn(
+            await localTurn(
                 userText: userText,
                 systemPrompt: systemPrompt,
                 actionTurn: actionTurn,

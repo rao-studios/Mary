@@ -245,11 +245,32 @@ public enum WorkspaceFocusArbiter {
         // A LEAD WITH NOTHING TO SHOW still leads — that is what a named but
         // closed application looks like — and it takes its own ambient line
         // with it rather than appearing twice.
+        //
+        // SAME-PLACE FULLS MERGE. Two observers can speak for one application
+        // — the caret excerpt and the corpus neighbourhood, today — and
+        // picking only the first with a full section was how a coding turn
+        // arrived with the window around the insertion point and none of the
+        // files that window sits among. Identity-only contributions stay out:
+        // they have an empty `full` and do not join the merge.
         return PromptSections(
-            leadContext: owner.full,
+            leadContext: mergedFull(for: owner.place, among: live),
             ambientNotes: ambientLines(excluding: owner.place),
             leadPlace: owner.place,
             liveWorld: liveWorld(for: owner))
+    }
+
+    /// Every non-empty full section from observers of `place`, in caller
+    /// order, without repeating an identical block.
+    static func mergedFull(
+        for place: AmbientPlace, among contributions: [Contribution]
+    ) -> [String] {
+        var merged: [String] = []
+        for contribution in contributions where contribution.place == place {
+            for section in contribution.full where !section.isEmpty && !merged.contains(section) {
+                merged.append(section)
+            }
+        }
+        return merged
     }
 
     static func liveWorld(for contribution: Contribution) -> LiveWorkWorld {

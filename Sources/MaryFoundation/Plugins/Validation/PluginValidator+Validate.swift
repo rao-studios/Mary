@@ -192,12 +192,27 @@ extension PluginValidator {
         // its text lives. Naming only the first would have made a media
         // package choose between claiming a perception it could not back and
         // declining eyes it had genuinely earned.
+        //
+        // A CORPUS IS THE THIRD CHANNEL, and it observes a different thing:
+        // the prose and media surfaces watch what is ON SCREEN, a corpus reads
+        // the project the screen is showing part of. An application whose work
+        // lives in files it edits over days is genuinely observed by the third
+        // — refusing it eyes because it publishes no live text would deny a
+        // workspace claim that is fully earned.
+        //
+        // A CODE SURFACE IS THE FOURTH, and it watches what is on screen the
+        // same way a prose surface does — a code editor's live buffer rather
+        // than an editor's prose. Named separately from `proseSurface` rather
+        // than folded into it because the two are read-write and read-only
+        // respectively, and a package that has only earned the read-only
+        // channel must not be told it needs the write-capable one.
         if application.perception?.kind == .workspace,
-           plugin.proseSurface == nil, plugin.mediaSurface == nil {
+           plugin.proseSurface == nil, plugin.codeSurface == nil,
+           plugin.mediaSurface == nil, plugin.corpus == nil {
             error(
                 "unsupported-workspace-perception",
                 "\(root).application.perception.kind",
-                "A workspace perception claim requires a proseSurface or a mediaSurface: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
+                "A workspace perception claim requires a proseSurface, a codeSurface, a mediaSurface or a corpus: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
         }
 
         if plugin.adapters.isEmpty {
@@ -347,6 +362,12 @@ extension PluginValidator {
         }
         if let proseSurface = plugin.proseSurface {
             validateProseSurface(proseSurface, root: root, error: error)
+        }
+        if let codeSurface = plugin.codeSurface {
+            validateCodeSurface(codeSurface, root: root, error: error)
+        }
+        if let corpus = plugin.corpus {
+            validateCorpus(corpus, root: root, error: error)
         }
         return .init(issues: issues)
     }

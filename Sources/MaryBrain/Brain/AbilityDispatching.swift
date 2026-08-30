@@ -58,6 +58,12 @@ public protocol AbilityDispatching: Sendable {
     /// honest answer rather than a fatal.
     func cancelRun(id: String)
 
+    /// Calls still running, keyed by the id the chip shows. Default empty.
+    var runningRunIDs: Set<String> { get }
+
+    /// Live ceiling on ordinary Skill dispatch (1…10 s). Named long jobs ignore it.
+    func setOrdinarySkillTimeout(_ seconds: TimeInterval)
+
     /// RUN A SEQUENCE OF ACTIONS — the door a future model's emitted plan
     /// walks through.
     ///
@@ -187,6 +193,10 @@ public extension AbilityDispatching {
     /// fake — gets identical sequence semantics for free.
     func cancelRun(id: String) {}
 
+    var runningRunIDs: Set<String> { [] }
+
+    func setOrdinarySkillTimeout(_ seconds: TimeInterval) {}
+
     func perform(
         sequence: [BehavioralAction], episodeID: UUID? = nil
     ) async -> [BehavioralActionRecord] {
@@ -270,6 +280,14 @@ public struct SeerPass: Sendable {
     public var readPassages: [String]
     /// This pass exists only to speak `readPassages` back — the read persona.
     public var readReport: Bool
+    /// THE TURN ASKED FOR NOTHING — `AmbientIntent.converse`. Selects the
+    /// converse persona, which is third in the ladder: a read or a finished
+    /// action still outranks it, so this being true on a pass that also
+    /// carries one of those changes nothing.
+    ///
+    /// FALSE ON EVERY DETACHED FOLLOW-UP, by default and correctly: those
+    /// passes exist to report work that ran, which is the opposite claim.
+    public var conversational: Bool
     /// The world to resolve against. Nil = resolve LIVE, which is what every
     /// in-turn pass wants; callers that outlive their turn (a detached
     /// routine's follow-up) pass the world they were spawned in.
@@ -299,6 +317,7 @@ public struct SeerPass: Sendable {
         groundedResults: String? = nil,
         readPassages: [String] = [],
         readReport: Bool = false,
+        conversational: Bool = false,
         assertedFocus: WorkspaceFocus? = nil,
         runningActionLabels: [String] = [],
         lookUnderway: Bool = false,
@@ -307,6 +326,7 @@ public struct SeerPass: Sendable {
         self.groundedResults = groundedResults
         self.readPassages = readPassages
         self.readReport = readReport
+        self.conversational = conversational
         self.assertedFocus = assertedFocus
         self.runningActionLabels = runningActionLabels
         self.lookUnderway = lookUnderway

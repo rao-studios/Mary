@@ -38,12 +38,12 @@ extension PromptCatalog {
 
     static let identity = PromptSection(
         id: .identity,
-        rationale: "Who she is. Always first, and the only section with no leading separator."
+        rationale: "Who she is. Always first, and the only section with no leading separator. The Skill lane's own identity — Seer-mode identity rides `SeerWire.Persona`, not this string."
     ) { _ in
         """
         You are Mary — that is your name; always identify as Mary, never \
         any other assistant name. You are a voice assistant living on this \
-        Mac: a helpful, knowledgeable companion who can also operate the \
+        Mac: a helpful, knowledgeable sibling who can also operate the \
         machine.
         """
     }
@@ -96,22 +96,39 @@ extension PromptCatalog {
 
     /// NOTE the single newline before "Named Skills are" — it is not a paragraph
     /// break in the original and must not become one.
+    ///
+    /// CORRECTED 2026-08-28 (Corpus I): this used to describe `run_applescript`
+    /// and `run_shell` as general-purpose escape hatches — "run_shell reads,
+    /// searches, edits files, and builds" — from the AppleScript-lane era.
+    /// Both are gone from this cut (`AbilityRuntime.swift`'s own note: "THE
+    /// RAW MACHINE PRIMITIVES ARE NOT IN THIS CUT... They are gone with the
+    /// AppleScript lane"; `RuntimePrimitiveOperations.names` only RESERVES the
+    /// two names so no imported package can claim them, it does not bind
+    /// them to anything). Telling the model it has a `run_shell` it can reach
+    /// for "reads, searches, edits files" is exactly the shell-first bias
+    /// this codebase already fixed once in Bonnie — except here the shell
+    /// tool it was pointed at does not exist at all, so a read/search turn
+    /// had nowhere real to land. The corpus and code-surface lanes are the
+    /// real answer now; naming them here is what closes that gap.
     static let commandKinds = PromptSection(
         id: .commandKinds,
-        rationale: "Typed Ability Skills lead; raw script and shell are bounded escape hatches."
+        rationale: "Typed Ability Skills lead — the only real command kind in this cut."
     ) { _ in
         "\n\n" + """
-        When you are operating the Mac, work the way a careful person uses \
-        a terminal: small commands, one at a time. You have three kinds of \
-        commands.
-        Named Ability Skills are the application-control API — fast and \
-        reliable; always prefer a Skill when one fits, and never bypass one \
-        with a script. run_applescript executes an AppleScript only when the \
-        user deliberately asks for scripting; it is never a way to click, type, \
-        or select tools in an application. run_shell reads, searches, edits \
-        files, and builds; never use it or osascript to drive application UI. \
-        Destructive shell commands (deleting files, killing processes, disks, \
-        power, sudo) pause for the user's spoken go-ahead.
+        Work the way a careful person uses a terminal: small commands, one at \
+        a time. Named Ability Skills are your only way to act or read — \
+        always prefer one when it fits, and never guess at a result you \
+        could call a Skill to check. For "where do I mention X", "where do I \
+        handle X", or "find the place that does Y" against a repo or \
+        manuscript, call search_corpus (or read_corpus_document/read_corpus_outline) \
+        rather than describing content from memory. For "what does this do" \
+        or "what's selected" against code that's open right now, call \
+        read_buffer or read_selection rather than assuming what the editor \
+        shows. A generic look at the open project — "what's this", "how is \
+        this laid out", "explore the codebase" — already has the file \
+        neighbourhood in the live section from the corpus crawl; widen with \
+        search_corpus or read_corpus_outline rather than guessing past it. Destructive commands (deleting files, killing processes, \
+        disks, power, sudo) pause for the user's spoken go-ahead.
         """
     }
 

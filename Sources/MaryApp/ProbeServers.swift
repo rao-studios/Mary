@@ -48,6 +48,11 @@ enum ProbeServers {
                 mothershipGRPCPort: ServerSpec.Defaults.seerGRPCPort,
                 nodeID: nodeID,
                 graphBackend: ServerSpec.Defaults.totemGraphBackend),
+            .fleet(
+                checkoutPath: ServerSpec.Defaults.fleetCheckoutPath,
+                port: ServerSpec.Defaults.fleetPort,
+                grpcPort: ServerSpec.Defaults.fleetGRPCPort,
+                totemGRPCPort: ServerSpec.Defaults.totemGRPCPort),
         ])
 
         if stopOnly {

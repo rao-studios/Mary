@@ -1,6 +1,6 @@
 import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryVoice
 import Granite
 import SwiftUI
@@ -41,6 +41,12 @@ extension ConfigService {
             /// answers, so a fresh install that read "Local (on device)" was
             /// describing a turn that had gone to Seer.
             package var llmEngine: LLMEngineChoice = .hosted
+            /// Ambient corpus indexing: when a unit settles in an application
+            /// that declares a corpus, crawl its neighbourhood and remember
+            /// the structure. On by default — it is how Mary learns the shape
+            /// of your work — and nothing but declaration headers and
+            /// generated summaries ever crosses into memory.
+            package var ambientCorpusIndexing: Bool = true
             /// Whether sealed episodes reach disk. See `BehavioralStore`.
             package var behavioralRecording: Bool = true
             package var localModelID: String = MaryLocalEngine.defaultModelID
@@ -108,6 +114,9 @@ extension ConfigService {
             /// default: the mlx default silently degrades to keyword-only
             /// when the build lacks a metallib.
             package var totemGraphBackend: String = ServerSpec.Defaults.totemGraphBackend
+            package var fleetCheckoutPath: String = ServerSpec.Defaults.fleetCheckoutPath
+            package var fleetPort: Int = ServerSpec.Defaults.fleetPort
+            package var fleetGRPCPort: Int = ServerSpec.Defaults.fleetGRPCPort
             /// Whether Mary pushes its graph policy (custom ontology kinds,
             /// co-mention edges) to Totem after boot.
             package var totemGraphPolicyManaged: Bool = true
@@ -117,12 +126,22 @@ extension ConfigService {
             /// Which route carries Seer-mode turns: classic SSE + /v1/speak,
             /// or the realtime WebSocket with server-side interleaved audio.
             package var seerTransport: SeerTransportChoice = .classic
+            /// On-device coding agent. Off until Settings downloads a model
+            /// and selects it — Hub fetch, never vendored weights.
+            package var codingAgentEnabled: Bool = false
+            package var codingAgentModelID: String = MaryCodingEngine.defaultModelID
+            /// How long an ordinary Skill may stay running (1…10 s). Named
+            /// build/test bindings keep their own ceilings.
+            package var skillRunTimeoutSeconds: Double = 2
 
             enum CodingKeys: String, CodingKey {
+                case ambientCorpusIndexing
                 case llmEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
-                case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, totemGraphPolicyManaged, seerChatModel, seerTransport
+                case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
+                case codingAgentEnabled, codingAgentModelID
+                case skillRunTimeoutSeconds
             }
 
             package init() {}
@@ -133,6 +152,8 @@ extension ConfigService {
                 self.init()
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 llmEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .llmEngine) ?? .hosted
+                ambientCorpusIndexing = try c.decodeIfPresent(
+                    Bool.self, forKey: .ambientCorpusIndexing) ?? true
                 localModelID = try c.decodeIfPresent(String.self, forKey: .localModelID) ?? MaryLocalEngine.defaultModelID
 
                 sttBackend = try c.decodeIfPresent(STTBackend.self, forKey: .sttBackend) ?? .apple
@@ -196,9 +217,17 @@ extension ConfigService {
                 seerEmail = try c.decodeIfPresent(String.self, forKey: .seerEmail) ?? ServerSpec.Defaults.seerEmail
                 seerPassword = try c.decodeIfPresent(String.self, forKey: .seerPassword) ?? ServerSpec.Defaults.seerPassword
                 totemGraphBackend = try c.decodeIfPresent(String.self, forKey: .totemGraphBackend) ?? ServerSpec.Defaults.totemGraphBackend
+                fleetCheckoutPath = try c.decodeIfPresent(String.self, forKey: .fleetCheckoutPath) ?? ServerSpec.Defaults.fleetCheckoutPath
+                fleetPort = try c.decodeIfPresent(Int.self, forKey: .fleetPort) ?? ServerSpec.Defaults.fleetPort
+                fleetGRPCPort = try c.decodeIfPresent(Int.self, forKey: .fleetGRPCPort) ?? ServerSpec.Defaults.fleetGRPCPort
                 totemGraphPolicyManaged = try c.decodeIfPresent(Bool.self, forKey: .totemGraphPolicyManaged) ?? true
                 seerChatModel = try c.decodeIfPresent(String.self, forKey: .seerChatModel) ?? ""
                 seerTransport = try c.decodeIfPresent(SeerTransportChoice.self, forKey: .seerTransport) ?? .classic
+                codingAgentEnabled = try c.decodeIfPresent(Bool.self, forKey: .codingAgentEnabled) ?? false
+                codingAgentModelID = try c.decodeIfPresent(String.self, forKey: .codingAgentModelID)
+                    ?? MaryCodingEngine.defaultModelID
+                skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(
+                    try c.decodeIfPresent(Double.self, forKey: .skillRunTimeoutSeconds) ?? 2)
             }
 
             /// name → path for prompt building and activity dispatch.

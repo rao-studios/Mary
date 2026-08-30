@@ -2,9 +2,9 @@
 
 import Foundation
 
-// `ArchivePolicy` is NOT here. It travels on `SkillOutcome`, in MaryAdapters,
+// `ArchivePolicy` is NOT here. It travels on `SkillOutcome`, in MaryPlugin,
 // because the binding that produces an outcome is the thing that knows what
-// the outcome means for memory — and MaryAmbient sits below MaryAdapters, so
+// the outcome means for memory — and MaryAmbient sits below MaryPlugin, so
 // a copy here could only ever be a second answer drifting from the first.
 
 /// How a workspace identifies the item being archived.
@@ -50,9 +50,7 @@ public struct RetrievalScope: Sendable, Equatable {
         self.relationshipHints = Array(Set(relationshipHints)).sorted()
     }
 
-    /// Nothing specific in view — general memory, which deliberately still
-    /// includes the legacy owner-wide `mary-context-<owner>` pool. The
-    /// user's decision: that pool stays, as background, for exactly this case.
+    /// Nothing specific in view — general memory.
     public static let general = RetrievalScope()
 
     /// SEER'S OWN long-term memory groups — not Mary's. Written by the
@@ -78,37 +76,15 @@ public struct RetrievalScope: Sendable, Equatable {
     /// long-term memory on nearly every turn, because "focused" is the normal
     /// state, not the exception. Worse, on the first turn in a project the
     /// scope group does not exist yet, so retrieval returned literally
-    /// nothing. Carrying these two groups alongside the scope group is also
-    /// what makes a never-yet-created scope group harmless: an unknown group
-    /// contributes no candidates, and the turn still retrieves memory instead
-    /// of collapsing to zero results.
+    /// nothing. Carrying these two groups alongside Mary's Personal
+    /// interaction group is what makes a never-yet-created scope group
+    /// harmless: an unknown group contributes no candidates, and the turn
+    /// still retrieves memory instead of collapsing to zero results.
     public static func memoryGroups(ownerID: String) -> [Group] {
         [
             Group(id: "memory-\(ownerID)", label: "Memory"),
             Group(id: "resonance-\(ownerID)", label: "Resonance"),
         ]
-    }
-
-    /// THE LEGACY OWNER-WIDE POOL — `mary-context-<owner>`, where every
-    /// deposit landed before the scope scheme existed and where every
-    /// EYELESS deposit still lands (a calendar or reminders action has no
-    /// workspace to file under, and now files here deliberately — see
-    /// `MaryBrain.archive`).
-    ///
-    /// THE FAILURE THIS FIXES: `retrievalScope` sends `aggregate: false`
-    /// whenever a world is focused — which, with a writing app merely running,
-    /// was every turn. That excluded this pool, so on a Pages session Mary
-    /// could not reach a single thing she had ever remembered about the user's
-    /// calendar, mail or messages. The pool was excluded as "the actual
-    /// pollution source" for DOCUMENT wording, and that reasoning is sound for
-    /// document wording — it is not a reason to make the user's schedule
-    /// unreachable because a text editor is open. Cross-domain memory is not
-    /// pollution; it is the whole point of a companion that acts on the whole
-    /// Mac.
-    ///
-    /// Spelled here, once, exactly as `TotemContextStore` writes it.
-    public static func legacyPool(ownerID: String) -> Group {
-        Group(id: "mary-context-\(ownerID)", label: "Mary Context")
     }
 }
 
@@ -151,8 +127,8 @@ public struct DepositSubject: Sendable, Equatable {
         self.capturedAt = capturedAt
     }
 
-    /// Nothing specific is in view. Deposits fall back to the legacy pool and
-    /// retrieval stays general — today's behavior, unchanged.
+    /// Nothing specific is in view. Deposits skip rather than filing into an
+    /// owner-wide bag; retrieval stays general.
     public static var unfocused: DepositSubject { DepositSubject() }
 
     /// True when a specific document or project is in view. THE decision the
@@ -189,8 +165,8 @@ public struct DepositSubject: Sendable, Equatable {
 
     // MARK: - Ids on the wire
 
-    /// The Totem group this deposit lands in, and the group retrieval asks
-    /// for. Nil = the legacy owner-wide pool.
+    /// The Totem group this deposit lands in. Nil = skip — there is no
+    /// owner-wide bag.
     public func groupID(ownerID: String) -> String? {
         scopeKey(ownerID: ownerID).map { "mary-scope-\(Self.stableHash($0))" }
     }
@@ -212,48 +188,14 @@ public struct DepositSubject: Sendable, Equatable {
         return leaf.isEmpty ? "\(appName) context" : "\(appName) — \(leaf)"
     }
 
-    /// The read half. A focused document narrows retrieval to its own group
-    /// PLUS the owner's long-term memory and the legacy owner-wide pool
-    /// (`aggregate: false`). Nothing focused keeps today's owner-wide
-    /// behavior.
-    ///
-    /// The pool was excluded once, as "the actual pollution source, where the
-    /// deleted paragraph lived". That reasoning held for DOCUMENT WORDING and
-    /// has been replaced by a mechanism that addresses it directly — the live
-    /// block outranks retrieval, and `.stateSnapshot` deposits now supersede
-    /// rather than stack. It never justified making the user's schedule
-    /// unreachable because a text editor was open; see
-    /// `RetrievalScope.legacyPool`.
-    ///
-    /// The scope group leads because it is the turn's subject; the memory
-    /// groups follow because they are background. Order is documentation, not
-    /// mechanism — Seer unions the ids.
-    ///
-    /// Sending the scope group ALONE was the C1 regression: `aggregate: false`
-    /// with a single group made Seer's auto-memory and resonance unreachable
-    /// on every focused turn (which is most turns), and on the first turn in a
-    /// new project — when the scope group does not exist yet — it returned
-    /// nothing at all. See `RetrievalScope.memoryGroups`.
-    ///
-    /// NOTE: `groups` narrows Seer's direct candidate set; it is NOT a
-    /// containment guarantee end to end — Totem's one-hop graph expansion
-    /// rebuilds its own universe and does not consult the scoped candidate
-    /// ids. Tightening that is a Totem-side change (`PartitionTable.swift`),
-    /// tracked separately.
+    /// The read half for project-scoped corpus work: this project's group
+    /// plus Seer's own memory/resonance. Spoken turns use
+    /// `TotemMemoryTopology.seerPersonalScope` instead (interactions + memory).
     public func retrievalScope(ownerID: String) -> RetrievalScope {
         guard let groupID = groupID(ownerID: ownerID) else { return .general }
         return RetrievalScope(
             groups: [.init(id: groupID, label: groupLabel)]
-                + RetrievalScope.memoryGroups(ownerID: ownerID)
-                // THE EYELESS HALF, and the C2 regression it repairs: with
-                // `aggregate: false` and this pool excluded, a focused turn
-                // could not reach anything Mary had ever remembered about
-                // the user's calendar, mail or messages — because eyeless
-                // deposits have no workspace and land HERE. "Focused" is the
-                // normal state, so that blacked out cross-domain memory on
-                // nearly every turn. Visibility never gates action, and it
-                // must not gate recall either.
-                + [RetrievalScope.legacyPool(ownerID: ownerID)],
+                + RetrievalScope.memoryGroups(ownerID: ownerID),
             aggregate: false)
     }
 

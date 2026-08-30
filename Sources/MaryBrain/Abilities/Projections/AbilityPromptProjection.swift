@@ -43,9 +43,41 @@ public enum AbilityPromptProjection {
             }.count
             lines.append(
                 "ABILITY \(contractLabel(for: record)) — \(readyCount) executable Skill contract(s)")
+            // CLOSED CAUTION CATEGORIES ONLY. `operatingPolicy.guardrails`
+            // stays permanently free-text and never reaches this projection
+            // — a named regression test in AbilityPromptProjectionSecurityTests
+            // guards that boundary. `guardrailCategories` is the one
+            // ability-level caution signal this projection reads, and every
+            // line it emits below is one of the fixed sentences from
+            // `guardrailSentence(for:)`; package data selects only which
+            // closed cases apply, never any wording.
+            for category in ability.operatingPolicy.guardrailCategories {
+                lines.append("  CAUTION: \(guardrailSentence(for: category))")
+            }
         }
         lines.append("[END ABILITY REGISTRY]")
         return lines.joined(separator: "\n")
+    }
+
+    /// The fixed, Mary-owned sentence for one closed `GuardrailCategory`.
+    /// `Switch` is exhaustive over the enum, so a new case fails to compile
+    /// here until it is given real wording — there is no default branch that
+    /// could accidentally let package data supply the text instead.
+    static func guardrailSentence(for category: GuardrailCategory) -> String {
+        switch category {
+        case .domainMismatch:
+            return "Domain caution: do not apply this outside the surface kind it was built for (for example, prose vs. code)."
+        case .unscopedTarget:
+            return "Scope caution: act only on the target the user explicitly named or focused, never an inferred neighbor."
+        case .staleState:
+            return "Freshness caution: read live state before acting or reporting; never answer from a remembered value."
+        case .noFocusSteal:
+            return "Focus caution: never bring the target forward or steal focus merely to observe or command it."
+        case .nativeCommandOnly:
+            return "Command caution: issue this through the target application's own command, never synthesized input standing in for it."
+        case .irreversibleAction:
+            return "Irreversible caution: this can destroy or replace existing content; confirm the exact, fresh target before acting."
+        }
     }
 
     /// Do not echo an IMPORTED identifier into high-priority model context.

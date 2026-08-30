@@ -12,7 +12,7 @@
 //    from Seer with the spoken history; the engine runs concurrently as a
 //    silent orchestrator that only executes skills. Seer owns every spoken
 //    word; orchestrator prose is kept solely as an offline fallback.
-//  - LEGACY MODE (no Seer): today's single-engine loop, unchanged.
+//  - LOCAL MODE (no Seer): today's single-engine loop, unchanged.
 //
 
 import MaryAmbient
@@ -34,7 +34,7 @@ import os
 //   MaryBrain+SeerTurn.swift      seerTurn + lane result types
 //   MaryBrain+Lanes.swift         runSeerLane / runRealtimeSeerLane / runOrchestratorLane
 //   MaryBrain+Routines.swift      detached-routine lifecycle + follow-up chain
-//   MaryBrain+LegacyTurn.swift    the single-engine loop + nudges
+//   MaryBrain+LocalTurn.swift     the single-engine loop + nudges
 //   MaryBrain+Deposit.swift       archive(...)
 //   MaryBrain+Vocabulary.swift    the deterministic sentence builders
 //   MaryBrain+GroundedText.swift  the grounded-text composition statics
@@ -72,7 +72,7 @@ public actor MaryBrain: LanguageResponder {
 
     // internal for file split — treat as private
     var systemPromptProvider: @Sendable () -> String
-    /// Seer chat lane; nil (or not ready) = legacy single-engine turns.
+    /// Seer chat lane; nil (or not ready) = local single-engine turns.
     // internal for file split — treat as private
     var seerChat: (any SeerChatProviding)?
     /// Optional realtime WS route (opt-in via Settings); nil = classic only.
@@ -100,6 +100,7 @@ public actor MaryBrain: LanguageResponder {
             groundedResults: pass.groundedResults,
             readPassages: pass.readPassages,
             readReport: pass.readReport,
+            conversational: pass.conversational,
             // The running-actions note is a SECTION now rather than a string
             // the turn loop appends afterwards, so every provider — including
             // this default, which is what the tests run against — has to pass
@@ -224,6 +225,9 @@ public actor MaryBrain: LanguageResponder {
     /// and idempotent under any unwind interleaving.
     // internal for file split — treat as private
     var openExchange: (userTurnID: UUID, epoch: UInt64)?
+    /// Ready LoRAs by discipline, supplied by Runtime. Nil lookup = no Life.
+    // internal for file split — treat as private
+    var lifeLoRALookup: (@Sendable (AbilityID) -> LifeLoRASlot?)?
     // internal for file split — treat as private
     let turnBox = TurnBox()
     /// Brain-initiated events outside turns — routine progress + follow-ups.

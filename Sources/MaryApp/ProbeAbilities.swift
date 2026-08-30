@@ -21,7 +21,7 @@
 //
 
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import Foundation
 import MaryRuntime
 

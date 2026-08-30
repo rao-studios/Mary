@@ -85,7 +85,8 @@ enum AbilityRosterArbitrator {
             let score = evidence(
                 policy: runtime.skill.routing,
                 requirements: runtime.skill.requirements,
-                context: context)
+                context: context,
+                skillID: runtime.skill.id)
             if let failure = failures[key] {
                 decisions[key] = decision(
                     runtime,
@@ -214,7 +215,8 @@ enum AbilityRosterArbitrator {
                     score: evidence(
                         policy: runtime.skill.routing,
                         requirements: runtime.skill.requirements,
-                        context: context),
+                        context: context,
+                        skillID: runtime.skill.id),
                     reason: "its Ability lost or conservatively declined the active Ability conflict")
             }
         }
@@ -247,7 +249,8 @@ enum AbilityRosterArbitrator {
                 score: evidence(
                     policy: runtime.skill.routing,
                     requirements: runtime.skill.requirements,
-                    context: context),
+                    context: context,
+                    skillID: runtime.skill.id),
                 fallbackFor: nil)
         }
 
@@ -307,7 +310,8 @@ enum AbilityRosterArbitrator {
                     score: evidence(
                         policy: fallback.skill.routing,
                         requirements: fallback.skill.requirements,
-                        context: context),
+                        context: context,
+                        skillID: fallback.skill.id),
                     fallbackFor: primary.reference)
             }
         }
@@ -325,7 +329,8 @@ enum AbilityRosterArbitrator {
                 score: evidence(
                     policy: runtime.skill.routing,
                     requirements: runtime.skill.requirements,
-                    context: context),
+                    context: context,
+                    skillID: runtime.skill.id),
                 selectedAlternative: owner?.reference,
                 reason: owner == nil
                     ? "is a standby fallback and no unavailable primary activated it"
@@ -439,7 +444,8 @@ enum AbilityRosterArbitrator {
                 score: evidence(
                     policy: runtime.skill.routing,
                     requirements: runtime.skill.requirements,
-                    context: context),
+                    context: context,
+                    skillID: runtime.skill.id),
                 reason: "remained standby after bounded fallback resolution")
         }
 

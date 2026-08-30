@@ -4,21 +4,20 @@
 
 import MaryBrain
 import MaryTotem
+import MaryFoundation
 import Foundation
 
 extension TotemContextStore {
 
     // MARK: - Addressing (pure, unit-tested — no server required)
 
-    /// The group a deposit belongs to. The legacy pool is the fallback, not
-    /// the rule: it is what "no specific document is in view" means.
+    /// The group a deposit belongs to. No owner-wide bag: without a project
+    /// or document scope there is nowhere to file.
     package static func destination(
         subject: DepositSubject, ownerID: String
-    ) -> (id: String, label: String) {
-        if let scoped = subject.groupID(ownerID: ownerID) {
-            return (scoped, subject.groupLabel)
-        }
-        return ("mary-context-\(ownerID)", "Mary Context")
+    ) -> (id: String, label: String)? {
+        guard let scoped = subject.groupID(ownerID: ownerID) else { return nil }
+        return (scoped, subject.groupLabel)
     }
 
     struct ProjectionDestination {
@@ -27,31 +26,25 @@ extension TotemContextStore {
         package var label: String
     }
 
-    /// A projection's lane declaration is executable policy. The original
-    /// subject may select the group even when that routing identity is not
-    /// itself whitelisted into the stored document.
+    /// Durable projections always file to Ability Totem. Destinations come from
+    /// the executing Ability and, for application expertise, the disciplines
+    /// it extends. Personal style is a different deposit path.
     static func projectionDestinations(
         projection: ResolvedTotemProjection,
-        subject: DepositSubject,
-        routingSubject: DepositSubject,
-        applicationID: String?,
+        subject _: DepositSubject,
+        routingSubject _: DepositSubject,
+        applicationID _: String?,
+        targets: [AbilityTotemTarget],
         ownerID: String
     ) -> [ProjectionDestination] {
         guard projection.permitsDurableStorage else { return [] }
 
         var destinations: [ProjectionDestination] = []
-        if projection.lanes.contains(.application),
-           let applicationID = applicationID ?? routingSubject.app ?? subject.app,
-           !applicationID.isEmpty {
-            let application = TotemMemoryTopology.applicationGroup(
-                applicationID: applicationID, ownerID: ownerID)
+        for target in targets {
+            let ability = TotemMemoryTopology.abilityGroup(
+                target: target, ownerID: ownerID)
             destinations.append(.init(
-                lane: .application, id: application.id, label: application.label))
-        }
-        if projection.lanes.contains(.personal) {
-            let personal = destination(subject: routingSubject, ownerID: ownerID)
-            destinations.append(.init(
-                lane: .personal, id: personal.id, label: personal.label))
+                lane: .ability, id: ability.id, label: ability.label))
         }
 
         var seen = Set<String>()

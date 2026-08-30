@@ -18,6 +18,12 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     public var grantedPermissions: Set<PermissionKind>
     public var sourceResolution: SourceResolution
     public var workspaceFamily: String?
+    /// Embedding similarity between this turn's utterance and each Skill's
+    /// authored corpus. EVIDENCE, NEVER ADMISSION: `evaluate` and `isEligible`
+    /// below do not read this, and must not — a predicate tree is a package
+    /// author's statement about meaning, and a similarity has no standing to
+    /// overrule one. `AbilityRosterArbitrator.evidence` is its only consumer.
+    public var semanticSkillAffinity: [SkillID: Float]
 
     public init(
         utterance: String = "",
@@ -30,7 +36,8 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         capabilities: Set<CapabilityID> = [],
         grantedPermissions: Set<PermissionKind> = [],
         sourceResolution: SourceResolution = .unresolved,
-        workspaceFamily: String? = nil
+        workspaceFamily: String? = nil,
+        semanticSkillAffinity: [SkillID: Float] = [:]
     ) {
         self.utterance = utterance
         self.intent = intent
@@ -43,6 +50,7 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         self.grantedPermissions = grantedPermissions
         self.sourceResolution = sourceResolution
         self.workspaceFamily = workspaceFamily
+        self.semanticSkillAffinity = semanticSkillAffinity
     }
 }
 

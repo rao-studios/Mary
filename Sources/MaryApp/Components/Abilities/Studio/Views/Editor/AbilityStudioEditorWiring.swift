@@ -385,7 +385,6 @@ struct AbilityStudioWiringEditor: View {
                         version: draft.package.version,
                         purpose: .receipt,
                         skills: [],
-                        lanes: [.application],
                         persistence: .session,
                         redactContent: true))
                     draft.ability.totemProjections.append(id)

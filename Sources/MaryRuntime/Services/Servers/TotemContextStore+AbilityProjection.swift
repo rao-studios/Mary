@@ -33,6 +33,7 @@ extension TotemContextStore {
         policy: ArchivePolicy,
         succeeded: Bool,
         projection: ResolvedTotemProjection,
+        targets: [AbilityTotemTarget],
         ownerID: String
     ) async {
         let fields = Self.projectedFields(
@@ -64,6 +65,7 @@ extension TotemContextStore {
             subject: projectedSubject,
             routingSubject: subject,
             applicationID: applicationID,
+            targets: targets,
             ownerID: ownerID
         ) {
             let item = DepositItem(
@@ -98,7 +100,8 @@ extension TotemContextStore {
                 try await client.deposit(
                     [item], ownerID: ownerID,
                     groupID: destination.id,
-                    groupLabel: destination.label)
+                    groupLabel: destination.label,
+                    scope: destination.lane.rawValue)
             } catch {
                 // Fire-and-forget: a missing Totem is a Servers-sheet concern.
                 continue

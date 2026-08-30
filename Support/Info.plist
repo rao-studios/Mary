@@ -17,6 +17,13 @@
 			</array>
 		</dict>
 	</array>
+	<!-- WHICH BINARY LAUNCHES. Absent, Launch Services guesses from the
+	     bundle name and happens to be right — but Contents/MacOS also holds
+	     mlx.metallib (MLX searches beside the executable), so the directory
+	     is not a single-candidate fallback and the guess is luck rather than
+	     contract. -->
+	<key>CFBundleExecutable</key>
+	<string>Mary</string>
 	<key>CFBundleIdentifier</key>
 	<string>nyc.rao.mary</string>
 	<key>CFBundleName</key>
@@ -24,7 +31,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.0</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>LSMinimumSystemVersion</key>

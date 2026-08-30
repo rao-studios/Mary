@@ -32,12 +32,12 @@ final class RequestBuildingTests: XCTestCase {
             )
         ]
         let request = TotemProtoMap.indexRequest(
-            items: items, ownerID: "owner-1", groupID: "mary-context-owner-1",
-            groupLabel: "Mary Context", scope: "personal")
+            items: items, ownerID: "owner-1", groupID: "mary-behavior-interaction-owner-1",
+            groupLabel: "Interactions", scope: "personal")
 
         XCTAssertEqual(request.ownerID, "owner-1")
-        XCTAssertEqual(request.groupID, "mary-context-owner-1")
-        XCTAssertEqual(request.groupLabel, "Mary Context")
+        XCTAssertEqual(request.groupID, "mary-behavior-interaction-owner-1")
+        XCTAssertEqual(request.groupLabel, "Interactions")
         XCTAssertEqual(request.scope, "personal")
         XCTAssertEqual(request.items.count, 1)
 
@@ -248,5 +248,19 @@ final class RequestBuildingTests: XCTestCase {
         XCTAssertEqual(mapped.entityCount, 10)
         XCTAssertEqual(mapped.relationshipCount, 4)
         XCTAssertEqual(mapped.topEntities, [GraphTopEntity(id: "e1", name: "mary", kind: "project", mentionCount: 3)])
+    }
+
+    func testExportCorpusRequestMapsAllFields() {
+        let request = TotemProtoMap.exportCorpusRequest(
+            ownerID: "owner-1",
+            groupIDs: ["g1", "g2"],
+            documentIDPrefix: "mary-behavior-",
+            afterID: "cursor",
+            limit: 50)
+        XCTAssertEqual(request.ownerID, "owner-1")
+        XCTAssertEqual(request.groupIds, ["g1", "g2"])
+        XCTAssertEqual(request.documentIDPrefix, "mary-behavior-")
+        XCTAssertEqual(request.afterID, "cursor")
+        XCTAssertEqual(request.limit, 50)
     }
 }

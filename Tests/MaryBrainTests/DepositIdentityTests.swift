@@ -10,7 +10,7 @@
 import Foundation
 import Testing
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 @Suite struct DepositIdentityTests {
@@ -95,27 +95,18 @@ import Testing
 
     // MARK: - Retrieval scope
 
-    /// The user's decision, mechanized: a focused document narrows retrieval
-    /// to its own group and shuts `aggregate` off — the document group LEADS,
-    /// and long-term memory plus the legacy pool ride along as background.
+    /// A focused project's corpus scope: the project group leads, Seer's
+    /// own memory rides along. Spoken turns use `seerPersonalScope` instead
+    /// and never read this helper.
     @Test func focusedRetrievalIsExclusiveUnfocusedIsGeneral() {
         let focused = DepositSubject(app: "pages", documentIdentity: "Essay.pages")
         let scope = focused.retrievalScope(ownerID: "o")
         #expect(scope.aggregate == false)
-        // MOVED DELIBERATELY: `mary-context-o` is new here. It was excluded
-        // as "where the deleted paragraph lived", and that exclusion also made
-        // every eyeless deposit — calendar, mail, messages, all of which land
-        // in this pool because they have no workspace — unreachable on any
-        // turn where a document was focused, which is most turns. Document
-        // wording is now protected by the live block outranking retrieval and
-        // by `.stateSnapshot` supersession; it was never a reason to lose the
-        // user's schedule because a text editor was open.
         #expect(scope.groups.map(\.id) == [
-            focused.groupID(ownerID: "o"), "memory-o", "resonance-o", "mary-context-o",
+            focused.groupID(ownerID: "o"), "memory-o", "resonance-o",
         ])
+        #expect(!scope.groups.contains { $0.id.hasPrefix("mary-context-") })
 
-        // Nothing in view: general memory, including the legacy pool. This is
-        // byte-identical to the hardcoded shape it replaces.
         #expect(DepositSubject.unfocused.retrievalScope(ownerID: "o") == .general)
         #expect(RetrievalScope.general.aggregate == true)
         #expect(RetrievalScope.general.groups.isEmpty)
@@ -143,13 +134,8 @@ import Testing
         // The scope group still LEADS: it is the turn's subject.
         #expect(ids.first == focused.groupID(ownerID: owner))
         #expect(focused.retrievalScope(ownerID: owner).aggregate == false)
-        // MOVED DELIBERATELY (C2). This asserted the legacy pool was
-        // EXCLUDED. Eyeless deposits have no workspace and land in that pool,
-        // so excluding it meant a focused turn could reach nothing Mary had
-        // ever remembered about the user's calendar, mail or messages — and
-        // "focused" is the normal state. It rides last, as background, behind
-        // the scope group and long-term memory.
-        #expect(ids.last == "mary-context-Owner-ABC")
+        #expect(ids.last == "resonance-Owner-ABC")
+        #expect(!ids.contains { $0.hasPrefix("mary-context-") })
     }
 
     /// The first turn in a brand-new project: the scope group has not been
@@ -163,8 +149,7 @@ import Testing
         let groups = brandNew.retrievalScope(ownerID: "o").groups
         #expect(groups.count > 1, "one unknown group would be a zero-result turn")
         #expect(groups.dropFirst().map(\.id)
-            == RetrievalScope.memoryGroups(ownerID: "o").map(\.id)
-                + [RetrievalScope.legacyPool(ownerID: "o").id])
+            == RetrievalScope.memoryGroups(ownerID: "o").map(\.id))
     }
 
     /// An app with no document is not a document. Half a subject must fall

@@ -13,7 +13,11 @@
 import MaryAmbient
 import Foundation
 
-extension AbilityRuntimeSnapshot: AbilityCapabilityIndex {}
+extension AbilityRuntimeSnapshot: AbilityCapabilityIndex {
+    public func paradigm(of abilityID: AbilityID) -> AbilityParadigm? {
+        records.first { $0.package.ability.id == abilityID }?.package.paradigm
+    }
+}
 
 public enum AmbientCapabilityBridge {
     /// Points MaryAmbient at the live registry. Called once at configuration;

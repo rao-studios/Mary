@@ -46,6 +46,7 @@ final class TotemExplorerViewModel: ObservableObject {
     @Published private(set) var libraryHasMore = false
     @Published private(set) var isLoadingLibrary = false
     @Published private(set) var libraryNotice: String?
+    @Published private(set) var abilityDepositHint: String?
     @Published private(set) var selectedDocument: TotemDocumentDetail?
     @Published private(set) var isLoadingDocument = false
 
@@ -68,6 +69,9 @@ final class TotemExplorerViewModel: ObservableObject {
 
     /// For gating repair buttons in the view without a second status stream.
     @Published private(set) var isTotemHealthy = false
+    @Published private(set) var isFleetHealthy = false
+    /// Gold overlay on the Life button while a discipline is training.
+    @Published private(set) var lifeIsTraining = false
 
     /// SEEDED VIA `configure(...)` from the pane's config relay —
     /// `ConfigService` state lives behind a Granite `@Relay` only views hold,
@@ -128,6 +132,8 @@ final class TotemExplorerViewModel: ObservableObject {
                 guard let self, !Task.isCancelled else { return }
                 self.isTotemHealthy =
                     snapshots.first { $0.kind == .totem }?.status == .healthy
+                self.isFleetHealthy =
+                    snapshots.first { $0.kind == .fleet }?.status == .healthy
             }
         }
         nodesTask = Task { [weak self] in
@@ -162,6 +168,8 @@ final class TotemExplorerViewModel: ObservableObject {
         if built.libraryHasMore != libraryHasMore { libraryHasMore = built.libraryHasMore }
         if built.graph != graph { graph = built.graph }
         if built.retrievalRows != retrievalRows { retrievalRows = built.retrievalRows }
+        let training = MaryRuntime.lifeIsTraining()
+        if training != lifeIsTraining { lifeIsTraining = training }
     }
 
     // MARK: - Impure
@@ -262,6 +270,7 @@ final class TotemExplorerViewModel: ObservableObject {
         let (owner, notice) = await totemReadPreflight()
         guard let owner else {
             libraryNotice = notice
+            await refreshAbilityDepositHint()
             return
         }
         let cursor = reset ? "" : libraryCursor
@@ -283,6 +292,28 @@ final class TotemExplorerViewModel: ObservableObject {
             libraryNotice = "Couldn't read the library: \(error.localizedDescription)"
         }
         refresh()
+        await refreshAbilityDepositHint()
+    }
+
+    private func refreshAbilityDepositHint() async {
+        let hasAbilityGroup = libraryGroups.contains { $0.id.hasPrefix("mary-ability-") }
+        // Preflight already named Totem-down / not-signed-in — do not stack a
+        // second line that says the same thing.
+        if hasAbilityGroup || libraryNotice != nil {
+            abilityDepositHint = nil
+            return
+        }
+        let episodes = await MaryRuntime.behavioralStore.allEpisodes().episodes
+        let hasDiscipline = episodes.contains { episode in
+            episode.sealedReason == .completed
+                && episode.abilityTargets.contains { $0.paradigm == .discipline }
+        }
+        guard hasDiscipline else {
+            abilityDepositHint = nil
+            return
+        }
+        abilityDepositHint = MaryRuntime.abilityDepositNoticeBox.withLock { $0 }
+            ?? "Turns are on disk; Ability Totem did not accept deposits — sign in and start Totem."
     }
 
     // MARK: - Document drill (two-tier, ContributionInspector's fallback)
@@ -315,15 +346,18 @@ final class TotemExplorerViewModel: ObservableObject {
         // Primary: real content by id (TotemLibrary.Documents).
         if let contents = try? await reader.documents(ids: [id], ownerID: owner),
            let document = contents.first {
+            let body = document.content
             selectedDocument = TotemDocumentDetail(
                 id: document.id,
                 name: document.name.isEmpty ? document.id : document.name,
                 groupLabel: document.groupLabel,
                 createdAt: Self.documentDate(fromCreatedAt: document.createdAt),
-                body: document.content,
+                body: body,
                 preview: nil,
                 family: family,
-                notice: nil)
+                notice: nil,
+                codec: BehavioralTotemInspect.codec(from: body),
+                interaction: BehavioralTotemInspect.interaction(from: body))
             return
         }
 
@@ -356,7 +390,9 @@ final class TotemExplorerViewModel: ObservableObject {
             body: nil,
             preview: preview,
             family: family,
-            notice: "Full body unavailable on this Totem build — metadata and a search preview only.")
+            notice: "Full body unavailable on this Totem build — metadata and a search preview only.",
+            codec: preview.flatMap(BehavioralTotemInspect.codec(from:)),
+            interaction: preview.flatMap(BehavioralTotemInspect.interaction(from:)))
     }
 
     // MARK: - Graph query (on-demand, cancel-replace)
@@ -628,11 +664,11 @@ final class TotemExplorerViewModel: ObservableObject {
         // (the server has no lanes), and unknown addresses are shown as what
         // they are instead of being misfiled — the classifier's own rule.
         let sections: [(id: String, title: String, subtitle: String, groups: [TotemGroupRow])] = [
-            ("application", "Application lane",
-             "What Mary knows about each application — schemas, manifests, documents.",
-             rows.filter { $0.lane == .application }),
+            ("ability", "Ability lane",
+             "Behavioral codec for the activated discipline — input and output of each sealed turn.",
+             rows.filter { $0.lane == .ability }),
             ("personal", "Personal lane",
-             "The user's own record — scopes, snapshots, units, style.",
+             "Interactions that produced an Ability deposit, plus project units and style.",
              rows.filter { $0.lane == .personal }),
             ("seer", "Seer's own",
              "Written by the Seer server on its own; never Mary's to rewrite.",
@@ -648,12 +684,16 @@ final class TotemExplorerViewModel: ObservableObject {
         built.libraryHasMore = inputs.hasMoreGroups
     }
 
-    /// The view's chip filter — pure, so selection is a question the view
-    /// asks, not state the builder stores. Nil family = everything.
+    /// The view's chip filter — lane raw value (`ability`/`personal`) or a
+    /// family raw value. Nil = everything.
     nonisolated static func sections(
-        _ sections: [TotemLaneSection], matching family: TotemAddressFamily?
+        _ sections: [TotemLaneSection], matching filter: String?
     ) -> [TotemLaneSection] {
-        guard let family else { return sections }
+        guard let filter, !filter.isEmpty else { return sections }
+        if sections.contains(where: { $0.id == filter }) {
+            return sections.filter { $0.id == filter }
+        }
+        guard let family = TotemAddressFamily(rawValue: filter) else { return sections }
         return sections.compactMap { section in
             let groups = section.groups.filter { $0.family == family }
             guard !groups.isEmpty else { return nil }
@@ -665,20 +705,23 @@ final class TotemExplorerViewModel: ObservableObject {
 
     nonisolated static func familyTitle(_ family: TotemAddressFamily) -> String {
         switch family {
-        case .applicationGroup: return "Application"
+        case .abilityGroup: return "Ability"
         case .scopeGroup: return "Scope"
-        case .legacyContextPool: return "Context pool"
+        case .behaviorInteraction: return "Interactions"
+        case .styleGroup: return "Style"
         case .seerMemory: return "Memory"
         case .seerResonance: return "Resonance"
-        case .applicationDocument: return "Application document"
-        case .applicationSchemaManifest: return "Schema manifest"
-        case .applicationSchema: return "Application schema"
+        case .abilityDocument: return "Ability document"
+        case .abilitySchemaManifest: return "Schema manifest"
+        case .abilitySchema: return "Ability schema"
         case .projectSchema: return "Project schema"
         case .stateSnapshot: return "State snapshot"
         case .skillRecord: return "Skill record"
         case .unitManifest: return "Unit manifest"
         case .unitCard: return "Unit card"
         case .styleProfile: return "Style profile"
+        case .behaviorEpisode: return "Behavioral codec"
+        case .behaviorInteractionDocument: return "Interaction"
         case .unknown: return "Unknown"
         }
     }
@@ -802,7 +845,8 @@ final class TotemExplorerViewModel: ObservableObject {
             plan: plan.map { plan in
                 TotemMemoryPlanRow(
                     lanes: plan.lanes.map(\.rawValue).sorted(),
-                    applicationIDs: plan.applicationIDs,
+                    abilityTargets: plan.abilityTargets.map(\.label),
+                    expandDisciplineUsage: plan.expandDisciplineUsage,
                     lanePriority: plan.lanePriority.map(\.rawValue),
                     relationshipHints: plan.relationshipHints)
             },
@@ -830,39 +874,31 @@ final class TotemExplorerViewModel: ObservableObject {
         promptSpend: [PromptSpendTrace]
     ) -> [TotemRetrievalWarning] {
         var warnings: [TotemRetrievalWarning] = []
-        let anyAggregate = requests.contains { $0.aggregate }
-        // Family of every group actually sent. Keyed on FAMILY, not lane:
-        // unit cards, style profiles and application schemas live at
-        // application-family and manifest ADDRESSES, and a lane-keyed check
-        // would call the corpus reachable whenever any personal-lane group
-        // rode along — which is every focused turn.
-        let sentFamilies = Set(requests.flatMap { request in
+        _ = plan
+        let seerRequests = requests.filter { $0.transport != .grpc }
+        let grpcRequests = requests.filter { $0.transport == .grpc }
+        let seerFamilies = Set(seerRequests.flatMap { request in
             request.groups.map { TotemAddressClassifier.classifyGroup(id: $0.id).family }
         })
 
-        if let plan, plan.lanes == [.personal], !requests.isEmpty, !anyAggregate,
-           !sentFamilies.contains(.applicationGroup) {
+        if seerFamilies.contains(.abilityGroup) {
             warnings.append(.init(
-                kind: .behaviouralCorpusUnreachable,
-                message: "Behavioural corpus unreachable — no application-family group in the sent scope, and aggregate is off. Unit cards, style profiles and application schemas live in mary-application-… groups."))
+                kind: .planScopeMismatch,
+                message: "Seer chat was sent an Ability Totem group. Spoken retrieval is Personal interactions only."))
         }
 
-        if let plan, !requests.isEmpty, !anyAggregate {
-            if plan.lanes.contains(.application), !sentFamilies.contains(.applicationGroup) {
-                warnings.append(.init(
-                    kind: .planScopeMismatch,
-                    message: "Plan asked for the application lane, but no application-family group went out."))
-            } else if !plan.lanes.contains(.application), sentFamilies.contains(.applicationGroup) {
-                warnings.append(.init(
-                    kind: .planScopeMismatch,
-                    message: "An application-family group went out that the plan never asked for."))
-            }
+        if grpcRequests.contains(where: { request in
+            request.groups.contains { TotemAddressClassifier.classifyGroup(id: $0.id).family == .abilityGroup }
+        }) {
+            warnings.append(.init(
+                kind: .planScopeMismatch,
+                message: "Ability codec was searched on a turn. Ability Totem is training storage, not spoken retrieval."))
         }
 
-        if !requests.isEmpty, contribution == nil {
+        if !seerRequests.isEmpty, contribution == nil {
             warnings.append(.init(
                 kind: .askedNothingBack,
-                message: "Asked, nothing back — \(requests.count) request\(requests.count == 1 ? "" : "s") went out and no contribution returned."))
+                message: "Asked, nothing back — \(seerRequests.count) Seer request\(seerRequests.count == 1 ? "" : "s") went out and no contribution returned."))
         }
 
         // The stored counts cannot separate a DEMOTED fact from a mention

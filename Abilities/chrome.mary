@@ -1,0 +1,284 @@
+{
+  "ability" : {
+    "aliases" : [
+      "chrome",
+      "google chrome"
+    ],
+    "applications" : [
+      {
+        "bundleIdentifiers" : [
+          "com.google.Chrome"
+        ],
+        "id" : "chrome",
+        "title" : "Chrome"
+      }
+    ],
+    "id" : "chrome",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "Never type into a window the user did not ask for."
+      ],
+      "phases" : [
+        "resolve-document",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "focus loss",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the named window changed"
+      ]
+    },
+    "paradigm" : "applicationExpertise",
+    "routing" : {
+      "conflictGroup" : "application",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 120
+    },
+    "skills" : [
+      "chrome.new-tab"
+    ],
+    "summary" : "Teaches Mary Chrome. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
+    "tint" : "#1A73E8",
+    "title" : "Chrome",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "in chrome",
+        "this page",
+        "this tab"
+      ],
+      "tokens" : [
+        "chrome",
+        "browser",
+        "tab"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "chrome.tab-new",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press Command-T while Chrome owns the stage."
+        }
+      ],
+      "summary" : "Press Command-T while Chrome owns the stage.",
+      "title" : "New Tab",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "window-management"
+    }
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "13ff1de3aa2e601eae65a9a894811f24221176063eb19d561b0751f807c1f458"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "chrome",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Teaches Mary Chrome. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "plugin" : {
+    "adapter" : {
+      "engine" : "macUI",
+      "id" : "chrome.managed-ui",
+      "permissions" : [
+        "accessibility"
+      ],
+      "title" : "Chrome Native Interaction",
+      "version" : "1.0.0"
+    },
+    "application" : {
+      "activation" : "activateRunning",
+      "aliases" : [
+        "chrome",
+        "google chrome"
+      ],
+      "bundleIdentifiers" : [
+        "com.google.Chrome"
+      ],
+      "bundleNames" : [
+        "Google Chrome.app"
+      ],
+      "contentInsets" : {
+        "bottom" : 0,
+        "leading" : 0,
+        "top" : 0,
+        "trailing" : 0
+      },
+      "id" : "chrome",
+      "perception" : {
+        "kind" : "perceptionOnly"
+      },
+      "targetClasses" : [
+        "document-window",
+        "web-page"
+      ],
+      "title" : "Chrome"
+    },
+    "id" : "chrome",
+    "operations" : [
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_new_tab",
+        "postconditions" : [
+          "applicationFrontmost"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "t",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-T while Chrome owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "New Tab"
+      }
+    ],
+    "realizations" : [
+      {
+        "operation" : "chrome_new_tab",
+        "preference" : 260,
+        "skillID" : "chrome.new-tab",
+        "targetClasses" : [
+          "web-page"
+        ]
+      }
+    ],
+    "title" : "Chrome",
+    "version" : "1.0.0"
+  },
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "chrome.new-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "chrome_new_tab",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "chrome.tab-new"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Press Command-T while Chrome owns the stage.",
+      "title" : "New Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

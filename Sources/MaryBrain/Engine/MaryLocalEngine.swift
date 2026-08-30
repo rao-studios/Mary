@@ -11,6 +11,9 @@
 import Foundation
 import MLXLLM
 import MLXLMCommon
+import FleetCore
+import FleetInference
+import MaryFoundation
 
 public actor MaryLocalEngine: InferenceEngine {
 
@@ -31,6 +34,8 @@ public actor MaryLocalEngine: InferenceEngine {
     private var context: ModelContext?
     /// 0…1 while the first-use download runs (surfaced by Boot state).
     private(set) var downloadProgress: Double = 1.0
+    private var adapterPath: URL?
+    private var codecSession: StructuredSession?
 
     public nonisolated let displayName: String
 
@@ -66,6 +71,40 @@ public actor MaryLocalEngine: InferenceEngine {
         }
     }
 
+    public func loadAdapter(path: URL) {
+        if adapterPath != path {
+            adapterPath = path
+            codecSession = nil
+        }
+    }
+
+    public func unloadAdapter() {
+        adapterPath = nil
+        codecSession = nil
+    }
+
+    public func completeCodec(
+        input: BehavioralTrainingInput,
+        schemaJSON: Data,
+        adapterPath: URL
+    ) async throws -> BehavioralTrainingOutput {
+        loadAdapter(path: adapterPath)
+        guard let schema = try? JSONDecoder().decode(SchemaTemplate.self, from: schemaJSON)
+        else { throw CodecCompleteError.invalidSchema }
+        if codecSession == nil {
+            codecSession = StructuredSession(
+                modelId: modelID, adapterDirectory: adapterPath)
+        }
+        let bytes = try BehavioralCodec.encoder().encode(input)
+        guard let text = String(data: bytes, encoding: .utf8) else {
+            throw CodecCompleteError.invalidSchema
+        }
+        let json = try JSONParser.parse(text)
+        let result = try await codecSession!.complete(input: json, schema: schema)
+        return try BehavioralCodec.decoder().decode(
+            BehavioralTrainingOutput.self, from: Data(result.rawText.utf8))
+    }
+
     // MARK: - Private
 
     private func streamRound(
@@ -75,6 +114,18 @@ public actor MaryLocalEngine: InferenceEngine {
         continuation: AsyncThrowingStream<EngineEvent, Error>.Continuation
     ) async throws {
         let ctx = try await loadedContext()
+
+        // MARY_DUMP_PROMPT=1: print the exact system text, mapped history and
+        // raw (pre-interception) model output for this round to stderr. The
+        // tool this codebase otherwise lacked to answer "what did the model
+        // actually see, and what did it actually say" for an on-device round
+        // — how a live-reproduced report of an ungrounded reply ("Hi Mary!
+        // How was your day?") was traced to two distinct real causes rather
+        // than guessed at: a fenced ```tool_call the interceptor didn't
+        // recognize (see `SkillCallTextInterceptor.toolCallFenceInfoStrings`),
+        // and a genuinely empty retry round after a real Skill result (see
+        // `MaryBrain.groundedRetryNudge`). Silent unless the flag is set.
+        let dumpPrompt = ProcessInfo.processInfo.environment["MARY_DUMP_PROMPT"] != nil
 
         // Frigate's ToolCallProcessor parses the mlx-lm default wrapper; a 7B
         // Mistral needs the contract spelled out or it narrates the call in
@@ -125,17 +176,35 @@ public actor MaryLocalEngine: InferenceEngine {
             messages.append(entry.isUser ? .user(entry.text) : .assistant(entry.text))
         }
 
-        let input = try await ctx.processor.prepare(
-            input: UserInput(
-                chat: messages,
-                tools: skills.isEmpty ? nil : skills.map(Self.toolSpec(from:))
+        if dumpPrompt {
+            FileHandle.standardError.write("\n===== MARY_DUMP_PROMPT: round begin =====\n".data(using: .utf8)!)
+            FileHandle.standardError.write("--- system (\(systemText.count) chars) ---\n\(systemText)\n".data(using: .utf8)!)
+            for (index, message) in messages.enumerated() where index > 0 {
+                FileHandle.standardError.write("--- [\(index)] \(message.role.rawValue) ---\n\(message.content)\n".data(using: .utf8)!)
+            }
+            FileHandle.standardError.write("--- skills (\(skills.count)) ---\n\(skills.map(\.name).joined(separator: ", "))\n".data(using: .utf8)!)
+            FileHandle.standardError.write("===== MARY_DUMP_PROMPT: round end =====\n\n".data(using: .utf8)!)
+        }
+
+        await MLXGPUGate.shared.acquire()
+        let input: LMInput
+        let stream: AsyncStream<Generation>
+        do {
+            input = try await ctx.processor.prepare(
+                input: UserInput(
+                    chat: messages,
+                    tools: skills.isEmpty ? nil : skills.map(Self.toolSpec(from:))
+                )
             )
-        )
-        let stream = try MLXLMCommon.generate(
-            input: input,
-            parameters: GenerateParameters(maxTokens: 800),
-            context: ctx
-        )
+            stream = try MLXLMCommon.generate(
+                input: input,
+                parameters: GenerateParameters(maxTokens: 800),
+                context: ctx
+            )
+        } catch {
+            await MLXGPUGate.shared.release()
+            throw error
+        }
 
         // Mistral models rarely use the <tool_call> tags Frigate's processor
         // parses. They emit either the native `[TOOL_CALLS] [{...}]` wire
@@ -145,11 +214,13 @@ public actor MaryLocalEngine: InferenceEngine {
         // surfaces raw JSON (or the hallucinated chatter models append).
         var interceptor = SkillCallTextInterceptor(
             knownSkillNames: Set(skills.map(\.name)))
+        var rawTranscript = ""
 
         for await item in stream {
             if Task.isCancelled { break }
             switch item {
             case .chunk(let text):
+                if dumpPrompt { rawTranscript += text }
                 let speakable = interceptor.ingest(text)
                 if !speakable.isEmpty {
                     continuation.yield(.text(speakable))
@@ -173,7 +244,20 @@ public actor MaryLocalEngine: InferenceEngine {
             }
         }
 
-        switch interceptor.finish() {
+        let resolution = interceptor.finish()
+        if dumpPrompt {
+            let label: String
+            switch resolution {
+            case .speech: label = "speech"
+            case .skillInvocations: label = "skillInvocations"
+            case .dropped: label = "dropped"
+            case .nothing: label = "nothing"
+            }
+            FileHandle.standardError.write(
+                "--- RAW MODEL OUTPUT (\(rawTranscript.count) chars, resolution=\(label)) ---\n\(rawTranscript)\n--- end raw ---\n"
+                    .data(using: .utf8)!)
+        }
+        switch resolution {
         case .speech(let text):
             if !text.isEmpty { continuation.yield(.text(text)) }
         case .skillInvocations(let invocations):
@@ -184,6 +268,7 @@ public actor MaryLocalEngine: InferenceEngine {
             break
         }
         continuation.yield(.done)
+        await MLXGPUGate.shared.release()
     }
 
     // MARK: - Interception shims
@@ -215,10 +300,10 @@ public actor MaryLocalEngine: InferenceEngine {
     /// second consumer without the identical map collides with WhisperKit's
     /// copy.
     ///
-    /// NOTE THE NAME: "Fleet" is a sibling product this app ported its palette
-    /// and Sendable precedent from, not a package here — there is nothing to
-    /// integrate under that name. The on-device stack is Frigate/MLX, and it
-    /// is this file.
+    /// NOTE THE NAME: "Fleet" is a sibling product. MaryBrain now depends on
+    /// FleetCore + FleetInference for JSONGate / StructuredSession — LoRA
+    /// adapters load here, and only here. Spoken `stream` stays unadapted
+    /// tool-calling; `completeCodec` is the gated acting path.
     ///
     /// What such a router may and may not decide is in
     /// `docs/PROMPT-ASSEMBLY.md` §3 and on `AmbientRoute`. Nothing is

@@ -12,6 +12,9 @@
       "defaultSupportingAbilities" : [
 
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never infer one window from an ambiguous title.",
         "Prefer stable adapter window identity over titles or z-order.",
@@ -362,7 +365,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "cefe718cc11a9299c30299155f99a1efc1482aed0bc77e0888833818db3c7213"
+    "digest" : "36483d981df1b51735a4af46adc698437cc7fc6fec4c0ac9c23bc72bd9ecd3b9"
   },
   "interactions" : [
     {
@@ -1219,9 +1222,6 @@
         "windowID",
         "summary"
       ],
-      "lanes" : [
-        "application"
-      ],
       "persistence" : "session",
       "purpose" : "receipt",
       "redactContent" : true,
@@ -1240,9 +1240,6 @@
       "id" : "window-management.interaction-ephemera",
       "include" : [
 
-      ],
-      "lanes" : [
-        "application"
       ],
       "persistence" : "none",
       "purpose" : "interaction",

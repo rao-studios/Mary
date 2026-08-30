@@ -24,6 +24,10 @@ extension Home: View {
             showTotems: state.showTotems,
             onToggleTotems: {
                 _state.showTotems.wrappedValue.toggle()
+            },
+            showCorpus: state.showCorpus,
+            onToggleCorpus: {
+                _state.showCorpus.wrappedValue.toggle()
             }
         )
         .sheet(isPresented: _state.showSettings) {
@@ -52,6 +56,8 @@ struct HomeSessionView: View {
     let onToggleRouter: () -> Void
     let showTotems: Bool
     let onToggleTotems: () -> Void
+    let showCorpus: Bool
+    let onToggleCorpus: () -> Void
 
     @Relay var chat: ChatService
     @Relay(.silence) var config: ConfigService
@@ -120,6 +126,11 @@ struct HomeSessionView: View {
                 if showTotems {
                     Totems()
                         .frame(minWidth: 360, maxWidth: 600)
+                }
+                // A SIXTH bare `if`, for the reason the four above give.
+                if showCorpus {
+                    Corpus()
+                        .frame(minWidth: 380, maxWidth: 640)
                 }
             }
         }
@@ -221,6 +232,15 @@ struct HomeSessionView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Totems")
             Button {
+                onToggleCorpus()
+            } label: {
+                Image(systemName: "books.vertical")
+                    .font(.system(size: 14))
+                    .foregroundStyle(showCorpus ? Paper.ink : Paper.ink.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Corpus")
+            Button {
                 onShowSettings()
             } label: {
                 Image(systemName: "gearshape")
@@ -293,6 +313,18 @@ struct HomeSessionView: View {
             setReadiness(error, ready: false)
             return
         }
+        if config.state.codingAgentEnabled {
+            setReadiness("warming the on-device coding model…", ready: false)
+            if let error = await MaryRuntime.applyCodingAgent(
+                enabled: true, modelID: config.state.codingAgentModelID)
+            {
+                chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
+                    kind: .error("Coding agent: \(error)")))
+            }
+        } else {
+            _ = await MaryRuntime.applyCodingAgent(
+                enabled: false, modelID: config.state.codingAgentModelID)
+        }
 
         // Instant coding/writing focus transitions — app boot only, never
         // installBrainConfiguration (probes call that; headless stays
@@ -305,6 +337,7 @@ struct HomeSessionView: View {
         MaryRuntime.behavioralRecordingEnabledBox.withLock {
             $0 = config.state.behavioralRecording
         }
+        MaryRuntime.applySkillRunTimeout(config.state.skillRunTimeoutSeconds)
         await MaryRuntime.brain.setHistoryLimit(config.state.historyMessageLimit)
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)
         MaryRuntime.styleSelection = config.state.speechStyle
@@ -366,6 +399,7 @@ struct HomeSessionView: View {
             nodeID = TotemNodeIdentity.adoptOrMint(configured: "")
             config.center.update.send(ConfigService.Update.Meta(totemNodeID: nodeID))
         }
+        MaryRuntime.applyCorpusIndexing(enabled: config.state.ambientCorpusIndexing)
         await MaryRuntime.applyServers(config: config.state, nodeID: nodeID)
 
         guard config.state.seerEnabled else {

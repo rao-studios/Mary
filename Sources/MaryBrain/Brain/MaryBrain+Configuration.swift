@@ -109,4 +109,23 @@ extension MaryBrain {
         historyMessageLimit = max(4, limit)
         trimHistory()
     }
+
+    public func setLifeLoRALookup(
+        _ lookup: (@Sendable (AbilityID) -> LifeLoRASlot?)?
+    ) {
+        lifeLoRALookup = lookup
+    }
+
+    public func setOrdinarySkillTimeout(_ seconds: TimeInterval) {
+        dispatcher?.setOrdinarySkillTimeout(seconds)
+    }
+
+    public var hasOpenTurn: Bool { openExchange != nil }
+
+    public var isBusy: Bool {
+        openExchange != nil
+            || wiring.behavior.openEpisodeID != nil
+            || !activeRoutines.isEmpty
+            || !(dispatcher?.runningRunIDs.isEmpty ?? true)
+    }
 }

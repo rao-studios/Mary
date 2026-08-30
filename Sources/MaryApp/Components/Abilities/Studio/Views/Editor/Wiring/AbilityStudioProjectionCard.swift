@@ -38,12 +38,6 @@ struct AbilityStudioProjectionCard: View {
                     values: projection.skills.map(\.rawValue)) { values in
                     mutate { $0.skills = values.map(SkillID.init) }
                 }
-                AbilityStudioTagEditor(
-                    title: "Lanes",
-                    path: path("lanes"),
-                    values: projection.lanes.map(\.rawValue)) { values in
-                    mutate { $0.lanes = values.compactMap(TotemLane.init(rawValue:)) }
-                }
                 HStack {
                     Toggle("Redact content", isOn: Binding(
                         get: { projection.redactContent },

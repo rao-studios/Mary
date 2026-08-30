@@ -19,6 +19,9 @@
       "defaultSupportingAbilities" : [
         "window-management"
       ],
+      "guardrailCategories" : [
+
+      ],
       "guardrails" : [
         "Never type into a window the user did not ask for.",
         "A document is identified by its own key, never by window position."
@@ -103,7 +106,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "856acca59f440878ae200f5bb853077459acaa0a4796200cedc758f9a5f99a32"
+    "digest" : "98d228a0123e3ed3851a15c8381a2a8d867098a0c7a5a1f028df3237fe13b871"
   },
   "interactions" : [
 

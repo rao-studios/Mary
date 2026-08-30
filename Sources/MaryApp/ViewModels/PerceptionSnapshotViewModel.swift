@@ -13,7 +13,7 @@
 import AppKit
 import ApplicationServices
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import SwiftUI
 import MaryRuntime
 

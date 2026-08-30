@@ -88,10 +88,27 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
     /// values back declares where to look rather than shipping a reader.
     public var proseSurface: PluginProseSurfaceSchema?
 
+    /// Optional code-surface layout: where this application keeps its live
+    /// source buffer and how a document is identified. `proseSurface`'s
+    /// sibling for the other editable-text family — read-only, and answering
+    /// the same consequence (1): "read my buffer" cannot be a recipe either.
+    /// See `PluginCodeSurfaceSchema`.
+    public var codeSurface: PluginCodeSurfaceSchema?
+
     /// Where this application keeps its TRANSPORT, for the same reason and by
     /// the same road: a player's state has to come back as a value, and a
     /// recipe cannot return one. See `PluginMediaSurfaceSchema`.
     public var mediaSurface: PluginMediaSurfaceSchema?
+
+    /// How this application's PROJECT ON DISK is shaped, so Mary can learn it
+    /// over time rather than only read it now.
+    ///
+    /// The two surfaces above answer "what is in front of me"; this answers
+    /// "what is this body of work". Declaring it is also the evidence half of
+    /// sight: admission sets `readsDocumentCorpus` from its presence, which is
+    /// what lets a workspace-class application legitimately claim eyes. See
+    /// `PluginCorpusSchema`.
+    public var corpus: PluginCorpusSchema?
 
     /// The single-adapter view. Valid Plugins always declare at least one.
     public var adapter: PluginAdapterSchema {
@@ -117,7 +134,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
-        mediaSurface: PluginMediaSurfaceSchema? = nil
+        codeSurface: PluginCodeSurfaceSchema? = nil,
+        mediaSurface: PluginMediaSurfaceSchema? = nil,
+        corpus: PluginCorpusSchema? = nil
     ) {
         self.init(
             id: id,
@@ -128,7 +147,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             operations: operations,
             realizations: realizations,
             proseSurface: proseSurface,
-            mediaSurface: mediaSurface)
+            codeSurface: codeSurface,
+            mediaSurface: mediaSurface,
+            corpus: corpus)
     }
 
     public init(
@@ -140,7 +161,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         operations: [PluginOperationSchema],
         realizations: [PluginSkillRealizationSchema],
         proseSurface: PluginProseSurfaceSchema? = nil,
-        mediaSurface: PluginMediaSurfaceSchema? = nil
+        codeSurface: PluginCodeSurfaceSchema? = nil,
+        mediaSurface: PluginMediaSurfaceSchema? = nil,
+        corpus: PluginCorpusSchema? = nil
     ) {
         self.id = id
         self.version = version
@@ -150,7 +173,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         self.operations = operations
         self.realizations = realizations
         self.proseSurface = proseSurface
+        self.codeSurface = codeSurface
         self.mediaSurface = mediaSurface
+        self.corpus = corpus
     }
 
     private enum CodingKeys: String, CodingKey, CaseIterable {
@@ -163,7 +188,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         case operations
         case realizations
         case proseSurface
+        case codeSurface
         case mediaSurface
+        case corpus
     }
 
     public init(from decoder: Decoder) throws {
@@ -183,8 +210,12 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             [PluginSkillRealizationSchema].self, forKey: .realizations)
         proseSurface = try container.decodeIfPresent(
             PluginProseSurfaceSchema.self, forKey: .proseSurface)
+        codeSurface = try container.decodeIfPresent(
+            PluginCodeSurfaceSchema.self, forKey: .codeSurface)
         mediaSurface = try container.decodeIfPresent(
             PluginMediaSurfaceSchema.self, forKey: .mediaSurface)
+        corpus = try container.decodeIfPresent(
+            PluginCorpusSchema.self, forKey: .corpus)
     }
 
     /// Encoding is HAND-WRITTEN, and an absent optional stays absent rather
@@ -209,8 +240,14 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         if let proseSurface {
             try container.encode(proseSurface, forKey: .proseSurface)
         }
+        if let codeSurface {
+            try container.encode(codeSurface, forKey: .codeSurface)
+        }
         if let mediaSurface {
             try container.encode(mediaSurface, forKey: .mediaSurface)
+        }
+        if let corpus {
+            try container.encode(corpus, forKey: .corpus)
         }
     }
 }

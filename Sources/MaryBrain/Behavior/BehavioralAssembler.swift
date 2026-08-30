@@ -86,6 +86,17 @@ public final class BehavioralAssembler: @unchecked Sendable {
         }
     }
 
+    /// Stamp Ability Totem targets once the turn's route exists. Empty
+    /// targets mean JSONL only — Totem Ability is skipped.
+    public func noteAbilityTargets(
+        _ targets: [AbilityTotemTarget], forEpisode id: UUID
+    ) {
+        box.withLock { state in
+            guard state.open?.episode.id == id else { return }
+            state.open?.episode.abilityTargets = Array(Set(targets)).sorted()
+        }
+    }
+
     // MARK: - Lifecycle
 
     /// Open the episode for one user turn.
@@ -215,6 +226,17 @@ public final class BehavioralAssembler: @unchecked Sendable {
 
     /// The open episode's id, for the sites that need to name it.
     public var openEpisodeID: UUID? { box.withLock { $0.open?.episode.id } }
+
+    /// What the open episode currently holds — Life and codec acting read this
+    /// without taking ownership of the turn.
+    public func openSnapshot() -> (
+        id: UUID, input: BehavioralInput, targets: [AbilityTotemTarget]
+    )? {
+        box.withLock { state in
+            guard let open = state.open else { return nil }
+            return (open.episode.id, open.episode.input, open.episode.abilityTargets)
+        }
+    }
 
     // MARK: - Internals
 

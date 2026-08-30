@@ -15,7 +15,7 @@
 //
 
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryTotem
 import MaryVoice
 import Foundation
@@ -58,6 +58,7 @@ extension MaryRuntime {
     /// spec changes apply on restart (Servers sheet).
     /// Where Totem's direct gRPC lives right now — read by makeTotemReader.
     nonisolated(unsafe) private(set) static var totemGRPCPort = ServerSpec.Defaults.totemGRPCPort
+    nonisolated(unsafe) private(set) static var fleetGRPCPort = ServerSpec.Defaults.fleetGRPCPort
 
     /// A fresh read client for inspector/library queries (connections are
     /// per-call, so clients are cheap to make at the current port).
@@ -65,8 +66,14 @@ extension MaryRuntime {
         TotemDirectClient(port: totemGRPCPort)
     }
 
+    package static func makeFleetClient() -> FleetDirectClient {
+        FleetDirectClient(port: fleetGRPCPort)
+    }
+
     package static func applyServers(config: ConfigService.Center.State, nodeID: String) async {
         totemGRPCPort = config.totemGRPCPort
+        fleetGRPCPort = config.fleetGRPCPort
+        totemNodeIDBox.withLock { $0 = nodeID }
         await localStack.configure([
             .seer(
                 checkoutPath: config.seerCheckoutPath,
@@ -79,6 +86,11 @@ extension MaryRuntime {
                 mothershipGRPCPort: config.seerGRPCPort,
                 nodeID: nodeID,
                 graphBackend: config.totemGraphBackend),
+            .fleet(
+                checkoutPath: config.fleetCheckoutPath,
+                port: config.fleetPort,
+                grpcPort: config.fleetGRPCPort,
+                totemGRPCPort: config.totemGRPCPort),
         ])
         await totemContext.configure(port: config.totemGRPCPort)
         // Both transports get the SAME scope closure — they wrap the identical
@@ -97,6 +109,10 @@ extension MaryRuntime {
             retrievalScope: { retrievalScope(ownerID: $0) })
         await seerTTS.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerVision.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerComplete.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
     }
@@ -107,6 +123,18 @@ extension MaryRuntime {
     /// call at boot (after the Seer stack) and from the Settings binding.
     package static func applySeerTransport(_ choice: SeerTransportChoice) async {
         await brain.setSeerRealtime(choice == .realtime ? seerRealtime : nil)
+    }
+
+    /// The hosted annotator over the app's own complete lane.
+    ///
+    /// A FACTORY RATHER THAN A LITERAL, because `seerComplete` is internal to
+    /// this module and `mary-corpus-probe annotate` has to build the SAME
+    /// annotator the app wires — a probe that constructed its own client
+    /// would be verifying a different object than the one that ships.
+    /// Spoken turns stay on `seerChat` (`/v1/chat/completions`); this
+    /// factory must not be reused as a voice.
+    package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
+        SeerUnitAnnotator(complete: seerComplete)
     }
 
     /// Sign in with the configured account. Returns error text or nil.
@@ -127,13 +155,14 @@ extension MaryRuntime {
     static func connectTotemDepositor(enabled: Bool) async {
         totemArchivingEnabledBox.withLock { $0 = enabled }
         await brain.setDepositor(enabled ? totemContext : nil)
-        // THE LEARNING SINKS ARE NOT IN THIS CUT. Archiving used to install
-        // three of them here — an observation indexer, a project indexer, a
-        // unit indexer feeding the style corpus — and the pairing was itself a
-        // defect: pausing archiving switched off LEARNING as well, so
-        // `knownContentHash` answered nil forever and no edit was ever
-        // distinguishable from a first sighting. When the corpus returns it
-        // installs its own sinks, on their own switch.
+        // AND DELIBERATELY NOT THE LEARNING SINKS. Archiving used to install
+        // them here, and the pairing was itself a defect: pausing archiving
+        // switched off LEARNING as well, so `knownContentHash` answered nil
+        // forever and no edit was distinguishable from a first sighting. The
+        // corpus has since returned and keeps that separation — it installs
+        // its own sink in `installCorpusPipeline` and answers to its own
+        // switch, so pausing memory never costs Mary the ability to tell a
+        // changed file from a new one.
     }
 
     /// Resets the ephemeral awareness and cancels any pending application
@@ -210,16 +239,52 @@ extension MaryRuntime {
     ) async -> String? {
         engineChoiceBox.withLock { $0 = choice }
         await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
-        await brain.setEngine(MaryLocalEngine(modelID: localModelID))
+        let engine = MaryLocalEngine(modelID: localModelID)
+        await brain.setEngine(engine)
         // CHECKED BEFORE WARMING, because the failure it prevents is not
         // catchable. A missing Metal library surfaces as a C++
         // `std::runtime_error` thrown out of MLX, which does not arrive as a
         // Swift error — the `catch` below never sees it and the process dies.
         // Reading the search path costs four `fileExists` calls and turns an
         // unrecoverable crash into a sentence naming the script to run.
+        // THE ANNOTATOR FOLLOWS THE CHOICE, and it is the one job the hosted
+        // lane is strictly better at. Summarising a unit needs no tools —
+        // which is why it uses `/v1/complete` rather than the persona chat
+        // lane — while the on-device engine requires exclusive generation
+        // and would make a background summary queue behind the user's own
+        // turn. On device, units keep their structure and go without a
+        // précis, and the ledger says why.
+        let hosted = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
+        await unitIndexer.setAnnotator(
+            hosted ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: engine))
+        // A relaunch resumes from the durable manifest instead of treating
+        // every file in the project as a first sighting.
+        await unitIndexer.setManifestLoader { projectID in
+            await totemContext.loadUnitManifest(projectID: projectID)
+        }
+
         guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
         do {
             try await brain.warmup()
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
+    /// Install or tear down the on-device coding engine. Selecting a
+    /// downloaded Hub snapshot in Settings is what turns the faculty on;
+    /// Frigate only supplies the architecture.
+    package static func applyCodingAgent(enabled: Bool, modelID: String) async -> String? {
+        startCodingFollowUpBridge()
+        guard enabled else {
+            await CodingAgentSessions.shared.install(backend: nil)
+            return nil
+        }
+        await CodingAgentSessions.shared.install(backend: MaryCodingEngine.shared)
+        guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
+        do {
+            try await CodingAgentSessions.shared.prepare(modelID: modelID)
             return nil
         } catch {
             return error.localizedDescription

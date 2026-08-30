@@ -3,9 +3,11 @@
 //
 
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryTotem
 import MaryVoice
+import MaryFoundation
+import MaryAmbient
 import Foundation
 import os
 
@@ -16,9 +18,9 @@ extension MaryRuntime {
     /// deposits under it, and chat retrieval scopes to it. Installed by
     /// `installBrainConfiguration` from the same `resolveFocus()` the prompt
     /// uses, so the prompt, the archive and retrieval can never name
-    /// different documents. Unfocused until then — which is exactly today's
-    /// behavior (owner-wide pool, `aggregate: true`), so nothing here depends
-    /// on boot order.
+    /// different documents. Unfocused until then — Seer still uses the
+    /// Personal interaction group plus memory/resonance, so nothing here
+    /// depends on boot order.
     ///
     /// LOCK-GUARDED, not `nonisolated(unsafe)`: this closure is WRITTEN from
     /// the main actor whenever settings change (plugins toggled, projects
@@ -123,24 +125,21 @@ extension MaryRuntime {
                 // and unreadable, which is the worst of both.
                 ProseSurfaceSupport.shared.reconcile(
                     proseSurfaceRegistrations(from: snapshot))
+                // THE CODE SURFACES RIDE THE SAME EVENT, for the same reason.
+                CodeSurfaceSupport.shared.reconcile(
+                    codeSurfaceRegistrations(from: snapshot))
                 // The observer re-derives its lanes from the roster that just
                 // changed: a package imported mid-session starts polling on
                 // its declared cadence, a removed one loses its lane and its
                 // perceived facts in the same breath.
                 AmbientApplicationObserver.shared.activate()
-                if totemArchivingEnabledBox.withLock({ $0 }) {
-                }
             }
         }
     }
 
-    /// What retrieval may reach RIGHT NOW. Owner-qualified because group ids
-    /// are (one Totem DB holds many owners); the caller hands over the
-    /// signed-in owner its request is already carrying.
+    /// What Seer may retrieve RIGHT NOW — Personal interaction records plus
+    /// Seer's own memory and resonance. Ability codec stays off this request.
     static func retrievalScope(ownerID: String) -> RetrievalScope {
-        let plan = AmbientContextStore.shared.route()?.gate.memory ?? .personal
-        return TotemMemoryTopology.retrievalScope(
-            for: plan, subject: focusSubject(), ownerID: ownerID)
+        TotemMemoryTopology.seerPersonalScope(ownerID: ownerID)
     }
-
 }

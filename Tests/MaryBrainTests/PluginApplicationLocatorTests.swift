@@ -1,7 +1,7 @@
 import MaryFoundation
 import Foundation
 import XCTest
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryBrain
 @testable import MaryAmbient
 

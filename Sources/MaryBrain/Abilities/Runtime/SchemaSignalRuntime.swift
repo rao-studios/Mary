@@ -348,20 +348,26 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
     ) -> ValueEnvelope? {
         let payload: MaryValue
         if handoff.place.focus == .coding {
-            guard let document = handoff.scope.documentID else { return nil }
-            let language: String
-            switch URL(fileURLWithPath: document).pathExtension.lowercased() {
-            case "swift": language = "swift"
-            case "m", "h": language = "objective-c"
-            case "mm": language = "objective-c++"
-            case "c": language = "c"
-            case "cc", "cpp", "cxx", "hpp": language = "c++"
-            default: language = "source"
-            }
+            // WHAT THE SOURCE ACTUALLY PROVED — and no more. This opened
+            // `guard let document = handoff.scope.documentID else { return
+            // nil }`, and NOTHING in the live selection path ever sets that
+            // field: `SelectionHandoffPublisher.captureOutcome` passes no
+            // `scope:` at all, so `AmbientSelectionHandoff.init` fills only
+            // application, process and surface identity. The coding half of
+            // this bridge therefore returned nil for every real Xcode
+            // highlight there has ever been — the SECOND break sitting
+            // directly behind the missing `interaction.code-selection`
+            // declaration, and invisible while the first one was in front of
+            // it. The editor identity is always provable; file, language and
+            // project ride along only when a source proves them, which is
+            // exactly the optionality `coding.selection-context` declares.
             var context: [String: MaryValue] = [
-                "file": .string(document),
-                "language": .string(language),
+                "application": .string(handoff.applicationID),
             ]
+            if let document = handoff.scope.documentID {
+                context["file"] = .string(document)
+                context["language"] = .string(Self.sourceLanguage(ofFile: document))
+            }
             if let project = handoff.scope.projectID ?? handoff.scope.workspaceID {
                 context["project"] = .string(project)
             }
@@ -401,6 +407,20 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
             expiresAt: min(
                 handoff.capturedAt.addingTimeInterval(schema.freshnessSeconds),
                 handoff.capturedAt.addingTimeInterval(AmbientSelectionHandoff.handoffFreshFor)))
+    }
+
+    /// The file's own extension, asked once. Kept beside `selectionValue`
+    /// rather than inside it so the "what did the source prove" branch above
+    /// reads as one thought.
+    private static func sourceLanguage(ofFile document: String) -> String {
+        switch URL(fileURLWithPath: document).pathExtension.lowercased() {
+        case "swift": return "swift"
+        case "m", "h": return "objective-c"
+        case "mm": return "objective-c++"
+        case "c": return "c"
+        case "cc", "cpp", "cxx", "hpp": return "c++"
+        default: return "source"
+        }
     }
 
     private func prune(

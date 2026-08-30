@@ -8,7 +8,7 @@
 
 import XCTest
 @testable import MaryBrain
-@testable import MaryAdapters
+@testable import MaryPlugin
 @testable import MaryAmbient
 
 // MARK: - Scripted seams
@@ -308,6 +308,11 @@ final class SeerChatClientTests: XCTestCase {
         // Identifies Mary so the server applies SUPPORT framing to retrieved
         // context; rides the realtime turn.start too (same ChatRequest).
         XCTAssertEqual(json["client"] as? String, "mary")
+        let persona = try XCTUnwrap(json["persona"] as? [String: Any])
+        XCTAssertEqual(persona["name"] as? String, "Mary")
+        XCTAssertEqual(
+            persona["voice"] as? String,
+            SeerWire.Persona.mary.voice)
         let seer = try XCTUnwrap(json["seer"] as? [String: Any])
         XCTAssertEqual(seer["owner_id"] as? String, "owner-abc")
         XCTAssertEqual(seer["scope"] as? String, "personal")
@@ -323,22 +328,16 @@ final class SeerChatClientTests: XCTestCase {
         XCTAssertEqual(messages.first?["content"] as? String, "hi")
     }
 
-    /// The scoped case, matched against seer-server's `SeerRequest`: `groups`
-    /// decodes as `[Seer.Group]` OBJECTS whose `id`/`label`/`owner_id` are
-    /// REQUIRED, and `aggregate: false` is what makes the group filter
-    /// exclusive rather than additive. Sending bare strings here would throw
-    /// inside the server's decoder and fail the whole request — this pin is
-    /// the only thing standing between that and a silent outage.
+    /// Spoken retrieval is Personal interactions plus Seer's own memory,
+    /// whether or not a document is focused. Project scopes stay off this
+    /// request; Ability codec is training storage.
     func testRequestBodyShapeWhenADocumentIsFocused() async throws {
         let transport = ScriptedTransport([(200, ["data: [DONE]"])])
         let client = await makeClient(transport: transport)
         await client.configure(
             baseURL: URL(string: "http://127.0.0.1:8080")!,
             personalTotemID: "totem-1",
-            retrievalScope: { owner in
-                DepositSubject(app: "pages", documentIdentity: "Essay.pages")
-                    .retrievalScope(ownerID: owner)
-            })
+            retrievalScope: { TotemMemoryTopology.seerPersonalScope(ownerID: $0) })
         _ = try await collect(client)
 
         let json = try XCTUnwrap(JSONSerialization.jsonObject(
@@ -347,30 +346,19 @@ final class SeerChatClientTests: XCTestCase {
         XCTAssertEqual(seer["aggregate"] as? Bool, false,
                        "false = search ONLY these groups, per Seer's own doc comment")
         let groups = try XCTUnwrap(seer["groups"] as? [[String: Any]])
-        // FOUR groups, not one. Sending the scope group alone with
-        // aggregate:false made Seer's own long-term memory unreachable on
-        // every focused turn — and focused is the NORMAL state. The document
-        // group leads; memory, resonance and the legacy owner-wide pool ride
-        // along as background. The pool is where every EYELESS deposit lands
-        // (a calendar or reminders action has no workspace to file under), so
-        // dropping it made the user's schedule unreachable whenever a document
-        // happened to be open.
-        XCTAssertEqual(groups.count, 4)
-        XCTAssertEqual(groups.map { $0["id"] as? String }.dropFirst(),
-                       ["memory-owner-abc", "resonance-owner-abc", "mary-context-owner-abc"],
-                       "verbatim server ids: Seer+AutoMemory.swift / Realtime.swift")
+        XCTAssertEqual(groups.count, 3)
+        XCTAssertEqual(groups.map { $0["id"] as? String },
+                       ["mary-behavior-interaction-owner-abc",
+                        "memory-owner-abc",
+                        "resonance-owner-abc"])
         for group in groups {
             XCTAssertEqual(group["owner_id"] as? String, "owner-abc")
         }
-        XCTAssertEqual(groups[0]["label"] as? String, "Pages — Essay.pages")
-        let id = try XCTUnwrap(groups[0]["id"] as? String)
-        XCTAssertTrue(id.hasPrefix("mary-scope-"), "got \(id)")
-        // Deposit and retrieval must name the SAME group — the whole scheme
-        // is silent if they don't, because nothing errors, results just stop.
-        XCTAssertEqual(
-            id,
-            DepositSubject(app: "pages", documentIdentity: "Essay.pages")
-                .groupID(ownerID: "owner-abc"))
+        XCTAssertEqual(groups[0]["label"] as? String, "Interactions")
+        let ids = groups.compactMap { $0["id"] as? String }
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-scope-") })
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-ability-") })
+        XCTAssertFalse(ids.contains { $0.hasPrefix("mary-context-") })
     }
 
     /// The `.scoped` trace and the encoded body come from ONE `SeerWire.scope`
@@ -383,10 +371,7 @@ final class SeerChatClientTests: XCTestCase {
         await client.configure(
             baseURL: URL(string: "http://127.0.0.1:8080")!,
             personalTotemID: "totem-1",
-            retrievalScope: { owner in
-                DepositSubject(app: "pages", documentIdentity: "Essay.pages")
-                    .retrievalScope(ownerID: owner)
-            })
+            retrievalScope: { TotemMemoryTopology.seerPersonalScope(ownerID: $0) })
         let events = try await collect(client)
 
         guard case .scoped(let request)? = events.first else {

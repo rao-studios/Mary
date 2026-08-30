@@ -21,8 +21,9 @@
 //                                     spoken register, coding-agent provider/models
 //
 
+import MaryAmbient
 import MaryBrain
-import MaryAdapters
+import MaryPlugin
 import MaryTotem
 import MaryVoice
 import Foundation
@@ -147,8 +148,34 @@ package enum MaryRuntime {
         focusTracker: .shared,
         readLedger: .shared,
         ambient: .shared,
-        elementIndex: .shared,
+        elementIndex: elementIndex,
         behavior: BehavioralAssembler(recorder: behavioralStore))
+
+    /// THE PROCESS-WIDE ELEMENT INDEX, WITH ITS VECTORIZER ACTUALLY INSTALLED.
+    ///
+    /// WHAT THIS FIXES: `AmbientElementIndexStore.installVectorizer` existed,
+    /// was documented as "production wiring for `.shared`", and had NO CALL
+    /// SITE anywhere in the tree. Every production construction took the
+    /// `vectorizer: nil` default, so `queryVector` returned nil and all three
+    /// consumers — the reference gate, the address probe, the affordance probe
+    /// — ran permanently in the lexical-only fallback each of them documents
+    /// as a degraded mode. Their embedding thresholds had never once been
+    /// consulted in a shipping build.
+    ///
+    /// A LET WITH A BODY, not a call in `init`, because the store it wires is
+    /// a `static let` too: this is the one evaluation that can be guaranteed
+    /// to happen before the brain reads the wiring.
+    ///
+    /// NIL VECTORIZER IS STILL A VALID WORLD. An OS with no English embedding
+    /// asset leaves the store exactly as it is today, which is why the guard
+    /// is a `flatMap` rather than a force.
+    private static let elementIndex: AmbientElementIndexStore = {
+        let store = AmbientElementIndexStore.shared
+        if let vectorizer = NLAmbientTextVectorizer.shared {
+            store.installVectorizer(vectorizer)
+        }
+        return store
+    }()
 
     /// WHERE SEALED EPISODES GO, and the setting that governs whether any do.
     ///
@@ -156,10 +183,21 @@ package enum MaryRuntime {
     /// recording off takes effect on the next turn instead of the next launch
     /// — which is what a person expects of a switch.
     package static let behavioralStore = BehavioralStore(
-        isEnabled: { behavioralRecordingEnabledBox.withLock { $0 } })
+        isEnabled: { behavioralRecordingEnabledBox.withLock { $0 } },
+        companion: TotemBehavioralRecording())
 
     package static let behavioralRecordingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: true)
+    package static let skillRunTimeoutBox = OSAllocatedUnfairLock<TimeInterval>(
+        initialState: AbilityRuntime.ordinarySkillTimeoutDefault)
+    package static let abilityDepositNoticeBox =
+        OSAllocatedUnfairLock<String?>(initialState: nil)
+
+    package static func applySkillRunTimeout(_ seconds: TimeInterval) {
+        let clamped = AbilityRuntime.clampedOrdinarySkillTimeout(seconds)
+        skillRunTimeoutBox.withLock { $0 = clamped }
+        Task { await brain.setOrdinarySkillTimeout(clamped) }
+    }
     static let voiceSession = VoiceSessionBox()
 
     /// Admission happens before `VoiceService.Start` is sent to Granite.
@@ -202,11 +240,32 @@ package enum MaryRuntime {
     static let seerRealtime = SeerRealtimeClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
         session: seerSession)
+    static let seerVision = SeerVisionClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
+        session: seerSession)
+    static let seerComplete = SeerCompleteClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
+        session: seerSession)
     // No session: /v1/totems is on Seer's open router, and the Totems pane
     // must see the fleet before (or without) a sign-in.
     package static let seerTotems = SeerTotemsClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!)
     static let totemContext = TotemContextStore(session: seerSession)
+
+    /// The corpus's durable half: one card per indexed unit, plus the
+    /// per-project manifest that lets a relaunch resume instead of re-reading
+    /// every file.
+    ///
+    /// Its annotator is installed later, in `applyEngine`, because which one
+    /// can answer depends on where the words are going — see
+    /// `SeerUnitAnnotator` for why the on-device engine declines.
+    static let unitIndexer = AmbientUnitIndexingCoordinator { unit, manifest in
+        await totemContext.depositUnitIndex(unit, manifest: manifest)
+        // The same settle that produced this unit also moved style tallies.
+        // Coalesced, so a two-dozen-file crawl is one write.
+        requestStyleProfileSave()
+    }
+
     /// Coalescing slot for the style-profile write.
     static let styleSaveBox = OSAllocatedUnfairLock<Task<Void, Never>?>(initialState: nil)
 }

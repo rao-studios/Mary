@@ -6,31 +6,22 @@
 //  else — one function per compiled step, each of which either happened or
 //  says why it did not.
 //
-//  WHAT SHE HAS HANDS FOR: keys, text, a pause, and noticing that a new window
-//  arrived. That is the whole list, and it is short because it is the list
-//  that needs no coordinates. A chord is a POSITION on the keyboard and lands
-//  the same way on every display; typing goes wherever focus is. Neither one
-//  can be aimed at the wrong pixel, because neither one is aimed.
+//  WHAT SHE HAS HANDS FOR: keys, text, a pause, noticing that a new window
+//  arrived, and the pointer — move, click, drag, scroll — aimed at a
+//  normalized point inside the focused window, or inside a frame captured
+//  earlier in the same transaction. A chord is a POSITION on the keyboard and
+//  lands the same way on every display; a click is a midpoint of a rectangle
+//  that Accessibility already named. Neither one invents a pixel.
 //
-//  WHAT SHE DOES NOT: the mouse. Moving, clicking, dragging and scrolling all
-//  need a point, a point needs a coordinate space, and a coordinate space
-//  needs the whole apparatus that resolves one — window bounds, display
-//  scaling, captured anchors, and a verification ladder to notice when the
-//  point landed somewhere else. That apparatus is a lane of its own and it is
-//  not in this cut. The grammar still HAS the pointer steps, because the
-//  grammar describes what a recipe may say rather than what Mary can currently
-//  do; `PluginCompiledStep` is where the two meet, and a pointer step is
-//  refused there, at compile time, before anything is touched.
-//
-//  THE SEAM IS THE COMPILER, NOT A FLAG. When the pointer lane lands it adds
-//  cases to `PluginCompiledStep` and arms to this file; nothing above changes,
-//  and no `if handsAvailable` has to be threaded through the transaction.
+//  POINTER STEPS POST TO THE PID, never a global tap: the click belongs to
+//  the application that owns the stage and nothing else on screen should
+//  see it. The compiler resolves expressions; this file denormalizes them.
 //
 
 import AppKit
 import ApplicationServices
 import Foundation
-import MaryAdapters
+import MaryPlugin
 import MaryFoundation
 
 enum MaryHands {
@@ -81,6 +72,32 @@ enum MaryHands {
         case .rebindFocusedWindow(let requiresChange):
             return await rebind(pid: pid, requiresChange: requiresChange,
                                 application: application)
+
+        case .pointerMove(let x, let y, let space):
+            return await pointerMove(x: x, y: y, space: space, pid: pid, application: application)
+
+        case .pointerClick(let x, let y, let space, let button, let count):
+            return await pointerClick(
+                x: x, y: y, space: space, button: button, count: count,
+                pid: pid, application: application)
+
+        case .pointerDrag(let fromX, let fromY, let toX, let toY, let space):
+            return await pointerDrag(
+                fromX: fromX, fromY: fromY, toX: toX, toY: toY, space: space,
+                pid: pid, application: application)
+
+        case .pointerSquareDrag(let x, let y, let side, let space):
+            return await pointerSquareDrag(
+                x: x, y: y, side: side, space: space,
+                pid: pid, application: application)
+
+        case .scroll(let x, let y, let space, let deltaX, let deltaY):
+            return await pointerScroll(
+                x: x, y: y, space: space, deltaX: deltaX, deltaY: deltaY,
+                pid: pid, application: application)
+
+        case .captureAccessibilityAnchor(let locator, let name):
+            return captureAnchor(locator: locator, name: name, pid: pid, application: application)
         }
     }
 

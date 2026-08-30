@@ -51,7 +51,7 @@ extension MaryBrain {
         // Dynamic applications deliberately do not become closed
         // `AmbientWorld` enum cases. Their frozen provider reference is the
         // stronger attribution source: a Design Skill realized by Sketch must
-        // teach Sketch's Application Totem even when ambient focus is generic
+        // teach Sketch's Ability Totem even when ambient focus is generic
         // or has already changed before this detached deposit runs.
         let applicationID = reference.provider?.applicationID
             ?? (skillPlace?.worldClass == .dataSource

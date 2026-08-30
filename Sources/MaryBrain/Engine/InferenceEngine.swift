@@ -15,6 +15,7 @@
 //
 
 import Foundation
+import MaryFoundation
 
 /// Which inference engine answers Mary's turns.
 public enum LLMEngineChoice: String, Codable, CaseIterable, Sendable {
@@ -116,6 +117,12 @@ public protocol InferenceEngine: Sendable {
     /// latency regression: a lane queued behind another round missed the
     /// 250ms join grace and detached, so every fast action became a routine.
     var requiresExclusiveGeneration: Bool { get }
+    /// Gated JSON complete for a loaded LoRA. Default: unsupported.
+    func completeCodec(
+        input: BehavioralTrainingInput,
+        schemaJSON: Data,
+        adapterPath: URL
+    ) async throws -> BehavioralTrainingOutput
 }
 
 public extension InferenceEngine {
@@ -124,4 +131,18 @@ public extension InferenceEngine {
     /// mislabelled as on-device understates where the data went, and that is
     /// the direction to be wrong in.
     var choice: LLMEngineChoice { .local }
+
+    func completeCodec(
+        input: BehavioralTrainingInput,
+        schemaJSON: Data,
+        adapterPath: URL
+    ) async throws -> BehavioralTrainingOutput {
+        throw CodecCompleteError.unsupported
+    }
+}
+
+public enum CodecCompleteError: Error, Sendable {
+    case unsupported
+    case noAdapter
+    case invalidSchema
 }

@@ -67,7 +67,7 @@ public enum PromptSectionID: String, Sendable, Hashable, CaseIterable, Codable {
     // tell the model the excerpt is bounded. So each frame is ONE section that
     // composes its own children, exactly as the source does.
     case seerPreamble
-    case seerPersonaRead, seerPersonaGrounded, seerPersonaInTurn
+    case seerPersonaRead, seerPersonaGrounded, seerPersonaConverse, seerPersonaInTurn
     case seerCapability, seerRetrieval, seerRunningActions, seerLiveWork
     // A look fired for THIS turn and nothing is in hand yet — the voice
     // promises the look instead of denying sight. Renders only when the
@@ -87,9 +87,9 @@ public enum PromptSectionID: String, Sendable, Hashable, CaseIterable, Codable {
 /// the invariant here would be a real behavior change wearing a refactor's
 /// clothes, and it belongs to whoever decides to make it, with its own test.
 public enum PromptExclusiveGroup: String, Sendable, Hashable, CaseIterable {
-    /// The voice's three personas — read / grounded / in-turn — which are a
-    /// genuine `if / else if / else` in the source and so are exclusive in
-    /// fact, not merely in practice.
+    /// The voice's four personas — read / grounded / converse / in-turn —
+    /// which are a genuine `if / else if / else` in the source and so are
+    /// exclusive in fact, not merely in practice.
     case seerPersona
 }
 
@@ -189,6 +189,17 @@ public struct PromptInputs: Sendable {
     public var liveWorkWorld: LiveWorkWorld = .unled
     public var readPassages: [String] = []
     public var readReport: Bool = false
+    /// THIS TURN ASKED FOR NOTHING — small talk, an opinion, a greeting, a
+    /// remark. `AmbientIntent.converse`, carried in so the voice gets a
+    /// persona of its own instead of falling through to the action persona.
+    ///
+    /// A SEPARATE INPUT rather than something derived from the two flags
+    /// above, because "not a read and not a grounded result" is not the same
+    /// claim as "not a request": every ungrounded ACTION turn satisfies the
+    /// first and none of them satisfies the second. The routing layer already
+    /// answers the real question; this carries its answer rather than
+    /// re-guessing it from absences.
+    public var conversational: Bool = false
     /// Labels of routines still running from EARLIER turns.
     ///
     /// It is an INPUT rather than something appended to the finished prompt,
@@ -216,9 +227,11 @@ public struct PromptInputs: Sendable {
         liveWorkWorld: LiveWorkWorld = .unled,
         readPassages: [String] = [],
         readReport: Bool = false,
+        conversational: Bool = false,
         runningActions: [String] = [],
         lookUnderway: Bool = false
     ) {
+        self.conversational = conversational
         self.runningActions = runningActions
         self.lookUnderway = lookUnderway
         self.capability = capability
