@@ -2,18 +2,11 @@
 //  InferenceEngine.swift
 //  MaryBrain
 //
-//  The seam between MaryBrain (history + skill loop, owned once) and the
-//  transports. Engines are thin adapters: they translate one round of
-//  (system, history, skills) into a stream of EngineEvents and know nothing
-//  about abilities or the conversation page.
+//  WHAT: Seam — one round of (system, history, skills) → EngineEvent stream.
+//  IN:   MaryBrain turn loop
+//  OUT:  MaryLocalEngine / MarySeerSkillEngine / coding engines
+//  PIN:  Enum is where (on-device vs hosted), not who (vendor).
 //
-//  TWO CHOICES, AND THE ENUM SAYS WHERE rather than WHO. Its predecessor had
-//  a case per vendor, so switching provider meant a new case, a new display
-//  string, and an audit of every switch that had quietly become non-
-//  exhaustive. What a user is actually choosing is whether their words leave
-//  the machine.
-//
-
 import Foundation
 import MaryFoundation
 
@@ -96,12 +89,6 @@ public protocol InferenceEngine: Sendable {
     /// Human-readable name for status surfaces.
     var displayName: String { get }
     /// WHICH LANE THIS IS, for the behavioral record.
-    ///
-    /// A property rather than something the composition root remembers to
-    /// stamp: the engine is the only thing that certainly knows whether the
-    /// words left the machine, and a provenance field filled in by a caller
-    /// is a provenance field that goes stale the first time somebody swaps
-    /// the engine without updating the caller.
     var choice: LLMEngineChoice { get }
     /// Load/verify whatever the engine needs before the first turn.
     func warmup() async throws
@@ -111,11 +98,7 @@ public protocol InferenceEngine: Sendable {
         history: [BrainTurn],
         skills: [ModelSkillSchema]
     ) -> AsyncThrowingStream<EngineEvent, Error>
-    /// True when concurrent `stream` calls are unsafe (a local MLX model) —
-    /// the brain then serializes generation rounds across concurrent lanes.
-    /// Stateless HTTP engines run rounds in parallel; gating them was the
-    /// latency regression: a lane queued behind another round missed the
-    /// 250ms join grace and detached, so every fast action became a routine.
+    /// True when concurrent `stream` calls are unsafe (a local MLX model) — the brain then serializes generation rounds across concurrent lanes.
     var requiresExclusiveGeneration: Bool { get }
     /// Gated JSON complete for a loaded LoRA. Default: unsupported.
     func completeCodec(

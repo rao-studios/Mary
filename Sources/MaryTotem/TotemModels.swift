@@ -2,16 +2,13 @@
 //  TotemModels.swift
 //  MaryTotem
 //
-//  Plain value types the app trades with the Totem facade. The generated
-//  Totem_V1_* protos never leave this package.
+//  WHAT: Value types the app trades with the Totem facade.
+//  PIN:  Generated Totem_V1_* protos never leave this package.
 //
 
 import Foundation
 
-/// A caller-provided graph entity attached to a deposit.
-/// `kind` is free-form on the wire ("" = concept); Totem's default ontology is
-/// person|organization|place|event|work|concept|other, and Mary adds
-/// file|project|app|ability|skill via the managed graph policy.
+/// Graph entity on a deposit. kind is free-form ("" = concept). Mary adds file|project|app|ability|skill.
 public struct TotemEntityIn: Sendable, Equatable, Codable {
     public var name: String
     public var kind: String
@@ -22,10 +19,7 @@ public struct TotemEntityIn: Sendable, Equatable, Codable {
     }
 }
 
-/// A caller-provided relationship. Subject and object MUST exactly match an
-/// entity `name` shipped in the same deposit item — Totem drops relationships
-/// whose endpoints don't resolve, and an item with relationships but no
-/// entities loses them entirely to LLM re-extraction.
+/// Relationship. Subject/object must match an entity name in the same item.
 public struct TotemRelationIn: Sendable, Equatable, Codable {
     public var subject: String
     public var predicate: String
@@ -219,10 +213,7 @@ public struct GraphEntity: Sendable, Equatable, Identifiable {
     }
 }
 
-/// One edge of the queried neighborhood. `subjectID` and `objectID` are
-/// entity IDS, not names — the deposit-side `TotemRelationIn` speaks names,
-/// but the query side resolves them; join against `GraphQueryResult.entities`
-/// to label an edge.
+/// Query-side edge. subjectID/objectID are entity ids — join GraphQueryResult.entities to label.
 public struct GraphRelationship: Sendable, Equatable, Identifiable {
     public var id: String
     public var subjectID: String

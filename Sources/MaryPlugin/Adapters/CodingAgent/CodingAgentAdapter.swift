@@ -2,9 +2,11 @@
 //  CodingAgentAdapter.swift
 //  MaryPlugin
 //
-//  DELEGATE A CODING TASK TO THE ON-DEVICE CODING ENGINE, at the live
-//  project root. APPENDED, NOT CATALOGUED — a faculty, not an application's
-//  property. The workdir is whoever's project is focused, never a named IDE.
+//  WHAT: Delegate a coding task to the on-device engine.
+//  IN:   ProjectRootResolver / CodingAgentSessions / CodingAgentDelegation
+//  OUT:  SkillBinding (delegate, resume, cancel)
+//  PIN:  Appended faculty, not a catalogued app. Workdir is the focused
+//        project, never a named IDE.
 //
 
 import Foundation

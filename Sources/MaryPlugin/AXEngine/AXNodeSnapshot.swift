@@ -2,31 +2,16 @@
 //  AXNodeSnapshot.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  Every existing AX-facing type in this package (`PageElement` included)
-//  deliberately carries a live `AXUIElement` — that is a mutation authority,
-//  and its header explains why the tree stays outside `MaryAmbient`. A
-//  live wireframe inverts that on purpose: Clyde's render loop, its
-//  diffing, and its 60fps cadence all want to compare, hash, and hand
-//  snapshots across actor boundaries WITHOUT ever touching AX again. So
-//  every type below is a plain Sendable value — no `AXUIElement` anywhere —
-//  and the live element handles a builder needs for a frame-only re-read
-//  live in a private side table the engine never publishes
-//  (`AXSnapshotBuilder`'s internal `AXElementTable`).
-//
+//  WHAT: Plain-Sendable AX tree. No AXUIElement on the published type.
+//  OUT:  wireframe / diff / AXElementRoster
+//  PIN:  Live handles stay in AXSnapshotBuilder's private ElementTable.
 
 import ApplicationServices
 import CoreGraphics
 import Foundation
 
-/// A diffing HINT, not a proof of identity. Wraps `CFHash` of the live AX
-/// node — the same server-side-identity precedent `AccessibilityWindowCore`
-/// already uses for window rows. CFHash values can recycle once the node
-/// they described is gone (destroyed-and-recreated at the same address);
-/// nothing in this engine depends on that never happening — a recycled ID
-/// merely costs one extra redraw, never a wrong write (this engine performs
-/// no writes at all).
+/// A diffing HINT, not a proof of identity. Wraps `CFHash` of the live AX node — the same
+/// server-side-identity precedent `AccessibilityWindowCore` already uses.
 public struct AXNodeID: Hashable, Sendable {
     public var raw: UInt
 
@@ -46,10 +31,9 @@ public struct AXNodeSnapshot: Sendable, Equatable, Identifiable {
     public var subrole: String?
     /// Title → description ladder-lite, capped by `AXSnapshotBuilder.Options.labelCap`.
     public var label: String?
-    /// GLOBAL, TOP-LEFT-ORIGIN AX screen coordinates (not Cocoa's
-    /// bottom-left). Nil when the node declined to answer a frame — walked,
-    /// but not placeable; the renderer skips drawing it while still
-    /// counting it toward `nodeCount`.
+    /// GLOBAL, TOP-LEFT-ORIGIN AX screen coordinates (not Cocoa's bottom-left). Nil when
+    /// the node declined to answer a frame — walked, but not placeable; the renderer skips
+    /// drawing it while still counting.
     public var frame: CGRect?
     public var isEnabled: Bool
     public var isFocused: Bool
@@ -85,21 +69,15 @@ public struct AXNodeSnapshot: Sendable, Equatable, Identifiable {
 }
 
 extension AXNodeSnapshot {
-    /// Pre-order walk over this node's own subtree — self, then each child
-    /// in order, recursively. The one shared traversal the engine's
-    /// per-file recursions (`AXHitTest`, `AXElementRoster`, …) build on,
-    /// so a fifth private copy never needs writing.
+    /// Pre-order walk over this node's own subtree — self, then each child in order,
+    /// recursively.
     public func forEachNode(_ visit: (AXNodeSnapshot) -> Void) {
         visit(self)
         for child in children { child.forEachNode(visit) }
     }
 
-    /// The same pre-order walk, but each visit also receives the chain of
-    /// ancestors from the root down to (not including) the node itself —
-    /// oldest first. Costs an array copy per level, so it is a distinct
-    /// entry point rather than the default: pay for ancestry only where a
-    /// caller actually wants a breadcrumb (`AXElementRoster`'s container
-    /// trail), not on every hit test.
+    /// The same pre-order walk, but each visit also receives the chain of ancestors from
+    /// the root down to (not including) the node itself — oldest first.
     public func forEachNode(withAncestors visit: (AXNodeSnapshot, [AXNodeSnapshot]) -> Void) {
         forEachNode(withAncestors: visit, ancestors: [])
     }
@@ -113,10 +91,9 @@ extension AXNodeSnapshot {
         for child in children { child.forEachNode(withAncestors: visit, ancestors: nextAncestors) }
     }
 
-    /// The node with this id, and everything under it. The structural
-    /// counterpart to `AXHitTest.frame(of:in:)`: where that answers "where is
-    /// it now", this answers "what does it contain" — what the detail lane
-    /// decorates once a zoom target has been chosen.
+    /// The node with this id, and everything under it. The structural counterpart to
+    /// `AXHitTest.frame(of:in:)`: where that answers "where is it now", this answers "what
+    /// does it contain".
     public func subtree(withID id: AXNodeID) -> AXNodeSnapshot? {
         if self.id == id { return self }
         for child in children {
@@ -202,10 +179,8 @@ public struct AXAppSnapshot: Sendable, Equatable {
         self.nodeCount = nodeCount
     }
 
-    /// Equality that ignores capture timing — the shape/content of what was
-    /// walked, not when. `AXRefreshPolicy`'s backoff compares snapshots this
-    /// way: two walks that saw the identical tree are "unchanged" even
-    /// though their timestamps differ.
+    /// Equality that ignores capture timing — the shape/content of what was walked, not
+    /// when.
     public static func == (lhs: AXAppSnapshot, rhs: AXAppSnapshot) -> Bool {
         lhs.pid == rhs.pid
             && lhs.bundleID == rhs.bundleID

@@ -18,10 +18,7 @@ extension PerceptionSnapshotViewModel {
 
     func togglePin(_ world: PerceptionWorld) {
         guard world.hasLiveObserver else { return }
-        // A PLACE WITH NO DISCIPLINE CANNOT BE PINNED, and the pane says so
-        // by doing nothing rather than by planting a pin at a register that
-        // does not exist — which would leave the arbiter holding one it
-        // cannot honour.
+        // No pin for a place with no discipline.
         guard let pin = world.pinnedWorld else { return }
         if WorkspaceFocusTracker.shared.pinned() == pin {
             WorkspaceFocusTracker.shared.clearPin()

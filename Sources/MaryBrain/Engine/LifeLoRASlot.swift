@@ -2,10 +2,11 @@
 //  LifeLoRASlot.swift
 //  MaryBrain
 //
-//  The ready LoRA the turn may act through. Runtime fills this from Fleet;
-//  Brain never dials Fleet itself.
+//  WHAT: Ready LoRA the turn may act through.
+//  IN:   Runtime / Fleet
+//  OUT:  MaryBrain.lifeLoRALookup
+//  PIN:  Brain never dials Fleet itself.
 //
-
 import Foundation
 import MaryFoundation
 

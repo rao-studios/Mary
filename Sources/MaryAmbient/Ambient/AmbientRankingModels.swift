@@ -2,10 +2,10 @@
 //  AmbientRankingModels.swift
 //  MaryAmbient
 //
-//  AmbientRankingMode and AmbientRendering — split out of AmbientRanking.swift
-//  (docs/DECOMPOSITION.md Wave 2) — pure relocation, no declaration changed.
+//  WHAT: AmbientRankingMode and AmbientRendering.
+//  IN:   AmbientRanking.swift (split)
+//  OUT:  prompt assembly / AmbientInjectionTrace
 //
-
 import Foundation
 
 /// Which of the three branches decided this turn's order.
@@ -27,12 +27,8 @@ public enum AmbientRankingMode: String, Sendable, Equatable, CaseIterable {
 public struct AmbientRendering: Sendable, Equatable {
     /// Which branch of the user's rule decided the order.
     public var mode: AmbientRankingMode
-    /// TIER 0, rendered FIRST and charged to the budget first: the
-    /// accessibility surface each lane's details stand on
-    /// (`AmbientSurface.surfaceLine`). Deliberately NOT part of `blocks`:
-    /// a surface has no `AmbientKey`, and `keys` is contracted to describe
-    /// blocks + mentions in order (`AmbientInjectionTrace` reads it that
-    /// way).
+    /// TIER 0, rendered FIRST and charged to the budget first: the accessibility surface each
+    /// lane's details stand on (`AmbientSurface.surfaceLine`).
     public var surfaceLines: [String]
     /// Facts that won the budget, rendered in full, in rank order.
     public var blocks: [String]

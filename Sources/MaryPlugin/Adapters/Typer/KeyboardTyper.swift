@@ -2,50 +2,31 @@
 //  KeyboardTyper.swift
 //  MaryBrain
 //
-//  The live typer: posts generated prose as SYNTHETIC KEYBOARD EVENTS at the
-//  user's text cursor — no app automation, no clipboard theft. Text lands in
-//  the target app's own undo stack (Cmd-Z just works), and because it is
-//  real typing it works in any app that takes keystrokes; Scrivener is the
-//  first target, Notes/Reminders later.
-//
-//  Two invariants make it safe and assistive-grade:
-//  1. CGEvents land in whatever app is FRONTMOST at post time — so the
-//     intended target is verified between EVERY chunk; any focus change
-//     halts typing instantly (this is also the "never type into Xcode"
-//     guarantee, enforced at the binding layer before the first key).
-//  2. The loop checks cancellation between chunks — a spoken "stop" cancels
-//     the surrounding routine task and typing halts within one chunk.
-//
-//  Newlines are posted as real Return keypresses (key code 36): a typed
-//  "\n" via the unicode path is unreliable across apps.
+//  WHAT: Post prose as synthetic keyboard events at the text cursor.
+//  IN:   TyperPlugin+Typing / DictationRunner / ProseSurfaceWriter
+//  OUT:  CGEvent HID tap
+//  PIN:  Verify frontmost between chunks; check cancellation each token.
+//        Newlines are Return (key 36), not unicode "\n". Lands in the app's undo.
 //
 
 import AppKit
 import CoreGraphics
 import Foundation
 
-/// One typed unit: a short run of characters posted as a single unicode key
-/// event, or a Return keypress.
+/// One typed unit: a short unicode run, a Return, or N backspaces.
 enum TypeToken: Equatable, Sendable {
     case text(String)
     case newline
-    /// N backspaces. `PagesPassageWriter` asked for this in writing —
-    /// "`TypeToken` has two cases … so `KeyboardTyper` has no way to express a
-    /// Delete at all. The honest fix is a third token case, which belongs to
-    /// that file and its owner." Dictation's "scratch that" is the owner
-    /// arriving: it removes the span just typed, and it must go through THIS
-    /// loop rather than posting its own events, because the per-token
-    /// frontmost check is the only thing standing between a backspace and
-    /// whatever application the user switched to mid-sentence.
+    /// N backspaces. Must go through this loop so the per-token frontmost check applies.
     case delete(count: Int)
 }
 
-/// Seam for tests: the CGEvent poster is the only non-deterministic part.
+/// Test seam: the CGEvent poster is the only non-deterministic part.
 protocol KeyEventPosting: Sendable {
     func post(_ token: TypeToken)
 }
 
-/// The real thing — HID-level unicode typing + Return keycodes.
+/// HID-level unicode typing + Return keycodes.
 struct CGKeyEventPoster: KeyEventPosting {
     func post(_ token: TypeToken) {
         switch token {
@@ -76,28 +57,21 @@ struct CGKeyEventPoster: KeyEventPosting {
 
 public enum KeyboardTyper {
 
-    /// UTF-16 units per unicode key event — small chunks are the reliable
-    /// cross-app envelope, and they bound how much lands after a "stop".
+    /// UTF-16 units per unicode key event. Bounds how much lands after a "stop".
     static let chunkLimit = 16
 
-    /// How the typing run ended. `typedCharacters` counts grapheme clusters
-    /// actually posted (newlines count as one) so callers can report honest
-    /// partial progress.
+    /// How the run ended. `typedCharacters` is grapheme clusters actually posted.
     enum TypeResult: Equatable, Sendable {
         case completed(typedCharacters: Int)
-        /// Cooperative cancellation — the user said "stop". Remainder dropped.
+        /// User said "stop". Remainder dropped.
         case stopped(typedCharacters: Int)
-        /// The target app lost frontmost mid-typing; typing halted instantly.
-        /// Resumable: the caller saves the remainder.
+        /// Target lost frontmost. Resumable: caller saves the remainder.
         case lostFocus(typedCharacters: Int, frontmost: String?)
-        /// A stage preemption asked typing to step aside (another stage
-        /// action is about to run). Resumable, like lostFocus.
+        /// Stage preemption. Resumable, like lostFocus.
         case paused(typedCharacters: Int)
     }
 
-    /// Split prose into postable tokens: newline tokens plus text runs that
-    /// never split a grapheme cluster and stay ≤ chunkLimit UTF-16 units.
-    /// "\r\n" and "\r" normalize to one newline.
+    /// Split prose into postable tokens. Never split a grapheme. "\r\n"/"\r" → one newline.
     static func tokens(for text: String) -> [TypeToken] {
         var result: [TypeToken] = []
         var run = ""
@@ -121,10 +95,7 @@ public enum KeyboardTyper {
         return result
     }
 
-    /// Type `text` at the cursor of the app matching `targetPrefix`,
-    /// verifying focus and cancellation between every token. Call this
-    /// INLINE from a binding closure (never a detached Task) so the routine
-    /// machinery's bare-"stop" cancellation reaches the loop.
+    /// Type at the cursor of `targetPrefix`. Call inline from a binding so "stop" reaches the loop.
     static func type(
         _ text: String,
         targetPrefix: String,
@@ -156,9 +127,7 @@ public enum KeyboardTyper {
             : .completed(typedCharacters: typed)
     }
 
-    /// Remove exactly `count` characters before the caret, through the same
-    /// guarded loop `type` uses. Chunked so a long scratch checks focus and
-    /// cancellation on the way, exactly as typing does.
+    /// Remove `count` characters before the caret, through the same guarded loop as `type`.
     static func delete(
         count: Int,
         targetPrefix: String,
@@ -192,19 +161,7 @@ public enum KeyboardTyper {
         return "about \(SpokenPhrase.countWord(words)) word\(words == 1 ? "" : "s")"
     }
 
-    /// TYPE PLAIN TEXT WHEREVER THE CURSOR IS — the narrow public entry.
-    ///
-    /// The full `type(_:targetPrefix:poster:…)` above takes an injected
-    /// poster and answers with a partial-progress result, because the typing
-    /// SKILL needs both: it can be paused mid-passage and resumed, and its
-    /// tests need a poster that records instead of typing. A caller that has
-    /// already selected the text it means to replace needs neither — it wants
-    /// one question answered, "did the whole thing go in", and keeping that
-    /// question separate is what lets the rich version stay internal.
-    ///
-    /// This is the prose writer's keystroke fallback and the probe's, and it
-    /// lands in the target application's OWN undo stack, which is the thing a
-    /// person reaches for when Mary gets it wrong.
+    /// Type plain text wherever the cursor is. Whole-run Bool; the Skill uses `type` for pause/resume.
     @discardableResult
     public static func typeIntoSelection(
         _ text: String, targetPrefix: String

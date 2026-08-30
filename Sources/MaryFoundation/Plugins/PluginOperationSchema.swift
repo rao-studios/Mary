@@ -2,17 +2,14 @@
 //  PluginOperationSchema.swift
 //  MaryFoundation
 //
-//  A CALLABLE DECLARATIVE OPERATION: its inputs, its recipe, the cleanup that
-//  runs whatever happens, and the semantics that tell the engine what the
-//  operation is for without the engine reading its steps.
+//  WHAT: One declarative operation — inputs, recipe, cleanup, semantics.
+//  IN:   PluginSchema.operations.
+//  OUT:  PluginValidator+Operations, AbilityRuntime.
 //
 
 import Foundation
 
-/// Closed, package-authored meaning used to distinguish among model tools only
-/// after Ability, application, and Skill routing admits an operation. It never
-/// grants target authority. Free-form titles and summaries remain
-/// inspector-only and never authorize execution or become model instructions.
+/// Closed meaning after routing admits the operation. Never grants target authority.
 public struct PluginOperationSemantics: Codable, Hashable, Sendable {
     public enum Role: String, Codable, Hashable, Sendable, CaseIterable {
         case utility
@@ -48,22 +45,14 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
     public var title: String
     /// Inspector-only annotation. It never becomes model instruction text.
     public var summary: String
-    /// Which of the plugin's adapters interprets this operation. Absent means
-    /// the plugin's sole adapter — required exactly when several are declared.
+    /// Adapter that interprets this operation. Required when several are declared.
     public var adapterID: AdapterID?
     public var semantics: PluginOperationSemantics?
-    /// Closed, bounded description extension — see `GuardrailCategory`.
-    /// Distinct from `title`/`summary` (inspector-only, never model
-    /// instruction text) and from `semantics.role`/`aliases` (tool-selection
-    /// hints). `AbilityRuntime.projectedBindingDescription` appends exactly
-    /// one fixed, Mary-owned sentence keyed by this value; the case is the
-    /// only thing a package chooses, never any wording.
+    /// GuardrailCategory. AbilityRuntime appends one Mary-owned sentence.
     public var caution: GuardrailCategory?
     public var inputs: [PluginOperationInputSchema]
     public var steps: [PluginRecipeStepSchema]
-    /// Best-effort remote-hand cleanup performed before Mary restores the
-    /// user's original application, focused surface, and cursor. Cleanup is
-    /// skipped after physical user intervention because the person wins.
+    /// Cleanup before restore. Skipped after physical user intervention.
     public var cleanupSteps: [PluginRecipeStepSchema]
     public var postconditions: [PluginRecipePostcondition]
     public var timeoutSeconds: Double
@@ -106,8 +95,7 @@ public struct PluginOperationSchema: Codable, Hashable, Sendable, Identifiable {
         case inputs
         case steps
         case cleanupSteps
-        // Legacy executable recipes are tombstoned keys: reject rather than
-        // silently ignoring source-bearing package content.
+        // Tombstoned executable recipes: reject, do not ignore.
         case commands
         case output
         case postconditions

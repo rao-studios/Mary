@@ -1,4 +1,11 @@
-// The complete, shareable routing decision for one turn.
+//
+//  AmbientRoute.swift
+//  MaryAmbient
+//
+//  WHAT: Complete, shareable routing decision for one turn.
+//  IN:   AmbientEngine
+//  OUT:  prompt assembly / AmbientContextStore.noteRoute
+//
 
 import Foundation
 
@@ -66,69 +73,30 @@ public struct AmbientRoute: Sendable, Equatable {
     public var gate: AmbientIntentGate
     /// The freshest behavioral signal available when this turn was routed.
     public var attention: AmbientAttention?
-    /// Whether that attention is the semantic referent/target of this turn.
-    /// `attention` remains available when false for diagnostics and ordering,
-    /// but prompt construction must not present it as what deictic words mean.
-    /// A conflicting explicitly named world or application makes this false.
+    /// Whether that attention is the semantic referent/target of this turn. `attention` remains
+    /// available when false for diagnostics and ordering, but prompt construction must not
+    /// present it as what deictic words mean.
     public var selectionDefinesTurn: Bool
 
     // MARK: - Where the turn leads
 
-    /// Logical application identity selected from the open Application
-    /// Registry — open-ended, so it names whatever the roster knows without
-    /// anybody adding an enum case.
-    ///
-    /// ONE LADDER NOW, AND ONE ANSWER. A world-typed `lead` used to sit beside
-    /// this, produced by a SECOND independent ladder, and the comment here
-    /// said the pair would stay stored "until place-M2 unifies the two
-    /// ladders". This is that unification: two fields answering "where does
-    /// this turn lead" is two things to keep in step, and the compiled-world
-    /// half could not name a taught application at all — which is precisely
-    /// the answer Mary needs on nearly every turn.
+    /// Logical application identity selected from the open Application Registry.
     public var leadApplicationID: String?
 
-    /// WHERE the turn leads, as ONE value: the lead world when a built-in
-    /// leads, `(.applications, id)` when a registered Dynamic application does.
-    /// Derived once at route construction by `Self.leadPlace(lead:
-    /// leadApplicationID:)` unless a caller supplies it explicitly.
+    /// WHERE the turn leads, as ONE value: the lead world when a built-in leads,
+    /// `(.applications, id)` when a registered Dynamic application does.
     public var leadPlace: AmbientPlace?
 
-    /// WHAT COULD HAVE SERVED THIS TURN, and which of them did.
-    ///
-    /// Resolved once, at route construction, from the same need and signals
-    /// that decide everything else about the turn — so the ranking, the
-    /// roster arbiter and the behavioral capture all read one answer instead
-    /// of computing three.
-    ///
-    /// `realm.place` is pinned equal to the ranker's lead wherever both
-    /// exist: the resolver READS the focus signal rather than re-deciding
-    /// with it, because two place-pickers is exactly the shape of bug the
-    /// whole vocabulary was reorganised to remove.
+    /// WHAT COULD HAVE SERVED THIS TURN, and which of them did. Resolved once, at route
+    /// construction, from the same need and signals that decide everything else about the turn.
     public var realm: AmbientRealm?
 
-    /// Destinations the utterance named outright — "fix the typo in my
-    /// manuscript chapter" while something else is frontmost.
-    ///
-    /// COMPOSED from `gate.applications` rather than re-matching the
-    /// utterance: the gate already ran `ApplicationProfile.isMentioned`, and a
-    /// second spelling of "did the user name it" is how two layers come to
-    /// disagree.
+    /// Destinations the utterance named outright.
     public var namedPlaces: Set<AmbientPlace>
 
-    /// Worlds that supplied routing evidence for this turn. Ability packages
-    /// may constrain individual Skills with typed predicates; this diagnostic
-    /// set is never itself an execution allowlist.
-    ///
-    /// STAYS A WORLD SET, and now for a better reason than the old one.
-    ///
-    /// Bonnie's comment here said candidacy could never have a home — that a
-    /// place set would be "a second spelling of a decision the arbiter
-    /// already owns". That was true while nothing modelled candidacy. It has
-    /// a home now: `AmbientRealm` is the conforming set, and the resolver
-    /// that computes one is the arbiter's, so there is exactly one spelling
-    /// and this is not it. What stays here is what it always was — a
-    /// DIAGNOSTIC of which of Mary's own lanes supplied routing evidence,
-    /// never an execution allowlist and never a set of places.
+    /// Worlds that supplied routing evidence for this turn. Ability packages may constrain
+    /// individual Skills with typed predicates; this diagnostic set is never itself an
+    /// execution allowlist. STAYS A WORLD SET, and now for a better reason than the old one.
     public var candidateWorlds: Set<AmbientWorld>
 
     // MARK: - Needs
@@ -148,10 +116,9 @@ public struct AmbientRoute: Sendable, Equatable {
     /// How the ambient store ranked its facts for this utterance.
     public var rankingMode: AmbientRankingMode
 
-    /// `leadPlace`/`namedPlaces` default to their derivations so every
-    /// existing construction — the engine's and the tests' — carries coherent
-    /// places without spelling them; passing either explicitly is reserved
-    /// for callers that already resolved them.
+    /// `leadPlace`/`namedPlaces` default to their derivations so every existing construction —
+    /// the engine's and the tests' — carries coherent places without spelling them; passing
+    /// either explicitly is reserved for callers that already resolved them.
     public init(
         intent: AmbientIntent,
         decidedBy: AmbientSignal,
@@ -191,10 +158,9 @@ public struct AmbientRoute: Sendable, Equatable {
         self.rankingMode = rankingMode
     }
 
-    /// THE RESOLUTION LADDER, spelled once. The registration answers if the
-    /// roster knows the id; a bare id it does not know is still a place —
-    /// naming something Mary has not been taught is a fact about the turn, not
-    /// an absence of one.
+    /// THE RESOLUTION LADDER, spelled once. The registration answers if the roster knows the
+    /// id; a bare id it does not know is still a place — naming something Mary has not been
+    /// taught is a fact about the turn, not an absence of one.
     public static func leadPlace(leadApplicationID: String?) -> AmbientPlace? {
         guard let id = leadApplicationID, !id.isEmpty else { return nil }
         return AmbientApplicationIndexProvider.current.registration(id: id)?.place
@@ -223,11 +189,8 @@ public struct AmbientRoute: Sendable, Equatable {
 }
 
 public extension AmbientRoute {
-    /// Applies the request-boundary routing decision to a later snapshot of
-    /// held facts. Non-selection context may continue to refresh while the
-    /// turn runs. A selection may not: it is an ephemeral, source-owned input
-    /// and only the exact capture claimed by this route can cross the turn
-    /// boundary.
+    /// Applies the request-boundary routing decision to a later snapshot of held facts.
+    /// Non-selection context may continue to refresh while the turn runs.
     func admitsHeldFact(_ fact: AmbientFact) -> Bool {
         guard fact.slot == .selection else { return true }
         guard selectionDefinesTurn,
@@ -263,10 +226,9 @@ public extension AmbientRoute {
         return routedSelectionAttention
     }
 
-    /// Exact identity check between the source-owned packet frozen for this
-    /// turn and the selection the route accepted. `AmbientAttention` has no
-    /// packet UUID, so all immutable source/value fields participate. The
-    /// TaskLocal selection snapshot closes the remaining identity boundary.
+    /// Exact identity check between the source-owned packet frozen for this turn and the
+    /// selection the route accepted. `AmbientAttention` has no packet UUID, so all immutable
+    /// source/value fields participate.
     func admitsSelectionHandoff(_ handoff: AmbientSelectionHandoff) -> Bool {
         guard let attention = routedSelectionAttention,
               handoff.world == attention.world,

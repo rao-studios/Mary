@@ -1,8 +1,16 @@
+//
+//  ValueEnvelopeValidator.swift
+//  MaryFoundation
+//
+//  WHAT: Closed structural admission for Values.
+//  IN:   ValueEnvelope + ValueTypeSchema registry.
+//  OUT:  ValueEnvelopeValidation issues.
+//  PIN:  Titles/summaries never participate.
+//
+
 import Foundation
 
-/// Closed structural validation for Values. Descriptions and summaries never
-/// participate; only declared shape, fields, enum cases, versions, privacy,
-/// and referenced Value type identifiers affect acceptance.
+/// Shape, fields, enums, versions, privacy, referenced type ids only.
 public enum ValueEnvelopeValidator {
     public static func validate(
         _ envelope: ValueEnvelope,
@@ -59,7 +67,7 @@ public enum ValueEnvelopeValidator {
                 issues.append(.init(path: path, message: "Numbers must be finite."))
             }
         case (.number, .integer):
-            // Integers are an exact subset of JSON numbers.
+            // PIN: integer ⊂ JSON number.
             break
         case (.enumeration, .string(let member)):
             if !schema.enumValues.contains(member) {

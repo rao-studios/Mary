@@ -2,54 +2,11 @@
 //  OfferedProse.swift
 //  MaryBrain
 //
-//  THE PROSE Mary HERSELF OFFERED, kept so that accepting it writes THAT
-//  TEXT — the exact bytes the user heard and said yes to.
+//  WHAT: Prose Mary herself offered — acceptance writes those exact bytes.
+//  IN:   last spoken reply
+//  OUT:  OfferedProseReferent / write-verb acceptance
+//  PIN:  Sibling of discussedPassageReferent; two acceptance roads cannot cross.
 //
-//  THE FAILURE THIS FIXES, live in a manuscript. Mary:
-//
-//      "How about we start by expanding it with a little atmosphere —
-//       something like, *"In the highest reaches of the Citadel, where the
-//       wind carries the scent of iron and old magic, sits the Queen of
-//       Vanta, Genevieve Étoire."* Want to try that, or would you like to
-//       tweak it together?"
-//
-//  The user: "Oh please can you add all of that — Please write that". And
-//  nothing ran. Not a refusal, not a wrong write — silence, then "I couldn't
-//  work out how to do that."
-//
-//  WHY NOTHING RAN. Every mechanism that could have caught it is keyed on the
-//  USER's words or the USER's selection, never on Mary's:
-//
-//    - `DiscussedPassageReferent` holds the user's live app selection, armed
-//      only under `selectionDefinesTurn`. A proposal Mary SPEAKS arms
-//      nothing at all.
-//    - `bareAcceptance` wants one of twenty-four exact affirmatives; "Please
-//      write that" is not among them, and widening that set would put every
-//      protected CONFIRM at risk.
-//    - `EditIntentClassifier` returns nil by design — "add"/"write" are
-//      INSERT verbs, and `insertIntent` refuses without an anchor clause
-//      ("THE NIL THAT PROTECTS LIVE WRITING"). That nil is correct and is not
-//      touched here.
-//
-//  So the turn was conversational, and the one thing the user unambiguously
-//  asked for was the one thing no layer could hear.
-//
-//  WHY A MECHANISM AND NOT A PROMPT. The requirement is EXACT BYTES: what
-//  lands on the page must be what was read aloud. A brief is an instruction
-//  the model may paraphrase, and on this very turn it declined twice — the
-//  ordinary roll and the retry nudge both came back empty. This tree's own
-//  rule (`MaryBrain+UtteranceGates`) is that an ignored instruction gets
-//  replaced by a mechanism.
-//
-//  EVERY GATE HERE REFUSES RATHER THAN GUESSES. Writing prose the user did
-//  not agree to is far worse than writing nothing, so: one quoted span or
-//  none, an offer frame before it, a question at the end, and an acceptance
-//  that carries a write verb aimed at nothing else. Ambiguity is a nil, and a
-//  nil costs exactly what today costs.
-//
-//  HEADLESS-SAFE: Foundation only.
-//
-
 import MaryAmbient
 import Foundation
 
@@ -64,12 +21,6 @@ public enum OfferedProse {
     static let minimumWords = 8
 
     /// The frames that mark a span as a PROPOSAL rather than a quotation.
-    ///
-    /// Closed vocabulary, membership-checked — the same discipline
-    /// `bareDecision` uses, and the reason this file never parses prose. A
-    /// reply that quotes the user's own document back to them ("you wrote
-    /// 'the tide came in slowly'") carries none of these and arms nothing,
-    /// which is the read-back case this list exists to exclude.
     static let offerFrames = [
         "something like", "something such as", "how about", "what about",
         "such as", "for example", "for instance", "maybe", "perhaps",
@@ -81,9 +32,6 @@ public enum OfferedProse {
     static let frameWindow = 80
 
     /// THE PROSE THIS REPLY OFFERED, or nil.
-    ///
-    /// Nil is the overwhelmingly common answer and costs nothing: the turn
-    /// behaves exactly as it does today.
     public static func offer(in spokenReply: String?) -> String? {
         guard let spokenReply else { return nil }
         let reply = spokenReply.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -113,13 +61,6 @@ public enum OfferedProse {
     }
 
     /// Every quoted run that could be a draft.
-    ///
-    /// Straight and curly quotes both, because a spoken reply arrives through
-    /// a model that uses either. Emphasis markers around the quotes are
-    /// stripped; everything INSIDE is preserved byte for byte — interior
-    /// apostrophes, em dashes and names like "Genevieve Étoire" are the
-    /// payload, and normalising them would put different words on the page
-    /// than the user heard.
     static func qualifyingSpans(in reply: String) -> [Span] {
         let openers: [Character: Character] = [
             "\"": "\"", "\u{201C}": "\u{201D}", "\u{2018}": "\u{2019}",
@@ -159,10 +100,6 @@ public enum OfferedProse {
     }
 
     /// Does an offer frame sit within `frameWindow` characters before it?
-    ///
-    /// Emphasis markers and the opening quote are skipped, so
-    /// `something like, *"In the highest…` frames the span exactly as
-    /// `something like "In the highest…` does.
     static func isFramed(_ span: Span, in reply: String) -> Bool {
         let characters = Array(reply)
         let lower = max(0, span.start - frameWindow)
@@ -199,30 +136,18 @@ public enum OfferedProse {
     ]
 
     /// The verbs that mean PUT IT ON THE PAGE.
-    ///
-    /// Deliberately narrower than `EditIntentClassifier.insertVerbs`: this
-    /// list only has to cover the acceptance of an offer, and every extra verb
-    /// is another way to write prose nobody agreed to.
+    /// PIN: Deliberately narrower than `EditIntentClassifier.insertVerbs`: this list only has to cover the acceptance of an offer
     static let writeVerbs = [
         "add", "write", "insert", "put", "use", "keep", "type", "include",
         "go with", "take",
     ]
 
     /// DOES THIS UTTERANCE ACCEPT AN OFFER BY ASKING FOR IT TO BE WRITTEN?
-    ///
-    /// True for "please write that", "oh please can you add all of that",
-    /// "use that". False for "yes please" (that is `bareAcceptance`'s road,
-    /// and it must stay there), and false for "add a scene break here" —
-    /// which names no offer and belongs to ordinary composition through
-    /// `type_at_cursor`, exactly as `insertIntent`'s protective nil intends.
     public static func accepts(_ utterance: String) -> Bool {
         let sentences = utterance
             .split(whereSeparator: { ".!?;\u{2014}\u{2013}".contains($0) })
             .map(String.init)
-        // Sentence splitting IN ADDITION to `clauses`, not instead of it:
-        // `EditIntentClassifier.clauseBreaks` deliberately carries no dash,
-        // and its header forbids widening that list — so the extra split lives
-        // here, scoped to this gate.
+        // Sentence splitting IN ADDITION to `clauses`, not instead of it: `EditIntentClassifier.clauseBreaks` deliberately carries no dash
         let clauses = sentences.flatMap { EditIntentClassifier.clauses(of: $0) }
         return clauses.contains(where: acceptsClause)
     }
@@ -233,14 +158,7 @@ public enum OfferedProse {
             .lowercased()
             .trimmingCharacters(in: .whitespacesAndNewlines)
         while let last = text.last, ".!,".contains(last) { text.removeLast() }
-        // THE SOUND OF AGREEING, before the verb. "yes please add that" and
-        // "please write that" are the same act as "add that"; `stripPreamble`
-        // peels these only as part of a request FRAME ("oh please can you…"),
-        // which is right for its own callers, and `backchannelWords` carries
-        // "yeah"/"yep" but not "yes". Peeled HERE rather than by widening
-        // either shared vocabulary — this prefix is only ever harmless in
-        // front of an acceptance, and `EditIntentClassifier`'s header warns
-        // against growing its lists for one consumer.
+        // THE SOUND OF AGREEING, before the verb. "yes please add that" and "please write that" are the same act as "add that"
         while true {
             let peeled = agreementPrefixes.first { text == $0 || text.hasPrefix($0 + " ") }
             guard let peeled else { break }
@@ -268,11 +186,6 @@ public enum OfferedProse {
     }
 
     /// THE WHOLE-UTTERANCE VETO: an acceptance may not also name a target.
-    ///
-    /// "write that into the Purpose section" and "add that to chapter two"
-    /// are revisions with an address, and they belong to the classifier and
-    /// the passage verbs. Reusing the two classifiers that already answer
-    /// "did they name a part" keeps this from becoming a third opinion.
     public static func namesAnotherTarget(
         _ utterance: String, applicationAliases: Set<String>
     ) -> Bool {

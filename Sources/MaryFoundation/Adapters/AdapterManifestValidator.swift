@@ -2,17 +2,14 @@
 //  AdapterManifestValidator.swift
 //  MaryFoundation
 //
-//  Admission for an installed adapter manifest, checked against the packages
-//  it claims to serve — the machine-local half of the graph that package
-//  validation cannot see.
+//  WHAT: Admission for an installed adapter manifest vs the packages it claims.
+//  IN:   InstalledAdapterManifest + active MaryAbilityPackage set.
+//  OUT:  SchemaIssue. Package graph cannot see this machine-local half.
 //
 
 import Foundation
 
-/// Validation result for the machine-local half of Mary's schema join.
-/// Adapter manifests are not part of a shared `.mary` package, but their
-/// identifiers and claims need the same deterministic scrutiny before the
-/// runtime can rely on them.
+/// Machine-local join result. Same id scrutiny as `.mary` before runtime relies on it.
 public struct AdapterManifestValidation: Codable, Hashable, Sendable {
     public var issues: [SchemaIssue]
     public var isValid: Bool { !issues.contains { $0.severity == .error } }
@@ -27,9 +24,7 @@ public enum AdapterManifestValidator {
         validate([manifest])
     }
 
-    /// Validates the complete installed inventory. Adapter IDs are unique at
-    /// this boundary: an availability update replaces a manifest instead of
-    /// adding a second, ambiguous claim for the same executable adapter.
+    /// Unique adapter IDs. An availability update replaces a manifest; no second claim.
     public static func validate(_ manifests: [InstalledAdapterManifest]) -> AdapterManifestValidation {
         var issues: [SchemaIssue] = []
         func error(_ code: String, _ path: String, _ message: String) {
@@ -244,9 +239,7 @@ public enum AdapterManifestValidator {
 }
 
 public extension AdapterID {
-    /// Deterministically converts an implementation/plugin identifier into
-    /// Mary's portable adapter namespace. This keeps package bindings stable
-    /// across machines even when a local type uses underscores or spaces.
+    /// Implementation/plugin id → portable adapter namespace (stable across machines).
     static func normalized(_ value: String) -> AdapterID {
         var result = ""
         var previousWasSeparator = false

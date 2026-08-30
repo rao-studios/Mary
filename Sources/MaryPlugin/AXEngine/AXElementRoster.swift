@@ -2,38 +2,10 @@
 //  AXElementRoster.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  WHAT THE SCREEN OFFERS — the snapshot lane's answer to a question
-//  `PageElementReader` already answered for one web area: given everything a
-//  walk found, what is actually worth naming, in the order a person would
-//  read it. Nothing here is browser-specific; it operates on a published
-//  `AXAppSnapshot`, so the same enumerator serves any application a snapshot
-//  can be taken of.
-//
-//  THE ALGORITHM IS A PORT, NOT A REDESIGN. `PageElementReader.publish`
-//  (`Shared/PageElementReader.swift`) already measured and fixed the shape
-//  this needs — reading order by vertical band then left-to-right, and a
-//  dedup pass that collapses one thing wearing two labels without eating two
-//  things that share one. This file carries that same logic over a
-//  `AXNodeSnapshot` tree instead of a live web area. It cannot simply CALL
-//  the page lane's version: `AXEngine` may not depend on `Shared/` (see
-//  `Web/WebAreaLocator.swift`'s header — the one-way rule this directory
-//  already lives under), so the constants below are deliberately duplicated
-//  rather than imported, each commented with its page-lane origin.
-//
-//  A SNAPSHOT HAS NO URL, NO ACTIONS LIST, NO HELP TEXT — so this file's
-//  dedup rank differs from the page lane's `rank(_:)`: with no press/help
-//  signal to weigh, `.interactive` beats `.scripted` beats everything else,
-//  and a tie goes to the smaller frame — the same "more specific thing
-//  wins" ethos `AXHitTest` already uses for point resolution.
-//
-//  WINDOWS ARE A STRONGER GROUPING THAN GEOMETRY. Two side-by-side windows
-//  can share vertical bands; sorting everything together would interleave
-//  them. Each window's own elements are put in reading order first, and
-//  windows are then concatenated front-to-back — never merged into one
-//  global sort.
-//
+//  WHAT: Nameable things in reading order from an AXAppSnapshot.
+//  IN:   AXAppSnapshot  OUT: AXScreenElement list
+//  PIN:  Same shape as PageElementReader.publish; constants duplicated —
+//        AXEngine must not import Shared/. Windows grouped, then front-to-back.
 
 import CoreGraphics
 import Foundation
@@ -44,10 +16,8 @@ public enum AXElementRoster {
     /// Automation wants the things a person can act on; reading a screen
     /// aloud wants its text; a scene description wants everything nameable.
     public enum Scope: String, Sendable, Equatable, CaseIterable {
-        /// `.interactive` plus `.scripted` — the scripting sub-engine's
-        /// grafts are countable and nameable even though nothing backs them
-        /// with a live `AXUIElement` (`AXScreenElement.isBackedByLiveAX`
-        /// tells the two apart).
+        /// `.interactive` plus `.scripted` — the scripting sub-engine's grafts are
+        /// countable and nameable even though.
         case actionable
         /// `.text` — static text and headings.
         case readable
@@ -58,19 +28,16 @@ public enum AXElementRoster {
 
     /// Which of a snapshot's windows to enumerate.
     public enum WindowScope: Sendable, Equatable {
-        /// The first non-minimized window, in the snapshot's own
-        /// front-to-back order — the same "the window is the honest root"
-        /// doctrine `PageElementReader.readWindowControls` uses for a
-        /// window-scoped read.
+        /// The first non-minimized window, in the snapshot's own front-to-back order — the
+        /// same "the window is the honest root" doctrine.
         case front
         /// Every non-minimized window, front-to-back.
         case all
     }
 
-    /// What one call publishes. Kept close to the page lane's
-    /// `publishedLimit` (60) but roomier: a desktop app's whole front
-    /// window, with toolbars and a sidebar besides its content, offers more
-    /// nameable things than one web area's fold.
+    /// What one call publishes. Kept close to the page lane's `publishedLimit` (60) but
+    /// roomier: a desktop app's whole front window, with toolbars and a sidebar besides its
+    /// content, offers more nameable things than one web area's fold.
     public static let publishedLimit = 120
 
     /// Vertical tolerance for "same row" when assigning reading order.
@@ -166,10 +133,8 @@ public enum AXElementRoster {
     }
 
     /// The geometry a snapshot's element may publish. Ported from
-    /// `PageElementReader.actionableFrame`: nil frame drops ("walked but not
-    /// placeable", `AXNodeSnapshot`'s own convention); clip to the window
-    /// that held it; a range track only publishes while its whole span is
-    /// inside that window.
+    /// `PageElementReader.actionableFrame`: nil frame drops ("walked but not placeable",
+    /// `AXNodeSnapshot`'s own convention); clip to the window that held it; a range track
     static func publishableFrame(
         measured: CGRect?, window: CGRect?, role: String, category: AXNodeCategory
     ) -> CGRect? {
@@ -189,12 +154,9 @@ public enum AXElementRoster {
         return visible
     }
 
-    /// Ported from `PageElementReader.hasActionableSize`, generalized by
-    /// category rather than a fixed role list: `.interactive`/`.scripted`
-    /// need the 8pt human-sized floor (with the same AXSlider long/short
-    /// exception — a 1261×6 seek track is real and addressable); everything
-    /// else uses `AXHitTest.minimumExtent`, the same 2pt floor that keeps a
-    /// 1×1 screen-reader announcer from winning a hit test.
+    /// Ported from `PageElementReader.hasActionableSize`, generalized by category rather
+    /// than a fixed role list: `.interactive`/`.scripted` need the 8pt human-sized floor
+    /// (with the same AXSlider long/short exception.
     static func hasActionableSize(
         _ frame: CGRect, role: String, category: AXNodeCategory
     ) -> Bool {
@@ -214,11 +176,9 @@ public enum AXElementRoster {
 
     // MARK: - Dedup and ordering
 
-    /// Ported from `PageElementReader.deduplicated`: one thing published
-    /// once, even when a container echoes its own interactive child's label
-    /// (a card whose group and its inner button share a name). No
-    /// destination lane here — a snapshot carries no URL — so overlap plus
-    /// an exact label match is the whole test.
+    /// Ported from `PageElementReader.deduplicated`: one thing published once, even when a
+    /// container echoes its own interactive child's label (a card whose group and its inner
+    /// button share a name).
     static func deduplicated(_ candidates: [Candidate]) -> [Candidate] {
         var kept: [Candidate] = []
         for candidate in candidates {
@@ -245,10 +205,8 @@ public enum AXElementRoster {
         return kept
     }
 
-    /// Which of two overlapping, identically-labeled presentations a person
-    /// would point at: the actionable one, over the container that merely
-    /// carries its name. Equal rank falls back to the smaller frame — the
-    /// same "more specific thing wins" rule `AXHitTest` uses for a point.
+    /// Which of two overlapping, identically-labeled presentations a person would point at:
+    /// the actionable one, over the container that merely carries its name.
     static func rank(_ candidate: Candidate) -> Int {
         switch candidate.category {
         case .interactive: return 2
@@ -266,11 +224,8 @@ public enum AXElementRoster {
         return (intersection.width * intersection.height) / smaller
     }
 
-    /// READING ORDER: band by vertical position, then left-to-right inside
-    /// the band, then label as a total-order tiebreak. Ported verbatim from
-    /// `PageElementReader.publish`'s comparator — the page lane never
-    /// unit-tested this directly; `AXElementRosterTests` is where it is
-    /// pinned for the first time.
+    /// READING ORDER: band by vertical position, then left-to-right inside the band, then
+    /// label as a total-order tiebreak.
     static func precedes(_ lhs: Candidate, _ rhs: Candidate) -> Bool {
         let lhsBand = (lhs.frame.midY / readingBandHeight).rounded(.down)
         let rhsBand = (rhs.frame.midY / readingBandHeight).rounded(.down)

@@ -2,9 +2,10 @@
 //  LifeTrainPolicy.swift
 //  MaryFoundation
 //
-//  When a discipline has earned a LoRA, and when it has earned another.
-//  Tesla-calibration-shaped: first train at 24 completed episodes, then
-//  every +12 new completed rows since the last published pair_count.
+//  WHAT: When a discipline has earned a LoRA, and when it has earned another.
+//  IN:   completed episode counts / last published pair_count.
+//  OUT:  MaryRuntime+Life, LifeLoRASlot.
+//  PIN:  First train at 24 completed; then every +12 new completed rows.
 //
 
 import Foundation
@@ -13,9 +14,7 @@ public enum LifeTrainPolicy: Sendable {
     public static let firstTrainCount = 24
     public static let retrainDelta = 12
 
-    /// How far a discipline is through the current calibration window.
-    /// After a publish, `filled` is new completed rows toward `retrainDelta`
-    /// (zero while idle at the last pair_count — the bar reads full ready).
+    /// Progress through the current window. After publish, `filled` is new rows toward `retrainDelta`.
     public struct Fill: Sendable, Equatable {
         public var filled: Int
         public var goal: Int
@@ -41,8 +40,7 @@ public enum LifeTrainPolicy: Sendable {
         return Fill(filled: filled, goal: goal, fraction: fraction)
     }
 
-    /// `trainedPairCount` is the last published manifest's pair_count; nil
-    /// means this discipline has never trained.
+    /// Last published pair_count; nil = never trained.
     public static func shouldTrain(completedCount: Int, trainedPairCount: Int?) -> Bool {
         if let trained = trainedPairCount {
             return completedCount >= trained + retrainDelta
@@ -61,8 +59,7 @@ public enum LifeTrainPolicy: Sendable {
         }.count
     }
 
-    /// Acted rows first so the output schema is non-empty; silent rows after
-    /// so restraint is learnable.
+    /// Acted rows first (non-empty output schema); silent rows after (restraint).
     public static func trainingEpisodes(
         from episodes: [BehavioralEpisode], abilityID: AbilityID
     ) -> [BehavioralEpisode] {

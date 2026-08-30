@@ -2,9 +2,11 @@
 //  CodingAgentDelegation.swift
 //  MaryPlugin
 //
-//  Bonnie's coding-delegate brief, rebuilt from the live code surface and
-//  project root. Never names a product — the editor's displayName and the
-//  focused file arrive from the package registration.
+//  WHAT: Coding-delegate brief from the live code surface and project root.
+//  IN:   CodeSurface / ProjectRootResolver / package registration
+//  OUT:  CodingAgentSessions.run
+//  PIN:  Never names a product — displayName and focused file come from the
+//        package.
 //
 
 import AppKit

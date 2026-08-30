@@ -2,6 +2,10 @@
 //  VoicePipeline+FrameHandling.swift
 //  MaryVoice
 //
+//  WHAT: Per-frame mic loop — VAD, STT feed, amend, barge-in.
+//  IN:   MicLoop task → handle(frame:)
+//  OUT:  EnergyVAD / AmendCapture / BargeInGovernor / VoiceTranscriber
+//
 
 import AVFoundation
 import Foundation
@@ -12,10 +16,9 @@ extension VoicePipeline {
     
     // ROUTE: The CORE mic loop
     func handle(frame: MicFrame) async {
-        // Cancellation alone cannot retract an actor call already dispatched
-        // by the mic loop. Once a stop command matches, logical hearing is
-        // closed even though the physical graph remains alive until the
-        // acknowledgement drains.
+        // Cancellation cannot retract an actor call already dispatched.
+        // After a stop command matches, logical hearing is closed even though
+        // the physical graph stays up until the ack drains.
         guard !stopExitInProgress, state != .idle else { return }
         levelFrameCounter += 1
         if levelFrameCounter % 2 == 0 {
@@ -23,17 +26,12 @@ extension VoicePipeline {
         }
 
         pushPreRoll(frame)
-        // EVERY FRAME, IN EVERY STATE — the difference between a transcript
-        // and an utterance. The per-utterance transcriber below is still fed
-        // only while an utterance is open; this one hears the room.
-        //
-        // Except her own voice: `speakerAudioLive` is playing audio, and
-        // feeding that back is how she would end up transcribing herself.
+        // Every frame, every state — continuous hearing of the room.
+        // Skip while `speakerAudioLive` so she does not transcribe herself.
         if let continuous, !speakerAudioLive {
             await continuous.appendContinuous(frame.buffer)
-            // Stop-listening may have won while the continuous analyzer was
-            // suspended. Do not reinterpret this stale command-tail frame in
-            // the new `.speaking` state and pause the acknowledgement.
+            // Stop-listening may have won while the analyzer was suspended.
+            // Do not reinterpret this stale frame as barge-in on the ack.
             guard !Task.isCancelled, !stopExitInProgress, state != .idle else {
                 return
             }
@@ -68,9 +66,7 @@ extension VoicePipeline {
                 turnTask = Task { await self.runTurn() }
             case .discardedNoise:
                 if amendCapture.amendContext != nil {
-                    // A correction utterance can't be "noise" — the commit
-                    // already proved sustained voiced speech (it lives in the
-                    // replayed side buffer). Submit whatever was captured.
+                    // Correction cannot be "noise" — commit already proved speech.
                     partialTask?.cancel()
                     partialTask = nil
                     transition(to: .transcribing)
@@ -89,9 +85,7 @@ extension VoicePipeline {
             }
 
         case .transcribing, .thinking:
-            // The thinking-phase interrupt: capture-first, cancel-late. Real
-            // speech supersedes the turn; noise never disturbs it; silence
-            // means the user is waiting.
+            // Capture-first, cancel-late. Real speech supersedes; noise does not.
             switch amendCapture.directive(
                 rms: frame.rms,
                 frameDuration: frame.duration,
@@ -100,8 +94,6 @@ extension VoicePipeline {
             case .none:
                 break
             case .beginCapture:
-                // Snapshot the pre-roll (it holds the onset syllables) and
-                // start buffering — silently; the turn keeps generating.
                 amendCapture.beginCapture(preRoll: preRoll.map(\.0), duration: preRollDuration)
             case .captureFrame:
                 amendCapture.appendFrame(frame.buffer, duration: frame.duration)
@@ -116,20 +108,11 @@ extension VoicePipeline {
             }
 
         case .speaking:
-            // The interruption cadence: pause the INSTANT speech crosses the
-            // boosted threshold, commit to a full barge-in if it sustains,
-            // resume if it was just noise. Pure logic in BargeInGovernor.
-            //
-            // The onset FOLLOWS THE AUDIO, not the state: `.speaking` outlives
-            // the sound, and a boost held over a silent speaker is a deafened
-            // mic. Rebuilt only on a genuine transition (the governor's onset
-            // is immutable), which is also the only moment the provisional
-            // pause/resume cadence can safely restart — nothing is playing.
+            // Pause on onset, commit if sustained, resume if noise.
+            // Onset follows live audio, not `.speaking` (that outlives sound).
             if bargeGovernor == nil || bargeGovernor!.onsetRMS != bargeInOnsetRMS {
-                // A rebuild discards the provisional cadence, and the pause it
-                // already issued would then have no `.resume` to answer it —
-                // silently wedged playback. Hand the pause back first: the
-                // threshold moved, so the decision starts over.
+                // Rebuild discards provisional cadence — resume first so a
+                // pause is not left without a matching `.resume`.
                 if bargeGovernor?.isProvisional == true {
                     guard let lease = voiceFloor.currentLease else { return }
                     _ = await speaker.resume(lease: lease)
@@ -161,9 +144,7 @@ extension VoicePipeline {
         }
     }
 
-    /// The barge-in onset for RIGHT NOW: boosted only while Mary's own
-    /// voice is actually in the room. Silent-but-thinking must be
-    /// interruptible at normal volume.
+    /// Barge-in onset for right now: boosted only while Mary's voice is in the room.
     var bargeInOnsetRMS: Float {
         speakerAudioLive
             ? config.vad.speechStartRMS * config.vad.bargeInRMSBoost
@@ -182,9 +163,8 @@ extension VoicePipeline {
 
     // MARK: - Amend flow orchestration
 
-    /// Sustained speech during `.thinking` — the "late" moment of
-    /// capture-first-cancel-late: tear the in-flight turn down and hand the
-    /// mic to the correction utterance.
+    /// Sustained speech during `.thinking` — tear the in-flight turn down,
+    /// hand the mic to the correction. OUT: beginAmendCapture.
     private func commitAmend() async {
         guard !terminated, let lease = voiceFloor.currentLease else { return }
         let original = amendCapture.amendContext?.original ?? lastFinalTranscript
@@ -201,9 +181,7 @@ extension VoicePipeline {
         await beginAmendCapture()
     }
 
-    /// Opens the correction utterance: fresh transcriber session, side-buffer
-    /// replay (onset syllables included), live frames continue through the
-    /// normal listening-active branch.
+    /// Open the correction utterance: fresh transcriber, side-buffer replay.
     func beginAmendCapture() async {
         emit(.turnSuperseded)
         vad.reset()
@@ -265,8 +243,7 @@ extension VoicePipeline {
 
     // MARK: - Utterance opening
 
-    /// Begin a transcriber utterance, replaying the pre-roll so the first
-    /// syllable isn't clipped.
+    /// Begin a transcriber utterance, replaying pre-roll so the first syllable is kept.
     private func openUtterance(includeCurrent frame: MicFrame) async {
         guard let format = mic?.format else { return }
         do {
@@ -279,11 +256,7 @@ extension VoicePipeline {
             return
         }
 
-        // `begin` is an actor hop and may suspend behind model/session setup.
-        // A stop can win while it is away. Cancellation of the outer mic-loop
-        // task does not retract this already-dispatched actor call, so recheck
-        // the lifecycle before creating a partials task or appending replayed
-        // audio into a transcriber that belongs to a dead session.
+        // `begin` is an actor hop. Recheck lifecycle before partials/replay.
         guard !Task.isCancelled, !stopExitInProgress, mic != nil,
               state == .listening(utteranceActive: false)
         else {

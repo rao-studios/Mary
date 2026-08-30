@@ -2,13 +2,11 @@
 //  SeerSession.swift
 //  MaryBrain
 //
-//  Seer account session: sign in at boot, hand out a valid Bearer token,
-//  refresh proactively near expiry and reactively after a 401. Tokens live
-//  only in this actor — never persisted; every app boot signs in fresh.
-//  Follows Sis's NetworkService retry discipline: refresh at most once per
-//  failure, then surface the error.
+//  WHAT: Seer account session — sign in, Bearer, refresh.
+//  IN:   boot + 401 retry
+//  OUT:  token to every Seer client except Totems
+//  PIN:  Tokens live only in this actor; never persisted.
 //
-
 import Foundation
 
 public actor SeerSession {
@@ -42,12 +40,7 @@ public actor SeerSession {
         accessToken != nil && userID != nil
     }
 
-    /// HOW LONG A FAILED SIGN-IN PARKS FURTHER ATTEMPTS. Without this, an
-    /// unauthenticated session made EVERY spoken chunk pay one refresh plus
-    /// up to two full 15-second sign-in round trips before its fallback voice
-    /// could speak — a mid-paragraph stall, per sentence, for as long as the
-    /// server stayed down. During the cooldown `validToken` answers nil
-    /// immediately; the moment it elapses, the next chunk tries again.
+    /// HOW LONG A FAILED SIGN-IN PARKS FURTHER ATTEMPTS.
     public static let signInCooldown: TimeInterval = 10
     private var signInCooldownUntil: Date?
 
@@ -84,11 +77,8 @@ public actor SeerSession {
         }
     }
 
-    /// A token good for a request right now — refreshing (or re-signing-in)
-    /// first when the current one is missing or near expiry. A recent failed
-    /// sign-in answers nil FAST rather than paying the round trip again;
-    /// `refreshAfter401` deliberately bypasses that (an explicit server
-    /// signal earns a real attempt).
+    /// A token good for a request right now — refreshing (or re-signing-in) first when the current one is missing or near expiry.
+    /// PIN: A token good for a request right now — refreshing (or re-signing-in) first when the current one is missing or near…
     public func validToken() async -> String? {
         if let accessToken, let expiresAt, expiresAt.timeIntervalSinceNow > 60 {
             return accessToken
@@ -146,14 +136,6 @@ public actor SeerSession {
     }
 
     /// AUTH GETS ITS OWN SESSION, not `URLSession.shared`.
-    ///
-    /// `timeoutInterval` above is an IDLE timer; the WALL CLOCK is
-    /// `timeoutIntervalForResource`, and on the shared session that is SEVEN
-    /// DAYS. Sign-in and refresh sit in front of every spoken chunk
-    /// (`validToken()` is the first line of Seer synthesis), so against a
-    /// wedged-but-listening server that unbounded ceiling was pure invisible
-    /// latency ahead of a caller that had already budgeted its own deadline.
-    /// Twenty seconds covers a slow round trip and refuses to cover a hang.
     private static let authSession: URLSession = {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 15

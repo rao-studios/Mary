@@ -1,12 +1,9 @@
 //
 //  WorkspaceFocusObserver.swift
-//  Mary
+//  MaryRuntime
 //
-//  App-layer feed for the coding/writing focus arbiter: NSWorkspace's
-//  didActivate notification gives INSTANT transitions (the watcher poll
-//  loops sample at 1.5–20s, too slow for "alt-tab and speak"). Lives here,
-//  not in MaryBrain — observers are app machinery, and headless probes
-//  (which never call this) stay purely poll-fed and deterministic.
+//  WHAT: NSWorkspace didActivate → instant coding/writing focus (not 1.5–20s polls).
+//  OUT:  WorkspaceFocusTracker. Lives here, not MaryBrain — probes stay poll-fed.
 //
 
 import AppKit
@@ -37,22 +34,13 @@ package enum WorkspaceFocusObserver {
             } else {
                 SelectionHandoffCoordinator.shared.noteSourceActivated(
                     applicationID: applicationID)
-                // A raw source selection is one request handoff, not ambient
-                // context that follows the user from TextEdit into Safari.
-                // Do this at the external activation boundary, after the
-                // coordinator has revoked its lifecycle retry, so neither a
-                // queued deactivation nor a slow AX read can arm the old
-                // source for a later Mary request.
+                // Source selection is a request handoff, not ambient that follows the user.
                 AmbientContextStore.shared.revokeUnclaimedSelectionForExternalActivation(
                     applicationID: applicationID,
                     processID: app.map { Int32($0.processIdentifier) })
             }
         }
-        // This is deliberately NOT a focus-routing signal. An app yielding
-        // focus merely arms its short source-owned handoff. The actual AX read
-        // waits until Mary has activated and is about to begin a turn; a
-        // deactivation callback can otherwise confuse an ordinary TextEdit ->
-        // Safari switch for a request handoff.
+        // Not a focus-routing signal — arms a short source-owned handoff only.
         deactivationToken = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didDeactivateApplicationNotification,
             object: nil,
@@ -63,10 +51,7 @@ package enum WorkspaceFocusObserver {
             SelectionHandoffCoordinator.shared.noteSourceDeactivated(
                 applicationID: app?.bundleIdentifier)
         }
-        // A watcher stopping is not evidence that the source selection ended;
-        // a process actually terminating is. This is the explicit lifecycle
-        // boundary that invalidates every surface from that process rather
-        // than making plugin teardown erase an otherwise usable handoff.
+        // Process terminate invalidates surfaces. Watcher stop is not the end of a selection.
         terminationToken = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didTerminateApplicationNotification,
             object: nil,
@@ -79,23 +64,7 @@ package enum WorkspaceFocusObserver {
                 applicationID: applicationID,
                 processID: app.map { Int32($0.processIdentifier) },
                 allSurfaces: true)
-            // A process boundary also invalidates that representation's
-            // document facts immediately. Selection is cleared separately
-            // above because it is source-owned; this only prevents a just-
-            // terminated Pages/TextEdit/Scrivener/Xcode snapshot reaching the
-            // next hands-free request before its watcher gets another tick.
-            // A NATIVE QUIT also stands the tracker down (clearNative): the
-            // lead, the ledger entry, and the coding/writing box when the
-            // signal belonged to the quitting app — a quit Xcode's `.coding`
-            // used to stand for 20 minutes and lead unrelated turns.
-            // A QUIT PLACE STOPS ASSERTING ANYTHING, and there is one branch
-            // for all of them.
-            //
-            // Four hand-written arms used to stand here, one per compiled
-            // application, each forgetting that application's perceived facts
-            // and standing its focus box down — so a taught application that
-            // quit left its facts and its lead in place, and a stale snapshot
-            // led unrelated turns for the twenty minutes until it decayed.
+            // Process quit: drop document facts, stand the tracker down. One branch for all places.
             if let registration = AmbientApplicationIndexProvider.current
                 .registration(bundleID: applicationID) {
                 AmbientContextStore.shared.forgetPerceived(place: registration.place)
@@ -130,10 +99,7 @@ package enum WorkspaceFocusObserver {
             SelectionHandoffCoordinator.shared.noteSourceTerminated(
                 applicationID: applicationID)
         }
-        // SPACES: switching desktops changes what "frontmost" means without
-        // necessarily firing didActivate (and the watcher polls are 1.5-10s
-        // behind). One sample per Space change keeps the cursor-obvious lead
-        // exactly where the user's cursor went.
+        // Space change: resample frontmost (didActivate may not fire).
         spaceToken = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil,
@@ -141,15 +107,9 @@ package enum WorkspaceFocusObserver {
         ) { _ in
             WorkspaceFocusTracker.shared.sample()
         }
-        // Seed from whatever is frontmost right now — didActivate only fires
-        // on the NEXT switch, so without this a launch with Xcode/Scrivener
-        // already frontmost leaves focus nil (→ coding-first) until you
-        // re-activate the app.
+        // Seed from current frontmost — didActivate only fires on the next switch.
         WorkspaceFocusTracker.shared.sample()
-        // The first source window may already be open when Mary launches,
-        // so there may be no future activation event before the user selects
-        // text and invokes the composer. Seed only the lifecycle handoff
-        // coordinator; it is not a workspace-focus decision.
+        // Seed the lifecycle handoff coordinator — not a workspace-focus decision.
         let initialSource = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         if initialSource != Bundle.main.bundleIdentifier {
             SelectionHandoffCoordinator.shared.noteSourceActivated(

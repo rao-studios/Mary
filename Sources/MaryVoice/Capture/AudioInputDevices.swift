@@ -2,13 +2,10 @@
 //  AudioInputDevices.swift
 //  MaryVoice
 //
-//  CoreAudio HAL view of the machine's audio inputs: enumeration for the
-//  Settings picker, UID→ID resolution for binding a specific device to the
-//  capture engine, and a hardware-change monitor so MicCapture can follow
-//  devices as they come and go (a Continuity iPhone does both constantly).
-//
-//  UIDs are the persistence key — AudioDeviceIDs are transient and change
-//  across reconnects.
+//  WHAT: CoreAudio HAL view of inputs — enumerate, UID→ID, hardware-change monitor.
+//  IN:   Settings picker / MicCapture
+//  OUT:  AudioInputDevice / AudioDeviceMonitor
+//  PIN:  UIDs persist; AudioDeviceIDs are transient across reconnects.
 //
 
 import CoreAudio
@@ -60,18 +57,14 @@ public enum AudioInputDeviceList {
         }
     }
 
-    /// Whether a live device ID is an iPhone acting as mic (Continuity
-    /// Capture). MicCapture asks per-start: Apple voice processing on these
-    /// either initializes dead or fails outright (measured live).
+    /// Continuity Capture (iPhone as mic). MicCapture skips VP on these.
     public static func isContinuityCapture(_ id: AudioDeviceID) -> Bool {
         let transport = transportType(of: id)
         return transport == kAudioDeviceTransportTypeContinuityCaptureWired
             || transport == kAudioDeviceTransportTypeContinuityCaptureWireless
     }
 
-    /// Whether a live device ID is a Bluetooth input. MicCapture asks per
-    /// start for the same reason it asks about Continuity: Apple voice
-    /// processing does not survive the route (see `MicCapture`).
+    /// Bluetooth input. MicCapture skips VP on these (see `isWirelessRoute`).
     public static func isBluetooth(_ id: AudioDeviceID) -> Bool {
         let transport = transportType(of: id)
         return transport == kAudioDeviceTransportTypeBluetooth

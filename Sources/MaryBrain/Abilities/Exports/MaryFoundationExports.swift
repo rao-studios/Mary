@@ -1,5 +1,10 @@
-// MaryBrain's public runtime surface is schema-first. Re-export the small,
-// data-only schema module so app and plugin consumers do not need to juggle a
-// second import merely to name an Ability, Skill, Interaction, or receipt.
+//
+//  MaryFoundationExports.swift
+//  MaryBrain
+//
+//  WHAT: Re-export MaryFoundation so consumers can name Ability / Skill / receipt.
+//  IN:   MaryBrain public surface
+//  OUT:  @_exported import MaryFoundation
+//
 @_exported import MaryFoundation
 

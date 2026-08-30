@@ -2,15 +2,15 @@
 //  WindowManagementModels.swift
 //  MaryBrain
 //
-//  Split out of WindowManagement.swift (docs/DECOMPOSITION.md Wave 2) —
-//  pure relocation, no declaration changed.
+//  WHAT: Value types and seams for window management.
+//  IN:   WindowManagement.swift (sibling split)
+//  OUT:  WindowManagementService / WindowManagementPlugin / adapters
 //
 
 import AppKit
 import Foundation
 
-/// A running application reduced to values that are safe to carry across an
-/// async boundary. `NSRunningApplication` itself is deliberately not retained.
+/// Running application as values safe across an async boundary. NSRunningApplication is not kept.
 public struct ManagedApplication: Sendable, Equatable {
     public var bundleIdentifier: String
     public var displayName: String
@@ -23,15 +23,13 @@ public struct ManagedApplication: Sendable, Equatable {
     }
 }
 
-/// An adapter-neutral window identity. `id` is stable for the life of the
-/// source window; callers should pass it back instead of relying on z-order.
+/// Adapter-neutral window identity. `id` is stable for the window's life; pass it back.
 public struct ManagedWindow: Sendable, Equatable, Identifiable {
     public var id: String
     public var title: String
     /// Front-to-back order at observation time. One is frontmost in the app.
     public var index: Int
-    /// Nil when the preferred adapter cannot observe minimisation without an
-    /// extra permission or round-trip. Unknown is not treated as false.
+    /// Nil when the adapter cannot observe minimisation. Unknown is not false.
     public var isMinimized: Bool?
 
     public init(id: String, title: String, index: Int, isMinimized: Bool? = nil) {
@@ -77,8 +75,7 @@ public enum WindowManagementError: Error, Sendable, Equatable {
     }
 }
 
-/// Result of a machine operation before it is projected into the conversation
-/// runtime's `SkillOutcome` type.
+/// Machine result before projection into SkillOutcome.
 public struct WindowManagementResult: Sendable, Equatable {
     public var ok: Bool
     public var summary: String
@@ -109,10 +106,7 @@ public struct WindowManagementResult: Sendable, Equatable {
     }
 
     var activityOutcome: SkillOutcome {
-        // Window names are useful live coordination data, but they can expose
-        // private document titles and have no durable-memory value. The
-        // schema/receipt layer can project a deliberately redacted record;
-        // the legacy activity archive must not retain this transient summary.
+        // Window titles are live coordination, not durable memory. Archive none.
         SkillOutcome(
             ok: ok,
             summary: summary,
@@ -121,26 +115,21 @@ public struct WindowManagementResult: Sendable, Equatable {
     }
 }
 
-/// Injectable high-level surface used by the ability binding and its tests.
+/// Injectable high-level surface for the ability binding and its tests.
 public protocol WindowManagementServing: Sendable {
     func activateApplication(named application: String) async -> WindowManagementResult
     func listWindows(application: String) async -> WindowManagementResult
     func restoreWindow(application: String, window: String) async -> WindowManagementResult
     func raiseWindow(application: String, window: String) async -> WindowManagementResult
     func raiseAllWindows(application: String) async -> WindowManagementResult
-    /// Enter or leave full screen. `window` may be empty: "make it full
-    /// screen" names no window, and the frontmost one is the only honest
-    /// reading of "it".
+    /// Enter or leave full screen. Empty `window` = the one in front.
     func setFullScreen(
         application: String, window: String, enabled: Bool
     ) async -> WindowManagementResult
 }
 
 public extension WindowManagementServing {
-    /// DEFAULTED so the many test doubles conforming to this protocol did not
-    /// all have to grow a method they have nothing to say about. The live
-    /// service overrides it; anything that does not is honest about not
-    /// implementing it rather than quietly reporting success.
+    /// Default decline. Live service overrides; test doubles stay honest.
     func setFullScreen(
         application: String, window: String, enabled: Bool
     ) async -> WindowManagementResult {
@@ -148,8 +137,7 @@ public extension WindowManagementServing {
     }
 }
 
-/// One local implementation of primitive window capabilities. Specialist
-/// adapters lead the ordered registry; Accessibility is the generic fallback.
+/// Primitive window capabilities. Specialists lead; Accessibility is the fallback.
 public protocol WindowManagementAdapter: Sendable {
     var id: String { get }
     func supports(application: ManagedApplication) -> Bool
@@ -168,11 +156,7 @@ public protocol WindowManagementAdapter: Sendable {
 }
 
 public extension WindowManagementAdapter {
-    /// A SPECIALIST THAT CANNOT DO IT SAYS SO, rather than inheriting a
-    /// silent no-op. The generic Accessibility adapter implements this; an
-    /// application adapter whose own dictionary has no full-screen verb
-    /// declines here and the service falls through to Accessibility, which is
-    /// the same shape `supports(application:)` already gives the registry.
+    /// Decline rather than silent no-op. Service then falls through to Accessibility.
     func setFullScreen(
         _ window: ManagedWindow, in application: ManagedApplication, enabled: Bool
     ) async throws {
@@ -180,9 +164,8 @@ public extension WindowManagementAdapter {
             "I can't switch full screen for \(application.displayName) windows.")
     }
 
-    /// Total, ambiguity-preserving resolution shared by generic adapters.
-    /// Stable id, unique exact title, then unique contained title. A tie never
-    /// silently chooses the front window.
+    /// Shared resolution: stable id, unique exact title, then unique contained title.
+    /// PIN: a tie never silently chooses the front window.
     func resolve(
         _ reference: String,
         in application: ManagedApplication,
@@ -223,17 +206,11 @@ protocol WindowApplicationResolving: Sendable {
     func activateApplication(named application: String) async -> Result<ManagedApplication, WindowManagementError>
 }
 
-/// A WINDOW AN APPLICATION HAS RESOLVED FOR ITSELF — its own id spelling and
-/// the application it belongs to.
-///
-/// The identity is opaque to window management on purpose: only the owning
-/// application knows whether its windows are addressed by a scripting id, an
-/// accessibility handle or something else, and a service that parsed the
-/// spelling would be a second answer to a question its owner already answered.
+/// A window an application resolved for itself — opaque identity plus owner.
 public struct ManagedWindowReference: Sendable, Equatable {
-    /// The bundle identifier of the application that owns the window.
+    /// Bundle identifier of the owning application.
     public let applicationID: String
-    /// The owner's own stable spelling for this window.
+    /// Owner's own stable spelling for this window.
     public let identity: String
 
     public init(applicationID: String, identity: String) {
@@ -242,13 +219,8 @@ public struct ManagedWindowReference: Sendable, Equatable {
     }
 }
 
-/// WHETHER A SPOKEN REFERENCE BELONGS TO AN APPLICATION, and if so where it
-/// points.
-///
-/// The middle case is the one that matters and the one a boolean would lose:
-/// "this reference IS mine and I could not resolve it" must stop the ladder,
-/// because falling through to a looser resolver after a confident owner has
-/// failed is how a raise lands on the wrong window.
+/// Whether a spoken reference belongs to an application, and if so where.
+/// PIN: owned-but-unresolved stops the ladder — do not fall through.
 public enum WindowReferenceDecision: Sendable, Equatable {
     case none
     case ownedButUnresolved(WindowManagementError)

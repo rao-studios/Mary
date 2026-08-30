@@ -2,6 +2,10 @@
 //  VoicePipeline+ContinuousHearing.swift
 //  MaryVoice
 //
+//  WHAT: Session-long transcript beside the acoustic path.
+//  IN:   Mic frames / TranscriptSegment → IntakePlanner
+//  OUT:  .heardSpeech (ambient) | .finalTranscript (Brain turn)
+//
 
 import AVFoundation
 import Foundation
@@ -16,17 +20,12 @@ extension VoicePipeline {
             try await continuous.beginSession(format: format)
         } catch {
             guard !terminated else { return }
-            // DEGRADED, NOT DEAD. The acoustic path is untouched, so a missing
-            // model or a denied authorization costs continuous hearing and
-            // nothing else — and it says so rather than presenting as a
-            // feature that silently does nothing.
+            // Degraded, not dead. Acoustic path is untouched. OUT: .continuousUnavailable.
             emit(.continuousUnavailable(error.localizedDescription))
             return
         }
         guard !terminated else {
-            // Teardown may have raced a slow model download/session begin. Its
-            // first detached end could have run before begin completed, so a
-            // second private cleanup is required after the late begin lands.
+            // Teardown raced a slow begin. Second cleanup after the late begin.
             Task.detached(priority: .utility) {
                 await continuous.endSession()
             }
@@ -48,12 +47,8 @@ extension VoicePipeline {
 
     private func handleSegment(_ segment: TranscriptSegment) async {
         guard !stopExitInProgress, state != .idle else { return }
-        // HER OWN VOICE, REFUSED AT THE DOOR. `speakerAudioLive` is the
-        // pipeline's existing "audio is playing" bit; without this she
-        // transcribes her own TTS and can answer herself.
         guard !speakerAudioLive else { return }
-        // Volatile spans may still be rewritten. They are useful for a live
-        // caption and worthless for a decision, so nothing accumulates them.
+        // Volatile spans may still be rewritten — skip them.
         guard segment.isFinalized else { return }
         let text = segment.text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
@@ -78,13 +73,10 @@ extension VoicePipeline {
                 segment: IntakePlanner.Segment(
                     text: text,
                     isFinalized: true,
-                    // The decision only runs after the debounce elapsed, so
-                    // the silence is known to have been at least this long.
+                    // The decision only runs after the debounce elapsed.
                     silenceAfter: intakeTuning.completionSilence),
                 selfSpeaking: speakerAudioLive,
-                // THE ACOUSTIC PATH GETS FIRST REFUSAL. Anything other than a
-                // quiet, armed pipeline means the VAD loop already owns this
-                // speech, and admitting here too would submit it twice.
+                // Acoustic path gets first refusal — do not submit the same speech twice.
                 acousticPathBusy: state != .listening(utteranceActive: false)),
             tuning: intakeTuning)
 

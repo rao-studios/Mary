@@ -1,7 +1,11 @@
 //
 //  AbilityLibrary+PackageLifecycle.swift
+//  MaryBrain
 //
-
+//  WHAT: Import / remove / validate package lifecycle.
+//  IN:   AbilityLibrary.swift
+//  OUT:  last-known-good snapshot stays put on a bad edit
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -67,10 +71,7 @@ extension AbilityLibrary {
                     priority: (locations.map(\.priority).max() ?? 100) + 10))
             }
         }
-        // The two writable roots are part of the runtime contract. Creating
-        // them at configuration time lets file observation cover the first
-        // import or override, not only later changes to an already-existing
-        // directory.
+        // The two writable roots are part of the runtime contract.
         if let installed {
             try? fileManager.createDirectory(
                 at: installed,
@@ -116,18 +117,11 @@ extension AbilityLibrary {
         lock.unlock()
         let report = reload()
         guard !report.activated, priorConfiguration.configured else {
-            // The first configuration has no previous discovery roots or
-            // inventory to restore. Keep that candidate configuration even
-            // when its initial graph is invalid so file observation and a
-            // later reload can recover from the bad package. Its runtime
-            // snapshot remains the honest empty last-known-good value.
+            // The first configuration has no previous discovery roots or inventory to restore.
             return report
         }
 
-        // Configuration and its compiled snapshot are one transaction. A
-        // rejected Native/Dynamic join must not leave the next reload reading
-        // the proposed Native roster while execution still uses the previous
-        // last-known-good snapshot.
+        // Configuration and its compiled snapshot are one transaction.
         lock.lock()
         state.adapterManifests = priorConfiguration.adapterManifests
         state.nativeApplicationProfiles = priorConfiguration.nativeApplicationProfiles
@@ -143,11 +137,7 @@ extension AbilityLibrary {
         return report
     }
 
-    /// Publishes or replaces one adapter's current handshake, then activates a
-    /// new immutable registry revision. Device adapters can call this before
-    /// an Ability using them is installed; a later package reload will join
-    /// against the retained manifest. Disconnection is represented by
-    /// publishing the same stable id with `isAvailable == false` and a reason.
+    /// Publishes or replaces one adapter's current handshake, then activates a new immutable registry revision.
     @discardableResult
     public func publishAdapterManifest(
         _ manifest: InstalledAdapterManifest
@@ -220,10 +210,7 @@ extension AbilityLibrary {
                 state.reservedNativeApplicationProfiles,
                 state.primitiveBindings)
         }()
-        // Capture the pre-discovery bytes. If an external writer races the
-        // discovery pass, the watcher compares against this older fingerprint
-        // and schedules another pass instead of accidentally blessing a mixed
-        // read as the observation baseline.
+        // Capture the pre-discovery bytes. If an external writer races the discovery pass
         let filesystemFingerprint = fingerprint(of: configuration.locations)
         let discovery = discover(in: configuration.locations)
         let graph = AbilityPackageValidator.validateGraph(discovery.records.map(\.package))

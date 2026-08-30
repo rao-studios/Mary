@@ -2,31 +2,11 @@
 //  InferenceUnitAnnotator.swift
 //  MaryBrain
 //
-//  Turns a unit's structure into one sentence about what it is for, plus the
-//  concept labels that let a code neighbourhood be reached from an unrelated
-//  domain. The labels are the whole reason this step exists: "ordering",
-//  "arbitration", "back-pressure" are what let a file in a Swift project and a
-//  chapter in a manuscript land near each other, which identifiers never would.
+//  WHAT: One-sentence précis + concept labels for a corpus unit.
+//  IN:   unit structure → local InferenceEngine
+//  OUT:  précis / labels for neighbourhood reach
+//  PIN:  Refuses on exclusive (MLX) generation so it cannot steal the turn path.
 //
-//  TWO RULES, BOTH ABOUT NOT STEALING THE TURN PATH.
-//
-//  1. IT REFUSES ON AN EXCLUSIVE ENGINE. `requiresExclusiveGeneration` is true
-//     only for the on-device MLX engine, and the brain serializes generation
-//     rounds across lanes when it is set. A background annotator queuing behind
-//     that gate is precisely the latency regression this codebase already fixed
-//     once: work waiting on the gate ate the join grace, so fast actions
-//     detached as routines and every detach begat another. Refusing is not a
-//     degradation to apologize for — the unit still deposits with its structure
-//     and headers, which is most of the value.
-//
-//  2. IT NEVER SEES A FILE. `UnitAnnotationRequest` carries declarations,
-//     headers, and the author's own doc comment; nothing upstream of it ever
-//     holds a function body, so nothing here can leak one.
-//
-//  Failures are silent and total: a nil annotation is an ordinary outcome, not
-//  an error worth a spoken word.
-//
-
 import MaryAmbient
 import Foundation
 import os
@@ -48,13 +28,7 @@ public actor InferenceUnitAnnotator: UnitAnnotating {
         self.engine = engine
     }
 
-    /// Declines by POLICY, not by failure, when the engine is the on-device
-    /// one — so the coordinator can record "structure only, on purpose"
-    /// rather than "the summariser returned nothing", which is a different
-    /// and much more alarming thing to read.
-    ///
-    /// `nonisolated` because it reads a `let` and the coordinator asks
-    /// synchronously; there is nothing to race.
+    /// Declines by POLICY, not by failure, when the engine is the on-device one
     public nonisolated var refusesToAnnotate: Bool {
         engine.requiresExclusiveGeneration
     }
@@ -160,10 +134,7 @@ public actor InferenceUnitAnnotator: UnitAnnotating {
 
     // MARK: - Parsing
 
-    /// Tolerant on the way in, strict on the way out. A model that wraps its
-    /// JSON in a fence or a sentence still parses; anything that does not
-    /// yield both a précis and at least one label is nil, because a
-    /// half-annotation is worse than an honest structural card.
+    /// Tolerant on the way in, strict on the way out.
     static func parse(_ raw: String) -> UnitAnnotation? {
         guard let data = jsonObject(in: raw),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]

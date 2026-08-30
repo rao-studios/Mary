@@ -3,12 +3,7 @@ import Foundation
 
 @MainActor
 extension AbilityStudioViewModel {
-    /// Runs a visual edit through the reference-safe authoring model, then
-    /// returns its canonical package JSON to the existing draft pipeline.
-    ///
-    /// The active registry supplies graph context for cross-package Skills and
-    /// dependencies. The document itself excludes the matching active package,
-    /// so an unsaved draft always remains the sole candidate for its package ID.
+    /// Visual edit through AbilityStudioAuthoringDocument, then canonical JSON into `updateDraft`.
     @discardableResult
     func mutateAuthoringDocument(
         _ transform: (inout AbilityStudioAuthoringDocument) throws -> Void

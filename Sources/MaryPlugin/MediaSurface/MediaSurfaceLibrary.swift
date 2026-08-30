@@ -2,31 +2,8 @@
 //  MediaSurfaceLibrary.swift
 //  MaryPlugin
 //
-//  THE PLAYLISTS, AND THE BUTTON THAT STARTS ONE — the half of the port that
-//  looked unreachable and was not.
-//
-//  WHAT THE FIRST CUT GOT WRONG, recorded because the correction is the
-//  interesting part. Playlists were written off as Apple-Events-only, on the
-//  reasoning that Bonnie reached them through `tell application "Music"` and
-//  Mary has no scripting bridge. That confused the road with the
-//  destination. The sidebar is an ordinary `AXOutline`: every playlist the
-//  user owns is a row in it, and the names read exactly the way the track
-//  title does — out of the static text's VALUE, through the detail lane.
-//  Nothing about them needed an Apple Event either.
-//
-//  PLAYING IS TWO PRESSES, NOT ONE, and getting that wrong is why the first
-//  version opened a song and left it sitting there. A Store URL navigates the
-//  player to a page; it does not start it. The page's own Play button is what
-//  starts it — and that button is NOT the transport's, though it wears the
-//  same word. Pressing the transport instead resumes whatever was queued
-//  before, which looks like success and plays the wrong thing.
-//
-//  SCOPE AND SIZE TELL THEM APART. Measured on a live player: the transport's
-//  play is 36×38 inside the declared transport group; the page's is 132×38
-//  outside it. So the rule is "outside the transport, largest wins" — stated
-//  as a rule rather than a coordinate, because a coordinate is a fact about
-//  one window at one size and this has to survive a resize.
-//
+//  WHAT: Playlists from AXOutline; play is page Play, not transport Play.
+//  PIN:  Distinguish by scope+size (outside transport, largest wins).
 
 import ApplicationServices
 import Foundation
@@ -37,11 +14,8 @@ public enum MediaSurfaceLibrary {
 
     // MARK: - Reading the playlists
 
-    /// The user's playlists, in sidebar order.
-    ///
-    /// Empty when the package declared no library, when the outline is not on
-    /// screen, or when the section header is missing — all of which are
-    /// "nothing to offer" rather than failures, and the caller says so.
+    /// The user's playlists, in sidebar order. Empty when the package declared no library,
+    /// when the outline is not on screen, or when the section header is missing.
     public static func playlists(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> [String] {
@@ -52,11 +26,6 @@ public enum MediaSurfaceLibrary {
     }
 
     /// The library's rows, revealing the library first if it is not on screen.
-    ///
-    /// ONE RETRY, AND ONLY AFTER A MISS. A player already showing its sidebar
-    /// is left exactly as the user arranged it; one that is not gets its
-    /// declared reveal control pressed, once. A second failure is a real
-    /// answer — the view did not come back — rather than a loop.
     private static func revealedRows(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> [Row]? {
@@ -123,14 +92,7 @@ public enum MediaSurfaceLibrary {
         case couldNotPress
     }
 
-    /// Select a playlist by name, then start it.
-    ///
-    /// MATCHED THE WAY IT WAS SPOKEN. An exact fold first, then
-    /// `SpokenTitleMatcher` — the same ladder the prose lane uses to find a
-    /// document, and for the same reason: a name arrives through speech
-    /// recognition, so "dinner office playlist" has to reach "Dinner Office
-    /// Playlist" and "gitas ballad" has to reach "Gita's Ballad" with its
-    /// typographic apostrophe.
+    /// Select a playlist by name, then start it. MATCHED THE WAY IT WAS SPOKEN.
     public static func play(
         playlistNamed name: String, pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> Outcome {
@@ -151,10 +113,8 @@ public enum MediaSurfaceLibrary {
         }
 
         guard await press(row.element, pid: pid) else { return .couldNotPress }
-        // THE PAGE HAS TO ARRIVE BEFORE ITS BUTTON CAN BE PRESSED. Selecting a
-        // row navigates, and the play control is part of what navigation
-        // draws — searching for it in the same runloop turn finds the
-        // previous page's.
+        // Selecting a row navigates, and the play control is part of what navigation draws
+        // — searching for it in the same runloop turn finds the previous page's.
         try? await Task.sleep(nanoseconds: 900_000_000)
         guard await pressPagePlay(pid: pid, registration: registration) else {
             return .couldNotPress
@@ -194,31 +154,8 @@ public enum MediaSurfaceLibrary {
 
     // MARK: - Shuffle
 
-    /// Bring the player's shuffle mode to `desired`, pressing only if it is
-    /// not already there.
-    ///
-    /// THE LABEL IS THE STATE, which is what makes a blind press wrong half
-    /// the time: Music's shuffle control renames itself, the package declares
-    /// both words, and pressing without reading toggles away from what was
-    /// asked whenever the player was already there.
-    ///
-    /// THE STATE COMES FROM `MediaSurfaceAX.read`, NOT FROM A SECOND WALK, and
-    /// that is the whole correctness argument. The first cut of this searched
-    /// the window tree itself for "a button whose label parses as a shuffle
-    /// state" — which found a DIFFERENT node than the canonical reader does,
-    /// read it as on while the player was off, and dutifully pressed shuffle
-    /// ON when asked to turn it off. Live probe, first run. Two readers of one
-    /// fact will disagree eventually; there is now one reader, and this asks
-    /// it.
-    ///
-    /// THE PRESS IS SCOPED TO THE DECLARED TRANSPORT for the same reason —
-    /// that is where the reader looked, so it is the only place a control
-    /// answering for that state can honestly be found.
-    ///
-    /// AN UNREADABLE STATE IS NOT AN "OFF". It returns false and the caller
-    /// says the mode could not be set, rather than pressing hopefully and
-    /// reporting success — the rule `MediaSurfaceRegistration.shuffleState`
-    /// already states for reading.
+    /// Bring the player's shuffle mode to `desired`, pressing only if it is not already
+    /// there.
     @discardableResult
     public static func pressShuffle(
         pid: pid_t, registration: MediaSurfaceRegistration, desired: Bool
@@ -335,10 +272,8 @@ public enum MediaSurfaceLibrary {
         return found
     }
 
-    /// AXPress first, then a real click at the midpoint — `PageElementActions`'
-    /// proven ladder, for the reason it records: a control commonly advertises
-    /// `AXPress` and does nothing with it, and a table row commonly offers no
-    /// press action at all and only answers a click.
+    /// AXPress first, then a real click at the midpoint — `PageElementActions`' proven
+    /// ladder, for the reason it records: a control.
     @discardableResult
     static func press(_ element: AXUIElement, pid: pid_t) async -> Bool {
         if AXUIElementPerformAction(element, kAXPressAction as CFString) == .success {

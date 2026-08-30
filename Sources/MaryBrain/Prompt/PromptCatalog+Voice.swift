@@ -2,23 +2,11 @@
 //  PromptCatalog+Voice.swift
 //  MaryBrain
 //
-//  The speaking lane's sections. Every literal came out of
-//  `MaryPrompts.seerInstructions` unchanged, with its post-mortem.
+//  WHAT: Speaking-lane prompt sections.
+//  IN:   MaryPrompts.seerInstructions literals (byte-identical)
+//  OUT:  PromptPlan.voice
+//  PIN:  Coarser grain than system(); frames compose children. Do not edit """ bodies.
 //
-//  COARSER GRAIN THAN `system()`, and that is forced by the source rather than
-//  chosen. `reachClause` is spliced INSIDE the retrieval paragraph's last
-//  sentence; the sight paragraph and the three authority blocks sit INSIDE the
-//  live-work frame, whose closing words are what tell the model its excerpt is
-//  bounded. Those are children, not siblings, and promoting them would move
-//  the frame's ending — a byte change and a meaning change at once. Each frame
-//  is one section that composes its own children, exactly as the source does.
-//
-//  THE JOINERY HERE IS SUB-SENTENCE and that is honest, not a smell: the
-//  persona is joined to the preamble by a single SPACE, the capability by
-//  another, and only the last two clauses lead with "\n\n". Sections carry
-//  their own separators; see `PromptSection`'s header.
-//
-
 import Foundation
 
 extension PromptCatalog {
@@ -35,25 +23,11 @@ extension PromptCatalog {
 
     // MARK: - Running actions
 
-    /// Routines from EARLIER turns that are still going, so the new turn does
-    /// not double-promise their results.
-    ///
-    /// THE BUG THIS SECTION EXISTS TO FIX. This note used to be appended to
-    /// the FINISHED instructions string — `instructions += "\n\n" +
-    /// runningActionsNote(...)` — which put it AFTER the live-work block. That
-    /// block is terminal by doctrine: "nothing may follow it, or the model
-    /// reads the following doctrine as part of the document." So on any turn
-    /// with both a live document and a running routine, a sentence about
-    /// background actions was appended to the user's own prose and read as
-    /// part of it.
-    ///
-    /// No pin caught it because every pin calls `seerInstructions` directly,
-    /// and the append happened two hundred lines away in the turn loop. Making
-    /// it a SECTION is what fixes it: the plan puts it before `seerLiveWork`,
-    /// and `PromptPlan.validate` now refuses any order that would put it back.
+    /// Earlier-turn routines still running. Plan places this before seerLiveWork.
+    /// PIN: Must not follow live-work (doctrine would be read as document).
     static let seerRunningActions = PromptSection(
         id: .seerRunningActions,
-        rationale: "Earlier routines still running — must land BEFORE the live text, never after."
+        rationale: "Earlier routines still running — before live text, never after."
     ) { inputs in
         guard !inputs.runningActions.isEmpty else { return "" }
         return "\n\n" + MaryPrompts.runningActionsNote(labels: inputs.runningActions)
@@ -61,16 +35,11 @@ extension PromptCatalog {
 
     // MARK: - Clock and spoken register
 
-    /// Clock and TTS only. Who she is lives on `SeerWire.Persona.mary` and
-    /// rides the chat `persona` object into Seer's personality section —
-    /// putting it here as well stacked "You are Mary" under "Your name is
-    /// Mary".
-    ///
-    /// Ends WITHOUT a trailing space; the turn persona that follows leads
-    /// with one.
+    /// Clock and TTS only. Identity rides `SeerWire.Persona.mary`.
+    /// PIN: Ends without a trailing space; the turn persona that follows leads with one.
     static let seerPreamble = PromptSection(
         id: .seerPreamble,
-        rationale: "The clock and TTS register. Always first in instructions; identity is the chat persona."
+        rationale: "Clock + TTS. Identity is the chat persona."
     ) { inputs in
         let time = inputs.formatter("h:mm a").string(from: inputs.now)
         let date = inputs.formatter("EEEE, MMMM d, yyyy").string(from: inputs.now)
@@ -88,21 +57,7 @@ extension PromptCatalog {
 
     // MARK: - The three personas
 
-    /// THE READ PERSONA — a third persona, because the other two are both
-    /// wrong for a read.
-    ///
-    /// THE FAILURE THIS FIXES (confirmed against a live bug): a targeted read
-    /// SUCCEEDED — `pages_body` returned "characters 12927–13835 of 15775,
-    /// from \"batteries\"" — and the voice answered "I don't see anything
-    /// about batteries". Closing the delivery gap alone is not enough: the
-    /// only grounded persona that existed said "You just FINISHED actions… ONE
-    /// short spoken sentence… never repeat the content that was written",
-    /// which would have made the voice refuse to read the passage it was
-    /// finally holding. A read's whole point is to be spoken, at the length
-    /// the passage needs.
-    ///
-    /// FIRST IN THE PLAN, which is how its precedence over `groundedResults`
-    /// is expressed — the source's `if readReport` leads the same ladder.
+    /// Read persona — reciting IS the answer. First in the plan (outranks grounded).
     static let seerPersonaRead = PromptSection(
         id: .seerPersonaRead,
         rationale: "She just READ what they asked about — reciting IS the answer.",
@@ -139,43 +94,8 @@ extension PromptCatalog {
         """
     }
 
-    /// THE TURN ASKED FOR NOTHING — and until this section existed, no persona
-    /// said so.
-    ///
-    /// THE FAILURE THIS FIXES (confirmed against a live session): Mary
-    /// answering small conversational turns with "I'm adding that now.", "I'm
-    /// stopping that now." — present-progress action language over a turn
-    /// where nothing had been requested and nothing was running. Seer's
-    /// resonance pass then extracted those sentences as retrievable memory,
-    /// so yesterday's phantom work primed today's.
-    ///
-    /// IT COULD NOT HAVE GONE OTHERWISE. `seerPersonaInTurn` is the ladder's
-    /// catch-all: every turn that is not a read and not a grounded result gets
-    /// it, which includes every greeting and every joke. It is ~150 words
-    /// whose entire subject is acting, and it carries the ONLY concrete
-    /// example reply anywhere in the voice prompt — "Got it — a new event on
-    /// the calendar." A small model copies the exemplar it is shown, and on a
-    /// chat turn that exemplar was the only model of a reply it had. Against
-    /// it stood six words of the preamble: "good company first".
-    ///
-    /// THE COUNTERWEIGHT ALREADY EXISTED IN THE WRONG LANE. `system()`'s
-    /// `registerSwitch` has long said "when they're just chatting… simply
-    /// talk… leave the Skills alone unless they actually ask for something" —
-    /// but that is the Skill lane's prompt, and Lane A is handed
-    /// `instructions` only. Exactly the one-laned-doctrine shape called out on
-    /// `seerPersonaInTurn` below, one clause over.
-    ///
-    /// THIRD IN THE LADDER, NOT FIRST. It renders only when the read and
-    /// grounded personas have both declined, which is the plan expressing
-    /// "conversational AND no read AND no grounded result" through order
-    /// rather than through three guards restated inside this closure. A read
-    /// or a finished action still outranks it: those turns have something to
-    /// report, whatever the router made of the sentence.
-    ///
-    /// NO ANTI-ASKING CLAUSE, deliberately. `seerPersonaInTurn`'s exists
-    /// because the Skill pipeline enforces its own confirmation boundaries and
-    /// a second prose question wastes the user's breath. There is no pipeline
-    /// on a converse turn, and a question back is what company does.
+    /// Conversational persona — the turn asked for nothing. Third in the ladder.
+    /// PIN: No anti-asking clause; a question back is what company does.
     static let seerPersonaConverse = PromptSection(
         id: .seerPersonaConverse,
         rationale: "The turn asked for nothing — talk, and announce no work.",
@@ -196,24 +116,11 @@ extension PromptCatalog {
         """
     }
 
-    /// Lane A knows Mary CAN act, but not whether this turn DID. It has no
-    /// same-turn Skill receipt channel. Treating intent as execution here caused
-    /// the voice to say an app mutation was underway while Lane B had no eligible
-    /// Skill at all. Capability and execution state are separate facts.
-    ///
-    /// THE SECOND PARAGRAPH IS THE ANTI-ASKING CLAUSE, AND LANE A HAD NEVER
-    /// HAD ONE. `system()` has said for a long time: "Never ask permission in
-    /// prose BEFORE invoking a Skill either." That is the Skill execution lane's prompt.
-    /// Lane A is handed `instructions` only and structurally cannot see it, so
-    /// the doctrine was one-laned, and on the live turn the voice improvised
-    /// the other half of it: "Yeah yeah exactly can you reword the whole thing
-    /// for me" — `REPLACE_PASSAGE` landed correctly, and Lane A said "I'm on
-    /// it, but I need a quick clarification — do you mean the whole document,
-    /// or the Background section?" — a permission question about a change that
-    /// had already been made.
+    /// In-turn persona: intent ≠ execution. No same-turn Skill receipt.
+    /// PIN: Anti-asking clause lives here — Lane A cannot see `system()`'s.
     static let seerPersonaInTurn = PromptSection(
         id: .seerPersonaInTurn,
-        rationale: "She knows Mary can act, but reports execution state only from grounded receipts.",
+        rationale: "Intent ≠ execution. Report state only from grounded receipts.",
         exclusive: .seerPersona
     ) { _ in
         " " + """
@@ -253,35 +160,11 @@ extension PromptCatalog {
 
     // MARK: - Retrieval doctrine, with reach spliced inside
 
-    /// Retrieval doctrine — the symmetric half of
-    /// `PagesContextWatcher.livenessLine` ("LIVE is a claim, and it has to be
-    /// earned"). That line teaches when perception may claim to be current;
-    /// this one teaches that MEMORY never may. It rides whether or not live
-    /// work exists, because the failure it repairs happens exactly when
-    /// perception is missing: asked about a paragraph, the voice narrated the
-    /// "removed 'Despite growing awareness' paragraph" out of retrieved
-    /// deposits — a paragraph the user had already deleted.
-    ///
-    /// THE REACH CLAUSE IS A CHILD, spliced into the final sentence rather
-    /// than following as a sibling. It is stated to the voice because this is
-    /// the lane that speaks and the one lane with no plugin roster at all —
-    /// `seerInstructions` never lists plugins, so until this clause existed,
-    /// nothing whatsoever told it Calendar exists. THE FAILURE (the user's
-    /// words: "Mary doesn't conduct tasks for Calendar and Reminders now
-    /// because she can't see them"): on a calendar turn the voice held a Pages
-    /// capability line, a Pages ground-truth block, and an instruction to
-    /// announce when it can't see something — so it announced blindness about
-    /// a question that never needed eyes.
-    /// THE SIGHT CLAUSE IS THE REACH CLAUSE'S SIBLING, for the same failure
-    /// in a different sense: the reach clause exists because nothing told the
-    /// voice Calendar exists; until this clause, nothing told it EYES exist.
-    /// Asked "what building is that" over a video, the voice held no live
-    /// section, a doctrine ordering it to admit blindness, and zero mention
-    /// of the look faculty — so it said "I can't see that" while the hands
-    /// were looking. Always-on, ~300 bytes: the price of never denying sight.
+    /// Retrieval doctrine: memory is the past, never the document now.
+    /// PIN: Reach + sight splice into the last sentence (children, not siblings).
     static let seerRetrieval = PromptSection(
         id: .seerRetrieval,
-        rationale: "Memory is the past, never the document now — plus the eyeless reach list and the sight clause."
+        rationale: "Memory is the past. Reach + sight splice into the last sentence."
     ) { _ in
         let reach = " " + """
         Separately from anything on screen: you reach the rest of this Mac \
@@ -311,14 +194,10 @@ extension PromptCatalog {
         """
     }
 
-    /// A LOOK IS UNDERWAY FOR THIS VERY TURN — the pre-lane look fired and
-    /// missed its budget, so nothing is in hand yet while the hands keep
-    /// looking. Rendered ONLY on that pass (empty everywhere else, which is
-    /// what keeps every golden byte-identical): the voice promises the look
-    /// and the spoken follow-up completes the sentence it started.
+    /// Pre-lane look still in flight. Empty on every other pass (golden-byte identical).
     static let seerSightPending = PromptSection(
         id: .seerSightPending,
-        rationale: "A look fired for this turn with nothing in hand yet — promise it, never deny sight."
+        rationale: "Look in flight this turn — promise it, never deny sight."
     ) { inputs in
         guard inputs.lookUnderway else { return "" }
         return "\n\n" + """
@@ -331,26 +210,19 @@ extension PromptCatalog {
 
     // MARK: - The live work, and the authority ordering inside it
 
-    /// THE ONE AUTHORITY BLOCK, and its internal order IS the ranking:
-    ///
-    ///   liveWork      — what is on screen NOW (ground truth)
-    ///   heldFacts     — what she read EARLIER, each carrying its age
-    ///   readPassages  — what she read for THIS question (last word)
-    ///
-    /// TERMINAL. The live text lands last on purpose: nothing may follow it,
-    /// or the model reads the following doctrine as part of the document.
+    /// One authority block. Internal order is the ranking:
+    ///   liveWork → heldFacts → readPassages (last word)
+    /// PIN: Terminal — nothing may follow or the model reads it as document.
     static let seerLiveWork = PromptSection(
         id: .seerLiveWork,
-        rationale: "What she can see, ranked: on-screen, then held, then this turn's read. Lands last.",
+        rationale: "On-screen, then held, then this turn's read. Lands last.",
         ordering: .last
     ) { inputs in
         let liveBlocks = inputs.liveWork + inputs.heldFacts
             + inputs.heldMentions + inputs.readPassages
         guard !liveBlocks.isEmpty else { return "" }
 
-        // Register follows the owning app, exactly as system()'s headers do —
-        // a Pages session must never hear "file", and Scrivener's manuscript
-        // is not Pages' document.
+        // Register follows the owning app, same as system() headers.
         let place: String
         let sight: String
         let windowSight = """
@@ -362,21 +234,12 @@ extension PromptCatalog {
         this window: say plainly that it's outside the part you can see \
         and that you're pulling it up, then answer from what comes back.
         """
-        // THE SIGHT CLAUSE TURNS ON WHAT THE CHANNEL HOLDS, NOT ON WHICH
-        // APPLICATION IT IS. A prose surface that answers with the entire text
-        // gives Mary the whole document; one that answers with the current
-        // outline item gives her a window onto it. Keying on the property is
-        // what stops the next whole-document place from inheriting the window
-        // hedge — the bug a list of application names re-created every time
-        // somebody added one to it.
+        // Sight clause keys on what the channel holds, not which application it is.
         switch inputs.liveWorkWorld {
         case .document(let name, true):
             place = name.map { "document open in front of them in \($0)" }
                 ?? "document open in front of them"
-            // WHAT IT GAINS OVER THE WINDOW CLAIM, and what it must not lose:
-            // holding ONE document whole says nothing about the other ten the
-            // user has open, and a voice that forgets that will answer "it's
-            // not in your notes" from the single note it happens to hold.
+            // Whole-document hold says nothing about the user's other open documents.
             sight = """
             You hold the WHOLE of that document, not a window onto it — all \
             of its text is already in hand, so there is no part of THIS one \
@@ -394,17 +257,9 @@ extension PromptCatalog {
             sight = windowSight
 
         case .application(let name):
-            // AN APPLICATION OWNS THE TURN WITHOUT A LIVE DOCUMENT. It is
-            // named, and named from its registration rather than guessed —
-            // "in front of you in Scrivener" for a Chrome question is the
-            // sentence this arm exists to make unsayable.
+            // Named from its registration. No live document, so no window or whole-document claim.
             place = name.map { "\($0) window open in front of them" }
                 ?? "window open in front of them"
-            // NO LIVE READ, SO NO WINDOW CLAIM EITHER WAY. Its facts arrive as
-            // deposits rather than as a live excerpt with character bounds, so
-            // neither the "this is a WINDOW onto their work" hedge nor a
-            // whole-document claim is true. Say only what is known: what was
-            // read is held, and the rest is unread rather than absent.
             sight = """
             What you hold of it is what you have READ — the blocks below \
             are real observations, each one stating its own age, and \
@@ -418,10 +273,7 @@ extension PromptCatalog {
             """
 
         case .unled:
-            // NOTHING LEADS. Reached with no live work at all — only held
-            // facts or this turn's read passage, both of which state their own
-            // provenance below. There is no screen to claim, so this claims
-            // none: the sentence names what is in hand, not a place.
+            // Nothing leads. Name what is in hand, not a place.
             place = "work they have in front of them"
             sight = """
             You are NOT looking at their screen right now. Everything below \
@@ -450,10 +302,7 @@ extension PromptCatalog {
                 held += "\n\n\(fact)"
             }
             if !inputs.heldMentions.isEmpty {
-                // Said differently HERE than in the Skill lane, and
-                // deliberately: this voice does not call Skills, so it is told
-                // what it may PROMISE, not which binding to reach for. The
-                // offsets stay out of its mouth.
+                // Voice lane: promise fetch/fix, never speak offsets or Skill names.
                 held += "\n\n" + """
                 Also still held. Each one starts with a handle like [S1], \
                 which is how I pull that exact passage back up or change \

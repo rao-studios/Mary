@@ -1,12 +1,10 @@
 //
 //  WindowTileModel.swift
-//  Mary
+//  MaryRuntime
 //
-//  The minimap's eligibility/grouping/refresh doctrine, as pure functions —
-//  zero ScreenCaptureKit imports, so every rule unit-tests without TCC. The
-//  capture actor is the only code that touches SCK types; it maps SCWindow
-//  into WindowInfo at its boundary and asks these rules what to show and
-//  what to re-thumbnail.
+//  WHAT: Minimap eligibility / grouping / refresh as pure functions.
+//  IN:   WindowCaptureService maps SCWindow → WindowInfo, then asks these rules
+//  PIN:  Zero ScreenCaptureKit imports — unit-test without TCC.
 //
 
 import CoreGraphics
@@ -27,12 +25,7 @@ package struct WindowInfo: Equatable, Sendable {
     /// ≈ "on the active Space" (documented approximation — SCK reports
     /// off-Space and hidden windows as not on screen).
     let isOnScreen: Bool
-    /// SCWindow.isActive — the ONE property this boundary used to discard,
-    /// and the only free husk detector there is. The SDK header is explicit:
-    /// "with Stage Manager, SCWindow can be offScreen and active", so
-    /// `isOnScreen == false && isActive == true` is a real, live, off-Space
-    /// window, while `false/false` on a window that also never renders is a
-    /// husk. Defaulted so every existing construction site is unchanged.
+    /// SCWindow.isActive — husk detector. offScreen+active is a live off-Space window.
     package var isActive: Bool = false
 
     package init(
@@ -52,25 +45,13 @@ package struct WindowInfo: Equatable, Sendable {
     }
 }
 
-/// What happened the last time this window was photographed — the
-/// distinction the pane could not make.
-///
-/// THE FAILURE THIS NAMES: the capture `catch` bound an error it never read
-/// and the success path stored the image unconditionally with no emptiness
-/// check, so "the screenshot threw" and "the screenshot returned a window
-/// with nothing drawn in it" rendered identically. That mattered: the ghost
-/// tile the user reported was featureless WHITE with no app name on it, which
-/// means capture SUCCEEDED on a window with no backing store — ruling out the
-/// minimized-window path the code's own comment assumed.
+/// Last photograph outcome — throw vs blank vs captured. Ghost tiles were blank success.
 package enum WindowCaptureState: Equatable, Sendable {
     /// Not photographed yet this session (or degraded mode — no pixels at all).
     case never
     /// Real pixels.
     case captured
-    /// Capture SUCCEEDED and handed back a featureless surface.
-    /// `transparent` separates an alpha-0 result — a window that has never
-    /// drawn, which is what `SCStreamConfiguration.shouldBeOpaque` being
-    /// unset lets us see — from a flat opaque fill.
+    /// Capture succeeded with a featureless surface. transparent = never drawn.
     case blank(transparent: Bool)
     /// Capture threw. The reason is kept, not swallowed.
     case failed(String)
@@ -94,9 +75,7 @@ package struct WindowTile: Identifiable, Sendable {
     package let bundleID: String?
     package let pid: pid_t
     package let appName: String
-    /// RAW — nil is nil. Never coalesced to the app name anywhere near the
-    /// inspector: "Pages" standing in for an untitled window is exactly the
-    /// mask that hid a live hypothesis about which window Mary was reading.
+    /// Raw title. Nil stays nil — never coalesce to the app name in the inspector.
     package let title: String?
     package let frame: CGRect
     package let isOnActiveSpace: Bool
@@ -107,10 +86,7 @@ package struct WindowTile: Identifiable, Sendable {
     /// Eligibility already admits only layer 0, so a non-zero here would mean
     /// the rules changed under us — worth being able to see.
     package var layer: Int = 0
-    /// Nil until first capture, or degraded/failed/blank — the view falls
-    /// back to a card. A BLANK capture deliberately stores no image: drawing
-    /// an empty rectangle is what made the ghost indistinguishable from a
-    /// window that simply hadn't been photographed yet.
+    /// Nil until first capture, or degraded/failed/blank — view falls back to a card.
     package var thumbnail: CGImage?
     package var capturedAt: Date?
     package var captureState: WindowCaptureState = .never
@@ -140,11 +116,7 @@ package struct WindowTile: Identifiable, Sendable {
 /// Is this capture real pixels or an empty surface? Pure, CoreGraphics-only,
 /// so it pins without TCC or ScreenCaptureKit.
 package enum WindowCaptureProbe {
-    /// The sample grid. 16×16 with smoothing means any real window furniture
-    /// — a title bar, a scroll bar, one line of text — lands in some cell and
-    /// breaks uniformity. Only a genuinely featureless surface survives, so
-    /// the verdict is conservative in the safe direction: a false "captured"
-    /// is a missing hint, a false "blank" would throw away a real thumbnail.
+    /// 16×16 sample grid. Conservative: false blank would throw away a real thumbnail.
     static let sampleEdge = 16
 
     package static func classify(_ image: CGImage) -> WindowCaptureState {
@@ -223,17 +195,11 @@ package struct MinimapModel: Sendable {
     }
 }
 
-/// What the eyes-view filter bar is showing. Debugger.Center stores this as a
-/// raw token (Codable-tolerant, the same reasoning as `selectedWorld`) and
-/// decodes it here, so the token vocabulary, the group predicate, and the
-/// cap/capture consequences all live in ONE place — the bar and the capture
-/// actor can never disagree about what "filtered" means.
+/// Eyes-view filter bar. Token + predicate + cap live here so bar and capture agree.
 package enum EyesFilter: Equatable, Sendable {
     /// Every enumerated app — the pane's original behaviour.
     case all
-    /// Only the apps Mary actually watches (Xcode / Scrivener / Pages) —
-    /// the tab the user asked for first, because it answers "what can she
-    /// see right now" without scrolling past a desktop of strangers.
+    /// Watched apps first (Xcode / Scrivener / Pages) — what she can see now.
     case eyes
     /// One app, keyed by AppTileGroup.id.
     case app(String)
@@ -280,28 +246,19 @@ package enum EyesFilter: Equatable, Sendable {
         }
     }
 
-    /// Whose per-app cap lifts. Filtering to ONE app and then reading
-    /// "+3 more" is the exact bug this bar exists to kill; `.all` and `.eyes`
-    /// keep every cap because they are still multi-app views.
+    /// Whose per-app cap lifts. `.all` / `.eyes` keep caps (multi-app views).
     package var uncappedGroupID: String? {
         if case .app(let id) = self { return id }
         return nil
     }
 
-    /// Falls back to `.all` when the filtered app leaves the sweep (quit, or
-    /// its last window closed): a filter pinned to a dead app renders an
-    /// empty pane whose only way out is knowing which chip disappeared. An
-    /// EMPTY sweep is not a quit — the first tick and every degraded
-    /// transition arrive empty — so the filter survives that.
+    /// Fall back to `.all` when the filtered app leaves the sweep. Empty sweep is not a quit.
     package func resolved(in groups: [AppTileGroup]) -> EyesFilter {
         guard case .app(let id) = self, !groups.isEmpty else { return self }
         return groups.contains { $0.id == id } ? self : .all
     }
 
-    /// Which groups the per-tick screenshot budget may be spent on — nil
-    /// means "every enumerated group". Under `.filtered` the budget
-    /// concentrates on what's actually on screen; `.all` keeps every window
-    /// warm so switching tabs shows current pixels instead of a stale frame.
+    /// Screenshot budget groups. nil = every group. `.filtered` concentrates on screen.
     package func captureGroupIDs(
         scope: CaptureScope, groups: [AppTileGroup],
         watchedBundleIDs: [String], watchedBundlePrefixes: [String]
@@ -342,10 +299,7 @@ package enum WindowTileBuilder {
     /// Sequential screenshots per 1 s sweep — flat WindowServer pressure.
     static let captureBudgetPerTick = 6
 
-    /// Skip Mary itself (PID beats bundle-id — dev `swift run` binaries
-    /// report the same embedded bundle id), non-normal layers (menu bar,
-    /// Dock, overlays), and palette-sized windows. Keeps off-Space windows —
-    /// that's the point.
+    /// Skip Mary (PID beats bundle-id), non-normal layers, palettes. Keep off-Space.
     package static func eligible(_ windows: [WindowInfo], ownPID: pid_t) -> [WindowInfo] {
         windows.filter { window in
             window.pid != ownPID
@@ -355,18 +309,8 @@ package enum WindowTileBuilder {
         }
     }
 
-    /// Group by bundleID (pid fallback); order: watched apps first (Xcode,
-    /// Scrivener-prefix, Pages — Mary's actual eyes), then the frontmost
-    /// app, then alphabetical. Per-app cap + total cap applied, overflow
-    /// counted, never silently dropped.
-    ///
-    /// `uncappedGroupID` is the filter bar's escape hatch: the app the pane
-    /// is filtered to sheds `maxPerApp` and spends the total budget FIRST.
-    /// Both halves matter — without the cap lift, filtering to one app still
-    /// reads "+3 more" (the bug the bar exists to kill); without the priority,
-    /// an app that sorts late (8 apps × 4 windows exhausts 24 before it) would
-    /// show an EMPTY pane to the very user who filtered to it. Defaulted, so
-    /// the unfiltered path and its two cap pins are byte-identical.
+    /// Group by bundleID (pid fallback). Watched first, then frontmost, then alpha.
+    /// uncappedGroupID sheds maxPerApp and spends the total budget first.
     package static func groups(
         _ windows: [WindowInfo],
         frontmostBundleID: String?,
@@ -405,10 +349,7 @@ package enum WindowTileBuilder {
                        watchedBundleIDs: watchedBundleIDs, watchedBundlePrefixes: watchedBundlePrefixes)
         }
 
-        // Total cap across the ordered groups: later groups shed tiles into
-        // their overflow count; the group row itself always survives. The
-        // uncapped (filtered) group is served first — display order is
-        // unchanged, only the order the budget is handed out in.
+        // Total cap: later groups overflow. Uncapped group served first; display order unchanged.
         var budget = maxTotal
         var spendOrder = Array(groups.indices)
         if let uncappedGroupID,
@@ -427,13 +368,7 @@ package enum WindowTileBuilder {
         return groups
     }
 
-    /// THE capture-candidate list: every shown tile, narrowed to the scoped
-    /// groups when the bar is in `.filtered`. The narrowing happens HERE and
-    /// never on `eligible` — the sweep must keep enumerating every app,
-    /// because `model.groups` is what populates the filter bar's own tabs. A
-    /// view-side-only filter would be worse than useless: hidden tiles drop
-    /// out of `visibleTiles` (losing stagger priority) while still consuming
-    /// the 6-screenshots-per-tick budget. nil scope = no narrowing.
+    /// Capture candidates. Narrow here, never on eligible — sweep still feeds the tab bar.
     package static func captureCandidates(
         _ groups: [AppTileGroup], scopedTo groupIDs: Set<String>?
     ) -> [CGWindowID] {
@@ -442,12 +377,7 @@ package enum WindowTileBuilder {
             .flatMap { $0.windows.map(\.id) }
     }
 
-    /// The bar's own tab budget. Degraded mode emits one group per regular
-    /// running app — 15–25 of them — and three wrapped rows of icons is not a
-    /// filter, it's a second scrolling problem. Groups arrive watched-first,
-    /// so the cut always falls on the least relevant apps; the SELECTED tab
-    /// is pulled through the cut, because filtering to an app must never make
-    /// that app's own chip disappear.
+    /// Tab budget. Selected tab always survives the cut. Groups arrive watched-first.
     package static let maxFilterTabs = 12
 
     package static func filterTabs(
@@ -525,13 +455,7 @@ package enum WindowTileBuilder {
         return (2, 0, appName.lowercased(), groupID)
     }
 
-    /// Exact-id match, except Scrivener, whose builds share a bundle-id
-    /// prefix — a prefix match lands in that application's watched slot.
-    ///
-    /// The families arrive as a LIST because they come from the roster now:
-    /// one per registration that declared a `bundleIdentifierPrefix`. It was a
-    /// single hardcoded Scrivener prefix, which is the same fact stated where
-    /// no package could edit it.
+    /// Exact-id match, except roster prefix families (e.g. Scrivener builds).
     static func watchedIndex(
         of bundleID: String?, in watchedBundleIDs: [String], watchedBundlePrefixes: [String]
     ) -> Int? {
@@ -586,10 +510,7 @@ package enum DegradedRoster {
         watchedBundlePrefixes: [String]
     ) -> [AppTileGroup] {
         var groups: [AppTileGroup] = apps.filter(\.isRegular).map { app in
-            // PID-qualified even when the bundle id is known: two instances of
-            // one app (a dev binary beside its .app, `open -n`) share a bundle
-            // id, and duplicate ForEach ids make SwiftUI drop or scramble
-            // tiles. The join back to perception still runs off `bundleID`.
+            // PID-qualify ForEach ids — two instances share a bundle id. Join still uses bundleID.
             let id = app.bundleID.map { "\($0)#\(app.pid)" } ?? "pid:\(app.pid)"
             let tile = WindowTile(
                 // Synthetic id — degraded mode has no CGWindowIDs at all, so
@@ -603,10 +524,7 @@ package enum DegradedRoster {
                 // Spaces are invisible without Screen Recording — claim the
                 // active Space so no off-Space badge lies.
                 isOnActiveSpace: true,
-                // Degraded mode enumerates APPS, not windows: there is no
-                // SCWindow behind this tile, so activity, layer and capture
-                // state are unknowable rather than false. The inspector says
-                // so out loud instead of rendering these as facts.
+                // Degraded mode enumerates apps, not windows — activity/layer unknowable, not false.
                 isActive: false,
                 layer: 0,
                 thumbnail: nil,

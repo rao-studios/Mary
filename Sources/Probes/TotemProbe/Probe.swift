@@ -2,18 +2,8 @@
 //  Probe.swift
 //  mary-totem-probe
 //
-//  Headless exerciser for the TotemDirectClient facade against a live local
-//  Totem (:9090) — the MaryTotem sibling of `mary-voice-probe`.
-//
-//    mary-totem-probe deposit "some text" --owner o1 [--doc-id d1] [--group g1]
-//                       [--entity name:kind]... [--relation subj:pred:obj]...
-//    mary-totem-probe search "query" --owner o1
-//    mary-totem-probe library --owner o1
-//    mary-totem-probe groups --docs d1,d2 --owner o1
-//    mary-totem-probe doc --docs d1,d2 --owner o1   (full content by id)
-//    mary-totem-probe stats --owner o1
-//    mary-totem-probe remove --docs d1,d2 --owner o1
-//    mary-totem-probe roundtrip --owner o1     (deposit → search → fetch → remove)
+//  WHAT: Headless TotemDirectClient against live local Totem (:9090).
+//  OUT:  deposit/search/library/groups/doc/stats/remove/roundtrip
 //
 
 import MaryTotem

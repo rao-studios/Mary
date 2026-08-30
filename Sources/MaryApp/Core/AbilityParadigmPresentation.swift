@@ -2,21 +2,9 @@
 //  AbilityParadigmPresentation.swift
 //  Mary
 //
-//  ONE VOCABULARY FOR "WHAT KIND OF ABILITY IS THIS", shared by every surface
-//  that shows one.
-//
-//  The words and the icon live here rather than at each call site because the
-//  alternative already went wrong: `shippingbox.fill` meant DYNAMIC in the
-//  transcript chip and NATIVE in Ability Studio, two files apart, so the same
-//  glyph told a user opposite things depending on where they looked. A
-//  vocabulary that is defined once cannot disagree with itself.
-//
-//  Paradigm and realization are separate questions and are answered
-//  separately. Design and Writing are both disciplines though one waits for
-//  dynamic providers and the other binds native plugins; Sketch is
-//  application expertise AND package-taught. Collapsing the two axes into one
-//  badge is what made "is Sketch a dynamic plugin or an Ability?" feel like a
-//  trick question.
+//  WHAT: Shared vocabulary for "what kind of Ability" (label, glyph, tint).
+//  OUT:  AbilityBadgeRow / Ability Studio / transcript chips
+//  PIN:  Paradigm and realization are separate axes. One glyph per role; never `shippingbox`.
 //
 
 import MaryFoundation
@@ -30,15 +18,13 @@ struct AbilityParadigmPresentation {
         self.paradigm = paradigm
     }
 
-    /// The noun, from the schema — never re-worded here, so the package
-    /// format and the interface always agree.
+    /// Schema noun — never re-worded here.
     var label: String { paradigm.label }
 
     /// One sentence for help text and empty states.
     var explanation: String { paradigm.explanation }
 
-    /// DISTINCT GLYPHS, chosen so no two roles share one and none collides
-    /// with the generic `shippingbox` that means "an Ability" everywhere.
+    /// Distinct glyphs; none is the generic `shippingbox` ("an Ability").
     var symbol: String {
         switch paradigm {
         case .discipline: return "book.closed.fill"
@@ -72,8 +58,7 @@ struct AbilityParadigmPresentation {
     }
 }
 
-/// HOW an Ability's Skills are implemented — the second axis, kept apart from
-/// the role on purpose.
+/// How Skills are implemented — second axis, kept apart from role.
 struct AbilityRealizationPresentation {
     let pluginClass: PluginProviderClass
 
@@ -88,10 +73,7 @@ struct AbilityRealizationPresentation {
         }
     }
 
-    /// `shippingbox.fill` is reserved for the DYNAMIC case across the whole
-    /// app: a package-taught plugin arrives in a box. Native code is built in,
-    /// so it gets the hammer. These two were previously swapped between the
-    /// chip and the Studio.
+    /// `shippingbox.fill` = package-taught. Native is `hammer.fill`.
     var symbol: String {
         switch pluginClass {
         case .runtime: return "hammer.fill"
@@ -99,7 +81,7 @@ struct AbilityRealizationPresentation {
         }
     }
 
-    /// The tiny capsule word for a transcript chip.
+    /// Tiny capsule word for a transcript chip.
     var badgeWord: String {
         switch pluginClass {
         case .runtime: return "BUILT IN"

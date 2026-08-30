@@ -2,9 +2,11 @@
 //  ProjectCorpusAdapter+Index.swift
 //  MaryPlugin
 //
-//  LOCATE, REFERENCES, OPEN, VOCABULARY — the project-lane ops that are
-//  the same for a manuscript and a source tree. Nothing here names an
-//  application. A bundle project (`.scriv`) is never written on disk.
+//  WHAT: Locate, references, open, vocabulary — shared project-lane ops.
+//  IN:   ProjectCorpusAdapter / ProjectCorpusReader / ProjectCorpusSupport
+//  OUT:  SkillOutcome
+//  PIN:  Sibling of ProjectCorpusAdapter.swift. Nothing names an app.
+//        A bundle project (`.scriv`) is never written on disk.
 //
 
 import AppKit

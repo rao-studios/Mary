@@ -1,7 +1,16 @@
+//
+//  RoutingSchemas.swift
+//  MaryFoundation
+//
+//  WHAT: Closed routing predicates and conflict policy.
+//  IN:   AbilitySchema.routing / SkillSchema.routing.
+//  OUT:  MaryBrain route, AbilityPackageValidator predicate checks.
+//  PIN:  Packages contribute data, never code or safety arbitration.
+//
+
 import Foundation
 
-/// A closed predicate language. Ability packages may contribute data to the
-/// router, but cannot ship code or replace Mary's safety arbitration.
+/// Closed predicate language.
 public struct RoutingPredicate: Codable, Hashable, Sendable {
     public enum Kind: String, Codable, Hashable, Sendable, CaseIterable {
         case all

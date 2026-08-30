@@ -2,29 +2,17 @@
 //  StyleRendering.swift
 //  MaryFoundation
 //
-//  THE ONLY PLACE A TENET BECOMES WORDS.
-//
-//  Every sentence below is a Mary-owned literal, selected by a closed enum
-//  value. Nothing a profile carries is ever concatenated into model
-//  instruction — not its statement, not its illustration, not a publisher
-//  string. That is what makes the format safe to import: a hostile profile can
-//  pick a different sentence from this file, and cannot write a new one.
-//
-//  It lives beside the enum on purpose. The safety property is "every closed
-//  value maps to a literal we wrote", and a property like that is only
-//  reviewable if the map and the vocabulary are read together — a
-//  `switch` here with no `default` is what makes a new value impossible to add
-//  without also writing its sentence.
+//  WHAT: Mary-owned sentences for closed StyleDimension/StyleValue pairs.
+//  IN:   StyleTenet.isRenderable.
+//  OUT:  brief / coding prompt block.
+//  PIN:  Exhaustive switch, no default. Profile prose never concatenates in.
 //
 
 import Foundation
 
 public enum StyleRendering {
 
-    /// The sentence for one tenet, or nil when it must not speak.
-    ///
-    /// Nil is the common case for imported, unverified, or unknown tenets, and
-    /// callers treat it as "say nothing" rather than as an error.
+    /// Sentence, or nil (imported / unverified / unknown → say nothing).
     public static func sentence(for tenet: StyleTenet) -> String? {
         guard tenet.isRenderable else { return nil }
         if tenet.dimension == .roleVocabulary {
@@ -33,18 +21,14 @@ public enum StyleRendering {
         return sentence(dimension: tenet.dimension, value: tenet.value)
     }
 
-    /// A bounded word list interpolated into a Mary-owned template. The
-    /// words are DATA — the user's own naming — and the sentence around them
-    /// is ours.
+    /// Role words into a Mary-owned template. Words are data; sentence is ours.
     static func vocabularySentence(_ vocabulary: [String]) -> String? {
         let words = vocabulary.prefix(8)
         guard !words.isEmpty else { return nil }
         return "They name things with role words like \(words.joined(separator: ", "))."
     }
 
-    /// EXHAUSTIVE ON PURPOSE — no `default`. A new dimension or value cannot
-    /// compile until someone has written what it means in words, which is the
-    /// review gate the whole trust model rests on.
+    /// Exhaustive — new dimension/value must write its sentence to compile.
     static func sentence(dimension: StyleDimension, value: StyleValue) -> String? {
         switch dimension {
         case .concurrencyPrimitive:
@@ -152,11 +136,7 @@ public enum StyleRendering {
         }
     }
 
-    /// The block handed to a coding brief, or to the coding prompt.
-    ///
-    /// Ordered by confidence so a budget cut drops the weakest claims first,
-    /// and hard-capped in characters because the coding prompt has very little
-    /// headroom left.
+    /// Coding brief/prompt block. Confidence order; character cap.
     public static func block(
         for tenets: [StyleTenet],
         limit: Int = 1_200,
@@ -178,8 +158,7 @@ public enum StyleRendering {
             guard block.count + line.count <= limit else { break }
             block += line
         }
-        // Everything was dropped by the budget — say nothing rather than
-        // emitting a bare heading.
+        // Budget dropped everything — no bare heading.
         return block == heading ? nil : block
     }
 }

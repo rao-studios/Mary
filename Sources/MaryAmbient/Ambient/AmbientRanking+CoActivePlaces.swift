@@ -1,27 +1,24 @@
 //
 //  AmbientRanking+CoActivePlaces.swift
+//  MaryAmbient
 //
-
+//  WHAT: Compact prompt lines for places with fresh evidence beside the lead.
+//  IN:   AmbientPlace + AmbientFact
+//  OUT:  heldContext (keys seed alreadyRendered so a fact never renders twice)
+//  PIN:  Full blocks are the lead's privilege; co-active facts are mention lines.
+//
 import Foundation
 
 extension AmbientRanker {
 
     // MARK: - Co-active places (the merged-worlds section)
 
-    /// How much one CO-ACTIVE place's compact lines may spend, and the cap
-    /// across all of them. Deliberately small: the lead keeps today's full
-    /// budgets untouched; co-active places are context beside it, ranked by
-    /// recency, degrading place-by-place back to today's one-liners (never
-    /// silence) when the total runs out.
+    /// How much one CO-ACTIVE place's compact lines may spend, and the cap across all of them.
     public static let coActivePlaceBudget = 280
     public static let coActiveTotalBudget = 900
 
-    /// THE MERGED-WORLDS RENDERING: compact per-place lines for the places
-    /// with fresh evidence beside the lead. Facts render as their MENTION
-    /// lines (bounds + age, never full content — full blocks are the lead's
-    /// privilege), newest first, under the per-place and total budgets. The
-    /// rendered keys come back so `heldContext` can seed `alreadyRendered`
-    /// and the same fact never renders twice in one prompt.
+    /// THE MERGED-WORLDS RENDERING: compact per-place lines for the places with fresh evidence
+    /// beside the lead.
     public static func coActiveLines(
         places: [(place: AmbientPlace, glanced: Bool)],
         facts: [AmbientFact],

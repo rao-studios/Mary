@@ -2,15 +2,13 @@
 //  BargeInGovernor.swift
 //  MaryVoice
 //
-//  The interruption cadence while Mary speaks, as a pure state machine so
-//  the timing logic is testable without audio. Three phases:
+//  WHAT: Interruption cadence while Mary speaks. Pure — testable without audio.
+//  IN:   VoicePipeline.speaking frames / AmendCapture
+//  OUT:  pause | commit | resume
 //
-//    idle ──rms ≥ onset──▶ provisional (playback pauses IMMEDIATELY)
+//    idle ──rms ≥ onset──▶ provisional (playback pauses immediately)
 //    provisional ──voiced ≥ commitAfter──▶ commit (full barge-in)
 //    provisional ──quiet ≥ retreatAfter──▶ retreat (resume playback)
-//
-//  A cough costs a sub-second dip in playback; real speech stops Mary and
-//  becomes the next utterance.
 //
 
 import Foundation
@@ -19,11 +17,11 @@ struct BargeInGovernor {
 
     enum Action: Equatable {
         case none
-        /// First frame over the onset threshold — pause playback NOW.
+        /// First frame over onset — pause playback now.
         case pause
-        /// Sustained speech — commit the barge-in (hard stop, new utterance).
+        /// Sustained speech — commit barge-in (hard stop, new utterance).
         case commit
-        /// The interruption died out — resume playback.
+        /// Interruption died out — resume playback.
         case resume
     }
 

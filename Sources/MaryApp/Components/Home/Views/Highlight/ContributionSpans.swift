@@ -2,23 +2,15 @@
 //  ContributionSpans.swift
 //  Mary
 //
-//  Server character-offset spans → UI-ready ranges with per-owner colors.
-//  Port of Sis's VoidSessionViewModel.generateSpans/paletteColor; every
-//  conversion clamps with index(_:offsetBy:limitedBy:) because offsets can
-//  drift across graphemes.
+//  WHAT: Server char-offset spans → UI ranges + per-owner colors.
+//  PIN:  Clamp with index(_:offsetBy:limitedBy:) (grapheme drift).
 //
 
 import MaryBrain
 import SwiftUI
 
 struct ContributionTextSpan: Identifiable {
-    /// Identity derived from WHAT the span is — its owner and its offsets —
-    /// never from WHEN it was built. This was `UUID()`, and because the spans
-    /// are rebuilt by a computed property on every body pass, every
-    /// brushstroke got a fresh SwiftUI identity each render. SwiftUI answered
-    /// by tearing down each stroke and its `@State opacity`, restarting the
-    /// 0.7s fade from zero — so under the 20-60 Hz re-render storm that runs
-    /// while Mary speaks, the highlights pumped instead of settling.
+    /// Stable id from owner + offsets (not UUID); rebuilt each body pass.
     let id: String
     let range: Range<String.Index>
     let owner: SeerContribution.Owner

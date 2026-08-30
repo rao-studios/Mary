@@ -37,13 +37,7 @@ extension DebuggerPaneView {
 
     // MARK: - Inspector
 
-    /// The tapped tile, resolved from the WHOLE sweep rather than the
-    /// filtered view: a tab change must never strand the selection on a tile
-    /// the pane no longer renders, leaving the inspector talking about
-    /// nothing. `vm.model.groups`, never `visibleGroups`.
-    ///
-    /// No dedupe anywhere in this path — two tiles for one document is the
-    /// FINDING, and coalescing them would delete it.
+    /// Selected tile from the whole sweep (`vm.model.groups`), never visibleGroups.
     var selectedTile: WindowTile? {
         guard let selectedWindowID else { return nil }
         return vm.model.groups
@@ -63,10 +57,7 @@ extension DebuggerPaneView {
     var inspectorSlot: some View {
         VStack(alignment: .leading, spacing: .layer2) {
             SectionLabel("Inspector")
-            // The window the user tapped, IN ADDITION to (never instead of)
-            // the per-app perception card below — two Pages tiles produce the
-            // same world card by construction, which is exactly why they were
-            // indistinguishable.
+            // Tapped window plus the per-app card (two tiles can share a world).
             if let tile = selectedTile {
                 WindowInspectorView(tile: tile, isDegraded: isDegradedMode)
             }
@@ -113,11 +104,7 @@ extension DebuggerPaneView {
             forType: .string)
     }
 
-    /// Read straight off the tracker's truth (the VM polls it and refreshes
-    /// synchronously on toggle). A Center-held mirror was a SECOND copy of
-    /// pin state that died with the pane: closing and reopening the split
-    /// re-minted an empty Center while the pin kept steering focus, so the
-    /// badge vanished from a pin that was still live. One source only.
+    /// Pin from the tracker via the VM; no Center mirror.
     func isPinned(_ group: AppTileGroup) -> Bool {
         guard let pinned = perceptionVM.focus.pinned else { return false }
         return PerceptionSnapshotViewModel

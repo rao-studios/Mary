@@ -2,12 +2,10 @@
 //  MLXGPUGate.swift
 //  MaryBrain
 //
-//  One generation at a time on the local GPU. Conversation and coding
-//  engines both wait here so two models never decode together. Acquire and
-//  release hop onto this actor; the generate itself stays on the engine that
-//  holds ModelContext.
+//  WHAT: One local-GPU generation at a time.
+//  IN:   conversation + coding engines
+//  OUT:  acquire / release; generate stays on the engine that holds ModelContext
 //
-
 import Foundation
 
 actor MLXGPUGate {

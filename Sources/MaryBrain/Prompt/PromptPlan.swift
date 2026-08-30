@@ -2,15 +2,11 @@
 //  PromptPlan.swift
 //  MaryBrain
 //
-//  WHICH SECTIONS, IN WHICH ORDER. Reading `PromptPlan.full.order` tells you
-//  what the model receives and in what sequence — the thing that used to take
-//  reconstructing 190 lines of `prompt +=` by hand.
+//  WHAT: Which sections, in which order.
+//  IN:   PromptCatalog
+//  OUT:  concatenated prompt string
+//  PIN:  Renderer is pure concatenation; it supplies no separator of its own.
 //
-//  The renderer is PURE CONCATENATION of self-leading sections. It supplies
-//  no separator of its own, ever; see `PromptSection`'s header for why that
-//  is the whole reason this refactor can be byte-identical.
-//
-
 import Foundation
 
 /// A defect found by `validate` — a plan that could not render correctly.
@@ -45,10 +41,7 @@ public struct PromptPlan: Sendable {
                     id: id, outcome: .omitted, chars: 0, rationale: "not in catalog"))
                 continue
             }
-            // Exclusivity resolves by PLAN ORDER — the first member to render
-            // claims the group, and later members are excluded rather than
-            // silently appended. That is `fullSectionsNeverCoexist` enforced
-            // at the prompt layer instead of trusted from the arbiter.
+            // Exclusivity resolves by PLAN ORDER — the first member to render claims the group, and later members are excluded rather than silently appended.
             if let group = section.exclusive, claimedGroups.contains(group) {
                 spend.append(PromptSpend(
                     id: id, outcome: .excluded, chars: 0, rationale: section.rationale))
@@ -93,10 +86,7 @@ public struct PromptPlan: Sendable {
         for id in order where catalog[id] == nil {
             fail("section \(id.rawValue) is not in the catalog")
         }
-        // THE ORDERING DOCTRINE, checked. A terminal section is one nothing
-        // may follow; if the plan lists anything after it, the plan is wrong
-        // regardless of whether today's inputs happen to leave that section
-        // empty.
+        // THE ORDERING DOCTRINE, checked. A terminal section is one nothing may follow
         for (index, id) in order.enumerated() {
             guard let section = catalog[id], section.ordering.terminal else { continue }
             let after = order[(index + 1)...]
@@ -120,12 +110,7 @@ public struct PromptPlan: Sendable {
 
 public extension PromptPlan {
 
-    /// TODAY'S PROMPT, byte for byte. The order below is the exact sequence
-    /// `MaryPrompts.system` appended in, and `PromptPlanGoldenTests` proves
-    /// it against a frozen copy of that function over a generated matrix.
-    ///
-    /// It stays after the route-driven plans arrive: it is the escalation
-    /// target, and it is the fixture every narrower plan is diffed against.
+    /// TODAY'S PROMPT, byte for byte. The order below is the exact sequence `MaryPrompts.system` appended in
     static let full = PromptPlan(
         name: "full",
         order: [
@@ -139,22 +124,7 @@ public extension PromptPlan {
         ])
 
     /// THE VOICE LANE, byte for byte.
-    ///
-    /// The four personas are listed in the source's own `if / else if / else`
-    /// order, which is how their precedence is expressed: they share the
-    /// `seerPersona` exclusive group, and the renderer gives the group to the
-    /// first member that has something to say. `readReport` therefore wins
-    /// over `groundedResults` positionally instead of through a ladder the
-    /// next persona has to be threaded into by hand — and that precedence is
-    /// load-bearing, because the grounded persona says "never repeat the
-    /// content that was written", which is literally an instruction not to
-    /// read a passage aloud.
-    ///
-    /// `seerPersonaConverse` is third for the same reason, and its position IS
-    /// half its gate: it asks only "was this turn conversation?", and the two
-    /// personas ahead of it supply the rest of the condition by claiming the
-    /// group first. A turn that both reads something and chats still reports
-    /// the read.
+    /// PIN: The four personas are listed in the source's own `if / else if / else` order
     static let voice = PromptPlan(
         name: "voice",
         order: [
@@ -163,11 +133,7 @@ public extension PromptPlan {
             .seerPersonaInTurn,
             .seerCapability, .seerRetrieval,
             .seerSightPending,
-            // BEFORE the live work, not after it. The turn loop used to append
-            // this to the finished string, which put a sentence about
-            // background routines after the user's own prose — inside the
-            // block the model is told is the document. See
-            // `PromptCatalog.seerRunningActions`.
+            // BEFORE the live work, not after it. The turn loop used to append this to the finished string
             .seerRunningActions,
             .seerLiveWork,
         ])

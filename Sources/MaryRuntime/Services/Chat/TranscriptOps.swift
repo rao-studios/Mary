@@ -1,14 +1,11 @@
 //
 //  TranscriptOps.swift
-//  Mary
+//  MaryRuntime
 //
-//  The single writer's mutation bodies, pure and unit-testable: every
-//  conversation write — voice, text, and proactive — funnels through
-//  MirrorVoice into `apply`. The doctrine here is id-resolution: in-turn
-//  writes target the ACTIVE turn's bubble, deferred writes target the
-//  ORIGINATING turn's bubble, and an unknown id drops with a log — never
-//  a positional fallback (positional attachment was the mis-anchored-chip
-//  and stolen-follow-up bug).
+//  WHAT: Single writer's mutation bodies — pure, unit-testable.
+//  IN:   MirrorVoice → apply
+//  PIN:  Id-resolution. In-turn → active bubble; deferred → originating
+//        bubble; unknown id drops with a log. Never positional fallback.
 //
 
 import MaryBrain
@@ -26,14 +23,7 @@ package enum TranscriptOps {
             state.appendExchange(userText: text)
 
         case .turnBegan(let id):
-            // Stamp the trailing exchange — from the last user row to the
-            // end — so chat and history agree on the turn's identity. The
-            // amend flow reuses its rows; restamping keeps them under the
-            // NEW turn's id, exactly as the brain's history does. Standalone
-            // notices are NOT this turn's rows: the open one (tracked id)
-            // and any finalized unstamped assistant narrate other work —
-            // stamping them would hand them to the new turn's in-turn
-            // writes to clobber.
+            // Stamp trailing exchange (last user row → end). Spare standalone notices.
             state.activeTurnID = id
             if let lastUser = state.conversation.utterances.lastIndex(where: { $0.role == .user }) {
                 for idx in lastUser..<state.conversation.utterances.endIndex {
@@ -67,14 +57,7 @@ package enum TranscriptOps {
             }
 
         case .abilityRunResult(let record, let turnID):
-            // The result answers whichever bubble holds the ask — correlated
-            // by the wire invocation id, never by position.
-            //
-            // IT REPLACES THE ROW RATHER THAN PATCHING TWO FIELDS. The ask
-            // row was composed from what was REQUESTED; the settled record
-            // carries what was TOUCHED — the element, its frame, the adapter
-            // trail — and merging by assignment would have kept the ask's
-            // empty target forever.
+            // Replace the row by wire invocation id, never position. Settled record, not a patch.
             let idx = turnID.flatMap { bubbleIndex(turnID: $0, in: state) }
                 ?? inTurnAssistantIndex(state, turnID: nil)
             guard let idx else { return }
@@ -130,58 +113,33 @@ package enum TranscriptOps {
             state.isGenerating = false
 
         case .assistantDone(let fullText, let turnID):
-            // A terminal from a producer that knows its turn must resolve to
-            // that exact bubble.  In the supersede → turnBegan gap, falling
-            // back to the last unstamped streaming bubble would let an old
-            // completion finalize the new reply.  A miss is deliberately a
-            // no-op: its exchange is gone, and it has no bookkeeping claim on
-            // the current turn either.
+            // Terminal with a turn id resolves to that bubble. Miss is a no-op.
             guard let idx = inTurnAssistantIndex(state, turnID: turnID) else { return }
             state.conversation.utterances[idx].isThinking = false
             state.conversation.utterances[idx].isStreaming = false
-            // Replace text only when the terminal payload genuinely differs;
-            // an EMPTY fullText (silent action turn) must never wipe the
-            // streamed words the user already read.
-            // Contribution spans are safe across this write: Seer yields
-            // .contribution and .completed(fullText:) back to back off the
-            // SAME spokenText, so replacing the accumulated stream with
-            // fullText anchors the offsets to the string they were measured
-            // against — it corrects them rather than drifting them.
+            // Replace text only when fullText differs. Empty fullText never wipes streamed words.
             if !fullText.isEmpty, fullText != state.conversation.utterances[idx].text {
                 state.conversation.utterances[idx].text = fullText
             }
-            // A silent action turn ends with empty text: keep the row when
-            // chips ran (the badges ARE the reply), when follow-up narration
-            // already merged in, or when a live routine still calls this
-            // bubble home — drop it only when truly blank and orphaned.
+            // Silent action: keep if chips, follow-up, or live routine; drop only if orphaned.
             if shouldDropHusk(state.conversation.utterances[idx], state: state) {
                 state.conversation.utterances.remove(at: idx)
             }
-            // A tagged terminal may finalize an older retained bubble (for
-            // example one hosting a detached routine). It must not clear the
-            // newer turn's generation state. Untagged legacy producers retain
-            // the existing current-bubble behavior.
+            // Tagged terminal may finalize an older bubble — do not clear the newer turn.
             if turnID == nil || state.activeTurnID == turnID {
                 state.activeTurnID = nil
                 state.isGenerating = false
             }
 
         case .textSuperseded:
-            // A new typed request replaced the in-flight turn: drop its
-            // partial exchange — the caller drives respondSuperseding, whose
-            // removeLastExchange drops the same exchange from history, so
-            // the two views move together. A standalone notice interleaved
-            // after the user row is spared (it narrates other work).
+            // Drop the partial exchange. Spare standalone notices after the user row.
             if state.isGenerating,
                let lastUser = state.conversation.utterances.lastIndex(where: { $0.role == .user }) {
                 let active = state.activeTurnID
                 let noticeID = state.standaloneNoticeID
                 let range = lastUser..<state.conversation.utterances.endIndex
                 let survivors = state.conversation.utterances[range].filter { row in
-                    // A nil active id must not match unstamped rows wholesale
-                    // (nil == nil) — in the pre-stamp window the in-flight
-                    // rows are exactly the unstamped STREAMING ones; a
-                    // finalized notice keeps its place.
+                    // Nil active id must not match unstamped rows (nil == nil). Streaming only.
                     let inFlight = row.role == .user
                         || (active != nil && row.turnID == active)
                         || (row.turnID == nil && row.isStreaming && row.id != noticeID)
@@ -193,16 +151,8 @@ package enum TranscriptOps {
             state.isGenerating = false
 
         case .exchangeSuperseded(let id):
-            // Brain-authoritative overlap supersede: the brain removed the
-            // exchange keyed by this user-turn id; drop the same bubbles —
-            // every row of that exchange (user included) was stamped by its
-            // .turnBegan, so the removal is exact and spares proactive
-            // rows, standalone notices, and other turns' bubbles. The NEW
-            // turn's rows are already on the page (its userSpoke precedes
-            // the brain stream) and still unstamped — untouched here, then
-            // stamped by the .turnBegan that follows this event. Unlike
-            // .textSuperseded, isGenerating stays: the superseding turn's
-            // userSpoke owns it and is still streaming.
+            // Drop bubbles stamped with this user-turn id. New turn's unstamped rows stay.
+            // isGenerating stays — superseding userSpoke is still streaming.
             state.conversation.utterances.removeAll { $0.turnID == id }
             // The removed turn can no longer be active; until the new
             // .turnBegan lands, in-turn writes resolve via the unstamped
@@ -215,13 +165,7 @@ package enum TranscriptOps {
             }
 
         case .routineStarted(let routineID, let label, let origin):
-            // A LIST, not a Bool and no longer a bare count: several routines
-            // can run at once, one finishing must not douse the chip while
-            // another still works, and a person looking at the chip should be
-            // able to see which is which.
-            //
-            // Keyed by id, so a duplicate start is a no-op rather than an
-            // inflated count.
+            // Running-routine list keyed by id. Duplicate start is a no-op.
             if !state.runningRoutineRows.contains(where: { $0.id == routineID }) {
                 state.runningRoutineRows.append(RunningRoutineRow(
                     id: routineID, label: label, originTurnID: origin))
@@ -233,11 +177,7 @@ package enum TranscriptOps {
             }
 
         case .routineEnded(let routineID, let origin):
-            // REMOVAL BY ID IS IDEMPOTENT, and that is an improvement rather
-            // than housekeeping: a cancelled routine can yield both
-            // `.routineCancelled` and, moments later, `.routineSettled`. The
-            // old counter clamped that double-decrement at zero and quietly
-            // lost a still-running sibling's place in the count.
+            // Removal by id is idempotent (cancelled then settled).
             state.runningRoutineRows.removeAll { $0.id == routineID }
             // Remove ONE occurrence — never the bubble itself.
             if let idx = state.activeRoutineOrigins.firstIndex(of: origin) {
@@ -278,10 +218,7 @@ package enum TranscriptOps {
 
     // MARK: - Resolution (id first, never position)
 
-    /// The in-flight turn's assistant bubble: the last assistant row stamped
-    /// with the active turn id — or, in the pre-stamp window (.userSpoke has
-    /// appended the streaming row but .turnBegan hasn't arrived), the last
-    /// unstamped streaming assistant.
+    /// In-flight assistant bubble: last stamped with active turn, or last unstamped streaming.
     static func currentAssistantIndex(_ state: ChatService.Center.State) -> Int? {
         let utterances = state.conversation.utterances
         if let active = state.activeTurnID,
@@ -294,23 +231,8 @@ package enum TranscriptOps {
         })
     }
 
-    /// An in-turn write's bubble, resolved BY THE WRITE'S OWN IDENTITY.
-    ///
-    /// `currentAssistantIndex` answers "which bubble is the page's active
-    /// turn writing to" — the right question for a write that is definitely
-    /// the active turn's. It is the WRONG question for a write that merely
-    /// arrived: a superseded turn's token, resuming after `.exchangeSuperseded`
-    /// cleared `activeTurnID` and before the new `.turnBegan` stamps, falls
-    /// through to "the last unstamped streaming assistant" — the NEW turn's
-    /// bubble. That is the reported late-append, in the transcript.
-    ///
-    /// So: when the producer knows its turn, the write resolves against THAT
-    /// id and a miss DROPS + LOGS — the same drop-and-log doctrine follow-ups
-    /// and proactive chips already follow. `lastIndex` (not `firstIndex`)
-    /// keeps this identical to `currentAssistantIndex`'s stamped branch: the
-    /// amend flow can leave more than one assistant row under one id.
-    /// A nil id keeps the legacy resolution for producers with no `.turnBegan`
-    /// to hand (probes, direct unit writes).
+    /// In-turn write resolved by the write's own turn id. Miss drops + logs.
+    /// Nil id keeps legacy resolution (probes). lastIndex — amend can leave two rows.
     static func inTurnAssistantIndex(
         _ state: ChatService.Center.State, turnID: UUID?
     ) -> Int? {
@@ -352,10 +274,7 @@ package enum TranscriptOps {
         to state: inout ChatService.Center.State
     ) {
         if let turnID {
-            // Anchored: merge into the ORIGINATING bubble. Unknown id →
-            // drop + log (the audio already spoke; automemory keeps the
-            // final exchange, so this only hits routines outliving a
-            // collapse of their own turn).
+            // Merge into the originating bubble. Unknown id → drop + log.
             guard !text.isEmpty else { return }
             guard let idx = bubbleIndex(turnID: turnID, in: state) else {
                 log.warning("follow-up dropped — origin bubble \(turnID) not on the page")

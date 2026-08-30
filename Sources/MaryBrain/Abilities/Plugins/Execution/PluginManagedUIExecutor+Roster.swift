@@ -1,15 +1,11 @@
 //
 //  PluginManagedUIExecutor+Roster.swift
-//  PACKAGE OPERATIONS → RUNTIME SKILL BINDINGS: materializes a callable Skill
-//  for exactly the operations owned by a READY semantic skill in one immutable
-//  snapshot, and for nothing else.
+//  MaryBrain
 //
-//  THE "OWNED BY A READY SKILL" CLAUSE IS THE POLICY GATE. An operation is an
-//  implementation, never a standalone model tool: without it a package could
-//  ship a raw application command with no Ability deciding when it may run,
-//  what it costs, or whether it needs confirming. Every candidate the
-//  evaluator finds compatible materializes — not just the statically
-//  preferred one — so the per-turn resolver has rivals to choose among.
+//  WHAT: Materialize callable Skills for operations owned by a READY semantic skill.
+//  IN:   PluginManagedUIExecutor.swift
+//  OUT:  LocalSkillBinding set for the snapshot
+//  PIN:  Operations are implementations, never standalone model tools.
 //
 import AppKit
 import ApplicationServices
@@ -53,14 +49,7 @@ extension PluginManagedUIExecutor {
               manifest.resolvedProvider.originPackageID == record.package.package.id
         else { return [] }
 
-        // Dynamic operations are implementations, never standalone
-        // model tools. Materialize only operations OWNED by a ready
-        // semantic Skill in this immutable snapshot — every compatible
-        // candidate now, not just the statically preferred one, so the
-        // per-turn provider resolver has rivals to choose among. An
-        // unavailable provider or an otherwise unrealized recipe still
-        // cannot fall through as a raw adapter command with no Ability
-        // policy owner: only the evaluator's compatible set materializes.
+        // Dynamic operations are implementations, never standalone model tools.
         let selectedOperations = Set(snapshot.skills.flatMap { runtime -> [String] in
             guard runtime.availability.readiness == .ready else { return [] }
             return snapshot.compatibleBindings(for: runtime.skill.id)

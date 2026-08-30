@@ -2,9 +2,10 @@
 //  ProjectBuildAdapter.swift
 //  MaryPlugin
 //
-//  BUILD AND TEST AT THE LIVE PROJECT ROOT. The backend is chosen from the
-//  package's declared CLI, or from corpus markers (`Package.swift` →
-//  `swift build`, `.xcodeproj` → `xcodebuild`) — never `if Xcode`.
+//  WHAT: Build and test at the live project root.
+//  IN:   ProjectRootResolver / package CLI / corpus markers
+//  OUT:  SkillBinding (build, test)
+//  PIN:  Backend from declared CLI or markers — never `if Xcode`.
 //
 
 import Foundation

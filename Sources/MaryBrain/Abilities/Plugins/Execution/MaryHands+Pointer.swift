@@ -2,13 +2,11 @@
 //  MaryHands+Pointer.swift
 //  MaryBrain
 //
-//  THE POINTER LANE. Normalized (0,0)–(1,1) points become screen points
-//  against the focused window, or against a rectangle captured earlier in
-//  this same transaction. Events post to the pid — never a global tap —
-//  matching the media-surface press ladder that already proved the click
-//  belongs to the process that owns the element.
+//  WHAT: Pointer lane — normalized points become pid-posted screen events.
+//  IN:   MaryHands.swift
+//  OUT:  move / click / drag / scroll on the focused window (or captured frame)
+//  PIN:  Never a global tap.
 //
-
 import AppKit
 import ApplicationServices
 import Foundation

@@ -1,29 +1,25 @@
-// Short-term, in-memory awareness for the current machine and conversation.
-// Live perception and reads stay here; Totem owns durable retrieval.
 //
-// THE STORE'S WIRINGS ARE TIERED, AX AT THE TOP:
-//   tier 0 — the SURFACE (`AmbientSurface`, `noteSurface` in
-//            `AmbientContextStore+Surface.swift`): the accessibility
-//            engine's foundation — what is actually on screen, retrieved
-//            first, one per family lane, dropped (never degraded) at
-//            expiry.
-//   tier 1 — FACTS (`register`/`replacePerceived`): the supporting details
-//            each application's own channels add on top — document bodies,
-//            word counts, git, binders — held with age and honest
-//            degradation.
-//   tier 2 — SELECTION/ATTENTION (`recordSelection`/`noteAttention`):
-//            source-owned interaction packets, never inferred from a poll.
-// Readers present in that order: the surface is the ground the details
-// stand on.
+//  AmbientContextStore.swift
+//  MaryAmbient
+//
+//  WHAT: Short-term in-memory awareness for this machine and conversation.
+//  IN:   AX / observers / Skills
+//  OUT:  prompt assembly (tiers in order). Durable retrieval → Totem.
+//  PIN:  Surface expires by drop, never degrade. Facts degrade with age.
+//
+//  Tiers:
+//    0 SURFACE   AmbientSurface / noteSurface → AmbientContextStore+Surface
+//    1 FACTS     register / replacePerceived
+//    2 SELECTION recordSelection / noteAttention (source-owned, never inferred)
+//
 
 import CryptoKit
 import MaryFoundation
 import Foundation
 import os
 
-/// Mutable-once holder used only to publish a route after classifiers run
-/// inside an already-frozen turn. A reference is required because TaskLocal
-/// values themselves cannot be reassigned midway through `runTurnBody`.
+/// Mutable-once route holder after classifiers run inside a frozen turn.
+/// PIN: TaskLocal cannot be reassigned; this box can. Caller: runTurnBody.
 public final class AmbientRouteTurnState: @unchecked Sendable {
     private let box = OSAllocatedUnfairLock<AmbientRoute?>(initialState: nil)
 
@@ -33,9 +29,8 @@ public final class AmbientRouteTurnState: @unchecked Sendable {
     public func current() -> AmbientRoute? { box.withLock { $0 } }
 }
 
-/// Every overlapping request gets its own route holder. An explicit nil in a
-/// scoped holder means "this turn has not routed yet," never "fall back to a
-/// different turn's process-global debugger snapshot."
+/// Per-request route holder. Nil = this turn has not routed yet.
+/// PIN: never fall back to another turn's process-global snapshot.
 public enum AmbientRouteTurnContext {
     @TaskLocal public static var state: AmbientRouteTurnState?
 }
@@ -73,39 +68,26 @@ public struct AmbientAttention: Sendable, Equatable {
     public var tier: AmbientAttentionTier
     public var world: AmbientWorld
     public var subject: String?
-    /// Exact source application for a direct selection. Workspace worlds are
-    /// already represented by their plugin; the generic other-apps world
-    /// needs this to bring typing back to the same frontmost text surface.
+    /// Source app for a direct selection. Workspace worlds already name the plugin;
+    /// `.applications` needs this to type back into the same frontmost surface.
     public var applicationID: String?
     public var key: AmbientKey?
-    /// The exact direct text, when this attention signal came from a selection.
     public var selectedText: String?
-    /// Nearby text that may inform a transformation but is never its target.
+    /// Nearby text for a transform; never the write target.
     public var surroundingText: String?
-    /// A direct selection's source mutation capability. It is nil for
-    /// ordinary activation/hover attention, whose transport has no text
-    /// surface to write into.
+    /// Source mutation capability. Nil for hover/activation (no text surface).
     public var selectionEditability: AmbientSelectionEditability?
 
-    /// WHERE the attention is, as ONE value.
-    ///
-    /// `world` and `applicationID` are two fields answering one question, and
-    /// every reader that consults only the first gets the lane rather than the
-    /// application — which for a taught application is the difference between
-    /// "somewhere in the applications lane" and the actual answer.
+    /// Where attention is, as one place. OUT: AmbientPlace.
+    /// PIN: world alone is the lane; applicationID names the taught app.
     public var place: AmbientPlace {
         applicationID.map(AmbientPlace.application) ?? .lane(world)
     }
-    /// How directly Accessibility identified the text element for a direct
-    /// selection. A canvas-descendant discovery is enough to discuss the
-    /// words, but it is deliberately not enough to promise an in-place
-    /// replacement later: the live focused surface may be the canvas rather
-    /// than the descendant that supplied the text.
+    /// How AX identified the text element. Canvas-descendant is enough to
+    /// discuss the words, not to promise in-place replace (focus may be the canvas).
     public var selectionSourceEvidence: AmbientSelectionSourceEvidence?
-    /// Whether a specialist recovered the payload outside the AX source
-    /// element. Such text remains an exact conversational referent, but this
-    /// provenance must stay visible to routing so it cannot become an
-    /// in-place replacement target.
+    /// Payload recovered outside the AX source. Still an exact referent;
+    /// routing must see this so it cannot become an in-place replace target.
     public var selectionPayloadRecovery: AmbientSelectionPayloadRecovery?
     public var capturedAt: Date
     public var freshFor: TimeInterval
@@ -173,57 +155,38 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     public static let shared = AmbientContextStore()
 
-    /// How many named reads ONE world may hold. The retention policy's
-    /// backstop: `(world, namedRead(phrase))` is the only key whose second
-    /// half is unbounded, so this is where "nothing accumulates unboundedly"
-    /// is actually enforced. Oldest goes first.
+    /// Cap on named reads per lane. Oldest first.
+    /// PIN: `(world, namedRead(phrase))` is the only unbounded key half.
     public static let namedReadCap = 4
 
     private let box = OSAllocatedUnfairLock<[AmbientKey: AmbientFact]>(initialState: [:])
-    /// TIER 0 — one surface per family lane (see the file header and
-    /// `AmbientContextStore+Surface.swift`, which owns every access).
-    /// `internal` so the extension file and `@testable` reach it.
+    /// TIER 0 — one surface per family lane. Access: AmbientContextStore+Surface.
+    /// `internal` so the extension and `@testable` reach it.
     let surfaceBox =
         OSAllocatedUnfairLock<[AmbientPlace: AmbientSurface]>(initialState: [:])
-    /// The focus arbiter's current lead — held as a PLACE, because the lead
-    /// can be a registered application riding `.applications`, and a world alone
-    /// cannot say which one. World callers read `place.world`, unchanged.
+    /// Focus-arbiter lead as a place (a world cannot name which app on `.applications`).
+    /// World callers read `place.world`.
     private let leadBox =
         OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
-    /// The utterance currently being answered.
     private let utteranceBox = OSAllocatedUnfairLock<String>(initialState: "")
-    /// The resolved container for the active turn.
+    /// Turn container. OUT: ReferenceDecision.
     private let referenceBox = OSAllocatedUnfairLock<ReferenceDecision>(initialState: .none)
-    /// The route shared by retrieval and prompt assembly.
+    /// Route for retrieval and prompt assembly.
     private let routeBox = OSAllocatedUnfairLock<AmbientRoute?>(initialState: nil)
     private let attentionBox = OSAllocatedUnfairLock<AmbientAttention?>(initialState: nil)
-    /// The one canonical source-owned highlight.  Its projection into a fact
-    /// and attention is derived at read time; document watchers never own a
-    /// second copy of selection state. Source and process mutation watermarks
-    /// outlive a clear briefly so a delayed AX read cannot resurrect what the
-    /// user just deselected from another surface in the same application.
+    /// Canonical source-owned highlight. Fact/attention project at read time.
+    /// PIN: watermarks outlive a clear so a delayed AX read cannot resurrect.
     private struct SelectionState {
         var handoff: AmbientSelectionHandoff?
-        /// The single selection most recently handed to a turn. It is kept
-        /// only for the packet's normal freshness window so an immediate
-        /// conversational follow-up can still mean “the part I highlighted.”
-        /// This is not standing ambient state: ordinary turns cannot see it,
-        /// a new source packet replaces it, and source lifecycle clears it.
+        /// Last selection handed to a turn. Freshness window only; not standing state.
+        /// PIN: ordinary turns cannot see it; new packet or lifecycle clears it.
         var recentClaimedHandoff: AmbientSelectionHandoff?
         var sourceMutationAt: [SelectionSource: Date] = [:]
-        /// A highlight is an input handoff, not standing ambient memory. Once
-        /// a turn claims a packet, repeated AX polls/handoffs of that unchanged
-        /// selection must not arm unrelated later turns. This is a
-        /// process-session semantic history rather than per AX object: canvas
-        /// apps may expose old selections through different descendants later.
-        /// An exact-source caret clear opens a one-selection rearm fence;
-        /// accepting a newer h2 must not forget h1.
+        /// Semantic tombstones after a turn claims a packet. Process-session, not per AX object.
+        /// PIN: exact-source caret opens a one-selection rearm fence; h2 must not forget h1.
         var deliveredSelections: [SelectionProcess: [DeliveredSelection]] = [:]
-        /// A process-wide ordering watermark complements the intentionally
-        /// narrow source-surface fingerprint. A title/control caret must not
-        /// clear a body highlight, but a late read from that other surface
-        /// must not revive after any selection in this process was accepted,
-        /// explicitly cleared, or claimed by a turn.
+        /// Process-wide ordering watermark. Title caret must not clear a body highlight;
+        /// a late read from that other surface must not revive after accept/clear/claim.
         var processMutationAt: [SelectionProcess: Date] = [:]
     }
     private let selectionStateBox = OSAllocatedUnfairLock<SelectionState>(
@@ -232,16 +195,11 @@ public final class AmbientContextStore: @unchecked Sendable {
     private let observerBox =
         OSAllocatedUnfairLock<(any AmbientObserving)?>(initialState: nil)
 
-    // NO DURABLE-LEARNING SINKS YET. Bonnie published held facts onward to
-    // three idle-gated indexers — an observation sink, a project indexer and
-    // a unit indexer — which together are the behavioural-corpus lane. That
-    // lane is deferred, and the seam it attaches to is `AmbientObserving`
-    // below rather than three boxes: one protocol, installed once, is what a
-    // later stage re-attaches.
+    // No durable-learning sinks yet. Seam: AmbientObserving (one protocol).
+    // OUT: Totem when that lane attaches.
 
-    /// Where held facts publish as embeddable records, so "the thing about
-    /// the deploy" can rank against what is actually held. Facts carry no
-    /// capabilities — they are evidence, never mutation targets.
+    /// Held facts as embeddable records for ranking. Facts are evidence, never mutation targets.
+    /// OUT: AmbientElementIndexStore
     private let elementIndexStore: AmbientElementIndexStore
 
     public init(elementIndexStore: AmbientElementIndexStore? = nil) {
@@ -253,8 +211,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         AmbientElementScope(place: .lane(world), key: world.rawValue)
     }
 
-    /// Republish one world's facts. Outside the fact lock, like every
-    /// publisher — the store vectorizes.
+    /// Republish one world's facts. Outside the fact lock; the store vectorizes.
     private func publishElements(worlds: Set<AmbientWorld>, at now: Date) {
         for world in worlds {
             elementIndexStore.noteElements(
@@ -265,7 +222,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// A world's held facts, ranked by relevancy to a spoken phrase.
+    /// Held facts ranked to a spoken phrase. OUT: AmbientReferenceGate.
     public func rankedFacts(
         matching phrase: String, world: AmbientWorld
     ) -> [RankedAmbientElement] {
@@ -277,12 +234,8 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     // MARK: - Writers
 
-    /// Register a fact. A superseding write REPLACES its slot; nothing
-    /// accumulates. Expired facts are pruned on the way through, so the store
-    /// stays bounded without a timer. Direct selections are deliberately not
-    /// accepted here: an `AmbientFact` is already clipped/projected and lacks
-    /// the source process and capture ordering that make a handoff safe. Use
-    /// `recordSelection(_:)` for that one interaction type.
+    /// Register a fact. Superseding write replaces the slot; prune on the way through.
+    /// PIN: selections go through `recordSelection` — a fact lacks source/capture ordering.
     public func register(_ fact: AmbientFact, at now: Date = Date()) {
         guard fact.slot != .selection else { return }
         box.withLock { facts in
@@ -299,9 +252,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         box.withLock { stored in
             Self.prune(&stored, at: now)
             for fact in nonSelectionFacts { stored[fact.key] = fact }
-            // ONE PASS PER LANE. A batch can carry facts for several
-            // registered applications sharing `.applications`, and each owns its
-            // own read budget — see `capNamedReads`.
+            // One pass per lane. Apps sharing `.applications` each own a read budget.
+            // OUT: capNamedReads
             var lanes: Set<AmbientPlace> = []
             for fact in nonSelectionFacts { lanes.insert(fact.place) }
             for lane in lanes {
@@ -311,30 +263,20 @@ public final class AmbientContextStore: @unchecked Sendable {
         publishElements(worlds: Set(nonSelectionFacts.map(\.world)), at: now)
     }
 
-    /// Replace a world's document/perception slots wholesale — one poll, one
-    /// truth. Direct selection deliberately does not travel through this
-    /// method: it is a source-owned interaction packet, not evidence inferred
-    /// from a document poll. Named reads are untouched: they belong to the
-    /// conversation, not to the poll.
-    /// `application` SCOPES THE WIPE TO ONE LANE. `.applications` is one world
-    /// shared by every registered application, so a world-wide clear would let
-    /// Sketch's poll erase what Mary knows about Keynote. Nil is every
-    /// built-in world's lane and behaves exactly as it always has.
+    /// Replace document/perception slots for one poll. Named reads untouched.
+    /// PIN: `application` scopes the wipe to one lane; nil = the world's own lane.
+    /// Selections do not travel here — source-owned packet, not inferred evidence.
     public func replacePerceived(
         world: AmbientWorld,
         application: String? = nil,
         with facts: [AmbientFact],
         at now: Date = Date()
     ) {
-        // A document/perception poll has no authority to reconstruct an
-        // interaction. Reject a selection fact even if an old caller tries to
-        // smuggle one through this broad replacement API.
+        // Polls cannot reconstruct an interaction; drop selection facts.
         let nonSelectionFacts = facts.filter { $0.slot != .selection }
         box.withLock { stored in
             Self.prune(&stored, at: now)
-            // `Array(...)` on purpose: iterating a live `keys` view while
-            // mutating the dictionary is the kind of aliasing that works until
-            // it doesn't. The snapshot costs nothing at these sizes.
+            // Snapshot keys before mutate; live `keys` view aliases.
             for key in Array(stored.keys) where key.world == world
                 && key.application == application
                 && key.slot.isPerceived {
@@ -348,19 +290,9 @@ public final class AmbientContextStore: @unchecked Sendable {
         publishElements(worlds: [world], at: now)
     }
 
-    /// A representation went dark (plugin disabled, watcher restarted, or its
-    /// document channel closed). Perceived facts go; a READ survives — the
-    /// user asked for it, and the document closing does not unmake that read.
-    ///
-    /// A direct selection is deliberately NOT part of this teardown. It is
-    /// source-app input, not a fact the representation inferred; the generic
-    /// selection ability may still own the exact same source after a plugin
-    /// unloads. Explicit deselection, source termination, expiry, or the full
-    /// `forget(world:)` path invalidates it instead.
-    ///
-    /// LANE-SCOPED BY CONSTRUCTION: the place IS the lane, so a registered
-    /// application's teardown can never erase what a sibling on the same host
-    /// world still perceives.
+    /// Representation went dark. Perceived facts go; a read survives.
+    /// PIN: selection is not this teardown (source-app input). Lane-scoped: place is the lane.
+    /// OUT: forget(world:) / explicit deselection / expiry for selection.
     public func forgetPerceived(place: AmbientPlace) {
         box.withLock { stored in
             for key in Array(stored.keys)
@@ -376,14 +308,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// WORLD-WIDE teardown — every lane in the world goes, including every
-    /// registered application riding it. Deliberately NOT a
-    /// `forget(place:)` wrapper, and deliberately world-typed for good: a
-    /// place names ONE lane, and this method's callers (disable/quit paths,
-    /// test isolation) mean the whole world — a legitimate cross-lane
-    /// operation, the same species of query as `facts(world:)`. The
-    /// world-typed signature IS the roster/lane distinction: you cannot
-    /// hand it a lane, so you cannot accidentally tear down a sibling's.
+    /// World-wide teardown — every lane, including every app riding the world.
+    /// PIN: world-typed on purpose; a place names one lane. Callers: disable/quit, tests.
     public func forget(world: AmbientWorld) {
         box.withLock { stored in
             for key in Array(stored.keys) where key.world == world { stored[key] = nil }
@@ -403,10 +329,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// THE TURN LOOP'S WRITE-BACK: what was spoken about a fact. Matches by
-    /// CONTENT containment because the passage that reached the voice is the
-    /// fact's own text, rendered — the brain never has to learn the store's
-    /// keys to report back.
+    /// Turn-loop write-back: spoken note on a fact. Match by content containment.
+    /// PIN: voice passages are the fact's rendered text; brain never learns store keys.
     @discardableResult
     public func noteSpoken(
         contentsIn passages: [String], note: String, at now: Date = Date()
@@ -428,40 +352,16 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// The lead is a COPY of tracker-derived focus, and a copy asserting
-    /// longer than its source is the stale-lead bug in a second wardrobe:
-    /// the tracker's own signals decay at `WorkspaceFocusTracker`'s horizon,
-    /// so the persisted lead observes the same one.
-    ///
-    /// AND IT IS THE *LEAD* HORIZON, NOT THE SIGNAL HORIZON. Those were the
-    /// same 20 minutes, and they are not the same claim. `signalHorizon`
-    /// bounds an OBSERVATION — "the user was last seen in a writing app" —
-    /// and its own comment defends the generosity correctly: reading a long
-    /// document without touching the keyboard is still working in it. A LEAD
-    /// asserts something far stronger — "this is what the turn is about" —
-    /// and it outlived the evidence for it by fifteen minutes.
-    ///
-    /// THE FAILURE THIS FIXES (live, and named three times in this tree's own
-    /// comments — "'led: Xcode' — the incident"): the badge read `led: Xcode ·
-    /// workspace` on a turn that looked at a YouTube video in Chrome, and the
-    /// lead is not only a badge — it reaches the prompt and grounds the
-    /// answer. This copy is read one turn BEHIND its writer (the route reads
-    /// it before the prompt providers run), so a coding-led turn's lead stands
-    /// over every later turn until it decays.
-    ///
-    /// Aligned to `FocusSignal.coActiveHorizon` rather than a new number: a
-    /// lead that no longer has co-active evidence beside it is exactly a lead
-    /// that has stopped earning the claim, and that bound already has a name.
+    /// Lead copy of tracker-derived focus. Must not outlive its source.
+    /// PIN: lead horizon ≠ signal horizon; aligned to FocusSignal.coActiveHorizon.
     public static let leadHorizon: TimeInterval = FocusSignal.coActiveHorizon
 
-    /// Which PLACE the focus arbiter gave the lead to this turn — the
-    /// canonical writer, and since M4 the only one.
+    /// Place the focus arbiter gave the lead this turn. Canonical writer.
     public func noteLead(place: AmbientPlace?) {
         leadBox.withLock { $0 = place.map { ($0, Date()) } }
     }
 
-    /// The canonical read: the lead as a place, decayed at `leadHorizon` —
-    /// the copy must not assert longer than its tracker-derived source.
+    /// Lead as a place, decayed at `leadHorizon`.
     public func leadPlace(at now: Date = Date()) -> AmbientPlace? {
         leadBox.withLock { held in
             guard let held, now.timeIntervalSince(held.at) <= Self.leadHorizon
@@ -470,8 +370,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// The utterance the current turn is answering — the situational moment
-    /// the budget policy ranks against.
+    /// Utterance this turn is answering. Budget policy ranks against it.
     public func noteUtterance(_ text: String) {
         utteranceBox.withLock { $0 = text }
     }
@@ -480,18 +379,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         utteranceBox.withLock { $0 }
     }
 
-    /// WHICH CONTAINER THIS TURN MEANS — the third side channel, written by the
-    /// turn loop once and read by every seam that needs to know.
-    ///
-    /// It exists for the reason the two above do: four different places derive
-    /// "which document" (the targeted read, the passage locate, the body
-    /// reader, the Skill bindings' own parameters), they fire at four different times
-    /// in two different lanes, and four independent derivations of one answer is
-    /// exactly how `document 1` and the front window came to disagree. Resolve
-    /// once, publish, read everywhere.
-    ///
-    /// NIL IS THE COMMON VALUE and it means "nobody named a container" — every
-    /// reader then falls back to whatever it did before, unchanged.
+    /// Container this turn means. Written once by the turn loop; read everywhere.
+    /// PIN: nil = nobody named a container; readers keep prior fallbacks.
     public func noteReference(_ decision: ReferenceDecision) {
         referenceBox.withLock { $0 = decision }
     }
@@ -501,8 +390,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         referenceBox.withLock { $0 }
     }
 
-    /// Just the container, for callers that only want "which one". A refusal
-    /// reads as nil here, so nothing silently proceeds on one.
+    /// Container only. A refusal reads as nil so nothing proceeds on one.
     public func referent() -> ResolvedReferent? {
         reference().referent
     }
@@ -520,21 +408,9 @@ public final class AmbientContextStore: @unchecked Sendable {
         return routeBox.withLock { $0 }
     }
 
-    /// WHERE PERCEPTION PUBLISHES ONWARD, when something is listening.
-    ///
-    /// One seam rather than the three separate sinks Bonnie grew (an
-    /// observation bridge, a project indexer, a unit indexer), because they
-    /// were installed together, gated together and deferred together — three
-    /// boxes describing one decision. Nothing implements this yet; the
-    /// behavioural-corpus lane is a later stage, and perception is fully
-    /// usable without it.
-    ///
-    /// WHAT MAY CROSS, whenever something does implement it: structure only —
-    /// never document text, titles, selections, or the contents of anything
-    /// the user is working on. A durable index of what the user DOES is a
-    /// different thing from a copy of what they wrote, and the moment the
-    /// second rides on the first there is no way to offer one without the
-    /// other.
+    /// Perception publishes onward when something is listening. Structure only.
+    /// PIN: never document text, titles, selections, or working contents.
+    /// OUT: Totem (behavioral-corpus lane); nothing implements this yet.
     public protocol AmbientObserving: Sendable {
         func observed(_ fact: AmbientFact) async
     }
@@ -545,16 +421,8 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     // MARK: - Direct selection handoff
 
-    /// Publish the one canonical selection for the current interaction.
-    ///
-    /// A source app supplies this while it still owns the selection. The raw
-    /// handoff is the only stored form; the shorter ambient fact and direct
-    /// attention are projections, not competing writers. A source poll stamps
-    /// `capturedAt` before its AX read begins, and a per-process mutation
-    /// watermark rejects a delayed result after an observer event or clear.
-    /// `at` is the receipt clock (normally `Date()`); ordering always uses the
-    /// packet's own `capturedAt`, so a slow AX read cannot look newer merely
-    /// because it completed later.
+    /// Canonical selection for this interaction. Raw handoff is the only stored form.
+    /// PIN: `at` is receipt; ordering uses packet `capturedAt`. Fact/attention are projections.
     @discardableResult
     public func recordSelection(
         _ handoff: AmbientSelectionHandoff,
@@ -573,71 +441,43 @@ public final class AmbientContextStore: @unchecked Sendable {
             }
             if let current = state.handoff {
                 if current.capturedAt > handoff.capturedAt { return false }
-                // A generic AX poll may complete just after an application
-                // adapter atomically resolved the same selected value to a
-                // project/document. It contributes no new interaction and
-                // must not erase that richer scope merely because its packet
-                // has a later receipt. A genuinely different value remains a
-                // new interaction and is ordered normally.
+                // Generic AX poll must not erase a richer adapter-resolved scope.
+                // PIN: later receipt ≠ new interaction if the value is the same.
                 if Self.isScopeDowngrade(handoff, of: current, at: now) {
                     return false
                 }
-                // A direct event/handoff named one concrete AX surface. A
-                // lower-confidence periodic scan can still find an old
-                // selection retained by a different child under the same
-                // Pages process. It cannot prove that inactive child became
-                // the user's new interaction, so it may not replace the
-                // direct source packet. This is source-evidence ordering, not
-                // a document/title heuristic; a direct event or a poll from
-                // the same surface can still advance the selection normally.
+                // Weaker periodic scan of another child must not replace a direct packet.
+                // PIN: source-evidence ordering, not a document/title heuristic.
                 if Self.isCrossSurfaceFallback(
                     handoff, weakerThan: current, at: now) {
                     return false
                 }
-                // Repeated reports of the same source interaction do not
-                // renew its lease. This makes duplicate deactivation events
-                // and fallback probes idempotent rather than letting a stale
-                // highlight survive indefinitely.
+                // Same interaction does not renew the lease. Duplicate events are idempotent.
                 if current.world == handoff.world,
                    current.applicationID == handoff.applicationID,
                    current.processID == handoff.processID,
                    current.sourceSurfaceID == handoff.sourceSurfaceID,
                    current.text == handoff.text,
                    current.range == handoff.range,
-                   // Xcode can expose the same words at the same character
-                   // range in two files through one process and no AX surface
-                   // id. Mutually-proven workspace/project/document identity
-                   // is therefore part of the interaction identity. A missing
-                   // field remains conservative rather than manufacturing a
-                   // distinction the adapter did not prove.
+                   // Workspace/project/document identity is part of interaction identity.
+                   // PIN: missing field stays conservative (one process, no AX surface id).
                    !ProvenSelectionScope(current.scope)
                     .isDistinct(from: handoff.scope),
-                   // An exact observer/handoff may upgrade an identical
-                   // generic sample's provenance. The reverse direction is a
-                   // duplicate and must not renew the packet.
+                   // Exact observer may upgrade identical generic provenance; reverse is a duplicate.
                    !(handoff.sourceEvidence.rank > current.sourceEvidence.rank),
                    current.isFresh(at: now) {
                     return false
                 }
             }
-            // A source poll, lifecycle handoff, or queued AX callback may keep
-            // seeing the physical highlight long after Mary used it,
-            // including through a different descendant in a canvas app. AX
-            // callbacks have no event timestamp, so even a named selected-text
-            // notification cannot prove it was a fresh same-range gesture
-            // after an app reactivates. An exact source clear (or a semantically
-            // distinct selection) is the causal boundary that may rearm it.
+            // Physical highlight can outlive Mary's use (canvas descendants, queued AX).
+            // PIN: exact-source clear or a distinct selection is the rearm boundary.
             if var delivered = state.deliveredSelections[process] {
                 let matchingIndices = delivered.indices.filter {
                     delivered[$0].matches(handoff)
                 }
                 if !matchingIndices.isEmpty {
-                    // A same-range/text h1 cannot be distinguished from a
-                    // queued old AX callback by receipt time alone. A caret
-                    // from the exact source surface is the causal fence that
-                    // permits one later exact capture to mean "reselected".
-                    // A discovered sibling (or an AX surface merely sharing a
-                    // process) stays tombstoned after that clear.
+                    // Same-range h1 vs queued AX: only exact-source caret opens a rearm fence.
+                    // PIN: sibling/process-sharing surface stays tombstoned after that clear.
                     let canRearm = matchingIndices.allSatisfy { index in
                         let deliveredSelection = delivered[index]
                         guard deliveredSelection.source == source,
@@ -656,10 +496,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             state.recentClaimedHandoff = nil
             state.sourceMutationAt[source] = max(
                 state.sourceMutationAt[source] ?? .distantPast, handoff.capturedAt)
-            // Surface identity keeps a title caret from clearing a body
-            // highlight. Ordering must still be process-wide, otherwise a
-            // slow AX scan of that other surface can republish a stale
-            // selection after this one has become authoritative.
+            // Title caret must not clear a body highlight; ordering is still process-wide.
             state.processMutationAt[process] = max(
                 state.processMutationAt[process] ?? .distantPast, handoff.capturedAt)
             return true
@@ -667,9 +504,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         guard accepted else { return false }
         box.withLock { stored in
             Self.prune(&stored, at: now)
-            // Compatibility writers from pre-handoff watchers may still have
-            // left a selection fact behind. The canonical packet projects the
-            // only one that may participate in this interaction.
+            // Drop leftover selection facts; the packet is the only participant.
             for key in Array(stored.keys) where key.slot == .selection {
                 stored[key] = nil
             }
@@ -682,16 +517,14 @@ public final class AmbientContextStore: @unchecked Sendable {
         return true
     }
 
-    /// An explicit empty-selection event may clear only the source that set
-    /// the handoff. A focus change, a different app's poll, or an unparseable
-    /// nonempty AX range is intentionally not a deselection event.
+    /// Empty-selection event clears only the source that set the handoff.
+    /// PIN: focus change / other-app poll / unparseable range is not deselection.
     public func clearSelection(
         applicationID: String,
         processID: Int32? = nil,
         sourceSurfaceID: UInt? = nil,
-        /// Only lifecycle teardown for a terminated source process may clear
-        /// every AX surface under that PID. Observer/poll caret events leave
-        /// this false and therefore fail closed across unknown identities.
+        /// Process teardown may clear every AX surface under that PID.
+        /// PIN: observer/poll caret leaves this false (fail closed).
         allSurfaces: Bool = false,
         at capturedAt: Date = Date(),
         receivedAt now: Date = Date()
@@ -713,18 +546,13 @@ public final class AmbientContextStore: @unchecked Sendable {
                recent.capturedAt <= capturedAt {
                 state.recentClaimedHandoff = nil
             }
-            // A clear is an explicit source mutation even when it cannot
-            // remove the current packet (for example, a caret in another
-            // Pages surface). Advance the process watermark so an AX read
-            // started before this event cannot arrive later and revive that
-            // older surface's selection.
+            // Clear is a source mutation even if it cannot remove the packet.
+            // PIN: advance process watermark so a pre-event AX read cannot revive.
             if let process {
                 state.processMutationAt[process] = max(
                     state.processMutationAt[process] ?? .distantPast, capturedAt)
             }
-            // Preserve a source-local watermark even if another application
-            // currently owns the global handoff. That prevents a delayed poll
-            // from this source from stealing an older selection back later.
+            // Keep source-local watermark even if another app owns the global handoff.
             if let source, let mutation = state.sourceMutationAt[source], mutation > capturedAt {
                 return (nil, false)
             }
@@ -737,11 +565,8 @@ public final class AmbientContextStore: @unchecked Sendable {
             } else if let process,
                       let source,
                       state.deliveredSelections[process] != nil {
-                // A caret only opens a rearm fence for the exact AX surface
-                // that emitted it. It does not erase the semantic tombstone:
-                // a Pages/TextEdit sibling can retain the old h1 and report it
-                // after this clear. Only a later exact capture from this
-                // cleared source may consume the fence.
+                // Caret opens a rearm fence for the exact AX surface only.
+                // PIN: sibling can retain old h1; only later exact capture from this source consumes it.
                 var delivered = state.deliveredSelections[process] ?? []
                 for index in delivered.indices {
                     guard delivered[index].source == source,
@@ -777,17 +602,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// An unclaimed source selection is a handoff to Mary, not standing
-    /// context across ordinary app switches. When a different external app
-    /// becomes active, revoke the pending packet and advance its source/process
-    /// ordering fences so an AX read that began before that activation cannot
-    /// revive it afterwards. A missing application or process id is
-    /// conservative: an unknown external activation cannot prove the old
-    /// source is still the user's direct referent.
-    ///
-    /// The caller deliberately invokes this only for non-Mary activations.
-    /// A Mary activation is the handoff destination and must leave the raw
-    /// packet available for the imminent turn snapshot.
+    /// Revoke unclaimed selection when a different external app activates.
+    /// PIN: missing app/pid is conservative. Caller: non-Mary activations only.
     @discardableResult
     public func revokeUnclaimedSelectionForExternalActivation(
         applicationID: String?,
@@ -833,8 +649,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         return true
     }
 
-    /// The raw handoff, still exact and never prompt-clipped. A plugin may use
-    /// it to enrich its own document snapshot only when the source matches.
+    /// Raw handoff, exact and never prompt-clipped. Plugin enrich only when source matches.
     public func selectionHandoff(
         world: AmbientWorld? = nil,
         at now: Date = Date()
@@ -848,10 +663,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         return currentSelectionHandoff(world: world, at: now)
     }
 
-    /// The one selection later prompt and execution seams may consume. A raw
-    /// handoff can remain available for diagnostics and source enrichment even
-    /// when the request named a conflicting application; this accessor applies
-    /// the immutable route before returning its bytes.
+    /// Selection prompt/execution may consume. Applies the immutable route first.
+    /// PIN: raw handoff can remain for diagnostics even if the request named a conflicting app.
     public func routedSelectionHandoff(
         world: AmbientWorld? = nil,
         requiringWritingTarget: Bool = false,
@@ -865,11 +678,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         return handoff
     }
 
-    /// The latest not-yet-claimed process-wide packet, deliberately ignoring
-    /// a turn-local snapshot. Background representations use this while
-    /// publishing their own persistent context; once a turn claims the packet
-    /// it is intentionally unavailable here, so a slow poll cannot publish an
-    /// old anchor for later turns.
+    /// Latest unclaimed process-wide packet; ignores turn-local snapshot.
+    /// PIN: claimed packets stay unavailable so a slow poll cannot republish.
     public func liveSelectionHandoff(
         world: AmbientWorld? = nil,
         at now: Date = Date()
@@ -889,26 +699,14 @@ public final class AmbientContextStore: @unchecked Sendable {
                 return nil
             }
             guard world == nil || handoff.world == world else { return nil }
-            // A LANE ASKED FOR IS A LANE REQUIRED. Nil means "the world's own",
-            // not "any" — otherwise asking for Sketch's selection inside
-            // `.applications` would hand back whichever application polled last,
-            // which is the collision the lane exists to end.
+            // Lane asked for is a lane required. Nil = the world's own, not any.
             guard application == nil || handoff.application == application else { return nil }
             return handoff
         }
     }
 
-    /// Atomically claim the selection that will be bound task-locally to one
-    /// turn. A highlight is a one-request handoff, not standing context: after
-    /// this returns, the process-wide packet is gone and only the task-local
-    /// caller can see it. The delivered semantic ledger remains until its
-    /// source explicitly clears and a later exact capture crosses that rearm
-    /// fence, or the source terminates. Time alone must not re-arm a
-    /// still-visible highlight through a slow poll or queued callback.
-    ///
-    /// There is intentionally no global "release". An older cancelled turn
-    /// can never unseal a newer selection or inject its highlight into a later
-    /// request.
+    /// Claim the selection for one turn. After this, only the task-local caller sees it.
+    /// PIN: no global release. Time alone must not re-arm; source clear + exact capture can.
     public func snapshotSelectionForTurn(
         allowingRecentClaimed: Bool = false,
         at now: Date = Date()
@@ -926,17 +724,12 @@ public final class AmbientContextStore: @unchecked Sendable {
             let source = SelectionSource(handoff)
             let process = SelectionProcess(handoff)
             var delivered = state.deliveredSelections[process] ?? []
-            // A direct reselect may have removed this semantic entry; if it
-            // did not, replace only the equivalent record rather than letting
-            // duplicate claims grow the semantic ledger.
+            // Replace only the equivalent tombstone; do not grow the ledger.
             delivered.removeAll { $0.matches(handoff) }
             delivered.append(DeliveredSelection(
                 handoff, source: source, claimedAt: now))
             state.deliveredSelections[process] = delivered
-            // A delayed AX read that began before this turn must not arrive
-            // afterward and republish an older value under a different packet
-            // id or AX surface. New captures begun after this point remain
-            // eligible.
+            // Delayed pre-turn AX must not republish; captures begun after remain eligible.
             state.sourceMutationAt[source] = max(
                 state.sourceMutationAt[source] ?? .distantPast, now)
             state.processMutationAt[process] = max(
@@ -947,10 +740,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// Enrich the current source packet only if it is still the exact capture
-    /// a plugin inspected. This is the compare-and-set seam that lets Pages
-    /// attach a validated document name/range after a slow body read without
-    /// ever pairing it with a newer TextEdit/Pages selection.
+    /// CAS: enrich only if this is still the exact capture the plugin inspected.
+    /// PIN: a slow body read must not pair with a newer selection.
     @discardableResult
     public func enrichSelection(
         id: UUID,
@@ -989,9 +780,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     public func noteAttention(_ incoming: AmbientAttention, at now: Date = Date()) {
-        // A direct selection has one authoritative entry point:
-        // `recordSelection(_:)`. Accepting a standalone selection attention
-        // here would rebuild the duplicate-state path this store eliminated.
+        // Selection attention is `recordSelection` only; reject standalone here.
         guard incoming.tier != .selection else { return }
         guard incoming.isFresh(at: now) else { return }
         attentionBox.withLock { current in
@@ -1008,10 +797,7 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     public func attention(at now: Date = Date()) -> AmbientAttention? {
         if let snapshot = AmbientSelectionTurnContext.snapshot {
-            // The task-local scope freezes only direct selection. A turn that
-            // began without one must still retain ordinary hover/activation
-            // attention; it just cannot see a new highlight that arrives
-            // halfway through generation.
+            // Task-local freezes selection only. Hover/activation still apply.
             if let handoff = snapshot.handoff {
                 return Self.selectionAttention(from: handoff)
             }
@@ -1029,17 +815,13 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     // MARK: - Readers
 
-    /// Every live fact, in deterministic order (world, then slot, then key) —
-    /// the prompt and the pane must be able to render the same list twice and
-    /// get the same bytes.
+    /// Live facts, ordered (place, slot, key). Prompt and pane must agree.
     public func facts(at now: Date = Date()) -> [AmbientFact] {
         var live = box.withLock { stored -> [AmbientFact] in
             Self.prune(&stored, at: now)
             return Array(stored.values)
         }
-        // A direct selection is projected from its source-owned packet rather
-        // than persisted beside document facts.  In a turn-local scope, even
-        // a newly-arrived live selection must not leak into this turn.
+        // Selection projects from the source packet. Turn-local: no live leak.
         if let snapshot = AmbientSelectionTurnContext.snapshot {
             live.removeAll { $0.slot == .selection }
             if let handoff = snapshot.handoff {
@@ -1052,28 +834,18 @@ public final class AmbientContextStore: @unchecked Sendable {
         return live.sorted(by: Self.ordered)
     }
 
-    /// EVERY lane in a world — for `.applications`, every registered
-    /// application at once. Deliberately NOT `facts(place: .lane(world))`:
-    /// that names the world's OWN lane and would drop every registered
-    /// application's facts from the roster queries (`publishElements`,
-    /// `noteAttention`'s emit) that mean the whole world. A world-wide query
-    /// is a legitimate cross-lane operation, not a missing place overload —
-    /// the world-typed signature is the name of that scope, permanently, the
-    /// same way `forget(world:)` spells world-wide teardown.
+    /// Every lane in a world (`.applications` = every registered app).
+    /// PIN: not `facts(place: .lane(world))` — that is the world's own lane only.
     public func facts(world: AmbientWorld, at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter { $0.world == world }
     }
 
-    /// One LANE's facts. `facts(world:)` returns everything in a world, which
-    /// for `.applications` is every registered application at once — right for a
-    /// roster, wrong for "what is this application looking at".
+    /// One lane's facts. `facts(world:)` is the roster (every app on `.applications`).
     public func facts(place: AmbientPlace, at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter { $0.place == place }
     }
 
-    /// `application` NARROWS TO ONE LANE inside a world that holds several.
-    /// Nil asks the world's own lane, which is every built-in world's and is
-    /// what every existing caller means.
+    /// One slot. `application` narrows to one lane; nil = the world's own lane.
     public func fact(
         world: AmbientWorld,
         application: String? = nil,
@@ -1101,33 +873,24 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// The reads Mary is holding — the continuity surface, for the pane's
-    /// `read:` rows and for anything that wants "what did she actually fetch".
-    /// Reads ONLY: a standing digest is also non-perceived, and a caller
-    /// asking "what did she fetch" must not be handed a line nobody asked for.
+    /// Held reads only (pane `read:` rows). Standing digests are not reads.
     public func reads(at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter(\.slot.isRead)
     }
 
-    /// EVERYTHING WITH NO LIVE WINDOW BEHIND IT — held reads plus the standing
-    /// digests of eyeless sources. The debugger's escape hatch: the pane joins
-    /// facts to cards per WATCHED world, so a calendar fact joins no card at
-    /// all. Without this query it would ride both prompts and appear nowhere
-    /// on the pane, which is precisely the prompt/pane drift the store exists
-    /// to end.
+    /// Facts with no live window: held reads plus eyeless-source digests.
+    /// PIN: pane joins cards per watched world; this query is the debugger hatch.
     public func unwindowed(at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter { !$0.slot.isPerceived }
     }
 
-    /// Reads registered at or after `date`. The turn loop's question, asked
-    /// once per turn: did the read this lane just performed land somewhere, or
-    /// reach nobody? (`ReadRoute.registered` vs `.discarded`.)
+    /// Reads registered at or after `date`. Turn loop: landed vs discarded.
+    /// OUT: ReadRoute.registered / .discarded
     public func reads(since date: Date, at now: Date = Date()) -> [AmbientFact] {
         reads(at: now).filter { $0.capturedAt >= date }
     }
 
-    /// Test isolation — the process-wide box must never leak between suites
-    /// (the ReadDeliveryLedger precedent).
+    /// Test isolation. Process-wide box must not leak between suites.
     public func clear() {
         box.withLock { $0 = [:] }
         surfaceBox.withLock { $0 = [:] }
@@ -1136,9 +899,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         routeBox.withLock { $0 = nil }
         attentionBox.withLock { $0 = nil }
         selectionStateBox.withLock { $0 = .init() }
-        // The observer is NOT cleared here. A reset empties what Mary
-        // currently believes; it does not detach what is listening, any more
-        // than forgetting a conversation unsubscribes the transcript.
+        // Observer stays. Reset empties belief; it does not detach listeners.
     }
 
     // MARK: - Internals
@@ -1179,17 +940,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// A process-level tombstone after a packet has been handed to a turn.
-    /// `id` and capture time are intentionally absent from its semantic
-    /// identity: observer, handoff and poll paths can all report the same
-    /// selection with different packet ids and receipt times. The original AX
-    /// source remains only so a caret from an unrelated child cannot erase it.
-    ///
-    /// This is deliberately not count-evicted. Eviction would let an old h1
-    /// become eligible again merely because the user selected eight newer
-    /// things. The text is retained only as a SHA-256 identity, not as a
-    /// growing archive of selected content; a digest collision fails closed
-    /// by suppressing a possible new handoff rather than reviving old text.
+    /// Process-level tombstone after a turn claims a packet. No count-eviction.
+    /// PIN: id/capture time absent from identity. Text is SHA-256 only; collision fails closed.
     private struct DeliveredSelection {
         let source: SelectionSource
         let world: AmbientWorld
@@ -1197,9 +949,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         let textIdentity: SelectionTextIdentity
         let range: Range<Int>?
         let claimedAt: Date
-        /// A caret observed from this exact source after the handoff was used.
-        /// It does not remove the tombstone; it only lets one later exact
-        /// capture prove a deliberate reselect on that same AX element.
+        /// Exact-source caret after claim. Does not remove the tombstone; opens one rearm.
         var clearedAt: Date?
 
         public init(
@@ -1220,29 +970,17 @@ public final class AmbientContextStore: @unchecked Sendable {
                   !provenScope.isDistinct(from: handoff.scope),
                   textIdentity.matches(handoff.text)
             else { return false }
-            // AX range coordinates belong only to the element that emitted
-            // them. A title/canvas sibling can use a different 0..<N coordinate
-            // system for the same retained h1, so ranges distinguish repeated
-            // words only when the exact source surface is the same. Across an
-            // unknown/different surface, equal words are conservatively the
-            // already-delivered interaction until an exact-source clear opens
-            // its rearm fence.
+            // Ranges distinguish repeated words only on the same source surface.
+            // PIN: unknown/other surface: equal words stay delivered until exact-source clear.
             guard source == SelectionSource(handoff) else { return true }
-            // AX may spell the same source selection through selected-text,
-            // marker text, or a range-backed channel. When either path lacks a
-            // range, absence is not proof of a new selection; only two known,
-            // unequal same-surface ranges distinguish identical text.
+            // Missing range is not a new selection. Only two known unequal same-surface ranges distinguish.
             guard let range, let incomingRange = handoff.range else { return true }
             return range == incomingRange
         }
     }
 
-    /// The document-bearing portion of selection identity. The source process
-    /// is already the tombstone dictionary key, and AX surface identity is
-    /// handled separately. These three fields distinguish editor buffers
-    /// inside one process without treating an absent field as evidence of a
-    /// different document. They are retained only as digests: a claimed
-    /// selection must not turn project paths into a second ambient archive.
+    /// Document-bearing selection identity (workspace/project/document digests).
+    /// PIN: absent field is not a different document. Process/AX surface live elsewhere.
     private struct ProvenSelectionScope {
         let workspaceID: SelectionTextIdentity?
         let projectID: SelectionTextIdentity?
@@ -1268,9 +1006,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// Content-free identity for a delivered handoff. The raw text remains
-    /// available only to the turn that claimed it; tombstones merely need to
-    /// recognize the same physical selection when an AX tree reports it late.
+    /// Content-free identity for a delivered handoff. Tombstones match late AX reports.
     private struct SelectionTextIdentity {
         let byteCount: Int
         public let digest: Data
@@ -1288,10 +1024,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// The source-identity guard for a direct capture versus a periodic scan
-    /// of another AX surface. Both fingerprints must exist: a missing identity
-    /// is not evidence that two elements differ, so ordinary time ordering
-    /// applies in that case.
+    /// Direct capture vs periodic scan of another AX surface. Both fingerprints must exist.
+    /// PIN: missing identity is not proof they differ; ordinary time ordering applies.
     private static func isCrossSurfaceFallback(
         _ incoming: AmbientSelectionHandoff,
         weakerThan current: AmbientSelectionHandoff,
@@ -1308,9 +1042,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         return true
     }
 
-    /// Preserve a specialist's document/workspace resolution when a later
-    /// generic provider merely repeats the same source value at a shallower
-    /// scope. This is provider arbitration, never a focus or intent rule.
+    /// Keep richer specialist scope when a generic provider repeats the same value.
+    /// PIN: provider arbitration, never a focus or intent rule.
     private static func isScopeDowngrade(
         _ incoming: AmbientSelectionHandoff,
         of current: AmbientSelectionHandoff,
@@ -1337,10 +1070,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
     }
 
-    /// Add independently-proven detail without allowing an enrichment to
-    /// rewrite the source application/process/surface that owns the packet.
-    /// Nil means the proposed scope contradicted the interaction and the CAS
-    /// must abstain.
+    /// Merge independently-proven detail. Cannot rewrite owning app/process/surface.
+    /// PIN: nil = contradiction; CAS abstains.
     private static func merging(
         _ proposed: SourceScope, into current: SourceScope
     ) -> SourceScope? {
@@ -1385,33 +1116,22 @@ public final class AmbientContextStore: @unchecked Sendable {
         state.processMutationAt = state.processMutationAt.filter {
             now.timeIntervalSince($0.value) <= selectionMutationRetention
         }
-        // Unlike ordering watermarks, a delivered selection is semantic state:
-        // an AX descendant can keep exposing the same old highlight for the
-        // life of a document. It persists for the source process session;
-        // only a matching exact-source clear plus a later exact capture, or
-        // process teardown may rearm it. `DeliveredSelection` keeps only a
-        // digest so this is not a retained-content archive.
+        // DeliveredSelection is semantic, not a watermark. Persists for the process session.
+        // PIN: rearm = exact-source clear + later exact capture, or process teardown.
     }
 
-    /// The prompt/debugger projection of the raw source packet.  Keeping this
-    /// construction here makes it impossible for a document poll to produce a
-    /// competing direct-selection fact.
+    /// Prompt/debugger projection of the raw packet. Polls cannot compete here.
     private static func selectionFact(from handoff: AmbientSelectionHandoff) -> AmbientFact {
         AmbientFact(
             world: handoff.world,
-            // THE LANE TRAVELS WITH THE FACT. Without it a registered
-            // application's highlight rendered as "Applications · …" and keyed as
-            // the shared lane, so the one thing the discriminator was added to
-            // prevent — a selection attributed to the wrong application —
-            // survived intact on the read path.
+            // Lane travels with the fact. Without it the highlight keys as the shared `.applications` lane.
             application: handoff.application,
             slot: .selection,
             content: handoff.text,
             surroundingText: handoff.surroundingText,
             subject: handoff.subject,
             applicationID: handoff.applicationID,
-            // Raw AX range coordinates belong to the emitting element. Only
-            // an identity-checked enrichment may add body-validated bounds.
+            // Raw AX range belongs to the emitting element. Body bounds come from enrichment only.
             bounds: handoff.documentBounds,
             documentTotal: handoff.documentTotal,
             anchor: .selection,
@@ -1439,9 +1159,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             freshFor: AmbientSelectionHandoff.handoffFreshFor)
     }
 
-    /// Disable/quit teardown is the one lifecycle event that intentionally
-    /// invalidates a source packet.  A normal document refresh never calls
-    /// this: it only owns document facts.
+    /// Disable/quit teardown invalidates the source packet. Document refresh never calls this.
     private func discardSelection(world: AmbientWorld, at now: Date = Date()) {
         let removed = selectionStateBox.withLock { state -> AmbientSelectionHandoff? in
             Self.pruneSelectionMutations(&state, at: now)
@@ -1467,10 +1185,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     public static func ordered(_ lhs: AmbientFact, _ rhs: AmbientFact) -> Bool {
-        // THE PLACE'S ORDER. Built-ins keep their exact positions, so the
-        // golden prompt diff is byte-identical; registrations sort after every
-        // one of them, in roster order, which is what stops importing a package
-        // from reordering the worlds the diff compares.
+        // Place order: built-ins keep positions; registrations sort after, in roster order.
         if lhs.place.order != rhs.place.order { return lhs.place.order < rhs.place.order }
         if lhs.slot.order != rhs.slot.order { return lhs.slot.order < rhs.slot.order }
         return lhs.key.id < rhs.key.id
@@ -1480,20 +1195,8 @@ public final class AmbientContextStore: @unchecked Sendable {
         for (key, fact) in Array(facts) where fact.isExpired(at: now) { facts[key] = nil }
     }
 
-    /// "Nothing accumulates unboundedly", enforced: the newest
-    /// `namedReadCap` reads per LANE survive, the rest drop oldest-first.
-    ///
-    /// Keyed on `isRead`, NOT on `!isPerceived`: a standing digest is also
-    /// non-perceived, and counting it here would let a fourth calendar read
-    /// evict the one-line summary of the user's day.
-    ///
-    /// A LANE, NOT A WORLD, since `.applications` is one world shared by every
-    /// registered application. Bucketing by world would make Sketch's four
-    /// reads and Keynote's four reads compete for one budget of four, so
-    /// reading a fourth thing in Sketch would silently evict what the user
-    /// just read in Keynote — a fact vanishing for a reason that has nothing
-    /// to do with the conversation it belonged to. Nil application is its own
-    /// lane, which is every built-in world's, unchanged.
+    /// Newest `namedReadCap` reads per lane survive; oldest drop. Keyed on `isRead`.
+    /// PIN: lane, not world — apps sharing `.applications` must not share one budget.
     private static func capNamedReads(
         _ facts: inout [AmbientKey: AmbientFact],
         world: AmbientWorld,
@@ -1506,8 +1209,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         for fact in reads.dropFirst(namedReadCap) { facts[fact.key] = nil }
     }
 
-    /// Publishes held facts onward to whatever is observing. Nothing is,
-    /// today — see `AmbientObserving`.
+    /// Publish held facts to the observer. None today. OUT: AmbientObserving.
     private func emit(_ facts: [AmbientFact]) {
         guard let observer = observerBox.withLock({ $0 }) else { return }
         Task { for fact in facts { await observer.observed(fact) } }

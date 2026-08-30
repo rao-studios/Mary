@@ -2,61 +2,17 @@
 //  SurfacePollTarget.swift
 //  MaryAmbient
 //
-//  THE STANDARD FOR INGESTED APPLICATIONS. An application Mary can ingest,
-//  learn, and understand is data: a package, a claim on a process, a
-//  discipline it extends, and an Ability Totem target. If a utility can be
-//  answered from those, it is generic. A new `.mary` application joins the
-//  roster; it does not get a code-named cousin of this type.
-//
-//  THREE QUESTIONS, ONE JOIN:
-//    1. Who claims this process? `SurfaceClaim` — `applicationID` and
-//       `owns(bundleID:)`. Every declared surface registration and
-//       `ApplicationRegistration` answers it.
-//    2. Which process do we sample while they speak to Mary? This file.
-//       Frontmost if it is in this roster; otherwise the standing workspace
-//       when the frontmost process is workspace-transparent (Mary's overlay,
-//       system chrome). Roster-scoped so Pages in front does not pull Xcode.
-//    3. Where does what we learned live? `AbilityTotemTarget` — this Ability,
-//       and for application expertise the disciplines it extends. Not a
-//       code-totem, prose-totem, or web-totem.
-//
-//  PAIR SESSION — THE OBSERVER CONTRACT THIS HIT SERVES. Mary sits in the
-//  live work before she speaks: compose and revise as you talk, across every
-//  discipline, not only coding. Surface observers (and unnamed Skill /
-//  faculty targeting) must keep:
-//    · Eyes before Skills. Standing caret/window text rides the turn so Lane A
-//      does not ask for a paste. A Skill is not how Mary first sees the work.
-//    · Mary's overlay is not blindness. Resolve through this file, never
-//      `frontmostApplication` alone.
-//    · A highlight outranks a caret. Retract the pair-caret fact when
-//      selection owns the ground; do not publish two authorities for "where
-//      they are."
-//    · No application-shaped observer API. `observedPlace` comes from the
-//      registration this hit named. Adding an ingested app must not add a
-//      Swift case.
-//    · One pair lead. Caret liveWork and corpus neighbourhood may merge for
-//      the same place; coding and writing fulls must not coexist.
-//    · Hands stay discipline-specific. Disk vs AX write policy is not this
-//      file's question.
-//
-//  WHAT STAYS PER SURFACE is the walk AFTER the pid (caret excerpt, corpus
-//  title, AX ambient context, later a page or transport) and the schema of
-//  the declaration. Write policy stays specific too.
-//
-//  `CodeSurfacePollTarget` was a local, code-named instance of question 2
-//  for the Xcode-behind-Mary paste miss. The policy was never coding-specific.
+//  WHAT: Which process to sample while they speak to Mary — the ingested-app standard.
+//  IN:   SurfaceClaim / ApplicationRegistration
+//  OUT:  SurfaceRoster.resolve. Durable expertise → AbilityTotemTarget
+//  PIN:  A new .mary app joins the roster; it does not get a code-named cousin of this type.
 //
 
 import AppKit
 import Foundation
 
-/// A roster member that can own a running process.
-///
-/// Logical `applicationID` is never a bundle identifier. `displayName` is
-/// what the user called it, for named Skill targeting. `owns(bundleID:)` is
-/// the one membership predicate — exact ids first, then a declared family
-/// (`SurfaceClaimOwnership.exactThenFamily`). A corpus may still prefix-match
-/// declared identities; that looser rule is pinned, not silent.
+/// A roster member that can own a running process. Logical `applicationID` is never a
+/// bundle identifier. `displayName` is what the user called it, for named Skill targeting.
 public protocol SurfaceClaim: Sendable {
     var applicationID: String { get }
     var displayName: String { get }
@@ -80,13 +36,8 @@ public enum SurfaceClaimOwnership {
         return ApplicationRegistration.isInFamily(lowered, prefix: prefix)
     }
 
-    /// CORPUS MEMBERSHIP. Each declared identity is a stem: `…scrivener`
-    /// claims `…scrivener3`, and `…Xcode` claims `…Xcode-beta`. `isInFamily`
-    /// refuses a hyphen after the stem, so unifying corpus onto that
-    /// predicate would drop those processes. Keep the stem match, and refuse
-    /// a different word with no separator (`…XcodeHelper` still matches
-    /// `hasPrefix` — that looseness is why family-boundary owns is preferred
-    /// everywhere a package can declare a prefix).
+    /// CORPUS MEMBERSHIP. Each declared identity is a stem: `…scrivener` claims `…scrivener3`,
+    /// and `…Xcode` claims `…Xcode-beta`.
     public static func declaredStem(
         bundleID: String,
         identifiers: some Sequence<String>
@@ -111,10 +62,8 @@ public enum SurfacePollTarget {
     public struct Hit: Equatable, Sendable {
         public var applicationID: String
         public var pid: pid_t
-        /// True when the hit is the frontmost application. A miss against a
-        /// frontmost editor retracts (the file closed). A miss against a
-        /// standing background editor must not — the user asked Mary with
-        /// her own window up, and yesterday's caret is still the claim.
+        /// True when the hit is the frontmost application. A miss against a frontmost editor
+        /// retracts (the file closed).
         public var isFrontmost: Bool
 
         public init(applicationID: String, pid: pid_t, isFrontmost: Bool) {
@@ -141,11 +90,9 @@ public enum SurfacePollTarget {
         }
     }
 
-    /// Which claimed process to walk this poll.
-    ///
-    /// `unpreferredFallback` (default true): a declared-surface roster may
-    /// sample any running member when Mary is up and nothing is standing.
-    /// Ambient must pass false — it must not pick a random running app.
+    /// Which claimed process to walk this poll. `unpreferredFallback` (default true): a
+    /// declared-surface roster may sample any running member when Mary is up and nothing is
+    /// standing. Ambient must pass false — it must not pick a random running app.
     public static func resolve<C: SurfaceClaim>(
         frontmostBundleID: String?,
         maryBundleID: String?,

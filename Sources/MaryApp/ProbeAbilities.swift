@@ -2,22 +2,9 @@
 //  ProbeAbilities.swift
 //  Mary
 //
-//  What the Ability registry actually looks like at boot:
-//
-//      swift run Mary --probe-abilities [substring]
-//
-//  WHY THIS EXISTS. A Skill can be perfectly valid, ship in a package that
-//  round-trips, pass every schema and routing suite — and still sit BLOCKED in
-//  the app, because readiness is a HANDSHAKE between the package's declared
-//  contract and the installed adapter's published one. Nothing in the test
-//  suites saw that seam, so the first sighting of a mismatch was a red word in
-//  Ability Studio with the reason one click away and no way to ask from a
-//  terminal.
-//
-//  This runs the SAME configuration install the app runs at launch, then prints
-//  every Skill with its readiness and, when it is not ready, the evaluator's own
-//  sentences. It is the answer to "why is this blocked" and to the question
-//  underneath it — "is my build stale, or is my contract wrong?"
+//  WHAT: Ability registry at boot — same install as launch, then print readiness.
+//  OUT:  stdout. CLI: swift run Mary --probe-abilities [substring]
+//  PIN:  Readiness is a handshake (package contract × installed adapter).
 //
 
 import MaryBrain
@@ -81,9 +68,7 @@ enum ProbeAbilities {
                 }
             }
 
-            // The adapter side of the handshake, because "no installed adapter
-            // publishes X" is most often a stale build rather than a bad
-            // contract — and those two look identical from Ability Studio.
+            // Adapter side of the handshake — missing publisher is often a stale build.
             if let filter {
                 let publishing = snapshot.adapterManifests.filter {
                     $0.adapterID.rawValue.lowercased().contains(filter)

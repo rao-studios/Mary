@@ -2,16 +2,14 @@
 //  PluginGraphValidator.swift
 //  MaryFoundation
 //
-//  ADMISSION ACROSS PACKAGES: whether a Plugin operation actually satisfies
-//  the Ability binding that names it, and whether the dependency edges between
-//  the two packages are the ones that relationship requires.
+//  WHAT: Cross-package Plugin admission — bindings, deps, handle-prefix collisions.
+//  IN:   AbilityPackageValidator+Graph.
+//  OUT:  SchemaIssue. Prefix well-formedness: PluginValidator+ProseSurface/+CodeSurface.
 //
 
 import Foundation
 
-/// Cross-package checks prove that Plugin operations satisfy actual Ability
-/// bindings. Design may consume the Sketch adapter without depending on Sketch;
-/// Sketch depends on Design because it imports Design's semantic schemas.
+/// Plugin operations satisfy Ability bindings. Design may use Sketch without depending on it.
 public enum PluginGraphValidator {
     public static func validate(_ packages: [MaryAbilityPackage]) -> AbilityPackageValidation {
         var issues: [SchemaIssue] = []
@@ -46,18 +44,8 @@ public enum PluginGraphValidator {
                 "packages",
                 "Bundle identifier \(duplicate) is claimed by more than one Plugin.")
         }
-        // ONE LETTER, ONE MEANING. A handle prefix becomes a spoken token —
-        // "[W2]" — and a person saying it expects one window. Two packages
-        // minting under the same letter is experienced not as an error but as
-        // Mary reaching into the wrong document. Per-package well-formedness
-        // is checked in PluginValidator+ProseSurface / PluginValidator+CodeSurface;
-        // only here can two packages be compared.
-        //
-        // BOTH FAMILIES SHARE ONE NAMESPACE. A prose surface and a code
-        // surface mint the same shape of spoken handle, so a prose package's
-        // "W" and a code package's "W" would collide exactly as two prose
-        // packages would — checked together rather than in two separate
-        // passes that could each report clean.
+        // One handle letter, one meaning. Prose + code share the namespace.
+        // Well-formedness: +ProseSurface / +CodeSurface; collision only here.
         for duplicate in duplicates(
             bearing.compactMap { $0.plugin.proseSurface?.handlePrefix }
                 + bearing.compactMap { $0.plugin.codeSurface?.handlePrefix }) {
@@ -79,9 +67,7 @@ public enum PluginGraphValidator {
                     let rightExact = Set(rightApplication.bundleIdentifiers.map {
                         $0.lowercased()
                     })
-                    // Exact duplicates already have the more specific issue
-                    // above. This pass is for the family capability that could
-                    // otherwise shadow an exact or family-owned process.
+                    // Exact duplicates already issued. This pass is family shadowing.
                     guard leftExact.isDisjoint(with: rightExact) else { continue }
 
                     var overlaps = false
@@ -208,14 +194,7 @@ public enum PluginGraphValidator {
                         "A Skill realized by a Plugin macUI recipe must own the stage for its full execution.")
                     realizationIsValid = false
                 }
-                // THE OUTPUT CONTRACT. A managed-UI recipe presses keys and
-                // reports whether the press landed; the engine has no channel
-                // for handing a value back. So a Skill with outputs cannot be
-                // realized this way at all — it must bind to an observation
-                // adapter instead, which is what a `proseSurface` declaration
-                // configures. This is the rule that keeps "read my document"
-                // honest rather than letting a package claim a read it cannot
-                // perform.
+                // Recipe cannot return values. Skills with outputs bind an observation adapter.
                 if !skill.outputs.isEmpty {
                     error(
                         "output-contract-unsupported",

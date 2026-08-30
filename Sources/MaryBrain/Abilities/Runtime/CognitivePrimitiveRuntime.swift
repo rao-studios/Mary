@@ -1,14 +1,17 @@
+//
+//  CognitivePrimitiveRuntime.swift
+//  MaryBrain
+//
+//  WHAT: Mary's closed cognitive instruction set.
+//  IN:   exact built-in Skill identity from a package
+//  OUT:  typed activation + Mary-owned guidance for the next model round
+//  PIN:  Packages cannot inject a new reasoning procedure through prose.
+//
 import MaryFoundation
 import Foundation
 
-/// Mary's closed cognitive instruction set. Ability packages may select one
-/// of these contracts by exporting the exact built-in Skill identity, but they
-/// cannot inject a new reasoning procedure through package prose.
-///
-/// The activation is deliberately small and provider-neutral. It does not
-/// pretend that a second model ran inside the dispatcher: it records a typed
-/// machine activation and returns Mary-owned guidance to the model's next
-/// round. Unknown cognitive Skills remain installed-but-blocked.
+/// Mary's closed cognitive instruction set. Ability packages may select one of these contracts by exporting the exact built-in Skill identity
+/// The activation is deliberately small and provider-neutral.
 enum MaryCognitivePrimitive: String, Sendable, CaseIterable {
     case composeDraft = "mary.cognition.compose-draft"
     case reviseSelection = "mary.cognition.revise-selection"
@@ -68,16 +71,7 @@ enum CognitivePrimitiveCatalog {
             parameters: [
                 .init(name: "instruction", type: "string", description: "The requested change to the verified selection.", required: true),
             ]),
-        // THE CODING HALF OF THE SAME PROCEDURE, and a separate contract
-        // rather than a widened `allowedAbility` on the one above: the
-        // catalog's lookup is exact-match on (Ability, Skill, invocation),
-        // which is what stops a package granting itself a reasoning
-        // procedure it did not earn. `.reviseSelection` is `.writing`'s,
-        // gated on `interaction.text-selection` — an identity a coding
-        // place's selection NEVER mints (`SchemaSignalRuntime
-        // .bridgeSelection`), so widening that contract would have produced
-        // a Skill permanently blocked at dispatch. This one is gated on
-        // `interaction.code-selection`, which [Corpus W] declared.
+        // THE CODING HALF OF THE SAME PROCEDURE, and a separate contract rather than a widened `allowedAbility` on the one above: the catalog's lookup is exact-match on…
         .init(
             primitive: .reviseCodeSelection,
             allowedAbility: .coding,
@@ -282,11 +276,7 @@ enum CognitivePrimitiveCatalog {
         return capabilities
     }
 
-    /// THE ONE FUNCTION THAT NAMES compose_draft's DELIVERY TARGET — kept
-    /// single and pure so the focus layer can later source it from
-    /// FocusSignal instead of the turn's staged surface / named worlds
-    /// without touching the activation text. Nil when the turn names no
-    /// destination (the draft belongs in the reply).
+    /// THE ONE FUNCTION THAT NAMES compose_draft's DELIVERY TARGET
     static func composePlacementClause(
         stagedApplicationName: String?,
         namedWritingApplication: String?
@@ -300,35 +290,13 @@ enum CognitivePrimitiveCatalog {
         return nil
     }
 
-    /// THE REVISE→PLACE SEAM, mirroring `composePlacementClause`'s shape for
-    /// a different premise: revise-selection's destination is never chosen,
-    /// it is already fixed to the turn's routed selection — there is no
-    /// "which surface" to name, only whether one is genuinely still there.
-    /// Nil when the turn holds no live routed selection to write back into,
-    /// which is exactly the same predicate `type_at_cursor(mode:
-    /// "replace_selection")` itself enforces at dispatch
-    /// (`AbilityRuntime.swift`'s `binding.name == "type_at_cursor"` guard) —
-    /// so this never instructs a call that dispatch would then refuse. In
-    /// that case the model is left to draft and present the replacement in
-    /// its response instead, the honesty spine (`activate`'s base text)
-    /// unchanged.
+    /// THE REVISE→PLACE SEAM, mirroring `composePlacementClause`'s shape for a different premise: revise-selection's destination is never chosen
     static func revisionPlacementClause(hasRoutedSelection: Bool) -> String? {
         guard hasRoutedSelection else { return nil }
         return " Deliver it now — in this same response, call type_at_cursor with mode: \"replace_selection\" to replace exactly what's selected, and never claim the selection was replaced until that call returns ok."
     }
 
-    /// The code lane's mirror of `revisionPlacementClause`, differing in the
-    /// one place the two lanes genuinely differ: the call that places the
-    /// result. Prose goes back through `type_at_cursor(mode:
-    /// "replace_selection")`, which refuses unless the route named the
-    /// selection as its writing target — so that clause gates on exactly
-    /// that predicate. Code goes through `coding.replace-selection`, which
-    /// consults no route at all: it re-reads the front code surface's live
-    /// selection itself at dispatch and refuses on its own terms (nothing
-    /// selected, unsaved changes). The honest gate here is therefore the
-    /// weaker, truer one — a routed selection whose place codes — and the
-    /// clause still never claims the write happened, only that it must be
-    /// made before anything is said about it.
+    /// The code lane's mirror of `revisionPlacementClause`, differing in the one place the two lanes genuinely differ: the call that places the result.
     static func codeRevisionPlacementClause(hasRoutedCodeSelection: Bool) -> String? {
         guard hasRoutedCodeSelection else { return nil }
         return " Deliver it now — in this same response, call replace_selection with the revised code as `text`, and never claim the file changed until that call returns ok."
@@ -368,22 +336,12 @@ enum CognitivePrimitiveCatalog {
 
         switch contract.primitive {
         case .composeDraft:
-            // THE COMPOSE→PLACE SEAM, CLOSED. The old text — "write the
-            // requested prose directly … do not claim it was inserted" — was
-            // honest about not typing but named no way TO type, so "draft
-            // those sections in Pages" produced prose into the conversation
-            // while the fresh document sat empty (the incident). The delivery
-            // half is now part of the procedure itself; the honesty spine
-            // ("never claim it was inserted until the call returns ok") stays.
+            // THE COMPOSE→PLACE SEAM, CLOSED. The old text — "write the requested prose directly … do not claim it was inserted"
             return "Drafting procedure activated. Write the requested prose, preserving the requested audience and tone. If the user asked for it to go into a document or app, do not read it aloud — in this same response, call type_at_cursor (creating or opening the document first with its create Skill if needed) with the complete draft as text, and never claim it was inserted until that call returns ok. If no destination was asked for, present the draft in your response."
         case .reviseSelection:
             return "Selection revision procedure activated. Draft a bounded replacement for the verified selection, preserving its intent and register, and do not claim the source was mutated until it is."
         case .reviseCodeSelection:
-            // THE CORPUS IS REACHABLE, NOT ATTACHED. Nothing wires a
-            // selection-driven coding turn to the project corpus — the two
-            // lanes share no code path — so the honest thing is to name the
-            // tools that DO reach it rather than to imply the surrounding
-            // context is already in hand.
+            // THE CORPUS IS REACHABLE, NOT ATTACHED. Nothing wires a selection-driven coding turn to the project corpus — the two lanes share no code path
             return "Code revision procedure activated. Draft a bounded replacement for the selected code, preserving its surrounding style, indentation and intent, and changing nothing the request did not ask for. If you need the code around it first, read_selection, read_buffer and search_corpus are the tools that reach it. Do not claim the file changed until it has."
         case .frameProblem:
             return "Problem-framing procedure activated. In the next response, state Goal, Constraints, Non-goals, Material unknowns, and Success signals. Separate evidence from assumptions."

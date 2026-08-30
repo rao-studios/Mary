@@ -2,10 +2,7 @@
 //  TotemsLibraryView.swift
 //  Mary
 //
-//  What the totem holds, by lane and family: chips over the families that
-//  actually exist, lane sections of paged groups, and a two-tier document
-//  drill. The drill replaces the listing rather than sitting beside it —
-//  the pane is a narrow column, and a body deserves its width.
+//  WHAT: Totem holdings by lane/family; drill replaces the listing (narrow column).
 //
 
 import SwiftUI
@@ -30,10 +27,7 @@ struct TotemsLibraryView: View {
         }
         .padding(.horizontal, .layer4)
         .onAppear {
-            // A noticed-but-empty state refetches too — loadLibrary(reset:)
-            // clears the notice, and the loading flag is the loop guard.
-            // onAppear fires once per tab entry, so a dead server costs one
-            // probe per visit, never a spin.
+            // Refetch empty-notice too; loading flag guards the loop.
             if vm.laneSections.isEmpty, !vm.isLoadingLibrary {
                 vm.loadLibrary(reset: true)
             }

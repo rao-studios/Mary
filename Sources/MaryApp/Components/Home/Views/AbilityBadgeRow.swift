@@ -2,23 +2,9 @@
 //  AbilityBadgeRow.swift
 //  Mary
 //
-//  The chip row under a reply — the realm capsules and one Ability | Skill
-//  badge per Skill the turn used. Lifted whole out of UtteranceView for two
-//  reasons.
-//
-//  FIRST, THE CHIPS NOW CARRY STATE. The receipt under a chip has always
-//  known whether its call was still running, had failed, or had been refused
-//  — `TranscriptOps` writes the `.unsettled` row the moment the invocation is
-//  announced and replaces it when it settles — and the chip rendered none of
-//  it. A person watching an action they asked for had no way to tell "still
-//  going" from "quietly failed" except by tapping through to the sheet.
-//
-//  SECOND, AND WORSE: the chips did not exist while the turn ran.
-//  ConversationPageView swaps the whole row out for StreamingUtteranceView
-//  until the turn goes idle, so the badges appeared only once everything they
-//  described was already over. Living in their own view, they can be rendered
-//  under the streaming reply as well — which is the one moment their state is
-//  worth anything.
+//  WHAT: Realm capsules + one Ability|Skill chip per Skill (with run state).
+//  IN:   UtteranceView / StreamingUtteranceView
+//  OUT:  AbilityRunInspectorSheet
 //
 
 import MaryAmbient
@@ -29,7 +15,7 @@ import MaryRuntime
 
 struct AbilityBadgeRow: View {
     let badges: [AbilitySkillReference]
-    /// One row per CALL, unlike `badges`, which dedupes to one per Skill.
+    /// One row per call; `badges` dedupes to one per Skill.
     let actions: [BehavioralActionRecord]
     var realmLensEntry: RealmLensEntry? = nil
     var onOpenRoutes: (() -> Void)? = nil
@@ -40,9 +26,7 @@ struct AbilityBadgeRow: View {
             if let place = realmLensEntry?.leadPlace {
                 realmCapsule(place)
             }
-            // THE MERGED-WORLDS CHIP: the places co-active beside the lead at
-            // exchange time — "with: Sketch, Safari (glanced)". At most two,
-            // matching the compact section's own restraint.
+            // Co-active places beside the lead at exchange time (at most two).
             if let entry = realmLensEntry, !entry.coActivePlaces.isEmpty {
                 coActiveCapsule(entry)
             }
@@ -71,10 +55,7 @@ struct AbilityBadgeRow: View {
         return "\(state) — tap for arguments, receipts, status"
     }
 
-    /// The Ability | Skill badge's own label — split out from the row so the
-    /// type checker isn't asked to solve one Button+HStack expression per
-    /// ForEach iteration in a single pass (SE cannot resolve that in
-    /// reasonable time once enough sibling overloads are in scope).
+    /// Ability | Skill label — split so the type checker isn't solving one giant Button+HStack per ForEach.
     @ViewBuilder
     private func badgeLabel(
         reference: AbilitySkillReference,
@@ -83,10 +64,7 @@ struct AbilityBadgeRow: View {
     ) -> some View {
         let tint = Color.maryAbilityTint(reference.abilityTint)
         let state = AbilityRunPresentation.chipState(runs)
-        // A chip that needs attention borrows the error colour for its EDGE
-        // only. Recolouring the Ability's name would cost the row the one
-        // thing it is for — telling Abilities apart at a glance — and a failed
-        // call is still a call by that Ability.
+        // Attention on the chip edge only; keep Ability names distinguishable.
         let edge: Color = state == .attention ? .maryError : tint
         HStack(spacing: 5) {
             if state.isRunning {
@@ -128,9 +106,6 @@ struct AbilityBadgeRow: View {
                 edge.opacity(state == .attention ? 0.55 : 0.34),
                 lineWidth: 1)
         )
-        // A RUNNING CHIP IS DIMMER, NOT BUSIER. It has not finished saying
-        // what it did, and printing it at full weight beside settled chips
-        // claims a result it does not have yet.
         .opacity(state.isRunning ? 0.72 : 1)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel(presentation, runs))
@@ -148,8 +123,7 @@ struct AbilityBadgeRow: View {
 
     // MARK: - Place capsule (the lens)
 
-    /// `with: Sketch, Safari (glanced)` — the responder-layer signal beside
-    /// the lead chip. Capped at two names; a longer tail says how many more.
+    /// `with: Sketch, Safari (glanced)` beside the lead. Capped at two names.
     @ViewBuilder
     private func coActiveCapsule(_ entry: RealmLensEntry) -> some View {
         let names = entry.coActivePlaces.prefix(2).map { place -> String in
@@ -178,10 +152,7 @@ struct AbilityBadgeRow: View {
         .help("Places with fresh evidence beside the lead when this turn ran")
     }
 
-    /// `led: Sketch · dynamic` / `led: Pages · workspace` — which place led
-    /// the turn these chips ran under. Same capsule family as the badges
-    /// beside it; a subtle green tint marks a Dynamic application, the
-    /// warm gold stays for native worlds.
+    /// `led: Sketch · dynamic` / `led: Pages · workspace`. Green = Dynamic app; gold = native.
     @ViewBuilder
     private func realmCapsule(_ place: AmbientPlace) -> some View {
         let accent: Color = place.isApplication ? .maryGreen : .maryGold

@@ -2,18 +2,11 @@
 //  MaryBrain+Dictation.swift
 //  MaryBrain
 //
-//  THE VOCABULARY OF A HELD DICTATION SESSION — a pure utterance classifier,
-//  and the turn-loop halves that use it.
+//  WHAT: Held-dictation utterance classifier + turn-loop halves.
+//  IN:   runTurnBody
+//  OUT:  write-prose vs speak-to-Mary
+//  PIN:  Strict enough to close the session by voice; never trap it.
 //
-//  A session owns every utterance while it is held, so this file decides the
-//  only thing that could take one back: whether the user is writing prose or
-//  speaking to Mary. Get that wrong in the permissive direction and a novel
-//  gains the sentence "Mary stop writing"; get it wrong in the strict
-//  direction and the session cannot be closed by voice at all. The rules below
-//  are shaped by which of those two is worse — and it is the second, because
-//  it has no exit.
-//
-
 import MaryAmbient
 import MaryPlugin
 import MaryVoice
@@ -40,14 +33,7 @@ extension MaryBrain {
     }
 
     /// ADDRESS SPELLINGS, deliberately generous.
-    ///
-    /// The address is a GATE, not a target: its whole job is to separate "this
-    /// is for you" from "this is for the page". A homophone that fails to
-    /// match costs the user their only spoken exit from the session — they say
-    /// "Mary, stop writing", it lands in the manuscript as prose, they say it
-    /// again, and it lands again. Recognising a spelling Whisper invented costs
-    /// nothing by comparison, because the phrase still has to be a control
-    /// phrase and nothing else.
+    /// The address is a GATE, not a target: its whole job is to separate "this is for you" from "this is for the page".
     static let dictationAddressWords: Set<String> = [
         "mary", "bonny", "bonni", "bonne", "hey", "ok", "okay",
     ]
@@ -69,23 +55,7 @@ extension MaryBrain {
     ]
 
     /// WHAT THIS UTTERANCE MEANS INSIDE A SESSION, or nil for prose.
-    ///
-    /// RULE 1 — WHOLE AND EXACT. A control phrase that merely APPEARS in a
-    /// longer utterance is prose. "Stop writing to her that night" is a
-    /// sentence in a novel, and this rule alone removes most of the risk.
-    ///
-    /// RULE 2 — DESTRUCTIVE CONTROLS ARE ADDRESSED. Closing a session or
-    /// deleting a span costs real work, so the utterance must consist of
-    /// NOTHING BUT an address and a control phrase. `"Scratch that," she said`
-    /// does not, so it is typed. The address may lead or trail: Whisper returns
-    /// "Mary stop writing" and "stop writing Mary" from the same person on
-    /// different days, and the rule is about what the utterance CONTAINS, not
-    /// about word order.
-    ///
-    /// RULE 3 — STRUCTURAL CONTROLS MAY BE BARE. "new paragraph" is the
-    /// established dictation idiom, and misfiring costs one break that "Mary,
-    /// scratch that" undoes. Two words of prose lost to a break is a fair trade
-    /// for not making a novelist say "Mary" every paragraph.
+    /// RULE 2 — DESTRUCTIVE CONTROLS ARE ADDRESSED.
     static func dictationControl(in text: String) -> DictationControl? {
         let normalized = normalizedUtterance(text)
         guard !normalized.isEmpty else { return nil }
@@ -116,12 +86,7 @@ extension MaryBrain {
     }
 
     /// AN ADDRESSED UTTERANCE THAT IS NOT A CONTROL — the escape hatch.
-    ///
-    /// "Mary, what time is it" must not be typed into the manuscript, and it
-    /// must not close the session either. It falls through to the ordinary turn
-    /// loop for that one utterance. This is what lets the address prefix mean
-    /// ONE consistent thing — *this is for you, not for the page* — instead of
-    /// meaning it only for the four phrases we happened to list.
+    /// PIN: "Mary, what time is it" must not be typed into the manuscript, and it must not close the session either.
     static func isDictationEscape(_ text: String) -> Bool {
         let normalized = normalizedUtterance(text)
         guard !normalized.isEmpty else { return false }
@@ -187,10 +152,7 @@ extension MaryBrain {
     }
 
     /// Answer one utterance inside a held session.
-    ///
-    /// Returns false when the utterance is an ADDRESSED NON-CONTROL — the
-    /// escape hatch — so the caller lets the ordinary turn loop have it with
-    /// the session left intact.
+    /// Returns false when the utterance is an ADDRESSED NON-CONTROL — the escape hatch
     func runHeldDictationTurn(
         userText: String,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
@@ -238,10 +200,7 @@ extension MaryBrain {
         }
     }
 
-    /// SILENT ON SUCCESS. TTS is driven by `.token`, so a dictated span yields
-    /// none and completes empty — Mary types and says nothing, which is the
-    /// only tolerable behaviour when the user is mid-sentence. Only a failure
-    /// speaks, and a failure has already closed the session.
+    /// SILENT ON SUCCESS. TTS is driven by `.token`, so a dictated span yields none and completes empty
     private func typeDictatedSpan(
         _ text: String,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation

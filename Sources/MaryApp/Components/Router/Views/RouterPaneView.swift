@@ -2,11 +2,8 @@
 //  RouterPaneView.swift
 //  Mary
 //
-//  The AmbientEngine's decisions, newest first: what each turn was classified
-//  as, which signal decided it, which worlds it reached, and what it cost.
-//  Plain view owning the realtime view model (the Home ↔ HomeSessionView
-//  split, replayed): Granite state stays click-scoped, the 1 Hz repaint lives
-//  here.
+//  WHAT: AmbientEngine decisions, newest first. 1 Hz VM; Granite stays click-scoped.
+//  OUT:  RouteTraceViewModel
 //
 
 import MaryAmbient
@@ -113,16 +110,7 @@ struct RouterPaneView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Clear routes")
             }
-            // WORD chips, wrapped at their own widths. The eyes pane's tab bar
-            // is an adaptive grid because its chips are ICONS — one glyph, a
-            // fixed 28 pt. These are words of very different lengths ("ask" vs
-            // "converse"), and a column width is the wrong authority for them:
-            // that grid is what rendered "compose" as "com / pos / e".
-            //
-            // Wrapped rather than a horizontal scroller for the reason the
-            // eyes pane states: the pane's content floor is ~288 pt and the
-            // app hides scroll indicators everywhere, so off-screen tabs would
-            // be invisible.
+            // Word chips at intrinsic width (FlowLayout). Adaptive grid mid-word-wraps labels.
             FlowLayout(spacing: .layer1, lineSpacing: .layer1) {
                 intentChip(nil, label: "all")
                 ForEach(AmbientIntent.allCases, id: \.self) { intent in

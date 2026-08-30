@@ -2,21 +2,9 @@
 //  main.swift
 //  MediaProbe — `mary-media-probe`
 //
-//  DOES THE DECLARED TRANSPORT ACTUALLY READ? The join no test can make: a
-//  package's `mediaSurface` block on one side, a running player's live
-//  Accessibility tree on the other, and a claim that the labels in the first
-//  describe the second.
-//
-//    mary-media-probe                     # read the transport and the library
-//    mary-media-probe --drive             # press pause, then press it back
-//    mary-media-probe --play <playlist>   # actually start one, for real
-//    mary-media-probe --shuffle           # set shuffle, read it back, put it back
-//    mary-media-probe --shuffle-on|-off   # set it and LEAVE it there
-//    mary-media-probe --find <name>       # resolve a spoken name, press nothing
-//
-//  `--drive` TOUCHES REAL PLAYBACK, so it puts back what it changed: one
-//  toggle, a read, the opposite toggle. A probe that left the music paused
-//  would be a probe nobody runs twice.
+//  WHAT: Declared mediaSurface vs a running player's Accessibility tree.
+//  OUT:  CLI: mary-media-probe [--drive|--play|--shuffle|--find]
+//  PIN:  --drive puts playback back.
 //
 
 import AppKit
@@ -37,9 +25,7 @@ func heading(_ text: String) {
 
 let wantsDrive = CommandLine.arguments.dropFirst().contains("--drive")
 let wantsShuffle = CommandLine.arguments.dropFirst().contains("--shuffle")
-// SET AND LEAVE, unlike every other driving flag here. `--shuffle` puts back
-// what it found, which is right for a probe and useless for the one job of
-// returning a player to a state something else disturbed.
+// `--shuffle-on`/`--shuffle-off` set and leave. `--shuffle` puts the found state back.
 let setsShuffle: Bool? = CommandLine.arguments.contains("--shuffle-on") ? true
     : CommandLine.arguments.contains("--shuffle-off") ? false : nil
 
@@ -63,12 +49,7 @@ for issue in load.issues where issue.severity == .error {
     print("      ! \(issue.code): \(issue.message)")
 }
 
-// EVERY MEDIA SKILL, WITH THE READINESS THE RUNTIME ACTUALLY GAVE IT. Graph
-// validity is not availability: `mary-package-probe check` was green for the
-// whole stretch during which `control_playback`, `now_playing`,
-// `list_playlists` and `play_playlist` were installed and BLOCKED for want of
-// a declared target class (see MediaSurfaceAdapter's own header). That failure
-// is invisible everywhere except here, so it is asserted here.
+// Media Skills with runtime readiness. Graph validity ≠ availability (blocked target class).
 for runtime in load.snapshot.skills
     where runtime.skill.id.rawValue.hasPrefix("multimedia.") {
     let name = runtime.skill.modelExposure.invocationName ?? runtime.skill.id.rawValue
@@ -99,10 +80,7 @@ guard let reading = MediaSurfaceAX.read(pid: pid, registration: registration) el
 check(true, "the declared container was found", registration.schema.transportLabel)
 check(reading.isPlaying != nil, "playing state read",
       reading.isPlaying.map { $0 ? "playing" : "paused" } ?? "neither label matched")
-// NOT A FAILURE WHEN ABSENT. The player exposes its LCD in some window
-// states and not others while still reporting itself as playing, so a probe
-// that failed here would be red about the application's behaviour rather
-// than Mary's.
+// LCD title may be absent while playing; that is not a failure.
 print("      · current item: \(reading.title ?? "not exposed in this view")")
 check(reading.isShuffling != nil, "shuffle read",
       reading.isShuffling.map(String.init) ?? "no label matched")
@@ -152,11 +130,7 @@ if let setsShuffle {
           after.map(String.init) ?? "unreadable")
 }
 
-// THE ONE CONTROL WHOSE LABEL IS ITS STATE, which is why setting it needs a
-// read first and why that is worth proving against a live player rather than
-// a fixture. `pressShuffle` is asked for a state it is ALREADY IN as well as
-// one it is not: the first must press nothing and still report success, and
-// getting that backwards is invisible in a unit test and audible here.
+// Shuffle: already-in state must press nothing; prove both against the live player.
 if wantsShuffle {
     heading("shuffle, driven")
 
@@ -191,12 +165,7 @@ if wantsShuffle {
     }
 }
 
-// THE FALLBACK, EXERCISED ON PURPOSE. The named container is found in the
-// main window, so the content rule would otherwise never run here — and the
-// view it exists for (full-screen Now Playing, whose transport group carries
-// no label at all) is not one a probe can reliably put the player into. So
-// the probe breaks the NAME instead: same live tree, same controls, a
-// container label that matches nothing.
+// Blind the transport label so the unnamed-container fallback actually runs.
 heading("the transport, found without its name")
 
 let blinded = MediaSurfaceRegistration(
@@ -275,13 +244,7 @@ if let index = CommandLine.arguments.firstIndex(of: "--play"),
         let after = MediaSurfaceAX.read(pid: pid, registration: registration)
         check(after?.isPlaying == true, "and the player is playing",
               after?.isPlaying.map(String.init) ?? "unreadable")
-        // THE TRACK ACTUALLY CHANGED — what separates "a play button was
-        // pressed" from "the playlist started". Pressing the transport by
-        // mistake resumes the previous song and passes every other check.
-        //
-        // ASSERTED ONLY WHEN THE PLAYER IS EXPOSING TITLES. It does not
-        // always (see `Reading.title`), and a probe that failed on the
-        // application's silence would be red about the wrong thing.
+        // Title must change when exposed; silence is not a failure.
         if let now = after?.title {
             check(now != before, "and it is playing something new",
                   "\(before ?? "nothing") → \(now)")

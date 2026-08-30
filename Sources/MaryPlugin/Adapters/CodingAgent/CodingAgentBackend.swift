@@ -2,14 +2,16 @@
 //  CodingAgentBackend.swift
 //  MaryPlugin
 //
-//  Provider-neutral seam the composition root injects. MaryPlugin never
-//  loads an MLX model; MaryBrain's coding engine is the only implementation.
+//  WHAT: Provider-neutral coding-agent seam.
+//  IN:   composition root (Runtime)
+//  OUT:  CodingAgentSessions
+//  PIN:  MaryPlugin never loads an MLX model; MaryBrain implements this.
 //
 
 import Foundation
 
 public enum CodingAgentDelivery: Sendable, Equatable {
-    /// Return as soon as the session is running; speak later only on failure.
+    /// Return once running; speak later only on failure.
     case background
     /// Wait for a terminal state (pair-program verification).
     case awaited
@@ -48,7 +50,7 @@ public struct CodingAgentCompletion: Sendable, Equatable {
     }
 }
 
-/// Coding-agent runner. Injected by Runtime; nil means the faculty is off.
+/// Coding-agent runner. Runtime injects; nil means the faculty is off.
 public protocol CodingAgentBackend: Sendable {
     func isPrepared() async -> Bool
     func unpreparedSummary() async -> String

@@ -2,25 +2,9 @@
 //  main.swift
 //  BehaviorProbe — `mary-behavior-probe`
 //
-//  THE ONE THING THE SUITE CANNOT ANSWER about the behavioral codec: does a
-//  REAL turn, against a REAL application, produce an episode whose fields are
-//  actually filled?
-//
-//  Every part of the codec is unit-tested — the assembler's lifecycle, the
-//  chokepoint's completeness, the resolver's ladder. What no test can check
-//  is whether the pieces meet: whether the element a skill touched has a real
-//  frame in it, whether the capture holds the surfaces the prompt was actually
-//  given, whether the realm names the place the turn went to. Each of those is
-//  a JOIN between a live accessibility read and a value composed three layers
-//  away, and a join is exactly what a test with fixtures on both ends cannot
-//  exercise.
-//
-//    mary-behavior-probe                 # read: the last sealed episode
-//    mary-behavior-probe --live          # drive a real turn, then read it back
-//
-//  IT WRITES TO A REAL DOCUMENT under `--live`, so it makes its own scratch
-//  note and refuses to touch anything else — the same trade `--prose --write`
-//  makes, for the same reason.
+//  WHAT: Real turn → sealed episode fields actually filled (codec join).
+//  OUT:  CLI: mary-behavior-probe [--live]
+//  PIN:  --live writes a scratch note only.
 //
 
 import AppKit
@@ -74,12 +58,7 @@ guard AXIsProcessTrusted() else {
 
 heading("the roster")
 
-// THE SHIPPED CONFIGURATION, NOT A FIXTURE. This section used to hand-build
-// the registration and the profile it wanted to see, which proved the prose
-// lane works and said nothing at all about whether `Abilities/textedit.mary`
-// declares it correctly — the only question a live parity pass is for. What
-// runs here is `installBrainConfiguration`'s steps 1-3, verbatim, minus the
-// brain: the same seams, the same load, the same reconcile.
+// Shipped configuration, not a fixture. installBrainConfiguration steps 1-3, minus the brain.
 ProseSurfaceSupport.shared.installBackingResolver()
 AmbientCapabilityBridge.install()
 
@@ -131,13 +110,7 @@ guard let pid = ProseSurfaceSupport.pid(of: registration) else {
 
 heading("the surface")
 
-// THE OBSERVER READS WHAT IS IN FRONT, which is the whole point of a tier-0
-// surface: it is the screen the user is looking at, not a screen we went
-// looking for. Launched from a terminal, the thing in front is the terminal —
-// so the probe must actually put the editor there, the same way a real turn
-// only ever happens while the user is already looking at it. (This is how the
-// first run of this probe failed: one surface in the store, keyed to the
-// terminal, and a lead that named the editor.)
+// Bring the editor forward; the observer reads the frontmost surface.
 let activation = await VerifiedActivation.bringForward(pid: pid, requireVisibleWindow: true)
 check(activation.succeeded, "the editor came forward",
       activation.road.map(String.init(describing:))
@@ -310,11 +283,7 @@ check(acted.contains { $0.frame.rect.width > 0 && $0.frame.rect.height > 0 },
 check(episode.output.actions.allSatisfy { !$0.action.adapters.isEmpty },
       "and every action names its adapter trail")
 
-// THE WRITE, SPECIFICALLY. "Some action carried a target" was true while the
-// typer carried none — the prose reader's record satisfied it on its own. The
-// gate is about the act that CHANGED something: a typing turn has to name the
-// text area the keystrokes went into, or the record of the one thing Mary did
-// to the user's document says only that it happened somewhere.
+// Typing must name the text area; a reader target is not the write.
 if isLive {
     let typed = episode.output.actions.first { $0.action.intention == "type_at_cursor" }
     check(typed != nil, "the write is in the episode")
@@ -330,11 +299,7 @@ if isLive {
         check(false, "and names the element it typed into", "no target")
     }
 
-    // THE TWO ACTS AGREE ABOUT WHICH DOCUMENT. The create hands the typer its
-    // surface, so the note that was made and the note that was written into
-    // are one note — and if the two records disagree, one of them is naming a
-    // document nobody touched. This is the check that caught the create
-    // reporting the backmost window.
+    // Create and type must name the same document.
     let created = episode.output.actions
         .first { $0.action.intention == "create_document" }?.action.target
     check(created?.windowTitle == typed?.action.target?.windowTitle,

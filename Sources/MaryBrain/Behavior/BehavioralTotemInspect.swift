@@ -2,11 +2,10 @@
 //  BehavioralTotemInspect.swift
 //  MaryBrain
 //
-//  PURE SHAPE OF A TOTEM BEHAVIORAL DEPOSIT — tags, the Personal stub, and
-//  the pane's decoded codec. The writer in TotemContextStore must call these
-//  so a test can pin the bytes without a server.
+//  WHAT: Pure shape of a Totem behavioral deposit (tags, codec).
+//  IN:   TotemContextStore writer
+//  OUT:  bytes a test can pin without a server
 //
-
 import Foundation
 import MaryFoundation
 

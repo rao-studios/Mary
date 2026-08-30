@@ -2,9 +2,8 @@
 //  TotemsPaneView.swift
 //  Mary
 //
-//  The pane's frame: a bar that never scrolls away, five tabs, and the
-//  server-rack / Life doors into the control room the navbar used to
-//  open directly.
+//  WHAT: Pane frame — sticky bar, five tabs, server-rack / Life doors.
+//  OUT:  TotemsNodes/Library/Graph/Ledger/Retrieval
 //
 
 import Granite
@@ -32,10 +31,7 @@ struct TotemsPaneView: View {
 
     @StateObject private var vm = TotemExplorerViewModel()
 
-    /// View-local by design (UtteranceView's inspector precedent): held in
-    /// the Center this flag would re-present the sheet on every panel
-    /// rebuild. Closing the panel mid-sheet dismisses the sheet with it —
-    /// acceptable for a control room reached from inside the panel.
+    /// View-local sheet flag; Center would re-present on every rebuild.
     @State private var showsServers = false
     @State private var showsLife = false
 
@@ -94,10 +90,7 @@ struct TotemsPaneView: View {
         }) { ServersSheet() }
         .sheet(isPresented: $showsLife) { LifeCalibrationSheet() }
         .onAppear {
-            // Seeded BEFORE start(): the live-node identity diff and the
-            // repair port ride these two scalars, and the VM cannot hold a
-            // Granite relay itself. Unseeded it degrades to the persisted
-            // node-id file and the default port, it does not break.
+            // Seed node identity + repair port before start().
             seedConfig()
             vm.start()
         }

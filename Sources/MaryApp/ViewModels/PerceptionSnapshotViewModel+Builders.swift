@@ -15,14 +15,7 @@ extension PerceptionSnapshotViewModel {
 
     enum SectionRole { case full, ambient, absent }
 
-    /// ONE CARD PER OBSERVED PLACE.
-    ///
-    /// Its predecessor built five by hand — one function per compiled
-    /// application, 457 lines — and then appended the taught ones. A card
-    /// existed whether or not anything filled it, and a second manuscript
-    /// application replaced the first rather than getting a card of its own.
-    /// Here a card exists exactly when a place is observed, which is the
-    /// honest reading and needs no list.
+    /// One card per observed place (not one compiled slot per app).
     nonisolated static func buildCards(_ inputs: Inputs) -> [PerceptionCard] {
         let lead = leadPlace(inputs)
         return inputs.observed.map { observed in
@@ -43,14 +36,7 @@ extension PerceptionSnapshotViewModel {
                 delivery: delivery(
                     role: role,
                     held: !inputs.ambientFacts(for: observed.world).isEmpty))
-            // THE STORE'S ROWS, APPENDED AFTER the blindness gate on purpose:
-            // a read survives the application quitting. "Mary can't see it any
-            // more" and "Mary is still holding the passage you asked for" are
-            // both true at once, and hiding the second behind the first is how
-            // the pane would go back to lying about continuity.
-            //
-            // TIER 0 FIRST, exactly as the prompt orders it: the surface is
-            // the ground, the held details stand on it.
+            // Store rows after the blindness gate (read survives quit). Tier 0 surface first.
             card.fields += surfaceFields(
                 inputs.ambientSurface(for: observed.world), at: inputs.now)
             card.fields += heldFields(
@@ -59,9 +45,7 @@ extension PerceptionSnapshotViewModel {
         }
     }
 
-    /// THE ROUTING MIRROR — deliberately the same inputs the runtime's own
-    /// `resolveFocus()` reads, so the pane cannot say a place leads while the
-    /// turn led somewhere else. Contribution RESULTS, never running checks.
+    /// Same inputs as runtime `resolveFocus()`. Contribution results, never running checks.
     nonisolated static func leadPlace(_ inputs: Inputs) -> AmbientPlace? {
         let contributing = inputs.contributing
         let discipline = WorkspaceFocusArbiter.lead(
@@ -70,9 +54,7 @@ extension PerceptionSnapshotViewModel {
             hasWriting: contributing.contains { $0.world.place.focus == .writing },
             writingInPlay: inputs.writingInPlay)
         guard let discipline else { return nil }
-        // A named place outranks a signal; the pane has no utterance, so the
-        // strongest thing it can mirror is the writing place the tracker
-        // settled on, then the first contributor of the right discipline.
+        // Named place outranks a signal. Pane has no utterance: writing place, then discipline contributor.
         if discipline == .writing, let writing = inputs.writingPlace,
            contributing.contains(where: { $0.world.place == writing }) {
             return writing
@@ -127,48 +109,22 @@ extension PerceptionSnapshotViewModel {
         }
     }
 
-    /// WHICH LANES received this world this turn — the row that would have
-    /// made the sync bug self-evident. Mary speaks on two lanes: the SEER
-    /// voice (Lane A, `seerInstructionsProvider` → `seerInstructions`) and
-    /// the orchestrator that runs Ability Skills (Lane B, `systemPromptProvider`
-    /// → `system`). Until Slice 1, `seerInstructions` was handed
-    /// `codingContext` ONLY, so a Pages turn's full section reached Lane B
-    /// and stopped — the voice answered about the document from owner-wide
-    /// retrieval, and read "abilities only" here. It reads "voice + abilities" now.
-    ///
-    /// Derived from the SAME role as `routing`, deliberately: an ambient line
-    /// is a routing stand-in that only the system prompt renders, so it is
-    /// Ability-lane-only by construction, and an absent world reaches nobody.
+    /// Which lanes received this world. Same role as `routing`. Ambient = Ability-lane only.
     nonisolated static func delivery(role: SectionRole) -> String {
         delivery(role: role, held: false)
     }
 
-    /// …AND WHAT THE STORE ADDS. `role` alone answered "what did the ARBITER
-    /// do with this world's live contribution this turn" — which was the whole
-    /// truth while the live section was the only channel. It no longer is: a
-    /// world the arbiter marked `.absent` (Pages quit, its watcher dark) still
-    /// reaches BOTH prompts when the store holds a read of it, because both
-    /// providers render the held facts. A card that said "neither" over a
-    /// passage the model is holding would be the same class of quiet lie the
-    /// `delivery` row was added to kill.
+    /// Store-held reads still reach both prompts even when the arbiter marks `.absent`.
     nonisolated static func delivery(role: SectionRole, held: Bool) -> String {
         delivery(
-            // Only the FULL section rides `liveWork` into the voice's
-            // instructions; ambient lines are routing advice for the Ability
-            // lane, never something to talk about. A HELD fact rides the
-            // held-facts block into both.
+            // Full section → voice; ambient is Ability-only; held facts go both.
             toVoice: role == .full || held,
             // Everything the arbiter kept — full section or ambient
             // stand-in — renders in the system prompt.
             toAbilityRuntime: role != .absent || held)
     }
 
-    /// The four-value vocabulary. "voice only" is unreachable by
-    /// construction today (every section the voice gets comes from the same
-    /// `resolveFocus()` sections the system prompt renders), and it stays in
-    /// the mapping precisely for that reason: a card showing it means the
-    /// lanes have diverged, which is the exact bug class this row exists to
-    /// catch.
+    /// Delivery labels; "voice only" means the lanes have diverged.
     nonisolated static func delivery(toVoice: Bool, toAbilityRuntime: Bool) -> String {
         switch (toVoice, toAbilityRuntime) {
         case (true, true): return "voice + abilities"

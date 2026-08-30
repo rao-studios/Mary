@@ -2,15 +2,11 @@
 //  MaryBrain+LocalTurn.swift
 //  MaryBrain
 //
-//  Local mode, moved out of MaryBrain.swift: the single-engine
-//  `localTurn` loop (whole, verbatim) and the two synthetic nudges it and
-//  the orchestrator share (`confirmRelayNudge`, `budgetNudge`).
+//  WHAT: Local single-engine turn loop + shared synthetic nudges.
+//  IN:   runTurnBody when Seer is nil/unready
+//  OUT:  engine stream + dispatch
+//  PIN:  Prompt-text unchanged; split members private.
 //
-//  Moved verbatim; no behavior change, no prompt-text change. Depends on
-//  the internal-for-split promotions of the core file's stored turn state;
-//  treat all of them as private.
-//
-
 import MaryVoice
 import Foundation
 import os
@@ -20,29 +16,7 @@ extension MaryBrain {
     // MARK: - Local mode (single engine, unchanged loop)
 
     /// LOCAL IS NOT A LESSER TURN, and this is the parity that says so.
-    ///
-    /// THE FAILURE THIS FIXES (confirmed by the phase's own gate): every one of
-    /// G1–G4 lived below `runTurn`'s `guard seerReady`, so the whole revision
-    /// contract evaporated the moment Seer was unreachable — a dropped network,
-    /// an expired token, or simply the local-MLX configuration, none of which
-    /// are edge cases. On those turns "replace the Purpose section with the
-    /// tighter version" reached the Skill loop as a bare imperative with nothing
-    /// located in it and typed at the caret, exactly as shipped. A gate that
-    /// only holds while a network is up is not a gate.
-    ///
-    /// ALL FOUR CROSS, and one of them changes shape on the way:
-    /// - G1, the LOCATE, happens in `runTurn` above the guard so both loops are
-    ///   fed by one call. The other half of G1 — fetch-first's `readNamedPart`
-    ///   — deliberately does NOT cross, and that is a real difference rather
-    ///   than an omission: fetch-first exists because Lane A speaks from a
-    ///   message snapshot the Skill lane can never reach, and THERE IS NO LANE A
-    ///   HERE. One engine holds the history, the skills and the voice at once,
-    ///   so it can simply read for itself and then speak — pre-reading for it
-    ///   would be latency buying nothing.
-    /// - G2 appends the same `targetBrief` to the same kind of prompt.
-    /// - G3 is the same `RevisionVeto` value, not a second copy of it.
-    /// - G4 is the same `revisionReport`, yielded onto whatever prose the
-    ///   single engine produced.
+    /// PIN: ALL FOUR CROSS, and one of them changes shape on the way: - G1, the LOCATE
     // internal for file split — treat as private
     func localTurn(
         userText: String,
@@ -61,10 +35,6 @@ extension MaryBrain {
         var usedEmptyRetry = false
 
         // G2 — THE LOCATED PASSAGE REACHES THE LOOP THAT EXECUTES SKILLS.
-        // LAST in the prompt, and after nothing else, because `targetBrief`
-        // ends on the passage's own words: doctrine printed after an excerpt
-        // gets read as part of the excerpt. Turn-scoped — it never enters
-        // `history`, so it is spent on this turn and gone.
         var turnPrompt = systemPrompt
         if writingTarget == .selection {
             turnPrompt += "\n\n" + MaryPrompts.selectionRevisionInstruction
@@ -77,10 +47,7 @@ extension MaryBrain {
         // over there.
         var veto = RevisionVeto(target: target)
         var worldVeto = WorldVeto(arming: worldVetoArming)
-        // G4's fuel. The local loop never needed settled outcomes before —
-        // it speaks from the model's own prose — so this collects the same
-        // `LaneOutcome` values the orchestrator lane does, for the same
-        // consumer.
+        // G4's fuel. The local loop never needed settled outcomes before — it speaks from the model's own prose
         var outcomes: [LaneOutcome] = []
 
         do {
@@ -108,10 +75,7 @@ extension MaryBrain {
                         if Task.isCancelled { break }
                         switch event {
                         case .text(let token):
-                            // Once a round has called a Skill, trailing prose is
-                            // almost always a hallucinated result ("it's three
-                            // fifteen…") — the grounded confirmation round speaks
-                            // instead.
+                            // Once a round has called a Skill, trailing prose is almost always a hallucinated result ("it's three fifteen…") — the grounded confirmation round speaks instead.
                             guard skillInvocations.isEmpty else { break }
                             roundText += token
                             if !actionTurn {
@@ -166,32 +130,10 @@ extension MaryBrain {
                     return
                 }
 
-                // Quantized local models occasionally emit an entirely empty
-                // round; one silent retry beats a blank page.
-                //
-                // THE FAILURE THIS FIXES, live and reproduced on tape: Xcode
-                // frontmost, `read_buffer` called successfully, a real result
-                // landed in history ("[skill result — read_buffer]: ..." with
-                // the file's actual code) — and the very next round came back
-                // completely empty. The retry above already existed for that
-                // shape, but re-rolled the SAME prompt blind to the fact that
-                // a real result was sitting right there: the model sampled
-                // again with nothing telling it the read had already
-                // happened, and produced ungrounded small talk ("Good
-                // evening… how was your day?") instead of describing what it
-                // had just read. `groundedRetryNudge` is the one addition —
-                // spoken only when `outcomes` already holds a landed,
-                // non-blocked result to ground on, so a genuinely empty FIRST
-                // round (nothing has run yet — plain conversation, or the
-                // model declining every Skill) gets the same silent re-roll
-                // it always did.
+                // Quantized local models occasionally emit an entirely empty round; one silent retry beats a blank page.
                 if roundText.isEmpty, skillInvocations.isEmpty, !usedEmptyRetry {
                     usedEmptyRetry = true
-                    // `foundNothing` excluded too: a Skill that ran and
-                    // reported nothing there ("no code editor in front of me
-                    // right now") is `ok: true` by this codebase's own
-                    // convention, but there is still no content to ground a
-                    // "state what it actually says" instruction on.
+                    // `foundNothing` excluded too: a Skill that ran and reported nothing there ("no code editor in front of me right now") is `ok: true` by this codebase's own…
                     if outcomes.contains(where: {
                         $0.ok && !$0.blocked && !$0.requested && !$0.foundNothing
                     }) {
@@ -205,14 +147,6 @@ extension MaryBrain {
 
                 guard let dispatcher, !skillInvocations.isEmpty else {
                     // Plain reply (or nothing left to execute) — the turn is done.
-                    //
-                    // G4 — A REVISION REPORTS ITSELF HERE TOO. This is the
-                    // local loop's ordinary exit: earlier rounds ran the edit,
-                    // this round is the model finally speaking. The sentence
-                    // goes onto BOTH accumulations — `roundText` is what
-                    // history keeps, `fullText` is what `.completed` carries —
-                    // because in this loop the two are separate variables where
-                    // `seerTurn` has only `spokenText`.
                     if actionTurn {
                         var reply = ""
                         if let failure = Self.unrecoveredFailure(in: outcomes) {
@@ -263,14 +197,7 @@ extension MaryBrain {
                     return
                 }
 
-                // Execute the commands and record results. Chained rounds run
-                // silently — the subshell way: run one command, read its
-                // result, decide the next. A CONFIRM result is the exception:
-                // the model must relay the question and stop. The round's
-                // turns buffer locally and land as ONE batch so an epoch flip
-                // can never orphan a Skill pair.
-                // Do not confuse a still-parked action from a prior turn with
-                // a confirmation requested by one of this round's calls.
+                // Execute the commands and record results. Chained rounds run silently — the subshell way: run one command, read its result, decide the next.
                 let pendingBeforeDispatch = dispatcher.pendingSkillConfirmationID
                 var roundTurns = [BrainTurn(
                     role: .assistant, text: sanitizedSpoken(roundText), skillInvocations: skillInvocations)]
@@ -281,12 +208,7 @@ extension MaryBrain {
                             skillInvocationID: call.id, skillName: call.name))
                         continue
                     }
-                    // G3 — THE REVISION VETO, on this loop too. A caret write
-                    // on a turn that located a real passage is not dispatched
-                    // at all; the synthetic result names the binding and the
-                    // handle to re-plan from. Not an outcome (nothing ran), and
-                    // the Skill TURN is still appended so the tool_use /
-                    // tool_result pairing survives into the next round.
+                    // G3 — THE REVISION VETO, on this loop too. A caret write on a turn that located a real passage is not dispatched at all
                     if let redirect = veto.redirect(for: call.name) {
                         let reference = dispatcher.skillReference(for: call.name)
                         continuation.yield(.skillResult(record: .refused(
@@ -395,10 +317,7 @@ extension MaryBrain {
                 }
             }
 
-            // Budget exhausted with the model still running commands — force a
-            // spoken wrap-up. Schemas are still passed (the Anthropic API
-            // requires `skills` when history contains tool_use blocks), but any
-            // Skill calls the model attempts now are dropped, not executed.
+            // Budget exhausted with the model still running commands — force a spoken wrap-up.
             if actionTurn {
                 var reply = ""
                 if let failure = Self.unrecoveredFailure(in: outcomes) {
@@ -451,10 +370,7 @@ extension MaryBrain {
                     }
                 }
             }
-            // G4 on the OTHER exit. A revision that burned the whole round
-            // budget still changed the document, and the wrap-up is model prose
-            // about what it accomplished — the one thing that may not be
-            // trusted to state the edges of the passage it replaced.
+            // G4 on the OTHER exit. A revision that burned the whole round budget still changed the document, and the wrap-up is model prose about what it accomplished
             if let sentence = revisionReport(
                 intent: editIntent, target: target,
                 writingTarget: writingTarget,
@@ -483,10 +399,7 @@ extension MaryBrain {
     static let budgetNudge =
         "(Stop. You have used your command budget for this turn. Tell the user in one or two short spoken sentences what you accomplished and what remains. Do not call any Skill.)"
 
-    /// The empty-round retry's grounding half — see the call site's comment
-    /// for the live failure this closes. Fires only when a real result is
-    /// already sitting in history to ground on; never on a turn that has run
-    /// nothing yet.
+    /// Empty-round retry grounding — answer from the Skill result already in messages.
     // internal for file split — treat as private
     static let groundedRetryNudge =
         "(A Skill already ran this turn and its result is in the messages above — read it and answer with what it actually says. Do not greet, ask how their day was, or say anything generic; nothing here calls for small talk.)"

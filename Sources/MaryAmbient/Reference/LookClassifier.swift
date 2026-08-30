@@ -2,25 +2,11 @@
 //  LookClassifier.swift
 //  MaryAmbient
 //
-//  IS THIS QUESTION ABOUT WHAT'S ON THE SCREEN? — the trigger for the
-//  pre-lane look, `NamedPartClassifier`'s sibling with the INVERSE bias.
+//  WHAT: Is this question about what's on the screen? Trigger for the pre-lane look.
+//  OUT:  lookQuery → dispatcher. Sibling: NamedPartClassifier (inverse bias).
+//  PIN:  Conservative — false positive costs seconds of dead air. Separate from
+//        AmbientRanker.isDeictic (routing vocabulary; do not widen that list).
 //
-//  That classifier leans toward firing because a false positive costs
-//  ~100-300ms of AppleScript. Here a false positive costs SECONDS of dead
-//  air on an ordinary conversational turn (the voice holds for the look),
-//  so this one is conservative: it demands BOTH a question shape and a
-//  visual referent, and every veto is named after its failure class. The
-//  structural bounds around the call site do the widening — the dispatcher
-//  declines when a world with its own eyes leads, and a missed trigger
-//  still gets the look through Lane B plus the spoken follow-up.
-//
-//  Deliberately SEPARATE from `AmbientRanker.isDeictic`: that list is
-//  routing vocabulary whose own header forbids widening ("every turn would
-//  be 'about the focused world'"), and its pins hold. "What building that
-//  is" correctly stays `.converse` for routing; it is still a look
-//  question, and this classifier is where that narrower fact lives.
-//
-
 import Foundation
 
 public enum LookClassifier {

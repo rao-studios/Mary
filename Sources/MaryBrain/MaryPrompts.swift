@@ -2,11 +2,11 @@
 //  MaryPrompts.swift
 //  MaryBrain
 //
-//  The system prompt: rebuilt every turn (via the brain's prompt provider) so
-//  the injected clock is always right, teaching the subshell doctrine — small
-//  commands, one at a time, results before decisions.
+//  WHAT: System / Seer instruction adapters over PromptPlan.
+//  IN:   prompt provider (rebuilt every turn)
+//  OUT:  PromptCatalog+System / +Voice / +SeerModeOne / +SeerModeTwo
+//  PIN:  Clock is why the prompt is rebuilt; body literals stay byte-identical.
 //
-
 import MaryAmbient
 import Foundation
 
@@ -44,18 +44,7 @@ public enum MaryPrompts {
         return guidance.joined(separator: "\n")
     }
 
-    /// THE SKILL EXECUTION LANE'S PROMPT. A thin adapter over `PromptPlan.full` now — the
-    /// literals and their post-mortems live in `PromptCatalog+System`, one
-    /// named section each, and the ORDER lives in the plan where it can be
-    /// read at a glance and validated.
-    ///
-    /// The signature and every default are unchanged on purpose: a dozen call
-    /// sites and pins depend on them, and this refactor is not allowed to be
-    /// visible from outside. `PromptPlanGoldenTests` proves it against a
-    /// frozen copy of the old function over a generated matrix.
-    ///
-    /// Use `systemRender(...)` instead when you also want the budget
-    /// waterfall.
+    /// Skill-execution lane prompt. Thin adapter over `PromptPlan.full`.
     public static func system(
         plugins: [any MaryAdapter],
         projects: [String: String],
@@ -82,9 +71,7 @@ public enum MaryPrompts {
         ).text
     }
 
-    /// The same render, WITH the per-section account of what it spent — for
-    /// the Routes pane, and for a golden failure that can name the section it
-    /// diverged in rather than a byte offset.
+    /// Same render with a per-section spend account (Routes pane / golden diffs).
     public static func systemRender(
         plugins: [any MaryAdapter],
         projects: [String: String],
@@ -111,11 +98,7 @@ public enum MaryPrompts {
             now: now, timeZone: timeZone, calendar: calendar))
     }
 
-    /// The eyeless data sources, named for the voice, GENERATED FROM
-    /// `AmbientWorld` rather than typed out here. The taxonomy has exactly one
-    /// home; a prose copy of it in a prompt string is precisely how a new
-    /// plugin gets added to the store and forgotten by the voice — the same
-    /// drift that made the eyes set get spelled five times.
+    /// Eyeless data sources, named for the voice. Generated from `AmbientWorld`.
     static var ambientReachList: String {
         let names = AmbientWorld.dataSources.map(\.displayName)
         guard let last = names.last else { return "their apps and data" }
@@ -123,9 +106,7 @@ public enum MaryPrompts {
         return "their " + names.dropLast().joined(separator: ", ") + " and \(last)"
     }
 
-    /// The store's rendering, shared by BOTH prompt providers so the voice and
-    /// the Skill lane are told the same thing about the same facts. Empty (not
-    /// an empty header) when the store holds nothing worth saying.
+    /// Store rendering shared by both prompt providers. Empty (not an empty header) when nothing to say.
     static func heldSection(facts: [String], mentions: [String]) -> String {
         guard !facts.isEmpty || !mentions.isEmpty else { return "" }
         var section = "\n\n" + """
@@ -139,20 +120,7 @@ public enum MaryPrompts {
             section += "\n\n\(fact)"
         }
         if !mentions.isEmpty {
-            // THE SENTENCE THAT CAUSED THE INCIDENT, REWRITTEN. It used to say
-            // "I have the bounds and can pull the text back up if they ask" —
-            // offered beside `characters 68–916 of 916`, with no primitive
-            // anywhere that accepted an end offset. That is a standing
-            // invitation to address a document by number, and it was accepted:
-            // hand-written AppleScript against `document 1`, five minutes of
-            // silence, `-1728`.
-            //
-            // What changed is that there IS something now, and it is named
-            // here: the handle at the front of each line, and the verbs that
-            // take it. The last clause is a prohibition rather than guidance
-            // because the failure was a MODEL BEHAVIOUR, and the numbers on
-            // these lines are still there (they are for the reader, and
-            // `AmbientFact.boundsPhrase` is right to print them).
+            // Handle-led sentence for the Skill lane (find/replace/insert/delete_passage).
             section += "\n\n" + """
             Also still held. Each line starts with a handle like [S1] — that \
             handle is how I pull the text back up (find_passage) or change it \

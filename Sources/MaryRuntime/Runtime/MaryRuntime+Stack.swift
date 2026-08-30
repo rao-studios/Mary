@@ -1,17 +1,11 @@
 //
 //  MaryRuntime+Stack.swift
-//  Mary
+//  MaryRuntime
 //
-//  Moved verbatim from MaryRuntime.swift (phase 3): the Seer/Totem stack
-//  appliers (applyServers, applySeerTransport, applySeerAccount,
-//  connectSeerVoice, connectTotemDepositor, resetAmbientMemory,
-//  connectSeerToBrain, applyEngine, makeTotemReader and the totemGRPCPort it
-//  reads), plus the appliers that group with them: applyPronunciations, the
-//  spoken-register funcs, and applyCodingAgent.
-//
-//  No behavior change. `totemGRPCPort`'s private(set) writer (applyServers)
-//  moved with it; `totemArchivingEnabledBox` (written by
-//  connectTotemDepositor) lives in +Focus, internal for the split.
+//  WHAT: Seer/Totem stack appliers, spoken register, coding-engine install.
+//  IN:   Settings / Servers sheet / applyEngine
+//  OUT:  seerChat / seerRealtime / totemContext / InferenceEngine
+//  PIN:  totemArchivingEnabledBox lives in +FocusSetup (internal for file split).
 //
 
 import MaryBrain
@@ -53,10 +47,8 @@ extension MaryRuntime {
 
     // MARK: - Seer/Totem stack appliers
 
-    /// Point the stack at the configured checkouts/ports and the chat client
-    /// at the right base URL + totem identity. Running servers keep running;
-    /// spec changes apply on restart (Servers sheet).
-    /// Where Totem's direct gRPC lives right now — read by makeTotemReader.
+    /// Point stack at configured checkouts/ports. Running servers keep running.
+    /// totemGRPCPort — read by makeTotemReader.
     nonisolated(unsafe) private(set) static var totemGRPCPort = ServerSpec.Defaults.totemGRPCPort
     nonisolated(unsafe) private(set) static var fleetGRPCPort = ServerSpec.Defaults.fleetGRPCPort
 
@@ -93,9 +85,7 @@ extension MaryRuntime {
                 totemGRPCPort: config.totemGRPCPort),
         ])
         await totemContext.configure(port: config.totemGRPCPort)
-        // Both transports get the SAME scope closure — they wrap the identical
-        // ChatRequest, so scoping one and not the other would look like a
-        // Settings-dependent bug with no cause.
+        // Both transports get the same scope closure — they wrap the same ChatRequest.
         await seerChat.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
             personalTotemID: nodeID,
@@ -121,22 +111,14 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
     }
 
-    /// Route Seer-mode turns over the classic SSE lane or the realtime
-    /// WebSocket. The classic client stays wired regardless — it is both the
-    /// default and the realtime route's fallback. Mirrors applyTTSBackend:
-    /// call at boot (after the Seer stack) and from the Settings binding.
+    /// Route Seer turns SSE or realtime WS. Classic client stays wired (fallback).
+    /// Call at boot and from Settings — mirrors applyTTSBackend.
     package static func applySeerTransport(_ choice: SeerTransportChoice) async {
         await brain.setSeerRealtime(choice == .realtime ? seerRealtime : nil)
     }
 
-    /// The hosted annotator over the app's own complete lane.
-    ///
-    /// A FACTORY RATHER THAN A LITERAL, because `seerComplete` is internal to
-    /// this module and `mary-corpus-probe annotate` has to build the SAME
-    /// annotator the app wires — a probe that constructed its own client
-    /// would be verifying a different object than the one that ships.
-    /// Spoken turns stay on `seerChat` (`/v1/chat/completions`); this
-    /// factory must not be reused as a voice.
+    /// Hosted annotator over /v1/complete. Factory so mary-corpus-probe annotates
+    /// the same client. Spoken turns stay on seerChat — do not reuse as voice.
     package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
         SeerUnitAnnotator(complete: seerComplete)
     }
@@ -159,14 +141,7 @@ extension MaryRuntime {
     static func connectTotemDepositor(enabled: Bool) async {
         totemArchivingEnabledBox.withLock { $0 = enabled }
         await brain.setDepositor(enabled ? totemContext : nil)
-        // AND DELIBERATELY NOT THE LEARNING SINKS. Archiving used to install
-        // them here, and the pairing was itself a defect: pausing archiving
-        // switched off LEARNING as well, so `knownContentHash` answered nil
-        // forever and no edit was distinguishable from a first sighting. The
-        // corpus has since returned and keeps that separation — it installs
-        // its own sink in `installCorpusPipeline` and answers to its own
-        // switch, so pausing memory never costs Mary the ability to tell a
-        // changed file from a new one.
+        // Not the learning sinks — those live in installCorpusPipeline.
     }
 
     /// Resets the ephemeral awareness and cancels any pending application
@@ -189,18 +164,8 @@ extension MaryRuntime {
         try? FileManager.default.removeItem(at: directory)
     }
 
-    /// Wire (or unwire) both. Split above because they were welded: you could
-    /// not keep the Seer voice while pausing archiving, which is the first
-    /// thing anyone wants when memory starts answering for the live document.
-    /// The brain re-checks readiness every turn, so a dead server degrades to
-    /// engine-only turns without re-wiring.
-    ///
-    /// TWO PARAMETERS AND NOT ONE, for the same reason the two functions are
-    /// separate: a caller that had to pass a single `enabled` could not say
-    /// "keep archiving, but this person wants their words to stay on the
-    /// device", which is exactly the combination Voice (Lane A) now offers.
-    /// `stackEnabled` is the Servers toggle itself — Lane B hosted needs the
-    /// stack even when Lane A is on-device.
+    /// Wire or unwire voice and archive independently. stackEnabled is the
+    /// Servers toggle — Lane B hosted needs the stack even when Lane A is local.
     package static func connectSeerToBrain(
         chat: Bool, archiving: Bool, stackEnabled: Bool
     ) async {
@@ -211,19 +176,8 @@ extension MaryRuntime {
         await rewireCodingAgent(seerEnabled: stackEnabled)
     }
 
-    /// WHETHER THE SEER CHAT LANE CARRIES TURNS — the one spelling of a
-    /// question four call sites ask.
-    ///
-    /// TWO CONDITIONS, AND THEY ARE DIFFERENT QUESTIONS. `seerEnabled` is
-    /// about the SERVER: is the local stack the user's to run, is Mary signed
-    /// in. The Brain card's choice is about WHERE THE WORDS GO, which is the
-    /// user's own question and the one the card's title asks out loud. Either
-    /// one off keeps the turn on the device.
-    ///
-    /// THE CHOICE COMES FROM `engineChoiceBox`, not from config, because the
-    /// callers that need this answer have no config in hand and because the
-    /// picker must act on the value the person just selected — the config
-    /// update it sends has not landed yet when the re-wire runs.
+    /// Does Seer chat carry turns? seerEnabled (server) AND engineChoiceBox
+    /// (where words go). Either off → on-device. Box, not config — picker hasn't landed.
     package static func seerCarriesTurns(seerEnabled: Bool) -> Bool {
         seerCarriesTurns(
             engine: engineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
@@ -272,14 +226,8 @@ extension MaryRuntime {
         }
     }
 
-    /// Apply Lane A (spoken) and Lane B (skills): wire or unwire the Seer
-    /// chat lane, then install the skill engine. Returns user-facing error
-    /// text, or nil.
-    ///
-    /// Lane A hosted still uses `seerChat` — Seer chat has no tools. Lane B
-    /// hosted uses `/v1/skills/complete`. The on-device engine remains the
-    /// fallback when Seer is unreachable, and the whole turn when Lane B is
-    /// local. The annotator still follows Lane A (`/v1/complete`).
+    /// Apply Lane A (spoken, seerChat) and Lane B (skills, /v1/skills/complete).
+    /// On-device is fallback; annotator follows Lane A (/v1/complete).
     package static func applyEngine(
         _ choice: LLMEngineChoice,
         skillEngine skillChoice: LLMEngineChoice = .local,

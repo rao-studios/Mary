@@ -1,10 +1,8 @@
 #!/bin/bash
-# Assemble Mary.app from the release build — the "real use" packaging that
-# owns its own TCC identity (mic / speech / accessibility) instead of the
-# terminal's. Signed with a STABLE identity when one exists (Apple
-# Development / "Mary Dev Signing") so TCC grants survive rebuilds — see
-# scripts/dev.sh for why ad-hoc breaks them. Distribution signing is out of
-# scope.
+# WHAT: Assemble Mary.app from a release build with its own TCC identity.
+# OUT:  build/Mary.app — binary, mlx.metallib, Info.plist, Abilities, Kokoro bundle.
+# PIN:  Stable codesign (same as sign-binary.sh). Ad-hoc cdhash breaks TCC.
+#       metallib is required; omitting it dies at first GPU use.
 #
 #   ./scripts/make-app.sh          → build/Mary.app
 #
@@ -19,11 +17,7 @@ cd "$REPO_ROOT"
 echo "▸ swift build -c $CONFIG"
 swift build -c $CONFIG
 
-# NOT "IF PRESENT". This step used to be guarded by a test for the script's
-# existence, and the script had not been ported — so the app assembled
-# cleanly, shipped without shaders, and died at first use with "Failed to
-# load the default metallib. library not found". A packaging step whose
-# absence is invisible until runtime is not optional.
+# Required — not optional. GPU load needs mlx.metallib next to the binary.
 echo "▸ mlx.metallib"
 ./scripts/build-metallib.sh $CONFIG
 
@@ -32,20 +26,16 @@ rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 
 cp ".build/$CONFIG/Mary" "$APP_DIR/Contents/MacOS/Mary"
-# Beside the binary: MLX's first search rung is its own directory, and inside
-# an app that is Contents/MacOS, not Contents/Resources.
+# MLX first search rung is the binary's own directory (Contents/MacOS).
 cp ".build/$CONFIG/mlx.metallib" "$APP_DIR/Contents/MacOS/mlx.metallib"
 cp "Support/Info.plist" "$APP_DIR/Contents/Info.plist"
 
-# Plugin packages are runtime data, not compiled Swift constants. The loader
-# also sees the source-tree folder in development; a distributable app carries
-# the same declarations under Resources/Abilities.
+# Plugin packages are runtime data. Distributable copy under Resources/Abilities.
 if [ -d "Abilities" ]; then
     cp -R "Abilities" "$APP_DIR/Contents/Resources/Abilities"
 fi
 
-# The MaryVoice resource bundle (Kokoro models) — KokoroAssets falls back to
-# Contents/Resources when Bundle.module isn't colocated with the binary.
+# KokoroAssets falls back to Contents/Resources when Bundle.module is not colocated.
 BUNDLE_SRC=".build/$CONFIG/Mary_MaryVoice.bundle"
 if [ -d "$BUNDLE_SRC" ]; then
     cp -R "$BUNDLE_SRC" "$APP_DIR/Contents/Resources/"

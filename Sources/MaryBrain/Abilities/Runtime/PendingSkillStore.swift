@@ -2,11 +2,11 @@
 //  PendingSkillStore.swift
 //  MaryBrain
 //
-//  Holds the one skill invocation awaiting the user's spoken go-ahead.
-//  Lock-guarded (not an actor) so AbilityRuntime can remain a Sendable class
-//  with the synchronous `schemas` property AbilityDispatching requires.
+//  WHAT: The one skill invocation awaiting spoken go-ahead.
+//  IN:   AbilityRuntime write path
+//  OUT:  confirm / cancel replay
+//  PIN:  Lock-guarded so AbilityRuntime stays a Sendable class.
 //
-
 import Foundation
 import os
 

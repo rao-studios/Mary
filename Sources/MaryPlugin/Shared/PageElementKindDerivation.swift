@@ -2,30 +2,8 @@
 //  PageElementKindDerivation.swift
 //  MaryAdapter
 //
-//  WHAT A SITE OFFERS, DERIVED FROM THE PAGE ITSELF.
-//
-//  A user says "play that video" on one site and "open that issue" on
-//  another, and both are the same act: pressing the thing the site is FOR.
-//  Knowing which words a page answers to is what tells an in-page action
-//  ("go to the third video") apart from a destination ("go to youtube") —
-//  and the first must act in the tab already open while the second may take
-//  a fresh one.
-//
-//  THE RULE THIS OBEYS, and the reason there is no site table anywhere in
-//  this file: `BrowserScripting.siteWords` turns `docs.google.com` into
-//  "google docs" by decomposing the host, never by a synonym row, because
-//  "a phrase that misses is a perception or threshold question — never a new
-//  alias". The same discipline holds one layer down. A page offers videos
-//  because its links are SHAPED like videos — a watch-shaped destination, a
-//  play affordance, a card-sized frame — not because anything here knows
-//  what YouTube is. Point this at a site nobody anticipated and it still
-//  answers.
-//
-//  Kind is a HINT, not an authority. It narrows an ordinal ("the third
-//  video") and lends a lexical floor to the semantic gate; the element's own
-//  label is always the stronger evidence, and a miss falls through to
-//  matching label text rather than refusing on category.
-//
+//  WHAT: AX role + hints → spoken kind word. Table-free.
+//  IN:   PageElementReader  OUT: SpokenReference
 
 import CoreGraphics
 import Foundation
@@ -33,41 +11,26 @@ import Foundation
 public enum PageElementKindDerivation {
 
     /// Path components that mean "this destination plays something".
-    /// Deliberately generic: `/watch`, `/video/`, `/embed/`, `/v/` are the
-    /// conventions the web settled on, shared by sites that have never heard
-    /// of each other.
     static let videoPathMarkers = [
         "/watch", "/video", "/videos/", "/embed/", "/v/", "/shorts/",
         "/episode", "/player",
     ]
 
-    /// A DURATION SIGNATURE is the web's own way of saying "this is timed
-    /// media", and it is the strongest generic signal there is — MEASURED on
-    /// a live results page, every real video card ended in one:
-    /// "…in one hour 58 minutes", "…2 minutes, 25 seconds", "… · 2:21".
-    /// No site name is involved; a podcast page or a news video reads the
-    /// same way.
+    /// A DURATION SIGNATURE is the web's own way of saying "this is timed media", and it is
+    /// the strongest generic signal there is.
     static let durationPatterns = [
         #"\d+\s*(hour|minute|second)s?"#,
         #"·\s*\d{1,2}:\d{2}"#,
         #"\b\d{1,2}:\d{2}\b"#,
     ]
 
-    /// A label this long is a description, not a name. MEASURED: the search
-    /// page's snippet element ("4 seconds Hello my name is paul and in this
-    /// video we're going to walk through…") is a link, carries the same
-    /// watch URL as its card, and would otherwise outrank the card itself
-    /// for "the third video". A person does not point at a paragraph.
+    /// A label this long is a description, not a name. MEASURED: the search page's snippet
+    /// element ("4 seconds Hello my name is paul and in this video we're going to walk
+    /// through…") is a link, carries the same watch URL as its card, and would otherwise
     static let proseLabelThreshold = 120
 
-    /// A CALL TO ACTION NAMES AN ACT, NOT A THING.
-    ///
-    /// MEASURED: an advertisement's "Watch" button carries a genuine watch
-    /// URL, so by destination alone it is a video — and counting it shifted
-    /// "the third video" by one for the whole page. The distinction that
-    /// actually holds is grammatical rather than commercial: a titled item
-    /// has a NAME, a control has an IMPERATIVE. Nothing here knows what an
-    /// advertisement is, and it does not need to.
+    /// A CALL TO ACTION NAMES AN ACT, NOT A THING. MEASURED: an advertisement's "Watch"
+    /// button carries a genuine watch URL, so by destination alone it is a video.
     static let callToActionLabels: Set<String> = [
         "watch", "watch now", "play", "play now", "listen", "listen now",
         "sign up", "sign in", "log in", "subscribe", "learn more",
@@ -113,10 +76,8 @@ public enum PageElementKindDerivation {
         }
     }
 
-    /// Playable = it goes somewhere that plays, or it says how long it runs —
-    /// and it is a NAME rather than a paragraph. Both halves were measured:
-    /// dropping the length test made a description snippet outrank the card
-    /// it belonged to.
+    /// Playable = it goes somewhere that plays, or it says how long it runs — and it is a
+    /// NAME rather than a paragraph.
     static func looksPlayable(url: String?, label: String) -> Bool {
         guard label.count <= proseLabelThreshold else { return false }
         guard !isCallToAction(label) else { return false }
@@ -136,10 +97,8 @@ public enum PageElementKindDerivation {
 
     // MARK: - The page's offering vocabulary
 
-    /// What this page is FOR, in the page's own terms: the kinds actually
-    /// present, commonest first, with counts. This is the "categorical
-    /// offering" an utterance is matched against — derived every read, valid
-    /// only for the page that produced it.
+    /// What this page is FOR, in the page's own terms: the kinds actually present,
+    /// commonest first, with counts.
     public static func offerings(
         in elements: [PageElement]
     ) -> [(kind: PageElementKind, count: Int)] {
@@ -157,10 +116,8 @@ public enum PageElementKindDerivation {
 
     // MARK: - Pool-generic entry points
 
-    /// The counting half of `offerings(in:)`, generalized to any pool of
-    /// kinds — what a snapshot-lane roster needs, since it has no
-    /// `[PageElement]` to map over. The page lane's `offerings(in:)` now
-    /// forwards here.
+    /// The counting half of `offerings(in:)`, generalized to any pool of kinds — what a
+    /// snapshot-lane roster needs, since it has no `[PageElement]` to map over.
     public static func offerings(
         of kinds: [PageElementKind]
     ) -> [(kind: PageElementKind, count: Int)] {
@@ -175,11 +132,9 @@ public enum PageElementKindDerivation {
             }
     }
 
-    /// The matching half of `offeredKind(namedIn:among:)`, generalized to
-    /// any set of kinds actually present in a pool — what `SpokenReference`
-    /// calls for a snapshot-lane resolve, since it has no `[PageElement]`
-    /// either. The page lane's `offeredKind(namedIn:among:)` now forwards
-    /// here.
+    /// The matching half of `offeredKind(namedIn:among:)`, generalized to any set of kinds
+    /// actually present in a pool — what `SpokenReference` calls for a snapshot-lane
+    /// resolve, since it has no.
     public static func offeredKind(
         namedIn phrase: String, offering present: Set<PageElementKind>
     ) -> PageElementKind? {

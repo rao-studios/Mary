@@ -2,21 +2,8 @@
 //  ProseSurfaceAdapter.swift
 //  MaryPlugin
 //
-//  THE SKILLS A DECLARED PROSE SURFACE CAN ANSWER — list the documents, read
-//  one, make a new one.
-//
-//  WHY THESE ARE HERE AND NOT IN A PACKAGE. A managed-UI recipe presses keys
-//  and reports whether the press landed; it has no channel for handing a value
-//  back. So every Skill that must give the model a VALUE — the roster, the
-//  text of a document — has to bind to a compiled provider, and this is that
-//  provider for the prose family. `create_document` could almost be a recipe
-//  (it is a chord), and is here anyway: it must return the identity of the
-//  document it just made, and a recipe cannot say what it created.
-//
-//  NO APPLICATION IS NAMED. Each Skill takes an optional `app`; the
-//  registration behind it decides everything else. Which windows exist, what
-//  a document is called, which chord makes a new one — all declared.
-//
+//  WHAT: Skills a declared prose surface answers (list, read, create).
+//  PIN:  No app named. create_document is here because a recipe cannot return identity.
 
 import AppKit
 import Foundation
@@ -151,10 +138,8 @@ public struct ProseSurfaceAdapter: MaryAdapter {
                         : body,
                     archivePolicy: .stateSnapshot,
                     foundNothing: body.isEmpty,
-                    // WHAT WAS READ, as a record. A read acts on nothing, so
-                    // this is not an acted element — it is the element the
-                    // answer came out of, which is what lets a later edit be
-                    // matched to the read that motivated it.
+                    // WHAT WAS READ, as a record. A read acts on nothing, so this is not an
+                    // acted element.
                     target: ActedElementReader.record(of: surface.editor, pid: pid),
                     adapterTrail: ["prose-surface"])
             })
@@ -197,28 +182,8 @@ public struct ProseSurfaceAdapter: MaryAdapter {
                         ok: false, summary: "The new-\(registration.noun.singular) shortcut didn't go through.")
                 }
 
-                // WAIT FOR THE DOCUMENT TO EXIST, rather than assuming the
-                // keystroke worked. A window takes a moment to appear, and a
-                // create that reported success before its document existed
-                // would send the very next typing Skill into the old one.
-                //
-                // COUNTED, THEN TAKEN FROM THE FRONT — not diffed by key. The
-                // diff this replaces looked for a `documentKey` that had not
-                // been there before, which is precisely backwards for an
-                // application whose unsaved documents key by ORDINAL: a new
-                // window renumbers every other one, so the only key missing
-                // from the old set was the highest — the BACKMOST window, the
-                // oldest note open. It never failed; it confidently named the
-                // wrong document, and `made.editor` was that document's
-                // editor. Found by the behavior probe, which made a note and
-                // was told it had made one from an earlier run.
-                //
-                // A new-document chord puts its document in front. That is
-                // what the chord means, and it is already what the typing
-                // handshake below and the typer's own focus read assume — so
-                // reading the front is the answer agreeing with itself rather
-                // than a second guess. The count is what proves the keystroke
-                // landed at all, which is the part the wait is really for.
+                // WAIT FOR THE DOCUMENT TO EXIST, rather than assuming the keystroke
+                // worked.
                 var appeared: ProseSurfaceAX.Surface?
                 let deadline = Date().addingTimeInterval(2.0)
                 while Date() < deadline, appeared == nil {
@@ -249,11 +214,6 @@ public struct ProseSurfaceAdapter: MaryAdapter {
     // MARK: - Internals
 
     /// Which editor this call is about, and whether it is running.
-    ///
-    /// Named explicitly, else the frontmost declared surface. NEVER the sole
-    /// registered one: with several editors installed, "read my note" with
-    /// nothing in front is a question, and answering it from whichever
-    /// package happens to be alone is a guess wearing a fact's clothes.
     private func resolve(_ requested: String?) -> (ProseSurfaceRegistration, pid_t)? {
         support.resolve(requested)
     }

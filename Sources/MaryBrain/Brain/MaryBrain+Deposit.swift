@@ -2,14 +2,10 @@
 //  MaryBrain+Deposit.swift
 //  MaryBrain
 //
-//  The deposit seam, moved out of MaryBrain.swift: `archive(...)`, the
-//  one place a dispatched Skill's outcome is folded into Totem context.
+//  WHAT: Archive a dispatched Skill outcome into Totem.
+//  IN:   depositor + depositSubjectProvider + ambient
+//  OUT:  ContextDepositing
 //
-//  Moved verbatim; no behavior change. Depends on the internal-for-split
-//  promotions of `depositor`, `depositSubjectProvider`, and `ambient` in
-//  the core file; treat those as private.
-//
-
 import MaryVoice
 import Foundation
 import os
@@ -26,11 +22,7 @@ extension MaryBrain {
         succeeded: Bool, deferred: Bool, policy: ArchivePolicy
     ) {
         guard let depositor else { return }
-        // A local binding's archive policy remains a hard floor. Packaged
-        // Skills then pass through their own frozen projection: no projection
-        // means no durable package data, and session-only projections stay in
-        // the in-memory route ledger. Unpackaged machine-local adapters retain
-        // their explicit local behavior until they join a portable Ability.
+        // A local binding's archive policy remains a hard floor.
         if deferred || policy == .none { return }
         let projectionPlan: AbilityTotemProjectionPlan?
         if reference.source == .package {
@@ -48,22 +40,13 @@ extension MaryBrain {
         if skillPlace?.worldClass == .dataSource {
             subject = .unfocused
         }
-        // Dynamic applications deliberately do not become closed
-        // `AmbientWorld` enum cases. Their frozen provider reference is the
-        // stronger attribution source: a Design Skill realized by Sketch must
-        // teach Sketch's Ability Totem even when ambient focus is generic
-        // or has already changed before this detached deposit runs.
+        // Dynamic applications deliberately do not become closed `AmbientWorld` enum cases.
         let applicationID = reference.provider?.applicationID
             ?? (skillPlace?.worldClass == .dataSource
                 ? skillPlace?.application
                 : subject.app)
         let route = ambient.route()
-        // APPLICATION-USE LEARNING IS NOT IN THIS CUT. A block here used to
-        // compose the executed Ability, the turn's writing target and the
-        // place's own facts into one observation, and hand it to the corpus
-        // that learns which application serves which kind of work. That
-        // corpus is deferred, and half of the pipeline — an observation with
-        // nothing observing it — would be worse than neither half.
+        // APPLICATION-USE LEARNING IS NOT IN THIS CUT.
         _ = route
         Task.detached {
             await depositor.depositSkillResult(

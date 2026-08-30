@@ -1,3 +1,11 @@
+//
+//  PluginOperationArguments.swift
+//  MaryBrain
+//
+//  WHAT: Resolve operation argument expressions against the turn.
+//  IN:   PluginCompiler / PluginManagedUIExecutor
+//  OUT:  typed argument map or refusal
+//
 import MaryFoundation
 import Foundation
 

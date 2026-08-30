@@ -1,14 +1,10 @@
 //
 //  PerceptionReport.swift
-//  Mary
+//  MaryRuntime
 //
-//  The Copy serializer: the whole perception pane as deterministic text, so
-//  a paste into Claude (or a bug tracker) is a complete perception bug
-//  report. Format doctrine: one `key: value` per line, fixed field order,
-//  fixed card order (watched worlds, then explicit unavailable cards), ISO-8601 UTC, ages as
-//  `1.2s`/`3m 12s`, contribution blocks quoted with a `> ` prefix —
-//  compact, deterministic, greppable. Golden-tested; change the tests when
-//  you change a byte here.
+//  WHAT: Copy serializer — whole perception pane as deterministic text.
+//  OUT:  paste-ready report (golden-tested; change tests with the format)
+//  PIN:  one `key: value` per line; watched cards then unavailable; ISO-8601 UTC
 //
 
 import MaryBrain
@@ -48,37 +44,19 @@ package enum PerceptionReport {
         lines.append("focus.ambient: \(token(focus.ambient))")
         lines.append("focus.effective: \(token(focus.effective))")
         lines.append("focus.pin: \(focus.pinned?.reportToken ?? "none")")
-        // ONLY WHEN IT IS FALSE — the interesting case, and the report stays
-        // byte-identical to what it has always been otherwise (the same rule
-        // the held rows below follow). "A writing app is open and is NOT
-        // leading" is a deliberate decision now, and without a row for it a
-        // pasted report makes it look like the arbiter lost the app.
+        // Only when false — "open and not leading" is a decision, not a lost app.
         if !focus.writingInPlay {
             lines.append("focus.writing-in-play: no")
         }
-        // WHERE THE LAST READ WENT. The per-card `delivery` row answers this
-        // for a watcher's contribution; nothing answered it for a Skill result,
-        // and that blind spot cost a full trace when a successful `pages_body`
-        // read reached nobody and the voice denied the passage existed. A
-        // `read: read discarded — reached nobody` line here is that bug, in
-        // one grep of a pasted report.
+        // Last Skill-read destination. `read: read discarded — reached nobody` is the miss.
         if let read = focus.readDelivery {
             lines.append("read: \(read.summary)")
             lines.append("read.age: \(age(of: read.at, at: now))")
         } else {
             lines.append("read: none this session")
         }
-        // WHAT SHE IS STILL HOLDING — a query of the ambient context store,
-        // not a re-derivation. The `read:` row above says where the LAST read
-        // went; these say which facts are still live and will ride the next
-        // turn's prompt, each with its bounds and its age. Conditional on
-        // purpose: with an empty store there is nothing to say, and the report
-        // stays byte-identical to what it has always been.
-        //
-        // EYELESS FACTS LAND HERE AND NOWHERE ELSE. The card blocks below are
-        // per WATCHED world, so `held.calendar/read:tomorrow` and
-        // `held.reminders/digest` have no card to sit under — the key id
-        // carries the world, which keeps them greppable in a pasted report.
+        // Held facts from the store (bounds + age). Eyeless facts live only here —
+        // calendar/reminders have no watched-world card.
         if !focus.heldReads.isEmpty {
             lines.append("held.ranking: \(focus.rankingMode.rawValue)")
             for fact in focus.heldReads {
@@ -102,9 +80,7 @@ package enum PerceptionReport {
         lines.append("last-error: \(card.lastError.map(oneLine) ?? "none")")
         lines.append("pinned: \(card.isPinned ? "yes" : "no")")
         lines.append("routing: \(card.routing)")
-        // Which LANES got it — pasted next to routing on purpose: "leads —
-        // full context" beside "abilities only" is the sync bug, visible in one
-        // grep of a copied report.
+        // Which lanes got it — beside routing so a pasted report shows the mismatch.
         lines.append("delivery: \(card.delivery)")
         for field in card.fields {
             lines.append("\(field.label): \(oneLine(field.value))")

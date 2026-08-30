@@ -2,24 +2,17 @@
 //  SelectionSurfacePolicy.swift
 //  MaryBrain
 //
-//  Referencing a highlight and mutating a text surface are separate abilities.
-//  This small policy is shared by ambient routing and the keyboard typer so a
-//  browser/article selection can inform an answer without ever becoming a
-//  write target, while known canvas editors retain their explicit upgrade.
+//  WHAT: Referencing a highlight vs mutating a text surface — separate abilities.
+//  OUT:  ambient routing / keyboard typer
+//  PIN:  Browser/article selection can inform an answer without becoming a write target.
+//        Known canvas editors retain their explicit upgrade via registration.
 //
-
 import Foundation
 
 public enum SelectionSurfacePolicy {
 
-    /// Applications where synthesizing prose would be unsafe even if an AX
-    /// element happens to report a selected range.
-    /// TERMINALS ONLY, NOW. An IDE's bundle id used to head this list; it is
-    /// gone because "is this a place where synthesized prose would be
-    /// dangerous" is a question the registration answers — a place that
-    /// registers for CODING is not a prose surface, whichever IDE it is.
-    /// A terminal registers for nothing at all, which is why the compiled
-    /// floor survives for exactly them.
+    /// Applications where synthesizing prose would be unsafe even if an AX element happens to
+    /// report a selected range. TERMINALS ONLY, NOW.
     private static let blockedProseApplications: Set<String> = [
         "com.apple.Terminal",
         "com.googlecode.iterm2",
@@ -30,34 +23,15 @@ public enum SelectionSurfacePolicy {
     public static func permitsProseApplication(_ applicationID: String) -> Bool {
         applicationID != Bundle.main.bundleIdentifier
             && !blockedProseApplications.contains(applicationID)
-            // BROWSERS ARE NOT CGEVENT TYPING SURFACES. The web writers own
-            // browser prose: they scope to the page's web area (the URL bar
-            // is unreachable), verify focus by reading it back, paste rather
-            // than type (canvas editors auto-format synthetic keystrokes),
-            // and produce honest receipts. Letting type_at_cursor resolve a
-            // browser would spray keystrokes past every one of those guards.
-            // Browser selections stay REFERABLE — referencing is a separate
-            // ability, exactly this file's header.
+            // BROWSERS ARE NOT CGEVENT TYPING SURFACES.
             && !AmbientPlaceResolver.isBrowser(bundleID: applicationID)
     }
 
-    /// Pages and a manuscript application can render a canvas while omitting
-    /// AXEditable; their representations are the explicit evidence that this
-    /// unknown AX surface is still an ordinary prose editor. Unknown
-    /// third-party surfaces remain referable but not keyboard-writable until
-    /// AX declares them editable or a representation supplies an equivalent
-    /// verifier.
-    ///
-    /// THE REGISTRATION IS THAT EQUIVALENT VERIFIER, which this function's own
-    /// comment has sanctioned since it was written. The rung is deliberately
-    /// narrow: a registration qualifies only when it earned EYES and realizes
-    /// WRITING — a package that merely declares aliases cannot talk its way
-    /// into having keystrokes sprayed at an unknown surface.
+    /// Pages and a manuscript application can render a canvas while omitting AXEditable.
     public static func isKnownProseEditor(_ applicationID: String) -> Bool {
-        // NO COMPILED EDITORS. Two bundle ids used to be admitted before the
-        // roster was consulted at all, which meant those two worked with no
-        // package installed and every other editor had to earn it. The
-        // registration is the only road in.
+        // NO COMPILED EDITORS. Two bundle ids used to be admitted before the roster was consulted
+        // at all, which meant those two worked with no package installed and every other editor
+        // had to earn it.
         guard let registration = AmbientApplicationIndexProvider.current
             .registration(bundleID: applicationID)
         else { return false }

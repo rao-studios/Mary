@@ -2,11 +2,10 @@
 //  LifeCalibration.swift
 //  MaryRuntime
 //
-//  The snapshot the Life sheet polls: one row per installed discipline,
-//  episode fill toward 24 / +12, and the latest Fleet train tick if any.
-//  Built from in-memory boxes so a 1 Hz poll does not dial Fleet or Totem.
-//  Episode counts come from a cache refreshed on Life-loop start, after
-//  an Ability deposit, and when this sheet opens.
+//  WHAT: Snapshot the Life sheet polls — one row per installed discipline.
+//  IN:   in-memory boxes (episodes, Fleet slots, train ticks). No Fleet/Totem dial.
+//  OUT:  LifeCalibrationSnapshot → Life sheet
+//  PIN:  Episode cache refresh: Life-loop start, Ability deposit, sheet open.
 //
 
 import Foundation
@@ -67,8 +66,8 @@ package struct LifeDisciplineStatus: Sendable, Equatable, Identifiable {
         return .collecting
     }
 
-    /// Ready-and-idle shows a full bar; collecting uses the window fraction;
-    /// training holds the bar full (a thin loading slice while Fleet copies).
+    /// Ready-and-idle / training: full bar. Collecting: window fraction.
+    /// Training+loading: thin slice while Fleet copies.
     package var displayFraction: Double {
         switch phase {
         case .training:

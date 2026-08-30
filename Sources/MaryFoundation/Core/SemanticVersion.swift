@@ -1,8 +1,15 @@
+//
+//  SemanticVersion.swift
+//  MaryFoundation
+//
+//  WHAT: SemVer 2.0 as a JSON string. Compare without fixed-width integers.
+//  IN:   `.mary` version fields / AbilityPackageValidator+Graph.
+//  OUT:  graph gates, package identity.
+//
+
 import Foundation
 
-/// Semantic version encoded as a JSON string. Comparison follows SemVer 2.0
-/// precedence without converting numeric identifiers to fixed-width integers,
-/// so even the largest package-authored version cannot overflow a gate.
+/// SemVer string. Numeric identifiers stay unbounded so a package version cannot overflow a gate.
 public struct SemanticVersion: Codable, Hashable, Sendable, Comparable,
     CustomStringConvertible, ExpressibleByStringLiteral {
     public let rawValue: String
@@ -25,9 +32,7 @@ public struct SemanticVersion: Codable, Hashable, Sendable, Comparable,
         guard let left = Parsed(lhs.rawValue),
               let right = Parsed(rhs.rawValue)
         else {
-            // Invalid package versions are rejected by graph validation. This
-            // fallback only supplies deterministic ordering to callers that
-            // construct a SemanticVersion directly.
+            // PIN: graph validation rejects invalids; this orders direct construction.
             return lhs.rawValue < rhs.rawValue
         }
 

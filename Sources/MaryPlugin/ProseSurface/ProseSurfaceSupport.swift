@@ -2,29 +2,9 @@
 //  ProseSurfaceSupport.swift
 //  MaryPlugin
 //
-//  THE REGISTRY OF DECLARED PROSE SURFACES — and the one place that teaches
-//  the passage verbs where a document is.
-//
-//  Packages arrive and leave (an import, an uninstall, an edit that
-//  hot-reloads), so this holds whatever is currently declared and answers
-//  three questions about it: which application owns a place, what its prose
-//  coordinates are, and how to read and write its documents.
-//
-//  IT INSTALLS THE BACKING RESOLVER, which is the whole reason it exists as a
-//  registry rather than a list. Bonnie kept a compiled table mapping each
-//  writing world to its reader and writer, installed at boot by the typer;
-//  an application taught by package had no row in it and could therefore be
-//  read, focused and remembered but never have a passage cut from it — a gap
-//  its own documentation recorded and could not close, because the table was
-//  keyed on an enum with no case for a taught application. Here the resolver
-//  is a lookup in this registry, so an application that declares a prose
-//  surface is editable the moment its package loads, and nothing needs a row
-//  added anywhere.
-//
-//  FROZEN-SWAP, not mutate-in-place. Reconciliation replaces the whole map
-//  behind a lock and readers take a snapshot; a turn that started reading
-//  finishes against the roster it started with rather than half of two.
-//
+//  WHAT: Registry of declared prose surfaces + backing resolver install.
+//  OUT:  PassageBacking lookup
+//  PIN:  Frozen-swap, not mutate-in-place.
 
 import AppKit
 import Foundation
@@ -72,10 +52,8 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
 
     // MARK: - Installing the seam
 
-    /// Points the passage verbs at this registry.
-    ///
-    /// Idempotent, and safe to call from every composition path — the last
-    /// caller wins and they all install the same closure.
+    /// Points the passage verbs at this registry. Idempotent, and safe to call from every
+    /// composition path — the last caller wins and they all install the same closure.
     public func installBackingResolver() {
         PassageRecipes.installBackingResolver { [weak self] place in
             self?.backing(for: place)
@@ -96,11 +74,7 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
                 ProseStructure.units(in: text, rules: registration.grammar.rules)
             },
             body: { Self.snapshot(front: registration) },
-            // EVERY PROSE SURFACE CAN ADDRESS A SECOND DOCUMENT. Bonnie left
-            // this nil for all but one application, because reaching a
-            // background window meant that application's scripting layer;
-            // an accessibility walk enumerates every window the same way, so
-            // the capability is the family's rather than one member's.
+            // AX walk enumerates every window, so a second document is addressable.
             bodyForDocument: { key in Self.snapshot(registration, documentKey: key) },
             writer: writer)
     }
@@ -116,12 +90,8 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
         return snapshot(of: surface, registration: registration)
     }
 
-    /// A snapshot of ONE NAMED document — nil when this application does not
-    /// recognize the key.
-    ///
-    /// Nil rather than the front document, deliberately. Falling back is how
-    /// "revise the todo note" edits whatever happens to be in front, which is
-    /// the exact failure a multi-window application exists to avoid.
+    /// A snapshot of ONE NAMED document — nil when this application does not recognize the
+    /// key. Nil rather than the front document, deliberately.
     static func snapshot(
         _ registration: ProseSurfaceRegistration, documentKey: String
     ) -> BodySnapshot? {

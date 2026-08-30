@@ -2,17 +2,11 @@
 //  SkillCallTextInterceptor.swift
 //  MaryBrain
 //
-//  The shared gate that keeps tool-call syntax out of spoken text. Models
-//  under pressure narrate calls as prose — Mistral's native [TOOL_CALLS]
-//  wire format, fenced/bare JSON, the <tool_call> tag, or a name-prefixed
-//  blob like `run_applescript{"script": …}` (the shape that leaked into a
-//  live reply). One instance lives per stream round: text is withheld while
-//  it could still be a call, parsed into ModelSkillInvocations at end of round
-//  (so the action actually RUNS), and flushed as speech when it turns out
-//  to be prose after all. `stripToolCallSyntax` is the pure whole-string
-//  belt-and-braces the brain runs over captured prose and history writes.
+//  WHAT: Keep tool-call syntax out of spoken text.
+//  IN:   engine stream (one instance per round)
+//  OUT:  ModelSkillInvocation at end of round, or flushed prose
+//  PIN:  Withhold while it could still be a call.
 //
-
 import Foundation
 
 struct SkillCallTextInterceptor {
@@ -158,24 +152,10 @@ struct SkillCallTextInterceptor {
         return .flush
     }
 
-    /// Fence info strings that plausibly label a tool call rather than a
-    /// code sample — checked case-insensitively, alongside the empty string.
-    ///
-    /// THE FAILURE THIS FIXES, live: Xcode genuinely frontmost,
-    /// `read_buffer` genuinely offered, and the on-device model reached for
-    /// it — but wrapped the call as ` ```tool_call\n{"name": "read_buffer"}\n``` `
-    /// rather than the `<tool_call>` tag the prompt names or a bare/`json`
-    /// fence this gate already knew. `json` was the only accepted label, so
-    /// the whole block fell through to `flushAllToProse()` and the raw fence
-    /// — literally "```tool_call" — was SPOKEN, and the call never ran. The
-    /// call was real; only the label was unrecognized.
+    /// Fence info strings that plausibly label a tool call rather than a code sample — checked case-insensitively, alongside the empty string.
     static let toolCallFenceInfoStrings: Set<String> = ["json", "tool_call", "tool_calls"]
 
-    /// While suppressing a fence: once the opening line is complete, keep
-    /// suppressing only when it plausibly wraps a tool call (empty/`json`/
-    /// `tool_call`/`tool_calls` info string, first content char "{" or "[").
-    /// A ```swift coding answer resumes streaming immediately instead of
-    /// being withheld to end of round.
+    /// While suppressing a fence: once the opening line is complete
     private mutating func checkFenceEarlyOut() -> String {
         let head = pending.drop(while: \.isWhitespace)
         guard head.count >= 3 else { return "" }
@@ -200,11 +180,7 @@ struct SkillCallTextInterceptor {
 
     // MARK: - Passthrough (prose has started)
 
-    /// Prose is flowing, but a call can still appear mid-reply ("I'll do it
-    /// now. run_applescript{…}") — and legacy mode streams tokens LIVE, so
-    /// history stripping can't unspeak it. Scan for word-boundary known-name
-    /// + optional spaces + "{"; bare braces and fences never trigger here
-    /// (the false-positive guard for coding answers and literal JSON).
+    /// Prose is flowing, but a call can still appear mid-reply ("I'll do it now.
     private mutating func scanProse(_ incoming: String) -> String {
         let buffer = heldTail + incoming
         heldTail = ""
@@ -301,10 +277,7 @@ struct SkillCallTextInterceptor {
         return String(trimmed[close.upperBound...]).trimmingCharacters(in: .whitespaces)
     }
 
-    /// Parse a fenced, bare, tagged, or name-prefixed JSON tool call. A
-    /// parsed "name" counts only when it's in the roster (an empty roster
-    /// accepts any — Mistral-shim parity); an args-only object under a
-    /// name-prefixed anchor adopts the anchor's name.
+    /// Parse a fenced, bare, tagged, or name-prefixed JSON tool call.
     static func parseLooseToolCalls(
         from text: String,
         knownSkillNames: Set<String> = [],
@@ -420,11 +393,7 @@ struct SkillCallTextInterceptor {
 
     // MARK: - Whole-string stripping (the brain's belt-and-braces)
 
-    /// Remove tool-call syntax from finished prose: [TOOL_CALLS] blobs,
-    /// <tool_call> spans, known-name-prefixed objects, bare/fenced objects
-    /// that are tool-call-shaped. Truncated call syntax strips to end of
-    /// string (never speakable). Clean prose comes back UNCHANGED —
-    /// unbalanced braces and non-tool fences are strictly untouched.
+    /// Remove tool-call syntax from finished prose: [TOOL_CALLS] blobs, <tool_call> spans, known-name-prefixed objects, bare/fenced objects that are tool-call-shaped.
     static func stripToolCallSyntax(
         from text: String, knownSkillNames: Set<String> = []
     ) -> String {

@@ -2,22 +2,10 @@
 //  AXTextRunParser.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  ATTRIBUTED STRING → STYLED RUNS, purely. `kAXAttributedStringForRange`
-//  answers with an `NSAttributedString` whose attributes are keyed by AX's
-//  OWN names (`AXFont`, `AXForegroundColor`, …), not AppKit's
-//  (`NSFont`/`NSForegroundColorAttributeName`) — a distinction that costs an
-//  afternoon if you assume otherwise, since the AppKit keys silently match
-//  nothing and every run comes back unstyled. `AXFont` is itself a
-//  DICTIONARY (`AXFontName`/`AXFontFamily`/`AXFontSize`), not a font object,
-//  though some providers do hand back a real `NSFont`, so both shapes are
-//  decoded here.
-//
-//  Split from `AXDetailReader` because this half is pure — it takes an
-//  attributed string and returns values, touching no AX API — and pure is
-//  what gets pinned by tests. The reader owns the IPC; this owns the decode.
-//
+//  WHAT: NSAttributedString → styled runs. Pure decode, no AX IPC.
+//  IN:   kAXAttributedStringForRange (AXFont / AXForegroundColor keys)
+//  OUT:  AXDetailReader
+//  PIN:  AX keys, not AppKit names. AXFont is a dictionary or an NSFont.
 
 import AppKit
 import ApplicationServices
@@ -27,9 +15,8 @@ import Foundation
 public enum AXTextRunParser {
 
     // AX's text-attribute keys, resolved once. They arrive from the SDK as
-    // `Unmanaged<CFString>` (unlike the plain attribute names, which are
-    // `String`), hence the unwrap; the runtime values are the literals in
-    // the trailing comments.
+    // `Unmanaged<CFString>` (unlike the plain attribute names, which are `String`), hence
+    // the unwrap; the runtime values are the literals in the trailing comments.
     private static let fontKey = kAXFontTextAttribute.takeUnretainedValue() as String  // AXFont
     private static let foregroundKey =
         kAXForegroundColorTextAttribute.takeUnretainedValue() as String  // AXForegroundColor
@@ -44,13 +31,6 @@ public enum AXTextRunParser {
     private static let fontSizeKey = kAXFontSizeKey.takeUnretainedValue() as String  // AXFontSize
 
     /// Split an attributed string into maximal same-styled runs.
-    ///
-    /// `runCap` bounds how many styled runs survive: past the cap the
-    /// remaining text is coalesced into ONE trailing unstyled run rather
-    /// than dropped, so the reconstruction never silently loses the tail of
-    /// a paragraph — it loses the tail's *styling*, which is the cheaper
-    /// lie. Empty runs are skipped entirely (providers emit them at
-    /// attachment boundaries).
     public static func runs(from attributed: NSAttributedString, runCap: Int) -> [AXTextRun] {
         guard runCap > 0, attributed.length > 0 else { return [] }
         var runs: [AXTextRun] = []
@@ -116,10 +96,7 @@ public enum AXTextRunParser {
         return false
     }
 
-    /// AX colors arrive as `CGColor`, in whatever colorspace the provider
-    /// drew in. Converting to sRGB is what makes two apps' colors
-    /// comparable; a conversion that fails yields `nil` rather than a
-    /// wrong-space guess, and presentation falls back to a theme color.
+    /// AX colors arrive as `CGColor`, in whatever colorspace the provider drew in.
     static func color(from value: Any?) -> AXTextRunColor? {
         guard let raw = value, CFGetTypeID(raw as CFTypeRef) == CGColor.typeID else { return nil }
         let cgColor = raw as! CGColor
@@ -134,10 +111,8 @@ public enum AXTextRunParser {
             alpha: components.count >= 4 ? Double(components[3]) : Double(converted.alpha))
     }
 
-    // AX reports no weight or slant of its own — the font NAME is the only
-    // signal, and it is the signal every provider actually fills in.
-    // Substring matching on the PostScript name is what "Helvetica-BoldOblique"
-    // makes available and nothing else does.
+    // AX reports no weight or slant of its own — the font NAME is the only signal, and it
+    // is the signal every provider actually fills in.
 
     private static let boldMarkers = ["bold", "semibold", "demibold", "heavy", "black", "medium"]
     private static let italicMarkers = ["italic", "oblique"]

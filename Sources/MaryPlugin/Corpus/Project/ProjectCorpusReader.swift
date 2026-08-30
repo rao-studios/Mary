@@ -2,25 +2,10 @@
 //  ProjectCorpusReader.swift
 //  MaryPlugin
 //
-//  READING A WRITING PROJECT OFF DISK — the outline, and one item's text.
-//
-//  ⚠️ LOCATE-ONLY, AND THE REASON IS DATA LOSS. This reads and never writes,
-//  and that is a designed limit rather than an unfinished one. An editor with
-//  the project open autosaves on its own schedule; a write from outside races
-//  that save and LOSES, silently, with no failing call anywhere — the user
-//  finds a paragraph gone an hour later and nothing in any log says why.
-//  Changes go through the application's own commands, which is slower and
-//  cannot lose work.
-//
-//  EVERY PATH IS RESOLVED BENEATH THE PROJECT ROOT AND CHECKED. A declared
-//  template is data, and data that composes a filesystem path is data that
-//  can escape one — so a resolved path that does not stay inside the project
-//  is refused rather than read. That is not paranoia about package authors;
-//  it is that `{id}` comes from a manifest this code did not write.
-//
-//  NOTHING HERE NAMES AN APPLICATION. Element names, attribute names, path
-//  templates and the trash's own type all arrive from
-//  `PluginCorpusStructureSchema`. A second project format is a declaration.
+//  WHAT: Read a writing project off disk — outline and one item's text.
+//  IN:   PluginCorpusStructureSchema / XMLDocumentTree
+//  OUT:  ProjectCorpusAdapter
+//  PIN:  Locate-only. Paths stay under the project root. Nothing names an app.
 //
 
 import Foundation
@@ -88,21 +73,8 @@ public enum ProjectCorpusReader {
 
     // MARK: - The outline
 
-    /// Read the project's outline.
-    ///
-    /// TRASH IS EXCLUDED, always and without a flag. A deleted chapter is not
-    /// part of the work: counting it in a progress report or offering it as a
-    /// destination would both be wrong, and there is no request for which
-    /// including it is the right answer.
-    ///
-    /// `excludeNames`/`includeExtensions` matter ONLY for `.fileSystemTree` —
-    /// an `.xmlManifest` outline is already bounded by the binder, so a
-    /// manuscript's exclusions have nothing to filter. For a directory
-    /// project they are the same names its corpus's own `exclude`/`include`
-    /// already declare (`CorpusCrawl.projectFiles` reads the identical
-    /// fields for the passive style crawl): without them a walk over a real
-    /// checkout reads `.build`, `DerivedData` and `.git` right along with the
-    /// source, which is slow and not what "the project's outline" means.
+    /// Project outline. Trash always excluded. `excludeNames`/`includeExtensions`
+    /// apply only to `.fileSystemTree` (same fields as CorpusCrawl.projectFiles).
     public static func outline(
         projectRoot: URL, structure: PluginCorpusStructureSchema,
         excludeNames: [String] = [], includeExtensions: [String] = []
@@ -124,8 +96,7 @@ public enum ProjectCorpusReader {
         guard let template = manifest.pathTemplate else {
             return .failure(.noManifest("manifest path"))
         }
-        // `{name}` is the project's own directory name without its extension
-        // — a Scrivener project holds `<name>.scrivx`.
+        // `{name}` is the project directory without extension (`<name>.scrivx`).
         let name = projectRoot.deletingPathExtension().lastPathComponent
         let relative = template.replacingOccurrences(of: "{name}", with: name)
         guard let manifestURL = resolved(relative, under: projectRoot) else {
@@ -150,9 +121,7 @@ public enum ProjectCorpusReader {
         func build(_ node: XMLDocumentTree.Node, depth: Int) -> [Item] {
             node.children(named: itemName).compactMap { element -> Item? in
                 let type = manifest.typeAttribute.flatMap { element.attributes[$0] }
-                // THE TRASH AND EVERYTHING BENEATH IT, dropped here rather
-                // than filtered later — a later filter would have to know
-                // the tree shape, and this one only has to know the type.
+                // Drop trash and everything beneath it here — type is enough; a later filter needs the tree.
                 if let trash = manifest.trashType, type == trash { return nil }
 
                 let id = manifest.idAttribute.flatMap { element.attributes[$0] } ?? ""
@@ -173,14 +142,8 @@ public enum ProjectCorpusReader {
         return .success(build(root, depth: 0))
     }
 
-    /// The directory tree AS the outline — a folder of markdown, where an
-    /// item's id is its path relative to the root.
-    ///
-    /// ⚠️ EXCLUDED NAMES ARE PRUNED, NOT FILTERED — `walker.skipDescendants()`
-    /// has no direct analogue in a recursive build, so a matched directory
-    /// simply never recurses. Filtering entries after a full recursive walk
-    /// would still pay to enumerate every file inside `.build` or
-    /// `DerivedData` before throwing the results away.
+    /// Directory tree as outline; item id is path relative to root.
+    /// PIN: excluded names are pruned (no recurse), not filtered after a full walk.
     private static func treeOutline(
         projectRoot: URL, structure: PluginCorpusStructureSchema,
         excludeNames: [String], includeExtensions: [String]
@@ -196,26 +159,15 @@ public enum ProjectCorpusReader {
                     guard !excluded.contains(url.lastPathComponent) else { return nil }
                     let isDirectory = (try? url.resourceValues(forKeys: [.isDirectoryKey]))?
                         .isDirectory ?? false
-                    // A FILE OUTSIDE THE DECLARED NOTATION is not part of the
-                    // outline either — empty `included` (no corpus declares
-                    // one) keeps every file, exactly as before this existed.
+                    // File outside declared notation is not in the outline. Empty `included` keeps every file.
                     if !isDirectory, !included.isEmpty, !included.contains(url.pathExtension) {
                         return nil
                     }
-                    // SYMLINKS RESOLVED ON BOTH SIDES, the same helper the
-                    // passive crawl uses (`CorpusCrawl.relativePath`) — a
-                    // naive prefix strip breaks the moment the root is
-                    // reached through a symlink (`/tmp` as `/private/tmp`,
-                    // exactly what a temporary-directory checkout hits),
-                    // silently making every id an absolute path instead of a
-                    // relative one.
+                    // Same helper as CorpusCrawl.relativePath — resolve both sides.
                     let relative = CorpusCrawl.relativePath(
                         of: url.path, under: projectRoot.path)
                     let children = isDirectory ? build(url, depth: depth + 1) : []
-                    // A FOLDER LEFT EMPTY BY FILTERING is not part of the
-                    // outline — it holds nothing this corpus reads, and
-                    // showing it as a container with nothing inside is worse
-                    // than not showing it.
+                    // Folder left empty by filtering is not part of the outline.
                     if isDirectory, children.isEmpty { return nil }
                     return Item(
                         id: relative,
@@ -253,10 +205,7 @@ public enum ProjectCorpusReader {
         case .plainText, .markdown:
             return try? String(contentsOf: url, encoding: .utf8)
         case .rtf:
-            // RTF THROUGH THE SYSTEM'S OWN READER, so a manuscript's
-            // formatting, footnotes and annotations come back as the plain
-            // words rather than as markup. A hand-rolled stripper gets
-            // nested groups wrong and leaves control words in the prose.
+            // RTF via the system reader — words, not markup.
             guard let data = try? Data(contentsOf: url),
                   let attributed = try? NSAttributedString(
                     data: data,
@@ -269,11 +218,8 @@ public enum ProjectCorpusReader {
 
     // MARK: - Paths
 
-    /// Resolve a declared relative path beneath the project, or nil if it
-    /// would leave it.
-    ///
-    /// SYMLINKS RESOLVED BEFORE THE COMPARISON, because a path can be inside
-    /// the project by spelling and outside it in fact.
+    /// Resolve a declared relative path under the project, or nil if it would leave.
+    /// PIN: resolve symlinks before comparing — spelling can lie.
     static func resolved(_ relative: String, under root: URL) -> URL? {
         guard !relative.isEmpty, !relative.hasPrefix("/") else { return nil }
         let candidate = root.appendingPathComponent(relative).standardizedFileURL

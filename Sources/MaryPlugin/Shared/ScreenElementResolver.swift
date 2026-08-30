@@ -2,27 +2,8 @@
 //  ScreenElementResolver.swift
 //  MaryAdapter
 //
-//  ONE PHRASE, ONE THING ON THE SCREEN — the snapshot lane's own facade over
-//  `SpokenReference`'s ladder, the way `PageElementResolver` is the browser
-//  lane's. Same ladder, same measured tie-breaks — only two things differ
-//  from the page lane, and both are deliberate:
-//
-//    - WHAT COUNTS AS A KIND. `AXScreenElement` has no URL, so "video"
-//      detection degrades to the duration-signature half of
-//      `PageElementKindDerivation.looksPlayable` — accepted, not fixed here.
-//      A `.scripted` graft (a Keynote slide row, say) answers to "row"
-//      rather than falling through to `.link`, since it was never a link to
-//      begin with.
-//    - THE WORDING. The page lane's refusals say "on the page" and offer a
-//      page-reading fallback that only the page lane has. This lane names
-//      the app instead ("in Keynote"), and its miss does not promise a tool
-//      that does not exist yet.
-//
-//  `preferShortestOnTie` carries the same doctrine `PageElementResolver`
-//  documents: true for a NAME ("the OK button"), false for a GOAL ("skip
-//  that") — callers make that choice exactly as `AffordanceResolver` does
-//  today.
-//
+//  WHAT: Phrase → AXScreenElement via SpokenReference.
+//  IN:   AXElementRoster  OUT: ambient / affordance
 
 import Foundation
 
@@ -77,11 +58,8 @@ public enum ScreenElementResolver {
 
     // MARK: - Spoken outcomes
 
-    /// Named for the app the rivals actually came from, read off the rivals
-    /// themselves rather than threaded through as a parameter — every
-    /// caller already has a `[AXScreenElement]` in hand and they all share
-    /// one `appName`. Falls back to "on the screen" only if that is
-    /// somehow untrue (an empty rival list should never reach here).
+    /// Named for the app the rivals actually came from, read off the rivals themselves
+    /// rather than threaded through as a parameter.
     public static func ambiguityRefusal(
         _ rivals: [AXScreenElement], phrase: String
     ) -> String {

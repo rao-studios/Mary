@@ -2,9 +2,9 @@
 //  StyleEvidenceModels.swift
 //  MaryAmbient
 //
-//  StyleAccrualPolicy, StyleContribution, and StyleEvidenceRow — split
-//  out of StyleEvidence.swift (docs/DECOMPOSITION.md Wave 2) — pure
-//  relocation, no declaration changed.
+//  WHAT: StyleAccrualPolicy, StyleContribution, and StyleEvidenceRow.
+//  IN:   StyleEvidence.swift (split)
+//  OUT:  StyleEvidenceStore
 //
 
 import MaryFoundation
@@ -12,10 +12,7 @@ import Foundation
 
 /// The knobs, in one readable place.
 public struct StyleAccrualPolicy: Sendable, Equatable {
-    /// DISTINCT SOURCES of the winning value needed before a tenet may be
-    /// believed at all. Sources, not weight: a single edited file with five
-    /// lock boxes is one opinion stated emphatically, not five files agreeing
-    /// — weight feeds confidence, and only breadth earns belief.
+    /// DISTINCT SOURCES of the winning value needed before a tenet may be believed at all.
     public var minimumSupport: Int
     /// Proportion of evidence that must agree. Set where it is because a
     /// convention is not a convention if a third of the corpus disagrees.
@@ -37,10 +34,9 @@ public struct StyleAccrualPolicy: Sendable, Equatable {
 
     public static let standard = StyleAccrualPolicy()
 
-    /// Confidence is agreement tempered by how much evidence there is, so a
-    /// 2-of-2 tenet does not outrank a 40-of-45 one. It saturates rather than
-    /// climbing forever, which is what stops a big corpus from producing
-    /// certainty it has not earned.
+    /// Confidence is agreement tempered by how much evidence there is, so a 2-of-2 tenet does
+    /// not outrank a 40-of-45 one. It saturates rather than climbing forever, which is what
+    /// stops a big corpus from producing certainty it has not earned.
     public func confidence(support: Int, counter: Int) -> Double {
         let total = support + counter
         guard total > 0 else { return 0 }
@@ -56,23 +52,16 @@ public struct StyleAccrualPolicy: Sendable, Equatable {
         guard total > 0 else { return .candidate }
         let agreement = Double(support) / Double(total)
         if sources >= minimumSupport, agreement >= minimumAgreement { return .verified }
-        // The hysteresis deliberately asks nothing about sources: a restored
-        // snapshot is ONE contribution however many files stood behind it, and
-        // a verified tenet must not demote just for having been through a
-        // relaunch.
+        // The hysteresis deliberately asks nothing about sources: a restored snapshot is ONE
+        // contribution however many files stood behind it, and a verified tenet must not demote
+        // just for having been through a relaunch.
         if previous == .verified, agreement >= demotionAgreement { return .verified }
         return .candidate
     }
 }
 
-/// What ONE source currently says about one dimension.
-///
-/// Keyed by source and REPLACED rather than added, which is the whole point.
-/// The tally used to be `counts[value] += weight` with no attribution, so
-/// focusing a file repeatedly counted it repeatedly and support inflated
-/// without bound as the user moved around the project. A file has ONE opinion
-/// about how it is written, however often it is read — and while `sourceHash`
-/// says the bytes have not moved, it is not even re-dated.
+/// What ONE source currently says about one dimension. Keyed by source and REPLACED rather
+/// than added, which is the whole point.
 struct StyleContribution: Sendable, Equatable {
     var value: StyleValue
     var weight: Int
@@ -99,11 +88,7 @@ struct StyleEvidenceRow: Sendable, Equatable {
         var totals: [StyleValue: Double] = [:]
         for contribution in contributions.values {
             let recency = StyleRecency.weight(at: contribution.at, now: now)
-            // THE FLOOR IS APPLIED HERE AS WELL AS IN THE SWEEP, and it has to
-            // be. The sweep only runs when a profile is saved, which only
-            // happens after a crawl — so a corpus nobody has touched for months
-            // would go on rendering faded evidence at full authority until
-            // something happened to trigger a save.
+            // THE FLOOR IS APPLIED HERE AS WELL AS IN THE SWEEP, and it has to be.
             guard recency >= StyleRecency.decayFloor else { continue }
             totals[contribution.value, default: 0] += Double(contribution.weight) * recency
         }
@@ -115,11 +100,7 @@ struct StyleEvidenceRow: Sendable, Equatable {
         for contribution in contributions.values {
             let recency = StyleRecency.weight(at: contribution.at, now: now)
             guard recency >= StyleRecency.decayFloor else { continue }
-            // Weight matters here exactly as in `tallies` — a restored blob
-            // carries the whole summary's weight in one contribution, and
-            // ignoring it made every restored vocabulary total ≤ 1.0, below
-            // the word bar: `roleVocabulary` died on every relaunch and the
-            // next save made the loss permanent.
+            // Weight matters here exactly as in `tallies`.
             for word in contribution.vocabulary {
                 totals[word, default: 0] += Double(contribution.weight) * recency
             }
@@ -137,11 +118,9 @@ struct StyleEvidenceRow: Sendable, Equatable {
         }.count
     }
 
-    /// The leading value and the weight for and against it.
-    ///
-    /// Weighted totals round to integers only here, at the boundary where a
-    /// tenet is minted — the live tally stays continuous so a slow drift is
-    /// not lost to rounding on every observation.
+    /// The leading value and the weight for and against it. Weighted totals round to integers
+    /// only here, at the boundary where a tenet is minted — the live tally stays continuous so
+    /// a slow drift is not lost to rounding on every observation.
     func leader(at now: Date) -> (value: StyleValue, support: Int, counter: Int)? {
         let totals = tallies(at: now).filter { $0.value > 0.0001 }
         let ranked = totals.sorted {
@@ -152,10 +131,9 @@ struct StyleEvidenceRow: Sendable, Equatable {
         // corpus does not have.
         if ranked.count > 1, abs(ranked[1].value - top.value) < 0.0001 { return nil }
         let counter = ranked.dropFirst().reduce(0.0) { $0 + $1.value }
-        // A leader that exists counts for at least 1. A single ageing
-        // contribution otherwise rounds to support 0, `status` short-circuits
-        // to `.candidate` ignoring the hysteresis, and `publish` LATCHES that
-        // — permanently demoting a tenet the evidence still supports.
+        // A leader that exists counts for at least 1. A single ageing contribution otherwise
+        // rounds to support 0, `status` short-circuits to `.candidate` ignoring the hysteresis,
+        // and `publish` LATCHES that — permanently demoting a tenet the evidence still supports.
         return (top.key, max(1, Int(top.value.rounded())), Int(counter.rounded()))
     }
 }

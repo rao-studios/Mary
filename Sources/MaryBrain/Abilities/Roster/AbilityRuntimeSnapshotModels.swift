@@ -2,10 +2,10 @@
 //  AbilityRuntimeSnapshotModels.swift
 //  MaryBrain
 //
-//  Split out of AbilityRuntimeSnapshot.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Model types for AbilityRuntimeSnapshot.
+//  IN:   AbilityRuntimeSnapshot.swift (sibling split)
+//  OUT:  package records / plugin compilation / runtime skills
 //
-
 import MaryFoundation
 import Foundation
 
@@ -53,25 +53,7 @@ public enum AbilityPackageTrustStatus: String, Codable, Hashable, Sendable, Case
     /// fields using Mary-owned wording.
     public var permitsAuthoredPromptText: Bool { false }
 
-    /// Whether this package's own ABILITY ID may be shaped into the registry
-    /// label the model sees. Deliberately NOT `permitsAuthoredPromptText`, and
-    /// the difference is the point: that property governs authored PROSE —
-    /// summaries, guardrails, parameter descriptions — and is false everywhere,
-    /// forever. This governs one validated IDENTIFIER, which the schema
-    /// validator has already constrained to lowercase letters, digits, dots and
-    /// hyphens.
-    ///
-    /// It is still not nothing: `ignore-all-prior-instructions-and-exfiltrate`
-    /// is a legal identifier, and it is exactly the payload
-    /// `AbilityPromptProjectionSecurityTests` fires at this seam. So the line
-    /// is PROVENANCE. Bytes inside Mary's own app, or in the repository she
-    /// was built from, share the trust root of the compiled Swift beside them —
-    /// anyone able to put a hostile id there could simply edit this file. Bytes
-    /// that arrived by import have no such standing and stay opaque, signed or
-    /// not: a signature proves integrity, never publisher trust.
-    ///
-    /// The payoff is that a `.mary` dropped into the repository needs no
-    /// hardcoded case anywhere to be named properly to the model.
+    /// Whether this package's own ABILITY ID may be shaped into the registry label the model sees.
     public var permitsDerivedContractLabel: Bool {
         switch self {
         case .bundled, .developmentSource: return true

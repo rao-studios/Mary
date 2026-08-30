@@ -2,8 +2,7 @@
 //  Paper+Spacing.swift
 //  Mary
 //
-//  Spacing tokens, ported from Gita (originally Sis's Brand.swift).
-//  Usage: .padding(.horizontal, .layer5)
+//  WHAT: Spacing tokens. Usage: .padding(.horizontal, .layer5)
 //
 
 import SwiftUI

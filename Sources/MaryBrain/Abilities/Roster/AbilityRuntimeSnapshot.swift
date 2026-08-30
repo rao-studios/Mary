@@ -1,3 +1,12 @@
+//
+//  AbilityRuntimeSnapshot.swift
+//  MaryBrain
+//
+//  WHAT: Immutable Ability graph for the life of a turn.
+//  IN:   AbilityLibrary snapshot swap
+//  OUT:  skills / bindings / plugins for dispatch and schema
+//  PIN:  Studio may activate another revision; this turn keeps this snapshot.
+//
 import MaryFoundation
 import Foundation
 
@@ -25,10 +34,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
     private let invocations: [String: AbilityRuntimeSkill]
     private let bindingOperations: [String: AbilityRuntimeSkill]
     private let fallbackReferences: [String: AbilitySkillReference]
-    /// EVERY binding the compatibility evaluator admitted per Skill,
-    /// preference-ordered — `selectedBinding` is always the first. The
-    /// per-turn provider resolver chooses among exactly these, so it can
-    /// never manufacture an availability the evaluator refused.
+    /// EVERY binding the compatibility evaluator admitted per Skill, preference-ordered — `selectedBinding` is always the first.
     private let compatibleBySkill: [SkillID: [InstalledAdapterBinding]]
     /// Optional embedding recall for `requestedAbilities(in:)`. Nil — every
     /// direct construction and every test that does not opt in — means
@@ -169,11 +175,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
                     ? (runtime.reference.invocationName, runtime) : nil
             },
             uniquingKeysWith: { first, _ in first })
-        // SELECTED operations register first and keep first-wins semantics
-        // byte-for-byte; every other compatible candidate's operation maps to
-        // its skill afterwards, so a rival provider's operation resolves to
-        // the same owning Skill instead of falling into the raw-binding
-        // fallback below.
+        // SELECTED operations register first and keep first-wins semantics byte-for-byte
         var operationsIndex = Dictionary(
             finalizedSkills.compactMap { runtime in
                 runtime.bindingOperation.map { ($0, runtime) }
@@ -191,10 +193,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
         var fallback: [String: AbilitySkillReference] = [:]
         for binding in self.bindings
         where self.bindingOperations[binding.adapter.operation] == nil
-            // Native adapters predate portable Skill ownership and retain the
-            // compatibility fallback. Dynamic operations are declarative
-            // implementations of explicit realizations; exposing one without
-            // its Skill would bypass routing, capability, and provider policy.
+            // Native adapters predate portable Skill ownership and retain the compatibility fallback.
             && manifestsByID[binding.adapter.adapterID]?
                 .resolvedProvider.pluginClass != .package {
             let abilityToken = Self.portableID(binding.ownerID)
@@ -270,11 +269,6 @@ public struct AbilityRuntimeSnapshot: Sendable {
 
     public func bindingOperation(forInvocation name: String) -> String {
         // A name that is not a model-visible invocation resolves to ITSELF.
-        // Every compatible candidate's operation is indexed now, so routing
-        // an exact operation name through its owning Skill would substitute
-        // the selected provider's operation — a silent cross-application
-        // redirect no exact call may suffer. (Selected operations mapped to
-        // themselves before, so this is behavior-identical for them.)
         guard let runtime = invocations[name] else { return name }
         return runtime.bindingOperation ?? name
     }
@@ -312,10 +306,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
         skill(invocationName: name)?.skill.outputs.map(\.valueType) ?? []
     }
 
-    /// Every binding the compatibility evaluator admitted for this Skill,
-    /// preference-ordered; `selectedBinding` is always the first element.
-    /// This list is the resolver's whole universe — a manifest the evaluator
-    /// refused (consent, permissions, missing capability) is not in it.
+    /// Every binding the compatibility evaluator admitted for this Skill, preference-ordered; `selectedBinding` is always the first element.
     public func compatibleBindings(for id: SkillID) -> [InstalledAdapterBinding] {
         compatibleBySkill[id] ?? []
     }
@@ -383,10 +374,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
             }
             if tokenMatch || phraseMatch || aliasMatch { requested.insert(ability.id) }
         }
-        // ADDITIVE RECALL, never veto: the semantic index widens what the
-        // words request — "draw a circle" reaches Design without the literal
-        // ability name — and structurally cannot remove an exact match.
-        // Nil index (every direct construction) is exact-only, unchanged.
+        // ADDITIVE RECALL, never veto: the semantic index widens what the words request — "draw a circle" reaches Design without the literal ability name
         return requested.union(
             semanticIndex?.requestedAbilities(in: utterance) ?? [])
     }

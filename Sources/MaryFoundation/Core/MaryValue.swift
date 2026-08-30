@@ -1,8 +1,15 @@
+//
+//  MaryValue.swift
+//  MaryFoundation
+//
+//  WHAT: Provider-independent JSON value. Crosses XPC, files, model boundaries.
+//  IN:   ValueEnvelope.payload.
+//  OUT:  ValueEnvelopeValidator, codecs.
+//
+
 import Foundation
 
-/// A provider-independent runtime value. The encoding is ordinary JSON so a
-/// Value can cross XPC, Bluetooth, files, or a model-provider boundary without
-/// inheriting any transport's argument representation.
+/// Ordinary JSON encoding — no transport argument representation.
 public indirect enum MaryValue: Hashable, Sendable {
     case null
     case string(String)

@@ -2,22 +2,16 @@
 //  KokoroStreamSpeaker.swift
 //  MaryVoice
 //
-//  Pipes streaming LLM output to Kokoro TTS via a circular PCM buffer.
-//  Faithful port of SeerTTS/KokoroTTSDemo's TTSStreamProcessor with three
-//  deliberate changes:
-//    1. The @MainActor singleton becomes an injectable actor.
-//    2. `hardStop()` — the original `stop()` only cancelled the pipeline Task,
-//       so already-scheduled PCM kept playing. The speaker now retains the
-//       live player/engine and silences them immediately (what barge-in needs).
-//    3. An `events()` tap so the pipeline/UI/probe can watch chunks move
-//       through synthesis and playback.
+//  WHAT: Streaming LLM text → Kokoro TTS via a circular PCM buffer.
+//  IN:   SpeechRouter / VoicePipeline / probes
+//  OUT:  SpeakerEvent tap; playback via RingBuffer
 //
-//  Usage:
-//    let speaker = KokoroStreamSpeaker(engine: kokoro)
-//    await speaker.feed("Sure")           // growing accumulated string
-//    await speaker.feed("Sure, I can")
-//    await speaker.feed("Sure, I can help you.")
-//    await speaker.flush()                // speak remainder and wait for drain
+//    feed() → rawBuffer → [sentences + markdown sanitize] → textStream
+//    Stage A: textStream → synthesizer.synthesizeWaveform() → waveformStream
+//    Stage B: waveformStream → ring.acquire() → scheduleBuffer() → ring.release()
+//
+//  PIN: Injectable actor. hardStop silences scheduled PCM (barge-in). Floor
+//       lease checked inside this actor.
 //
 
 import AVFoundation
@@ -26,40 +20,14 @@ import NaturalLanguage
 
 // MARK: - RingBuffer
 
-/// Collects incoming LLM token strings, extracts complete sentences, sanitizes
-/// markdown, and pipelines synthesis with playback via a ring buffer.
-///
-/// Architecture
-/// ────────────
-///   feed() → rawBuffer → [sentence extraction + markdown sanitization] → textStream
-///
-///   Stage A (detached):
-///     textStream → synthesizer.synthesizeWaveform() → waveformStream
-///
-///   Stage B (ring-buffered playback):
-///     waveformStream → ring.acquire() → scheduleBuffer()
-///                                             ↓ (completion)
-///                                       ring.release()
-///
 // MARK: - KokoroStreamSpeaker
 
-/// Chunking: NLTokenizer(.sentence) extracts only fully-terminated sentences
-/// from the buffer. The incomplete trailing sentence stays buffered until more
-/// tokens arrive. A hard word cap splits pathologically long sentences so
-/// the model never receives more tokens than its context window allows.
+/// Chunking: NLTokenizer(.sentence) takes fully-terminated sentences; trailing
+/// incomplete stays buffered. Hard word cap splits over-long sentences.
 public actor KokoroStreamSpeaker {
 
-    /// The shared speaker has more than one potential producer: a text turn,
-    /// a detached follow-up, and the live voice pipeline.  A caller-side
-    /// cancellation check is not enough to arbitrate those writers because
-    /// the check and `feed` are separate actor hops.  The floor lease is
-    /// therefore checked *inside this actor*, at the mutation point.
-    ///
-    /// Callers mint the UUID before they start work.  A fresh claim revokes
-    /// every operation carrying an older id; an unleased legacy call is only
-    /// admitted while nobody has claimed the floor.  This keeps probes and
-    /// isolated unit fixtures source-compatible without giving them a way to
-    /// mutate a live application turn.
+    /// Floor lease checked inside this actor at the mutation point. Callers mint
+    /// the UUID; a fresh claim revokes older ids. Unleased calls only while idle.
     // MARK: - Public
 
     public private(set) var isSpeaking = false
@@ -73,30 +41,14 @@ public actor KokoroStreamSpeaker {
     /// 2–3 feels natural; lower = more responsive but choppier gaps between chunks.
     public let sentencesPerChunk: Int
 
-    /// The shipped chunk size, named rather than repeated as a literal in three
-    /// initialiser defaults — because the takeover's bound rests on it and a
-    /// number that only exists as a default argument cannot be reasoned about
-    /// from another package.
+    /// Shipped chunk size — named so takeover arithmetic can reason about it.
     public static let defaultSentencesPerChunk = 2
 
-    /// HOW MANY SENTENCES OF TEXT MUST LAND BEFORE THE FIRST AUDIO CAN EXIST:
-    /// `defaultSentencesPerChunk` complete sentences, PLUS one more to prove the
-    /// last of them ended — `extractSentences` only accepts a sentence that
-    /// finishes strictly before the buffer does. 2 + 1 = 3.
-    ///
-    /// THIS IS THE TAKEOVER WINDOW, WRITTEN DOWN. A short acknowledgement ("On
-    /// it — putting that on now.") is two sentences, so it is still
-    /// un-synthesized text in `rawBuffer` when the Skill execution lane joins holding the
-    /// completed outcomes, which is exactly what lets `.retractSpeech` replace
-    /// it instead of talking over it. That property used to be a COINCIDENCE of
-    /// chunk sizing; `holdSynthesis(for:)` below makes it policy, and this
-    /// constant makes the arithmetic visible to the brain that depends on it.
+    /// Sentences of text before first audio can exist: defaultSentencesPerChunk
+    /// complete + 1 to prove the last ended. PIN: takeover window arithmetic.
     public static let sentencesBeforeFirstAudio = defaultSentencesPerChunk + 1
 
-    /// Hard word-count ceiling per chunk. Kokoro's 10s model has ~242 token slots;
-    /// at ~6 phoneme tokens/word that's ~40 words. 30 is conservative to leave headroom.
-    /// When adding a sentence would push the batch over this limit the current batch
-    /// is flushed first so nothing gets truncated mid-sentence.
+    /// Hard word-count ceiling per chunk. Kokoro 10s ≈ 242 tokens ≈ 40 words; 30 is headroom.
     public let maxWordsPerChunk: Int
 
     // MARK: - Private
@@ -109,16 +61,11 @@ public actor KokoroStreamSpeaker {
     private var rawBuffer: String = ""
     private var lastSeenString: String = ""
 
-    /// The only writer currently allowed to mutate the speaker.  `nil` is
-    /// the legacy/standalone mode used by probes and isolated tests.
+    /// The only writer allowed to mutate. nil = probes/tests (unleased).
     private var activeFloorLease: UUID?
-    /// A voice session reserves the floor even while it is listening.  A
-    /// held text follow-up must not wake into that silent gap and speak over
-    /// the microphone pipeline.
+    /// Voice session owns the floor between utterances too.
     private var voiceFloorReserved = false
-    /// Hard resets invalidate asynchronous pipeline tails as well as direct
-    /// operations.  A cancelled old `flush()` can resume after a new turn has
-    /// begun; it must not reset the new turn's diff baseline or speaking bit.
+    /// Invalidates async tails. A cancelled old flush must not reset the next turn.
     private var hardResetEpoch: UInt64 = 0
 
     private var textContinuation: AsyncStream<String>.Continuation?
@@ -135,41 +82,26 @@ public actor KokoroStreamSpeaker {
     private var activeEngine: AVAudioEngine?
     private var activePlayer: AVAudioPlayerNode?
 
-    /// `AVAudioEngine.stop()` has no public callback-drained barrier. Keep a
-    /// stopped output graph alive through CoreAudio's asynchronous I/O-unit
-    /// retirement, just as MicCapture does for input graphs. The player is
-    /// retained with its engine because completion callbacks target both.
+    /// Keep a stopped output graph alive through CoreAudio I/O-unit retirement.
     private static let audioRetirementQueue = DispatchQueue(
         label: "mary.speaker.engine-retirement")
     private static let audioRetirementGrace: TimeInterval = 10
 
-    /// Deterministic playback seam used only by package tests. The closure is
-    /// awaited in the same place production waits for an
-    /// `AVAudioPlayerNode` `.dataPlayedBack` callback, which lets lifecycle
-    /// tests exercise real, non-empty PCM without depending on the machine's
-    /// current output device. Nil in every public initializer/production use.
+    /// Test playback seam — awaited where production waits for `.dataPlayedBack`. Nil in production.
     typealias DataPlayedBackDriver = @Sendable (
         _ samples: [Float], _ sampleRate: Double, _ text: String
     ) async -> Void
     private var dataPlayedBackDriverForTesting: DataPlayedBackDriver?
 
-    /// Sentence-boundary stop machinery: when requested, the first buffer
-    /// completion stops the player (silencing anything still scheduled) and
-    /// the drain wakes the waiters. See softStop().
+    /// Sentence-boundary stop: first buffer completion stops the player. See softStop().
     private var softStopRequested = false
     private var stopWaiters: [CheckedContinuation<Void, Never>] = []
 
-    /// THE TAKEOVER HOLD — chunks that reached a batch boundary while the hold
-    /// was armed, staged in order and released together. See holdSynthesis().
+    /// Chunks that reached a batch boundary while the hold was armed. See holdSynthesis().
     private var synthesisHoldExpiry: DispatchTime?
     private var heldChunks: [String] = []
     private var holdReleaseTask: Task<Void, Never>?
-    /// ONE HOLD PER TURN. A retraction's REPLACEMENT is never held again — the
-    /// lane the hold was waiting for has already spoken, and holding the
-    /// correction behind the same window it bought would delay the one sentence
-    /// this whole mechanism exists to deliver. Cleared by `flush()` (the turn
-    /// ended) and `hardStop()` (the turn was destroyed), deliberately NOT by
-    /// `softStop()` (the turn continues, under new text).
+    /// One hold per turn. Cleared by flush/hardStop, not by softStop (turn continues).
     private var didHoldSynthesis = false
 
     /// Event tap subscribers.
@@ -235,9 +167,7 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Shared speaker floor
 
-    /// Claim the shared speaker for a text-mode writer.  This is intentionally
-    /// refused while the voice session owns the floor, including its quiet
-    /// listening state.
+    /// Claim for a text-mode writer. Refused while a voice session owns the floor.
     @discardableResult
     public func claimTextFloor(_ lease: UUID, hardStop: Bool = true) -> Bool {
         guard !voiceFloorReserved else { return false }
@@ -245,12 +175,7 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// Transfer text playback from a known current writer. Detached work uses
-    /// this instead of the unconditional user-boundary claim: if a new user
-    /// turn has already replaced `expectedLease`, an old follow-up's delayed
-    /// actor hop cannot steal the speaker back. An idle speaker is also a
-    /// valid handoff target because a completed primary turn releases its
-    /// lease after its drain.
+    /// CAS handoff from a known writer. Idle speaker is a valid target (primary released after drain).
     @discardableResult
     public func replaceTextFloor(
         _ lease: UUID,
@@ -265,9 +190,7 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// Claim the speaker for the live voice pipeline.  A voice session owns
-    /// the floor between utterances too, so a delayed text follow-up cannot
-    /// fill the silent listening gap.
+    /// Claim for the live voice pipeline, including between utterances.
     @discardableResult
     public func claimVoiceFloor(_ lease: UUID, hardStop: Bool = true) -> Bool {
         voiceFloorReserved = true
@@ -275,12 +198,7 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// Compare-and-swap handoff within an already-active voice session. A
-    /// proactive voice follow-up may yield the current reply, but it may not
-    /// reclaim the speaker after a newer voice utterance has taken it. Unlike
-    /// text mode, voice never releases its session floor between utterances,
-    /// so an idle speaker is NOT a valid handoff target: that moment belongs
-    /// to a barge-in or session shutdown, not an old detached routine.
+    /// CAS handoff inside a voice session. Idle is NOT a valid target (barge-in / shutdown).
     @discardableResult
     public func replaceVoiceFloor(
         _ lease: UUID,
@@ -292,17 +210,13 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// Release voice mode when the microphone session ends.  This is a hard
-    /// boundary: stale voice tasks may not resume into the next text turn.
+    /// Release voice mode when the mic session ends. Stale voice tasks must not resume.
     public func leaveVoiceFloor() {
         voiceFloorReserved = false
         invalidateAndHardStop()
     }
 
-    /// Conditional release for a failed/stale session start. The teardown
-    /// fence uses the unconditional form after draining ownership operations;
-    /// an individual start continuation must not release a newer session that
-    /// claimed this shared speaker while its actor hop was pending.
+    /// Conditional release for a failed session start. Must not release a newer claim.
     @discardableResult
     public func leaveVoiceFloor(lease: UUID) -> Bool {
         guard voiceFloorReserved, activeFloorLease == lease else { return false }
@@ -311,17 +225,12 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// A cheap preflight for callers that want to avoid work.  Correctness
-    /// never relies on it; every mutating API below checks the same lease
-    /// again inside this actor.
+    /// Cheap preflight. Every mutating API re-checks the lease inside this actor.
     public func ownsFloor(_ lease: UUID) -> Bool {
         accepts(lease)
     }
 
-    /// Release a completed writer without interrupting already-drained audio.
-    /// The conditional guard is important: an old finalizer must never clear a
-    /// newer follow-up or user turn that claimed the speaker while it awaited
-    /// `flush()`.
+    /// Release a completed writer without interrupting drained audio.
     @discardableResult
     public func releaseFloor(_ lease: UUID) -> Bool {
         guard accepts(lease) else { return false }
@@ -377,9 +286,7 @@ public actor KokoroStreamSpeaker {
         emit(.pronunciation(report))
     }
 
-    /// How many chunks Stage A may hold in flight. Two: enough that one slow
-    /// chunk never runs the player dry, small enough that a barge-in wastes
-    /// at most one sentence of cloud synthesis.
+    /// Stage A in-flight cap. Two: one slow chunk never runs the player dry.
     static let prefetchDepth = 2
 
     private func emitChunkFailed(text: String, reason: String, epoch: UInt64) {
@@ -392,29 +299,8 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Public API
 
-    /// Feed the full accumulated string from the LLM on each token arrival.
-    ///
-    ///     feed("He")
-    ///     feed("Hello")
-    ///     feed("Hello World. How are you?")
-    ///
-    /// Diffs against the previous call internally; only the new suffix is appended.
-    ///
-    /// THE BASELINE BELONGS TO ONE WRITER. This is a length-diffing API, and
-    /// `softStop()`/`hardStop()`/`flush()` reset `lastSeenString` when a new
-    /// writer takes the floor. Without the prefix check below, a SUPERSEDED
-    /// turn resuming from its own `accumulated` — a suspended
-    /// `router.consumeToken` landing after another writer took over — would
-    /// splice a length-offset SUFFIX of turn N's passage into turn N+1's live
-    /// stream. That is the literal audio form of the reported bug: "the result
-    /// pipes in later and appends to the response that answered the new
-    /// query." A string that does not extend what this speaker has already
-    /// seen is not a delta — it is a foreign writer. RESET the baseline to it
-    /// and speak nothing: the foreign text never plays, and the rightful
-    /// writer re-synchronizes on its very next (monotonically growing) feed.
-    /// Returns false when a newer floor has already taken the speaker.  This
-    /// check lives beside the diff baseline so an old writer can never refill
-    /// `rawBuffer` after a new turn's hard stop.
+    /// Feed the full accumulated LLM string. Diffs internally; only the new suffix appends.
+    /// PIN: a string that does not extend lastSeenString is a foreign writer — reset baseline, speak nothing.
     @discardableResult
     public func feed(_ fullString: String, lease: UUID? = nil) -> Bool {
         guard accepts(lease) else { return false }
@@ -430,11 +316,7 @@ public actor KokoroStreamSpeaker {
         return true
     }
 
-    /// Flush remaining buffered text and wait for all queued audio to finish.
-    ///
-    /// A flush has an await at its tail.  Re-checking its lease after that
-    /// await is what prevents an old drain from clearing `lastSeenString` or
-    /// `didHoldSynthesis` under audio the next turn has already fed.
+    /// Flush remaining text and wait for queued audio. Re-check the lease after the await.
     @discardableResult
     public func flush(lease: UUID? = nil) async -> Bool {
         guard accepts(lease) else { return false }
@@ -474,73 +356,20 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - The takeover hold
 
-    /// HOW LONG THE SPEAKER WAITS FOR THE SKILL EXECUTION LANE BEFORE IT COMMITS A WORD.
-    ///
-    /// 250 ms, and it is not a new number: it is `MaryBrain`'s non-action
-    /// lane join grace — how long a turn holds for its Skill execution lane before the
-    /// lane detaches into a routine. Holding for exactly that window means the
-    /// speaker commits nothing while the outcome could still arrive in-turn,
-    /// and commits immediately once it cannot. `TakeoverTests` pins the two
-    /// together so they cannot drift apart in silence.
-    ///
-    /// An ACTION turn has no voice lane at all (no Lane A, no tokens, nothing
-    /// to hold), so the five-second action grace never applies here.
+    /// Skill-lane join grace (250 ms). Matches MaryBrain non-action join. TakeoverTests pins both.
     public static let takeoverHoldNanoseconds: UInt64 = 250_000_000
 
-    /// HOLD SYNTHESIS FOR THE TAKEOVER WINDOW — the property, stated, instead
-    /// of the side effect that used to provide it.
-    ///
-    /// Until this existed the window was an ACCIDENT: `sentencesPerChunk = 2`
-    /// plus "a sentence only counts once something follows it" means first
-    /// audio needs THREE complete sentences, while the prompt tells her to keep
-    /// an acknowledgement to "a few words" — so every acknowledgement fell
-    /// below the threshold and sat in `rawBuffer` until `flush()`, which runs
-    /// after `.completed`. The takeover worked because the speaker happened to
-    /// be slow. That is not a guarantee, it is a coincidence that a future
-    /// `firstChunkSentences = 1` would delete without touching a line of the
-    /// brain — and the staleness bug would come back with no test failing.
-    ///
-    /// While held, complete sentences still batch exactly as they do normally;
-    /// only the handoff to synthesis waits, so chunk boundaries and the word
-    /// cap are byte-identical to an unheld stream. A retraction DISCARDS what
-    /// is staged, which is what makes "the stale text never reaches synthesis"
-    /// a guarantee rather than a hope.
-    ///
-    /// Armed by `SpeechRouter` on a turn's first local token and by nobody
-    /// else: proactive playback (follow-ups, progress marks) speaks into a room
-    /// that is already quiet and has no lane to wait for.
-    ///
-    /// WHAT IT COSTS TODAY: NOTHING, and that is on purpose for this round. At
-    /// the shipped `sentencesPerChunk = 2` an acknowledgement produces no chunk
-    /// at all, so there is nothing to stage; and a reply long enough to produce
-    /// one takes far longer than 250 ms to stream, so the window has already
-    /// expired when it arrives. The mechanism is here so the property is
-    /// STATED, plumbed and pinned before the latency work that will make it
-    /// load-bearing — not to change any timing now.
-    ///
-    /// WHAT THE LATENCY WORK MUST RE-EXAMINE, written down while it is fresh:
-    /// the window is measured from the FIRST TOKEN, not from the lane's spawn,
-    /// because that is the first moment the speaker learns a turn exists. So it
-    /// covers the takeover only while Lane A streams fast. Whoever adopts
-    /// `firstChunkSentences = 1` has to decide whether this window should slide
-    /// with the tokens instead — an acknowledgement would then become one whole
-    /// chunk, and a window that expired mid-utterance would commit it.
+    /// Hold synthesis for the takeover window. Armed by SpeechRouter on first local token.
+    /// Batching continues; only the handoff waits. Retraction discards staged chunks.
     @discardableResult
     func holdSynthesis(for nanoseconds: UInt64, lease: UUID? = nil) -> Bool {
-        // `false` means the writer lost the floor. An existing hold belongs
-        // to this same turn and is intentionally a successful no-op: a
-        // retraction's replacement must keep streaming behind the window it
-        // already bought rather than being mistaken for a stale writer.
+        // Existing hold on this turn is a successful no-op (replacement keeps the window).
         guard accepts(lease) else { return false }
         guard !didHoldSynthesis else { return true }
         didHoldSynthesis = true
         synthesisHoldExpiry = DispatchTime.now() + .nanoseconds(Int(nanoseconds))
         let epoch = hardResetEpoch
-        // A SELF-RELEASING HOLD. The expiry is also checked on every chunk, but
-        // a stream that goes quiet inside the window (a model deliberating
-        // mid-reply) would otherwise leave staged audio sitting until the next
-        // token — silence bought by the mechanism that exists to protect
-        // speech.
+        // Self-releasing: a quiet stream inside the window must not leave staged audio.
         holdReleaseTask = Task { [weak self] in
             try? await Task.sleep(nanoseconds: nanoseconds)
             guard !Task.isCancelled else { return }
@@ -570,10 +399,7 @@ public actor KokoroStreamSpeaker {
         }
     }
 
-    /// The hold and everything it staged, DROPPED. Only the retraction paths
-    /// call this, and it is exactly right for them: what the hold stages is by
-    /// definition text that has not been synthesized, and a retraction's whole
-    /// claim is that such text is never spoken.
+    /// Drop the hold and everything it staged. Retraction paths only.
     private func discardSynthesisHold() {
         holdReleaseTask?.cancel()
         holdReleaseTask = nil
@@ -581,26 +407,8 @@ public actor KokoroStreamSpeaker {
         heldChunks = []
     }
 
-    /// A TURN THAT ENDED WITHOUT SPEAKING STILL ENDED — and until this existed,
-    /// the one turn shape this round INTRODUCED was the one that leaked.
-    ///
-    /// `flush()` and `hardStop()` were the only places `didHoldSynthesis` was
-    /// cleared, and a completed fast action reaches NEITHER: it retracts to
-    /// silence, so `SpeechRouter.finish()` sees `didFeedSpeaker == false` and
-    /// deliberately does not flush. The flag therefore survived into the NEXT
-    /// turn on this shared speaker, where `holdSynthesis(for:)`'s "one hold per
-    /// turn" guard turned that turn's hold away. Reproduced against this
-    /// speaker with a control: after a retracted-to-silence turn, turn two's
-    /// first batch went straight to synthesis, while the same turn two behind a
-    /// turn one that flushed was correctly held.
-    ///
-    /// It costs nothing today, exactly as the hold itself costs nothing today —
-    /// and it is the half of the guarantee the latency work will stand on, on
-    /// the commonest sequence there is: "put on some jazz", then a question.
-    ///
-    /// `softStop()` still deliberately does NOT clear the flag: a retraction's
-    /// replacement is mid-TURN, and holding the correction behind the same
-    /// window it bought is the one delay this mechanism must never add.
+    /// Silent turn still ended — clear didHoldSynthesis so the next turn can hold.
+    /// PIN: softStop does not clear (replacement is mid-turn).
     @discardableResult
     func endTurnUnspoken(lease: UUID? = nil) -> Bool {
         guard accepts(lease) else { return false }
@@ -633,10 +441,7 @@ public actor KokoroStreamSpeaker {
         hardStop()
     }
 
-    /// Provisional pause — the instant-response half of barge-in. The player
-    /// node keeps its schedule and Stage A keeps synthesizing into the ring
-    /// (backpressure caps it), so `resume()` continues mid-sentence with no
-    /// loss. A committed barge-in calls `hardStop()` instead.
+    /// Provisional barge-in pause. Schedule + Stage A keep running; `resume()` continues. Committed barge-in is `hardStop()`.
     public private(set) var isPaused = false
 
     public func pause() {
@@ -692,11 +497,7 @@ public actor KokoroStreamSpeaker {
         invalidateAndHardStop()
     }
 
-    /// Conditional reset for the current writer. If a newer user turn already
-    /// owns the speaker, this is a no-op instead of letting an old event
-    /// silence the newer reply. The accepting writer keeps its lease: a
-    /// brain-side exchange supersede can discard prior audio yet continue
-    /// streaming the replacement reply through the same router.
+    /// Reset for this writer only. No-op if a newer turn owns the floor.
     @discardableResult
     public func hardStop(lease: UUID) -> Bool {
         guard accepts(lease) else { return false }
@@ -742,26 +543,8 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Soft stop (sentence boundary)
 
-    /// Sentence-boundary stop: accept no more text or synthesis, let the
-    /// buffer currently audible finish, silence everything scheduled behind
-    /// it, then tear down. Ends with the normal `.drained`; the caller's
-    /// completion signal is this method returning. Falls back to hardStop()
-    /// while paused (a paused buffer would never complete). Used when a
-    /// routine's follow-up preempts the current reply.
-    ///
-    /// `handoff` is true only after a different writer has atomically claimed
-    /// the floor. In an otherwise quiet gap it also invalidates a pending old
-    /// synthesis tail; the default keeps same-turn retractions on their
-    /// existing takeover-hold timeline.
-    ///
-    /// …AND IT IS THE PRIMITIVE THE TAKEOVER RIDES ON (`.retractSpeech`). It
-    /// clears `rawBuffer`, `lastSeenString`, `sentenceBatch` and everything the
-    /// hold staged, finishes the text continuation, and deliberately does NOT
-    /// cancel the audio pipeline — so a sentence already audible drains to its
-    /// own boundary instead of being cut mid-word, and nothing un-synthesized
-    /// survives to speak later. It returns immediately when idle, which is the
-    /// common case for a takeover: the acknowledgement it retracts is normally
-    /// still text.
+    /// Sentence-boundary stop. Primitive for `.retractSpeech`. `handoff` after
+    /// a different writer claimed the floor. Falls back to hardStop while paused.
     @discardableResult
     public func softStop(lease: UUID? = nil, handoff: Bool = false) async -> Bool {
         guard accepts(lease) else { return false }
@@ -777,10 +560,7 @@ public actor KokoroStreamSpeaker {
         synthTask = nil
         remoteContinuation?.finish()
         remoteContinuation = nil
-        // Handles are dropped WITHOUT cancelling while audible playback
-        // drains itself to the boundary. Keep local references so the silent
-        // handoff path below can instead cancel work that has not become
-        // audible yet.
+        // Drop handles without cancelling while audible playback drains. Local refs for the silent-handoff path.
         let pendingPipelineTask = pipelineTask
         let pendingRemoteTask = remoteTask
         pipelineTask = nil
@@ -794,14 +574,7 @@ public actor KokoroStreamSpeaker {
         }
         guard isSpeaking else {
             guard handoff else { return accepts(lease) && epoch == hardResetEpoch }
-            // There is no audible buffer to preserve, so this is a true
-            // cross-writer handoff rather than a same-turn retraction.
-            // Invalidate any Stage A / not-yet-started Stage B tail as well:
-            // simply finishing its input stream is not enough because a
-            // cancelled synthesizer can return one old waveform after the
-            // next writer has fed. Keep the current lease; only its prior
-            // draft dies. A regular retraction deliberately does NOT take
-            // this path: its replacement keeps the hold it already bought.
+            // Cross-writer handoff (nothing audible). Cancel Stage A/B tails; keep this lease.
             hardResetEpoch &+= 1
             pendingPipelineTask?.cancel()
             pendingRemoteTask?.cancel()
@@ -822,10 +595,7 @@ public actor KokoroStreamSpeaker {
         for waiter in waiters { waiter.resume() }
     }
 
-    /// Buffer-completion hook: under a soft stop, the first `.dataPlayedBack`
-    /// after the request marks "the audible buffer finished" — stop the
-    /// player there, which fires the remaining scheduled buffers' handlers
-    /// so the ring drains and `playWithRing` runs its normal epilogue.
+    /// Soft-stop: first `.dataPlayedBack` after the request stops the player so the ring drains.
     private func chunkPlayedBack(ring: RingBuffer, epoch: UInt64) async {
         guard epoch == hardResetEpoch else {
             await ring.release()
@@ -835,12 +605,7 @@ public actor KokoroStreamSpeaker {
             activePlayer?.stop()
         }
         await ring.release()
-        // `.dataPlayedBack` fires AFTER the audio was heard, so an empty ring
-        // here means the room is genuinely silent — even though the turn is
-        // still open. Consumers boosting a threshold against Mary's own
-        // voice must hear about that gap: a turn held open across a Skill invocation
-        // with a 3× boosted mic swallows the user at normal volume, and the
-        // held reply then arrives late (the reported bug's front half).
+        // Empty ring after playback = room is silent. Consumer: barge-in threshold (not Mary's own voice).
         if epoch == hardResetEpoch, await ring.isIdle {
             emit(.audioIdle)
         }
@@ -848,13 +613,7 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Remote audio (server-synthesized PCM)
 
-    /// A playback-only pipeline for pre-synthesized reply audio (the realtime
-    /// Seer route): Stage A is skipped entirely and decoded waveforms feed
-    /// `playWithRing` directly, so pause/resume/hardStop, ring backpressure,
-    /// and `.started`/`.drained` events behave exactly like local synthesis.
-    /// The ring only bounds buffers scheduled on the player node — excess PCM
-    /// waits in the unbounded stream (~96 KB/s of speech) and never blocks
-    /// the network reader.
+    /// Playback-only pipeline (server PCM). Same ring / pause / events as local; Stage A skipped.
     private var remoteContinuation: AsyncStream<(samples: [Float], rate: Double, text: String)>.Continuation?
     private var remoteTask: Task<Void, Never>?
 
@@ -917,10 +676,7 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Sentence extraction
 
-    /// Uses NLTokenizer to pull complete sentences out of `rawBuffer`.
-    /// A sentence is only yielded when it ends *before* the buffer end —
-    /// proving the tokenizer has seen the terminating punctuation and the
-    /// start of the next sentence (or more whitespace), meaning it's truly done.
+    /// Complete sentences in `rawBuffer` — only those that end before the buffer end.
     private func extractSentences() {
         let ranges = Self.completeSentenceRanges(in: rawBuffer)
         guard let last = ranges.last else { return }
@@ -933,10 +689,7 @@ public actor KokoroStreamSpeaker {
             let clean = sanitize(raw)
             guard !clean.isEmpty else { continue }
 
-            // GROWTH AFTER THE FIRST CHUNK. Chunk 0 keeps the ctor limits
-            // (fast first audio; the takeover arithmetic is pinned to them);
-            // later chunks of a cloud pipeline batch more sentences, so a
-            // long passage has fewer seams and one prosody arc per batch.
+            // Chunk 0 keeps ctor limits (fast start / takeover math); later chunks may grow.
             let growing = chunksQueuedThisPipeline > 0 ? chunkPolicy : nil
             let effectiveMaxWords = growing?.laterMaxWords ?? maxWordsPerChunk
             let effectiveSentences = growing?.laterSentencesPerChunk ?? sentencesPerChunk
@@ -967,15 +720,7 @@ public actor KokoroStreamSpeaker {
             .trimmingCharacters(in: .init(charactersIn: " \t"))
     }
 
-    /// WHICH PARTS OF `text` ARE COMPLETE SENTENCES, by this speaker's single
-    /// rule: a sentence counts only when it ends STRICTLY BEFORE the end of the
-    /// buffer, which is what proves the tokenizer saw both its terminator and
-    /// the start of whatever follows it.
-    ///
-    /// Factored out of `extractSentences` so `mayAlreadyBeAudible` can ask the
-    /// same question the chunker answers, rather than a second approximation of
-    /// it living in another package. Two copies of "has this text produced
-    /// audio yet?" is precisely how one of them comes to be wrong.
+    /// Sentence ranges that end strictly before `text.endIndex`. Shared with `mayAlreadyBeAudible`.
     static func completeSentenceRanges(in text: String) -> [Range<String.Index>] {
         guard !text.isEmpty else { return [] }
         let tokenizer = NLTokenizer(unit: .sentence)
@@ -989,21 +734,7 @@ public actor KokoroStreamSpeaker {
         return ranges
     }
 
-    /// COULD THIS TEXT ALREADY HAVE REACHED SYNTHESIS? The bound the takeover
-    /// rests on, asked of the chunker instead of guessed at by its callers.
-    ///
-    /// True once `defaultSentencesPerChunk` complete sentences are in — which
-    /// takes `sentencesBeforeFirstAudio` sentences of text, the last one only
-    /// there to prove the one before it ended. Below that threshold a
-    /// retraction is TOTAL: nothing has been handed to a synthesizer and
-    /// nothing can be heard. At or above it the voice lane wrote a real answer
-    /// the user is already listening to, and cutting it off mid-reply is worse
-    /// than the stale sentence the takeover exists to remove.
-    ///
-    /// Answers for the SHIPPED configuration (`MaryRuntime.speaker` and both
-    /// probes take the defaults); a speaker built with a custom
-    /// `sentencesPerChunk` is a test fixture, and the brain has no handle on
-    /// the speaker to ask anyway.
+    /// True once defaultSentencesPerChunk complete sentences are in (shipped config).
     public static func mayAlreadyBeAudible(_ text: String) -> Bool {
         completeSentenceRanges(in: text).count >= defaultSentencesPerChunk
     }
@@ -1063,22 +794,7 @@ public actor KokoroStreamSpeaker {
 
     // MARK: - Pipeline
 
-    /// The pipeline is created lazily at the moment TEXT ACTUALLY LEAVES for
-    /// synthesis — the first queued chunk, or a flush with something in it —
-    /// and after each completed or stopped stream, so a fresh turn always gets
-    /// a fresh stream.
-    ///
-    /// IT USED TO BE CREATED ON THE FIRST `feed`, AND THAT WAS A PHANTOM.
-    /// `playWithRing` starts the AVAudioEngine and emits `.started` BEFORE it
-    /// awaits a single waveform, so one token was enough to flash the UI's
-    /// "speaking" state on a turn that never spoke — the same phantom
-    /// `SpeechRouter.finish()`'s `didFeedSpeaker` guard was written to stop for
-    /// zero-token turns, arriving by the one road that guard cannot see. It is
-    /// exactly the road a takeover-to-silence takes: Lane A's acknowledgement
-    /// is fed, then retracted, and nothing is ever synthesized. Creating the
-    /// pipeline where the text leaves costs no first-audio latency (Stage A's
-    /// network round trip dwarfs `AVAudioEngine.start()`, and the two begin
-    /// together) and makes "speaks nothing" mean it.
+    /// Create the pipeline when text actually leaves for synthesis — not on first feed.
     private func ensurePipeline() {
         guard pipelineTask == nil else { return }
         chunksQueuedThisPipeline = 0
@@ -1097,29 +813,10 @@ public actor KokoroStreamSpeaker {
         let (waveformStream, waveformCont) = AsyncStream<(samples: [Float], rate: Double, text: String)>
             .makeStream(bufferingPolicy: .unbounded)
 
-        // Stage A — synthesis, runs concurrently with Stage B, WITH LOOKAHEAD.
-        //
-        // It used to synthesize strictly one chunk at a time, so any slow
-        // chunk — a network retry, a token refresh — ran the player dry and
-        // the passage stalled mid-paragraph, then lurched on. Up to
-        // `prefetchDepth` chunks are now in flight; a reorder buffer yields
-        // them strictly in order, so playback order is untouchable and the
-        // ring's own depth still bounds how far audio runs ahead.
-        //
-        // A chunk that throws PAST every engine retry and fallback is emitted
-        // as `.chunkFailed` instead of vanishing silently — the sentence is
-        // skipped, the reply continues, and the host can say why.
-        //
-        // Cancellation: the task group's children are children of this
-        // detached task, which `hardStopContents`/`softStop` cancel exactly
-        // as before — in-flight cloud requests observe it through the same
-        // structured path.
+        // Stage A: synthesize with lookahead; reorder buffer yields in order. Throws → `.chunkFailed`.
         let synthesizer = self.synthesizer
         let synthStage = Task.detached(priority: .userInitiated) { [weak self] in
-            // ONE PIPELINE == ONE UTTERANCE. The engine resets per-utterance
-            // state (pinned emotion, pinned gain) here, so a whole reply
-            // renders in one voice and a proactive follow-up — its own
-            // pipeline — classifies afresh.
+            // One pipeline = one utterance. Engine resets pinned emotion/gain here.
             await synthesizer.beginUtterance()
 
             enum Landed {

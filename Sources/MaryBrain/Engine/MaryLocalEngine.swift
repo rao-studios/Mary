@@ -2,12 +2,11 @@
 //  MaryLocalEngine.swift
 //  MaryBrain
 //
-//  On-device Mistral over Frigate's MLX stack, modeled on Fleet's
-//  FleetInference.ChatSession: an actor holds the non-Sendable ModelContext,
-//  prepares UserInput(chat:tools:), and forwards the Generation stream.
-//  Requires mlx.metallib next to the binary (see build-metallib.sh).
+//  WHAT: On-device Mistral over Frigate MLX.
+//  IN:   InferenceEngine (local choice)
+//  OUT:  Generation stream
+//  PIN:  Requires mlx.metallib next to the binary.
 //
-
 import Foundation
 import MLXLLM
 import MLXLMCommon
@@ -115,16 +114,7 @@ public actor MaryLocalEngine: InferenceEngine {
     ) async throws {
         let ctx = try await loadedContext()
 
-        // MARY_DUMP_PROMPT=1: print the exact system text, mapped history and
-        // raw (pre-interception) model output for this round to stderr. The
-        // tool this codebase otherwise lacked to answer "what did the model
-        // actually see, and what did it actually say" for an on-device round
-        // — how a live-reproduced report of an ungrounded reply ("Hi Mary!
-        // How was your day?") was traced to two distinct real causes rather
-        // than guessed at: a fenced ```tool_call the interceptor didn't
-        // recognize (see `SkillCallTextInterceptor.toolCallFenceInfoStrings`),
-        // and a genuinely empty retry round after a real Skill result (see
-        // `MaryBrain.groundedRetryNudge`). Silent unless the flag is set.
+        // MARY_DUMP_PROMPT=1: print the exact system text, mapped history and raw (pre-interception) model output for this round to stderr.
         let dumpPrompt = ProcessInfo.processInfo.environment["MARY_DUMP_PROMPT"] != nil
 
         // Frigate's ToolCallProcessor parses the mlx-lm default wrapper; a 7B
@@ -148,10 +138,7 @@ public actor MaryLocalEngine: InferenceEngine {
             """
         }
 
-        // Mistral-family Jinja templates demand strict user/assistant
-        // alternation and reject bare "tool" roles. Tool results become
-        // labeled user text, empty assistant turns disappear (a tool-only
-        // round has no prose), and adjacent same-role messages merge.
+        // Mistral-family Jinja templates demand strict user/assistant alternation and reject bare "tool" roles.
         var mapped: [(isUser: Bool, text: String)] = []
         for turn in history {
             let entry: (Bool, String)
@@ -206,12 +193,7 @@ public actor MaryLocalEngine: InferenceEngine {
             throw error
         }
 
-        // Mistral models rarely use the <tool_call> tags Frigate's processor
-        // parses. They emit either the native `[TOOL_CALLS] [{...}]` wire
-        // format or — under big Skill rosters — a fenced/bare/name-prefixed
-        // JSON object. The shared interceptor withholds text while the reply
-        // could still be any of those, parses at end of round, and never
-        // surfaces raw JSON (or the hallucinated chatter models append).
+        // Mistral models rarely use the <tool_call> tags Frigate's processor parses.
         var interceptor = SkillCallTextInterceptor(
             knownSkillNames: Set(skills.map(\.name)))
         var rawTranscript = ""
@@ -290,24 +272,7 @@ public actor MaryLocalEngine: InferenceEngine {
     }
 
     /// THE ON-DEVICE ATTACHMENT POINT, named because it is asked about.
-    ///
-    /// If Mary ever runs a fine-tuned or LoRA-adapted model — a small router
-    /// that reads the utterance and the ambient store to build a sharper route
-    /// before the prompt is assembled — this `loadModel` call is where the
-    /// adapter attaches, and it has to live behind this package's wall:
-    /// Frigate's MLX and its vendored transformers are consumed ONLY through
-    /// MaryBrain, under the module-alias map in `Package.swift`, because a
-    /// second consumer without the identical map collides with WhisperKit's
-    /// copy.
-    ///
-    /// NOTE THE NAME: "Fleet" is a sibling product. MaryBrain now depends on
-    /// FleetCore + FleetInference for JSONGate / StructuredSession — LoRA
-    /// adapters load here, and only here. Spoken `stream` stays unadapted
-    /// tool-calling; `completeCodec` is the gated acting path.
-    ///
-    /// What such a router may and may not decide is in
-    /// `docs/PROMPT-ASSEMBLY.md` §3 and on `AmbientRoute`. Nothing is
-    /// implemented; this comment exists so the seam is not closed by accident.
+    /// NOTE THE NAME: "Fleet" is a sibling product.
     private func loadedContext() async throws -> ModelContext {
         if let context { return context }
         downloadProgress = 0

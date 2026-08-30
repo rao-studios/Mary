@@ -2,46 +2,8 @@
 //  SpokenTitleMatcher.swift
 //  MaryBrain
 //
-//  A SPOKEN NAME AGAINST A LIST OF REAL TITLES — the resolution every adapter
-//  that takes "play the Pt. 3 playlist" by voice needs and none had.
-//
-//  THE LIVE FAILURE THIS FIXES: the user said "Part 3", the ASR wrote
-//  "part tree", and the playlist is titled "Pt. 3". The adapter handed the raw
-//  transcript to an exact AppleScript by-name specifier, which can never cross
-//  any of those three gaps: the abbreviation (Pt ↔ part), the number form
-//  (3 ↔ three), or the mishearing (tree ≈ three). "I couldn't find a playlist
-//  called part tree" — at a library that has exactly one plausible answer.
-//
-//  THE LADDER, first rung with survivors decides:
-//
-//    1 exact fold        case/diacritics only — "rao" is "RAO"
-//    2 canonical         both sides through the full canonical form below
-//    3 containment       the spoken tokens appear, in order, inside the title
-//                        (or the title inside the speech: "the Pt. 3 one")
-//    4 overlap           every spoken token appears somewhere in the title
-//    5 repair            rungs 2–4 rerun, letting token PAIRS differ by one
-//                        edit when both are long enough to make that safe —
-//                        this is the rung that hears "tree" as "three"
-//    6 intent focus      only after the original ladder has no survivors,
-//                        peel a spoken request prefix ("please play my") and
-//                        rerun it. The title words themselves stay intact, so
-//                        "play the playlist Breakfast Office" can still match
-//                        the literal title "Breakfast Office Playlist"
-//
-//  One survivor is a match. Two or more STOPS — the caller names them and
-//  plays nothing, because guessing between "Morning Mix" and "Morning Run"
-//  is how the wrong music starts. Zero names the closest misses so the reply
-//  is useful rather than a shrug.
-//
-//  THE CANONICAL FORM: `&`→"and" (FoldedText drops symbols, so first), then
-//  `PassageWidening.fold` (case/diacritics), then `FoldedText` (punctuation —
-//  "Pt." → "pt"), then per-token abbreviation expansion, then digits →
-//  number-WORDS. The word form is canonical, not the digit form, because the
-//  repair rung works on edit distance and "tree"→"three" is one insertion
-//  while "tree"→"3" is unreachable. `NamedPartClassifier.spokenNumbers` is
-//  reused REVERSED — it maps words to digits for document headings; titles
-//  need the opposite direction for exactly the mirrored reason.
-//
+//  WHAT: Fuzzy title match for windows / documents / playlists.
+//  OUT:  which-place / media library
 
 import Foundation
 
@@ -56,10 +18,7 @@ public enum SpokenTitleMatcher {
         case none(closest: [String])
     }
 
-    /// Small and each entry earned by a music title it appears in. `no` is
-    /// guarded at expansion time (only before a number token) because bare
-    /// "no" is negation, not "number". `st` is deliberately absent —
-    /// street/saint is unresolvable without context.
+    /// Small and each entry earned by a music title it appears in.
     static let abbreviations: [String: String] = [
         "pt": "part", "vol": "volume", "ft": "featuring", "feat": "featuring",
         "mr": "mister", "dr": "doctor", "vs": "versus", "no": "number",
@@ -76,11 +35,8 @@ public enum SpokenTitleMatcher {
         return table
     }()
 
-    /// Request language that may precede a title when a caller hands us more
-    /// than the bare tool argument. These are PHRASES, not global stop words:
-    /// only a leading occurrence is removed. That distinction preserves a
-    /// real title such as "Play It Again" while still focusing "please play
-    /// the playlist Breakfast Office" on its named object.
+    /// Request language that may precede a title when a caller hands us more than the bare
+    /// tool argument.
     private static let requestLeadInPhrases: [[String]] = [
         ["i", "would", "like", "to"], ["i", "d", "like", "to"],
         ["i", "want", "to"], ["could", "you"], ["would", "you"],
@@ -156,12 +112,9 @@ public enum SpokenTitleMatcher {
             if let decided = decide(hits) { return decided }
         }
 
-        // Rung 6 — callers usually pass a bare title, but model-authored tool
-        // arguments occasionally retain request grammar or move the kind word
-        // ahead of the name: "play the playlist Breakfast Office". Removing
-        // only a LEADING intent prefix lets order-free overlap see the literal
-        // trailing "Playlist" in "Breakfast Office Playlist". This is last so
-        // every exact and established fuzzy decision above remains unchanged.
+        // Rung 6 — callers usually pass a bare title, but model-authored tool arguments
+        // occasionally retain request grammar or move the kind word ahead of the name:
+        // "play the playlist Breakfast Office".
         let focusedVariants = focusedIntent
             .filter { $0.contains(where: { !nonspecificIntentTokens.contains($0) }) }
         for fuzzy in [false, true] {
@@ -219,9 +172,6 @@ public enum SpokenTitleMatcher {
     }
 
     /// Focus a full spoken request into the portion that can be a title.
-    /// Structural cues immediately after "playlist" are removed, but the
-    /// word "playlist" itself is deliberately retained: it may be part of the
-    /// real title, as in "Breakfast Office Playlist".
     private static func intentFocusedTokenVariants(_ tokens: [String]) -> [[String]] {
         var focused = tokens
         var removedRequestLanguage = false

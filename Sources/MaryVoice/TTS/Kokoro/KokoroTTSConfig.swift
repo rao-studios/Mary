@@ -2,12 +2,9 @@
 //  KokoroTTSConfig.swift
 //  MaryVoice
 //
-//  Faithful port of SeerTTS/KokoroTTSDemo. Model variant table and errors.
-//
-
-import CoreML
-
-// MARK: - Model I/O
+//  WHAT: Model variant table and TTS errors.
+//  IN:   KokoroEngine.loadModels
+//  OUT:  TTSVariant / TTSConfig.variants
 //
 // INPUTS:
 //   input_ids:      [1, maxTokens]  Int32    — phoneme token IDs, BOS(0)+ids+EOS(0), zero-padded
@@ -18,6 +15,9 @@ import CoreML
 // OUTPUTS:
 //   audio:                [1, 1, maxSamples] Float32  — waveform @ sampleRate
 //   audio_length_samples: [1]                Int32    — exact sample count
+//
+
+import CoreML
 
 // MARK: - Variant
 

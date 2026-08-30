@@ -2,19 +2,8 @@
 //  FlowLayout.swift
 //  Mary
 //
-//  Intrinsic-width flow layout: each subview is measured with `.unspecified`
-//  and keeps the width its own content asks for, wrapping to a new line when
-//  the row runs out. Originally a word-level layout for the contribution
-//  highlight text (each word its own subview, so per-word frames could back
-//  the brushstroke overlay); verbatim port from Sis.
-//
-//  IT LIVES IN Core NOW BECAUSE IT IS THE ANSWER TO A RECURRING BUG, not a
-//  highlight detail. `LazyVGrid(GridItem(.adaptive(minimum:)))` gives every
-//  cell the COLUMN's width, so a grid sized for icon chips (28 pt) hands that
-//  width to a text chip and the label breaks mid-word — "compose" rendered as
-//  "com / pos / e". A column is the wrong authority for a label's width; the
-//  label's own content is. Anything laying out variable-width text chips
-//  should use this and `MaryChip`, never an adaptive grid.
+//  WHAT: Intrinsic-width wrap layout (subview width from content, not column).
+//  OUT:  AbilityBadgeRow / MaryChip. PIN: Not LazyVGrid adaptive (mid-word wraps).
 //
 
 import SwiftUI

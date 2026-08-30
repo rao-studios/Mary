@@ -2,23 +2,8 @@
 //  MenuProbe.swift
 //  CorpusProbe
 //
-//  WHAT AN APPLICATION'S MENUS ACTUALLY SAY — measured before a package
-//  declares a path through them.
-//
-//  A menu path in a declaration is a claim about somebody else's program:
-//  that this menu exists, under this name, with these items under it, in the
-//  version installed here. Every one of those can be false, and a path that
-//  is wrong fails at the moment a ceremony runs — which is the worst moment,
-//  because by then the user has asked for something.
-//
-//  So this reads the menus first. It also answers a question the predecessor
-//  recorded and could not settle: it searched for `Documents → Status` and
-//  `Documents → Label` and found neither, and could not tell whether they
-//  were absent from that build or merely absent while no project was open,
-//  because the probe ran with none. This one can be run either way.
-//
-//    mary-corpus-probe menus --app Scrivener
-//    mary-corpus-probe menus --app Scrivener --path "Documents/Move To"
+//  WHAT: Measure an application's menus before a package declares a path through them.
+//  OUT:  CLI: mary-corpus-probe menus --app … [--path …]
 //
 
 import AppKit
@@ -45,10 +30,7 @@ enum MenuProbe {
         }
 
         let name = value("--app") ?? "Scrivener"
-        // EXACT NAME, THEN PREFIX — the same ladder `mary-ax-probe` climbs,
-        // and it earns its keep immediately: Scrivener's localized name is
-        // "Scrivener 3", so an exact match reports a running application as
-        // absent.
+        // Exact name, then prefix (Scrivener 3 is not "Scrivener").
         let wanted = name.lowercased()
         guard let application = NSWorkspace.shared.runningApplications.first(where: {
             ($0.localizedName ?? "").lowercased() == wanted
@@ -81,10 +63,7 @@ enum MenuProbe {
             ["Documents", "Split", "at Selection"],
             ["Documents", "Group"],
             ["Documents", "Convert"],
-            // THE PREDECESSOR'S OPEN QUESTION, kept in the roster so the
-            // answer stays measured rather than remembered: neither exists in
-            // Scrivener 3 — Status and Label live in the Inspector panel,
-            // which is not a menu at all.
+            // Status/Label are Inspector, not menus; keep measuring absence.
             ["Documents", "Status"],
             ["Documents", "Label"],
             ["Documents", "Move to Trash"],
@@ -104,10 +83,7 @@ enum MenuProbe {
         case .success(let item):
             let enabled = AX.number(item, kAXEnabledAttribute)?.boolValue
             let children = ApplicationMenuDriver.titles(under: path, pid: pid)
-            // ENABLED IS PART OF THE ANSWER. A command that exists and is
-            // greyed out is a different fact from one that is missing, and a
-            // package author reading this needs to know which they are
-            // looking at — "Move To" is disabled with nothing selected.
+            // Enabled vs missing; "Move To" is disabled with nothing selected.
             print("""
               ✓ \(shown)\(enabled == false ? "  [DISABLED]" : "")\
             \(children.isEmpty ? "" : "  → \(children.prefix(40).joined(separator: ", "))")\

@@ -2,15 +2,8 @@
 //  ProseSurfaceObserver.swift
 //  MaryPlugin
 //
-//  STANDING GROUNDING FOR A PROSE EDITOR'S CARET — the pair-session eyes
-//  `CodeSurfaceObserver` already is for code, pointed at declared prose
-//  claims. Same poll / standing hit / highlight-outranks-caret / Mary-front
-//  contract; the liveWork render is a document window, not a declaration
-//  scope.
-//
-//  No application is named here. Pages, Scrivener, TextEdit arrive as
-//  registrations.
-//
+//  WHAT: Standing caret grounding for a declared prose editor.
+//  IN:   CodeSurfaceObserver contract  OUT: liveWork as a document window
 
 import AppKit
 import ApplicationServices

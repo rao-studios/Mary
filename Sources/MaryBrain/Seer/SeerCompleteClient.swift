@@ -2,14 +2,11 @@
 //  SeerCompleteClient.swift
 //  MaryBrain
 //
-//  One bounded generation through Seer's `/v1/complete` route. Corpus unit
-//  annotation is the first caller: it needs a JSON object and nothing else,
-//  and `/v1/chat/completions` always wraps the turn in persona, Totem RAG,
-//  and a Gita contribution. Auth follows SeerVisionClient exactly: bearer
-//  from the shared session, one refresh-and-retry on 401. Spoken turns stay
-//  on the chat client; this one is never a voice lane.
+//  WHAT: One bounded generation through `/v1/complete`.
+//  IN:   SeerUnitAnnotator (JSON object, nothing else)
+//  OUT:  parsed object
+//  PIN:  Not a voice lane — chat always wraps persona/RAG/Gita.
 //
-
 import Foundation
 
 /// Injectable POST seam, the non-streaming sibling of `SeerSSETransport`.
@@ -119,13 +116,8 @@ public actor SeerCompleteClient: SeerCompleteProviding {
 // MARK: - URLSession transport
 
 public struct URLSessionCompleteTransport: SeerCompleteTransport {
-    /// A small dedicated session — never `URLSession.shared` (its resource
-    /// timeout is seven days) and deliberately not `StreamingHTTP.session`
-    /// (a complete hanging that session's 300 s idle window would starve
-    /// the turn). One non-streaming POST: 90 s idle (a thinking utility
-    /// model can sit that long before the first token; 30 s made every
-    /// annotation look like "the summariser returned nothing"), 120 s wall
-    /// clock.
+    /// A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and deliberately not `StreamingHTTP.session` (a complete hanging…
+    /// PIN: A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and deliberately not…
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 90

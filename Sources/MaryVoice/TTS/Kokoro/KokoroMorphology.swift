@@ -2,19 +2,14 @@
 //  KokoroMorphology.swift
 //  MaryVoice
 //
-//  Deterministic inflection rules over resolved stems — the tier that repairs
-//  "applications", "opened", "mary's" when the lexicons carry only lemmas.
-//  Suffix phoneme strings were derived empirically from 15,803 -s / 3,941 -ed /
-//  4,129 -ing ground-truth pairs in the shipped G2P cache (Kokoro notation),
-//  conditioned on the stem's final phoneme:
+//  WHAT: Deterministic inflection over resolved stems (after lexicon+cache miss).
+//  IN:   KokoroPhonemizer
+//  OUT:  IPA + rule name
 //
 //    -s/'s    sibilant → ᵻz   voiceless → s   else → z
 //    -ed      t/d → ᵻd        voiceless → t   else → d
 //    -ing     ɪŋ      -er  əɹ      -est  ɪst      -ly  li (y-stems: i→əli)
-//    un-      ʌŋ before k/ɡ, else ʌn        re-  deferred (data inconsistent)
-//
-//  Rules run only AFTER a 216k-lexicon + 178k-cache miss, so they only ever
-//  see regular inflections — irregulars (ran, geese, read) are lexicon words.
+//    un-      ʌŋ before k/ɡ, else ʌn
 //
 
 import Foundation

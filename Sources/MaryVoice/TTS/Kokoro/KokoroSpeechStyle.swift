@@ -2,15 +2,9 @@
 //  KokoroSpeechStyle.swift
 //  MaryVoice
 //
-//  Faithful port of SeerTTS/KokoroTTSDemo, made public for the app/probe, with
-//  a Codable `SpeechStyleSelection` wrapper so Settings can persist a choice.
-//
-//  Decorates speak commands with expressive voice adjustments.
-//
-//  Usage:
-//    try await engine.speak("That's amazing!", style: .excited)
-//    try await engine.speak("I'm sorry...",    style: .sad.at(pace: .slow))
-//    try await engine.speak("Listen closely.", style: .assertive.with(tone: .deep).pitched(by: -2))
+//  WHAT: Expressive voice adjustments + Codable SpeechStyleSelection for Settings.
+//  IN:   KokoroEngine.speak / Settings
+//  OUT:  TTSSpeechStyle.audioParameters → KokoroAudioProcessor
 //
 
 import AVFoundation
@@ -134,8 +128,7 @@ public struct TTSSpeechStyle: Sendable {
         intonation: .conversational
     )
 
-    /// The casual-conversation register: calm warmth without the slowdown —
-    /// audibly softer than neutral, but it keeps up with the chat.
+    /// Casual-conversation register: calm warmth without the slowdown.
     public static let chat = TTSSpeechStyle(
         emotion:    .calm,
         pace:       .normal,
@@ -187,7 +180,7 @@ public struct TTSSpeechStyle: Sendable {
         var s = self; s.pitchShift = semitones.clamped(to: -12...12); return s
     }
 
-    /// True when no AVAudioEngine effects are needed — use the simpler playback path.
+    /// True when no AVAudioEngine effects are needed — simpler playback path.
     public var isNeutral: Bool {
         emotion == .neutral &&
         pace == .normal &&
@@ -199,7 +192,7 @@ public struct TTSSpeechStyle: Sendable {
 }
 
 // MARK: - AudioParameters
-// Resolved concrete values used by KokoroAudioProcessor.
+// Resolved DSP values used by KokoroAudioProcessor.
 
 extension TTSSpeechStyle {
 
@@ -227,8 +220,7 @@ extension TTSSpeechStyle {
         var rate:  Float = pace.rate
         var pitch: Float = pitchShift * 100  // semitones → cents
 
-        // Neutral is fully transparent — KokoroDSP handles all baseline correction.
-        // Styles deviate from flat only as much as the character demands.
+        // Neutral is transparent — KokoroDSP handles baseline. Styles deviate as needed.
         switch emotion {
         case .neutral:   lowShelf =  0.0; midCut =  0.0; reverbPreset = .smallRoom;  reverbMix =  0
         case .excited:   lowShelf =  0.5; midCut =  0.5; reverbPreset = .smallRoom;  reverbMix =  6
@@ -271,11 +263,9 @@ extension TTSSpeechStyle {
 
 // MARK: - SpeechStyleSelection
 
-/// Codable, menu-friendly wrapper over the preset styles so the app can persist
-/// a choice in Settings and hand it to the pipeline.
+/// Codable preset wrapper so Settings can persist a choice.
 public enum SpeechStyleSelection: String, Sendable, Codable, CaseIterable {
-    /// Match the moment: chat register for conversation, neutral for tasks.
-    /// The app flips the live style when a turn starts executing Skills.
+    /// Match the moment: chat for conversation, neutral for tasks.
     case auto
     case neutral, excited, calm, sad, assertive, whisper
 

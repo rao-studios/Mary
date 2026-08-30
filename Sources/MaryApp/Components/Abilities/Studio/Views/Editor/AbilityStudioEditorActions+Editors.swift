@@ -126,13 +126,7 @@ extension AbilityStudioActionsEditor {
                         }
                     }
                 }
-                // NO LAST-RELEASE GUARD HERE. Both conditions that made one
-                // necessary — a design profile and a browsing profile, each
-                // of which must name an exact verified-against release —
-                // belong to lanes this cut excludes, so the rule they
-                // enforced could only ever evaluate false. A disabled state
-                // that can never engage reads as a rule the reader must work
-                // out, and there is no rule.
+                // No last-release guard; excluded lanes never make it fire.
                 AbilityStudioSchemaPath(
                     "plugin.application.supportedReleases")
             }

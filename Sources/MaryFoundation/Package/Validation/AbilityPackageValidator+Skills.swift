@@ -2,10 +2,9 @@
 //  AbilityPackageValidator+Skills.swift
 //  MaryFoundation
 //
-//  WHAT A SKILL PROMISES, AND WHETHER THE PACKAGE CAN KEEP IT: ports, the
-//  execution shape implied by the Skill kind, model exposure, adapter
-//  bindings, workflow steps, declared artifact semantics, and the Capability
-//  constraints that decide confirmation, stage ownership, and target classes.
+//  WHAT: Skill ports, execution kind, model exposure, bindings, workflow, semantics.
+//  IN:   AbilityPackageValidator.validate.
+//  OUT:  PackageIssueSink. Graph: +Graph; Plugin: PluginValidator.
 //
 
 import Foundation
@@ -179,11 +178,7 @@ extension AbilityPackageValidator {
                     "Mary runtime primitive \(step.operation) cannot be composed by a package-authored workflow.")
             }
             sink.validateRouting(skill.routing, path: "\(path).routing")
-            // DECLARED ARTIFACT SEMANTICS MUST MATCH THE SKILL'S SHAPE. The
-            // declaration exists so the engine never reverse-engineers roles
-            // from naming conventions — which only holds if a declared role
-            // is structurally honest: a creation names the reference output
-            // it mints, a mutation names the parameters that aim it.
+            // PIN: create names reference output; mutate names aim parameters.
             if let semantics = skill.semantics {
                 let semanticsPath = "\(path).semantics"
                 switch semantics.artifactRole {
@@ -350,19 +345,14 @@ extension AbilityPackageValidator {
         }
     }
 
-    /// Requirements a Skill names but this package does not own, routing
-    /// fallbacks, and the fixtures that assert how the Ability should route.
+    /// Unowned requirements, routing fallbacks, fixtures.
     static func validateRequirementsAndFixtures(
         _ package: MaryAbilityPackage,
         _ sink: PackageIssueSink
     ) {
         let skillIDs = package.skills.map(\.id)
         let localSkillIDs = Set(skillIDs)
-        // Application-expertise packages commonly realize a portable Skill
-        // owned by a declared dependency rather than duplicating that Skill.
-        // Their fixtures may nominate only those explicit realizations (or a
-        // locally owned Skill); the installed graph still proves the external
-        // owner/dependency and realization contract before admission.
+        // Expertise may realize a dependency-owned Skill; graph still proves the contract.
         let fixtureSkillIDs = localSkillIDs.union(
             package.plugin?.realizations.map(\.skillID) ?? [])
         for (index, skill) in package.skills.enumerated() {

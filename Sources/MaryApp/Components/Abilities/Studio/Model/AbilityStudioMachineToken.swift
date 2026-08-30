@@ -8,10 +8,7 @@ struct AbilityStudioMachineTokenValidation: Equatable {
     var isValid: Bool { token != nil && message == nil }
 }
 
-/// Applies the exact closed alias grammar used by the schema without silently
-/// changing token boundaries. Case and surrounding whitespace are cosmetic;
-/// spaces or punctuation inside a value are rejected because concatenating
-/// words would produce a different token that runtime matching never sees.
+/// Closed alias grammar; reject inner spaces/punctuation (token boundaries).
 enum AbilityStudioMachineToken {
     static func validate(_ rawValue: String) -> AbilityStudioMachineTokenValidation {
         let token = rawValue

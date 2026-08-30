@@ -2,30 +2,8 @@
 //  MediaCatalogSearch.swift
 //  MaryPlugin
 //
-//  THE APPLE MUSIC CATALOG, over plain HTTP — the one part of the port that
-//  crossed unchanged, because it was never an Apple Event.
-//
-//  WHY IT SURVIVED WHEN THE REST DID NOT. The plugin this descends from drove
-//  a player entirely through `tell application "Music"`, and Mary sends no
-//  Apple Events; the library verbs it wrapped — playlists, ratings, library
-//  search — have no road here. This one never used the scripting bridge: it
-//  is the PUBLIC iTunes Search endpoint, needs no developer token, and hands
-//  back a Store URL that any player registered for those links will open. So
-//  the catalog half of "play me a song" works in Mary while the library half
-//  waits for a lane that does not exist yet.
-//
-//  NOT NAMED FOR A PLAYER, and the endpoint's own vendor name is the only
-//  reason that needs saying: the search is Apple's, the results are Apple's,
-//  but nothing here knows or cares which application will open the URL. The
-//  package names the player; this names a catalog.
-//
-//  THE RANKING IS THE INTERESTING PART. Apple returns relevance order, which
-//  is good and not sufficient: "Stand by Me" is a complete title, not
-//  title-plus-artist syntax, and a naive " by " split turns it into a search
-//  for a song called "Stand" by an artist called "Me". The ladder below
-//  prefers structured evidence, falls back to whole-title matches, and only
-//  ever narrows — it never promotes an arbitrary first API result.
-//
+//  WHAT: Apple Music catalog over HTTP (iTunes Search). Store URL out.
+//  PIN:  Not named for a player. Ranking never promotes an arbitrary first hit.
 
 import Foundation
 import MaryAmbient
@@ -174,10 +152,7 @@ public struct ITunesMediaCatalogSearch: MediaCatalogSearching {
             if !matchingArtist.isEmpty || requiresArtist {
                 candidates = matchingArtist
             } else {
-                // “Stand by Me” is a complete title, not necessarily title +
-                // artist syntax. With no structured artist argument and no
-                // matching artist evidence, fall back only to title matches —
-                // never to an arbitrary first API result.
+                // “Stand by Me” is a complete title, not necessarily title + artist syntax.
                 titleTerm = query
                 artistTerm = nil
                 let fullTokens = SpokenTitleMatcher.canonicalTokens(query)

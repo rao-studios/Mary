@@ -1,7 +1,12 @@
 //
 //  MaryBrain+LanguageResponder.swift
+//  MaryBrain
 //
-
+//  WHAT: LanguageResponder surface — respond / amend / startTurn.
+//  IN:   VoicePipeline / SendText
+//  OUT:  AsyncThrowingStream<BrainEvent>
+//  PIN:  Signaled from BonnieVoice; starts a turn.
+//
 import MaryAmbient
 import MaryFoundation
 import MaryVoice
@@ -17,10 +22,7 @@ extension MaryBrain {
         startTurn(userText: userText, superseding: false)
     }
 
-    /// Amend flow: cancel the in-flight turn, remove its exchange from
-    /// history, and run a fresh turn with the amended text. The epoch bumps
-    /// BEFORE the old task is cancelled, so its late writes are dropped even
-    /// while it unwinds inside a subprocess.
+    /// Amend flow: cancel the in-flight turn, remove its exchange from history, and run a fresh turn with the amended text.
     public nonisolated func respondSuperseding(_ userText: String) -> AsyncThrowingStream<BrainEvent, Error> {
         startTurn(userText: userText, superseding: true)
     }
@@ -55,29 +57,6 @@ extension MaryBrain {
     }
 
     /// A SPOKEN PROGRESS MARK NEVER REACHED THE EAR (LanguageResponder).
-    ///
-    /// THE FAILURE THIS MAKES VISIBLE: `speakRoutineProgress` is a hard, silent,
-    /// one-shot gate — a mark that fires while the user is mid-utterance, or
-    /// while audio is still draining, is consumed FOREVER, with no retry and no
-    /// trace. The user chose to accept the drop ("worth hearing in the pause it
-    /// describes and worth nothing fifteen seconds later"), and the timing is
-    /// unchanged; what was never acceptable is that a routine could lose BOTH
-    /// marks and sit silent from 0 to 420 s with no row anywhere saying two
-    /// spoken promises had been destroyed.
-    ///
-    /// `.droppedStale` IS THE EXISTING WORD FOR THIS, not a new one. Its own
-    /// doc quotes the same rule this gate enforces — "if the moment has passed
-    /// it is DROPPED rather than spoken into the wrong context" — and the
-    /// transcript still carries the routine under its own exchange, so it is
-    /// exactly the ear that missed it. Inventing a parallel vocabulary for the
-    /// second producer of one outcome is how a pane comes to disagree with a
-    /// test about what happened.
-    ///
-    /// The `ProactiveEvent.routineProgress` doc forbids a progress line from
-    /// booking a row, and that still holds for a line that SPEAKS: a delivered
-    /// mark is not a read and must not overwrite the answer to "where did the
-    /// read I just watched go?". A DROPPED one is a silence, and the ledger is
-    /// the register of silences.
     public func noteProgressDropped(_ line: String) async {
         readLedger.record(ReadDelivery(
             route: .droppedStale,
@@ -93,10 +72,6 @@ extension MaryBrain {
     // MARK: - Stopping things
 
     /// ONE PIECE OF BACKGROUND WORK, as the app may show it.
-    ///
-    /// Only what a person can act on: what it is called, when it started, and
-    /// which exchange it belongs to. Nothing about the lane, the prompt, or
-    /// the outcomes — a Stop control is not a debugger.
     public struct RunningRoutine: Sendable, Identifiable {
         public let id: UUID
         public let label: String
@@ -115,28 +90,13 @@ extension MaryBrain {
     }
 
     /// STOP ONE ROUTINE — what a Stop button on one row sends.
-    ///
-    /// Until now the only user-facing cancel was the spoken bare "stop", which
-    /// halts EVERYTHING by explicit design ("one stop, no disambiguation
-    /// grammar"). That decision was about the SPOKEN grammar — there is no
-    /// ambiguity to resolve when a person has clicked one row — so this is not
-    /// a reversal of it. Both go through `cancelRoutine(id:)`.
-    ///
-    /// The acknowledgement is empty: a click has already acknowledged itself,
-    /// and speaking "Okay — I stopped it" at someone who is looking at the
-    /// button they just pressed is the app talking to itself.
     public func stopRoutine(id: UUID) {
         cancelRoutine(id: id)
     }
 
-    /// STOP EVERYTHING RUNNING IN THE BACKGROUND — the "Stop all" control,
-    /// and the same tear-down the spoken bare "stop" performs.
-    ///
-    /// The paused typing remainder dies with it, and that is not incidental:
-    /// stop must never leave something behind that a later "continue" would
-    /// surprise-type into a document.
-    ///
+    /// STOP EVERYTHING RUNNING IN THE BACKGROUND — the "Stop all" control, and the same tear-down the spoken bare "stop" performs.
     /// Returns the labels it stopped so the caller can say what happened.
+    /// PIN: The paused typing remainder dies with it, and that is not incidental: stop must never leave something behind that a…
     @discardableResult
     public func stopAllRoutines() -> [String] {
         let stopped = activeRoutines.values.map(\.label)
@@ -148,11 +108,6 @@ extension MaryBrain {
     }
 
     /// STOP ONE CALL, by the id its chip shows.
-    ///
-    /// Narrower than stopping a routine: the lane keeps going and may well
-    /// dispatch something else. That is the right granularity for a Stop on a
-    /// single run row — the person is objecting to one act, not to the whole
-    /// request.
     public func stopRun(id: String) {
         dispatcher?.cancelRun(id: id)
     }

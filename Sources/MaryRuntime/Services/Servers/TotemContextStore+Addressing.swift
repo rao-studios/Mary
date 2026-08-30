@@ -1,5 +1,9 @@
 //
 //  TotemContextStore+Addressing.swift
+//  MaryRuntime
+//
+//  WHAT: Totem group/document addressing for deposits.
+//  OUT:  TotemMemoryTopology / group ids
 //
 
 import MaryBrain
@@ -149,11 +153,8 @@ extension TotemContextStore {
         return composition
     }
 
-    /// Deterministic for a state snapshot with a known document; a fresh uuid
-    /// otherwise. The `??` is load-bearing: a `.stateSnapshot` with NO
-    /// document identity has nothing to key on, and inventing a key would
-    /// make two unrelated deposits silently overwrite each other — worse than
-    /// the accumulation this replaces.
+    /// Deterministic for a snapshot with a known document; else a fresh uuid.
+    /// PIN: missing document identity must not invent a colliding key.
     package static func documentID(
         subject: DepositSubject,
         policy: ArchivePolicy,
@@ -171,12 +172,7 @@ extension TotemContextStore {
         return stable ?? "mary-skill-\(UUID().uuidString.lowercased())"
     }
 
-    /// `DepositItem.metadata` was wired to the proto and never populated —
-    /// a free channel, and the only place a deposit can say WHEN it was true
-    /// and WHAT it was about. `PartitionHit` still carries no `createdAt`, so
-    /// this is a record for later (and for the probe), not a live recency
-    /// lever. Encoding failure yields empty Data: metadata must never be able
-    /// to fail a deposit.
+    /// Deposit metadata: when it was true and what about. Encoding failure → empty Data.
     package static func metadata(
         subject: DepositSubject,
         policy: ArchivePolicy,

@@ -2,19 +2,15 @@
 //  PluginProjectBuildSchema.swift
 //  MaryFoundation
 //
-//  HOW THIS PROJECT BUILDS AND TESTS — declared CLI, not an `if Xcode`.
-//
-//  Markers (`Package.swift`, `.xcodeproj`, later `package.json`) pick a
-//  default backend when this block is absent. A package that wants a
-//  different command (`npm test`, `cargo test`) writes the argv here and
-//  the same generic adapter runs it at the resolved project root.
+//  WHAT: Declared CLI for build/test. Absent → backend from projectMarkers.
+//  IN:   PluginCorpusSchema.build.
+//  OUT:  generic build adapter at project root.
 //
 
 import Foundation
 
 public struct PluginProjectBuildSchema: Codable, Hashable, Sendable {
-    /// Executable plus arguments, run at the project root. Empty means
-    /// "pick from markers."
+    /// Executable plus args at project root. Empty → pick from markers.
     public var checkCommand: [String]
     public var testCommand: [String]
     /// Extra arguments appended when the user names a filter (a test).

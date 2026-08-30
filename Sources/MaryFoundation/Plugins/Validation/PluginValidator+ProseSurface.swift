@@ -2,50 +2,29 @@
 //  PluginValidator+ProseSurface.swift
 //  MaryFoundation
 //
-//  THE PROSE-SURFACE DECLARATION'S BOUNDS.
-//
-//  Nothing here reads a file or touches a screen — the declaration is
-//  coordinates, so the rules that matter are cost rules and collision rules.
-//
-//  COST, because three of these numbers are spent on the user's behalf without
-//  being asked: a watch cadence wakes the machine on a timer, and an ambient
-//  excerpt is charged to the prompt budget on EVERY turn whether or not anyone
-//  asked about that document. A package that could name its own cadence and
-//  excerpt size could make every other application's perception late and every
-//  turn more expensive, and neither cost would appear anywhere the user could
-//  see it. So the package proposes and this file bounds.
-//
-//  COLLISION, because a handle prefix is a letter a person says out loud.
-//  "[W2]" means one thing per session or it means nothing, and two packages
-//  minting under the same letter is a bug the user experiences as Mary
-//  reaching into the wrong window. The cross-package half of that check lives
-//  in PluginGraphValidator, which is the only place that can see two packages
-//  at once; here we can only insist the prefix is well formed.
+//  WHAT: Prose-surface cost (cadence, excerpt) and collision (handle prefix) bounds.
+//  IN:   PluginValidator.validate.
+//  OUT:  SchemaIssue. Cross-package prefixes: PluginGraphValidator.
 //
 
 import Foundation
 
 public extension PluginValidator {
 
-    /// Cadence floors. Below these a watcher stops being perception and starts
-    /// being a busy loop against another process's Accessibility server.
+    /// Cadence floors. Below this is a busy loop against another process's AX.
     static let minimumProseActiveSeconds: Double = 1
     static let minimumProseIdleSeconds: Double = 2
     static let maximumProseWatchSeconds: Double = 300
 
-    /// Read ceilings. `wholeDocument` and `region` bound a read the user asked
-    /// for, so they are generous. `ambientExcerpt` bounds text that rides
-    /// along uninvited, so it is not.
+    /// Read ceilings. Asked reads generous; ambientExcerpt is not.
     static let maximumProseWholeDocumentCharacters = 200_000
     static let maximumProseRegionCharacters = 50_000
     static let maximumProseAmbientExcerptCharacters = 2_000
 
-    /// The most editor roles worth trying before concluding the window holds
-    /// no document.
+    /// Max editor roles before concluding the window holds no document.
     static let maximumProseEditorRoles = 4
 
-    /// The document noun is spoken aloud in ambient sentences, so it is a word
-    /// or two, never a payload.
+    /// Spoken document noun — a word or two, never a payload.
     static let maximumProseDocumentNounBytes = 32
 
     static func validateProseSurface(
@@ -55,9 +34,7 @@ public extension PluginValidator {
     ) {
         let path = "\(root).proseSurface"
 
-        // ONE UPPER-CASE LETTER. Handles are minted as prefix + ordinal and
-        // read back by a person; a multi-character prefix makes "[Wd2]" and a
-        // lower-case one makes two prefixes that sound identical.
+        // One upper-case letter. Multi-char / lower-case prefixes collide when spoken.
         let prefix = surface.handlePrefix
         if prefix.count != 1
             || !(prefix.unicodeScalars.first.map { CharacterSet.uppercaseLetters.contains($0) } ?? false) {
@@ -67,10 +44,7 @@ public extension PluginValidator {
                 "A handle prefix is exactly one upper-case letter, so a spoken handle like [W2] stays unambiguous.")
         }
 
-        // AT LEAST ONE ROLE, because the adapter descends by role and an empty
-        // list is a surface that can never be found — which would fail later,
-        // at read time, as "no document open" rather than here as a malformed
-        // package.
+        // At least one role — empty would fail later as "no document open".
         if surface.editorRoles.isEmpty {
             error(
                 "missing-prose-editor-role",
@@ -91,9 +65,7 @@ public extension PluginValidator {
                 "\(path).editorRoles",
                 "Editor role \(duplicate.rawValue) appears more than once.")
         }
-        // ROLES THAT HOLD TEXT. Every other role in the vocabulary describes a
-        // control, and descending to one would find a button where a document
-        // was promised.
+        // Text-holding roles only. Else a button where a document was promised.
         for (index, role) in surface.editorRoles.enumerated()
         where !proseCapableRoles.contains(role) {
             error(
@@ -111,10 +83,7 @@ public extension PluginValidator {
             path: "\(path).documentNoun.plural",
             error: error)
 
-        // A CHORD WITH NO MODIFIER IS A TYPED CHARACTER. `newDocument` bound to
-        // bare "n" would type the letter n into whatever has focus, which is
-        // the most confusing possible failure: it looks like Mary typed
-        // something at random.
+        // Chord without modifier is a typed character. Bare "n" types n.
         for (name, chord) in surface.chords where chord.modifiers.isEmpty {
             error(
                 "unmodified-prose-chord",
@@ -147,9 +116,7 @@ public extension PluginValidator {
                 "\(path).watch.idleSeconds",
                 "An idle cadence is between \(minimumProseIdleSeconds) and \(maximumProseWatchSeconds) seconds.")
         }
-        // IDLE MUST NOT BE BUSIER THAN ACTIVE. Inverted, the two numbers say
-        // "look harder once the user has stopped caring", which is the exact
-        // opposite of what the pair is for.
+        // Idle must not be busier than active.
         if watch.idleSeconds.isFinite, watch.activeSeconds.isFinite,
            watch.idleSeconds < watch.activeSeconds {
             error(

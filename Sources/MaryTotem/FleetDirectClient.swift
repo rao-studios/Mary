@@ -2,8 +2,9 @@
 //  FleetDirectClient.swift
 //  MaryTotem
 //
-//  One-shot gRPC against Fleet's FleetLoRA service (:9093). Brain never
-//  imports this package; Runtime maps slots onto Life.
+//  WHAT: One-shot gRPC against Fleet's FleetLoRA service (:9093).
+//  OUT:  FleetLoRASlot / FleetTrainProgress. Brain never imports this package.
+//        Runtime maps slots onto Life.
 //
 
 import Conduit

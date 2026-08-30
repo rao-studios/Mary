@@ -1,5 +1,10 @@
 //
 //  PluginValidator+Validate.swift
+//  MaryFoundation
+//
+//  WHAT: Top-level PluginSchema admission (identity, surfaces, eyes channels).
+//  IN:   AbilityPackageValidator.validateApplicationsAndPlugin.
+//  OUT:  +Operations, +ProseSurface, +CodeSurface, +Corpus.
 //
 
 import Foundation
@@ -177,35 +182,8 @@ extension PluginValidator {
                 "Target class \(duplicate) appears more than once.")
         }
         validateInsets(application.contentInsets, path: "\(root).application.contentInsets", error: error)
-        // EYES ARE TWO HALVES, AND THIS IS WHERE THEY ARE CHECKED TOGETHER.
-        // A workspace claim says "point the document channel at me", and the
-        // only document channel a package may be given is one of Mary's own
-        // observation adapters. Without a declaration behind it the claim
-        // would be a workspace class with nothing there: a perception card
-        // asserting live knowledge of a document, and a passage gate opening
-        // onto a reader that was never pointed anywhere.
-        //
-        // EITHER CHANNEL SATISFIES IT, and the plural is the point: a prose
-        // surface is one observation adapter Mary ships, a media surface is
-        // another, and a player that declares where its transport lives has
-        // been pointed at just as precisely as an editor that declares where
-        // its text lives. Naming only the first would have made a media
-        // package choose between claiming a perception it could not back and
-        // declining eyes it had genuinely earned.
-        //
-        // A CORPUS IS THE THIRD CHANNEL, and it observes a different thing:
-        // the prose and media surfaces watch what is ON SCREEN, a corpus reads
-        // the project the screen is showing part of. An application whose work
-        // lives in files it edits over days is genuinely observed by the third
-        // — refusing it eyes because it publishes no live text would deny a
-        // workspace claim that is fully earned.
-        //
-        // A CODE SURFACE IS THE FOURTH, and it watches what is on screen the
-        // same way a prose surface does — a code editor's live buffer rather
-        // than an editor's prose. Named separately from `proseSurface` rather
-        // than folded into it because the two are read-write and read-only
-        // respectively, and a package that has only earned the read-only
-        // channel must not be told it needs the write-capable one.
+        // Workspace claim needs a Mary observation channel: prose, code, media, or corpus.
+        // PIN: code is read-only; do not require proseSurface for a code-only package.
         if application.perception?.kind == .workspace,
            plugin.proseSurface == nil, plugin.codeSurface == nil,
            plugin.mediaSurface == nil, plugin.corpus == nil {

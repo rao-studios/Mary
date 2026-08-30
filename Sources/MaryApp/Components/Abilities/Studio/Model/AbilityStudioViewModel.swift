@@ -54,10 +54,7 @@ final class AbilityStudioViewModel: ObservableObject {
         eventsTask = Task { [weak self] in
             for await event in events {
                 guard !Task.isCancelled else { return }
-                // Do not promote `self` for the lifetime of this infinite
-                // stream. The temporary optional borrow lets deinit cancel the
-                // task even when a hosting view disappears without delivering
-                // its normal onDisappear callback.
+                // Don't promote `self` for this infinite stream. Optional borrow lets deinit cancel.
                 self?.handleLibraryEvent(event)
             }
         }
@@ -102,9 +99,7 @@ final class AbilityStudioViewModel: ObservableObject {
 
     // MARK: - Declarative Remote Hands authoring (Runtime tab)
 
-    /// The one source of truth stays the draft STRING: visual editors
-    /// decode, transform, and re-encode canonically through the same
-    /// `updateDraft` path the Schema tab uses, so the two tabs cannot drift.
+    /// Source of truth is the draft string. Visual editors re-encode through `updateDraft`.
     var draftPackage: MaryAbilityPackage? {
         try? AbilityPackageCodec.decode(Data(draft.utf8), verifyIntegrity: false)
     }
@@ -123,10 +118,7 @@ final class AbilityStudioViewModel: ObservableObject {
         updateDraft(json)
     }
 
-    /// Proves that a new package can enter an optimistic unsaved edit session
-    /// and returns the typed window handoff. This deliberately does not retain
-    /// the session in the Studio list model: the new editor window owns its
-    /// own lease and the installed registry remains unchanged until Save.
+    /// Optimistic unsaved edit. Editor window owns the lease; registry unchanged until Save.
     func editorRequestForNewPackage(
         _ package: MaryAbilityPackage
     ) -> AbilityStudioEditorWindowRequest? {
@@ -140,10 +132,7 @@ final class AbilityStudioViewModel: ObservableObject {
         }
     }
 
-    /// Opens either an installed package lease or a brand-new in-memory
-    /// package lease in the visual editor. `initialDraft` is itself the
-    /// canonical Mary package, so visual and Schema modes keep editing the
-    /// same JSON from the first keystroke onward.
+    /// Open installed or in-memory lease. `initialDraft` is canonical JSON for both modes.
     func openEditor(_ request: AbilityStudioEditorWindowRequest) {
         guard let initialDraft = request.initialDraft else {
             select(request.packageID)
@@ -390,10 +379,7 @@ final class AbilityStudioViewModel: ObservableObject {
             applicationLocator: applicationLocator)
     }
 
-    /// Provider implementations of the selected Ability's semantic Skills.
-    /// This is intentionally derived from the frozen registry rather than the
-    /// editable JSON draft so a portable discipline can show that an application
-    /// realizes its Skills without adding application bindings to that discipline.
+    /// Provider implementations from the frozen registry, not the draft JSON.
     var selectedProviderRealizations: [AbilityStudioProviderRealizationPresentation] {
         _ = applicationResolutionEpoch
         let skillIDs = Set(selectedSkills.map(\.skill.id))
@@ -456,10 +442,7 @@ final class AbilityStudioViewModel: ObservableObject {
         editSession?.createsNewPackage == true
     }
 
-    /// Registry events may arrive because adapters reconnect, files change on
-    /// disk, or another Studio operation activates a package. A dirty editor
-    /// stays pinned to the snapshot and selection that created its lease. The
-    /// latest registry is adopted only after Save or an explicit Revert.
+    /// Dirty editor stays pinned to its lease snapshot. Registry adopts after Save or Revert.
     func handleLibraryEvent(_ event: AbilityLibraryEvent) {
         switch event {
         case .activated(let next):
@@ -469,9 +452,7 @@ final class AbilityStudioViewModel: ObservableObject {
                 hasPendingRegistryUpdate = true
                 status = "A registry change was rejected. This draft remains pinned: \(issues.first?.message ?? "the changed package is invalid.")"
             } else {
-                // Re-lease the visible package against its current bytes, or
-                // close editing if those bytes no longer match the active
-                // snapshot. Either result avoids retaining a stale save lease.
+                // Re-lease against current bytes, or close if they no longer match.
                 reloadDraft()
                 status = issues.first?.message ?? "The edited registry was rejected."
             }

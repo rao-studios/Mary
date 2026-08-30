@@ -2,21 +2,12 @@
 //  ChunkEdgeDSP.swift
 //  MaryVoice
 //
-//  THE SEAMS BETWEEN CLOUD CHUNKS, EVENED OUT. Every classic-route chunk is
-//  an independent /v1/speak render, and each render arrives with its own
-//  variable leading/trailing silence — so the gaps between spoken sentences
-//  wobbled with whatever dead air the server happened to include, which the
-//  ear hears as an uneven cadence. Kokoro trims model-side
-//  (`audio_length_samples`); cloud PCM had no trim at all.
+//  WHAT: Trim + fade seams between independent cloud /v1/speak chunks.
+//  IN:   SeerTTSEngine after decode
+//  OUT:  even cadence PCM (never applied to Kokoro or realtime stream)
 //
-//  Two pure operations, applied by the CLOUD engines after decode (never to
-//  Kokoro output — already trimmed and DSP'd — and never to the realtime
-//  stream, which is one continuous render with no seams):
-//
-//    1. `trimSilence`  — drop edge samples below a dBFS threshold, keeping a
-//                        small guard pad so consonant onsets survive.
-//    2. `edgeFades`    — short linear ramps at both edges, killing the clicks
-//                        a hard trim can expose.
+//    1. trimSilence — drop edge samples below dBFS, keep a guard pad
+//    2. edgeFades    — short linear ramps at both edges
 //
 
 import Accelerate
@@ -24,23 +15,19 @@ import Foundation
 
 enum ChunkEdgeDSP {
 
-    /// The trim threshold: −50 dBFS ≈ 0.00316 linear. Room tone and codec
-    /// noise sit below it; the quietest voiced onset sits above.
+    /// Trim threshold: −50 dBFS. Room tone below; quietest voiced onset above.
     static let defaultThresholdDb: Float = -50
 
-    /// What survives inside each trimmed edge, so a plosive's run-up is not
-    /// clipped to nothing.
+    /// Guard inside each trimmed edge so a plosive's run-up survives.
     static let defaultGuardMs: Double = 10
 
-    /// Fade length. Long enough to kill a click, far too short to hear.
+    /// Fade length — long enough to kill a click, too short to hear.
     static let defaultFadeMs: Double = 6
 
-    /// The scan hop for edge detection.
+    /// Scan hop for edge detection.
     private static let windowMs: Double = 5
 
-    /// Trim leading and trailing silence in place. An all-silent chunk trims
-    /// to its guard pads rather than to nothing — a vanished chunk would
-    /// close the gap entirely and weld two sentences together.
+    /// Trim leading/trailing silence. All-silent keeps guard pads (do not vanish).
     static func trimSilence(
         _ samples: inout [Float],
         sampleRate: Double,
@@ -67,8 +54,7 @@ enum ChunkEdgeDSP {
 
         guard let loudStart = firstLoudWindow(
             from: stride(from: 0, to: samples.count, by: window)) else {
-            // All silence: keep the guard pads' worth from the front so the
-            // chunk still occupies a beat rather than vanishing.
+            // All silence: keep a guard-pad beat rather than vanishing.
             let keep = min(samples.count, max(guardSamples, 1))
             samples = Array(samples.prefix(keep))
             return
@@ -90,8 +76,7 @@ enum ChunkEdgeDSP {
         samples = Array(samples[lower..<upper])
     }
 
-    /// Linear fade-in/out in place. A no-op on chunks shorter than two fades
-    /// — ramping most of a tiny chunk would just duck it.
+    /// Linear fade-in/out. No-op on chunks shorter than two fades.
     static func edgeFades(
         _ samples: inout [Float],
         sampleRate: Double,
@@ -107,13 +92,13 @@ enum ChunkEdgeDSP {
         }
     }
 
-    /// The cloud-chunk chain, in order.
+    /// Cloud-chunk chain, in order.
     static func smoothEdges(_ samples: inout [Float], sampleRate: Double) {
         trimSilence(&samples, sampleRate: sampleRate)
         edgeFades(&samples, sampleRate: sampleRate)
     }
 
-    /// The absolute peak, for the per-utterance gain pin.
+    /// Absolute peak, for the per-utterance gain pin.
     static func peak(_ samples: [Float]) -> Float {
         var value: Float = 0
         samples.withUnsafeBufferPointer { buffer in
@@ -123,13 +108,7 @@ enum ChunkEdgeDSP {
         return value
     }
 
-    /// LOUDNESS, PINNED PER UTTERANCE — never per chunk. Kokoro chunks leave
-    /// their DSP chain peak-normalized to 1.0; cloud PCM arrives at server
-    /// level, so a degraded chunk jumped loudness mid-passage. The gain is
-    /// computed ONCE from the utterance's first chunk (toward a 0.9 peak,
-    /// capped at +6 dB, never attenuating) and applied to every later chunk
-    /// of the same utterance — per-chunk normalization would itself pump
-    /// quiet and loud sentences against each other.
+    /// Loudness pinned per utterance, never per chunk. From first chunk toward 0.9 peak.
     static func utteranceGain(firstChunkPeak: Float) -> Float {
         guard firstChunkPeak > 0 else { return 1 }
         return min(max(0.9 / firstChunkPeak, 1), 2)

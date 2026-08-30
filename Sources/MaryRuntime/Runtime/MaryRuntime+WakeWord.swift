@@ -1,30 +1,15 @@
 //
 //  MaryRuntime+WakeWord.swift
-//  Mary
+//  MaryRuntime
 //
-//  THE COMPOSITION ROOT FOR "HEY Mary" — where the standby ear
-//  (MaryVoice's WakeWordListener, which knows nothing of sessions), the
-//  session lifecycle (VoiceService's reducers), and the user's choice
-//  (ConfigService's `wakeWordEnabled`) are finally joined.
+//  WHAT: Composition root for "Hey Mary" — listener, session, user toggle.
+//  IN:   WakeWordListener, VoiceService Start/Stop, ConfigService.wakeWordEnabled
+//  OUT:  serial chain (runChained) → arm/disarm
 //
-//  MODELLED ON `MaryRuntime+AmbientVoice` for the same reason that file
-//  gives: `installBrainConfiguration` is called by every headless probe, and
-//  standby must never arm without the app's — and the user's — consent.
+//    armed ⇔ enabled && appReady && activeSessionCount == 0
 //
-//  THE ONE RULE: standby is armed exactly while
-//      enabled && appReady && activeSessionCount == 0
-//  and EVERY transition runs on one serial chain (`runChained`). The actor is
-//  reentrant — an arm suspends for real engine-start time — so the chain, not
-//  the actor, is what guarantees arm/disarm never interleave: no orphaned
-//  hot microphone from a double arm, no standby mic surviving into a session,
-//  no disarm racing the stop it is waiting on. `sessionWillStart` is awaited
-//  by the Start reducer, and because it rides the same chain it returns only
-//  after any in-flight arm has been waited out and its listener stopped.
-//
-//  SESSION CLAIMS ARE COUNTED, NOT FLAGGED. Two Starts can race (the mic
-//  button vs. a wake handoff — the reason VoiceSessionBox.install is a Bool
-//  claim); each claims here and releases exactly once, so a loser bailing or
-//  a winner failing can never re-arm standby while the other still runs.
+//  PIN: Claims are counted, not flagged. Chain, not the actor, serializes
+//       arm/disarm (actor is reentrant across engine-start).
 //
 
 import MaryVoice
@@ -83,14 +68,7 @@ package actor WakeStandbyController {
     private static let handoffNudgeSeconds: TimeInterval = 3
 
     private let hooks: WakeStandbyHooks
-    /// How long a just-ended session's audio topology gets to settle before
-    /// standby opens its own engine.
-    ///
-    /// ORDINARY HAL HYGIENE, not crash mitigation — the crashes it was first
-    /// written for had a different cause (standby auto-binding an input device
-    /// nobody picked; see `MicCapture`'s header rule), fixed at its source.
-    /// Opening a capture engine into a teardown that is still unwinding is
-    /// merely churn worth not causing, so this is short.
+    /// Settle window after session end before standby opens its engine.
     private let rearmSettleSeconds: TimeInterval
     private var enabled = false
     private var appReady = false
@@ -99,9 +77,7 @@ package actor WakeStandbyController {
     private var listener: WakeWordListener?
     private var eventTask: Task<Void, Never>?
     private var retryTask: Task<Void, Never>?
-    /// The serial transition chain — see the header. Each link awaits its
-    /// predecessor before touching the listener, and re-reads the CURRENT
-    /// conditions when it runs rather than the ones at enqueue time.
+    /// Serial transition chain. Each link awaits its predecessor; re-reads conditions when it runs.
     private var transitionChain: Task<Void, Never>?
 
     package init(
@@ -126,15 +102,11 @@ package actor WakeStandbyController {
         await runChained { await $0.reconcileNow() }
     }
 
-    /// How long the Start reducer will wait for the standby engine to come
-    /// down. A timeout aborts that Start: opening a second capture while the
-    /// queued disarm is still live is an unsafe overlap, not a recovery.
+    /// How long Start waits for standby to come down. Timeout aborts that Start.
     private let sessionStartWaitBound: TimeInterval
 
-    /// AWAITED by the Start reducer before it opens the session microphone.
-    /// `true` means the standby transition completed and this call owns one
-    /// session claim. `false` means the wait expired; the claim is rolled back
-    /// here and the caller must not construct/start a session capture.
+    /// Awaited by Start before opening the session mic. true = claim held;
+    /// false = timeout, claim rolled back — caller must not start capture.
     package func sessionWillStart() async -> Bool {
         activeSessionCount += 1
         retryTask?.cancel()
@@ -149,10 +121,7 @@ package actor WakeStandbyController {
         let bounded = await Self.awaitBounded(task, seconds: sessionStartWaitBound)
         if !bounded {
             activeSessionCount = max(0, activeSessionCount - 1)
-            // The timed-out chain may already have evaluated `shouldArm`
-            // while this claim was live and then suspended in listener.stop.
-            // Queue a fresh read behind it so rollback cannot strand standby
-            // disarmed after that stop eventually returns.
+            // Timed-out chain may still be in listener.stop — queue a fresh shouldArm read.
             scheduleReconcile(after: 0)
             Self.log.fault("standby disarm did not complete in \(self.sessionStartWaitBound)s — session start aborted")
             return false
@@ -193,11 +162,7 @@ package actor WakeStandbyController {
         }
     }
 
-    /// The Start loop's tail — where every REAL session end reports (Stop
-    /// button, "stop listening", pipeline death alike). The re-arm is
-    /// DEFERRED by the settle window (see `rearmSettleSeconds`): the session
-    /// engines are still mid-HAL-teardown when the tail runs, and standby
-    /// must not add a fourth engine to that storm.
+    /// Real session end (Stop / stop-listening / pipeline death). Rearm after settle.
     package func noteSessionEnded() async {
         activeSessionCount = max(0, activeSessionCount - 1)
         scheduleReconcile(after: rearmSettleSeconds)
@@ -320,21 +285,14 @@ extension MaryRuntime {
 
     package static let wakeStandby = WakeStandbyController(hooks: .live)
 
-    /// Session-start seam, bound at boot to the ONE online VoiceService
-    /// relay. A bare `VoiceService()` constructs a PRIVATE center whose sends
-    /// reach nothing — Granite resolves the shared center only through
-    /// `@Relay` — so the boot task installs a closure that captures the real
-    /// relay's service. Nil until boot; a wake before then is impossible
-    /// (standby arms only after `noteAppReady`).
+    /// Session-start seam — bound at boot to the online VoiceService relay.
+    /// Nil until boot; standby arms only after noteAppReady.
     @MainActor package static var wakeSessionStart: (() -> Void)?
     /// Same binding story for the standby listener's VAD thresholds: read
     /// them through the online ConfigService relay, not a fresh instance.
     @MainActor package static var wakeVADSource: (() -> VADConfig)?
 
-    /// Arm or disarm standby — a capability the user just revoked is not a
-    /// capability (the AmbientVoice rule). FIFO through one chain: two quick
-    /// toggle flips must land in the order the user made them, and detached
-    /// `Task`s alone promise no order at all.
+    /// Arm or disarm standby. FIFO through one chain — detached Tasks do not order.
     static let wakeApplyChain = OSAllocatedUnfairLock<Task<Void, Never>?>(initialState: nil)
     package static func applyWakeWord(_ enabled: Bool) {
         wakeApplyChain.withLock { chain in
@@ -346,9 +304,7 @@ extension MaryRuntime {
         }
     }
 
-    /// What a wake-initiated Start carries: nil remainder greets, a query
-    /// becomes the first turn. Rides a runtime box because the wake fires
-    /// off-actor and the Start reducer is the one who consumes it.
+    /// Wake remainder: nil greets; a query is the first turn. Runtime box — wake is off-actor.
     package struct WakeHandoff: Sendable {
         package var remainder: String?
         package var at: Date

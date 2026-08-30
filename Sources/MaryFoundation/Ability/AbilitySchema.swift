@@ -2,56 +2,39 @@
 //  AbilitySchema.swift
 //  MaryFoundation
 //
-//  THE ABILITY ITSELF: how it presents, how it routes, what it may do while
-//  it holds a turn, and which Skills and projections it exports.
+//  WHAT: Ability presentation, routing, operating policy, exported skills.
+//  IN:   `.mary` ability block → AbilityPackageValidator.
+//  OUT:  AbilityPromptProjection, AbilityRuntime, MaryAbilityPackage.paradigm.
 //
 
 import Foundation
 
-/// Closed, Mary-owned caution categories shared by ability-level operating
-/// policy (`AbilityOperatingPolicy.guardrailCategories`) and the
-/// per-operation description extension (`PluginOperationSchema.caution`).
-/// Modeled directly on `PluginOperationSemantics.role`: a package selects
-/// only which closed category applies, never any wording. Every case maps to
-/// exactly one fixed sentence the runtime owns outright, rendered in
-/// `AbilityPromptProjection.render` (ability level) and
-/// `AbilityRuntime.projectedBindingDescription` (operation level) — package
-/// prose never reaches either seam through this type.
+/// Closed caution categories for AbilityOperatingPolicy and PluginOperationSchema.caution.
+/// OUT: AbilityPromptProjection.render / AbilityRuntime.projectedBindingDescription.
 public enum GuardrailCategory: String, Codable, Hashable, Sendable, CaseIterable {
-    /// Does not apply outside the surface kind it was built for — the
-    /// recurring "never type prose into a code surface" shape.
+    /// Wrong surface kind — e.g. never type prose into a code surface.
     case domainMismatch
-    /// Act only on the target the user explicitly named or focused, never an
-    /// inferred neighbor.
+    /// Only the named or focused target, never an inferred neighbor.
     case unscopedTarget
-    /// Read live state before acting or reporting; never answer from a
-    /// remembered value.
+    /// Read live state; never answer from memory.
     case staleState
-    /// Never bring the target forward or steal focus merely to observe or
-    /// command it.
+    /// Never bring the target forward merely to observe or command it.
     case noFocusSteal
-    /// Issue this through the target application's own command, never
-    /// synthesized input standing in for it.
+    /// Use the app's own command, never synthesized input standing in.
     case nativeCommandOnly
-    /// Can destroy or replace existing content; confirm the exact, fresh
-    /// target before acting.
+    /// Can destroy/replace content; confirm the exact fresh target.
     case irreversibleAction
 }
 
-/// Human-readable annotations for Ability Studio and documentation. These
-/// strings never carry model instruction authority. Executable policy lives
-/// in closed routing predicates, Skill access/effect contracts, cognitive
-/// primitive identities, and validated workflow topology.
+/// Studio/docs annotations. Never model-instruction authority.
+/// Executable policy: routing predicates, Skill contracts, primitives, workflow topology.
 public struct AbilityOperatingPolicy: Codable, Hashable, Sendable {
     public var phases: [String]
     public var guardrails: [String]
     public var successSignals: [String]
     public var stopConditions: [String]
     public var defaultSupportingAbilities: [AbilityID]
-    /// Closed, bounded companion to `guardrails` — see `GuardrailCategory`.
-    /// `guardrails` itself stays permanently free-text and UI-only, guarded
-    /// by `AbilityPromptProjectionSecurityTests`; this field is the only
-    /// ability-level caution signal the prompt projection ever reads.
+    /// Closed companion to UI-only `guardrails`. Prompt projection reads this field only.
     public var guardrailCategories: [GuardrailCategory]
 
     public init(
@@ -96,7 +79,7 @@ public struct AbilitySchema: Codable, Hashable, Sendable, Identifiable {
     public var id: AbilityID
     public var version: SemanticVersion
     public var title: String
-    /// Inspector metadata. The prompt compiler never interpolates this text.
+    /// Inspector metadata. Prompt compiler never interpolates this text.
     public var summary: String
     public var tint: String
     public var aliases: [String]
@@ -105,14 +88,9 @@ public struct AbilitySchema: Codable, Hashable, Sendable, Identifiable {
     public var operatingPolicy: AbilityOperatingPolicy
     public var routing: RoutingPolicySchema
     public var totemProjections: [ProjectionID]
-    /// WHAT KIND OF ABILITY THIS IS — see `AbilityParadigm`. Optional so that
-    /// every package written before the field existed still decodes; read it
-    /// through `MaryAbilityPackage.paradigm`, which falls back to a
-    /// structural derivation rather than leaving callers to handle nil.
+    /// Role. Nil for pre-field packages; read `MaryAbilityPackage.paradigm`.
     public var paradigm: AbilityParadigm?
-    /// The applications this Ability is expert in, for an Ability that is not
-    /// a Plugin-bearing package. Nil (not empty) means "says nothing", which
-    /// for a Plugin-bearing Ability is correct — its plugin already answers.
+    /// Non-plugin expertise list. Nil = silent; plugin packages use PluginSchema.application.
     public var applications: [ApplicationAffinity]?
 
     public init(

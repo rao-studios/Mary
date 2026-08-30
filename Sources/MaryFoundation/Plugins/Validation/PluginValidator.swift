@@ -1,9 +1,16 @@
+//
+//  PluginValidator.swift
+//  MaryFoundation
+//
+//  WHAT: Closed Plugin grammar admission. Caps and entry points.
+//  IN:   AbilityPackageValidator (carried Plugin).
+//  OUT:  +Validate, +Operations, +Steps, +Tokens, +ProseSurface, +CodeSurface, +Corpus.
+//  PIN:  Separate from AbilityPackageValidator so the interpreter is never first notice.
+//
+
 import Foundation
 
-/// Validation for the closed, declarative Plugin grammar. Keeping it
-/// separate from the general package validator makes this admission boundary
-/// independently testable and prevents the recipe interpreter from becoming
-/// the first place malformed instructions are noticed.
+/// Closed Plugin grammar. Caps live here; passes live in sibling files.
 public enum PluginValidator {
     public static let maximumOperations = 128
     public static let maximumStepsPerOperation = 512
@@ -16,7 +23,7 @@ public enum PluginValidator {
     public static let maximumBundleNameBytes = 255
     public static let maximumSupportedReleases = 32
     public static let maximumApplicationReleaseVersionBytes = 64
-    /// A menu title is a label a person reads off a menu bar, not a payload.
+    /// Menu-bar label, not a payload.
     public static let maximumMenuTitleBytes = 128
     public static let maximumTitleBytes = 96
     public static let maximumSummaryBytes = 4_096

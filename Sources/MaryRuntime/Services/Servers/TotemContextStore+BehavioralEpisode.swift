@@ -1,8 +1,9 @@
 //
 //  TotemContextStore+BehavioralEpisode.swift
+//  MaryRuntime
 //
-//  The sealed BehavioralEpisode IS the Ability Totem record. Personal holds
-//  only the interaction stub that led to it, joined by the turn UUID.
+//  WHAT: Sealed BehavioralEpisode is the Ability Totem record.
+//  OUT:  Personal holds only the interaction stub, joined by turn UUID.
 //
 
 import MaryBrain

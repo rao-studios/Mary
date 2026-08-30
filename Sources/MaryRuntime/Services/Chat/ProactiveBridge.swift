@@ -1,27 +1,19 @@
 //
 //  ProactiveBridge.swift
-//  Mary
+//  MaryRuntime
 //
-//  The proactive channel's app-side consumer — successor to the FollowUps
-//  streaming reducer, which held a BOOT-era snapshot of the whole state and
-//  republished it on every event (the history-rollback bug). Now a plain
-//  loop: detached-routine progress and follow-ups map to id-anchored Kinds
-//  and funnel into the single sync writer. Voice playback stays the
-//  pipeline's job (single-driver rule); this bridge speaks a follow-up only
-//  when no voice session is live.
-//
-//  Started once from HomeSessionView's boot; the loop lives for the app.
+//  WHAT: Proactive channel's app-side consumer — id-anchored Kinds into MirrorVoice.
+//  IN:   HomeSessionView boot (loop lives for the app)
+//  OUT:  ChatService.mirrorVoice; FollowUpSpeech when no voice session
+//  PIN:  Voice playback stays the pipeline's job (single-driver).
 //
 
 import MaryBrain
 import MaryVoice
 import Foundation
 
-/// Composes each origin's follow-up narration for the transcript: tokens
-/// accumulate per origin (interleaved routines no longer garble each other —
-/// the old single open/accumulated pair did), and sequential routines on one
-/// bubble stack paragraphs with "\n\n", mirroring the brain's
-/// mergeFollowUpIntoHistory join so both views read identically.
+/// Per-origin follow-up narration. Sequential routines stack with "\n\n"
+/// — same join as mergeFollowUpIntoHistory.
 package struct FollowUpComposer {
     /// Per-origin finalized narration — earlier routines' paragraphs.
     private var committed: [UUID: String] = [:]
@@ -51,9 +43,7 @@ package struct FollowUpComposer {
         }
         let streamed = open.removeValue(forKey: origin) ?? ""
         let final = fullText.isEmpty ? streamed : fullText
-        // TWO ROUTINES SAYING THE SAME SENTENCE STACK AS ONE. Identical
-        // machine paragraphs repeated under one origin were the live leak's
-        // most visible shape; a repeat adds nothing a reader needs.
+        // Identical paragraphs under one origin stack as one.
         if let existing = committed[origin],
            existing.components(separatedBy: "\n\n").contains(final) {
             return existing
@@ -63,13 +53,7 @@ package struct FollowUpComposer {
         return result
     }
 
-    /// A CANCELLED routine's in-flight accumulation is dead text: the stop
-    /// turn already spoke its acknowledgement, and nothing will ever
-    /// `complete` it. Left in `open`, the next routine for the same origin
-    /// starts its narration with half of the stopped one's — the late-append
-    /// in the transcript, stacked rather than spliced. Only `open` clears:
-    /// `committed` holds earlier routines' FINISHED paragraphs, which the
-    /// user has already read and which history keeps.
+    /// Cancelled routine: clear `open` only. `committed` keeps finished paragraphs.
     package mutating func cancelled(origin: UUID) {
         open[origin] = nil
     }
@@ -82,10 +66,7 @@ package struct FollowUpComposer {
 }
 
 package enum ProactiveBridge {
-    /// The one live subscription. SwiftUI re-runs `.task` on every window
-    /// (re)appearance — a second loop would double every chip count and
-    /// speak every follow-up twice. MainActor-guarded: start is only ever
-    /// called from view boot.
+    /// One subscription. SwiftUI re-runs .task on window reappearance — do not double.
     @MainActor private static var live: Task<Void, Never>?
 
     /// Subscribe to the brain's proactive channel and forward every event to
@@ -133,44 +114,15 @@ package enum ProactiveBridge {
                         turnID: origin,
                         text: composer.completed(fullText, origin: origin),
                         isFinal: true))
-                    // Text mode speaks here; a live voice session already
-                    // played it through the pipeline.
-                    //
-                    // THROUGH THE FLOOR, never straight at the speaker. What
-                    // stood here was a bare `Task` that `softStop`ped whatever
-                    // was speaking and fed the follow-up — with `origin` in
-                    // hand and unread. That is how a calendar answer ended up
-                    // "glued onto a later reply", and being detached it had no
-                    // ordering against a second follow-up either. See
-                    // `FollowUpSpeech` for the rule and the reasoning.
-                    //
-                    // AWAITED, not spawned: `enqueue` only installs a link in
-                    // the chain and returns, so the loop keeps pumping — but
-                    // two `Task { … }` hops would arrive at the actor in
-                    // whichever order the scheduler chose, throwing away the
-                    // arrival ordering the brain's own follow-up chain works
-                    // to produce.
+                    // Text mode speaks through FollowUpSpeech. Await enqueue (not spawn).
                     if !fullText.isEmpty {
                         await FollowUpSpeech.shared.enqueue(fullText, origin: origin)
                     }
 
                 case .routineProgress(let line, let origin):
-                    // NON-FINAL AND UNCOMMITTED, deliberately. It bypasses
-                    // `composer` entirely — nothing accumulates, nothing is
-                    // committed — and `applyFollowUpChanged` SETS
-                    // `followUpText` rather than appending to it, so the real
-                    // answer's own `followUpChanged` overwrites the notice
-                    // wholesale instead of stacking a paragraph under it. That
-                    // is the whole reason this is not a `followUpToken`: a
-                    // committed "Still working…" would stand above its own
-                    // result forever. No new transcript Kind is needed for the
-                    // same reason.
+                    // Progress notice: set followUpText (not append), uncommitted — result overwrites it.
                     mirror(.followUpChanged(turnID: origin, text: line, isFinal: false))
-                    // Text mode speaks it through the SAME floor every other
-                    // late utterance uses — on the quiet arm only, with cut-in
-                    // disallowed and no ledger row (see `FollowUpSpeech
-                    // .Delivery.progress`). A live voice session ignores this:
-                    // the pipeline plays its own.
+                    // Text mode: FollowUpSpeech.Delivery.progress. Voice session: pipeline plays it.
                     await FollowUpSpeech.shared.enqueue(line, origin: origin, as: .progress)
 
                 case .routineCancelled(let routineID, _, let origin):
@@ -186,25 +138,13 @@ package enum ProactiveBridge {
                     mirror(.routineEnded(routineID: routineID, originTurnID: origin))
 
                 case .ambientUtterance(let line, let candidateID):
-                    // ITS OWN TRAILING BUBBLE, never someone else's. The
-                    // standalone-notice path in `applyFollowUpChanged` keeps
-                    // one row by id and releases it on `isFinal`, so each
-                    // remark lands as a fresh bubble instead of accumulating
-                    // into the coding bridge's notice.
-                    //
-                    // Deliberately NOT through `composer`: that accumulates
-                    // per origin, and every nil-origin producer shares one
-                    // accumulator — a remark and a coding failure arriving
-                    // together would paint into each other.
+                    // Standalone trailing bubble (by id). Not through composer — nil-origin shares one accumulator.
                     mirror(.followUpChanged(turnID: nil, text: line, isFinal: true))
                     await FollowUpSpeech.shared.enqueue(
                         line, origin: nil, as: .ambient(candidateID))
 
                 case .autoMemoryTriggered:
-                    // Seer folded the conversation while a detached routine
-                    // was narrating. The page collapses through the SAME Kind
-                    // the turn-side path uses, so both routes end in one
-                    // `collapseToFinalExchange`.
+                    // Collapse through the same Kind as the turn-side path.
                     mirror(.autoMemoryTriggered)
                 }
             }

@@ -2,10 +2,8 @@
 //  AbilityExecutionLogSheet.swift
 //  Mary
 //
-//  The Ability execution ledger: every Skill binding, script primitive, and
-//  delegate edit Mary ran this session. Undo is conversational:
-//  tapping Undo sends a pre-filled chat message through the normal flow and
-//  lets the model pick the right reversal (git undo, move-back, honesty).
+//  WHAT: Session Ability ledger (bindings, primitives, delegate edits).
+//  OUT:  Undo → TextTurnRunner (pre-filled chat). Polls AbilityExecutionLog.
 //
 
 import MaryBrain
@@ -13,8 +11,7 @@ import Granite
 import SwiftUI
 import MaryRuntime
 
-/// Bridges the AbilityExecutionLog ring buffer to SwiftUI while open —
-/// the log is a plain lock-boxed store, so a 1 s poll is the whole bridge.
+/// Bridges AbilityExecutionLog (lock-boxed) to SwiftUI via a 1 s poll while open.
 @MainActor
 final class AbilityExecutionLogViewModel: ObservableObject {
 
@@ -150,11 +147,7 @@ struct AbilityExecutionLogSheet: View {
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                 }
-                // WHAT IT ACTUALLY TOUCHED — the element, with its window
-                // and its frame. Its predecessor showed a raw argument VALUE
-                // guessed from a key called "document" or "title", which was
-                // wrong whenever a package used a different word and silent
-                // when the target was the thing in front of the user.
+                // Element + window + frame (not a guessed argument value).
                 if let target = record.action.target {
                     Text(Self.targetLine(target))
                         .font(.system(size: 11, design: .monospaced))
@@ -175,9 +168,7 @@ struct AbilityExecutionLogSheet: View {
                     HStack {
                         Button("Undo") { undo(record) }
                             .buttonStyle(.maryQuiet)
-                            // An undo mid-turn would SUPERSEDE the user's
-                            // own in-flight request — disabling beats
-                            // silently discarding their turn.
+                            // Mid-turn undo would supersede the in-flight request.
                             .disabled(chat.state.isGenerating)
                         Spacer()
                     }
@@ -187,9 +178,7 @@ struct AbilityExecutionLogSheet: View {
         }
     }
 
-    /// The conversational undo: a pre-filled message through the normal chat
-    /// flow. The model picks the reversal — or says honestly that there
-    /// isn't one.
+    /// Conversational undo: pre-filled message through normal chat. Model picks the reversal.
     private func undo(_ record: BehavioralActionRecord) {
         let subject = record.action.target.map(Self.targetLine)
             ?? record.action.skill.packageID.rawValue
@@ -205,23 +194,8 @@ struct AbilityExecutionLogSheet: View {
 
     // MARK: - Display helpers
 
-    /// THREE STATES, because two of them were being shown as one.
-    ///
-    /// GREEN — did what you asked. GOLD — looked, and found nothing.
-    /// RED — could not act.
-    ///
-    /// THE FAILURE THIS FIXES: `find_passage` on a searched-and-missed read
-    /// returns `ok: true, foundNothing: true`, and that is CORRECT and stays —
-    /// `ok: false` would have the turn speak the miss aloud as a breakage and
-    /// invite the orchestrator to retry a read that already ran. The dot was
-    /// the part that lied: a deliberate miss rendered identically to a passage
-    /// found and replaced, so the one row a person opens this sheet to
-    /// understand looked exactly like the rows that need no explaining.
-    ///
-    /// Gold is the palette's own accent (`Color.maryGold`, the border and
-    /// mark colour) rather than a fourth invented amber: a miss is not a
-    /// warning, it is an honest answer, and it should read as Mary's own
-    /// colour rather than as a hazard.
+    /// Green = did it. Gold = looked and found nothing (or still working). Red = could not act.
+    /// PIN: `foundNothing` stays `ok`; the dot used to look like success.
     private static func dotColor(for record: BehavioralActionRecord) -> Color {
         switch record.disposition {
         case .succeeded: return record.foundNothing ? .maryGold : .maryGreen
@@ -230,7 +204,7 @@ struct AbilityExecutionLogSheet: View {
         }
     }
 
-    /// The acted element as one line: what it was, in which window.
+    /// Acted element as one line: label, then window.
     private static func targetLine(_ target: AXElementRecord) -> String {
         let label = target.label.isEmpty ? target.role : target.label
         return target.windowTitle.isEmpty ? label : "\(label) — \(target.windowTitle)"

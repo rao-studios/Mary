@@ -2,10 +2,9 @@
 //  StyleProfileCodec.swift
 //  MaryFoundation
 //
-//  Reading and writing a `.marystyle` file. Deliberately the same discipline
-//  as `AbilityPackageCodec`, down to the self-excluding digest and the bounded
-//  reader: this is a second artifact people will hand each other, and having
-//  two integrity stories in one codebase is how one of them rots.
+//  WHAT: Read/write `.marystyle`. Same digest/bounded-reader discipline as AbilityPackageCodec.
+//  IN:   files / Data.
+//  OUT:  StyleProfile, TotemContextStore.loadStyleProfile.
 //
 
 import CryptoKit
@@ -13,8 +12,7 @@ import Foundation
 
 public enum StyleProfileCodec {
 
-    /// A profile is a few dozen tenets. The ceiling is generous next to that
-    /// and still bounds decoding and integrity work on an imported file.
+    /// Import cap for decode + integrity.
     public static let maximumProfileBytes = 512 * 1_024
     public static let fileExtension = "marystyle"
 
@@ -62,15 +60,7 @@ public enum StyleProfileCodec {
         guard data.count <= maximumProfileBytes else { throw CodecError.profileTooLarge }
         let profile = try decoder.decode(StyleProfile.self, from: data)
         guard profile.format == StyleProfile.format else { throw CodecError.unsupportedFormat }
-        // EXACT MATCH, like `AbilityPackageValidator`'s gate. A strict
-        // envelope refuses what it cannot fully account for — a
-        // partially-understood profile whose digest covers bytes this build
-        // ignored is not something to reason about. There is nothing to
-        // migrate FROM: one format, and anything else is discarded rather than
-        // guessed at. Both production readers already treat a refusal as
-        // "start fresh" (`TotemContextStore.loadStyleProfile` decodes with
-        // `try?`), so this degrades to an empty corpus and never cascades the
-        // way `docs/TOTEM-MERGE.md`'s throwing `restore()` did.
+        // Exact formatVersion. TotemContextStore.loadStyleProfile uses try? → empty corpus.
         guard profile.formatVersion == StyleProfile.currentFormatVersion else {
             throw CodecError.unsupportedFormatVersion
         }
@@ -89,10 +79,7 @@ public enum StyleProfileCodec {
         return try boundedData(from: url)
     }
 
-    /// Canonical bytes with a refreshed digest. As in the package codec, a
-    /// stale signature is dropped rather than carried: re-encoding changes the
-    /// bytes the old signature covered, so keeping it would be a lie that
-    /// verifies.
+    /// Canonical bytes + refreshed digest. Drops a stale signature.
     public static func encoded(
         _ profile: StyleProfile, prettyPrinted: Bool = true
     ) throws -> Data {
@@ -161,15 +148,7 @@ public enum StyleProfileCodec {
 
     // MARK: - Import
 
-    /// Re-key an imported profile onto this machine.
-    ///
-    /// Three things happen, and each is load-bearing: project-scoped tenets
-    /// are dropped (they describe another repository), every surviving tenet
-    /// is marked `.imported` so it cannot render, and its evidence is reset to
-    /// candidate — the counts came from someone else's work and are not
-    /// evidence about this user. What arrives is a set of hypotheses that
-    /// local observation may confirm, which is what "consent without a dialog"
-    /// actually means here.
+    /// Import: drop project tenets, mark `.imported`, reset evidence to candidate.
     public static func rekeyForImport(
         _ profile: StyleProfile, from origin: String, at now: Date
     ) -> StyleProfile {

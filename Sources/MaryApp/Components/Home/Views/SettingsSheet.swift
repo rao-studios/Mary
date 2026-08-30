@@ -2,11 +2,8 @@
 //  SettingsSheet.swift
 //  Mary
 //
-//  Everything tunable, on MaryCards: which voice speaks (Lane A), where
-//  skills are synthesized (Lane B), how listening endpoints, and which
-//  projects voice commands can open. Every control writes through ConfigService.Update; runtime side
-//  effects (engine swap, voice reload, prompt/dispatcher rebuild) apply
-//  immediately.
+//  WHAT: Tunables on MaryCards (voice, skill engine, VAD, projects).
+//  OUT:  ConfigService.Update — runtime side effects apply immediately.
 //
 
 import MaryAmbient
@@ -27,9 +24,7 @@ struct SettingsSheet: View {
     @State var permissions: [PermissionItem] = []
     @State var newPronunciationWord: String = ""
     @State var newPronunciationIPA: String = ""
-    /// Whether the Seer session is signed in. Nil until the first read
-    /// answers — a dot that defaulted to red would flash "not signed in" at
-    /// every open of the sheet, on a machine where boot signed in seconds ago.
+    /// Seer signed-in. Nil until first read (no red flash on open).
     @State var seerSignedIn: Bool? = nil
     @State var codingDownloading = false
     @State var codingDownloadProgress: Double = 1
@@ -76,11 +71,7 @@ struct SettingsSheet: View {
             refreshPermissionStatus()
             Task { await refreshCodingAgentStatus() }
         }
-        // The user grants in System Settings, then cmd-tabs back — recompute
-        // on every app activation so the card reflects the grant instantly
-        // instead of waiting for the sheet to be closed and reopened. The
-        // status calls are live (AXIsProcessTrusted etc.); only this trigger
-        // was missing.
+        // Recompute on app activation — grant in System Settings, then cmd-tab back.
         .onReceive(NotificationCenter.default.publisher(
             for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshPermissionStatus()
@@ -116,9 +107,7 @@ struct SettingsSheet: View {
 
     // MARK: - Bindings
 
-    /// Ambient corpus indexing, live as well as persisted — the observer
-    /// reads the flag per poll, so switching it off stops the NEXT poll
-    /// rather than the next launch.
+    /// Corpus indexing, live and persisted. Off stops the next poll, not the next launch.
     var corpusIndexingBinding: Binding<Bool> {
         Binding(
             get: { config.state.ambientCorpusIndexing },
@@ -136,12 +125,7 @@ struct SettingsSheet: View {
         seerSignedIn = await MaryRuntime.seerSession.isAuthenticated
     }
 
-    /// Which of the cloud voice's characters speaks.
-    /// THE HOSTED CHARACTER, written to its own field. This picker used to
-    /// write the on-device slot — the one boot hands to Kokoro — so choosing
-    /// Marie armed the next launch to die on `'fr_marie.json' not found`. It
-    /// also only wrote config: the character reached the speaker at the next
-    /// boot and not before, so the picker and the voice disagreed until then.
+    /// Hosted character (`seerVoice`), not the on-device Kokoro slot. Applied immediately.
     var voiceCharacterBinding: Binding<String> {
         Binding(
             get: { config.state.seerVoice },
@@ -334,11 +318,7 @@ struct SettingsSheet: View {
         )
     }
 
-    /// Applies immediately rather than next turn: turning indexing off should
-    /// stop the crawl now, not after the next thing the user says.
-    /// Applies IMMEDIATELY rather than next launch — `applyAmbientCodeIndexing`
-    /// below makes the same promise for the same reason: a capability the user
-    /// just switched off must stop being a capability, not stop next time.
+    /// Apply now, not next turn/launch; same promise as applyAmbientCodeIndexing.
 
     /// Applies immediately, the ambient-voice rule: switching standby off
     /// must release the microphone this instant, not next launch.
@@ -452,12 +432,7 @@ struct SettingsSheet: View {
         }
     }
 
-    /// Turning one COMPILED provider off.
-    ///
-    /// THE DEVIATION LIST IS WHAT IS STORED — what is turned OFF, never what
-    /// is on. Storing the enabled roster froze today's list at the first
-    /// toggle, and everything shipped afterwards was absent from it and
-    /// silently never installed for anyone who had ever opened Settings.
+    /// Compiled-provider off-list (deviations), never an enabled roster.
     func pluginBinding(_ id: String) -> Binding<Bool> {
         Binding(
             get: { !config.state.disabledPlugins.contains(id) },

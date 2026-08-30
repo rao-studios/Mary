@@ -2,10 +2,10 @@
 //  SchemaSignalModels.swift
 //  MaryBrain
 //
-//  Split out of SchemaSignalRuntime.swift (docs/DECOMPOSITION.md Wave 2) —
-//  pure relocation, no declaration changed.
+//  WHAT: Model types for SchemaSignalRuntime.
+//  IN:   SchemaSignalRuntime.swift (sibling split)
+//  OUT:  interaction / perception instances
 //
-
 import MaryFoundation
 import Foundation
 import os

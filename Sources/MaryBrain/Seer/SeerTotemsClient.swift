@@ -2,15 +2,11 @@
 //  SeerTotemsClient.swift
 //  MaryBrain
 //
-//  The fleet as Seer sees it: which totem nodes are registered with the
-//  mothership, whether each is alive and accepting storage, and per-node
-//  document/group counts. One bounded GET against `/v1/totems`, which sits
-//  on Seer's OPEN router — registered before AuthMiddleware — so unlike
-//  every other Seer client here there is deliberately no SeerSession: the
-//  Totems pane must be able to see the fleet before anyone signs in, and a
-//  dead account must not read as a dead cluster.
+//  WHAT: Fleet as Seer sees it — `/v1/totems` on the open router.
+//  IN:   Totems pane (before sign-in)
+//  OUT:  node liveness / counts
+//  PIN:  No SeerSession — a dead account must not read as a dead cluster.
 //
-
 import Foundation
 
 /// Injectable GET seam, the read-only sibling of `SeerVisionTransport`.
@@ -177,11 +173,7 @@ public actor SeerTotemsClient {
             })
     }
 
-    /// Seer hands the route's response straight to Hummingbird's default
-    /// JSONEncoder, so `last_seen` arrives as deferredToDate seconds. Decode
-    /// with the matching default strategy first, then retry the whole
-    /// document as ISO8601 — a server-side switch to the other common
-    /// encoding should degrade to nothing, not blind the pane to the fleet.
+    /// Seer hands the route's response straight to Hummingbird's default JSONEncoder, so `last_seen` arrives as deferredToDate seconds.
     private static func decode(_ body: Data) throws -> WireFleet {
         do {
             return try JSONDecoder().decode(WireFleet.self, from: body)
@@ -250,10 +242,8 @@ public actor SeerTotemsClient {
 // MARK: - URLSession transport
 
 public struct URLSessionGETTransport: SeerGETTransport {
-    /// A small dedicated session — never `URLSession.shared` (its resource
-    /// timeout is seven days) and not `StreamingHTTP.session` (fleet polls
-    /// must not touch the chat lanes' idle window). The request carries its
-    /// own 5 s deadline; the resource cap is the backstop behind it.
+    /// A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and not `StreamingHTTP.session` (fleet polls must not touch the chat…
+    /// PIN: A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and not…
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 5

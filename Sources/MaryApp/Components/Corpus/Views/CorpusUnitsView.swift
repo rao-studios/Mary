@@ -2,8 +2,7 @@
 //  CorpusUnitsView.swift
 //  Mary
 //
-//  What was actually ingested, and the three things you can do about it:
-//  correct its labels, make it re-read the file, or take it back entirely.
+//  WHAT: Ingested units — relabel, re-read, or take back.
 //
 
 import MaryAmbient
@@ -50,10 +49,7 @@ struct CorpusUnitsView: View {
         VStack(alignment: .leading, spacing: .layer2) {
             Text("Nothing indexed yet.")
                 .font(.marySans(12, weight: .medium))
-            // NO APPLICATION NAMED. Which applications have a corpus is a
-            // fact about the installed packages, and this sentence would have
-            // to be edited every time one arrives — the Schema tab lists them
-            // from the declarations instead.
+            // No application named here; Schema tab lists declared corpora.
             Text("Open a project in an application that declares a corpus, edit a file, and stay on it for about fifteen seconds. Mary waits for you to settle before reading anything.")
                 .font(.marySans(11))
                 .foregroundStyle(Color.maryInk.opacity(0.55))

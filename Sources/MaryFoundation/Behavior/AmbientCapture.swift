@@ -2,51 +2,16 @@
 //  AmbientCapture.swift
 //  MaryFoundation
 //
-//  THE INPUT HALF OF THE BEHAVIORAL CODEC — what Mary was looking at when she
-//  was asked.
-//
-//  A request is not just its words. "Change the second paragraph" means
-//  nothing without the document; "the other one" means nothing without the
-//  roster. This is the structured form of the context that was actually put
-//  in front of the model for one turn — the surfaces with their elements and
-//  frames, the facts with their ages, the selection — captured so that the
-//  pair (what she saw, what she did) is recoverable later.
-//
-//  WHAT WAS INJECTED, NOT WHAT WAS HELD. The store knows more than any one
-//  turn uses; ranking and budgets decide what the model actually conditions
-//  on. Capturing the whole store would teach a future model to act on context
-//  the live one never received — the training input would not match the
-//  inference input, which is the one thing behavioural cloning cannot
-//  tolerate. It would also widen the privacy surface to documents the turn
-//  never touched. So: exactly what was injected, no more.
-//
-//  ABSENT IS NOT EMPTY. A nil capture means no context was assembled at all
-//  — a deterministic path that never built a prompt. An EMPTY capture means
-//  one was assembled and there was nothing to see. Those are different facts
-//  about the world and the codec keeps them different.
-//
-//  TOKENS, NOT ENUMS — the one rule that makes this file boring on purpose.
-//  Places, slots and provenance are `String` here, never the live types they
-//  came from. A written episode is a historical record; if it referenced
-//  today's enums it would silently change meaning when a case is renamed, and
-//  fail to decode when one is removed. The mapping from live type to token
-//  lives in exactly one place (MaryAmbient's capture builder) and is pinned
-//  by test there. Everything below just carries the words.
-//
-//  PRIVACY POSTURE, STATED PLAINLY. This type holds real content: fact text,
-//  a selection, an excerpt of a document. That is a deliberate departure from
-//  the redaction discipline the diagnostic ledgers keep — those record ids
-//  and counts and cannot hold text by construction. A behavioural dataset
-//  that redacted its own input would be useless. So the protections are
-//  elsewhere and must stay: the store writes to a private directory, the
-//  recording is switchable and purgeable, and the budgets above bound how
-//  much text can reach here at all. Never widen this type without revisiting
-//  that.
+//  WHAT: Injected turn context — surfaces, facts, selection. Not the whole store.
+//  IN:   MaryAmbient capture builder (live types → tokens).
+//  OUT:  BehavioralInput, BehavioralTrainingPair.
+//  PIN:  Nil = no prompt built; empty = assembled, nothing to see. Places/slots
+//        are Strings. Holds real text; privacy is store/switch/budgets, not redaction here.
 //
 
 import Foundation
 
-/// The application a captured surface belonged to.
+/// Application of a captured surface.
 public struct CapturedApplication: Codable, Hashable, Sendable {
     public var name: String
     public var bundleID: String?
@@ -59,34 +24,26 @@ public struct CapturedApplication: Codable, Hashable, Sendable {
     }
 }
 
-/// One screen surface as it was injected: an application, its active window,
-/// and the elements the tier-0 walk published.
+/// Injected surface: app, active window, tier-0 elements.
 public struct SurfaceCapture: Codable, Hashable, Sendable {
 
-    /// The place this surface belongs to, as a token — `"textedit"`,
-    /// `"applications"`. See the file header on why this is not a place type.
+    /// Place token (`"textedit"`). Not a live place type — see header.
     public var place: String
 
     public var application: CapturedApplication
     public var windowTitle: String?
     public var windowFrame: AXFrame?
 
-    /// The published elements, each carrying its own identity and frame.
+    /// Published elements with identity and frame.
     public var elements: [AXElementRecord]
 
-    /// Elements the walk saw but this capture dropped for want of a frame.
-    ///
-    /// A count rather than a silence. A record needs geometry, and inventing
-    /// a zero rect to fill the field would be a lie in the shape of data —
-    /// so those elements are omitted and counted, and the invariant "walked
-    /// elements have frames" stays observable rather than assumed.
+    /// Walked but dropped (no frame). Count, not a zero rect.
     public var framelessDropped: Int
 
-    /// Whether `elements` was cut short by the capture's element cap.
+    /// `elements` hit the capture cap.
     public var truncated: Bool
 
-    /// When the walk behind this surface happened — which may be a little
-    /// before the turn, since surfaces are polled.
+    /// Walk time (may precede the turn; surfaces are polled).
     public var capturedAt: Date
 
     public init(
@@ -127,28 +84,21 @@ public struct SurfaceCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// One held fact as it was injected — a claim about a place, with its age.
+/// Injected fact about a place, with age.
 public struct FactCapture: Codable, Hashable, Sendable {
 
-    /// Place token — see the file header.
+    /// Place token.
     public var place: String
 
-    /// Slot token: which kind of claim this is — `"file"`, `"viewport"`,
-    /// `"selection"`.
+    /// Slot token (`"file"`, `"viewport"`, `"selection"`).
     public var slot: String
 
     public var text: String
 
-    /// How old the claim was when injected.
-    ///
-    /// Load-bearing, not decoration: a fact renders with its age and loses
-    /// authority as it grows, so a future model reading this needs to know
-    /// the difference between "the document says X" and "the document said X
-    /// four minutes ago".
+    /// Age at inject. Load-bearing — authority decays.
     public var ageSeconds: Double
 
-    /// Where the claim came from — a poll, a cached body, a read the user
-    /// asked for. A token; see the file header.
+    /// Provenance token (poll / cache / asked read).
     public var provenance: String?
 
     public init(
@@ -166,16 +116,14 @@ public struct FactCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// What the user had selected, if anything.
+/// Selection, if any.
 public struct SelectionCapture: Codable, Hashable, Sendable {
     public var place: String
     public var application: CapturedApplication?
     public var text: String
-    /// Whether the selection was truncated by the injection budget.
+    /// Truncated by injection budget.
     public var truncated: Bool
-    /// The evidence channel it arrived through — a token; the distinction
-    /// between "the app told us" and "we inferred it" is what decides whether
-    /// a selection may authorize a mutation.
+    /// Evidence-channel token. App-told vs inferred gates mutation.
     public var channel: String?
     public var capturedAt: Date
 
@@ -196,11 +144,11 @@ public struct SelectionCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// WHAT THE QUERY REQUIRED, as tokens.
+/// Query needs, as tokens.
 public struct NeedCapture: Codable, Hashable, Sendable {
-    /// Ability ids the utterance asked for.
+    /// Ability ids named by the utterance.
     public var abilities: [String]
-    /// The discipline a cue named, when one did.
+    /// Discipline a cue named, if any.
     public var discipline: String?
 
     public init(abilities: [String] = [], discipline: String? = nil) {
@@ -217,19 +165,16 @@ public struct NeedCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// ONE APPLICATION THAT COULD HAVE SERVED, and the evidence about it.
+/// One candidate application and its evidence.
 public struct CandidateCapture: Codable, Hashable, Sendable {
-    /// Place token — see the file header on why this is not a place type.
+    /// Place token.
     public var place: String
-    /// The needed abilities this one declares — the intersection, so an
-    /// application conforming to two needs appears once carrying both.
+    /// Intersection of needed abilities this app declares.
     public var conformsByAbilities: [String]
     public var conformsByDiscipline: Bool
     public var targetClasses: [String]
     public var hasEyes: Bool
-    /// The strongest live signal for this place and its age, when there was
-    /// one. Absent means the user had done nothing here recently — which is
-    /// usually why a conforming candidate lost.
+    /// Strongest live signal + age. Nil = nothing recent here.
     public var evidence: String?
     public var evidenceAgeSeconds: Double?
 
@@ -270,31 +215,19 @@ public struct CandidateCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// WHAT COULD HAVE SERVED, AND WHERE IT LANDED — the judgement half of the
-/// input.
-///
-/// The surfaces and facts above record what Mary could SEE. This records what
-/// she could USE, which is a different question and the one a future model
-/// has to learn: a row saying "she typed into TextEdit" teaches an
-/// association, and the same row saying "three applications conformed to
-/// writing, TextEdit led on an activation four seconds old, the other two
-/// were cold" teaches the choice.
+/// What could serve the need, and where it landed. See vs use.
 public struct RealmCapture: Codable, Hashable, Sendable {
 
-    /// What the query required.
+    /// Query requirements.
     public var need: NeedCapture
 
-    /// Everything that could have served it, in the resolver's order.
+    /// Candidates in resolver order.
     public var candidates: [CandidateCapture]
 
-    /// The place that won, as a token. Nil is a real observation: a turn can
-    /// name a need, find applications that conform, and still point at
-    /// nothing — nobody is in any of them and the user named none.
+    /// Winning place token. Nil is observed: need named, nobody pointed.
     public var place: String?
 
-    /// WHICH SIGNAL CHOSE — named, deictic, frontmost, pinned. "TextEdit,
-    /// because it was named" and "TextEdit, because it was in front" are
-    /// different turns to learn from even when the place is identical.
+    /// Choosing signal: named, deictic, frontmost, pinned.
     public var decidedBy: String?
 
     public init(
@@ -321,41 +254,24 @@ public struct RealmCapture: Codable, Hashable, Sendable {
     }
 }
 
-/// Everything the model was given about the world for one turn.
+/// World as injected for one turn.
 public struct AmbientCapture: Codable, Hashable, Sendable {
 
-    /// How ranking chose what to include — token for the ranking mode.
+    /// Ranking-mode token.
     public var mode: String
 
-    /// The place that led the turn, if one did. Token; nil when nothing led.
+    /// Leading place token. Nil if nothing led.
     public var lead: String?
 
     public var surfaces: [SurfaceCapture]
     public var facts: [FactCapture]
     public var selection: SelectionCapture?
 
-    /// WHAT COULD HAVE SERVED THE NEED, and where it landed.
-    ///
-    /// Nil until the resolver that computes a realm exists — it needs the
-    /// capability index, the roster and the focus signal together, which
-    /// arrive with the brain. Nil here means "nobody worked out the
-    /// candidates", never "there were none"; an empty `candidates` inside a
-    /// present realm is the second thing, and the two are different rows.
-    ///
-    /// `lead` above stays and is not redundant: it is the place the prompt
-    /// actually used. When both exist they must agree, and that is pinned —
-    /// a dataset that disagreed with the prompt about the where would teach
-    /// the wrong lesson confidently.
+    /// Realm judgement. Nil = not computed; empty candidates = none.
+    /// PIN: when present, must agree with `lead`.
     public var realm: RealmCapture?
 
-    /// THE RENDERED TEXT, exactly as it reached the prompt.
-    ///
-    /// Kept alongside the structured form rather than instead of it, and both
-    /// halves earn their place. The structure is what a future model should
-    /// learn to act on; these strings are what this build's model actually
-    /// read. Keeping both means a disagreement between them — a renderer
-    /// change that quietly alters what the model sees — is visible in the
-    /// data instead of invisible.
+    /// Prompt text as rendered. Kept beside structure so renderer drift is visible.
     public var renderedSurfaceLines: [String]
     public var renderedBlocks: [String]
     public var renderedMentions: [String]
@@ -382,8 +298,7 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
         self.renderedMentions = renderedMentions
     }
 
-    /// A capture that was assembled and found nothing. Distinct from a nil
-    /// capture, which means none was assembled — see the file header.
+    /// Assembled, found nothing. Distinct from nil (none assembled).
     public static func empty(mode: String) -> AmbientCapture {
         AmbientCapture(mode: mode)
     }
@@ -394,9 +309,7 @@ public struct AmbientCapture: Codable, Hashable, Sendable {
             && renderedMentions.isEmpty
     }
 
-    /// Every field of this capture, pretty-printed — for surfaces that let a
-    /// person inspect exactly what the model was given, not just the query
-    /// that rode alongside it.
+    /// Pretty-print for inspector surfaces.
     public var prettyJSON: String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]

@@ -2,12 +2,9 @@
 //  DebuggerMinimapViewModel.swift
 //  Mary
 //
-//  Bridges the capture actor to SwiftUI while the pane is open — 1 s poll,
-//  AbilityExecutionLogViewModel's shape. NEVER Granite @Store: the 200 ms debounce
-//  would blur a realtime minimap (the standing doctrine — Debugger.Center
-//  holds only click-scoped state). Perception captions are NOT built here:
-//  PerceptionSnapshotViewModel's cards are the single source for what the
-//  watchers see; this model owns pixels and the app roster only.
+//  WHAT: Capture-actor → SwiftUI while pane open (1 s poll). Pixels + app roster.
+//  OUT:  DebuggerPaneView. Perception captions live on PerceptionSnapshotViewModel.
+//  PIN:  Never Granite @Store.
 //
 
 import AppKit
@@ -27,32 +24,16 @@ final class DebuggerMinimapViewModel: ObservableObject {
     private var iconCache: [pid_t: NSImage] = [:]
     private var ticking = false
 
-    /// POLL INPUTS, not state. Debugger.Center is the single writer and the
-    /// single source the pane RENDERS from; these are the pushed copies the
-    /// 1 Hz tick needs to parameterise the actor call, written only by
-    /// `setFilter`/`setCaptureScope` and never read back for display. Holding
-    /// the selection in both places as *state* is the duplication the
-    /// pin-badge bug taught (see DebuggerPaneView.isPinned).
+    /// Poll inputs, not display state. Center is the single writer the pane renders from.
     private var filter: EyesFilter = .all
     private var captureScope: CaptureScope = .all
 
-    /// Mary's actual eyes, in watched-first display order. DERIVED, not
-    /// re-listed: `PerceptionWorld.watched` excludes recognizable unavailable
-    /// cards such as Keynote and bridges to `AmbientWorld.hasEyes` — the one
-    /// spelling of the live-observer set. A hand-typed copy here was the
-    /// fifth spelling of the same three app names, and the header below
-    /// records what that costs: a narrower predicate than focus's sorted a
-    /// live-tracked build out of the watched group. Internal (not private)
-    /// because the pane's "Eyes" tab must ask THIS list what counts as
-    /// watched.
+    /// Watched-first eyes. Derived from PerceptionWorld.watched (the live-observer set).
     static var watchedBundleIDs: [String] {
         PerceptionWorld.watched.map(\.representativeBundleID)
     }
 
-    /// THE DECLARED PROCESS FAMILIES of the watched applications — what a
-    /// single hardcoded Scrivener prefix used to be. Read from the roster, so
-    /// a taught application's Setapp build tiles into its own slot instead of
-    /// appearing as an app Mary has never heard of.
+    /// Declared process families from the roster (Setapp builds tile with their app).
     static var watchedBundlePrefixes: [String] {
         AmbientApplicationIndexProvider.current.all
             .filter(\.hasEyes)
@@ -123,10 +104,7 @@ final class DebuggerMinimapViewModel: ObservableObject {
     // MARK: - The 1 Hz tick
 
     private func tick() async {
-        // A tab click sweeps immediately, so two ticks can overlap while the
-        // actor is mid-screenshot; the later one would republish a staler
-        // model over the fresher one. One sweep at a time — a skipped tick
-        // costs a second, a reordered one costs the user's trust.
+        // One sweep at a time so a later tick cannot republish a staler model.
         guard !ticking else { return }
         ticking = true
         defer { ticking = false }
@@ -142,10 +120,7 @@ final class DebuggerMinimapViewModel: ObservableObject {
                 watchedBundleIDs: Self.watchedBundleIDs,
                 watchedBundlePrefixes: Self.watchedBundlePrefixes,
                 uncappedGroupID: filter.uncappedGroupID,
-                // Computed off the PREVIOUS sweep's groups: the actor needs
-                // the scope before it enumerates, and group ids are stable
-                // across sweeps (bundle id, else pid) — a brand-new app is
-                // simply out of scope for the one tick it takes to appear.
+                // Scope from previous groups; new apps wait one tick.
                 captureGroupIDs: filter.captureGroupIDs(
                     scope: captureScope, groups: model.groups,
                     watchedBundleIDs: Self.watchedBundleIDs,

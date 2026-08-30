@@ -2,9 +2,8 @@
 //  StreamingUtteranceView.swift
 //  Mary
 //
-//  The in-flight reply: three pulsing dots while the model deliberates, then
-//  the Void streaming look — paragraphs revealing char-by-char with a
-//  blinking " |" cursor. Ported verbatim from Gita's StreamingPassageView.
+//  WHAT: In-flight reply — dots, then char-by-char with blinking cursor.
+//  IN:   ConversationStreamViewModel
 //
 
 import SwiftUI

@@ -2,17 +2,9 @@
 //  DeclaredTextAX.swift
 //  MaryPlugin
 //
-//  FINDING THE DECLARED TEXT ELEMENT IN A FOCUSED WINDOW — the expensive
-//  walk code and prose both pay, once.
-//
-//  PAIR SESSION. This is the locate after `SurfacePollTarget`'s pid, not a
-//  merger of write policy. Code still writes on disk; prose still sets AX
-//  text. Media transport is a different question and stays on MediaSurfaceAX.
-//
-//  Same Surface shape, same messaging timeout, same body cap, same "declared
-//  role, never text-shaped." `preferFocusedElement` is the code family's
-//  split-pane pick; prose leaves it false (largest of the declared role).
-//
+//  WHAT: Locate the declared text element in a focused window.
+//  IN:   SurfacePollTarget pid  OUT: CodeSurfaceAX | ProseSurfaceAX
+//  PIN:  Locate only. Write policy stays on the family writers.
 
 import AppKit
 import ApplicationServices

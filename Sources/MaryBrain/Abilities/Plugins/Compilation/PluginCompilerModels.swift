@@ -2,17 +2,14 @@
 //  PluginCompilerModels.swift
 //  MaryBrain
 //
-//  Split out of PluginCompiler.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Model types for PluginCompiler.
+//  IN:   PluginCompiler.swift (sibling split)
+//  OUT:  compilation records / availability
 //
-
 import MaryFoundation
 import Foundation
 
-/// One concrete implementation of a provider-neutral Skill. The reference is
-/// kept separate from the authored Skill so installing Sketch can realize a
-/// Design Skill without rewriting `design.mary` or making Design depend on
-/// Sketch.
+/// One concrete implementation of a provider-neutral Skill.
 public struct PluginSkillBindingRealization: Hashable, Sendable, Identifiable {
     public var originPackageID: PackageID
     public var skillID: SkillID
@@ -36,10 +33,7 @@ public struct PluginSkillBindingRealization: Hashable, Sendable, Identifiable {
     }
 }
 
-/// Immutable output of compiling the Dynamic Plugins in one active Ability
-/// graph. This layer contains no closures, event taps, or process
-/// handles. A later trusted interpreter may execute the package recipes, while
-/// routing and presentation consume these values immediately.
+/// Immutable output of compiling the Dynamic Plugins in one active Ability graph. This layer contains no closures, event taps, or process handles.
 public struct PluginCompilation: Sendable {
     public var adapterManifests: [InstalledAdapterManifest]
     public var skillRealizations: [PluginSkillBindingRealization]

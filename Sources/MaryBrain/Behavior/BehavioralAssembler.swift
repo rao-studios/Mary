@@ -2,35 +2,11 @@
 //  BehavioralAssembler.swift
 //  MaryBrain
 //
-//  THE THING THAT KNOWS WHICH TURN AN ACTION BELONGS TO.
+//  WHAT: Which turn an action belongs to — open episode, records, seal.
+//  IN:   lane emits (sync) + prompt-provider stage
+//  OUT:  BehavioralRecording
+//  PIN:  Lock-boxed class, not an actor. Stage/claim like RetrievalTraceLedger.
 //
-//  One episode is one USER TURN: the query, the ambient context that was
-//  actually injected for it, and every action that turn produced. This holds
-//  the open one, takes records as they settle, and hands the finished episode
-//  to whatever is recording.
-//
-//  A LOCK-BOXED CLASS, NOT AN ACTOR. Records arrive from synchronous lane
-//  emits — a veto refusing a call, a deterministic press — and an actor would
-//  push `await` into every one of those sites. The state is four small fields
-//  behind one lock; making the whole turn loop asynchronous to protect them
-//  would be a poor trade.
-//
-//  STAGE AND CLAIM, mirroring `RetrievalTraceLedger`, and for the identical
-//  reason: the system-prompt provider is zero-arg (`@Sendable () -> String`),
-//  so it cannot name the turn it is building for. Threading an id through that
-//  seam would widen a closure five installs share for one observer's benefit.
-//  The provider stages the capture; the turn loop claims it onto the episode
-//  it opens a few statements later. Single producer, single consumer, both on
-//  the brain actor — a stage can never belong to any turn but the one that
-//  claims next, and a stale stage is DISCARDED rather than attached, because a
-//  row lying about which query earned its context is worse than a thin row.
-//
-//  NOTHING IS EVER DELETED. Episodes are a record of what was DONE, and an
-//  action that ran is a fact about the world whether the turn that ordered it
-//  was cancelled, superseded, or completed. Every seal carries a reason, and
-//  filtering on that reason is the reader's job.
-//
-
 import Foundation
 import MaryFoundation
 import os
@@ -73,10 +49,6 @@ public final class BehavioralAssembler: @unchecked Sendable {
     // MARK: - The input half
 
     /// Stage the capture built during this turn's prompt construction.
-    ///
-    /// A SECOND STAGE REPLACES THE FIRST. Two prompt builds with no episode
-    /// opened between them means the first turn never got off the ground; its
-    /// capture describes a query that was never asked.
     public func stageCapture(_ capture: AmbientCapture) {
         box.withLock { $0.stagedCapture = capture }
         let count = capture.facts.count
@@ -87,9 +59,6 @@ public final class BehavioralAssembler: @unchecked Sendable {
     }
 
     /// Attach the staged capture to the open episode.
-    ///
-    /// The stage is cleared EVEN WHEN there is no episode to attach it to —
-    /// see the header on why a stale stage is dropped rather than kept.
     public func claimStagedCapture(forEpisode id: UUID) {
         enum Claim { case none, claimed, noOpen, wrongEpisode }
         let outcome: Claim = box.withLock { state in
@@ -138,11 +107,6 @@ public final class BehavioralAssembler: @unchecked Sendable {
     // MARK: - Lifecycle
 
     /// Open the episode for one user turn.
-    ///
-    /// AN OPEN EPISODE FOUND HERE IS SEALED `.superseded`, not dropped. It
-    /// reaches this state on the amend path, which yields no event of its own
-    /// — the turn is simply replaced — and whatever it already did really
-    /// happened.
     public func openEpisode(
         id: UUID,
         query: String,
@@ -178,11 +142,6 @@ public final class BehavioralAssembler: @unchecked Sendable {
     }
 
     /// Record one settled action.
-    ///
-    /// - Parameter episodeID: nil means the open episode. A detached routine
-    ///   passes its ORIGIN id explicitly, because it may well land after the
-    ///   turn that started it has been replaced by another — and its work
-    ///   belongs to the turn that ordered it.
     public func append(_ record: BehavioralActionRecord, toEpisode episodeID: UUID? = nil) {
         let kept: Bool = box.withLock { state in
             guard var open = state.open,
@@ -252,12 +211,6 @@ public final class BehavioralAssembler: @unchecked Sendable {
     }
 
     /// Seal the episode.
-    ///
-    /// DEFERRED WHILE ROUTINES RUN. A turn that kicked off background work is
-    /// not finished when the spoken reply ends; sealing there would file the
-    /// routine's own actions under whatever turn came next. The brain's
-    /// routine watchdog guarantees every detached routine terminates, so the
-    /// deferral cannot outlive the process.
     public func seal(
         _ id: UUID, reason: EpisodeSealReason, at date: Date = Date()
     ) {
@@ -291,11 +244,7 @@ public final class BehavioralAssembler: @unchecked Sendable {
     }
 
     /// Seal whatever is open, whoever it belongs to — the quit path.
-    ///
-    /// IN-FLIGHT ACTIONS ARE ALREADY `.unsettled` by construction: a record is
-    /// composed once, when its dispatch returns, so an action still running at
-    /// quit has no record at all rather than a wrong one. What this saves is
-    /// everything that DID settle before the signal.
+    /// IN-FLIGHT ACTIONS ARE ALREADY `.unsettled` by construction: a record is composed once, when its dispatch returns
     public func flushOpenEpisodes(
         reason: EpisodeSealReason = .appQuit, at date: Date = Date()
     ) {

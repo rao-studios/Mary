@@ -2,27 +2,9 @@
 //  BehaviorFixtures.swift
 //  MaryFoundationTestSupport
 //
-//  ONE REALISTIC EPISODE, BUILT IN SWIFT.
-//
-//  The episode below is what Mary's first real turn should look like: the
-//  user asks her to write something into TextEdit, the ambient capture holds
-//  the TextEdit window she was looking at with its text area and frame, and
-//  the output is one `type_at_cursor` action naming the typer adapter and the
-//  element it typed into. Every test that needs "an episode" starts here and
-//  changes the one field it is about, so a failure names one cause.
-//
-//  FIXED DATES AND UUIDS, deliberately. A byte-stability test cannot use
-//  `Date()` or `UUID()` — it would pass for the wrong reason on the first run
-//  and fail on the second. These constants are also what makes an encoded
-//  episode diffable by eye when a schema change lands.
-//
-//  THE FRACTIONAL OFFSETS ARE ALL EXACT BINARY FRACTIONS (.5, .25, .125),
-//  which is not fussiness. The codec stores millisecond precision, and a Date
-//  built from something like `-1.2` is a Double that is NOT exactly
-//  1,000ths — it formats to `.800` and parses back to a value one ulp away,
-//  so a round-trip equality test fails for a reason that has nothing to do
-//  with the codec. Offsets that land on exact binary fractions round-trip
-//  bit-for-bit, so the test measures what it claims to.
+//  WHAT: One realistic BehavioralEpisode built in Swift. Tests mutate one field.
+//  IN:   MaryFoundation behavioral types.
+//  OUT:  Tests/. PIN: Fixed dates and UUIDs for byte-stability.
 //
 
 import Foundation
@@ -43,12 +25,7 @@ public enum BehaviorFixtures {
 
     // MARK: - Geometry
 
-    /// The TextEdit document's text area — where the typing landed.
-    ///
-    /// `center` is passed rather than derived: MaryFoundation carries no
-    /// geometry math at all (the projector computes it once so no consumer
-    /// re-derives it differently), so a fixture supplies it the same way a
-    /// real producer does.
+    /// TextEdit text area. Center passed in (no geometry math in MaryFoundation).
     public static var textAreaFrame: AXFrame {
         AXFrame(
             space: .axGlobalTopLeft,
@@ -69,9 +46,7 @@ public enum BehaviorFixtures {
             capturedAt: capturedAt)
     }
 
-    /// The acted element. `identity` is `role.lowercased() + "|" +
-    /// normalized(label)` — a text area carries no label, hence the bare
-    /// trailing separator, which is the real spelling and not an oversight.
+    /// Acted element. identity is role|label; empty label keeps the trailing `|`.
     public static var textArea: AXElementRecord {
         AXElementRecord(
             identity: "axtextarea|",
@@ -90,8 +65,7 @@ public enum BehaviorFixtures {
 
     // MARK: - The input half
 
-    /// What Mary could see: one TextEdit window, one fact about it, no
-    /// selection.
+    /// One TextEdit window, one fact, no selection.
     public static var textEditCapture: AmbientCapture {
         AmbientCapture(
             mode: "focusedWorld",
@@ -124,9 +98,7 @@ public enum BehaviorFixtures {
 
     // MARK: - The output half
 
-    /// The Skill that answered: writing's `type_at_cursor`, fulfilled by the
-    /// typer adapter. A runtime-owned provider, since the typer is a generic
-    /// adapter Mary ships rather than one a package brought with it.
+    /// writing type_at_cursor via typer. Runtime-owned generic adapter.
     public static var typeAtCursorSkill: AbilitySkillReference {
         AbilitySkillReference(
             packageID: "writing",
@@ -202,10 +174,7 @@ public enum BehaviorFixtures {
 
     // MARK: - The realm
 
-    /// WHAT COULD HAVE SERVED, and what won. Two applications conform to
-    /// writing; TextEdit led on a recent activation and Pages was cold. The
-    /// loser is kept deliberately — a row that dropped it would teach the
-    /// association without the choice.
+    /// Two writing candidates; TextEdit led, Pages cold. Keep the loser.
     public static var writingRealm: RealmCapture {
         RealmCapture(
             need: NeedCapture(abilities: ["typing", "writing"], discipline: "writing"),
@@ -230,7 +199,7 @@ public enum BehaviorFixtures {
 
     // MARK: - Whole episodes
 
-    /// THE CANONICAL EPISODE: asked to write, saw TextEdit, typed into it.
+    /// Canonical: asked to write, saw TextEdit, typed into it.
     public static var typedIntoTextEdit: BehavioralEpisode {
         BehavioralEpisode(
             id: episodeID,
@@ -245,9 +214,7 @@ public enum BehaviorFixtures {
             provenance: .init(engine: "local", lane: "dual", appVersion: "0.1.0"))
     }
 
-    /// A CONFIRMED ACTION SPANS TWO TURNS: the first asks, the second runs.
-    /// Linked by `confirmationID`, chained by `priorEpisodeID`, and carrying
-    /// two different run ids because they are two different invocations.
+    /// Two-turn confirm: ask then run. Same confirmationID; different run ids.
     public static var confirmationPair: (asked: BehavioralEpisode, ran: BehavioralEpisode) {
         let asked = BehavioralEpisode(
             id: episodeID,
@@ -267,10 +234,7 @@ public enum BehaviorFixtures {
         ranRecord.summary = "Deleted the opening paragraph of Essay."
         ranRecord.undoable = true
 
-        // The confirming turn is a bare "yes": deterministic, so no prompt is
-        // built and no context is assembled. `ambient: nil` is the honest
-        // record of that — the context that earned the action lives in the
-        // asking episode, reachable by the link.
+        // Bare "yes" — no prompt. ambient nil; context lives on the asking episode.
         let ran = BehavioralEpisode(
             id: UUID(uuidString: "22222222-3333-4444-5555-666666666666")!,
             openedAt: openedAt.addingTimeInterval(6),

@@ -2,17 +2,11 @@
 //  AmbientElementIndexStore.swift
 //  MaryAmbient
 //
-//  WHERE THE PER-SCOPE INDEXES LIVE. One lock-boxed singleton, mirroring
-//  `ArtifactLedger`'s shape: worlds write records at their existing
-//  funnels (`noteElements`), the reference gate reads immutable snapshots.
+//  WHAT: Where the per-scope indexes live. Worlds write; the reference gate reads snapshots.
+//  IN:   noteElements at each world's write funnel
+//  OUT:  AmbientReferenceGate / AffordanceProbe / AmbientAddressProbe
+//  PIN:  Vectorization never happens under the lock. Last write wins.
 //
-//  LOCK DISCIPLINE — the load-bearing design: vectorization NEVER happens
-//  under the lock. `noteElements` snapshots the memoization cache under the
-//  lock, vectorizes cache-misses outside it, then swaps the rebuilt index
-//  under it. Concurrent writers race benignly: last write wins, and both
-//  were derived from real reads.
-//
-
 import Foundation
 import os
 
@@ -27,10 +21,9 @@ public final class AmbientElementIndexStore: @unchecked Sendable {
     private struct State: Sendable {
         var vectorizer: (any AmbientTextVectorizer)?
         var indexes: [AmbientElementScope: AmbientElementIndex] = [:]
-        /// When each scope last published. `noteElements` replaces wholesale
-        /// but nothing here expires, so without a stamp a browser that quit
-        /// an hour ago would keep answering — and a stale index is a
-        /// confidently wrong referent, worse than none.
+        /// When each scope last published. `noteElements` replaces wholesale but nothing here
+        /// expires, so without a stamp a browser that quit an hour ago would keep answering — and a
+        /// stale index is a confidently wrong referent, worse than none.
         var notedAt: [AmbientElementScope: Date] = [:]
         var vectorCache: [String: [Float]] = [:]
         /// Insertion-ordered keys for cheap oldest-first eviction.
@@ -87,11 +80,7 @@ public final class AmbientElementIndexStore: @unchecked Sendable {
         box.withLock { state in state.indexes[scope] }
     }
 
-    /// Scopes that published records recently enough to still describe the
-    /// world. The address probe's candidate list comes from HERE rather than
-    /// from whatever already leads the turn: an application the user is
-    /// talking about but has not yet been routed to is exactly the case the
-    /// probe exists for, so candidacy must follow publication, not focus.
+    /// Scopes that published records recently enough to still describe the world.
     public func activeScopes(
         freshWithin horizon: TimeInterval, at now: Date = Date()
     ) -> [AmbientElementScope] {

@@ -1,3 +1,12 @@
+//
+//  PluginApplicationLocator.swift
+//  MaryBrain
+//
+//  WHAT: Resolve a Dynamic Plugin's declared process identities.
+//  IN:   package declaration + running processes
+//  OUT:  pid / bundle / verified identity
+//  PIN:  Running identity wins globally.
+//
 import AppKit
 import MaryFoundation
 import Foundation
@@ -49,25 +58,7 @@ public struct PluginApplicationResolution: Hashable, Sendable {
     public var installedURL: URL?
     public var processIdentifier: Int32?
 
-    /// WHETHER THE RUNNING BUILD IS ONE THE PACKAGE WAS CONFORMED AGAINST —
-    /// a fact reported, never a permission withheld.
-    ///
-    /// `supportedReleases` USED TO BE A KILL SWITCH, and it was pointed at an
-    /// application that updates itself. `chrome.mary` declared exactly
-    /// `151.0.7922.109`; Chrome shipped `151.0.7922.138` a few days later and
-    /// every Chrome operation — including `scrollPage`, which is one key —
-    /// refused before Accessibility was even asked, saying the release "is not
-    /// supported by this Ability, so Mary did not acquire a foreground or
-    /// input target". Nothing had actually been tried. The allowlist goes
-    /// stale on a timer no user controls, so as a gate it fails closed on a
-    /// schedule.
-    ///
-    /// It remains genuinely useful as PROVENANCE: it says what a package
-    /// author verified their recipes against, which is worth showing in the
-    /// Ability Explorer and Studio. So the tuple is still declared, validated,
-    /// and displayed, but never affects execution decisions or outcomes. A
-    /// recipe that really cannot survive a new build fails on its own step,
-    /// with its own evidence, which is a truthful report rather than a guess.
+    /// WHETHER THE RUNNING BUILD IS ONE THE PACKAGE WAS CONFORMED AGAINST — a fact reported, never a permission withheld.
     public var releaseIsVerified: Bool
     /// The build actually observed for presentation. Nil when no release
     /// metadata could be read.
@@ -93,11 +84,6 @@ public struct PluginApplicationResolution: Hashable, Sendable {
 }
 
 /// Resolves the exact process identities declared by a Dynamic Plugin.
-///
-/// Every supported bundle identifier is checked for a running process before
-/// LaunchServices is consulted for an installed bundle. This makes a running
-/// alternate distribution authoritative over an installed-but-idle one and
-/// keeps registration free of launch or activation side effects.
 public struct PluginApplicationLocator: @unchecked Sendable {
     public typealias RunningApplications = @Sendable (String) -> [PluginRunningApplication]
     public typealias InstalledApplicationURL = @Sendable (String) -> URL?
@@ -149,10 +135,7 @@ public struct PluginApplicationLocator: @unchecked Sendable {
     public func resolve(
         _ application: PluginApplicationSchema
     ) -> PluginApplicationResolution {
-        // Running identity wins globally, not merely within each identifier's
-        // running/installed pair. Resolve only a single exact PID: choosing one
-        // of several matching processes by enumeration order would make the
-        // eventual foreground and input target nondeterministic.
+        // Running identity wins globally, not merely within each identifier's running/installed pair.
         var runningMatches: [(String, PluginRunningApplication)] = []
         var matchedProcessIdentifiers = Set<Int32>()
         for bundleIdentifier in application.bundleIdentifiers {
@@ -197,11 +180,6 @@ public struct PluginApplicationLocator: @unchecked Sendable {
         }
 
         // THE FIRST INSTALLED IDENTITY IN DECLARED ORDER, verified or not.
-        // The loop used to SKIP an unverified build and keep looking, which
-        // meant a package declaring both a stable and a beta bundle id would
-        // silently prefer whichever one happened to match a stale tuple.
-        // Declared order is the author's stated preference; drift is reported
-        // rather than used as a tiebreak.
         for bundleIdentifier in application.bundleIdentifiers {
             guard let url = installedApplicationURL(bundleIdentifier) else { continue }
             let release = applicationRelease(url)

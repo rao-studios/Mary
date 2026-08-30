@@ -1,49 +1,30 @@
 //
 //  ModelSkillSchema.swift
+//  MaryPlugin
 //
-//  The neutral description of a callable Skill. Provider adapters render it
-//  into wire-specific tool declarations; a plugin author fills in the
-//  parameters half when declaring a SkillBinding.
-//
-//  Here rather than in the engine for the same reason as SkillOutcome: it is
-//  part of what a plugin DECLARES, and the engine is only its first reader.
+//  WHAT: Neutral description of a callable Skill.
+//  IN:   SkillBinding (plugin authors fill parameters)
+//  OUT:  provider adapters → wire tool declarations
+//  PIN:  Lives with the contract, like SkillOutcome — the engine only reads it.
 //
 
 import Foundation
 
-/// The neutral description of a callable Skill. Provider adapters render it
-/// into wire-specific tool declarations such as ToolSpec or input_schema.
+/// Neutral Skill description. Providers render this into ToolSpec / input_schema.
 public struct ModelSkillSchema: Sendable {
     public struct Parameter: Sendable {
         public var name: String
-        /// JSON Schema type: "string", "boolean", "integer", "number".
+    /// JSON Schema type: "string", "boolean", "integer", "number".
         public var type: String
         public var description: String
         public var required: Bool
         public var enumValues: [String]?
-        /// Inclusive JSON Schema bounds for numeric inputs. Nil means the
-        /// provider does not declare that side of the range.
+        /// Inclusive JSON Schema bounds. Nil = that side undeclared.
         public var minimum: Double?
         public var maximum: Double?
-        /// OTHER NAMES A MODEL PLAUSIBLY WRITES FOR THIS PARAMETER.
-        ///
-        /// THE FAILURE THIS FIXES (live): `bring_window_forward` declares
-        /// `window`; a model asked to raise "Untitled 47" sent
-        /// `{"app":"TextEdit","title":"Untitled 47"}` — `title` is the more
-        /// natural word for a window's name, and it is not wrong, it is just
-        /// not the declared spelling. `reconcile`'s substring heuristic needs
-        /// one name to contain the other, so it could not bridge them; the
-        /// binding coalesced the miss to `""`, and the user was told
-        /// `I couldn't find one open window matching ""` — a refusal over
-        /// vocabulary, reported as a fact about their windows.
-        ///
-        /// These are declared rather than guessed, and matched EXACTLY (case
-        /// -insensitively) rather than by containment, because the loose test
-        /// is what let a correctly-placed value be copied into a sibling
-        /// parameter — see `reconcile`'s own note about `fill` / `fill_type`.
-        /// They are never sent to the model: the wire schema advertises the
-        /// declared name alone, so an alias is a rescue for a call already
-        /// made, not a second spelling the model is invited to choose.
+        /// Other names a model may write. Matched exactly (case-insensitive).
+        /// PIN: never sent on the wire — rescue for a call already made.
+        ///      Containment matching copied values into sibling parameters.
         public var aliases: [String]
 
         public init(

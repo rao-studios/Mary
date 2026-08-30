@@ -2,14 +2,11 @@
 //  SeerVisionClient.swift
 //  MaryBrain
 //
-//  One bounded look through Seer's vision route. The ephemeral screenshot
-//  goes up as base64 JSON, the description comes back as one JSON body —
-//  no streaming, no retention. Auth follows SeerChatClient exactly: bearer
-//  from the shared session, one refresh-and-retry on 401. There is NO local
-//  fallback — no on-device vision model exists — so every failure maps to a
-//  typed error the faculty turns into an honest spoken refusal.
+//  WHAT: One bounded look through Seer's vision route.
+//  IN:   ScreenLookFaculty (base64 screenshot)
+//  OUT:  JSON description
+//  PIN:  No local fallback; every failure is a typed error.
 //
-
 import Foundation
 
 /// Injectable POST seam, the non-streaming sibling of `SeerSSETransport`.
@@ -114,10 +111,8 @@ public actor SeerVisionClient {
 // MARK: - URLSession transport
 
 public struct URLSessionVisionTransport: SeerVisionTransport {
-    /// A small dedicated session — never `URLSession.shared` (its resource
-    /// timeout is seven days) and deliberately not `StreamingHTTP.session`
-    /// (a describe hanging that session's 300 s idle window would starve
-    /// the turn). One non-streaming POST: 30 s idle, 120 s wall clock.
+    /// A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and deliberately not `StreamingHTTP.session` (a describe hanging…
+    /// PIN: A small dedicated session — never `URLSession.shared` (its resource timeout is seven days) and deliberately not…
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 30

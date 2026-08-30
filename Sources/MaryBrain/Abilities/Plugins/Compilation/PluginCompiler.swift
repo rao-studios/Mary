@@ -1,16 +1,18 @@
+//
+//  PluginCompiler.swift
+//  MaryBrain
+//
+//  WHAT: Compile Dynamic Plugin declarations into Native-shaped contracts.
+//  IN:   package PluginSchema + injected grant resolver
+//  OUT:  frozen PluginCompilation / availability
+//  PIN:  Pure; live grants enter only through the resolver.
+//
 import MaryFoundation
 import Foundation
 
-/// Turns package-carried Dynamic Plugin declarations into the same value
-/// contracts used by Mary's Native Plugins. Compilation is deliberately
-/// pure: live machine grants enter through the injected resolver and the
-/// resulting availability is frozen into the manifest.
+/// Turns package-carried Dynamic Plugin declarations into the same value contracts used by Mary's Native Plugins.
 public enum PluginCompiler {
-    /// Exact identity of one provider asking Mary to resolve its declared
-    /// machine authority. Production currently answers from Mary's live
-    /// allowlisted macOS grants; hosts that persist narrower decisions can key
-    /// them by this complete value so a changed package never inherits an old
-    /// adapter-wide decision.
+    /// Exact identity of one provider asking Mary to resolve its declared machine authority.
     public struct PermissionRequest: Hashable, Sendable {
         public var adapterID: AdapterID
         public var applicationID: String
@@ -45,12 +47,7 @@ public enum PluginCompiler {
 
     public typealias GrantedPermissionResolver = @Sendable (PermissionRequest) -> Set<PermissionKind>
 
-    /// - Parameters:
-    ///   - packages: The complete, already-selected active Ability graph.
-    ///   - nativeAdapterManifests: Native IDs are reserved. A package cannot
-    ///     replace or decorate a compiled Mary adapter by choosing its ID.
-    ///   - grantedPermissions: Machine truth, normally supplied by Mary's
-    ///     permission center. Values not requested by the package are ignored.
+    /// - Parameters: - packages: The complete, already-selected active Ability graph. - nativeAdapterManifests: Native IDs are reserved.
     public static func compile(
         packages: [MaryAbilityPackage],
         nativeAdapterManifests: [InstalledAdapterManifest],
@@ -65,10 +62,7 @@ public enum PluginCompiler {
             return PluginCompilation(issues: graphIssues)
         }
 
-        // Settings controls which Native providers execute, never which Native
-        // identities exist. The full compiled catalog remains reserved so a
-        // Dynamic package cannot claim a disabled Native app and make toggling
-        // that app back on invalidate the Ability graph.
+        // Settings controls which Native providers execute, never which Native identities exist.
         let reservedManifests = reservedNativeAdapterManifests ?? nativeAdapterManifests
         let reservedProfiles = reservedNativeApplicationProfiles ?? nativeApplicationProfiles
         let nativeAdapterIDs = Set(reservedManifests.map(\.adapterID))
@@ -95,29 +89,7 @@ public enum PluginCompiler {
             },
             uniquingKeysWith: { first, _ in first })
 
-        // WHICH ABILITIES CLAIM EXPERTISE IN WHICH APPLICATION, read from the
-        // channel the schema already provides.
-        //
-        // THE INCIDENT THIS CLOSES. Scrivener moved from a native plugin to a
-        // Dynamic package, and the native plugin had carried
-        // `abilities: [.writing]`. The Dynamic profile is built below from the
-        // package's own ability id plus its realization owners — all of which
-        // are `scrivener` — so the profile that matches
-        // `com.literatureandlatte.scrivener3` no longer contained `.writing`.
-        // `AmbientEngine.classify` reads exactly that field to decide whether
-        // an action turn in this app is `compose` or `operate`, so every
-        // dictated sentence in Scrivener classified as `operate`, the Writing
-        // Ability's own routing policy admits only `compose`/`revise`/a live
-        // selection, and `type_at_cursor` was refused at dispatch with "does
-        // not match its Ability-level routing policy". Writing into a
-        // manuscript became impossible; Pages and TextEdit were fine, because
-        // their native plugins still carry both the bundle id and `.writing`.
-        //
-        // `writing.mary` already declares Scrivener in `ability.applications`
-        // — a discipline naming an application is making the same claim a
-        // native plugin makes with `abilities`. It simply was not being read
-        // here. Keyed by application id AND by bundle identifier, because the
-        // two packages need not agree on the id.
+        // WHICH ABILITIES CLAIM EXPERTISE IN WHICH APPLICATION, read from the channel the schema already provides.
         var affinityAbilities: [String: Set<AbilityID>] = [:]
         for package in packages {
             for affinity in package.applicationAffinities {
@@ -496,10 +468,7 @@ public enum PluginCompiler {
             targetClasses: Set(plugin.application.targetClasses),
             skills: skills,
             guidance: nil,
-            // PERCEPTION ONLY IF THE PROVIDER IS AVAILABLE. Recognition and
-            // execution are deliberately separate everywhere else here. The
-            // Dynamic claim is only Mary's generic Accessibility perception;
-            // no package operation is ever scheduled in the background.
+            // PERCEPTION ONLY IF THE PROVIDER IS AVAILABLE. Recognition and execution are deliberately separate everywhere else here.
             perception: providerIsAvailable
                 ? perception(from: plugin.application.perception,
                              proseSurface: plugin.proseSurface,
@@ -507,45 +476,14 @@ public enum PluginCompiler {
                              mediaSurface: plugin.mediaSurface,
                              corpus: plugin.corpus)
                 : nil,
-            // WHAT THIS APPLICATION CALLS ITS DOCUMENTS, straight from the
-            // declaration. The word reaches the window classifier and the
-            // spoken register from here — one source, so the word Mary
-            // listens for and the word she says back are the same word.
+            // WHAT THIS APPLICATION CALLS ITS DOCUMENTS, straight from the declaration.
             documentNoun: plugin.proseSurface?.documentNoun.singular)
-        // `ApplicationProfile` includes a Native Plugin's display title as a
-        // convenience alias. Dynamic display text is not a routing grant;
-        // only the portable id and separately validated aliases may match an
-        // utterance.
+        // `ApplicationProfile` includes a Native Plugin's display title as a convenience alias.
         profile.aliases = routingAliases.union([plugin.application.id])
         return profile
     }
 
-    /// A package projects MARY-OWNED perception only: the generic
-    /// Accessibility reader, and — when it declares a prose surface, a code
-    /// surface, a media surface, or a corpus — Mary's own document reader.
-    /// `documentOperation` stays nil in every arm, because a package-supplied
-    /// operation is the one thing that would put package code on a
-    /// background timer against the user's document.
-    ///
-    /// ANY OF THE FOUR CHANNELS SATISFIES A WORKSPACE CLAIM, on
-    /// `PluginValidator+Validate`'s same reasoning (search that file for "A
-    /// CODE SURFACE IS THE FOURTH"): a code editor earns eyes through its
-    /// live buffer exactly as a prose editor does through its live document,
-    /// a media player earns them through its transport, and an application
-    /// whose work lives in files earns them through its corpus — refusing
-    /// any one of the four a claim the others get would be arbitrary. This
-    /// mirrors the validator's four-channel policy exactly; it must not drift
-    /// from it again — that drift (this function only ever checked
-    /// `proseSurface`/`codeSurface`, never updated when `corpus` and
-    /// `mediaSurface` joined the validator's policy) is what silently denied
-    /// `scrivener.mary` and `apple-music.mary` the eyes their own packages
-    /// had already earned.
-    ///
-    /// THE SURFACE IS CHECKED HERE, NOT ONLY IN THE VALIDATOR. The validator
-    /// refuses the package at admission; this refuses the CLAIM at
-    /// compilation, so a graph that somehow reached this point without any
-    /// of the four channels degrades to selection-only rather than being
-    /// handed eyes with nothing behind them.
+    /// A package projects MARY-OWNED perception only: the generic Accessibility reader, and
     private static func perception(
         from schema: PluginApplicationPerceptionSchema?,
         proseSurface: PluginProseSurfaceSchema?,

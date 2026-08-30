@@ -2,9 +2,10 @@
 //  ProjectGitAdapter.swift
 //  MaryPlugin
 //
-//  GIT, KEYED OFF THE LIVE PROJECT ROOT. The operations Bonnie's native
-//  editor plugin exposed — status, diff, log, stash-undo, commit, push —
-//  without naming an application or restoring unbound `run_shell`.
+//  WHAT: Git at the live project root.
+//  IN:   ProjectRootResolver
+//  OUT:  status / diff / log / stash-undo / commit / push
+//  PIN:  No application name; no unbound run_shell.
 //
 
 import Foundation

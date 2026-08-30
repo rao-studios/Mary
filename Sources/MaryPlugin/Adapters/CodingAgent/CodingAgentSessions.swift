@@ -2,9 +2,10 @@
 //  CodingAgentSessions.swift
 //  MaryPlugin
 //
-//  Session handles C1, C2, … plus background vs awaited delivery. The
-//  backend is injected by Runtime; without a prepared model every skill
-//  refuses toward Settings.
+//  WHAT: Session handles C1, C2, … plus background vs awaited delivery.
+//  IN:   CodingAgentBackend (injected by Runtime)
+//  OUT:  CodingAgentAdapter / completion multicast
+//  PIN:  Unprepared model refuses toward Settings.
 //
 
 import Foundation

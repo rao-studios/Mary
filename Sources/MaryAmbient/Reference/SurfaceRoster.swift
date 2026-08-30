@@ -2,16 +2,11 @@
 //  SurfaceRoster.swift
 //  MaryAmbient
 //
-//  FROZEN-SWAP REGISTRY FOR ANY `SurfaceClaim`. Code, prose, media, and
-//  corpus Support types are facades over this machine: lock, wholesale
-//  reconcile, snapshot reads. A package that stops declaring a surface must
-//  stop having one — a merge would leave the old declaration answering.
+//  WHAT: Frozen-swap registry for any SurfaceClaim.
+//  IN:   package declarations
+//  OUT:  resolve → SurfacePollTarget.pairHit
+//  PIN:  Wholesale reconcile, never merge — a dropped declaration must stop answering.
 //
-//  Skill targeting is the pair-session hit asked at call time: named match
-//  (id / displayName / owns) if that process is running, else the standing
-//  workspace while Mary is front, else (media) any running member.
-//
-
 import Foundation
 import os
 

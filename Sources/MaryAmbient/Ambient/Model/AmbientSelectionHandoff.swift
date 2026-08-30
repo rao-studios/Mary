@@ -2,24 +2,18 @@
 //  AmbientSelectionHandoff.swift
 //  MaryBrain
 //
-//  A direct highlight is an interaction, not a document snapshot.  It has to
-//  survive the source application yielding focus to Mary, and it has to
-//  retain the exact source application that produced it.  Application plugins
-//  may enrich this packet with document context; they must not replace it with
-//  a later best guess about the application's current UI.
+//  WHAT: A direct highlight is an interaction packet, not a document snapshot.
+//  IN:   source-owned selection ability
+//  OUT:  AmbientContextStore.recordSelection
+//  PIN:  Survives the source yielding focus to Mary. Plugins enrich; they must not replace.
 //
 
 import MaryFoundation
 import CryptoKit
 import Foundation
 
-/// How the source-selection ability reached the source application.
-///
-/// The channel is diagnostic provenance. It never selects a workspace or
-/// changes routing. Source-evidence strength is intentionally separate: a
-/// lifecycle handoff can read the focused AX element exactly, or it can carry
-/// a bounded discovered descendant. Transport and evidence must not be
-/// conflated.
+/// How the source-selection ability reached the source application. The channel is
+/// diagnostic provenance. It never selects a workspace or changes routing.
 public enum AmbientSelectionCaptureChannel: String, Sendable, Equatable, Codable {
     /// The source application's AX selection-change notification named the
     /// element that changed.
@@ -45,11 +39,8 @@ public enum AmbientSelectionSourceEvidence: String, Sendable, Equatable, Codable
     /// read. This is stronger than an AX element identity because it proves
     /// the workspace/document scope as well as the selected value.
     case documentAtomic
-    /// The source application itself materialized its current selection for a
-    /// command targeted to its verified process. This identifies the selected
-    /// value and application, but not an Accessibility element or document
-    /// range, so it remains reference-only unless another adapter transaction
-    /// independently resolves those bounds.
+    /// The source application itself materialized its current selection for a command targeted
+    /// to its verified process.
     case targetedApplication
     /// The application's focused element, or an AX observer callback naming
     /// the element, supplied the text.
@@ -69,29 +60,19 @@ public enum AmbientSelectionSourceEvidence: String, Sendable, Equatable, Codable
     public var isExact: Bool { rank >= Self.exactElement.rank }
 }
 
-/// Where the selected payload's characters came from when the source element
-/// proved a range but could not return its value. This is deliberately
-/// orthogonal to `AmbientSelectionSourceEvidence`: an exact focused element
-/// remains exact for event ordering even when a specialist must recover its
-/// bytes from an application-owned document transaction. Recovery provenance
-/// can never strengthen mutation authority.
+/// Where the selected payload's characters came from when the source element proved a range
+/// but could not return its value.
 public enum AmbientSelectionPayloadRecovery: String, Sendable, Equatable, Codable {
     /// Pages returned document identity and body at the request boundary; the
     /// adapter sliced the unchanged AX range from that live body.
     case applicationBodyRange
-    /// An opted-in source adapter issued Copy directly to its lifecycle-
-    /// verified process, observed a newly-written nonempty plain-text value,
-    /// and restored the user's pasteboard. Accessibility may additionally
-    /// provide a stable range, but Pages is allowed to omit both selected text
-    /// and range. This is reference-only: a copied payload can never authorize
-    /// a write.
+    /// An opted-in source adapter issued Copy directly to its lifecycle- verified process,
+    /// observed a newly-written nonempty plain-text value, and restored the user's pasteboard.
     case applicationCopy
 }
 
-/// Whether Accessibility says the source text surface can be changed.
-/// Highlighting is always useful as a reference. Mutating it is a separate
-/// capability, and an AX canvas that omits `AXEditable` is intentionally
-/// `unknown` rather than guessed writable.
+/// Whether Accessibility says the source text surface can be changed. Highlighting is
+/// always useful as a reference.
 public enum AmbientSelectionEditability: String, Sendable, Equatable, Codable {
     case editable
     case readOnly
@@ -132,44 +113,30 @@ public struct AmbientSelectionEnrichment: Sendable, Equatable {
     }
 }
 
-/// The canonical, source-owned form of a highlighted piece of text.
-///
-/// `text` deliberately keeps the exact accessibility result. `AmbientFact`
-/// clips for prompt memory; a clip is never allowed to become the selection's
-/// identity or a future write target. `id` makes late document-enrichment
-/// packets harmless: they can only describe the capture they were made for.
+/// The canonical, source-owned form of a highlighted piece of text. `text` deliberately
+/// keeps the exact accessibility result. `AmbientFact` clips for prompt memory; a clip is
+/// never allowed to become the selection's identity or a future write target.
 public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     public static let handoffFreshFor: TimeInterval = 30
 
     public var id: UUID
     public var world: AmbientWorld
-    /// The registered application whose lane this selection belongs to, when
-    /// its world holds more than one. Nil for a built-in world, and nil for an
-    /// app Mary has been told nothing about — those still share the one
-    /// generic `.applications` lane exactly as they always have.
+    /// The registered application whose lane this selection belongs to, when its world holds
+    /// more than one.
     public var application: String?
-    /// Portable, hierarchical identity for everything the source adapter can
-    /// prove. Application-only generic AX packets remain honestly scoped at
-    /// `.application`; specialist adapters may attach workspace/document
-    /// identity without changing the interaction's source ownership.
+    /// Portable, hierarchical identity for everything the source adapter can prove.
     public var scope: SourceScope
     public var applicationID: String
     public var processID: Int32
 
-    /// WHERE this selection came from, as ONE value.
-    ///
-    /// `world` and `application` are two fields answering one question — the
-    /// same split `AmbientRoute` and `AmbientAttention` carry, and the same
-    /// hazard: a reader that consults only the lane gets "somewhere in the
-    /// applications lane" when the actual answer was sitting in the next
-    /// field. Composed rather than stored so the two can never disagree.
+    /// WHERE this selection came from, as ONE value. `world` and `application` are two fields
+    /// answering one question.
     public var place: AmbientPlace {
         application.map(AmbientPlace.application) ?? .lane(world)
     }
-    /// Best-effort fingerprint of the live AX object that supplied the
-    /// interaction. It is not a durable document id; it only distinguishes
-    /// simultaneous title/comment/document surfaces under one PID so one
-    /// surface's caret or fallback poll cannot rewrite another's handoff.
+    /// Best-effort fingerprint of the live AX object that supplied the interaction. It is not a
+    /// durable document id; it only distinguishes simultaneous title/comment/document surfaces
+    /// under one PID so one surface's caret or fallback poll cannot rewrite another's handoff.
     public var sourceSurfaceID: UInt?
     public var text: String
     public var surroundingText: String?
@@ -292,14 +259,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     public var interactionReference: InteractionInstanceReference {
         InteractionInstanceReference(
             id: id,
-            // A CODING PLACE'S SELECTION IS A DIFFERENT KIND OF THING. Its
-            // application-owned capture carries project, document,
-            // buffer range and source identity; calling that a generic prose
-            // selection erases the exact Interaction a coding mutation
-            // contract requires, and an edit becomes unroutable even with a
-            // perfectly good highlight in hand. The DISCIPLINE decides, which
-            // is what Bonnie's `world == .xcode` meant while one compiled
-            // world was the only coding place there was.
+            // A CODING PLACE'S SELECTION IS A DIFFERENT KIND OF THING.
             schemaID: AmbientPlace(world: world, application: application).focus == .coding
                 ? .codeSelection : .textSelection,
             scope: scope,
@@ -316,12 +276,9 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     }
 }
 
-/// The immutable selection snapshot bound to one brain turn.
-///
-/// A task-local scope deliberately distinguishes "this turn began with no
-/// selection" from "this code is not running inside a turn."  Without that
-/// distinction, a highlight that arrives while a request is generating can
-/// leak into that already-submitted request.
+/// The immutable selection snapshot bound to one brain turn. A task-local scope
+/// deliberately distinguishes "this turn began with no selection" from "this code is not
+/// running inside a turn." Without that distinction, a highlight that arrives.
 public struct AmbientSelectionTurnSnapshot: Sendable, Equatable {
     public let handoff: AmbientSelectionHandoff?
 
@@ -329,11 +286,9 @@ public struct AmbientSelectionTurnSnapshot: Sendable, Equatable {
         self.handoff = handoff
     }
 
-    /// An explicit scoped absence.  This is intentionally distinct from an
-    /// absent TaskLocal value: the latter means "not running inside a frozen
-    /// turn" and lets readers consult the process-wide pending handoff.  A
-    /// detached/proactive continuation must see neither the source turn's
-    /// selection nor a selection captured for a later turn.
+    /// An explicit scoped absence. This is intentionally distinct from an absent TaskLocal
+    /// value: the latter means "not running inside a frozen turn" and lets readers consult the
+    /// process-wide pending handoff.
     public static let empty = AmbientSelectionTurnSnapshot(handoff: nil)
 }
 

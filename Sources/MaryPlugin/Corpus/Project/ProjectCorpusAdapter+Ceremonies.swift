@@ -2,28 +2,11 @@
 //  ProjectCorpusAdapter+Ceremonies.swift
 //  MaryPlugin
 //
-//  CHANGING A PROJECT'S SHAPE THROUGH THE APPLICATION'S OWN COMMANDS.
-//
-//  ⚠️ WHY NOT JUST EDIT THE FILES. Because the application has the project
-//  open and autosaves on its own schedule: a write from outside races that
-//  save and LOSES, silently, with no failing call anywhere. The user finds a
-//  chapter gone an hour later and nothing says why. A menu command is slower,
-//  needs the application in front, and cannot lose work — so every change
-//  goes that way and the reads stay on disk where they are safe.
-//
-//  THE ACTS ARE A CLOSED SET AND THE PATHS ARE DATA. A package says where
-//  this application keeps its "move" command; it cannot name a fifth act or
-//  word a refusal. That boundary is what keeps a declaration from becoming a
-//  script — and it is why `setVocabularyValue` is absent rather than
-//  declared: Scrivener 3 has no Status or Label menu at all (measured), so
-//  the honest response is to offer no act for it rather than one that fails.
-//
-//  VERIFIED ON DISK, ALWAYS, and the delays are Mary's rather than the
-//  package's. The application writes its manifest on its own timetable, so a
-//  read taken immediately after a menu press sees the project as it was. Two
-//  waits: the first commonly races a slow save, and a second look is cheap. A
-//  package that could shorten these could make every ceremony report a
-//  success it never confirmed.
+//  WHAT: Change a project's shape through the application's own commands.
+//  IN:   ProjectCorpusAdapter.swift (sibling split)
+//  OUT:  ApplicationMenuDriver / ProjectCorpusReader (verify on disk)
+//  PIN:  Never write project files — autosave would clobber. Closed act set;
+//        paths are data. Verify on disk after Mary's delays, not the package's.
 //
 
 import AppKit
@@ -34,10 +17,7 @@ import MaryFoundation
 
 extension ProjectCorpusAdapter {
 
-    /// MARY'S, NOT THE PACKAGE'S. Measured shape rather than a guess at
-    /// timing: the first wait covers the ordinary autosave, the second covers
-    /// a slow one, and a ceremony that cannot see its change after both
-    /// reports that it could not — never that it worked.
+    /// Mary's delays, not the package's. Two waits; unseen change is failure.
     static let verifyDelays: [Duration] = [.milliseconds(3500), .milliseconds(2500)]
 
     var ceremonyBindings: [SkillBinding] {
@@ -46,12 +26,8 @@ extension ProjectCorpusAdapter {
 
     // MARK: - The shared choreography
 
-    /// Bring the application forward, press a declared path, and prove the
-    /// outline changed.
-    ///
-    /// `expectation` receives the outline BEFORE and AFTER and says whether
-    /// what was asked for happened — a count, a name, a parent. It is the
-    /// only evidence a ceremony has, because a menu press reports nothing.
+    /// Bring the app forward, press a declared path, prove the outline changed.
+    /// `summarize` is the only evidence — a menu press reports nothing.
     func perform(
         act: PluginCorpusCeremony.Act,
         named project: String?,
@@ -66,8 +42,7 @@ extension ProjectCorpusAdapter {
         let structure = corpus.structure
 
         guard let ceremony = structure.ceremonies.first(where: { $0.act == act }) else {
-            // A package that declared no path for this act has said it cannot
-            // do it here, which is a different thing from failing.
+            // No declared path for this act is not a failed press.
             return SkillOutcome(
                 ok: false,
                 summary: "\(corpus.registration.displayName) doesn't offer that from a menu.")
@@ -85,9 +60,7 @@ extension ProjectCorpusAdapter {
         case .refused(let outcome): return outcome
         }
 
-        // THE APPLICATION MUST OWN THE SCREEN. A menu bar belongs to the
-        // frontmost application, so a press aimed at a background one reaches
-        // whatever is actually in front — and presses something there.
+        // Menu bar belongs to the frontmost app — activate first.
         let activation = await VerifiedActivation.bringForward(
             pid: corpus.processIdentifier, requireVisibleWindow: true)
         guard activation.succeeded else {
@@ -105,7 +78,7 @@ extension ProjectCorpusAdapter {
                 summary: failure.spoken(app: corpus.registration.displayName))
         }
 
-        // VERIFY ON DISK, TWICE.
+        // Verify on disk, twice.
         for delay in Self.verifyDelays {
             try? await Task.sleep(for: delay)
             guard case .success(let after) = ProjectCorpusReader.outline(
@@ -116,9 +89,7 @@ extension ProjectCorpusAdapter {
                     adapterTrail: [AdapterID.normalized(name)])
             }
         }
-        // DELIVERED AND UNCONFIRMED IS NOT SUCCESS. The command was chosen and
-        // the project does not show it; saying so is the only honest report,
-        // and it is genuinely different from the command having failed.
+        // Chosen but unseen is not success.
         return SkillOutcome(
             ok: false,
             summary: """
@@ -140,10 +111,7 @@ extension ProjectCorpusAdapter {
                     let grew = after.flatMap(\.flattened).count
                         - before.flatMap(\.flattened).count
                     guard grew > 0 else { return nil }
-                    // THE NEWEST ITEM BY DIFFERENCE OF IDS, never by position
-                    // — a new document renumbers its neighbours, so an
-                    // ordinal names a different item after the change than
-                    // before it.
+                    // Newest item by id difference, never position — a new document renumbers neighbours.
                     let existing = Set(before.flatMap(\.flattened).map(\.id))
                     let added = after.flatMap(\.flattened).first { !existing.contains($0.id) }
                     return added.map {
@@ -189,17 +157,13 @@ extension ProjectCorpusAdapter {
                     .trimmingCharacters(in: .whitespacesAndNewlines), !destination.isEmpty
                 else { return SkillOutcome(ok: false, summary: "Move it into which folder?") }
 
-                // THE LAST LEVEL IS THE USER'S OWN FOLDER, which no package
-                // can enumerate — it is read off the live menu here. That is
-                // what `completedByContainer` declares, and it is why menu
-                // driving exists at all: no chord can name a folder made this
-                // morning.
+                // Last menu level is the user's folder (`completedByContainer`).
+                // No package can enumerate it; no chord can name it.
                 return await perform(
                     act: .moveToContainer, named: arguments["project"],
                     extraPath: [destination]
                 ) { before, after in
-                    // A MOVE CHANGES NO COUNT, so the evidence is the item's
-                    // PARENT. Find a document whose ancestry differs.
+                    // A move changes no count — evidence is the item's parent.
                     let beforeParents = Self.parents(of: before)
                     let afterParents = Self.parents(of: after)
                     let moved = afterParents.first { id, parent in
@@ -221,17 +185,11 @@ extension ProjectCorpusAdapter {
             its own command. Nothing is deleted; the trash keeps it.
             """,
             parameters: [Self.projectParameter],
-            // A TWEAK RATHER THAN A WRITE, and the reason is what the act
-            // actually does: the project's trash is a folder, the document is
-            // still there, and the application's own undo puts it back. It
-            // would be a write if it deleted anything.
+            // Tweak, not write: trash is a folder; undo puts it back.
             access: .tweak,
             backing: .native { arguments, _ in
                 await perform(act: .trash, named: arguments["project"]) { before, after in
-                    // THE OUTLINE EXCLUDES THE TRASH, so a trashed document
-                    // simply leaves it — which makes the count the evidence,
-                    // and makes it read the same way for a document trashed
-                    // from anywhere in the binder.
+                    // Outline excludes trash, so a trashed document leaves it.
                     let gone = Set(before.flatMap(\.flattened).map(\.id))
                         .subtracting(after.flatMap(\.flattened).map(\.id))
                     guard let id = gone.first else { return nil }

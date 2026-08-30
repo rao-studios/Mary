@@ -1,5 +1,10 @@
 //
 //  StyleEvidence+SayingSoByHand.swift
+//  MaryAmbient
+//
+//  WHAT: State a tenet outright — renders next turn, never demoted.
+//  IN:   StyleEvidence.swift (split)
+//  PIN:  Closed vocabulary only; free text must not reach a model.
 //
 
 import MaryFoundation
@@ -10,13 +15,9 @@ extension StyleEvidenceStore {
 
     // MARK: - Saying so by hand
 
-    /// State a tenet outright. It renders from the next turn, is never
-    /// demoted, and outranks whatever the corpus says on the same dimension.
-    ///
-    /// The value comes from the CLOSED vocabulary — there is no free-text
-    /// path, because free text reaching a model is exactly what the trust
-    /// model forbids, and it would forbid it no less for having been typed
-    /// here than for having arrived in someone else's profile.
+    /// State a tenet outright. It renders from the next turn, is never demoted, and outranks
+    /// whatever the corpus says on the same dimension. The value comes from the CLOSED
+    /// vocabulary.
     @discardableResult
     public func assert(
         dimension: StyleDimension,
@@ -70,22 +71,15 @@ extension StyleEvidenceStore {
         vetoedBox.withLock { $0.contains(tenetKey) }
     }
 
-    /// Where an assertion and the corpus disagree on the same dimension.
-    ///
-    /// Reported rather than resolved. The assertion wins in the brief, but a
-    /// person telling Mary one thing while their code says another is the
-    /// single most interesting row in the whole profile, and hiding it would
-    /// throw away the reason for having both.
+    /// Where an assertion and the corpus disagree on the same dimension. Reported rather than
+    /// resolved. The assertion wins in the brief, but a person telling Mary one thing while
+    /// their code says another is the single most interesting row in the whole profile.
     public func conflicts(at now: Date = Date()) -> [(asserted: StyleTenet, observed: StyleTenet)] {
         conflicts(observed: observedTenets(at: now))
     }
 
-    /// The same answer from an `observedTenets` pass the caller already has.
-    ///
-    /// Recomputing it is not free — every row re-weights every contribution —
-    /// and the Corpus pane used to ask for it three times a second through
-    /// `tenets`, `observedTenets` and `conflicts`, then usually throw all three
-    /// away as unchanged.
+    /// The same answer from an `observedTenets` pass the caller already has. Recomputing it is
+    /// not free.
     public func conflicts(
         observed: [StyleTenet]
     ) -> [(asserted: StyleTenet, observed: StyleTenet)] {
@@ -101,17 +95,9 @@ extension StyleEvidenceStore {
         }
     }
 
-    /// Every tenet the store believes, with assertions winning.
-    ///
-    /// Precedence: asserted > observed > imported, one row per dimension. An
-    /// imported tenet is emitted (it is inspectable, and `isRenderable`
-    /// already refuses it) but only while nothing local covers that dimension.
-    /// A vetoed key is dropped from the answer entirely while the tallies
-    /// underneath keep running.
-    ///
-    /// `observedTenets(at:)` is the unmerged view, which is what
-    /// `conflicts(at:)` and the inspector need — the merge is a presentation
-    /// decision, not the truth.
+    /// Every tenet the store believes, with assertions winning. Precedence: asserted > observed
+    /// > imported, one row per dimension. An imported tenet is emitted (it is inspectable, and
+    /// `isRenderable` already refuses it) but only while nothing local covers that dimension.
     public func tenets(at now: Date = Date()) -> [StyleTenet] {
         tenets(observed: observedTenets(at: now))
     }
@@ -132,14 +118,9 @@ extension StyleEvidenceStore {
             .sorted { $0.tenetKey < $1.tenetKey }
     }
 
-    /// What the corpus alone says, before assertions override anything.
-    ///
-    /// Age is handled by ONE mechanism now: the half-life. A contribution
-    /// whose recency weight has fallen under `StyleRecency.decayFloor` stops
-    /// counting in `tallies`, so a row that has entirely faded produces no
-    /// leader and emits no tenet at all. `evictDecayed` then reclaims the row
-    /// itself. There is no separate stale stage, no horizon and no work clock —
-    /// they were four answers to one question.
+    /// What the corpus alone says, before assertions override anything. Age is handled by ONE
+    /// mechanism now: the half-life. A contribution whose recency weight has fallen under
+    /// `StyleRecency.decayFloor` stops counting in `tallies`.
     public func observedTenets(at now: Date = Date()) -> [StyleTenet] {
         let rows = box.withLock { $0 }
         var observed: [StyleTenet] = []

@@ -2,29 +2,11 @@
 //  AffordanceProbe.swift
 //  MaryAmbient
 //
-//  DOES THE SCREEN ALREADY OFFER WHAT THEY JUST ASKED FOR?
+//  WHAT: Does the screen already offer what they just asked for?
+//  IN:   AmbientElementIndexStore affordance slates
+//  OUT:  AffordanceCandidate (nudge). Sibling: AmbientAddressProbe (which application).
+//  PIN:  Adds work, never removes reach. A miss changes nothing.
 //
-//  A cheap yes/no with names attached, asked at exactly one moment: a turn
-//  that plainly wanted something DONE has run its rounds and executed
-//  nothing. Today that ends in "I couldn't work out how to do that" — and it
-//  ended there live while a button labelled "Skip Ads" sat on the page the
-//  user was looking at. The gap was never capability; it was that nothing
-//  told the turn the control existed.
-//
-//  IT IS NOT `AmbientAddressProbe`, and the difference is the question.
-//  The address probe asks "which APPLICATION are they talking about" from
-//  observed titles, and its guards are built for that — a referential shape,
-//  a distinctive title, a contiguous spoken window. This asks "is there a
-//  CONTROL here that serves this goal", over a slate that is already
-//  capability-typed, so the only guard it needs is the one that keeps a
-//  shared "the" from carrying a match.
-//
-//  IT ADDS WORK AND NEVER REMOVES REACH — the one direction a route-shaped
-//  signal is allowed to move in (`docs/PROMPT-ASSEMBLY.md`). A hit offers the
-//  lane one more round with the control's own name in front of it. A miss
-//  changes nothing, and the honest refusal stands exactly as it does today.
-//
-
 import Foundation
 
 /// What the screen is offering that might serve a spoken goal.
@@ -55,11 +37,8 @@ public enum AffordanceProbe {
     /// number, for the same reason: a list nobody can hold is not an offer.
     public static let namedLimit = 3
 
-    /// The score a candidate must reach before a DETERMINISTIC act may be
-    /// dispatched on it without the model's agreement. Above the gate's
-    /// acceptance threshold and above its synonym floor: at this height the
-    /// phrase either matched an embedding claim outright or spoke the
-    /// control's own name.
+    /// The score a candidate must reach before a DETERMINISTIC act may be dispatched on it
+    /// without the model's agreement.
     public static let confidentFloor: Float = 0.90
 
     /// Affordance slates the world has published recently.
@@ -70,12 +49,9 @@ public enum AffordanceProbe {
             .filter { $0.key.hasSuffix(AmbientElementScope.affordanceSuffix) }
     }
 
-    /// The best-serving control for this goal, if the screen offers one.
-    ///
-    /// Ranked across every fresh affordance slate rather than only the lead
-    /// place's: a slate exists only where a perception lane published one, so
-    /// candidacy already follows publication, and the second application's
-    /// controls are exactly as real as the first's.
+    /// The best-serving control for this goal, if the screen offers one. Ranked across every
+    /// fresh affordance slate rather than only the lead place's: a slate exists only where a
+    /// perception lane published one, so candidacy already follows publication.
     public static func candidate(
         for utterance: String,
         store: AmbientElementIndexStore = .shared,
@@ -102,14 +78,9 @@ public enum AffordanceProbe {
     }
 }
 
-/// THE ONE GUARD, shared with `AffordanceResolver` so a nudge can never name
-/// a control the act would then refuse to press.
-///
-/// The gate's lexical floors fire on ANY shared word of a name. Right for a
-/// layer called "Header"; wrong for a button called "Turn On Notifications"
-/// against "skip the ad", where the shared word is "on". A semantic score
-/// stands on its own — the embedding compared whole claims — but a floored
-/// one has to have been earned by a word that means something.
+/// THE ONE GUARD, shared with `AffordanceResolver` so a nudge can never name a control the
+/// act would then refuse to press. The gate's lexical floors fire on ANY shared word of a
+/// name. Right for a layer called "Header".
 public enum AffordanceDistinctiveness {
 
     /// `AmbientAddressProbe`'s G3 length, for its reason: "Home" and "New Tab"

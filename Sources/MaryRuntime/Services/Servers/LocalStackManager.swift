@@ -1,25 +1,15 @@
 //
 //  LocalStackManager.swift
-//  Mary
+//  MaryRuntime
 //
-//  Owns the local Seer + Totem + Fleet processes: spawn in order (Seer's mothership
-//  first, then Totem which dials it), health-poll, restart, build-on-demand,
-//  and tear down on quit. Process handles never leave the actor; the UI gets
-//  Sendable snapshots and a change stream.
+//  WHAT: Owns local Seer + Totem + Fleet: spawn, health, restart, teardown.
+//  OUT:  Sendable snapshots + change stream. Process handles stay in the actor.
+//  PIN:  Logs to files not pipes (orphan stays adoptable). PID files under
+//        Application Support. Healthy-unclaimed = external — do not kill on quit.
+//        emergencyStopAllSync via static lock (no actor hop at terminate).
 //
-//  Lifecycle facts this design leans on:
-//  - Children write stdout/stderr to LOG FILES, never pipes — a force-quit
-//    orphan with a dead pipe eventually blocks on a full buffer; with files
-//    it stays healthy, so the next boot can adopt it instead of restarting.
-//  - PID files under ~/Library/Application Support/Mary/servers record what
-//    we spawned. On boot: alive + our binary + healthy → adopt as owned;
-//    alive but unhealthy → reap (SIGTERM→SIGKILL) and respawn; dead → clear.
-//  - A server that answers /health with no PID-file claim is EXTERNAL (the
-//    user ran start-seer-totem.sh). Mary will not spawn a second copy or
-//    kill it on quit. Stop and Restart still work: they find the process
-//    listening on the health port whose path ends in the expected binary.
-//  - applicationWillTerminate calls emergencyStopAllSync(); owned pids live
-//    in a static lock so the delegate needs no actor hop at quit.
+//    boot: alive+ours+healthy → adopt; alive+unhealthy → reap; dead → clear
+//    spawn order: Seer mothership, then Totem (dials it)
 //
 
 import Foundation

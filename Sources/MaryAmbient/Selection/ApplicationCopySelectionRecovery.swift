@@ -2,18 +2,17 @@
 //  ApplicationCopySelectionRecovery.swift
 //  MaryAmbient
 //
-//  Split out of SelectionHandoffCoordinator.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Machine-level payload recovery when AX cannot return selected characters.
+//  IN:   SelectionHandoffCoordinator.swift (split)
+//  PIN:  Not a clipboard skill. Adapters opt in and verify source lifecycle before and after.
 //
 
 import AppKit
 import Foundation
 import os
 
-/// A machine-level payload recovery mechanism for editor adapters whose
-/// Accessibility surface cannot reliably return its selected characters.
-/// This is not a clipboard skill and it is not Pages policy: adapters opt in
-/// explicitly and must verify their source lifecycle before and after use.
+/// A machine-level payload recovery mechanism for editor adapters whose Accessibility
+/// surface cannot reliably return its selected characters.
 public enum ApplicationCopySelectionRecovery {
     private static let gestureSuppressionBox = OSAllocatedUnfairLock<Date>(
         initialState: .distantPast)
@@ -25,15 +24,8 @@ public enum ApplicationCopySelectionRecovery {
         gestureSuppressionBox.withLock { date < $0 }
     }
 
-    /// Ask one lifecycle-verified source process to materialize its current
-    /// selection through Copy, preserving every pasteboard flavor. When the
-    /// source is active, invoke its native Copy menu action through
-    /// Accessibility; PID posting remains a best-effort deferred-handoff
-    /// fallback.
-    /// A changed
-    /// pasteboard containing nonempty text is the application's positive
-    /// selection evidence; callers remain responsible for process/lifecycle
-    /// validation before and after.
+    /// Ask one lifecycle-verified source process to materialize its current selection through
+    /// Copy, preserving every pasteboard flavor.
     @MainActor
     public static func read(from pid: pid_t, timeout: TimeInterval) async -> String? {
         gestureSuppressionBox.withLock { $0 = .distantFuture }
@@ -84,10 +76,9 @@ public enum ApplicationCopySelectionRecovery {
             case .issued:
                 nativeCopyIssued = true
             case .disabled:
-                // The application itself says there is NOTHING TO COPY.
-                // Pressing the disabled item — or falling through to a Cmd-C
-                // the app will reject the same way — is the system beep the
-                // user hears on an unrelated turn. Stand down with no event.
+                // The application itself says there is NOTHING TO COPY. Pressing the disabled item — or
+                // falling through to a Cmd-C the app will reject the same way — is the system beep the
+                // user hears on an unrelated turn.
                 if diagnostics { print("[selection-copy] copy menu disabled — standing down") }
                 return nil
             case .notFound:
@@ -98,10 +89,9 @@ public enum ApplicationCopySelectionRecovery {
             print("[selection-copy] native-menu-issued=\(nativeCopyIssued)")
         }
         if !nativeCopyIssued {
-            // Cmd-C only into the FRONTMOST source. A copy keystroke posted
-            // to a background application is exactly the invalid-action beep
-            // — audible on whatever turn happens to be running — and its
-            // capture was best-effort to begin with.
+            // Cmd-C only into the FRONTMOST source. A copy keystroke posted to a background
+            // application is exactly the invalid-action beep — audible on whatever turn happens to be
+            // running — and its capture was best-effort to begin with.
             guard sourceIsActive else {
                 if diagnostics { print("[selection-copy] source not frontmost — standing down") }
                 return nil

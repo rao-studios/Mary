@@ -2,15 +2,9 @@
 //  ArtifactDomainLexicon.swift
 //  MaryAmbient
 //
-//  The per-domain vocabulary the artifact machinery runs on — kind words,
-//  deixis cues, and verb requirements. NOTHING in this file knows any domain:
-//  the tables arrive compiled from admitted ability packages through
-//  `AmbientArtifactLexiconProvider`, installed by the layer that owns package
-//  trust. With nothing installed the classifier is DEAD and the gate's
-//  synonym floors and precision veto stand down — the engine has no opinion
-//  about what "oval" means until a package declares one. A baked-in default
-//  would be one domain's table wearing a generic name, which is the exact
-//  leak this seam removes.
+//  WHAT: Per-domain vocabulary the artifact machinery runs on (kind words, deixis, verb requirements).
+//  IN:   AmbientArtifactLexiconProvider (admitted ability packages)
+//  PIN:  Nothing in this file knows any domain. Uninstalled → classifier dead.
 //
 
 import Foundation
@@ -31,10 +25,9 @@ public struct ArtifactDomainLexicon: Sendable, Equatable {
         }
     }
 
-    /// Spoken closed-class word → the provider kind words it admits.
-    /// Several spoken words map to one provider kind ("circle" and
-    /// "ellipse" both admit oval); one spoken word may admit several
-    /// ("frame" admits artboard and group).
+    /// Spoken closed-class word → the provider kind words it admits. Several spoken words map
+    /// to one provider kind ("circle" and "ellipse" both admit oval); one spoken word may admit
+    /// several ("frame" admits artboard and group).
     public var synonyms: [String: Set<String>]
     /// Canonical provider kind → the capabilities the engine may assume.
     public var kindCapabilities: [String: AmbientElementCapabilities]
@@ -158,12 +151,9 @@ public struct ArtifactDomainLexicon: Sendable, Equatable {
     }
 }
 
-/// Where the ambient layer looks for the lexicon of one application's
-/// admitted artifact domain. The owner of package trust installs the whole
-/// map at configuration; everything below reads through this. An inversion
-/// rather than a direct call, because declarations live a layer above and
-/// this package must not read them. The installed map is a frozen value —
-/// rebuilt whole and swapped atomically, never mutated in place.
+/// Where the ambient layer looks for the lexicon of one application's admitted artifact
+/// domain. The owner of package trust installs the whole map at configuration; everything
+/// below reads through this.
 public enum AmbientArtifactLexiconProvider {
     private static let lock = NSLock()
     nonisolated(unsafe) private static var lexicons: [String: ArtifactDomainLexicon] = [:]

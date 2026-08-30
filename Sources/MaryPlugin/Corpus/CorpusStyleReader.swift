@@ -2,22 +2,10 @@
 //  CorpusStyleReader.swift
 //  MaryPlugin
 //
-//  THE DECLARED RULES, RUN. One file in, a set of style observations out.
-//
-//  This is the interpreter that replaces a compiled, language-named observer:
-//  the questions it asks come entirely from the package, and nothing in this
-//  file knows what language it is reading or which application declared it.
-//
-//  A TIE IS SILENCE, and that is the rule worth stating loudest. A file with
-//  equal evidence for two habits has no opinion about which one the author
-//  has, and a coin flip recorded as evidence is worse than nothing — it is
-//  noise that accumulates confidence over time. Everything below abstains
-//  readily: a failed guard, a candidate under its minimum, a tie, an empty
-//  file, a denominator of zero.
-//
-//  WEIGHT IS CLAMPED PER FILE. One enormous generated file must not outvote a
-//  hundred hand-written ones, so no single file may contribute more than
-//  `maximumWeightPerFile` to any dimension.
+//  WHAT: Run declared style rules — one file in, observations out.
+//  IN:   PluginCorpusSchema / CorpusText / CorpusPatterns
+//  OUT:  StyleObservation
+//  PIN:  Language-agnostic. A tie is silence. Weight clamped per file.
 //
 
 import Foundation
@@ -26,15 +14,11 @@ import MaryFoundation
 
 public enum CorpusStyleReader {
 
-    /// The most one file may say about one dimension. A generated file is not
-    /// how a person writes, and neither is the longest file in the project.
+    /// Most one file may say about one dimension.
     public static let maximumWeightPerFile = 12
 
     /// Read one file through one corpus's declared rules.
-    ///
-    /// - Parameter declaredTypes: names this file declares, from the corpus's
-    ///   own `declarations` probe — the cross-reference the `selfReference`
-    ///   and `declaredTypeSuffix` counters need and a regex cannot make.
+    /// - Parameter declaredTypes: names this file declares (`declarations` probe).
     public static func observe(
         text: CorpusText,
         declaredTypes: [String],
@@ -96,10 +80,7 @@ public enum CorpusStyleReader {
                 $0 + measure($1, text: text, declared: declared,
                              declarationCount: declarationCount)
             }
-            // BELOW ITS FLOOR A CANDIDATE DOES NOT STAND. It scores zero
-            // rather than a small number, because "one of the type's own
-            // extensions" is not weak evidence that the author keeps types
-            // whole — it is no evidence at all.
+            // Below its floor a candidate scores zero — no evidence, not weak evidence.
             tallies.append((value, score >= candidate.minimum ? score : 0))
         }
         return winner(dimension, tallies)
@@ -125,9 +106,7 @@ public enum CorpusStyleReader {
         guard denominator > 0 else { return nil }
 
         let fraction = Double(numerator) / Double(denominator)
-        // THE WEIGHT IS THE EVIDENCE ON THE WINNING SIDE, not the ratio: a
-        // file with 40 of 60 declarations public says more about a public
-        // habit than one with 2 of 3.
+        // Weight is evidence on the winning side, not the ratio.
         if fraction > threshold {
             guard let above = rule.above, let value = StyleValue(rawValue: above) else { return nil }
             return StyleObservation(dimension: dimension, value: value, weight: numerator)
@@ -174,9 +153,7 @@ public enum CorpusStyleReader {
         let denominator = measure(
             denominatorCounter, text: text, declared: declared,
             declarationCount: declarationCount)
-        // A DENOMINATOR OF ZERO FAILS THE GUARD rather than dividing. "How
-        // dense is the commentary in a file with no declarations" has no
-        // answer, and any number invented for it is a vote.
+        // A denominator of zero fails the guard rather than dividing.
         guard denominator > 0 else { return false }
         return Double(numerator) / Double(denominator) >= condition.atLeast
     }
@@ -213,8 +190,7 @@ public enum CorpusStyleReader {
 
     // MARK: - The winner
 
-    /// The leading value, or nothing. A TIE IS DELIBERATELY SILENCE — see the
-    /// file header.
+    /// Leading value, or nothing. PIN: a tie is silence.
     static func winner(
         _ dimension: StyleDimension, _ tallies: [(StyleValue, Int)]
     ) -> StyleObservation? {

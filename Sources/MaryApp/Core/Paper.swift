@@ -2,10 +2,7 @@
 //  Paper.swift
 //  Mary
 //
-//  The page palette, ported from Gita. The conversation reads like ink on quiet
-//  paper — every view resolves color from here, never from raw RGB literals.
-//  Mary is light-locked (Fleet's Seer system), so the tokens are static: the
-//  dynamic UIColor providers from Gita collapse to their light values.
+//  WHAT: Page palette. Views resolve color here, never raw RGB. Light-locked (Fleet).
 //
 
 import SwiftUI

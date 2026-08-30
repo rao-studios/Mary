@@ -2,6 +2,10 @@
 //  VoicePipeline+StopListening.swift
 //  MaryVoice
 //
+//  WHAT: Wake remainder → first turn; deterministic "stop listening" exit.
+//  IN:   WakeWordListener remainder / runTurn / continuous admit
+//  OUT:  .stopListeningCommand | submitTurn | canned playback
+//
 
 import Foundation
 
@@ -9,32 +13,20 @@ extension VoicePipeline {
 
     // MARK: - Wake-word session control
 
-    /// Submit a query as if it had just been transcribed — the wake
-    /// listener's "Hey Mary, <request>" remainder becomes the session's
-    /// first turn. Emits `.finalTranscript` so the app mirrors the user
-    /// bubble exactly as for a spoken turn. Refused unless the pipeline is
-    /// quietly listening: if the user is already speaking again, their live
-    /// utterance outranks the primed one.
+    /// Submit a query as if just transcribed (wake remainder → first turn).
+    /// Emits `.finalTranscript`. Refused unless quietly listening.
     @discardableResult
     public func primeTurn(query: String) async -> Bool {
         guard state == .listening(utteranceActive: false) else { return false }
-        // "Hey Mary, stop listening" primes like any other remainder — and
-        // must end the session like any other spoken stop command, checked
-        // BEFORE the emit (the stop event's own arm mirrors the exchange).
+        // Wake remainder "stop listening" must end the session before emit.
         if await interceptStopListening(query) { return true }
         emit(.finalTranscript(query))
         await submitTurn(query: query, superseding: false)
         return true
     }
 
-    /// Speak one short deterministic line (the wake greeting) through the
-    /// session's own proactive-floor machinery — barge-inable, and DROPPED
-    /// rather than held when the room is not quiet.
-    ///
-    /// DELIBERATELY NOT the responder's ambient door: `emitAmbientUtterance`
-    /// books delivery verdicts into the ambient engine's governance loop (a
-    /// barge-in over it stretches the engine's refractory), and it rides the
-    /// follow-up chain — far too slow, and far too entangled, for "Yes?".
+    /// Speak one short canned line through proactive-floor machinery.
+    /// Dropped (not held) when the room is not quiet. Not the ambient door.
     @discardableResult
     public func speakCannedLine(_ line: String) async -> Bool {
         guard !line.isEmpty else { return false }
@@ -46,10 +38,8 @@ extension VoicePipeline {
 
     // MARK: - "Stop listening" (deterministic session exit)
 
-    /// Every seam that turns finished text into a turn asks here first: the
-    /// stop command must never reach the responder, whichever door the words
-    /// came through (acoustic runTurn, a primed wake remainder, or a
-    /// continuous-hearing admit).
+    /// Every seam that turns finished text into a turn asks here first.
+    /// OUT: performStopListening — responder never sees the words.
     func interceptStopListening(_ text: String) async -> Bool {
         guard let ack = config.stopListeningAck, WakePlanner.isStopListening(text) else {
             return false
@@ -58,21 +48,11 @@ extension VoicePipeline {
         return true
     }
 
-    /// The user asked the SESSION to end, so no model sees the words.
-    /// Ordering is load-bearing. Logical listening closes FIRST — no frame can
-    /// reach VAD or either transcriber, so the acknowledgement's own wake phrase
-    /// cannot become a new utterance. The physical input graph deliberately
-    /// stays up while the acknowledgement plays: tearing it down immediately
-    /// before opening output causes Bluetooth/CoreAudio to reconfigure the
-    /// route in the middle of the line. Seer is allowed its own bounded request
-    /// policy and Kokoro remains its fallback. `speaker.flush` then waits for
-    /// scheduled buffers' `.dataPlayedBack` callbacks, not merely their
-    /// enqueue, before the mic is physically stopped and the app is told to
-    /// finish the session.
+    /// Session exit; no model sees the words. PIN: close logical listening first
+    /// (ack's wake phrase cannot become an utterance); keep the input graph up
+    /// until `flush` reports playback, then stop the mic and emit.
     private func performStopListening(transcript: String, ack: String) async {
-        // A second ingress (for example, a final continuous segment already
-        // dispatched before cancellation) observes the first logical stop and
-        // cannot start a competing acknowledgement.
+        // A second ingress observes the first logical stop and cannot compete.
         guard !stopExitInProgress else { return }
         stopExitInProgress = true
         let exitID = UUID()
@@ -89,17 +69,12 @@ extension VoicePipeline {
         continuousTask?.cancel()
         continuousTask = nil
         heardBuffer = ""
-        // `continuous.endSession()` is deliberately NOT awaited here —
-        // `stop()` (which the app runs on the event below) owns that cleanup,
-        // and a slow analyzer must not stand between the user and the stop.
+        // `continuous.endSession()` is owned by `stop()`, not this path.
         transition(to: .speaking)
-        // The room is quiet by construction (the command's own utterance just
-        // endpointed), so the hard claim cuts nothing audible.
+        // Room is quiet by construction; the claim cuts nothing audible.
         guard let lease = await voiceFloor.claim(), stopExitID == exitID else { return }
         _ = await speaker.feed(ack, lease: lease)
-        // No independent six-second guillotine: Seer owns its request bounds,
-        // and once any PCM is scheduled this await ends only after the player
-        // reports that every buffer was actually played back.
+        // Seer owns request bounds; this await ends after playback, not enqueue.
         _ = await speaker.flush(lease: lease)
         guard stopExitID == exitID else { return }
 

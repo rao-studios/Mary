@@ -2,24 +2,8 @@
 //  ProjectProbe.swift
 //  CorpusProbe
 //
-//  READING A REAL MANUSCRIPT — the project-corpus lane against a project
-//  nobody wrote for it.
-//
-//  The reader's rules are testable against a synthetic manifest, and a
-//  synthetic manifest is written by the person who wrote the reader. What it
-//  cannot tell you is whether a real `.scrivx` uses the element names you
-//  assumed, whether an item's id is an attribute or a child, whether the
-//  trash is a type or a location, or whether RTF written by a real editor
-//  decodes to prose. Those are facts about a file format, and only a real
-//  file has them.
-//
-//    mary-corpus-probe project --project ~/path/to/thing.scriv
-//    mary-corpus-probe project --project … --read "Prologue"
-//    mary-corpus-probe project --live            ← through the shipped packages
-//    mary-corpus-probe project --dispatch        ← through REAL AbilityRuntime.dispatch,
-//                                                   with Scrivener as the real ambient lead
-//    mary-corpus-probe project --dispatch-code   ← the same, with Xcode as the lead,
-//                                                   proving the fileSystemTree declaration
+//  WHAT: Project-corpus lane against a real manuscript (not a synthetic manifest).
+//  OUT:  CLI: mary-corpus-probe project --project … [--read|--live|--dispatch|--dispatch-code]
 //
 
 import ApplicationServices
@@ -36,15 +20,7 @@ enum ProjectProbe {
         arguments.contains("project")
     }
 
-    /// THE WHOLE CHAIN, not the reader alone: the shipped packages, the
-    /// corpus roster they produce, and the project a running application
-    /// actually has open — found through its own `AXDocument` rather than
-    /// through a path anybody typed.
-    ///
-    /// This is the half `--project <path>` cannot answer. Handing the reader a
-    /// path proves the reader; it says nothing about whether `scrivener.mary`
-    /// declares the right extension, whether the roster reaches the lane, or
-    /// whether the application publishes the project root at all.
+    /// Whole chain: shipped packages, roster, and the project AXDocument actually has open.
     static func runLive() async {
         guard AXIsProcessTrusted() else {
             print("Accessibility is not granted for this binary. Use ./scripts/dev.sh.")
@@ -73,9 +49,7 @@ enum ProjectProbe {
                 ? "⚠︎ NONE — no corpus declares a structure"
                 : projects.map(\.applicationID).joined(separator: ", ")))
 
-        // THE SKILLS THE MODEL WOULD SEE. A lane whose Skills install blocked
-        // is a lane that does not exist as far as the model is concerned,
-        // which is exactly the failure `DerivedPerceptions` was about.
+        // Skills the model would see. Blocked install = lane does not exist to the model.
         let corpusSkills = load.snapshot.skills.filter {
             $0.skill.id.rawValue.contains("corpus")
         }
@@ -105,28 +79,8 @@ enum ProjectProbe {
         }
     }
 
-    /// DRIVEN THROUGH REAL DISPATCH, not a direct call to the reader or the
-    /// adapter. `outline`/`text` above prove the reader; `runLive()` proves
-    /// the declaration loads and a project resolves off `AXDocument`. Neither
-    /// proves the thing a live turn actually depends on: that
-    /// `AbilityRuntime.dispatch("search_corpus", …)` — the exact path a model
-    /// call takes — is REACHABLE when Scrivener is this turn's ambient lead,
-    /// and REFUSED when it is not.
-    ///
-    /// This is the same class of check the browsing lane's own history
-    /// warns about: a whole skill family was structurally valid and answered
-    /// correctly when called directly, and was unreachable through real
-    /// dispatch because nothing produced its `targetClasses` — a routing
-    /// carve-out invisible to a direct call or a fixture test.
-    ///
-    /// THE LEAD IS REAL, NOT ASSERTED. A bare CLI process has no NSWorkspace
-    /// or Accessibility observers running the way the app does, so it cannot
-    /// produce an ambient lead by osmosis. `WorkspaceFocusTracker.sample()` is
-    /// the seam built for exactly this gap — a TCC-free NSWorkspace frontmost
-    /// read whose own header says it exists "so headless probes work with
-    /// zero app-layer machinery." Scrivener has to actually be the frontmost
-    /// application when this runs, or the check honestly fails rather than
-    /// fabricating a lead.
+    /// Real AbilityRuntime.dispatch. Reachable when Scrivener leads; refused otherwise.
+    /// Lead is sampled via WorkspaceFocusTracker (not asserted).
     static func runDispatch(_ arguments: [String]) async {
         func value(_ name: String) -> String? {
             guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
@@ -164,10 +118,7 @@ enum ProjectProbe {
         }
         check(true, "a project resolved off AXDocument", corpus.name)
 
-        // BRING IT FORWARD, VERIFIED — not assumed. A real turn only ever
-        // happens while the user is looking at the app; the lead this probe
-        // reads has to be earned the same way, or the "real" lead this probe
-        // measures is really whatever the terminal happened to be.
+        // Bring forward, verified — lead must be earned, not assumed from the terminal.
         let activation = await VerifiedActivation.bringForward(
             pid: corpus.processIdentifier, requireVisibleWindow: true)
         check(activation.succeeded, "Scrivener came forward",
@@ -224,12 +175,7 @@ enum ProjectProbe {
         check(outlineOutcome.ok, "read_corpus_outline dispatched")
         print("      \(outlineOutcome.summary.prefix(160))…")
 
-        // A TITLE THAT IS ACTUALLY UNIQUE. `gitas-ballad` repeats "Section
-        // 1.1" across three acts by design — the same ambiguity
-        // `ProjectCorpusLaneTests` pins — so a repeated title here would
-        // read as a dispatch failure when it is really the adapter's own
-        // correct refusal. "Novel Format" is Scrivener's own template
-        // document and appears exactly once.
+        // Unique title ("Novel Format"); repeated "Section 1.1" is a correct refusal.
         let firstDocument = value("--read") ?? "Novel Format"
         let documentOutcome = await runtime.dispatch(
             name: "read_corpus_document",
@@ -238,11 +184,7 @@ enum ProjectProbe {
         print("      \(documentOutcome.summary.prefix(160))…")
 
         heading("the negative: no writing lead, offered to nobody")
-        // THE OTHER HALF OF THE PROOF. A gate that always says yes is not a
-        // gate — the browsing-lane bug's shape was exactly a check that could
-        // never fail. A FRESH runtime's offer ledger starts empty, so this is
-        // this turn's own projection deciding, not leftover grace from the
-        // turn dispatched above.
+        // Fresh runtime offer ledger; this turn's projection, not leftover grace.
         let neutralRoute = AmbientEngine.resolve(AmbientEngine.Inputs(
             utterance: "what's the weather like", profiles: profiles))
         AmbientContextStore.shared.noteRoute(neutralRoute)
@@ -263,35 +205,8 @@ enum ProjectProbe {
         AmbientContextStore.shared.noteRoute(route)
     }
 
-    /// THE SAME RIGOR AS `runDispatch`, aimed at Xcode instead of Scrivener —
-    /// Step 1/2 of the fluid-search plan: `xcode.mary` now declares
-    /// `corpus.structure` (`manifest.kind: fileSystemTree`), and this proves
-    /// it through the real `AbilityRuntime.dispatch` path against a real
-    /// Swift checkout, exactly the way `--dispatch` proved Scrivener.
-    ///
-    /// TWO THINGS THIS CANNOT ASSUME FROM `runDispatch`'S SUCCESS, and both
-    /// are checked rather than presumed:
-    ///
-    ///   1. `ProjectCorpusSupport.projectRoot(ofWindow:)` took a different
-    ///      road for `.fileSystemTree` than the one Scrivener exercises —
-    ///      Xcode's `AXDocument` is the ACTIVE FILE, not the project, so the
-    ///      root comes from climbing `corpus.projectMarkers`
-    ///      (`CorpusObserver.projectRoot(containing:markers:)`) rather than
-    ///      from a directory-extension match. A `.scriv` bundle never
-    ///      exercises that climb at all.
-    ///   2. `search_corpus`/`read_corpus_outline`/`read_corpus_document`/
-    ///      `corpus_progress` are declared inside `writing.mary`, gated by
-    ///      ITS OWN Ability-level routing policy —
-    ///      `any(compose, revise, hasInteraction(text-selection),
-    ///      workspaceFamily=="writing")`. `WritingReachabilityTests
-    ///      .aCodingWorkspaceStillDoesNotAdmitWriting` pins, DELIBERATELY,
-    ///      that `workspaceFamily=="coding"` alone does NOT satisfy that
-    ///      policy — so unlike Scrivener (admitted by the fourth arm alone,
-    ///      regardless of the utterance), an ordinary coding QUESTION reaches
-    ///      these skills only if intent classifies as `compose`/`revise` or a
-    ///      text-selection interaction is current. This probe measures which
-    ///      of those is true for a real coding-flavoured question rather than
-    ///      assuming either.
+    /// Real dispatch against Xcode (`fileSystemTree`). AXDocument is the active file; climb projectMarkers.
+    /// Writing Skills still need compose/revise or a text-selection — coding family alone is not enough.
     static func runDispatchCode(_ arguments: [String]) async {
         func value(_ name: String) -> String? {
             guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
@@ -413,10 +328,7 @@ enum ProjectProbe {
             name: "read_corpus_outline", argumentsJSON: "{}")
         check(outlineOutcome.ok, "read_corpus_outline dispatched")
         print("      \(outlineOutcome.summary.prefix(400))…")
-        // THE BLOAT CHECK. `treeOutline` used to walk every non-hidden file
-        // with no exclusion at all — `.build`, `.git`, `DerivedData` and all
-        // — which on a real checkout is thousands of files that are not the
-        // project's own shape. If the fix regressed, these names come back.
+        // Outline must exclude .build / .git / DerivedData.
         for leaked in [".build/", "DerivedData/", ".git/"] {
             check(!outlineOutcome.summary.contains(leaked),
                   "the outline does not leak \(leaked)")
@@ -442,12 +354,7 @@ enum ProjectProbe {
         AmbientContextStore.shared.noteRoute(route)
     }
 
-    /// The declaration `scrivener.mary` will carry, written from the measured
-    /// project rather than assumed — checked here first, because a package
-    /// declaring it is a claim about somebody else's file format.
-    ///
-    /// IT IS RUN THROUGH THE VALIDATOR BELOW BEFORE IT IS USED, so this probe
-    /// cannot measure a declaration the package system would refuse.
+    /// Measured scrivener.mary structure schema; validated before use.
     static var scrivenerLike: PluginCorpusStructureSchema {
         .init(
             discovery: .directoryExtension,
@@ -560,10 +467,7 @@ enum ProjectProbe {
             print("  ids         \(flat.count - missingIDs)/\(flat.count) present"
                 + (missingIDs > 0 ? "  ⚠︎ \(missingIDs) EMPTY" : ""))
 
-            // THE TRASH MUST NOT BE IN THE OUTLINE AT ALL. The reader drops it
-            // by type, and a real project is the only place that spelling gets
-            // checked — a trashType that does not match Scrivener's would
-            // exclude nothing and look exactly like a project with no trash.
+            // Trash must be absent from the outline (dropped by type).
             if let trashType = structure.manifest.trashType {
                 let leaked = flat.filter { $0.type == trashType }
                 print("  trash       \(leaked.isEmpty ? "excluded" : "⚠︎ \(leaked.count) LEAKED")")

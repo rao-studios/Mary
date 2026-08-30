@@ -1,7 +1,11 @@
 //
 //  AbilityLibrary+PackageOperations.swift
+//  MaryBrain
 //
-
+//  WHAT: Package-level operations on the admitted graph.
+//  IN:   AbilityLibrary.swift
+//  OUT:  snapshot mutations
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -98,10 +102,7 @@ extension AbilityLibrary {
         try fileManager.createDirectory(at: installed, withIntermediateDirectories: true)
         let destination = installed.appendingPathComponent(package.package.id.rawValue)
             .appendingPathExtension("mary")
-        // Import is additive. It may shadow an immutable bundled/source
-        // definition, but it never replaces either an imported package or a
-        // Studio override. The directory scan catches local packages whose
-        // filename differs from their schema id as well as the canonical path.
+        // Import is additive. It may shadow an immutable bundled/source definition, but it never replaces either an imported package or a Studio override.
         guard !hasLocalPackage(
             id: package.package.id,
             installedDirectory: installed)
@@ -119,10 +120,7 @@ extension AbilityLibrary {
                 fileSHA256: Self.fileSHA256(bytes)))
     }
 
-    /// Studio's New Package door: a scaffolded, never-before-installed
-    /// package minted straight into the installed directory. Same collision
-    /// and atomic-activation rules as an import; unlike an import, the
-    /// package was authored HERE, so nothing about it is unreviewed.
+    /// Studio's New Package door: a scaffolded, never-before-installed package minted straight into the installed directory.
     @discardableResult
     public func createPackage(_ package: MaryAbilityPackage) throws -> AbilityLibraryReloadReport {
         transactionLock.lock(); defer { transactionLock.unlock() }
@@ -200,12 +198,7 @@ extension AbilityLibrary {
         try record.rawData.write(to: output, options: .atomic)
     }
 
-    /// Exports the document visible in Ability Studio, including unsaved
-    /// changes, rather than consulting a registry snapshot that may have
-    /// advanced behind the pinned editor. The exported package is canonical
-    /// JSON and must pass the same schema/graph validation as a save, but an
-    /// export does not require the source-file lease to remain current because
-    /// producing the requested copy does not mutate the editing source.
+    /// Exports the document visible in Ability Studio, including unsaved changes
     public func exportEditedPackage(
         json: String,
         session: AbilityPackageEditSession,
@@ -254,13 +247,7 @@ extension AbilityLibrary {
         try AbilityPackageCodec.encoded(package).write(to: output, options: .atomic)
     }
 
-    /// Opens any active Ability as an editable document. Packages Mary must
-    /// treat as immutable are represented by local drafts whose save
-    /// destination is `Application Support/Mary/Abilities/Overrides`.
-    /// If that override appeared since the last registry activation, Studio
-    /// opens its exact verified bytes instead of silently replacing it with a
-    /// draft derived from the stale active base. Existing editable local
-    /// packages continue to edit their own file.
+    /// Opens any active Ability as an editable document.
     public func beginEditingPackage(id: PackageID) throws -> AbilityPackageEditSession {
         transactionLock.lock(); defer { transactionLock.unlock() }
         guard let record = snapshot().package(id: id) else {
@@ -323,10 +310,7 @@ extension AbilityLibrary {
             destinationFileSHA256: destinationFileSHA256)
     }
 
-    /// Saves a Studio edit without weakening package provenance. Signed and
-    /// bundled sources stay byte-for-byte intact underneath the local
-    /// override. A concurrently changed source, override, or directly edited
-    /// local package is rejected instead of being silently overwritten.
+    /// Saves a Studio edit without weakening package provenance. Signed and bundled sources stay byte-for-byte intact underneath the local override.
     @discardableResult
     public func saveEditedPackage(
         json: String,

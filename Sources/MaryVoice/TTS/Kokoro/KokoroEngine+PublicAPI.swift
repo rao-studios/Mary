@@ -1,5 +1,10 @@
 //
 //  KokoroEngine+PublicAPI.swift
+//  MaryVoice
+//
+//  WHAT: speak / synthesizeWaveform / synthesize.
+//  IN:   KokoroEngine.swift (same actor)
+//  OUT:  waveform → playback helpers
 //
 
 import Foundation
@@ -11,10 +16,7 @@ extension KokoroEngine {
 
     // MARK: - Public API
 
-    /// Synthesize and play `text`.
-    ///
-    /// - Neutral style: minimal player→mixer graph — faithful to FluidAudio.
-    /// - Any other style: AVAudioEngine path with timePitch / EQ / reverb.
+    /// Synthesize and play `text`. Neutral: player→mixer. Other styles: timePitch / EQ / reverb.
     public func speak(_ text: String, style: TTSSpeechStyle = .neutral) async throws {
         let waveform = try await synthesizeWaveform(text)
         if style.isNeutral {

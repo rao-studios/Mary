@@ -2,13 +2,8 @@
 //  MediaSurfaceSupport.swift
 //  MaryPlugin
 //
-//  THE ROSTER OF DECLARED TRANSPORTS — `ProseSurfaceSupport`'s twin.
-//
-//  Reconciled wholesale on every package activation, for the same reason:
-//  a package that stops declaring a transport must stop having one, and a
-//  merge would leave a stale declaration answering for a player that no
-//  longer claims it.
-//
+//  WHAT: Roster of declared transports. Wholesale reconcile.
+//  PIN:  Twin of ProseSurfaceSupport — a dropped declaration must stop answering.
 
 import Foundation
 import MaryAmbient

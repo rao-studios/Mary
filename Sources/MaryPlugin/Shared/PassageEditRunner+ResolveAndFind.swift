@@ -2,8 +2,10 @@
 //  PassageEditRunner+ResolveAndFind.swift
 //  MaryAdapter
 //
-//  Split out of PassageEditRunner.swift (docs/DECOMPOSITION.md Wave 4)
-//  — pure relocation, no declaration changed.
+//  WHAT: Guard-chain steps 1–4 (resolve, snapshot, identity, mint/find).
+//  IN:   PassageEditRunner.swift (sibling split)
+//  OUT:  PassageResolver | PassageWidening | PassageRegistry
+//  PIN:  Handle before body read — documentKey is which window.
 //
 
 import Foundation
@@ -12,14 +14,8 @@ extension PassageEditRunner {
 
     // MARK: - 1 & 2. Resolve and snapshot
 
-    /// Find the passage the caller means: a handle if they gave one, otherwise
-    /// the words they used, located by the widening ladder.
-    ///
-    /// THE ORDER IS NOT A PREFERENCE. A handle is an IDENTITY the registry
-    /// minted; a target is a DESCRIPTION the model composed, and the ladder has
-    /// to guess at it. Trying the description first would let a fuzzy token
-    /// match outrank the exact passage the conversation has been calling `[S1]`
-    /// for three turns.
+    /// Handle if given, else locating words via the widening ladder.
+    /// PIN: identity before description — a fuzzy target must not outrank [S1].
     public static func locate(
         handle: String?,
         target: String?,
@@ -31,34 +27,12 @@ extension PassageEditRunner {
         let wantedHandle = (handle ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let wantedTarget = (target ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !wantedHandle.isEmpty || !wantedTarget.isEmpty else {
-            // `XcodeEditError`'s precedent — a missing argument asks for the
-            // one thing that would make the call work, in the words a person
-            // would use, rather than naming a parameter.
-            //
-            // A QUESTION, NOT AN ERRAND. "Name the heading, or give me the
-            // words" was two imperatives, and a Skill-invoking model reads an
-            // imperative in a Skill result as a thing to go and do — see
-            // `noDocumentMessage`, where that reading fired `open_in_pages` on
-            // a passage refusal that never mentions Pages. What is left says
-            // what would resolve it and stops.
+            // Missing arg: say what would work. Condition, not an errand.
             return .refused("Which part should I change? A heading, or the words "
                 + "themselves, and I'll find it.", looked: false)
         }
 
-        // RESOLVE THE HANDLE BEFORE READING THE BODY, and the order is the
-        // whole of multi-window correctness.
-        //
-        // `resolveHandle` is registry-only — a dictionary lookup, no Apple
-        // event, no I/O — so hoisting it above the read costs nothing and buys
-        // the one thing the read needs to be correct: WHICH DOCUMENT. Read
-        // first and the body is always the front one, so a handle minted in
-        // the todo note gets re-anchored against whatever window the user has
-        // since danced to, and `anchor` then reports the passage as gone from
-        // a document it was never in.
-        //
-        // Nil `documentKey` (no handle, or a world with one document) means
-        // "the one in front", which is exactly what `body(for:)` falls back to
-        // and exactly what every world did before this line existed.
+        // Handle before body: registry lookup names which document to read.
         var resolution: HandleResolution?
         if !wantedHandle.isEmpty {
             resolution = resolveHandle(wantedHandle, registry: registry, at: now)
@@ -76,10 +50,7 @@ extension PassageEditRunner {
                 return anchor(
                     passage, in: snapshot, forwardedFrom: forwardedFrom, backing: backing)
             case .unknown:
-                // A handle the registry has never heard of, or has pruned. If
-                // the caller ALSO named the part, that naming is a perfectly
-                // good instruction and there is no reason to make them repeat
-                // it; a bare unknown handle has nothing to fall back to.
+                // Unknown handle: fall through to target if the caller named one.
                 guard !wantedTarget.isEmpty else {
                     return .refused(
                         "I don't have anything called [\(wantedHandle)] any more — a heading "
@@ -98,13 +69,7 @@ extension PassageEditRunner {
         case unknown
     }
 
-    /// Follow a superseded handle to whatever replaced it.
-    ///
-    /// BOUNDED, and the bound is not defensive noise: an edit supersedes, and a
-    /// second edit of the same passage supersedes again, so a conversation that
-    /// tightens one paragraph four times leaves a chain four long. It is a
-    /// chain and not a cycle — `supersede` refuses `old == new` — but a bound
-    /// costs one integer and removes the whole class of question.
+    /// Follow a superseded handle. PIN: bound 8 — supersede chains, never cycles.
     private static func resolveHandle(
         _ handle: String, registry: PassageRegistry, at now: Date
     ) -> HandleResolution {
@@ -129,11 +94,7 @@ extension PassageEditRunner {
         _ passage: Passage, in snapshot: BodySnapshot,
         forwardedFrom: String?, backing: PassageBacking
     ) -> Lookup {
-        // THE DOCUMENT COMES FIRST. A passage carries the document it was cut
-        // from; if the world is now showing another one, re-locating its words
-        // in THAT document would find them or not by luck, and either answer
-        // would be about the wrong file. This is the `-1728` in its preventable
-        // form, checked before any text is searched.
+        // Document identity first. Re-locating words in the wrong file is luck, not a find.
         guard passage.documentKey == snapshot.documentKey else {
             return .refused(
                 (PassageWriteError.documentMoved(
@@ -144,9 +105,7 @@ extension PassageEditRunner {
         }
         let outcome = PassageResolver.anchor(passage, in: snapshot.text)
         guard let range = PassageResolver.range(outcome, of: passage) else {
-            // The body WAS searched here — `.gone` and `.ambiguousAfterDrift`
-            // are both results of looking — so a read reports them as an
-            // answer rather than as a breakage.
+            // Body was searched (`.gone` / `.ambiguousAfterDrift`). Read reports as an answer.
             return .refused(
                 PassageResolver.refusal(outcome, for: passage)
                     ?? noDocumentMessage(backing.place),
@@ -185,10 +144,7 @@ extension PassageEditRunner {
             provenance: .recipeRead,
             at: now)
         else {
-            // Only a world that cannot hold passages lands here, and none of
-            // the three that declare a backing is one. Refusing rather than
-            // force-unwrapping keeps a future fourth world's category error a
-            // sentence instead of a crash.
+            // World cannot hold passages. Sentence, not a crash.
             return .refused(noDocumentMessage(backing.place), looked: false)
         }
         return .found(Located(
@@ -199,23 +155,12 @@ extension PassageEditRunner {
             trace: decision.trace))
     }
 
-    /// WHERE THE USER IS LOOKING, from the ambient store's own words.
-    ///
-    /// `PassageAttention` takes TEXT rather than an offset on purpose (a raw AX
-    /// integer counts UTF-16 over a string that includes headers; a `body text`
-    /// offset does neither), and this is the honest source for it: the
-    /// selection the watcher published, or failing that the viewport excerpt.
-    /// Both are located by `range(of:)` inside the body itself, so a fact from
-    /// a different coordinate space simply fails to locate and the tie-break
-    /// falls through to document order — never to a fabricated position.
+    /// Viewport/selection words as PassageAttention. Located by range(of:) in the body.
+    /// PIN: carry `application:` — two apps share `.otherApps`.
     public static func attention(
         for place: AmbientPlace, ambient: AmbientContextStore
     ) -> PassageAttention? {
-        // `application:` CARRIED THROUGH on the viewport read: two taught
-        // applications share the `.otherApps` host lane, so the world alone
-        // would hand one manuscript's viewport to the other's locate ladder —
-        // and attention is a TIE-BREAK between identical candidate spans, so a
-        // wrong one lands silently on the wrong paragraph.
+        // Viewport fact is per application, not just world.
         let words = ambient.routedSelectionHandoff(world: place.world)?.text
             ?? ambient.fact(
                 world: place.world, application: place.application,
@@ -224,26 +169,9 @@ extension PassageEditRunner {
         return PassageAttention(text: words)
     }
 
-    /// The "I can't see it" sentence, in the register of the place that owns
-    /// the document. One phrasing per place, built from `displayName` rather
-    /// than hand-written strings that would drift — which is also what lets a
-    /// taught application refuse in its own name instead of the host lane's.
-    ///
-    /// THE ERRAND IS GONE, AND THIS IS THE ONE THAT FIRED. It used to end
-    /// "bring the one you mean up and ask me again", and a Skill-invoking model
-    /// reads that as an instruction it can carry out: the live transcript shows
-    /// `OPEN_IN_PAGES` fired off the back of a passage refusal, and nothing
-    /// anywhere in the passage path calls it. The tree already settled this
-    /// question in its own words elsewhere — "A SIZE, NOT AN ERRAND … which a
-    /// Skill-invoking model takes as fetch it" — so the condition is stated and the
-    /// imperative is deleted. Telling the USER to grant Accessibility is a
-    /// different job and has its own seam, `SkillBinding.spokenFailureHint`.
+    /// No-document sentence from `displayName`. Condition, not an errand.
     public static func noDocumentMessage(_ place: AmbientPlace) -> String {
-        // The trailing sentence is a REDIRECT to the correct verb, not an
-        // errand: `body` is nil for a closed app AND for a blank document
-        // (Pages returns nil on an empty body), and the blank case used to
-        // dead-end here — every passage verb refused a fresh document while
-        // the one verb that fills it went unnamed.
+        // Redirect to type_at_cursor — `body` is nil for closed app AND blank document.
         "I can't see a document with text open in \(place.displayName) right now, "
             + "so there's nothing in front of me to look in. A blank document "
             + "is written with type_at_cursor, never passage edits."
@@ -251,12 +179,7 @@ extension PassageEditRunner {
 
     // MARK: - find_passage
 
-    /// A READ: locate the passage, mint the handle, hand back its words.
-    ///
-    /// `foundNothing` on a miss, `ok: true` — the read genuinely ran and this
-    /// is its honest answer. What the flag denies is AUTHORITY, so a miss can
-    /// never be carried into the voice's live block and recited to the user as
-    /// though it were the passage they asked for.
+    /// Read: locate, mint, return words. Miss → `foundNothing` (ok, no authority).
     public static func find(
         handle: String?, target: String?, backing: PassageBacking,
         registry: PassageRegistry = .shared,
@@ -276,14 +199,8 @@ extension PassageEditRunner {
         }
     }
 
-    /// The read's answer, in the bounds-label contract this tree already has.
-    ///
-    /// `Name — characters N–M of T` IS A CONTRACT, not a phrasing choice:
-    /// `AmbientBridge.parseBounds` pulls those three numbers back out of this
-    /// exact head so the fact carries real bounds, and
-    /// `PagesPlugin.regionOutcome` is where it is written down. The handle goes
-    /// in FRONT of it — `parseBounds` strips exactly that prefix before reading
-    /// the subject, and it is the one token on the line a Skill will accept.
+    /// Bounds-label contract: `[handle] Title — characters N–M of T`.
+    /// OUT: AmbientBridge.parseBounds (handle in front; parseBounds strips it).
     public static func passageBlock(_ found: Located) -> String {
         var head = "[\(found.passage.handle)] \(found.snapshot.documentTitle) — "
             + "characters \(found.range.lowerBound)–\(found.range.upperBound) "

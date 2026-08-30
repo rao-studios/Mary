@@ -2,9 +2,10 @@
 //  EventKitAdapter.swift
 //  MaryPlugin
 //
-//  GENERIC EVENTKIT FAMILY — calendars and reminders through one compiled
-//  adapter. Application packages (`calendar.mary`, `reminders.mary`) bind
-//  the verbs; nothing here names Calendar.app or Reminders.app.
+//  WHAT: Calendars and reminders through one compiled EventKit adapter.
+//  IN:   calendar.mary / reminders.mary (bind the verbs)
+//  OUT:  EventKit
+//  PIN:  Nothing here names Calendar.app or Reminders.app.
 //
 
 import EventKit

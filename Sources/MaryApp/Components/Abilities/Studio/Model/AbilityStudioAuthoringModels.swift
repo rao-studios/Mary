@@ -1,8 +1,10 @@
 //
 //  AbilityStudioAuthoringModels.swift
+//  Mary
 //
-//  Split out of AbilityStudioAuthoring.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Authoring kinds, errors, templates, catalog palettes.
+//  IN:   AbilityStudioAuthoring.swift (sibling split)
+//  OUT:  AbilityStudioPackageFactory / AbilityStudioViewModel
 //
 
 import MaryBrain
@@ -10,11 +12,9 @@ import Foundation
 
 
 
-/// The two honest ways an external `.mary` document can acquire hands.
-///
-/// A package-owned provider carries bounded recipes for Mary's compiled
-/// `macUI` interpreter. An installed faculty package describes an Ability and binds one of its
-/// Skills to an operation published by a compiled adapter already in Mary.
+/// Ways an external `.mary` document acquires hands.
+/// Package-owned: bounded recipes for the compiled `macUI` interpreter.
+/// Installed faculty: Skill bound to an operation a compiled adapter already publishes.
 enum AbilityStudioAuthoringKind: String, CaseIterable, Sendable {
     case packageOwnedNativeApplication
     case installedFaculty
@@ -98,10 +98,8 @@ struct AbilityStudioNativeApplicationTemplate: Sendable {
     }
 }
 
-/// Everything Studio needs to derive a new Ability from a callable contract
-/// that Mary has already validated and joined to an installed native faculty.
-/// A manifest by itself is deliberately insufficient: it has typed compatibility
-/// claims, but the source Skill owns the complete model-facing contract.
+/// Derive a new Ability from a callable contract already joined to an installed faculty.
+/// A manifest alone is insufficient: the source Skill owns the model-facing contract.
 struct AbilityStudioInstalledFacultyTemplate: Sendable {
     var packageID: PackageID
     var title: String
@@ -143,9 +141,7 @@ struct AbilityStudioInstalledFacultyOption: Hashable, Identifiable, Sendable {
 }
 
 enum AbilityStudioAuthoringCatalog {
-    /// The palette for an installed-faculty package. A manifest operation alone
-    /// is never authoring authority: every option is joined to an available,
-    /// validated runtime Skill that supplies its complete callable contract.
+    /// Palette for an installed-faculty package. Each option is joined to a validated runtime Skill.
     static func installedFaculties(
         in snapshot: AbilityRuntimeSnapshot
     ) -> [AbilityStudioInstalledFacultyOption] {
@@ -200,9 +196,7 @@ enum AbilityStudioAuthoringCatalog {
             }
     }
 
-    /// The realization palette for a package-owned Remote Hands provider. The final graph
-    /// validator still checks output, stage, dependency, and input compatibility
-    /// when an author selects one of these portable contracts.
+    /// Realization palette for a package-owned Remote Hands provider. Graph validator still checks output.
     static func portableSkills(
         in snapshot: AbilityRuntimeSnapshot
     ) -> [AbilityRuntimeSkill] {

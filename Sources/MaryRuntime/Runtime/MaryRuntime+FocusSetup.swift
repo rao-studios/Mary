@@ -1,5 +1,11 @@
 //
 //  MaryRuntime+FocusSetup.swift
+//  MaryRuntime
+//
+//  WHAT: Shared boxes the split files read — focus, roster, engine choice.
+//  IN:   +BrainInstall writes; +Stack writes totemArchivingEnabledBox
+//  OUT:  resolveFocus / applyEngine / unit indexer / retrievalScope
+//  PIN:  Lock-guarded (cross-actor). internal for file split — treat as private.
 //
 
 import MaryBrain
@@ -14,43 +20,21 @@ import os
 extension MaryRuntime {
     // MARK: - The focused world, published once
 
-    /// The live focus as ONE value both memory paths read: the archive files
-    /// deposits under it, and chat retrieval scopes to it. Installed by
-    /// `installBrainConfiguration` from the same `resolveFocus()` the prompt
-    /// uses, so the prompt, the archive and retrieval can never name
-    /// different documents. Unfocused until then — Seer still uses the
-    /// Personal interaction group plus memory/resonance, so nothing here
-    /// depends on boot order.
-    ///
-    /// LOCK-GUARDED, not `nonisolated(unsafe)`: this closure is WRITTEN from
-    /// the main actor whenever settings change (plugins toggled, projects
-    /// edited) and READ from the Seer actors on every request and from the
-    /// brain's detached archive. That is an unsynchronized cross-actor
-    /// read/write of a reference-counted existential — a real data race, not a
-    /// theoretical one. Same pattern as `WorkspaceFocusTracker`'s boxes.
-    // Internal for the file split (installed by +BrainInstall) — treat as private.
+    /// Live focus both memory paths read (archive filing + chat retrieval).
+    /// Installed from the same resolveFocus() the prompt uses.
+    // internal for file split — treat as private
     static let focusSubjectBox =
         OSAllocatedUnfairLock<@Sendable () -> DepositSubject>(initialState: { .unfocused })
 
-    /// Read the installed resolver and run it. Two steps on purpose: the
-    /// closure itself may touch locks (the watcher boxes), so it must NOT run
-    /// while `focusSubjectBox` is held.
+    /// Read the installed resolver and run it. Closure may touch watcher locks —
+    /// must not run while focusSubjectBox is held.
     static func focusSubject() -> DepositSubject {
         let resolver = focusSubjectBox.withLock { $0 }
         return resolver()
     }
 
-    /// Skill binding name → the world that owns it, published when the roster
-    /// is built so Routes can name the world behind an invoked Skill.
-    ///
-    /// DERIVED FROM THE INSTALLED ROSTER, never from a second table: it is
-    /// built in `installBrainConfiguration` from the very `plugins` array the
-    /// registry is constructed with, so a disabled plugin is absent from both
-    /// or neither. A hand-kept copy of this mapping is exactly the "routing
-    /// mirror" — the pane and the prompt disagreeing about the same fact —
-    /// that the ambient store was built to abolish.
-    // These five boxes are internal for the file split (+BrainInstall writes
-    // them; +Stack writes totemArchivingEnabledBox) — treat as private.
+    /// Skill binding name → owning world. Built from the installed roster, not a second table.
+    // internal for file split — treat as private
     static let skillWorldBox =
         OSAllocatedUnfairLock<[String: AmbientWorld]>(initialState: [:])
     static let applicationProfilesBox =
@@ -59,31 +43,19 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<[ApplicationProfile]>(initialState: [])
     static let brainConfigurationInstalledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    /// The configured project roots, as `installBrainConfiguration` last saw
-    /// them. The unit indexer restores one durable catalogue per project at
-    /// stack connect, which happens after configuration is installed — so this
-    /// is where that list is available without reaching for a config singleton
-    /// the service layer does not have.
+    /// Project roots as installBrainConfiguration last saw them. Unit indexer
+    /// restores catalogues at stack connect — after configuration is installed.
     static let projectRootsBox =
         OSAllocatedUnfairLock<[String]>(initialState: [])
     private static let abilityProfileBridgeStarted =
         OSAllocatedUnfairLock<Bool>(initialState: false)
     static let totemArchivingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    /// The Brain card's choice, as `applyEngine` last applied it.
-    ///
-    /// HERE FOR THE SAME REASON AS `projectRootsBox` above: the wiring
-    /// decisions that depend on it are made from places holding no config —
-    /// the sign-in view model most of all — and the service layer has no
-    /// config singleton to reach for. `applyEngine` is the only writer, and
-    /// it is also the only place the choice is ever acted on.
-    ///
-    /// `.hosted` initially, matching the config default: before the first
-    /// `applyEngine` the honest assumption is the one a fresh install makes.
+    /// Brain card choice as applyEngine last applied. Service layer has no config singleton.
+    /// `.hosted` initially, matching the config default.
     static let engineChoiceBox =
         OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .hosted)
-    /// Lane B's choice. `.local` initially, matching the config default:
-    /// acting stayed on-device even when spoken turns already went to Seer.
+    /// Lane B. `.local` initially — acting stayed on-device when speech went to Seer.
     static let skillEngineChoiceBox =
         OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .local)
     static let localModelIDBox =
@@ -95,9 +67,7 @@ extension MaryRuntime {
     static let seerStackEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: true)
 
-    /// Read-only snapshot for the debugger. Empty until the first
-    /// `installBrainConfiguration`, which is honest: before that there is no
-    /// roster to describe.
+    /// Debugger snapshot. Empty until first installBrainConfiguration.
     static func skillWorldIndex() -> [String: AmbientWorld] {
         skillWorldBox.withLock { $0 }
     }
@@ -106,11 +76,8 @@ extension MaryRuntime {
         applicationProfilesBox.withLock { $0 }
     }
 
-    /// Ability imports and Studio saves activate a new immutable registry
-    /// without rebuilding the app process. Keep the open application profile
-    /// index and its Totem knowledge synchronized with those revisions so a
-    /// newly taught application is recognizable on the very next turn.
-    // Internal for the file split (called by +BrainInstall) — treat as private.
+    /// Ability import / Studio save → new registry. Keep profile index + Totem in step.
+    // internal for file split — treat as private
     static func startAbilityProfileBridge() {
         let shouldStart = abilityProfileBridgeStarted.withLock { started in
             guard !started else { return false }
@@ -124,33 +91,18 @@ extension MaryRuntime {
                 let native = nativeApplicationProfilesBox.withLock { $0 }
                 let profiles = native + snapshot.plugins.applicationProfiles
                 applicationProfilesBox.withLock { $0 = profiles }
-                // The ambient roster rides the SAME event. Without this an
-                // imported package routes on the next turn but its reads still
-                // reach nobody until relaunch — which is the worse half of the
-                // bug, because routing working is exactly what makes the
-                // missing evidence look like forgetfulness rather than a gap.
+                // Ambient roster, prose, code, observer — same event so next turn sees them.
                 AmbientApplicationBridge.install(profiles: profiles)
-                // THE PROSE SURFACES RIDE THE SAME EVENT, for the same
-                // reason as the roster: an imported editor must be readable
-                // on the very next turn, not after a relaunch. Leaving this
-                // behind would make a newly installed application callable
-                // and unreadable, which is the worst of both.
                 ProseSurfaceSupport.shared.reconcile(
                     proseSurfaceRegistrations(from: snapshot))
-                // THE CODE SURFACES RIDE THE SAME EVENT, for the same reason.
                 CodeSurfaceSupport.shared.reconcile(
                     codeSurfaceRegistrations(from: snapshot))
-                // The observer re-derives its lanes from the roster that just
-                // changed: a package imported mid-session starts polling on
-                // its declared cadence, a removed one loses its lane and its
-                // perceived facts in the same breath.
                 AmbientApplicationObserver.shared.activate()
             }
         }
     }
 
-    /// What Seer may retrieve RIGHT NOW — Personal interaction records plus
-    /// Seer's own memory and resonance. Ability codec stays off this request.
+    /// What Seer may retrieve now — Personal + memory/resonance. Ability codec stays off.
     static func retrievalScope(ownerID: String) -> RetrievalScope {
         TotemMemoryTopology.seerPersonalScope(ownerID: ownerID)
     }

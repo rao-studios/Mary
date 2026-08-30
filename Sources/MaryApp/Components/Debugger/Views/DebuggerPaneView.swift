@@ -2,12 +2,8 @@
 //  DebuggerPaneView.swift
 //  Mary
 //
-//  The minimap pane: window thumbnails across every Space, each captioned
-//  with what Mary's watcher actually parsed — or the honest reason it
-//  can't see. Plain view owning the realtime view models (the Home ↔
-//  HomeSessionView split, replayed): Granite state stays click-scoped,
-//  the 1–2 Hz repaint lives here. Captions and the inspector both render
-//  from PerceptionSnapshotViewModel's cards — one source, never two.
+//  WHAT: Minimap — window thumbnails + watcher captions (or why blind).
+//  OUT:  PerceptionSnapshotViewModel cards (captions and inspector share them)
 //
 
 import MaryBrain
@@ -18,10 +14,7 @@ struct DebuggerPaneView: View {
     @Binding var selectedWindowID: UInt32?
     /// Inspector target (PerceptionWorld.rawValue) — written on tile tap.
     @Binding var selectedWorld: String?
-    /// The filter bar's tab and capture scope, as EyesFilter/CaptureScope
-    /// tokens. THE source of truth is Debugger.Center; the minimap view model
-    /// only receives pushed copies to parameterise its sweep (see
-    /// DebuggerMinimapViewModel — poll inputs, never a second state).
+    /// Tab/scope tokens; Debugger.Center is truth, VM gets pushed copies.
     @Binding var filterToken: String?
     @Binding var captureScopeToken: String?
 
@@ -29,12 +22,7 @@ struct DebuggerPaneView: View {
     @StateObject var perceptionVM = PerceptionSnapshotViewModel()
 
     let grid = [GridItem(.adaptive(minimum: 150), spacing: .layer3)]
-    /// Icon chips, WRAPPED — not a horizontal scroller. The pane's content
-    /// floor is ~268 pt (300 minWidth − 2×.layer4), which fits about two and
-    /// a half text tabs; the app hides scroll indicators everywhere, so
-    /// off-screen tabs would be invisible; and a horizontal scroller nested
-    /// in this vertical one is a trackpad coin-flip. 28 pt columns wrap ~8
-    /// per row at the floor.
+    /// Wrapped 28 pt icon chips; the pane hides scroll indicators.
     let tabGrid = [GridItem(.adaptive(minimum: 28), spacing: .layer1)]
 
     var filter: EyesFilter { EyesFilter(token: filterToken) }

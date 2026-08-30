@@ -2,16 +2,16 @@
 //  WindowManagement.swift
 //  MaryBrain
 //
-//  The machine-level contract behind the window-management ability. The
-//  ability owns the verbs; application plugins contribute preferred adapters
-//  when their native automation surface is more precise than Accessibility.
+//  WHAT: Machine contract for window management — resolve, then act.
+//  IN:   WindowManagementPlugin / WindowManagementModels
+//  OUT:  WindowManagementAdapter registry / VerifiedActivation / StagedWritingSurface
+//  PIN:  No application-specific policy. Adapter order is preference order.
 //
 
 import AppKit
 import Foundation
 
-/// Coordinates resolution and chooses an adapter; it contains no application-
-/// specific policy. Adapter order is the explicit preference order.
+/// Coordinates resolution and chooses an adapter. Adapter order is preference order.
 public final class WindowManagementService: WindowManagementServing, @unchecked Sendable {
     public static let live = WindowManagementService(
         resolver: NSWorkspaceApplicationResolver(),
@@ -19,19 +19,10 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
 
     private let resolver: any WindowApplicationResolving
     private let adapters: [any WindowManagementAdapter]
-    /// RESOLVES A SPOKEN WINDOW REFERENCE TO A WINDOW, for whichever
-    /// application owns the reference.
-    ///
-    /// Bonnie's version of this pair named TextEdit in the type, the property
-    /// and the default — `textEditReferenceResolver`, returning a
-    /// `TextEditWindowReferenceDecision`. The SEAM was right (already injected,
-    /// so the ownership ladder is testable without running an application);
-    /// only the name was wrong. A prose surface's watcher supplies this, and
-    /// an application that declares no prose surface simply never resolves,
-    /// which is `.none` and correct.
+    /// Spoken reference → window, via the owning application's watcher.
+    /// Nil/`.none` when the app declares no prose surface.
     private let referenceResolver: @Sendable (String) -> WindowReferenceDecision
-    /// A plain window title with no conversation evidence, asked of the LIVE
-    /// roster — unique-match-or-nil, tie-refusing, never launching.
+    /// Plain title with no conversation evidence — unique-match-or-nil, never launching.
     private let titleProbe: @Sendable (String) async -> ManagedWindowReference?
 
     init(
@@ -90,8 +81,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
     public func raiseWindow(application: String, window: String) async -> WindowManagementResult {
         await targetOperation(application: application, reference: window, verb: "Brought forward") {
             try await $0.adapter.raise($0.window, in: $0.application)
-            // The raise verified activation AND raised the exact window —
-            // proven, window-accurate staging for the typer's resolve ladder.
+            // Raise verified activation and the exact window — typer staging.
             if SelectionSurfacePolicy.permitsProseApplication($0.application.bundleIdentifier) {
                 StagedWritingSurface.shared.record(
                     bundleID: $0.application.bundleIdentifier,
@@ -127,11 +117,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
             if let failure = inferred.failure { throw failure }
             let (app, adapter, windows) = try await resolvedWindows(
                 application: inferred.application)
-            // "IT" IS THE FRONT WINDOW. Every other verb here requires a
-            // reference because it may act on a window behind the one in
-            // view; this one is asked about the thing being looked at, and
-            // demanding a title for it would be a question nobody would ask
-            // a person.
+            // Omitted reference = front window. Other verbs may act behind; this one does not.
             let target: ManagedWindow
             if inferred.reference.trimmingCharacters(
                 in: .whitespacesAndNewlines).isEmpty {
@@ -213,36 +199,15 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
         return (app, adapter, windows)
     }
 
-    /// Resolve application ownership and, when TextEdit conversation evidence
-    /// supplies it, canonicalise the window to stable identity in one step.
-    /// Passing the canonical id into the adapter prevents a later z-order or
-    /// title lookup from deriving a different answer.
-    ///
-    /// A stable reference may prove its owning application. TextEdit uses its
-    /// native id prefix, a conversation `[W#]` handle, an established exact
-    /// title, or a uniquely targeted conversational follow-up. Generic AX ids
-    /// lead with pid. Otherwise an omitted app honestly means the frontmost
-    /// app.
+    /// Resolve ownership; canonicalize to a stable id when the owner answers.
+    /// PIN: omitted app = frontmost. Generic AX ids lead with pid.
     private func inferredTarget(
         explicit: String, windowReference: String
     ) async -> InferredTarget {
         let named = explicit.trimmingCharacters(in: .whitespacesAndNewlines)
         let reference = windowReference.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // THE OWNING APPLICATION ANSWERS FOR ITS OWN WINDOWS. Bonnie's
-        // version of this ladder opened with three TextEdit-shaped arms: a
-        // bundle-id comparison against two spellings of the name, a
-        // `textedit:` reference prefix, and a regex for that application's
-        // unsaved-title family (`^untitled \d+$`). Each was correct and each
-        // was a compiled application inside a service whose own header says
-        // it "contains no application-specific policy".
-        //
-        // What replaces them is the seam that was already here: a resolver
-        // the owning application's watcher supplies. An application that
-        // declares a prose surface resolves its own references — including
-        // its own untitled family, which only it knows the shape of — and one
-        // that declares none answers `.none` and falls through to the generic
-        // rungs below.
+        // Owning application's watcher answers first. `.none` falls through.
         if !named.isEmpty {
             switch referenceResolver(reference) {
             case .resolved(let window):
@@ -260,10 +225,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
             return InferredTarget(
                 application: window.applicationID, reference: window.identity)
         case .ownedButUnresolved(let failure):
-            // The application is known but its member was not uniquely
-            // resolved. This is terminal: passing the raw phrase into a
-            // looser resolver below would let that one derive a second — and
-            // potentially different — answer.
+            // Owner known, member not unique — terminal; do not try a looser resolver.
             return InferredTarget(
                 application: "", reference: reference, failure: failure)
         case .none:
@@ -277,16 +239,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
                 application: running.bundleIdentifier ?? running.localizedName ?? "",
                 reference: reference)
         }
-        // A plain title with no conversation evidence still deserves the
-        // application that actually owns it. "Bring the Shopping List window
-        // forward" used to fall to the frontmost app — usually not TextEdit —
-        // and die there as windowNotFound. Ask the live TextEdit roster LAST,
-        // after every conversation-owned rung, and accept only a UNIQUE title
-        // match; a tie inside TextEdit or a miss falls through to the
-        // frontmost contract unchanged. When the frontmost app also owns the
-        // title, the owner wins — deliberate, because the status quo was not
-        // "the other app wins", it was a refusal; an explicit `app` argument
-        // (or conversation evidence, which runs earlier) overrides.
+        // Unique live-roster title match after conversation rungs. Tie/miss → frontmost.
         if !reference.isEmpty, let window = await titleProbe(reference) {
             return InferredTarget(
                 application: window.applicationID, reference: window.identity)
@@ -295,8 +248,7 @@ public final class WindowManagementService: WindowManagementServing, @unchecked 
     }
 }
 
-/// Application lookup and activation remain Mary-owned. Query strings are
-/// never interpolated into a shell: `/usr/bin/open` receives an argv array.
+/// Application lookup and activation. Query strings never interpolate into a shell.
 final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @unchecked Sendable {
     private static let activationTimeout: TimeInterval = 2.0
     private static let launchTimeout: TimeInterval = 5.0
@@ -318,17 +270,13 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
 
         switch runningApplication(named: query) {
         case .success(let running):
-            // Two-road verified activation — cooperative activation alone
-            // refuses silently from a background caller (the "TextEdit didn't
-            // come forward" incident); the Apple Events road is the retry it
-            // cannot refuse the same way.
+            // Two-road verified activation (VerifiedActivation).
             let raised = await VerifiedActivation.bringForward(
                 pid: running.processIdentifier)
             if let refusal = raised.reason(app: running.displayName) {
                 return .failure(.operationFailed(refusal))
             }
-            // Proven fronting: the raised app is now typing-destination
-            // evidence for the typer's resolve ladder.
+            // Proven fronting — typer resolve ladder.
             if SelectionSurfacePolicy.permitsProseApplication(running.bundleIdentifier) {
                 StagedWritingSurface.shared.record(
                     bundleID: running.bundleIdentifier,
@@ -356,22 +304,7 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
             return .failure(.operationFailed("I couldn't open \(query)."))
         }
 
-        // WAIT FOR THE PROCESS, THEN HAND IT TO THE ONE AUTHORITY.
-        //
-        // This loop used to do its own activation, and it carried all three of
-        // the defects `VerifiedActivation` exists to fix: `activate(options: [])`
-        // (no `.activateAllWindows`, no unhide, and no Apple Events road),
-        // exactly one activation attempt with the remaining seconds spent only
-        // polling, and — worst — a `NSWorkspace.frontmostApplication` read from
-        // this background executor, which is the stale-cache condition that
-        // reports a successful raise as a failure. A cold launch could put the
-        // app on screen and still answer "opened but didn't come to the
-        // foreground", and `MaryBrain+Lanes` reads that as grounds to try a
-        // different application entirely.
-        //
-        // So the loop now waits for the PROCESS to exist — the one thing that
-        // genuinely needs polling after `open` — and the raise is one verified
-        // call, main-actor checked, two roads.
+        // Wait for the process, then VerifiedActivation. Do not poll frontmost here.
         let deadline = Date().addingTimeInterval(Self.launchTimeout)
         var lastRunning: ManagedApplication?
         while Date() < deadline {
@@ -433,13 +366,8 @@ final class NSWorkspaceApplicationResolver: WindowApplicationResolving, @uncheck
         Set(candidates.map { normalize($0.bundleIdentifier) + "|" + normalize($0.displayName) })
     }
 
-    /// INTERIOR whitespace goes too, not just the edges. ASR renders
-    /// "TextEdit" as "text edit", and a two-word query matched neither the
-    /// display name nor the bundle id by equality, prefix, or containment —
-    /// so every verb answered "text edit isn't open" at a machine with
-    /// TextEdit right there on screen. This is the APP resolver's normalize
-    /// only; `WindowReferenceResolver` keeps its spaces, because collapsing
-    /// them there would merge the window titles "Untitled 9" and "Untitled9".
+    /// Collapse interior whitespace too — ASR says "text edit" for TextEdit.
+    /// PIN: WindowReferenceResolver keeps spaces ("Untitled 9" ≠ "Untitled9").
     private static func normalize(_ value: String) -> String {
         String(String.UnicodeScalarView(value.unicodeScalars.filter {
             !CharacterSet.whitespacesAndNewlines.contains($0)

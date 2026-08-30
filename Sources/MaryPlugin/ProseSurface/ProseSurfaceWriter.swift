@@ -2,47 +2,9 @@
 //  ProseSurfaceWriter.swift
 //  MaryPlugin
 //
-//  PUTTING NEW TEXT WHERE OLD TEXT WAS — the one write path the prose lane
-//  has, for every application that declares a prose surface.
-//
-//  THE CONTRACT IT IMPLEMENTS is `PassageWriter`, and its three clauses were
-//  each a bug before they were a rule: re-locate the passage in the string
-//  THIS element just returned (never convert an offset that arrived from
-//  somewhere else); refuse rather than guess when the passage is ambiguous;
-//  and read back what actually landed rather than reporting what was sent.
-//
-//  THE LADDER, in order, and every rung is evidence-driven:
-//
-//    1. SELECT the located range, then SET the selected text. Two calls, and
-//       the second is allowed to fail — a great many applications implement
-//       the range setter and not the text setter, and for those the selection
-//       is still the whole of the locating work.
-//    2. KEYSTROKES into the selection the first rung landed. This inherits all
-//       of the locating, and it lands in the application's OWN undo stack,
-//       which is the thing a user reaches for when Mary gets it wrong.
-//    3. Read back and compare. A write that cannot be verified is reported as
-//       unverified, never as success.
-//
-//  THE BACKGROUND-WINDOW QUESTION, MEASURED AND ANSWERED — 2026-08-27,
-//  TextEdit on macOS 26, via `mary-ax-probe --prose --write`.
-//
-//  Bonnie reached background windows through an application's scripting
-//  layer, which addresses a window by id and needs no focus change. This lane
-//  has none, so whether `kAXSelectedTextRange` and `kAXSelectedText` land in a
-//  window that is NOT frontmost was an open question with a designed fallback
-//  (raise, write, restore) waiting behind it.
-//
-//  THEY LAND. The probe seeded a scratch note, raised a different note over
-//  it, wrote into the one behind, and read the new text back — `✓ via
-//  setSelectedText`. So `raisesBackgroundWindows` stays FALSE: an edit to a
-//  note the user is not looking at happens silently, which is what it should
-//  do, and no window flashes forward for it.
-//
-//  THE FALLBACK STAYS, unexercised, because the measurement is about ONE
-//  application. A prose surface is a family, and the next member may refuse
-//  a background write; the flag is how that member ships without this file
-//  changing. Do not delete it on the strength of one green probe.
-//
+//  WHAT: PassageWriter for declared prose — relocate, set selection, read back.
+//  OUT:  PassageEditRunner APPLY
+//  PIN:  Background windows: setSelectedText lands; raisesBackgroundWindows stays false.
 
 import AppKit
 import ApplicationServices
@@ -54,11 +16,8 @@ public struct ProseSurfaceWriter: PassageWriter {
 
     public let registration: ProseSurfaceRegistration
 
-    /// Whether a write to a background window must raise it first.
-    ///
-    /// Nil means "not yet decided" and behaves as false — attempt the write
-    /// where the document is, and let the read-back catch a silent no-op.
-    /// The probe sets this deliberately once measured; nothing infers it.
+    /// Whether a write to a background window must raise it first. Nil means "not yet
+    /// decided" and behaves as false.
     public let raisesBackgroundWindows: Bool
 
     public init(
@@ -79,10 +38,7 @@ public struct ProseSurfaceWriter: PassageWriter {
             throw PassageWriteFailure.applicationUnavailable(registration.displayName)
         }
 
-        // THE DOCUMENT THIS SNAPSHOT IS ABOUT, not whatever is in front now.
-        // A snapshot carries the key it was read from; between reading and
-        // writing the user may have switched windows, and writing into the
-        // new front one would be an edit to a document nobody named.
+        // The document this snapshot is about, not whatever is in front now.
         let surfaces = ProseSurfaceAX.surfaces(pid: pid, registration: registration)
         guard let surface = surfaces.first(where: { $0.documentKey == snapshot.documentKey })
         else {
@@ -141,9 +97,6 @@ public struct ProseSurfaceWriter: PassageWriter {
         var method: PassageWriteMethod = .accessibility
         if ProseSurfaceAX.setSelectedText(replacement, in: surface.editor) != .success {
             // RUNG 2. Not an error — see the ladder in the file header.
-            // The selection above already landed; typing replaces it
-            // wherever it is, which is why the fallback needs no locating of
-            // its own — and why it lands in the application's own undo stack.
                         let typed = await KeyboardTyper.typeIntoSelection(
                 replacement, targetPrefix: registration.bundleIdentifiers.first ?? "")
             guard typed else {
@@ -160,10 +113,8 @@ public struct ProseSurfaceWriter: PassageWriter {
                 : range.lowerBound..<(range.lowerBound + replacement.utf16.count),
             newBodyHash: after.map(ContentUndoStore.hash),
             newBody: after,
-            // HONEST ABOUT VERIFICATION. `readBack` is false when the element
-            // would not hand its text back afterwards — the write may well
-            // have landed, and a receipt claiming it was verified when
-            // nothing was read is the one lie the runner cannot catch.
+            // HONEST ABOUT VERIFICATION. `readBack` is false when the element would not
+            // hand its text back afterwards.
             readBack: after != nil,
             method: method)
     }
@@ -175,10 +126,8 @@ public struct ProseSurfaceWriter: PassageWriter {
     }
 }
 
-/// Why a prose write could not happen. Every case is a sentence the user
-/// hears, so each names the condition and stops — no case suggests a Skill,
-/// because a refusal that reads as an errand sends the model back around the
-/// loop it was refused in.
+/// Why a prose write could not happen. Every case is a sentence the user hears, so each
+/// names the condition and stops.
 public enum PassageWriteFailure: Error, Sendable, Equatable {
     case applicationUnavailable(String)
     case documentMoved(String)

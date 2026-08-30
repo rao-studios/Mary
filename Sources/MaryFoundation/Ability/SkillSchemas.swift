@@ -1,3 +1,12 @@
+//
+//  SkillSchemas.swift
+//  MaryFoundation
+//
+//  WHAT: Skill declaration — ports, execution, model projection, artifact semantics.
+//  IN:   `.mary` skills[] → AbilityPackageValidator+Skills.
+//  OUT:  AbilityRuntime, ModelExposureSchema, Plugin realizations.
+//
+
 import Foundation
 
 public enum SkillKind: String, Codable, Hashable, Sendable, CaseIterable {
@@ -30,9 +39,7 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
     public var capabilities: [CapabilityID]
     public var interactions: [InteractionID]
     public var perceptions: [PerceptionID]
-    /// Signals that enrich execution when present but are not prerequisites.
-    /// A workflow may instead receive the same typed value explicitly through
-    /// its input ports (for example, a named project with no focused IDE).
+    /// Enrich when present; not prerequisites. Ports may carry the same typed value.
     public var optionalInteractions: [InteractionID]
     public var optionalPerceptions: [PerceptionID]
     public var supportingAbilities: [AbilityID]
@@ -92,8 +99,7 @@ public struct SkillRequirements: Codable, Hashable, Sendable {
 public struct ModelParameterSchema: Codable, Hashable, Sendable {
     public var name: String
     public var type: String
-    /// Inspector metadata. Provider-facing wording is owned by Mary or the
-    /// installed adapter implementation, never by an imported package.
+    /// Inspector only. Provider wording is Mary's or the adapter's, never the package.
     public var summary: String
     public var required: Bool
     public var enumValues: [String]
@@ -113,13 +119,11 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
     }
 }
 
-/// The model-call projection of a Skill. It is deliberately a projection:
-/// wire adapters may still call this a tool, but Mary's domain and UI do not.
+/// Model-call projection of a Skill. Wire adapters may say "tool"; Mary does not.
 public struct ModelExposureSchema: Codable, Hashable, Sendable {
     public var enabled: Bool
     public var invocationName: String?
-    /// Optional inspector copy only. It is intentionally excluded from the
-    /// provider-facing callable description.
+    /// Inspector copy only — never the provider-facing callable description.
     public var summaryOverride: String?
     public var parameters: [ModelParameterSchema]
     public var inheritsBindingContract: Bool
@@ -141,8 +145,7 @@ public struct ModelExposureSchema: Codable, Hashable, Sendable {
 
 public struct WorkflowStepSchema: Codable, Hashable, Sendable, Identifiable {
     public var id: String
-    /// A validated callable identifier resolved to a locally installed Skill
-    /// or Mary-owned cognitive primitive. It is data, never prompt prose.
+    /// Installed Skill or Mary cognitive primitive. Data, never prompt prose.
     public var operation: String
     public var consumes: [String]
     public var produces: [String]
@@ -173,10 +176,7 @@ public struct SkillExecutionSchema: Codable, Hashable, Sendable {
         case stateMachine
     }
 
-    /// Whether a binding Skill carries its own provider references or is an
-    /// intentionally portable semantic contract waiting for a Plugin
-    /// to realize it. The latter may remain installed while no provider is
-    /// available; runtime readiness, not package validity, reports that state.
+    /// Own bindings vs portable contract waiting for a Plugin. Missing provider is readiness, not invalid.
     public enum RealizationPolicy: String, Codable, Hashable, Sendable, CaseIterable {
         case authoredBindings
         case pluginRealizations
@@ -228,33 +228,25 @@ public struct SkillExecutionSchema: Codable, Hashable, Sendable {
     }
 }
 
-/// A skill's declared artifact meaning — what the engine previously
-/// reverse-engineered from naming conventions (an output value-type suffix,
-/// a parameter literally spelled "target"). Declaration always wins over
-/// structural inference; a skill without semantics falls back to inference
-/// parametrized by its application's artifact domain, and to nothing at all
-/// when no domain is declared.
+/// Declared artifact meaning. Wins over structural inference; no domain → nothing.
 public struct SkillSemanticsSchema: Codable, Hashable, Sendable {
     public enum ArtifactRole: String, Codable, Hashable, Sendable, CaseIterable {
-        /// Makes an artifact that did not exist. Requires `producesReference`.
+        /// New artifact. Requires `producesReference`.
         case create
-        /// Changes an existing artifact. Requires nonempty `targetParameters`.
+        /// Existing artifact. Requires nonempty `targetParameters`.
         case mutate
-        /// Applies a whole semantic plan through the plugin's plan entry.
+        /// Whole semantic plan via the plugin's plan entry.
         case plan
-        /// Reads without changing anything.
+        /// Read, no change.
         case observe
-        /// Neither creates, mutates, nor observes an artifact (documents,
-        /// pages, history). Explicit beats implied-by-absence.
+        /// Not create/mutate/observe (docs, pages, history). Explicit, not implied.
         case utility
     }
 
     public var artifactRole: ArtifactRole
-    /// The value type of the created artifact's reference output. REQUIRED
-    /// for `create`, forbidden otherwise.
+    /// Created artifact's reference type. Required for `create`, else forbidden.
     public var producesReference: ValueTypeID?
-    /// The parameter names that aim this skill at existing artifacts.
-    /// REQUIRED nonempty for `mutate`, forbidden otherwise.
+    /// Parameter names aiming at existing artifacts. Required nonempty for `mutate`.
     public var targetParameters: [String]
 
     public init(
@@ -295,7 +287,7 @@ public struct SkillSchema: Codable, Hashable, Sendable, Identifiable {
     public var id: SkillID
     public var version: SemanticVersion
     public var title: String
-    /// Inspector metadata. Runtime semantics come from the typed fields below.
+    /// Inspector metadata. Semantics live in the typed fields below.
     public var summary: String
     public var kind: SkillKind
     public var access: SkillAccess
@@ -307,8 +299,7 @@ public struct SkillSchema: Codable, Hashable, Sendable, Identifiable {
     public var modelExposure: ModelExposureSchema
     public var usesStage: Bool
     public var timeoutSeconds: Double?
-    /// Declared artifact meaning. Absent means "infer structurally within a
-    /// declared artifact domain, else nothing" — see `SkillSemanticsSchema`.
+    /// Artifact meaning. Nil → infer in a declared domain, else nothing (`SkillSemanticsSchema`).
     public var semantics: SkillSemanticsSchema?
 
     public init(
@@ -345,7 +336,7 @@ public struct SkillSchema: Codable, Hashable, Sendable, Identifiable {
         self.semantics = semantics
     }
 
-    /// The locally bound operation that an external model provider sees.
+    /// Operation a model provider sees.
     public var invocationName: String? {
         guard modelExposure.enabled else { return nil }
         if let explicit = modelExposure.invocationName { return explicit }

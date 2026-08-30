@@ -2,58 +2,26 @@
 //  BehavioralEpisode.swift
 //  MaryFoundation
 //
-//  ONE TURN, INPUT AND OUTPUT — the unit of the behavioural codec.
-//
-//  What was asked, what Mary could see when she was asked, and everything she
-//  did about it. This is the row a future model trains on and the row a
-//  future model would emit: the input half is a query plus the context that
-//  was actually injected, the output half is a SEQUENCE of actions, and a
-//  sequence is the point — a procedure is several actions that belong
-//  together, and taking them apart into isolated pairs would throw away the
-//  structure that makes automation possible.
-//
-//  THE EPISODE IS A TURN, AND ITS ID IS THE TURN'S. Not a new identity: the
-//  user turn's UUID already flows through the whole system, so an episode can
-//  be joined to a transcript row, a trace and a retrieval record without
-//  anybody minting a correlation key. `priorEpisodeID` chains episodes rather
-//  than embedding history — the conversation stays reconstructable without
-//  every row carrying a copy of the ones before it.
-//
-//  NOTHING IS EVER DELETED. An episode is sealed with a REASON, including
-//  when the turn was cancelled or superseded, and the sealed episode is kept.
-//  The conversation may be purged — the user asked for that, and a transcript
-//  is a record of what was said. Behaviour is a record of what was DONE, and
-//  actions that ran changed the world whether or not the turn that started
-//  them survived. A dataset that quietly dropped superseded turns would teach
-//  a future model that interrupted work never happens, when interrupted work
-//  is most of what an assistant does. Filter on `sealedReason` at training
-//  time; do not filter here.
-//
-//  SCHEMA-VERSIONED AND TOLERANT. Every file carries `schema` and
-//  `schemaVersion` so a reader can tell what it is holding before trusting a
-//  field, and decoding accepts absent optionals and unknown keys — see
-//  `BehavioralAction.swift`'s header on why this layer is deliberately not
-//  the strict package decoder.
+//  WHAT: One turn — query + injected AmbientCapture + action sequence.
+//  IN:   user-turn UUID (episode id); priorEpisodeID chains history.
+//  OUT:  BehavioralCodec, LifeTrainPolicy, Totem.
+//  PIN:  Seal with a reason; never drop superseded turns here. Filter at train time.
+//        Synthesized Codable — see BehavioralAction.
 //
 
 import Foundation
 
-/// Why an episode stopped taking actions.
-///
-/// Part of the data, not bookkeeping: an episode that ended because the user
-/// interrupted describes different behaviour than one that ran to completion,
-/// and a model trained without the distinction would learn to treat the two
-/// the same.
+/// Why the episode stopped. Part of the data — interrupt vs complete differ.
 public enum EpisodeSealReason: String, Codable, Hashable, Sendable, CaseIterable {
-    /// The turn finished on its own terms.
+    /// Finished on its own.
     case completed
-    /// A newer turn replaced this one — the user amended, or spoke over it.
+    /// Newer turn replaced this one.
     case superseded
     /// Stopped before finishing.
     case cancelled
-    /// The application was quitting. Actions still in flight are `.unsettled`.
+    /// App quitting. In-flight actions stay `.unsettled`.
     case appQuit
-    /// A reason this build does not know. Decode-only — never written.
+    /// Unknown to this build. Decode-only.
     case unknown
 
     public init(from decoder: Decoder) throws {
@@ -62,21 +30,16 @@ public enum EpisodeSealReason: String, Codable, Hashable, Sendable, CaseIterable
     }
 }
 
-/// What was asked, and what could be seen when it was asked.
+/// Query plus injected context.
 public struct BehavioralInput: Codable, Hashable, Sendable {
 
-    /// The user's words, as transcribed or typed.
+    /// User words.
     public var query: String
 
-    /// The context injected for this turn.
-    ///
-    /// Nil means no context was assembled — a deterministic path that never
-    /// built a prompt, such as answering a bare "yes" to a pending question.
-    /// An empty capture means one was assembled and there was nothing to see.
-    /// The distinction is deliberate; see `AmbientCapture`'s header.
+    /// Injected context. Nil = no prompt; empty capture = assembled, nothing to see.
     public var ambient: AmbientCapture?
 
-    /// The previous episode in this conversation, if there was one.
+    /// Previous episode in this conversation.
     public var priorEpisodeID: UUID?
 
     public init(query: String, ambient: AmbientCapture? = nil, priorEpisodeID: UUID? = nil) {
@@ -97,15 +60,10 @@ public struct BehavioralInput: Codable, Hashable, Sendable {
     }
 }
 
-/// Everything Mary did about it, in order.
+/// Actions in compose order.
 public struct BehavioralOutput: Codable, Hashable, Sendable {
 
-    /// The actions this turn produced, in the order they were composed.
-    ///
-    /// An empty array is a real and common answer: the turn was conversation,
-    /// and Mary correctly did nothing. Those rows matter as much as the ones
-    /// with actions — a model that never learns when NOT to act is worse than
-    /// no model.
+    /// Composed actions. Empty = conversation / restraint — still a row.
     public var actions: [BehavioralActionRecord]
 
     public init(actions: [BehavioralActionRecord] = []) {
@@ -120,17 +78,13 @@ public struct BehavioralOutput: Codable, Hashable, Sendable {
     }
 }
 
-/// Which build, engine and lane produced an episode.
-///
-/// Behaviour is not comparable across engines: the same query answered by a
-/// local model and a hosted one is two different observations. Recording it
-/// means a dataset can be filtered rather than silently mixed.
+/// Build, engine, lane. Filter datasets rather than mixing engines.
 public struct EpisodeProvenance: Codable, Hashable, Sendable {
-    /// The inference engine that drove the acting lane.
+    /// Acting-lane engine.
     public var engine: String
-    /// Which turn shape ran — the dual-lane path, or the offline fallback.
+    /// Dual-lane vs offline fallback.
     public var lane: String
-    /// The build that produced this episode.
+    /// Producing build.
     public var appVersion: String
 
     public init(engine: String, lane: String, appVersion: String) {
@@ -149,21 +103,19 @@ public struct EpisodeProvenance: Codable, Hashable, Sendable {
     }
 }
 
-/// One turn: what was asked, what was visible, and what was done.
+/// One turn: asked, visible, done.
 public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
 
-    /// The wire format identifier, so a reader can reject a file that merely
-    /// has the right extension before trusting a single other field.
+    /// Wire format id. Reject wrong files before other fields.
     public static let schemaName = "mary.behavior"
 
-    /// The current format version. Bump when a field's MEANING changes;
-    /// adding a tolerated optional does not need one.
+    /// Bump when a field's meaning changes; new optionals do not.
     public static let currentSchemaVersion = 1
 
     public var schema: String
     public var schemaVersion: Int
 
-    /// The user turn's own UUID. See the file header — not a new identity.
+    /// User-turn UUID. Not a new identity.
     public var id: UUID
 
     public var openedAt: Date
@@ -173,8 +125,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     public var input: BehavioralInput
     public var output: BehavioralOutput
     public var provenance: EpisodeProvenance
-    /// Ability Totem groups this episode files into. Empty means no Totem
-    /// Ability write, and no Personal interaction stub.
+    /// Totem groups. Empty = no Ability write, no Personal stub.
     public var abilityTargets: [AbilityTotemTarget]
 
     public init(
@@ -199,24 +150,17 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
         self.abilityTargets = Array(Set(abilityTargets)).sorted()
     }
 
-    /// Whether this episode has stopped taking actions.
+    /// Stopped taking actions.
     public var isSealed: Bool { sealedReason != nil }
 
-    /// Close the episode, once.
-    ///
-    /// IDEMPOTENT BY REFUSAL rather than by overwrite: the FIRST reason is the
-    /// true one. A turn cancelled by a barge-in and then caught again by the
-    /// quit flush was cancelled, not quit, and letting the second call win
-    /// would make every interrupted turn at shutdown read as a shutdown.
+    /// Seal once. First reason wins — barge-in then quit-flush stays cancelled.
     public mutating func seal(_ reason: EpisodeSealReason, at date: Date = Date()) {
         guard sealedReason == nil else { return }
         sealedReason = reason
         sealedAt = date
     }
 
-    /// Whether anything actually ran. The natural first filter for a training
-    /// set that wants only acted turns — and the natural inverse for one that
-    /// wants to learn restraint.
+    /// Anything ran. Train-set filter (acted vs restraint).
     public var didAct: Bool {
         output.actions.contains { $0.disposition.didRun }
     }
@@ -244,8 +188,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     }
 }
 
-/// Personal-lane pointer from a query to the Ability codec document.
-/// Not a second copy of the episode — join on `episodeID` / `abilityDocumentID`.
+/// Personal-lane pointer. Join on episodeID / abilityDocumentID — not a copy.
 public struct BehavioralInteractionStub: Codable, Hashable, Sendable {
     public var episodeID: UUID
     public var query: String
@@ -284,30 +227,12 @@ public struct BehavioralInteractionStub: Codable, Hashable, Sendable {
     }
 }
 
-/// The codec's own encoder and decoder.
-///
-/// One spelling, in one place, because byte-stability is a property the tests
-/// assert and the store depends on: two identical episodes must produce two
-/// identical lines. `.sortedKeys` for determinism, ISO-8601 dates so a row
-/// stays readable by anything, and `.withoutEscapingSlashes` so a file path
-/// in a document key reads as a path.
-///
-/// NEWLINES ARE THE RECORD SEPARATOR — the store writes one episode per line
-/// — so the encoder must never pretty-print. That is not a style preference
-/// here; a pretty-printed episode would corrupt the file it is appended to.
-///
-/// FRACTIONAL SECONDS ARE NOT OPTIONAL, and this is why the strategy is
-/// hand-built rather than `.iso8601`. That built-in strategy formats to whole
-/// seconds and silently discards the rest — which would round every timestamp
-/// in the dataset to the nearest second. Actions inside one turn routinely
-/// land 100–300 ms apart, so whole seconds would collapse them to identical
-/// stamps and destroy the ORDER of a sequence, which is the one property the
-/// output half exists to record. It would also break the round trip: a frame
-/// captured at `x.8` would decode as `x.0` and no longer equal itself.
+/// Encoder/decoder. Sorted keys, ISO-8601 with milliseconds, no pretty-print
+/// (newline is the record separator). PIN: Foundation `.iso8601` drops fractions
+/// and would collapse in-turn order.
 public enum BehavioralCodec {
 
-    /// ISO-8601 with milliseconds, in UTC. Formatters are expensive to build
-    /// and safe to share once configured, so this one is made once.
+    /// ISO-8601 milliseconds UTC. Shared formatter.
     private static let dateFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
@@ -315,8 +240,7 @@ public enum BehavioralCodec {
         return formatter
     }()
 
-    /// Accepts a stamp with OR without fractional seconds, so a row written
-    /// by hand — or by an older build — still opens.
+    /// With or without fractional seconds (hand / older builds).
     private static let plainFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
@@ -347,8 +271,7 @@ public enum BehavioralCodec {
         return decoder
     }
 
-    /// One episode as one line of JSON, with no trailing newline — the store
-    /// owns the separator.
+    /// One episode, one JSON line, no trailing newline.
     public static func line(_ episode: BehavioralEpisode) throws -> Data {
         try encoder().encode(episode)
     }

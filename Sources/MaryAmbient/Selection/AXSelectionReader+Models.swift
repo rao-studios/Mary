@@ -2,8 +2,9 @@
 //  AXSelectionReader+Models.swift
 //  MaryAmbient
 //
-//  Split out of AXSelectionReader.swift (docs/DECOMPOSITION.md Wave 4)
-//  — pure relocation, no declaration changed.
+//  WHAT: Extraction / sample / completeness types for source selection.
+//  IN:   AXSelectionReader.swift (split)
+//  OUT:  SelectionHandoffPublisher
 //
 
 import AppKit
@@ -69,20 +70,16 @@ extension AXSelectionReader {
         }
     }
 
-    /// Empty selected text is ambiguous until its range is known. In
-    /// particular, a nonempty range that cannot be hydrated is NOT a caret;
-    /// treating it as one is how a real Pages highlight became document-start
-    /// context. The observer uses this state to avoid clearing a valid prior
-    /// handoff on an unreadable-but-nonempty source range.
+    /// Empty selected text is ambiguous until its range is known. In particular, a nonempty
+    /// range that cannot be hydrated is NOT a caret; treating it as one is how a real Pages
+    /// highlight became document-start context.
     public enum SelectionState: Sendable, Equatable {
         case selected(Reading)
         case caret(range: Range<Int>?)
         case unreadableNonemptyRange(range: Range<Int>)
-        /// A bounded descendant walk found more than one distinct source
-        /// surface with positive selection evidence. This is evidence that a
-        /// selection exists, but not evidence of which leaf the user meant.
-        /// Keep it distinct from `.unavailable` so a specialist can prevent a
-        /// generic second walk from choosing one of those leaves by accident.
+        /// A bounded descendant walk found more than one distinct source surface with positive
+        /// selection evidence. This is evidence that a selection exists, but not evidence of which
+        /// leaf the user meant.
         case ambiguousSelection
         case unavailable
     }
@@ -95,11 +92,7 @@ extension AXSelectionReader {
         public var state: SelectionState
         public var capturedAt: Date
         public var sourceSurfaceID: UInt? = nil
-        /// UTF-16 extent reported by the exact element that supplied the
-        /// source evidence. This is deliberately not a document extent: a
-        /// specialist adapter may use it only after independently proving
-        /// that the element and its application-owned document body are the
-        /// same coordinate space.
+        /// UTF-16 extent reported by the exact element that supplied the source evidence.
         public var sourceCharacterCount: Int? = nil
         public var editability: AmbientSelectionEditability = .unknown
         /// The app-named focused element is exact evidence. A bounded canvas
@@ -130,24 +123,17 @@ extension AXSelectionReader {
     /// big window is a poll-loop stall waiting to happen.
     public static let maxSearchDepth = 5
     public static let maxSearchNodes = 200
-    /// A tree walk is a fallback for positive selection evidence, never a
-    /// reason to stall an interaction handoff behind a busy canvas. Per-node
-    /// AX timeouts are necessary but not sufficient: this wall-clock budget
-    /// bounds the whole discovery attempt across many unresponsive children.
+    /// A tree walk is a fallback for positive selection evidence, never a reason to stall an
+    /// interaction handoff behind a busy canvas.
     public static let sourceSelectionSearchBudget: TimeInterval = 0.6
 
-    /// Defensive in-process cap after the IPC copy returns. There is no
-    /// parameterized/bounded selected-text attribute to ask AX for less, so
-    /// this bounds what we HOLD, not the cost of the copy itself — the same
-    /// risk profile `PagesAX.selection(from:)` already accepts.
+    /// Defensive in-process cap after the IPC copy returns. There is no parameterized/bounded
+    /// selected-text attribute to ask AX for less, so this bounds what we HOLD, not the cost of
+    /// the copy itself — the same risk profile `PagesAX.selection(from:)` already accepts.
     public static let readCap = 20_000
     public static let surroundingContextRadius = 600
 
-    /// AX tree traversal is not an interaction ordering. This compact pure
-    /// representation makes the fallback rule testable without Accessibility
-    /// permission: only one distinct element carrying selection evidence may
-    /// be used; a repeat of that same element is harmless; anything else is
-    /// ambiguous and must abstain.
+    /// AX tree traversal is not an interaction ordering.
     enum DiscoveredSelectionCandidate: Sendable, Equatable {
         case selected(surfaceID: UInt)
         case unreadableNonemptyRange(surfaceID: UInt)

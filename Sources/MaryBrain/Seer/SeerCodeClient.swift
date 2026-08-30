@@ -2,11 +2,11 @@
 //  SeerCodeClient.swift
 //  MaryBrain
 //
-//  One bounded coding-invocation round through Seer's `/v1/code/complete`.
-//  Same auth as SeerSkillClient. Mary never sends a model id. File tools
-//  still run on device through CodingAgentWorkspace.
+//  WHAT: One bounded coding round through `/v1/code/complete`.
+//  IN:   MarySeerCodingEngine
+//  OUT:  invocation; file tools still run on device
+//  PIN:  Mary never sends a model id.
 //
-
 import Foundation
 
 public actor SeerCodeClient: SeerSkillProviding {

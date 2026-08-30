@@ -2,16 +2,8 @@
 //  ContributionHighlightText.swift
 //  Mary
 //
-//  Assistant text with per-owner brushstroke highlights under the credited
-//  spans. Port of Sis's VoidContributionHighlightText/VoidParagraphHighlightView
-//  with Mary's assistant typography (serif 18 light italic, primary@0.75)
-//  and the tap-to-inspect callback surfaced to the caller.
-//
-//  Mechanics preserved from Sis: "\n\n" paragraph split with global→local
-//  span clamping; markdown-aware per-word tokenization (each non-last word
-//  carries its trailing space so kerning measures identically); PreferenceKey
-//  frame capture in a named coordinate space; 4pt line bucketing; animated
-//  BrushStroke fills at 0.20 opacity.
+//  WHAT: Assistant text with per-owner brushstrokes under credited spans.
+//  IN:   ContributionSpans. OUT: ContributionInspectorSheet (tap)
 //
 
 import MaryBrain
@@ -186,10 +178,7 @@ private struct ParagraphHighlightView: View {
         for frame in frames { bySpan[frame.spanID, default: []].append(frame) }
 
         var segments: [LineSegment] = []
-        // Sorted, because the `delay: idx * 0.15` stagger downstream is
-        // assigned by position in this array. Iterating the DICTIONARY handed
-        // each stroke a different delay on every pass, so they lit in a
-        // different order each time — the second half of the flashing.
+        // Sorted so stagger delays stay stable across body passes.
         for spanID in bySpan.keys.sorted() {
             guard let spanFrames = bySpan[spanID] else { continue }
             guard let first = spanFrames.first else { continue }

@@ -1,5 +1,10 @@
 //
 //  KokoroEngine+AudioUtilitiesAndHelpers.swift
+//  MaryVoice
+//
+//  WHAT: Resample, PCM buffer, find/compile model URLs.
+//  IN:   KokoroEngine.swift (same actor)
+//  OUT:  hardware-rate buffers / compiled .mlmodelc
 //
 
 import Foundation

@@ -2,29 +2,9 @@
 //  main.swift
 //  AXProbe
 //
-//  WHAT MARY ACTUALLY SEES, printed.
-//
-//  Every test in the adapter layer runs against a synthetic tree, because a
-//  test that needs a live accessibility grant either mocks the framework or
-//  passes on one machine and fails on another. That leaves exactly one
-//  question unanswered by the suite, and it is the important one: does the
-//  engine see a real application correctly?
-//
-//  This probe answers it by driving the REAL path — the same
-//  `AXEngine.ambientContext` walk the tier-0 observer performs, the same
-//  bridge into an `AmbientSurface`, the same `AXElementRecord` an action's
-//  target will carry. Not a second implementation for diagnosis; that is the
-//  whole design. Three readers, one truth.
-//
-//    swift run mary-ax-probe                 # the frontmost application
-//    swift run mary-ax-probe --app TextEdit  # by name
-//    swift run mary-ax-probe --pid 4321
-//    swift run mary-ax-probe --json          # the focused element's record
-//
-//  RUN IT THROUGH `scripts/dev.sh` OR A SIGNED BUILD. An ad-hoc binary's
-//  accessibility grant does not survive a rebuild, so a bare `swift run` will
-//  report "not trusted" on the second try and look like a regression in the
-//  engine.
+//  WHAT: What Mary actually sees — real AXEngine.ambientContext walk.
+//  OUT:  CLI: swift run mary-ax-probe [--app|--pid|--json]
+//  PIN:  Run signed (scripts/dev.sh); ad-hoc AX grant dies on rebuild.
 //
 
 import AppKit
@@ -69,10 +49,7 @@ let target: NSRunningApplication? = {
         return NSRunningApplication(processIdentifier: pid)
     }
     if let name = value("--app")?.lowercased() {
-        // Matched on the LOCALIZED NAME, and by prefix, because a bundle id is
-        // the thing a person is least likely to have to hand — and because
-        // "--app Code" matching Xcode by substring is a real way to spend ten
-        // minutes debugging the wrong process.
+        // Localized name, then prefix — not a substring of the bundle id.
         return NSWorkspace.shared.runningApplications.first {
             ($0.localizedName ?? "").lowercased() == name
         } ?? NSWorkspace.shared.runningApplications.first {
@@ -123,12 +100,7 @@ if context.webContentHost {
 
 // MARK: - The surface, as the store would hold it
 
-// THE SAME LADDER THE OBSERVER CALLS, and the distinction is not academic:
-// `factPlace(forBundleID:)` answers with the shared applications LANE — the fact
-// pool for genuinely-unknown processes — while this one is identity-bearing.
-// Calling the wrong one here would make the probe report every application as
-// the same place, which is exactly the collision the identity ladder exists
-// to prevent, and the probe would be lying about a bug it does not have.
+// Identity-bearing applicationPlace, not the shared applications lane.
 let place = AmbientPlaceResolver.applicationPlace(
     forBundleID: application.bundleIdentifier ?? "\(pid)")
 let surface = AmbientBridge.surface(from: context, place: place)
@@ -169,10 +141,7 @@ if let record = ActedElementReader.focusedElement(pid: pid) {
     screen    \(record.frame.screen.map { "#\($0.index)" } ?? "—")
 """)
 
-    // THE PARITY CHECK, live. The tests pin that the two paths spell identity
-    // the same way against a synthetic tree; this is the same claim against a
-    // real one, where the label a walk reads and the label a focused read
-    // reads could differ in ways no fixture would show.
+    // Live identity parity: walk label vs focused read.
     if let walkedFocused = surface.elements.first(where: \.isFocused) {
         let agrees = walkedFocused.identity == record.identity
         print("    parity   \(agrees ? "✓ matches the walked element" : "✗ MISMATCH")")

@@ -1,11 +1,20 @@
+//
+//  AbilityPackage.swift
+//  MaryFoundation
+//
+//  WHAT: Single-file `.mary` envelope — metadata, ability, schemas, optional Plugin.
+//  IN:   AbilityPackageCodec decode.
+//  OUT:  AbilityPackageValidator, PluginValidator, AbilityLibrary.
+//  PIN:  JSON is source of truth. Executables stay local; Plugin is declarative recipes.
+//
+
 import Foundation
 
 public struct AbilityPackageMetadata: Codable, Hashable, Sendable {
     public var id: PackageID
     public var version: SemanticVersion
     public var publisher: String
-    /// Inspector and catalog metadata. It never becomes model instruction
-    /// text, whether the package is bundled, signed, or unsigned.
+    /// Inspector/catalog. Never model instruction, signed or not.
     public var summary: String
     public var minimumMaryVersion: SemanticVersion?
     public var createdAt: Date?
@@ -66,10 +75,7 @@ public struct AbilityPackageIntegrity: Codable, Hashable, Sendable {
     public var isSigned: Bool { publicKey != nil && signature != nil }
 }
 
-/// The complete single-file `.mary` envelope. JSON is the portable source
-/// of truth. Native executable implementations remain local to the receiving
-/// machine; an optional Plugin contributes only bounded declarative
-/// recipes interpreted by Mary's trusted runtime.
+/// Complete `.mary` envelope.
 public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     public static let format = "mary.ability-package"
     public static let currentFormatVersion = 1
@@ -87,9 +93,7 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     public var dependencies: [AbilityPackageDependency]
     public var fixtures: [AbilityFixture]
     public var plugin: PluginSchema?
-    /// Craft grammar a discipline can declare without carrying an application
-    /// Plugin. Expertise packages bind this to a live app, or override it with
-    /// `plugin.corpus`.
+    /// Discipline craft grammar without a Plugin. Expertise binds it or overrides via `plugin.corpus`.
     public var corpus: PluginCorpusSchema?
     public var integrity: AbilityPackageIntegrity?
 

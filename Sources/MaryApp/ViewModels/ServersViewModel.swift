@@ -2,9 +2,8 @@
 //  ServersViewModel.swift
 //  Mary
 //
-//  Bridges LocalStackManager's actor snapshots to SwiftUI: a live status
-//  stream while the Servers sheet is open, auth state, and build output
-//  tails. Actions forward to the shared manager/session.
+//  WHAT: LocalStackManager snapshots → SwiftUI (status, auth, build tails).
+//  OUT:  ServersSheet. Actions forward to shared manager/session.
 //
 
 import MaryBrain
@@ -82,10 +81,7 @@ final class ServersViewModel: ObservableObject {
         }
     }
 
-    /// Shared runner for the two Clear buttons: guards (signed in + Totem
-    /// healthy), runs the removal off the main actor, then refreshes the graph
-    /// line and posts a spoken-plain notice. Reuses the same reader + guards as
-    /// `refreshGraphStats()`.
+    /// Clear-button runner: guard, remove off-main, refresh; same guards as refreshGraphStats.
     private func clear(
         label: String,
         _ operation: @escaping @Sendable (TotemDirectClient, String) async throws -> Int

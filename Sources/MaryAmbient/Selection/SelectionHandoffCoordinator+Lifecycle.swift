@@ -1,5 +1,11 @@
 //
 //  SelectionHandoffCoordinator+Lifecycle.swift
+//  MaryBrain
+//
+//  WHAT: Workspace activation bookkeeping for source-owned selection capture.
+//  IN:   SelectionHandoffCoordinator.swift (split)
+//  OUT:  pendingSource / capture on yield
+//  PIN:  No source is read until it yields focus or a request needs the short race barrier.
 //
 
 import AppKit
@@ -14,20 +20,16 @@ extension SelectionHandoffCoordinator {
     /// request needs the short race barrier below.
     public func noteSourceActivated(applicationID: String?, at _: Date = Date()) {
         lifecycleBox.withLock { state in
-            // A notification without an app identity still establishes that
-            // the prior source is no longer trustworthy.  Keeping it would
-            // let the next composer activation retry an unrelated old
-            // highlight simply because AppKit omitted metadata.
+            // A notification without an app identity still establishes that the prior source is no
+            // longer trustworthy. Keeping it would let the next composer activation retry an unrelated
+            // old highlight simply because AppKit omitted metadata.
             state.lastSourceApplicationID = applicationID
             state.pendingSource = nil
         }
     }
 
-    /// Mary's request surface became active. Arm the source that was most
-    /// recently observed active for one short pre-turn retry. Its *activation*
-    /// may have been minutes ago — the new composer activation is the fresh
-    /// lifecycle boundary. Positive AX evidence is still required before
-    /// anything enters the handoff; this does not read remembered focus.
+    /// Mary's request surface became active. Arm the source that was most recently observed
+    /// active for one short pre-turn retry.
     public func noteComposerActivated(at now: Date = Date()) {
         lifecycleBox.withLock { state in
             // A matched deactivation has already armed the exact source. Do
@@ -46,26 +48,13 @@ extension SelectionHandoffCoordinator {
         }
     }
 
-    /// Source deactivation is the usual handoff signal. It leaves the same
-    /// source available for the narrowly bounded pre-turn retry, but does NOT
-    /// read it here.
-    ///
-    /// `didDeactivate` is delivered while AppKit can still report the source
-    /// as frontmost. Reading at that point cannot distinguish TextEdit ->
-    /// Mary from TextEdit -> Safari; committing the result immediately made
-    /// an h1 selected before an ordinary app switch survive as input to a
-    /// later, unrelated Mary request. The composer activation/pending-turn
-    /// path is the commit boundary for a focus handoff. Hands-free input is
-    /// separate: `activeSourcePreflight` deliberately captures while the
-    /// source remains frontmost.
+    /// Source deactivation is the usual handoff signal. It leaves the same source available for
+    /// the narrowly bounded pre-turn retry, but does NOT read it here. `didDeactivate` is
+    /// delivered while AppKit can still report the source as frontmost.
     public func noteSourceDeactivated(applicationID: String?, at now: Date = Date()) {
         guard let applicationID else { return }
         lifecycleBox.withLock { state in
-            // AppKit can deliver an old deactivation after a newer app has
-            // already activated.  Treat lifecycle notifications as ordered
-            // evidence of the currently active source rather than a queue of
-            // remembered candidates: otherwise Pages → Safari → Mary could
-            // resurrect Pages during a hands-free request.
+            // AppKit can deliver an old deactivation after a newer app has already activated.
             guard state.lastSourceApplicationID == applicationID else {
                 return
             }
@@ -90,10 +79,9 @@ extension SelectionHandoffCoordinator {
         }
     }
 
-    /// Called synchronously immediately before a brain turn snapshots ambient
-    /// selection. It is intentionally one-shot: this is a source-to-composer
-    /// transition barrier, never a periodic remembered-focus heuristic. The
-    /// bounded lease includes normal time spent composing the request.
+    /// Called synchronously immediately before a brain turn snapshots ambient selection. It is
+    /// intentionally one-shot: this is a source-to-composer transition barrier, never a
+    /// periodic remembered-focus heuristic.
     public func capturePendingSource(at now: Date = Date()) {
         let pending = lifecycleBox.withLock { state -> (applicationID: String, expiresAt: Date)? in
             guard let pending = state.pendingSource else { return nil }
@@ -107,10 +95,9 @@ extension SelectionHandoffCoordinator {
                 }
                 return nil
             }
-            // Keep the lease live while its synchronous AX callback runs.
-            // If a different source activates during that read, activation
-            // clears the lease and the callback's post-read authorization
-            // rejects the result.
+            // Keep the lease live while its synchronous AX callback runs. If a different source
+            // activates during that read, activation clears the lease and the callback's post-read
+            // authorization rejects the result.
             return pending
         }
         guard let pending else { return }
@@ -131,10 +118,7 @@ extension SelectionHandoffCoordinator {
         }
     }
 
-    /// Async request-boundary counterpart used by the brain turn. It keeps
-    /// the exact same one-shot lease semantics as the synchronous compatibility
-    /// entry point while allowing a specialist to bracket AX evidence with a
-    /// bounded application-owned read before the immutable turn snapshot.
+    /// Async request-boundary counterpart used by the brain turn.
     public func capturePendingSourceAsync(at now: Date = Date()) async {
         let pending = lifecycleBox.withLock { state -> (
             applicationID: String, expiresAt: Date
@@ -164,15 +148,9 @@ extension SelectionHandoffCoordinator {
         }
     }
 
-    /// Whether a delayed source-observer callback may still describe the
-    /// interaction currently being handed to Mary. AX notifications carry
-    /// no source timestamp and can arrive after another application has
-    /// become active, so a background callback is accepted only during the
-    /// same tiny, unconsumed deactivation window as the pre-turn retry.
-    ///
-    /// This is ordering containment, not focus routing: it never chooses a
-    /// world or a representation; it only stops a stale app event from
-    /// overwriting a newer source packet.
+    /// Whether a delayed source-observer callback may still describe the interaction currently
+    /// being handed to Mary. This is ordering containment, not focus routing: it never chooses
+    /// a world or a representation.
     public func acceptsDeferredSelectionEvent(
         applicationID: String?, at now: Date = Date()
     ) -> Bool {

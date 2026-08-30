@@ -2,31 +2,11 @@
 //  ProjectCorpusAdapter.swift
 //  MaryPlugin
 //
-//  READING A WRITING PROJECT, AND CHANGING ITS SHAPE THROUGH ITS OWN MENUS.
-//
-//  The compiled half of the project-corpus lane. Every value it hands back —
-//  an outline, a chapter's text, a search result, a word count — has to come
-//  from somewhere that can RETURN one, and a managed-UI recipe returns
-//  nothing; that structural limit is why this exists rather than a recipe.
-//
-//  NOTHING HERE NAMES AN APPLICATION. Element names, path templates, menu
-//  paths and the project extension all arrive from
-//  `PluginCorpusStructureSchema`. A second writing application that keeps its
-//  project as a directory is a `.mary` file.
-//
-//  IT SERVES ONLY CORPORA WITH A `structure`, which is what separates it from
-//  `CorpusObserver` — the other consumer of the same declaration block. That
-//  one watches a corpus PASSIVELY for style and never answers the model;
-//  this one answers and acts. They share the roster (`CorpusSupport`) and
-//  differ in what they ask of it. A body of source files reaches the first
-//  and never the second: there is no outline to read.
-//
-//  ⚠️ THE READS COME FROM DISK AND THE CHANGES GO THROUGH THE MENUS, and the
-//  asymmetry is the whole safety argument. An editor with the project open
-//  autosaves on its own schedule: a write from outside races that save and
-//  loses silently, so Mary never writes into the project. She reads it —
-//  which is safe, and stale by at most one autosave — and asks the
-//  application to make changes, which is slower and cannot lose work.
+//  WHAT: Read a writing project; change its shape through its own menus.
+//  IN:   PluginCorpusStructureSchema / CorpusSupport / ProjectCorpusReader
+//  OUT:  SkillOutcome / ProjectCorpusAdapter+Ceremonies / +Index
+//  PIN:  Reads from disk; changes via menus (autosave would clobber a disk write).
+//        Serves only corpora with `structure`. Nothing names an application.
 //
 
 import AppKit
@@ -41,9 +21,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     public let summary =
         "reads a writing project's outline and text, and changes its shape through its own menus"
 
-    /// NO APPLICATION IDENTITY, deliberately — this is an observation adapter
-    /// serving whichever applications declare a corpus, and claiming one
-    /// would collide with the package that legitimately owns it.
+    /// Empty set on purpose — claiming an app would collide with the package that owns it.
     public let applicationIdentifiers: Set<String> = []
     public let abilities: Set<AbilityID> = [.writing, .coding]
 
@@ -72,9 +50,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
         }
         return InstalledAdapterManifest(
             adapterID: adapterID,
-            // THE TITLE IS SPOKEN. An unavailable adapter reports as "The
-            // \(title) adapter is unavailable", so it is the user's word for
-            // this lane and not an internal label.
+            // Spoken title — an unavailable adapter reports as "The \(title) adapter is unavailable".
             title: "Project Corpus",
             transport: .accessibility,
             operations: [
@@ -140,9 +116,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
         }
     }
 
-    /// The same two-case shape `Resolved` uses, and for the same reason: the
-    /// failure here is a SENTENCE rather than an error, composed where the
-    /// project's name is in hand.
+    /// Same two-case shape as `Resolved`. Failure is a spoken sentence, not an error.
     enum Outlined {
         case items([ProjectCorpusReader.Item])
         case refused(SkillOutcome)
@@ -151,11 +125,8 @@ public struct ProjectCorpusAdapter: MaryAdapter {
     func outline(_ corpus: OpenCorpus) -> Outlined {
         switch ProjectCorpusReader.outline(
             projectRoot: corpus.projectRoot, structure: corpus.structure,
-            // THE SAME EXCLUDE/INCLUDE THE PASSIVE CRAWL READS. A
-            // `.fileSystemTree` project has no manifest to bound it — without
-            // these a real checkout's outline (and every search_corpus scan
-            // over it) walks `.build`, `DerivedData` and `.git` right along
-            // with the source.
+            // Same exclude/include as CorpusCrawl.projectFiles — no manifest
+            // bounds a `.fileSystemTree` checkout.
             excludeNames: corpus.registration.schema.exclude,
             includeExtensions: corpus.registration.schema.include) {
         case .success(let items): return .items(items)
@@ -271,10 +242,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
                         summary: "There's nothing called \(wanted) in \(corpus.name).",
                         foundNothing: true)
                 case .many(let rivals):
-                    // A MANUSCRIPT REPEATS ITS TITLES — every act has a
-                    // "Chapter 1". Naming the rivals with their parent is the
-                    // only useful refusal, and picking one would silently
-                    // read the wrong chapter.
+                    // Manuscripts repeat titles. Name the rivals; do not pick one.
                     return SkillOutcome(
                         ok: false,
                         summary: "\(corpus.name) has \(rivals.count) documents called "
@@ -330,10 +298,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
                 case .refused(let outcome): return outcome
                 }
 
-                // A WALK AND A SCAN, not an index. The application keeps its
-                // own search index, and reading somebody else's index format
-                // is a bet on it not changing; a manuscript is small enough
-                // that reading it is cheap and always current.
+                // Walk and scan, not an index — always current; no foreign format.
                 var hits: [(title: String, snippet: String)] = []
                 for item in items.flatMap(\.flattened) where !item.isContainer {
                     guard hits.count < Self.searchLimit else { break }
@@ -414,10 +379,7 @@ public struct ProjectCorpusAdapter: MaryAdapter {
         case none
     }
 
-    /// Exact title, then containment, and AMBIGUITY REFUSES. A manuscript
-    /// repeats its titles by design — every act has a "Chapter 1" — so
-    /// picking the first match would read a different chapter than the one
-    /// asked for, confidently and without any sign.
+    /// Exact title, then containment. Ambiguity refuses — manuscripts repeat titles.
     static func locate(_ wanted: String, in items: [ProjectCorpusReader.Item]) -> Located {
         let needle = wanted.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !needle.isEmpty else { return .none }

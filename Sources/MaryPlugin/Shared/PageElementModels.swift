@@ -2,9 +2,9 @@
 //  PageElementModels.swift
 //  MaryAdapter
 //
-//  Split out of PageElementReader.swift (docs/DECOMPOSITION.md Wave 2) —
-//  pure relocation, no declaration changed.
-//
+//  WHAT: PageElement and listing shapes.
+//  IN:   PageElementReader.swift (sibling split)
+//  OUT:  PageElementResolver | PageElementActions
 
 import AppKit
 import ApplicationServices
@@ -12,12 +12,6 @@ import CoreGraphics
 import Foundation
 
 /// One interactive thing on a page, as Accessibility describes it.
-///
-/// Carries the live `AXUIElement` so an action can reach it without a second
-/// search — and is therefore NOT `Sendable`: an AX handle is only meaningful
-/// while the process it points into still holds that node. Every action
-/// re-reads the page and re-locates by identity before touching anything, so
-/// a handle never outlives the read that produced it.
 public struct PageElement: Equatable {
     /// 1-based position in reading order. "The third video" is a filter over
     /// `kind` followed by this.
@@ -35,10 +29,8 @@ public struct PageElement: Equatable {
     /// Screen frame. Present for everything published (a zero-size element is
     /// dropped), and re-read immediately before any action — never reused.
     public var frame: CGRect
-    /// The destination of a link, when AX exposes one. HELD, NEVER SPOKEN —
-    /// the browser lane's URL doctrine applies to page elements exactly as it
-    /// applies to tabs. It exists to derive `kind` and to prove a navigation
-    /// receipt, not to be read aloud.
+    /// The destination of a link, when AX exposes one. HELD, NEVER SPOKEN — the browser
+    /// lane's URL doctrine applies to page elements exactly as it applies to tabs.
     public var url: String?
     public var isEnabled: Bool
     public var isFocused: Bool
@@ -136,23 +128,15 @@ public struct PageElement: Equatable {
     }
 }
 
-/// The two directions AX assigns to adjustable controls.
-///
-/// Optional metadata, rather than a guessed third case, keeps a missing AX
-/// orientation distinguishable from a proven horizontal or vertical track.
+/// The two directions AX assigns to adjustable controls. Optional metadata, rather than a
+/// guessed third case, keeps a missing AX orientation distinguishable from a proven
+/// horizontal or vertical track.
 public enum PageElementOrientation: String, Sendable, Equatable, CaseIterable {
     case horizontal
     case vertical
 }
 
-/// Mary's derived category for a page element.
-///
-/// DERIVED, NEVER TABULATED. The doctrine this obeys is the one that produced
-/// `siteWords`: "google docs" comes out of `docs.google.com` by host
-/// decomposition rather than a synonym row, because "a phrase that misses is a
-/// perception or threshold question — never a new alias". The same rule holds
-/// here: a page offers videos because its links are shaped like videos, not
-/// because a table says YouTube has videos. Nothing in this file names a site.
+/// Mary's derived category for a page element. DERIVED, NEVER TABULATED.
 public enum PageElementKind: String, Sendable, Equatable, CaseIterable {
     case video
     case link
@@ -186,14 +170,9 @@ public enum PageElementKind: String, Sendable, Equatable, CaseIterable {
     }
 }
 
-/// "The third video" — the spoken position, parsed.
-///
-/// `ReferenceResolver` already owns a spoken-ordinal table, but it answers a
-/// different question (which of several PRESENTED CONTAINERS did they mean)
-/// and its rule is that a counting ordinal without a live listing must return
-/// ambiguous rather than an index. That rule is exactly right and it is
-/// honored here by construction: a page slate is enumerated immediately
-/// before every resolution, so the listing always exists.
+/// "The third video" — the spoken position, parsed. `ReferenceResolver` already owns a
+/// spoken-ordinal table, but it answers a different question (which of several PRESENTED
+/// CONTAINERS did they mean) and its rule is that a counting ordinal without a live listing
 public enum SpokenOrdinal {
     static let words: [String: Int] = [
         "first": 1, "1st": 1, "second": 2, "2nd": 2, "third": 3, "3rd": 3,

@@ -1,22 +1,10 @@
 //
 //  TotemDiskInventory.swift
-//  Mary
+//  MaryRuntime
 //
-//  What `~/Documents/totem-db` actually holds, from file names and stat alone.
-//
-//  Totem persists a node as a table-/graph-/registry-<uuid> plist triple, and
-//  every regenerated identity leaves its triple behind: the directory carries
-//  one live node and a museum of orphans (~170 today) that no server will ever
-//  open again. The running server reports only the node it loaded, so which
-//  DBs exist, how big they are, and when they last changed can only be
-//  answered here.
-//
-//  STAT ONLY — the plists run to multiple megabytes and the panel refreshes
-//  this on a loop, so the scanner reads `.fileSizeKey` and
-//  `.contentModificationDateKey` and never decodes a plist. Suffixes are kept
-//  as literal strings rather than parsed UUIDs: the server's
-//  `graph-00000000-…-000000000001` placeholder must render as an orphan, not
-//  vanish because it failed a cast.
+//  WHAT: What ~/Documents/totem-db holds, from file names and stat alone.
+//  PIN:  Stat only — never decode plists. Suffixes stay literal strings
+//        (placeholder graph-00000000-… must render as an orphan).
 //
 
 import Foundation
@@ -59,11 +47,7 @@ package struct TotemDiskInventory: Equatable, Sendable {
     }
 
     package var root: String
-    /// The identity Totem would load (config beats the persisted node-id
-    /// file), already canonical uppercase from `TotemNodeIdentity` so it
-    /// compares against `NodeDB.id`. Nil when neither exists — never minted,
-    /// so a fresh machine reports every DB as orphaned rather than inventing
-    /// a live one.
+    /// Identity Totem would load (config beats node-id file). Nil = never minted.
     package var liveNodeID: String?
     /// Live node first, then orphans newest-modified first.
     package var nodes: [NodeDB] = []
@@ -102,13 +86,7 @@ package enum TotemDiskScanner {
         var documentsModified: Date?
     }
 
-    /// Two stats, no readdir. Directory mtimes move on entry create, remove
-    /// or rename — which includes atomic (temp + rename) plist replaces — so
-    /// an equal fingerprint means nothing the scan reads has moved and the
-    /// ~5 s loop can reuse its previous inventory instead of re-walking ~170
-    /// orphan triples. An in-place rewrite that keeps its directory entry is
-    /// invisible here by construction; the first entry-level change after it
-    /// re-scans everything, so staleness is bounded by that, never permanent.
+    /// Directory mtime fingerprint — equal means reuse previous inventory. No readdir.
     package static func fingerprint(
         root: String = ServerSpec.expand("~/Documents/totem-db")
     ) -> Fingerprint {
@@ -182,9 +160,7 @@ package enum TotemDiskScanner {
         inventory.nodes = nodes
         inventory.totalBytes = nodes.reduce(0) { $0 + $1.totalBytes }
 
-        // Names only, no stat. Hidden entries are skipped by hand because the
-        // path-based readdir has no options: `.DS_Store` must not count as a
-        // document.
+        // Names only. Skip hidden — path readdir has no options; .DS_Store is not a document.
         let documentNames = (try? FileManager.default.contentsOfDirectory(
             atPath: rootURL.appendingPathComponent("documents").path)) ?? []
         for name in documentNames where !name.hasPrefix(".") {

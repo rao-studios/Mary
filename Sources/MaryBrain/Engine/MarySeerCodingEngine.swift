@@ -2,10 +2,11 @@
 //  MarySeerCodingEngine.swift
 //  MaryBrain
 //
-//  Hosted pair-coding synthesis through `/v1/code/complete`. Dispatch stays
-//  in CodingAgentWorkspace. Seer picks the model; Mary never sends one.
+//  WHAT: Hosted pair-coding synthesis through `/v1/code/complete`.
+//  IN:   CodingAgentTurnLoop
+//  OUT:  one bounded round; dispatch stays in CodingAgentWorkspace
+//  PIN:  Seer picks the model; Mary never sends one.
 //
-
 import Foundation
 import MaryPlugin
 

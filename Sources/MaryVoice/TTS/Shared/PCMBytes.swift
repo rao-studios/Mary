@@ -2,20 +2,15 @@
 //  PCMBytes.swift
 //  MaryVoice
 //
-//  RAW BYTES OFF A SOCKET, READ AS SOUND.
-//
-//  A streamed voice arrives as a sequence of deltas whose boundaries have
-//  nothing to do with sample boundaries: a chunk can end halfway through a
-//  float. The dropped tail is the whole reason this is a named function
-//  rather than an `unsafeBitCast` at the call site — a partial word
-//  reinterpreted as a sample is a click in the user's ear.
+//  WHAT: Socket deltas → float32 LE samples. Trailing partial word dropped.
+//  IN:   SeerTTSEngine / KokoroStreamSpeaker.enqueueRemotePCM
+//  OUT:  playback / ChunkEdgeDSP
 //
 
 import Foundation
 
 enum PCMBytes {
-    /// Interpret raw bytes as float32 little-endian mono samples. Any trailing
-    /// partial word (a delta split mid-sample) is dropped.
+    /// Interpret raw bytes as float32 little-endian mono. Drop a trailing partial word.
     static func floats(fromFloat32LE data: Data) -> [Float] {
         let count = data.count / MemoryLayout<Float32>.size
         guard count > 0 else { return [] }

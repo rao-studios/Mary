@@ -2,23 +2,8 @@
 //  PerceptionSnapshotViewModel+Inputs.swift
 //  Mary
 //
-//  EVERYTHING THE BUILDERS READ, AS PARAMETERS.
-//
-//  The builders never touch a singleton, which is what lets the whole
-//  classification pin under test: a pane that lies about which place led is a
-//  pane you cannot debug WITH, and the only way to know it does not is to be
-//  able to state a world and check the answer.
-//
-//  ONE ROW PER PLACE, and the count is not compiled. Its predecessor had a
-//  named field group per application — an IDE's context, denial flag, active
-//  flag, last error, last success, running flag, three contribution strings,
-//  then the same again for three editors and a presentation app, plus one
-//  open-ended list for anything taught. Sixty-odd fields answering the same
-//  six questions about six things somebody had thought of.
-//
-//  A PANE WITH A SLOT FOR EXACTLY ONE MANUSCRIPT APPLICATION cannot draw the
-//  second one a user installs, and an undrawn watched application is the pane
-//  failing at its only job. So the rows arrive as a list.
+//  WHAT: Everything builders read, as parameters. One row per place (not compiled slots).
+//  OUT:  PerceptionSnapshotViewModel.build*
 //
 
 import AppKit

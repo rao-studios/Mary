@@ -2,25 +2,8 @@
 //  KeyChordPress.swift
 //  MaryPlugin
 //
-//  PRESSING A DECLARED KEY CHORD — ⌘N, ⌘S, ⇧⌘M.
-//
-//  The typer posts TEXT and Return; a chord is a different act. It carries
-//  modifiers, it goes to whatever holds focus, and its whole purpose is to
-//  reach a menu command an application never exposed any other way. That is
-//  the one thing a Plugin recipe can express (`keyChord`), so this is the
-//  compiled floor beneath the declarative step vocabulary as well as beneath
-//  the prose lane's `newDocument`.
-//
-//  IT DOES NOT DECIDE WHERE. A chord lands wherever focus is, and every
-//  caller must have brought the target forward and verified it first —
-//  `VerifiedActivation` exists for that. A chord posted at an unverified
-//  target is a keystroke into an unknown application, which for ⌘N is
-//  harmless and for the chords that follow it is not.
-//
-//  THE VOCABULARY IS THE SCHEMA'S. Keys and modifiers arrive as the closed
-//  enums a package may declare, so a package cannot name a key this cannot
-//  press, and this cannot press a key no package can name.
-//
+//  WHAT: Post a key chord. Not media keys (those are MediaTransport).
+//  OUT:  recipe grammar | ProseSurfaceWriter fallback
 
 import CoreGraphics
 import Foundation
@@ -63,13 +46,7 @@ public enum KeyChordPress {
         return flags
     }
 
-    /// ANSI virtual keycodes, which are POSITIONS on the keyboard rather than
-    /// characters.
-    ///
-    /// That distinction is why this is a table and not arithmetic: the codes
-    /// are not alphabetical, not contiguous, and not derivable from the
-    /// letter — A is 0 and B is 11. Pressing a POSITION is also what a menu
-    /// shortcut means, so ⌘Z is the bottom-left key on a Dvorak layout too.
+    /// ANSI virtual keycodes, which are POSITIONS on the keyboard rather than characters.
     static func keyCode(for key: PluginKey) -> CGKeyCode? {
         switch key {
         case .a: return 0

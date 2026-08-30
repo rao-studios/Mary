@@ -1,10 +1,15 @@
+//
+//  InstalledAdapterInventory.swift
+//  MaryBrain
+//
+//  WHAT: Machine-local adapter manifests + primitive bindings for the compatibility join.
+//  IN:   installed adapters / runtime primitives
+//  OUT:  candidates keyed by OperationIdentity
+//
 import MaryFoundation
 import Foundation
 
 /// The validated, machine-local side of the Ability compatibility join.
-/// Manifests describe installed adapters; primitive bindings are the small
-/// runtime-owned escape hatches (currently provider-neutral shell/script
-/// primitives) that do not belong to a Plugin manifest.
 struct InstalledAdapterInventory: Sendable {
     struct Candidate: Sendable {
         var binding: LocalSkillBinding
@@ -112,10 +117,7 @@ struct InstalledAdapterInventory: Sendable {
             for (manifestIndex, manifest) in manifests.enumerated() {
                 for (operationIndex, operation) in manifest.operations.enumerated() {
                     let path = "adapterManifests[\(manifestIndex)].operations[\(operationIndex)]"
-                    // Adapters may arrive before the Ability package that owns
-                    // their contract (notably Bluetooth devices). An attested
-                    // claim becomes orphan-checkable only once every Capability
-                    // named by this operation has a live schema owner.
+                    // Adapters may arrive before the Ability package that owns their contract (notably Bluetooth devices).
                     if operation.capabilities.allSatisfy({ capabilitySchemas[$0] != nil }) {
                         let declaredConstraints = Set(operation.capabilities.flatMap {
                             capabilitySchemas[$0]?.constraints ?? []
@@ -145,13 +147,7 @@ struct InstalledAdapterInventory: Sendable {
 
     func publishes(_ perception: PerceptionID) -> Bool {
         if providedPerceptions.contains(perception) { return true }
-        // A Perception Mary herself concludes counts as published whenever the
-        // one she concludes it FROM is: the adapter sensed the evidence, and
-        // the runtime performs the derivation on every turn. Reading only the
-        // static claim here installed every Skill requiring
-        // `code-workspace-focus` as `.blocked` — the whole coding lane, in
-        // silence. See `DerivedPerceptions` for the table and for what a row
-        // is allowed to promise.
+        // A Perception Mary herself concludes counts as published whenever the one she concludes it FROM is: the adapter sensed the evidence
         guard let base = DerivedPerceptions.base[perception] else { return false }
         return providedPerceptions.contains(base)
     }
@@ -172,18 +168,11 @@ struct InstalledAdapterInventory: Sendable {
     }
 }
 
-/// Evaluates one Skill against exact adapter operations. Incremental manifests
-/// use empty claim arrays as a migration wildcard; complete manifests use them
-/// as an explicit empty set. Every non-empty claim is authoritative and the
-/// package contract must be a compatible subset.
+/// Evaluates one Skill against exact adapter operations.
 struct AbilityAdapterCompatibilityEvaluator {
     struct Result: Sendable {
         var selected: InstalledAdapterBinding?
-        /// EVERY compatible candidate, preference-ordered (authored order on
-        /// ties) — `selected` is always its first element. The per-turn
-        /// application-aware provider resolver chooses among exactly these;
-        /// keeping the full list here means the resolver can never admit a
-        /// binding this evaluator refused.
+        /// EVERY compatible candidate, preference-ordered (authored order on ties) — `selected` is always its first element.
         var compatible: [InstalledAdapterBinding] = []
         var missingCapabilities: [CapabilityID]
         var reasons: [String]

@@ -2,10 +2,9 @@
 //  PluginValidator+Tokens.swift
 //  MaryFoundation
 //
-//  THE LEAF RULES: what counts as a bounded alias, a printable literal, a
-//  bundle identifier, a callable name. Every one of them is a hard bound on
-//  bytes and alphabet, because these are the only places package-authored
-//  strings reach the recipe interpreter.
+//  WHAT: Leaf bounds — alias, printable literal, bundle id, callable name.
+//  IN:   PluginValidator siblings.
+//  OUT:  recipe interpreter (only package strings that reach it).
 //
 
 import Foundation

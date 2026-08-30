@@ -2,10 +2,9 @@
 //  AbilityPackageValidator+Graph.swift
 //  MaryFoundation
 //
-//  WHAT ONLY SEVERAL PACKAGES TOGETHER CAN SHOW: one owner per schema id, no
-//  two packages claiming the same invocation name or routing identity, every
-//  required dependency present at a satisfying version, and no cycle in the
-//  required-dependency edges.
+//  WHAT: Cross-package admission — unique owners, invocation names, deps, no required cycles.
+//  IN:   installed [MaryAbilityPackage].
+//  OUT:  AbilityPackageValidation; PluginGraphValidator for Plugin edges.
 //
 
 import Foundation
@@ -29,9 +28,7 @@ extension AbilityPackageValidator {
             issues.append(.init(severity: .error, code: code, path: path, message: message))
         }
 
-        /// Every portable schema id has exactly one active owner. Runtime
-        /// registries may therefore resolve by id without depending on file,
-        /// title, or discovery order.
+        /// One active owner per portable schema id. Resolve by id, not file order.
         func schemaOwners(
             _ exports: [(id: String, owner: PackageID)],
             kind: String
@@ -310,9 +307,7 @@ extension AbilityPackageValidator {
             }
         }
 
-        // Required dependency cycles cannot be satisfied by an installation
-        // order and make ownership ambiguous. Optional collaboration edges do
-        // not participate in this check.
+        // Required cycles cannot install. Optional collaboration edges skip this.
         let requiredEdges = Dictionary(uniqueKeysWithValues: packages.map { package in
             (package.package.id, package.dependencies.filter { !$0.optional }.map(\.packageID))
         })

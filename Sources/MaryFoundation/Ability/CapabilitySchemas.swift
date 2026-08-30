@@ -1,3 +1,12 @@
+//
+//  CapabilitySchemas.swift
+//  MaryFoundation
+//
+//  WHAT: Capability effect, permissions, constraints.
+//  IN:   `.mary` capabilities[] → AbilityPackageValidator+Schemas.
+//  OUT:  SkillRequirements, AdapterManifestValidator.
+//
+
 import Foundation
 
 public enum CapabilityEffect: String, Codable, Hashable, Sendable, CaseIterable {
@@ -93,8 +102,7 @@ public struct CapabilitySchema: Codable, Hashable, Sendable, Identifiable {
     }
 }
 
-/// A local implementation reference. Packages share this stable requirement;
-/// the receiving machine decides whether a plugin can satisfy it.
+/// Local adapter binding. Package names it; this machine decides if it can satisfy.
 public struct AdapterBindingReference: Codable, Hashable, Sendable {
     public var adapterID: AdapterID
     public var operation: String

@@ -2,21 +2,10 @@
 //  XMLDocumentTree.swift
 //  MaryPlugin
 //
-//  A READ-ONLY XML TREE, because Foundation gives an event stream.
-//
-//  `XMLParser` is SAX: it calls back as it goes and holds nothing. Reading a
-//  manifest means asking questions about STRUCTURE — what is under this
-//  element, what does its title child say — and answering those from a stream
-//  means every caller keeping its own stack. This builds the tree once so the
-//  reader can ask.
-//
-//  `XMLDocument` would do this in one line and is unavailable outside macOS's
-//  Foundation on some platforms; the parse below is thirty lines and keeps
-//  the corpus lane portable.
-//
-//  BOUNDED, because a manifest is a file on disk that Mary did not write. A
-//  project with a hundred thousand items, or a maliciously nested one, must
-//  not become an unbounded allocation inside a turn.
+//  WHAT: Read-only XML tree over SAX XMLParser.
+//  IN:   ProjectCorpusReader (manifests)
+//  OUT:  Node tree
+//  PIN:  Bounded (max depth/nodes). Portable without XMLDocument.
 //
 
 import Foundation
@@ -55,8 +44,7 @@ final class XMLDocumentTree: NSObject, XMLParserDelegate {
         }
     }
 
-    /// Deep enough for any real outline; a manifest nested past this is not a
-    /// manuscript.
+    /// Deep enough for any real outline; past this is not a manuscript.
     static let maximumDepth = 64
     static let maximumNodes = 200_000
 
@@ -79,9 +67,7 @@ final class XMLDocumentTree: NSObject, XMLParserDelegate {
         }
     }
 
-    /// The first element anywhere with this name, breadth-first — a
-    /// manifest's outline root is a child of the document root, not the
-    /// document root itself.
+    /// First element with this name, breadth-first (outline root is a child of document root).
     func firstDescendant(named name: String) -> Node? {
         guard let root else { return nil }
         if root.name == name { return root }

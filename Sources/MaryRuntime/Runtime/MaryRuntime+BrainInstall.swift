@@ -2,34 +2,10 @@
 //  MaryRuntime+BrainInstall.swift
 //  MaryRuntime
 //
-//  THE COMPOSITION ROOT — where the compiled providers, the installed
-//  packages and the brain are joined into one running system.
-//
-//  IT IS SHORT, AND THAT IS THE POINT. Its predecessor was five hundred lines
-//  of enumeration: twenty-two application integrations behind eight support
-//  lanes, each with a Settings toggle keyed on the application's name, five
-//  named watchers threaded into a nine-field focus context, and a per-lane
-//  reconciliation for the ones that could be imported. Every application Mary
-//  learned cost a line here.
-//
-//  Here the adapters are generic and the applications are data, so there is
-//  nothing to enumerate. What is left is the ORDER, which is the one thing a
-//  composition root genuinely owns:
-//
-//    1. Install the seams the layers below reach UP through — the ambient
-//       layer's application index, the passage lane's backing resolver, the
-//       capability index. Each is an inversion: a lower layer that needs an
-//       answer only a higher one has.
-//    2. Load the package graph, and refuse to publish a half-swapped roster.
-//    3. Reconcile what the packages declared into the registries that serve
-//       them.
-//    4. Hand the brain its providers and its dispatcher.
-//    5. Activate the observers.
-//
-//  A HALF-SWAPPED ROSTER IS THE FAILURE THIS GUARDS. If the package graph
-//  fails to validate, the previously running one keeps BOTH halves — compiled
-//  providers and package snapshot. Publishing new compiled providers beside an
-//  old snapshot would produce a registry no validation pass ever admitted.
+//  WHAT: Composition root — compiled providers + packages + brain.
+//  OUT:  seams → package graph → registries → brain providers → observers
+//  PIN:  Failed reconfiguration keeps both halves. Never publish new
+//        compiled providers beside an old snapshot.
 //
 
 import AppKit
@@ -98,76 +74,47 @@ extension MaryRuntime {
                     return true
                 })
         }
-        // Faculties, not applications: appended beside the catalog so they
-        // stay reachable on a turn led by ANY taught app. They declare no
-        // bundle id and never appear in MaryAdapterCatalog.
+        // Faculties, not applications — reachable on a turn led by any taught app.
         let adapters = MaryAdapterCatalog.adapters()
             + [AffordancePlugin(), looking, CodingAgentAdapter()]
         let observers = MaryAdapterCatalog.observers()
 
-        // 1. THE SEAMS, INSTALLED BEFORE ANYTHING READS THEM.
-        //
-        // Each of these is an inversion: MaryAmbient sits below MaryPlugin
-        // and MaryBrain, and needs answers only they have — which
-        // applications exist, where a place's prose lives, what words map to
-        // which ability. A direct call would be an upward edge and the
-        // layering test would refuse it; a provider seam is the same
-        // information arriving by injection.
+        // 1. Seams first — inversions so MaryAmbient does not call up.
         ProseSurfaceSupport.shared.installBackingResolver()
         AmbientCapabilityBridge.install()
 
-        // 2. THE PACKAGE GRAPH.
+        // 2. Package graph.
         let load = AbilityLibrary.shared.configureAndLoad(
             adapterManifests: MaryAdapterCatalog.adapterManifests(
                 adapters: adapters, observers: observers),
             nativeApplicationProfiles: adapters.map(\.applicationProfile),
             primitiveBindings: [])
 
-        // A FAILED RECONFIGURATION CHANGES NOTHING. Initial boot has no
-        // previous runtime to preserve, so it installs the compiled providers
-        // and an empty snapshot while the library watches for a corrected
-        // graph — which is how a broken package leaves Mary working rather
-        // than mute.
+        // Failed reconfiguration changes nothing. Initial boot installs providers + empty snapshot.
         guard load.activated || !hadBrainConfiguration else { return }
 
-        // 3. RECONCILE WHAT THE PACKAGES DECLARED.
+        // 3. Reconcile what the packages declared.
         let profiles = adapters.map(\.applicationProfile)
             + load.snapshot.plugins.applicationProfiles
         nativeApplicationProfilesBox.withLock { $0 = adapters.map(\.applicationProfile) }
         applicationProfilesBox.withLock { $0 = profiles }
-        // THE JOINED ROSTER, not the compiled half. A package's application
-        // is not a compiled provider, so a roster built from adapters alone
-        // answers nil for every taught application — and every read one of
-        // their Skills produced would be dropped by the guard downstream.
+        // Joined roster, not compiled adapters alone — taught apps would answer nil.
         AmbientApplicationBridge.install(profiles: profiles)
-        // AND THE PROSE SURFACES, which is what makes a declared editor
-        // readable and writable at all. Re-installed on every activation
-        // because importing or editing a package changes the answer.
+        // Prose surfaces — re-installed every activation (import/edit changes the set).
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))
-        // AND THE CODE SURFACES — the read-only sibling of the prose
-        // surfaces above, reconciled the same way and for the same reason:
-        // an editor's declared buffer coordinates are only as current as the
-        // last activation.
+        // Code surfaces — same reconcile; buffer coordinates as of last activation.
         CodeSurfaceSupport.shared.reconcile(
             codeSurfaceRegistrations(from: load.snapshot))
-        // AND THE CORPORA. Same reconcile, same reason: which applications
-        // Mary can learn the shape of is a fact about the installed packages.
-        //
-        // ONE ROSTER FOR BOTH CORPUS CONSUMERS — the passive style crawl and
-        // the project lane that answers the model. They ask different
-        // questions of a corpus; they must not disagree about which
-        // applications have one, so the project lane filters this roster on
-        // `structure` rather than keeping a second copy of it.
+        // Corpora — one roster for style crawl and project lane (lane filters on `structure`).
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
         registerCodingStyleProducer(profiles: profiles, snapshot: load.snapshot)
         installCorpusPipeline()
-        // AND THE TRANSPORTS, on the same activation and for the same reason:
-        // a package that stops declaring a player must stop having one.
+        // Transports — a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(
             mediaSurfaceRegistrations(from: load.snapshot))
 
-        // 4. THE BRAIN'S PROVIDERS.
+        // 4. Brain providers.
         let deps = FocusResolutionContext(observers: observers)
         focusSubjectBox.withLock { $0 = { resolveFocus(deps: deps).subject } }
 
@@ -178,20 +125,14 @@ extension MaryRuntime {
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }
-            // A DECLARED PERCEPTION IS REFRESHED HERE TOO, for the same reason
-            // the observers above are: the dispatch gate asks what Mary
-            // observes RIGHT NOW, and a reading taken any earlier than the
-            // turn that uses it has already begun going stale.
+            // Declared perception — dispatch asks what Mary observes now.
             publishPlayerTransportPerception()
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)
         }
         await brain.setReferentResolver { act in
-            // THE SAME LEAD THE PROMPT DESCRIBED. Resolving "that one"
-            // against a different place than the one the model was just told
-            // about is the whole class of bug the single focus decision
-            // exists to prevent.
+            // Same lead the prompt described — resolveFocus, not a second guess.
             ReferenceFocus.decide(
                 utterance: AmbientContextStore.shared.utterance(),
                 act: act,
@@ -213,9 +154,7 @@ extension MaryRuntime {
             })
         await brain.setOrdinarySkillTimeout(skillRunTimeoutBox.withLock { $0 })
 
-        // 5. THE SENSES, LAST. An observer that starts polling before the
-        // roster is installed publishes facts under a place nothing yet
-        // recognizes, and they are dropped in silence.
+        // 5. Senses last — polling before roster publishes facts nobody recognizes.
         for observer in observers { await observer.activate() }
 
         brainConfigurationInstalledBox.withLock { $0 = true }
@@ -223,9 +162,7 @@ extension MaryRuntime {
         startLifeLoopIfNeeded()
     }
 
-    /// Ability-keyed style learning for every taught application that realizes
-    /// coding. Application ids come from the loaded packages, never a compiled
-    /// product name.
+    /// Ability-keyed style learning for taught apps that realize coding.
     private static func registerCodingStyleProducer(
         profiles: [ApplicationProfile],
         snapshot: AbilityRuntimeSnapshot
@@ -248,21 +185,8 @@ extension MaryRuntime {
             heading: "How this person writes code"))
     }
 
-    /// Every prose surface the admitted packages declare.
-    ///
-    /// A DECLARATION BECOMES A REGISTRATION HERE and nowhere else, so the set
-    /// the passage verbs can reach is exactly the set the graph admitted —
-    /// never a stale copy from the last activation.
-    /// The corpus declarations, in the same shape and for the same reason as
-    /// the prose registrations below.
-    /// Every corpus the admitted ability graph is willing to learn from.
-    ///
-    /// Expertise packages bind a live app (bundle identity). Discipline
-    /// packages may own the walk grammar (`package.corpus`); an expertise
-    /// Plugin may override with `plugin.corpus`. A discipline with no
-    /// expertise in front of the user is not crawled — Mary does not guess
-    /// editors. Disable the discipline or the expertise and that surface
-    /// drops off the next reconcile.
+    /// Corpora the admitted graph will learn from. Expertise binds a live app;
+    /// discipline may own the walk grammar. No expertise in front → not crawled.
     package static func corpusRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [CorpusRegistration] {
@@ -290,8 +214,7 @@ extension MaryRuntime {
         }
     }
 
-    /// Grammar owned by an activated discipline this expertise depends on,
-    /// when the expertise package itself did not declare a corpus.
+    /// Walk grammar from an activated discipline dependency, if this package declared none.
     private static func inheritedCorpus(
         for package: MaryAbilityPackage,
         activated: [PackageID: MaryAbilityPackage]
@@ -307,14 +230,7 @@ extension MaryRuntime {
         return nil
     }
 
-    /// `package` so the behavior probe can install the SAME registrations the
-    /// app does. A probe that hand-built its own would be measuring a fixture.
-    /// The declared transports in one activation's package graph.
-    ///
-    /// `proseSurfaceRegistrations`' twin, kept beside it rather than folded
-    /// into one generic walk: the two blocks are independent, a package may
-    /// declare either or both, and a single function returning a pair would
-    /// make every caller take what it did not ask for.
+    /// Declared transports in this activation. Twin of proseSurfaceRegistrations.
     package static func mediaSurfaceRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [MediaSurfaceRegistration] {
@@ -348,7 +264,7 @@ extension MaryRuntime {
         }
     }
 
-    /// `proseSurfaceRegistrations`'s read-only sibling.
+    /// Read-only sibling of proseSurfaceRegistrations.
     package static func codeSurfaceRegistrations(
         from snapshot: AbilityRuntimeSnapshot
     ) -> [CodeSurfaceRegistration] {

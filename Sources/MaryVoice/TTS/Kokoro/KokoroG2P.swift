@@ -1,38 +1,17 @@
 //
 //  KokoroG2P.swift
-//  MaryVoice — on-device Grapheme-to-Phoneme inference (CoreML BART-style
-//  encoder-decoder from FluidAudio's kokoro-82m-coreml export) plus the 178k
-//  pre-computed cache.
+//  MaryVoice
 //
-//  Lookup priority for a given word:
-//    1. us_lexicon_cache  — caseSensitive section (NASA, OK), then lower
-//    2. G2PEncoder + greedy G2PDecoder — for any word not in the cache
+//  WHAT: On-device grapheme→phoneme (CoreML BART encoder-decoder + 178k cache).
+//  IN:   KokoroPhonemizer
+//  OUT:  IPA string
 //
-//  Invocation matches FluidAudio's shipping G2PModel.swift exactly:
+//  Lookup: us_lexicon_cache (caseSensitive then lower) → G2PEncoder + greedy decoder
 //
-//  Encoder:
-//    input_ids [1, encLen] Int32 — [BOS] + grapheme ids + [EOS], no padding
-//    → encoder_hidden_states [1, encLen, hidden] Float32
+//  Encoder: input_ids [BOS]+graphemes+[EOS] → encoder_hidden_states
+//  Decoder: greedy, max 64; logits via stride-aware subscript (not dataPointer)
 //
-//  Decoder (greedy, one step per iteration, max 64):
-//    decoder_input_ids [1, decLen] Int32     — starts [BOS]
-//    encoder_hidden_states                    — from the encoder
-//    position_ids [1, decLen] Int32           — values i + 2 (BART offset)
-//    causal_mask [1, decLen, decLen] Float32  — j > i ? -1e4 : 0
-//    → logits [1, decLen, nPhone]; argmax last position; stop on EOS.
-//  Assembly skips all special tokens {pad, bos, eos, unk}.
-//
-//  Measured (mary-voice-probe g2p-validate, 500 cache pairs, seed 42):
-//  exact 73.6%, close 87.8%, mean edit distance 0.53.
-//
-//  ⚠️ Load-bearing: logits MUST be read via stride-aware subscripting —
-//  this converter emits non-contiguous MLMultiArrays, and dataPointer
-//  indexing silently reads garbage (empty output, no error). Compute units
-//  need no special-casing: the ANE compiler declines these dynamic-shape
-//  models with a harmless E5RT console warning and CoreML falls back to
-//  CPU transparently (~2-4 ms per word). (The previous SeerTTS-era models
-//  were a broken export: 0% exact, different interface. g2p-validate gates
-//  any future model swap.)
+//  PIN: non-contiguous MLMultiArrays — dataPointer reads garbage.
 //
 
 import Foundation
@@ -119,10 +98,7 @@ final class KokoroG2P {
         self.caseCache = exact
     }
 
-    /// Load the G2PEncoder and G2PDecoder CoreML models. Any compute units
-    /// work: the ANE compiler declines these dynamic-shape models with a
-    /// harmless E5RT console warning and CoreML falls back to CPU, where a
-    /// word decodes in ~2-4 ms.
+    /// Load G2PEncoder + G2PDecoder. ANE declines dynamic shapes; CoreML falls back to CPU.
     func loadModels(encoderURL: URL, decoderURL: URL,
                     computeUnits: MLComputeUnits = .cpuAndNeuralEngine) async throws {
         let cfg = MLModelConfiguration()

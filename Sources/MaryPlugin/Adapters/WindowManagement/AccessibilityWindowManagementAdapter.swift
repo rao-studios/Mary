@@ -2,14 +2,10 @@
 //  AccessibilityWindowManagementAdapter.swift
 //  MaryBrain
 //
-//  The generic macOS binding. It deliberately stops at public Accessibility
-//  APIs: no private window-number bridge, no screen capture, and no menu click
-//  that can report success while doing nothing.
-//
-//  `AccessibilityWindowCore` — the raise/restore/enumerate primitives this
-//  adapter delegates to — moved to `AXEngine/AccessibilityWindowCore.swift`
-//  (AXEngine consolidation); same target, same bare name, nothing here
-//  changed but the import list.
+//  WHAT: Generic macOS window adapter via public Accessibility APIs.
+//  IN:   WindowManagementService
+//  OUT:  AXEngine/AccessibilityWindowCore
+//  PIN:  No private window-number bridge, no screen capture, no silent menu click.
 //
 
 import AppKit
@@ -43,9 +39,7 @@ struct AccessibilityWindowManagementAdapter: WindowManagementAdapter {
     func setFullScreen(
         _ window: ManagedWindow, in application: ManagedApplication, enabled: Bool
     ) async throws {
-        // ENTERING FULL SCREEN MOVES A WINDOW TO ITS OWN SPACE, so it has to
-        // be the window in front first — otherwise the user is left looking
-        // at a Space that does not hold what they asked about.
+        // Entering full screen moves a window to its own Space — raise it first.
         guard await AccessibilityWindowCore.activate(pid: application.processIdentifier) else {
             throw WindowManagementError.operationFailed(
                 "\(application.displayName) didn't come to the foreground.")
@@ -69,8 +63,7 @@ struct AccessibilityWindowManagementAdapter: WindowManagementAdapter {
         var byID: [String: AXUIElement] = [:]
         for entry in current { byID[entry.window.id] = entry.element }
         var raised = 0
-        // AXWindows is front-to-back. Raise back-to-front so the user's
-        // existing order survives and the original front window is raised last.
+        // AXWindows is front-to-back. Raise back-to-front so order survives.
         for window in windows.sorted(by: { $0.index > $1.index }) {
             guard let element = byID[window.id] else {
                 throw WindowManagementError.operationFailed(
@@ -100,9 +93,8 @@ struct AccessibilityWindowManagementAdapter: WindowManagementAdapter {
             let nativeIdentifier = AccessibilityWindowCore
                 .copyString(axWindow.element, kAXIdentifierAttribute)
                 .flatMap { $0.isEmpty ? nil : $0 }
-            // AX has no universal public window-number attribute. CFHash is
-            // the server-side AX object's stable identity for its lifetime;
-            // prefixing pid prevents identity from crossing an app relaunch.
+            // No universal public window-number. CFHash is the AX object's
+            // lifetime identity; pid prefix dies with a relaunch.
             let hash = String(CFHash(axWindow.element))
             let localIdentity = nativeIdentifier.map { "\($0):\(hash)" } ?? hash
             let identity = "\(application.processIdentifier):\(localIdentity)"

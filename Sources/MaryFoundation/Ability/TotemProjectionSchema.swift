@@ -2,11 +2,9 @@
 //  TotemProjectionSchema.swift
 //  MaryFoundation
 //
-//  WHAT AN ABILITY IS ALLOWED TO REMEMBER. A projection declares which fields
-//  of a Skill result or Interaction may persist, and for how long — memory as
-//  a declaration rather than a side effect. Where that memory lands is not
-//  authored: durable projections file to Ability Totem for this Ability, and
-//  application expertise also indexes the disciplines it extends.
+//  WHAT: Which Skill/Interaction fields may persist, and for how long.
+//  IN:   `.mary` totemProjections[] → AbilityPackageValidator+Schemas.
+//  OUT:  Ability Totem (this Ability + extended disciplines).
 //
 
 import Foundation
@@ -16,7 +14,7 @@ public enum TotemLane: String, Codable, Hashable, Sendable, CaseIterable {
     case personal
 }
 
-/// Where an Ability Totem group is addressed: one Ability, in one role.
+/// Ability Totem address: one Ability, one role.
 public struct AbilityTotemTarget: Codable, Hashable, Sendable, Comparable {
     public var abilityID: AbilityID
     public var paradigm: AbilityParadigm
@@ -44,13 +42,7 @@ public enum ProjectionPersistence: String, Codable, Hashable, Sendable, CaseIter
     case durable
 }
 
-/// The machine-level job performed by a Totem projection.
-///
-/// Receipt projections retain execution facts, content projections retain an
-/// explicitly selected subset of the Skill's arguments, and Interaction
-/// projections govern source-owned transient signals. Keeping these purposes
-/// closed prevents a content schema from being silently collapsed into a
-/// redacted receipt merely because both belong to the same Ability.
+/// Machine job of a Totem projection. Closed so content cannot collapse into a redacted receipt.
 public enum TotemProjectionPurpose: String, Codable, Hashable, Sendable, CaseIterable {
     case receipt
     case content
@@ -61,8 +53,7 @@ public struct TotemProjectionSchema: Codable, Hashable, Sendable, Identifiable {
     public var id: ProjectionID
     public var version: SemanticVersion
     public var purpose: TotemProjectionPurpose
-    /// Skills this projection applies to. Empty means every Skill exported by
-    /// the owning Ability; Interaction projections must leave this empty.
+    /// Skills this projection applies to. Empty = every Skill; Interaction must stay empty.
     public var skills: [SkillID]
     public var persistence: ProjectionPersistence
     public var include: [String]

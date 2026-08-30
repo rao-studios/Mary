@@ -2,52 +2,9 @@
 //  ScrivenerPerceptionProbe.swift
 //  CorpusProbe
 //
-//  THE FOURTH CHANNEL, DRIVEN THROUGH REAL DISPATCH — proves
-//  `PluginCompiler.perception(from:proseSurface:codeSurface:mediaSurface:
-//  corpus:)` actually closes the gap it was extended for: `scrivener.mary`
-//  declares `application.perception.kind: "workspace"` backed only by its
-//  `corpus` block (no `proseSurface`, no `codeSurface`), which the compiler
-//  used to silently downgrade to `.perceptionOnly` — `hasEyes` false,
-//  `type_at_cursor`'s `awaitFocusedTextSurface` guard refusing "I couldn't
-//  find a text cursor" even with a real cursor active in a real document.
-//
-//  A UNIT TEST CAN PIN THE COMPILED VALUE (see `PluginCompilerTests`); it
-//  cannot prove the roster a real turn actually offers, or that
-//  `type_at_cursor` genuinely stops refusing against a real, running
-//  Scrivener. That is this file's whole job — the same reasoning
-//  `CodeSurfaceProbe` and `ProjectProbe.runDispatch` already established for
-//  their own lanes.
-//
-//  THE NEGATIVE CHECK MATTERS AS MUCH AS THE POSITIVE ONE. Declaring
-//  `plugin.proseSurface` on `scrivener.mary` was ruled out as the fix
-//  specifically because it would have made `list_documents`/`read_document`/
-//  `create_document` dispatchable against Scrivener too — wrong for an
-//  app whose real document model is a binder, not "one text element". This
-//  probe asserts those three stay absent from the roster, so a future
-//  change that reintroduces the collateral risk fails here rather than
-//  shipping quietly.
-//
-//    mary-corpus-probe --dispatch-scrivener-typing
-//    mary-corpus-probe --dispatch-scrivener-typing --marker "[[MARY-PROBE]]"
-//
-//  THE EXPLICIT-APP RUNG, SEPARATELY — `--dispatch-scrivener-typing-
-//  explicit-app`. `run` above deliberately dispatches with NO `app`
-//  argument (the frontmost rung, what an ordinary turn takes with
-//  Scrivener already in front — see its own comment at the dispatch site).
-//  `TypingSurface.resolve`'s taught-application rung, which only an
-//  EXPLICIT `app:` argument reaches, used to hand `TypingSurface.isRunning`
-//  the package's exact declared id with no family
-//  (`com.literatureandlatte.scrivener`) and compare it against every
-//  running process exactly — so it answered false for the real, installed,
-//  versioned Scrivener 3 (`com.literatureandlatte.scrivener3`) and
-//  misfired "Open Scrivener first" even with Scrivener genuinely running.
-//  Fixed by carrying `bundleIdentifierPrefix` onto `TypingSurface
-//  .matchPrefix` in `taughtSurface(named:)` (`[Corpus P]`). This mode
-//  brings a different real application forward FIRST, so Scrivener starts
-//  in the background, then dispatches with an explicit `app` and proves the
-//  taught rung finds and activates it from there.
-//
-//    mary-corpus-probe --dispatch-scrivener-typing-explicit-app
+//  WHAT: Corpus-backed workspace perception via real dispatch (type_at_cursor).
+//  OUT:  CLI: mary-corpus-probe --dispatch-scrivener-typing […]
+//  PIN:  list/read/create_document stay absent (binder ≠ one text element).
 //
 
 import AppKit
@@ -161,20 +118,7 @@ enum ScrivenerPerceptionProbe {
             contextProvider: { AbilityExecutionContext(projects: [:]) })
         let offered = Set(runtime.schemas.map(\.name))
         check(offered.contains("type_at_cursor"), "type_at_cursor is in this turn's roster")
-        // THE NEGATIVE THE FIX WAS SPECIFICALLY CHOSEN TO PRESERVE — see the
-        // header — IS NOT ABOUT THE ROSTER. `list_documents`/`read_document`/
-        // `create_document` are offered here regardless (writing's ability-
-        // level eligibility admits them for any writing-discipline turn,
-        // `hasEyes` plays no part) — measured live, corrected from this
-        // probe's first draft, which asserted the wrong thing. The actual
-        // guarantee is downstream, in `ProseSurfaceAdapter.resolve`: it looks
-        // Scrivener's frontmost bundle id up in `ProseSurfaceSupport`'s
-        // registry (`MaryRuntime+BrainInstall.swift`'s
-        // `proseSurfaceRegistrations`, admitting only a package that declares
-        // `plugin.proseSurface` — `scrivener.mary` still does not, untouched
-        // by this fix), finds no match, and falls to `notRunning(nil)`
-        // rather than ever touching Scrivener's binder. Dispatched for real
-        // below, because that is the only way to actually prove it.
+        // Roster still offers list/read/create_document. Resolve refuses Scrivener (no proseSurface).
         check(offered.contains("list_documents"),
               "list_documents IS offered (ability-level, not app-gated — expected)")
 
@@ -190,21 +134,7 @@ enum ScrivenerPerceptionProbe {
               listOutcome.summary)
 
         heading("dispatching type_at_cursor for real")
-        // A SMALL, IDENTIFIABLE MARKER rather than free prose — cheap to spot
-        // in the transcript and cheap to revert (Cmd+Z in Scrivener) after
-        // this probe confirms it landed.
-        // NO EXPLICIT `app`, deliberately — this is the shape the real turn
-        // takes ("with Scrivener genuinely frontmost"): `TypingSurface
-        // .resolve`'s frontmost rung (its bundle id compared against
-        // `SelectionSurfacePolicy.permitsProseApplication`, a blocklist
-        // check) is what a model call with Scrivener already in front
-        // actually exercises, not the taught-application rung — which
-        // resolves through `scrivener.mary`'s DECLARED bundle id and, before
-        // `[Corpus P]`, failed `isRunning`'s exact-match against the real
-        // `com.literatureandlatte.scrivener3` process. That rung is now
-        // exercised on its own, with Scrivener starting in the BACKGROUND,
-        // by `runExplicitApp` below (`--dispatch-scrivener-typing-explicit-
-        // app`).
+        // Revertible marker; no explicit `app` — exercises the frontmost rung.
         let marker = value("--marker") ?? " [[MARY-PROBE-\(Int(Date().timeIntervalSince1970))]]"
         let typeOutcome = await runtime.dispatch(
             name: "type_at_cursor",
@@ -224,12 +154,7 @@ enum ScrivenerPerceptionProbe {
 
     // MARK: - The explicit-app rung, on its own
 
-    /// `[Corpus P]`'s live proof. Unlike `run` above, this never brings
-    /// Scrivener forward first — it brings a DIFFERENT application forward,
-    /// confirms Scrivener is genuinely in the background, and only then
-    /// dispatches `type_at_cursor` with an explicit `app`. That is the only
-    /// way to actually exercise `TypingSurface.resolve`'s taught-application
-    /// rung rather than its frontmost one.
+    /// Explicit `app` while Scrivener is backgrounded — taught-application rung.
     static func runExplicitApp(_ arguments: [String]) async {
         func value(_ name: String) -> String? {
             guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
@@ -268,9 +193,7 @@ enum ScrivenerPerceptionProbe {
         }
 
         heading("bringing a DIFFERENT application forward first")
-        // Finder is always running and never Scrivener's family, so this is
-        // a clean way to guarantee Scrivener starts the dispatch below in
-        // the background — the scenario the taught rung has to recover from.
+        // Finder first so Scrivener is backgrounded before the explicit-app dispatch.
         let awayActivation = await VerifiedActivation.bringForward(
             bundleID: "com.apple.finder", requireVisibleWindow: false)
         check(awayActivation.succeeded, "Finder came forward",
@@ -287,15 +210,7 @@ enum ScrivenerPerceptionProbe {
         let runtime = AbilityRuntime(
             plugins: adapters, executionLog: log,
             contextProvider: { AbilityExecutionContext(projects: [:]) })
-        // THE FIX UNDER TEST: `TypingSurface.resolve(requested: "Scrivener",
-        // ...)` tries `taughtSurface(named:)` FIRST — the only rung an
-        // explicit `app` argument reaches, and the one `[Corpus P]` fixed.
-        // Before the fix this refused "Open Scrivener first" even with
-        // Scrivener genuinely running (as the real, versioned
-        // `com.literatureandlatte.scrivener3`), because `TypingSurface
-        // .isRunning` compared the package's exact declared id
-        // (`com.literatureandlatte.scrivener`) against every running
-        // process with no family.
+        // Explicit `app:"Scrivener"` hits taughtSurface; family match, not exact bundle id.
         let marker = value("--marker")
             ?? " [[MARY-PROBE-EXPLICIT-\(Int(Date().timeIntervalSince1970))]]"
         let typeOutcome = await runtime.dispatch(
@@ -324,15 +239,7 @@ enum ScrivenerPerceptionProbe {
 
     // MARK: - The frontmost rung, on its own, with no corpus precondition
 
-    /// THE NON-REGRESSION CHECK: `run` above additionally requires
-    /// `ProjectCorpusSupport.resolve(nil)` to name Scrivener unambiguously —
-    /// right for proving the fourth-channel perception fix, wrong when all
-    /// that is needed is "does the frontmost rung still work", which does
-    /// not touch the corpus feature at all. This mode asks only for
-    /// Scrivener to already be frontmost (the caller's job — this probe
-    /// never activates it, so the scenario stays an honest "ordinary
-    /// conversational turn with Scrivener already in front") and dispatches
-    /// `type_at_cursor` with NO `app`, the same call shape `run` above uses.
+    /// Frontmost rung only: no corpus resolve; caller already has Scrivener in front.
     static func runFrontmostOnly(_ arguments: [String]) async {
         func value(_ name: String) -> String? {
             guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count

@@ -2,64 +2,16 @@
 //  ReferenceFocus.swift
 //  MaryBrain
 //
-//  THE IMPURE GATHERER: reads the watcher boxes and the container registry,
-//  hands them to the pure `ReferenceResolver`, and publishes ONE answer.
-//
-//  `TextEditFocus` generalized. The split is by purity, which is what keeps the
-//  ladder testable with nothing running: rows and salience come from here,
-//  judgement happens there.
-//
-//  ═══════════════════════════════════════════════════════════════════════
-//  THE XCODE GUARANTEE — the constraint this file is built around.
-//
-//  The user's words: "This really needs to be thought out so it doesn't impact
-//  XCode's lane of thinking."
-//
-//  So `resolve` answers nil unless ALL THREE hold:
-//
-//    1. THE RESOLVER FIRED at a rung that names a container. Abstention — the
-//       common case, most turns — is nil.
-//    2. THE CONTAINER IS NOT IN THE LEADING WORLD. A turn about the document
-//       already leading needs no referent; the seams' existing answer is
-//       already right, and replacing it with an identical one is a way to be
-//       subtly wrong for no gain.
-//    3. THE UTTERANCE NAMES NO CODING TARGET. `classifyOverride` already
-//       recognises "function", "build", "refactor", "compile" and the rest;
-//       if it says `.coding`, this rung stands down entirely.
-//
-//  Everything the guarantee buys follows from that being nil on an Xcode turn:
-//  `focusProvider` is untouched, so the roster hoist and `fuzzyOrder` are
-//  unchanged and a half-remembered Skill name still resolves; Xcode never
-//  becomes a referent target, so it gains no fetch-first and no locate — which
-//  matters because gaining locate would make `RevisionVeto` start redirecting
-//  Xcode `type_at_cursor` calls to `replace_passage`, the one change that would
-//  visibly alter how coding feels.
-//
-//    4. THE ACT IS NOT DESTRUCTIVE WITH AN UNSETTLED REFERENCE. See `decide`:
-//       a `.destroy` act whose container reference could not be settled
-//       resolves to a REFUSAL rather than to a container. This clause never
-//       fires on a coding turn (clause 3 already returned), so it takes nothing
-//       away from Xcode; it only stops a destructive act falling through to
-//       whatever happens to be in front.
-//
-//  Pinned by `ReferenceFocusTests.theXcodeLaneIsUntouched`.
-//  ═══════════════════════════════════════════════════════════════════════
+//  WHAT: Impure gatherer — watcher boxes and container registry → one answer.
+//  OUT:  ReferenceResolver (pure) → AmbientContextStore.noteReference
+//  PIN:  Xcode lane must not be impacted: resolve answers nil unless all three guards hold.
 //
 
 import Foundation
 
-/// WHAT KIND OF ACT IS ABOUT TO HAPPEN to the container.
-///
-/// THE POINT OF THIS TYPE: the same words deserve different answers. Getting
-/// "read the other one" wrong costs a re-read; getting "delete the Tuesday line
-/// in the other one" wrong destroys the wrong note's line. Until this existed,
-/// the resolver could not tell them apart — `EditIntent.shape` is computed 54
-/// lines before the referent and was thrown away, and the seam was
-/// `() -> ResolvedReferent?` with no argument position to carry it.
-///
-/// Derived from `EditIntent.Shape`, which rests on the tweak allowlist's own
-/// reasoning: the passage verbs are `.tweak` because `revert_last_edit` is the
-/// way back, and a delete is the one whose way back is thinnest.
+/// WHAT KIND OF ACT IS ABOUT TO HAPPEN to the container. THE POINT OF THIS TYPE: the same
+/// words deserve different answers. Getting "read the other one" wrong costs a re-read;
+/// getting "delete the Tuesday line in the other one" wrong destroys the wrong note's line.
 public enum ReferenceAct: Sendable, Equatable {
     /// No edit intent — a question, a read, a listing.
     case read
@@ -127,9 +79,6 @@ public enum ReferenceDecision: Sendable, Equatable {
     case none
     case referent(ResolvedReferent)
     /// A reference was made, could not be settled, and the act is destructive.
-    /// The sentence states what is ambiguous and the one fact that would settle
-    /// it, then stops — `PassageResolver.refusal`'s rule, and pinned as a class
-    /// by `PassageTests.noPassageRefusalReadsAsAnErrand`.
     case refused(String)
 
     /// The container, when there is one. Nil for both other cases, so a caller
@@ -142,15 +91,9 @@ public enum ReferenceDecision: Sendable, Equatable {
 
 public enum ReferenceFocus {
 
-    /// WHICH CONTAINER THIS TURN MEANS, across every enrolled world.
-    ///
-    /// `lead` is the world the arbiter gave the turn to; a container there is
-    /// deliberately NOT a referent (guarantee clause 2).
-    ///
-    /// Pure given its inputs — the rosters are handed in — so the whole
-    /// guarantee is testable as a table with no application running.
-    /// The old shape, unchanged for every caller that only wants "which one".
-    /// A refusal reads as nil here, which is today's behaviour.
+    /// WHICH CONTAINER THIS TURN MEANS, across every enrolled world. `lead` is the world the
+    /// arbiter gave the turn to; a container there is deliberately NOT a referent (guarantee
+    /// clause 2).
     public static func resolve(
         utterance: String,
         rosters: [ContainerRoster],
@@ -163,12 +106,8 @@ public enum ReferenceFocus {
             registry: registry, now: now).referent
     }
 
-    /// WHICH CONTAINER, AND WHETHER THE ACT MAY PROCEED.
-    ///
-    /// The four-by-two matrix in one function. Everything in the REVERSIBLE
-    /// column is silent — including the no-evidence fallback to the container in
-    /// front, which is the *obvious* reading and does not need narrating. The
-    /// only new sentence in the system is the destructive refusal.
+    /// WHICH CONTAINER, AND WHETHER THE ACT MAY PROCEED. The four-by-two matrix in one
+    /// function. Everything in the REVERSIBLE column is silent.
     public static func decide(
         utterance: String,
         act: ReferenceAct,
@@ -180,10 +119,9 @@ public enum ReferenceFocus {
         let said = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !said.isEmpty else { return .none }
 
-        // GUARANTEE CLAUSE 3, checked first and cheapest. A coding cue means
-        // this whole mechanism stands down — "replace this function's body"
-        // must never be hijacked to a note because a note was mentioned two
-        // turns ago.
+        // GUARANTEE CLAUSE 3, checked first and cheapest. A coding cue means this whole mechanism
+        // stands down — "replace this function's body" must never be hijacked to a note because a
+        // note was mentioned two turns ago.
         guard FocusOverride.classifyOverride(utterance: said) != .coding
         else { return .none }
 
@@ -201,10 +139,9 @@ public enum ReferenceFocus {
             let keys = rows.map(\.key)
             let ranks = registry.salienceRanks(place: roster.place, keys: keys, at: now)
             if let remembered = registry.listing(for: roster.place, against: keys) {
-                // ONE LISTING AT A TIME. Two worlds both holding a live listing
-                // would make "the second one" ambiguous across worlds, and the
-                // honest answer to an ambiguous ordinal is to abstain — so the
-                // first live listing wins and a second one cancels both.
+                // ONE LISTING AT A TIME. Two worlds both holding a live listing would make "the second
+                // one" ambiguous across worlds, and the honest answer to an ambiguous ordinal is to
+                // abstain — so the first live listing wins and a second one cancels both.
                 if listing == nil {
                     listing = remembered.keys
                     listingIsNewest = isNewestEvidence(
@@ -242,28 +179,9 @@ public enum ReferenceFocus {
             return .none
 
         case .resolved(let choice):
-            // GUARANTEE CLAUSE 2.6 — THE RIVAL-WRITING BAR. On a WRITING-led
-            // turn, a referent in a DIFFERENT writing world crosses only on
-            // strong evidence: an exact hit on a rung where the user actually
-            // named or pointed at the thing (handle, title, subtitle, an
-            // ordinal against a listing they saw, real anaphora). A content
-            // hit — one distinctive word shared with some open note's body —
-            // or any rule-chosen pick stays home.
-            //
-            // THE FAILURE THIS FIXES (live, in Pages): only Scrivener and
-            // TextEdit enroll container rosters, so on a Pages-led turn this
-            // resolver can ONLY ever answer with a rival writing world — and
-            // its answer sits above frontmost in `resolveWorld`. One
-            // incidental word shared with an open TextEdit note title was
-            // enough to hijack an unqualified passage verb out of the
-            // document the user was actually working in. Publication is the
-            // one altitude that covers every consumer at once —
-            // `resolveWorld` rung 2.5, fetch-first, and the roster's
-            // admitted-worlds set all read `ambient.referent()`.
-            //
-            // Coding-lead and no-lead turns are byte-identical through here
-            // (`lead?.focus == .writing` is the key), so the Xcode guarantee
-            // and "add this to my sourdough note" while coding both stand.
+            // GUARANTEE CLAUSE 2.6 — THE RIVAL-WRITING BAR. Coding-lead and no-lead turns are
+            // byte-identical through here (`lead?.focus == .writing` is the key), so the Xcode
+            // guarantee and "add this to my sourdough note" while coding both stand.
             if lead?.focus == .writing,
                choice.place.focus == .writing,
                choice.place != lead {
@@ -278,30 +196,15 @@ public enum ReferenceFocus {
                 alternative: choice.alternative))
 
         case .ambiguous(let phrase, let rivals):
-            // GUARANTEE CLAUSE 4. A reference WAS made and could not be
-            // settled.
-            //
-            // Reversible: behave exactly as before — fall through to the
-            // container in front, silently. Getting a read or a revision wrong
-            // costs a re-read or a `revert_last_edit`, and narrating every
-            // ambiguous pick is how narration stops being heard.
-            //
-            // Destructive: refuse. Measured live before this existed — "delete
-            // the Tuesday line in the other one" with eight notes open abstained
-            // to the front note and deleted the line from the WRONG one.
+            // GUARANTEE CLAUSE 4. A reference WAS made and could not be settled. Reversible: behave
+            // exactly as before.
             guard act == .destroy else { return .none }
             return .refused(refusal(phrase: phrase, rivals: rivals))
         }
     }
 
-    /// THE ONE NEW SENTENCE, in the tree's established refusal style: state what
-    /// is ambiguous and the ONE fact that would settle it, then stop.
-    ///
-    /// No question mark and no imperative. `PassageResolver.refusal` and
-    /// `PassageWriteError.ambiguousInDocument` are the precedents, and
-    /// `PassageTests.noPassageRefusalReadsAsAnErrand` pins the class: a
-    /// Skill-invoking model reads an imperative in a Skill result as a thing to go
-    /// and do.
+    /// THE ONE NEW SENTENCE, in the tree's established refusal style: state what is ambiguous
+    /// and the ONE fact that would settle it, then stop. No question mark and no imperative.
     public static func refusal(phrase: String, rivals: [ReferenceResolver.Rival]) -> String {
         let count = SpokenPhrase.countWord(rivals.count)
         // NAMED, not counted, when the list is short enough to say — a name is
@@ -315,19 +218,9 @@ public enum ReferenceFocus {
             + "one of them out on a guess. The title, or a few words from it, settles it."
     }
 
-    /// APPLY A ONE-WORD CORRECTION, and return what it re-aimed to.
-    ///
-    /// THE THIRD CLAUSE OF THE DOCTRINE, mechanized. Called when
-    /// `MaryBrain.bareCorrection` fires and the PREVIOUS turn produced a
-    /// referent — there is nothing to correct otherwise.
-    ///
-    /// RE-AIM ONLY. What already landed stays where it landed; this makes the
-    /// next command land in the right place. The decision was deliberate: an
-    /// undo-and-redo pair can go half-done, and a correction should not be able
-    /// to damage anything.
-    ///
-    /// The alternative is where it re-aims TO. That is why `Choice.alternative`
-    /// is carried at all: without it a correction has nothing to name.
+    /// APPLY A ONE-WORD CORRECTION, and return what it re-aimed to. THE THIRD CLAUSE OF THE
+    /// DOCTRINE, mechanized. Called when `MaryBrain.bareCorrection` fires and the PREVIOUS turn
+    /// produced a referent — there is nothing to correct otherwise.
     @discardableResult
     public static func applyCorrection(
         to previous: ResolvedReferent,
@@ -377,14 +270,9 @@ public enum ReferenceFocus {
         return .init(place: previous.place, key: best.key, title: best.title)
     }
 
-    /// NEWEST EVIDENCE WINS — the rule for "the last one".
-    ///
-    /// An ordinal takes a roster row only while the listing is the most recent
-    /// referential event. Once Mary has acted on, read, or spoken about one of those
-    /// containers more recently, "the last one" means THAT.
-    ///
-    /// `.shown` is deliberately not compared: minting handles is what a listing
-    /// DOES, so it would always tie with its own evidence.
+    /// NEWEST EVIDENCE WINS — the rule for "the last one". An ordinal takes a roster row only
+    /// while the listing is the most recent referential event. Once Mary has acted on, read, or
+    /// spoken about one of those containers more recently, "the last one" means THAT.
     public static func isNewestEvidence(
         _ listing: ContainerListing,
         place: AmbientPlace,

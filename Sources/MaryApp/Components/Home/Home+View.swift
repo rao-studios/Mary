@@ -1,3 +1,11 @@
+//
+//  Home+View.swift
+//  Mary
+//
+//  WHAT: Home session shell.
+//  OUT:  Session + sheets (Settings / Debugger / Totems / Corpus / Ability Studio).
+//
+
 import MaryAmbient
 import MaryBrain
 import Granite
@@ -36,16 +44,13 @@ extension Home: View {
         .sheet(isPresented: _state.showServers) {
             ServersSheet()
         }
-        // Palette is light-only (Fleet's rule); lock it so default
-        // text/controls stay readable.
+        // Light-only (Fleet). Default text/controls stay readable.
         .preferredColorScheme(.light)
     }
 }
 
-/// The reactive half of the page (Gita's StorySessionView pattern): a plain
-/// view whose un-silenced relay re-renders on chat changes, while the raw
-/// `relay.objectWillChange` bridge feeds per-token updates into the display-
-/// tempo view model, past Granite's 200 ms @Store debounce.
+/// Reactive session page. Relays re-render on chat; `objectWillChange` feeds
+/// tokens into streamVM past Granite's 200 ms @Store debounce.
 struct HomeSessionView: View {
     @Environment(\.openWindow) private var openWindow
     let onShowSettings: () -> Void
@@ -61,9 +66,7 @@ struct HomeSessionView: View {
 
     @Relay var chat: ChatService
     @Relay(.silence) var config: ConfigService
-    /// Silenced: held ONLY so boot can bind the wake-word seams to the one
-    /// online center — a bare `VoiceService()` builds a private center whose
-    /// sends reach nothing.
+    /// Silenced: boot binds wake-word seams to this center. A bare `VoiceService()` is dead.
     @Relay(.silence) var voice: VoiceService
 
     @StateObject private var streamVM = ConversationStreamViewModel()
@@ -71,63 +74,34 @@ struct HomeSessionView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            // SINGLE-BOOT INVARIANT: the split lives INSIDE this VStack so
-            // the root-attached .task (boot.send / ProactiveBridge.start /
-            // bootRuntime — must fire exactly once) and the .onReceive
-            // streamVM bridge (one subscription) never re-host when the pane
-            // toggles. The conditional SECOND child (not an if/else around
-            // the whole split) keeps ConversationPageView's structural
-            // identity — scroll position, list state, and the voice
-            // bar's unsent draft all survive every toggle, because the bar
-            // now hangs off that column rather than the window.
+            // Split stays inside this VStack: root .task and streamVM .onReceive host once.
+            // Bare `if` siblings keep ConversationPageView identity across pane toggles.
             HSplitView {
                 ConversationPageView(
                     conversation: chat.state.conversation,
                     lastError: chat.state.lastError,
                     bootStatus: chat.state.bootStatus,
                     streamVM: streamVM,
-                    // The place capsule's tap-through: the EXISTING header
-                    // affordance, opened (never closed) — no new navigation.
+                    // Place capsule opens the existing Routes pane; never closes it.
                     onOpenRoutes: { if !showRouter { onToggleRouter() } }
                 )
-                // The bar belongs to the CONVERSATION column, not the
-                // window: as a root inset it stretched under the debugger
-                // pane too, reserving dead space beneath a minimap that has
-                // nothing to say to it. Scoped here it insets only the page
-                // it composes with. The bar carries its own relays now (see
-                // VoiceBar) — this is only where it hangs.
+                // Bar insets the conversation column only (VoiceBar owns its relays).
                 .safeAreaInset(edge: .bottom) { VoiceBar(streamVM: streamVM) }
-                // layoutPriority keeps divider drags from crushing the
-                // conversation below its readable floor.
+                // Divider drags cannot crush the conversation below its readable floor.
                 .frame(minWidth: 396)
                 .layoutPriority(1)
                 if showDebugger {
                     Debugger()
                         .frame(minWidth: 300, maxWidth: 520)
                 }
-                // A THIRD bare `if`, never an if/else chain, for the same
-                // reason the second one is bare: ConversationPageView must
-                // stay the unconditional FIRST child so its structural
-                // identity — scroll position, list state, the voice
-                // bar's unsent draft — survives every toggle. With both panes
-                // open the window's floor is 396 + 300 + 320 ≈ 1016 pt.
                 if showRouter {
                     Router()
                         .frame(minWidth: 320, maxWidth: 560)
                 }
-                // A FOURTH bare `if`, for the reason the two above give: the
-                // conversation must stay the unconditional FIRST child so its
-                // structural identity survives every toggle. With all four
-                // open the window's floor is 396 + 300 + 320 + 340 ≈ 1356 pt.
-                // A FIFTH bare `if`, for the reason the three above give: the
-                // conversation must stay the unconditional FIRST child so its
-                // structural identity survives every toggle. With all five
-                // open the window's floor is 396 + 300 + 320 + 340 + 360 ≈ 1716 pt.
                 if showTotems {
                     Totems()
                         .frame(minWidth: 360, maxWidth: 600)
                 }
-                // A SIXTH bare `if`, for the reason the four above give.
                 if showCorpus {
                     Corpus()
                         .frame(minWidth: 380, maxWidth: 640)
@@ -139,9 +113,7 @@ struct HomeSessionView: View {
             streamVM.update(utterances: chat.state.conversation.utterances)
         }
         .task {
-            // The persisted conversation restores asynchronously; booting
-            // against the pre-restore default would sanitize an empty page.
-            // Wait for the store, then boot (Gita's rule).
+            // Wait for persisted conversation (and config) before boot.
             chat.preload()
             while !chat.isLoaded, !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 50_000_000)
@@ -153,16 +125,10 @@ struct HomeSessionView: View {
             }
             guard !Task.isCancelled else { return }
             chat.center.boot.send()
-            // The window applies to the restored page too, not just to
-            // turns taken from here on — a transcript that grew unbounded
-            // under an older build collapses on this launch. Sent after
-            // config has restored (the wait above), so it carries the
-            // user's real limit rather than the struct default.
+            // History window applies to the restored page, using the restored limit.
             chat.center.setHistoryLimit.send(
                 ChatService.SetHistoryLimit.Meta(limit: config.state.historyMessageLimit))
-            // Long-lived subscriber: detached-routine progress + follow-ups,
-            // forwarded into the single writer (never a streaming reducer —
-            // its boot-era snapshot was the history-rollback bug).
+            // Detached-routine progress + follow-ups → single writer (not a streaming reducer).
             ProactiveBridge.start { kind in
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: kind))
             }
@@ -184,8 +150,6 @@ struct HomeSessionView: View {
             } label: {
                 Image(systemName: "eye")
                     .font(.system(size: 14))
-                    // A toggle, not a sheet — the active tint is the only
-                    // deviation from the header-button trio.
                     .foregroundStyle(showDebugger ? Paper.ink : Paper.ink.opacity(0.7))
             }
             .buttonStyle(.plain)
@@ -195,8 +159,6 @@ struct HomeSessionView: View {
             } label: {
                 Image(systemName: "arrow.triangle.branch")
                     .font(.system(size: 14))
-                    // A toggle like the eye beside it, and tinted the same
-                    // way — the two panes are read together.
                     .foregroundStyle(showRouter ? Paper.ink : Paper.ink.opacity(0.7))
             }
             .buttonStyle(.plain)
@@ -215,7 +177,6 @@ struct HomeSessionView: View {
             } label: {
                 Image(systemName: "point.3.connected.trianglepath.dotted")
                     .font(.system(size: 14))
-                    // A toggle like the three before it, tinted the same way.
                     .foregroundStyle(showTotems ? Paper.ink : Paper.ink.opacity(0.7))
             }
             .buttonStyle(.plain)
@@ -263,11 +224,7 @@ struct HomeSessionView: View {
     private func bootRuntime() async {
         setReadiness("waking the voice…", ready: false)
         if let error = await MaryRuntime.bootKokoro(voice: config.state.voice) {
-            // THE ON-DEVICE ENGINE IS THE GATE ONLY WHEN IT IS THE SPEAKER.
-            // Seer renders its own audio server-side; Kokoro sits behind it as
-            // the per-chunk cover. Returning here parked the whole session
-            // before readiness — no chat, no engine, no Seer — over a voice
-            // that session never speaks with.
+            // Kokoro gates boot only when it is the speaker. Hosted TTS continues.
             guard config.state.ttsBackend == .kokoro else {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: .error(
                     "\(error) \(config.state.ttsBackend.displayName) still speaks; only the "
@@ -277,17 +234,14 @@ struct HomeSessionView: View {
             setReadiness(error, ready: false)
             return
         }
-        // Heal a config that named a voice the bundle does not carry, so the
-        // Settings picker agrees with the speaker.
+        // Align Settings picker with the voice the bundle actually loaded.
         if let loaded = MaryRuntime.activeKokoroVoice, loaded != config.state.voice {
             config.center.update.send(ConfigService.Update.Meta(voice: loaded))
         }
         await bootRuntimeAfterVoice()
     }
 
-    /// Everything after the voice: the brain engine, ambient wiring, the Seer
-    /// stack and the speaker. Split out so a hosted-TTS session can skip the
-    /// on-device voice and still boot the whole runtime.
+    /// Brain, ambient, Seer, speaker — after voice. Hosted TTS skips Kokoro and still boots.
     private func bootRuntimeAfterVoice() async {
 
         let engine = config.state.llmEngine
@@ -331,9 +285,7 @@ struct HomeSessionView: View {
                 seerEnabled: config.state.seerEnabled)
         }
 
-        // Instant coding/writing focus transitions — app boot only, never
-        // installBrainConfiguration (probes call that; headless stays
-        // poll-fed and deterministic).
+        // Workspace focus observer: app boot only (probes stay poll-fed).
         WorkspaceFocusObserver.installOnce()
         MaryRuntime.removeLegacyBehaviorDirectory()
         await MaryRuntime.installBrainConfiguration(
@@ -343,22 +295,17 @@ struct HomeSessionView: View {
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)
         MaryRuntime.styleSelection = config.state.speechStyle
         await MaryRuntime.speaker.setStyle(config.state.speechStyle.style)
-        // Seer stack first: the default TTS backend is Seer's /v1/speak,
-        // which needs the sign-in that happens in here.
+        // Seer stack before TTS: default backend is Seer /v1/speak (needs sign-in).
         await bootSeerStack()
-        // Per-chunk voice degradation surfaces once per session through the
-        // same mirror the apply notices use. The hook fires off-actor, so it
-        // hops home before touching the chat center.
+        // Per-chunk voice degrade → chat mirror. Hook is off-actor; hop to MainActor.
         MaryRuntime.onVoiceDegrade = { note in
             Task { @MainActor in
-                // A fresh relay handle onto the one online center — the hook
-                // fires off-actor and cannot capture the view's own.
+                // Fresh relay onto the online center (hook cannot capture this view's).
                 ChatService().center.mirrorVoice.send(
                     ChatService.MirrorVoice.Meta(kind: .error(note)))
             }
         }
-        // A chunk whose synthesis failed PAST every retry and fallback is a
-        // skipped sentence — it must never vanish without a trace.
+        // Synthesis failed past retry/fallback: skipped sentence, never silent.
         Task.detached {
             for await event in await MaryRuntime.speaker.events() {
                 guard case .chunkFailed(let text, let reason) = event else { continue }
@@ -374,27 +321,17 @@ struct HomeSessionView: View {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: .error(notice)))
         }
         setReadiness(nil, ready: true)
-        // "Hey Mary" standby arms only once the app can actually answer a
-        // wake — a session started against a half-booted runtime would greet
-        // and then stall. The seams bind the ONLINE relays (captured through
-        // this view's @Relay handles) before the first wake can fire.
+        // "Hey Mary" arms only once the app can answer. Bind online relays first.
         MaryRuntime.wakeSessionStart = { voice.center.start.send() }
         MaryRuntime.wakeVADSource = { config.state.vad }
         MaryRuntime.applyWakeWord(config.state.wakeWordEnabled)
-        // Fire-and-forget: the first arm opens an audio engine, and boot must
-        // not hang behind a wedged one (the controller chain serializes the
-        // ordering on its own).
+        // First arm opens an audio engine; boot must not hang if it wedges.
         Task { await MaryRuntime.wakeStandby.noteAppReady() }
-        // Revoked script consents are loud at launch, not discovered
-        // mid-request. Detached: the scan loads the ability snapshot.
     }
 
-    /// Seer/Totem come up after the engine so chat is usable even when the
-    /// stack fails — every failure here mirrors a notice and continues in
-    /// engine-only mode rather than blocking readiness.
+    /// Seer/Totem after engine so chat still works if the stack fails. Failures mirror and continue.
     private func bootSeerStack() async {
-        // The totem node UUID is the DB identity: adopt Totem's persisted id
-        // (or mint one) on first boot, then pin it in config forever.
+        // Totem node UUID is DB identity: adopt or mint, then pin in config.
         var nodeID = config.state.totemNodeID
         if UUID(uuidString: nodeID) == nil {
             nodeID = TotemNodeIdentity.adoptOrMint(configured: "")
@@ -415,8 +352,7 @@ struct HomeSessionView: View {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
                     kind: .error("Local servers: \(failure) Chat continues without Seer.")))
             } else if config.state.totemGraphPolicyManaged {
-                // Teach Totem's extractor Mary's ontology + co-mention
-                // edges. Best-effort: a refusal never blocks boot.
+                // Best-effort ontology + co-mention edges; refusal never blocks boot.
                 _ = await TotemGraphPolicy.push(totemPort: config.state.totemPort)
             }
         }
@@ -432,14 +368,12 @@ struct HomeSessionView: View {
                 chat: false, archiving: false, stackEnabled: false)
             return
         }
-        // ARCHIVING IS NOT LANE A'S CHOICE. Sign-in succeeded, so Totem
-        // takes deposits either way; only the spoken lane answers to Voice
-        // (Lane A), so choosing "on device" keeps memory working.
+        // Sign-in succeeded → Totem deposits regardless of Voice (Lane A) engine.
         await MaryRuntime.connectSeerToBrain(
             chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
             archiving: true,
             stackEnabled: true)
-        // Transport rides the signed-in session, so it applies last.
+        // Transport uses the signed-in session; apply last.
         await MaryRuntime.applySeerTransport(config.state.seerTransport)
     }
 
@@ -452,32 +386,18 @@ struct HomeSessionView: View {
 
 // MARK: - Voice bar
 
-/// THE BAR OWNS ITS OWN RELAY BOUNDARY, and that is the whole point of it
-/// being a separate view. `voice.state.audioLevel` ticks ~60×/s while Mary
-/// SPEAKS — the barge-in mic stays open and hears her own voice — and an
-/// un-silenced `@Relay` republishes the entire view that declares it
-/// (GraniteRelay.observe, throttled at 0.0167 s). Declared on
-/// HomeSessionView, that re-evaluated ConversationPageView on every audio
-/// frame, which tore down and restarted each brushstroke's fade-in: the
-/// highlights flashing in and out. The relay lives here now, so the churn
-/// stops at this bar and the page is re-rendered only by chat changes.
-///
-/// Reads and center sends still stay on the component that owns them — the
-/// ownership moved WITH the bar rather than being split across the file.
+/// Voice bar owns its relay boundary. `audioLevel` ticks ~60×/s; an un-silenced
+/// `@Relay` on HomeSessionView re-rendered ConversationPageView (brushstroke flicker).
+/// Reads/sends stay on this view.
 private struct VoiceBar: View {
     @ObservedObject var streamVM: ConversationStreamViewModel
 
     @Relay var voice: VoiceService
     @Relay var chat: ChatService
-    /// UN-SILENCED, unlike `HomeSessionView`'s. That one is silenced because
-    /// republishing it re-renders `ConversationPageView` and costs the page
-    /// its scroll position; this view hosts nothing of the sort and already
-    /// re-renders at the audio meter's rate. Silencing it here would simply
-    /// stop the ear glyph reacting to the setting.
+    /// Un-silenced: this view already re-renders at meter rate. Silencing would freeze the ear glyph.
     @Relay var config: ConfigService
 
-    /// Generation ends before the char-by-char reveal does; the composer
-    /// stays quiet until the page has settled.
+    /// Composer stays quiet until generation and the char-by-char reveal settle.
     private var isBusy: Bool {
         chat.state.isGenerating || streamVM.phase != .idle
     }
@@ -503,9 +423,7 @@ private struct VoiceBar: View {
                 }
             },
             onSend: { text in
-                // Typed turns run outside Granite's streaming reducers
-                // (snapshot-republish races); events funnel into the
-                // single sync writer.
+                // Typed turns outside Granite streaming reducers (snapshot-republish races).
                 Task {
                     await TextTurnRunner.shared.submit(text) { kind in
                         chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: kind))

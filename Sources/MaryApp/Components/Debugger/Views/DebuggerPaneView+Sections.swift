@@ -10,9 +10,7 @@ extension DebuggerPaneView {
 
     // MARK: - Filter bar
 
-    /// Eyes first, then All, then one chip per running app in the sweep's own
-    /// watched-first order — so the apps Mary actually has eyes for are
-    /// always the leftmost thing the user reaches for.
+    /// Eyes, then All, then running apps in watched-first order (eyes leftmost).
     var filterBar: some View {
         let tabs = WindowTileBuilder.filterTabs(
             vm.model.groups, selected: filter.uncappedGroupID)
@@ -64,10 +62,7 @@ extension DebuggerPaneView {
         }
     }
 
-    /// One tab chip. Selected = the filled `Paper.highlight` capsule (the
-    /// FOCUS badge below, verbatim); unselected = the outlined-gold capsule
-    /// the inspector's PINNED badge uses. NEVER `.maryQuiet` — its 16 pt
-    /// horizontal padding overflows the ~268 pt floor after three chips.
+    /// Tab chip. Selected = Paper.highlight fill; unselected = gold outline. Not `.maryQuiet`.
     func chip<Icon: View>(
         isSelected: Bool,
         dot: Color?,
@@ -89,9 +84,7 @@ extension DebuggerPaneView {
                 }
                 .overlay(alignment: .bottomTrailing) {
                     if let dot {
-                        // The token at its native 8 pt would eat a third of a
-                        // 26 pt chip — scaled, never re-invented, so the pane
-                        // keeps ONE dot vocabulary.
+                        // StatusDot scaled to the chip; one dot vocabulary.
                         StatusDot(color: dot).scaleEffect(0.7).offset(x: 1, y: 1)
                     }
                 }
@@ -156,10 +149,7 @@ extension DebuggerPaneView {
         .opacity(filter == .all ? 0.45 : 1)
     }
 
-    /// The selected tab's NAME, on its own line rather than inside the chip:
-    /// an `.adaptive(minimum: 28)` grid hands every item the same column
-    /// width, so a variable-width selected chip would overrun its neighbours.
-    /// The unselected chips carry their names in `.help()` instead.
+    /// Selected tab name on its own line (adaptive grid would overrun). Unselected names in `.help()`.
     var selectionLabel: String {
         switch filter {
         case .all:
@@ -178,10 +168,7 @@ extension DebuggerPaneView {
         filterToken = next.token
     }
 
-    /// Watched-and-seeing vs blind, read off the same PerceptionCards the
-    /// captions use, with the SAME rule as the inspector header's dot — the
-    /// bar and the drill-in must never tell different stories about one app.
-    /// Unwatched apps get no dot: Mary has no claim to make about them.
+    /// Seeing vs blind from the same PerceptionCards as the inspector; unwatched: no dot.
     func dotColor(for group: AppTileGroup) -> Color? {
         guard let card = card(for: group.bundleID) else { return nil }
         return card.blindness == nil ? .maryGreen : .maryError
@@ -314,14 +301,7 @@ extension DebuggerPaneView {
                 .frame(maxWidth: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
         } else {
-            // Icon card — degraded mode, or a window whose capture hasn't
-            // landed (minimized, close race), or one that photographed as
-            // NOTHING. That last case used to render exactly like the others
-            // (and, when the blank image was stored, as a featureless white
-            // rectangle): the ghost the user reported was a successful
-            // capture of a window with no backing store, and the pane said
-            // the same thing it says about a window it simply hasn't reached
-            // yet. It says which now.
+            // Icon card: degraded, capture not landed, or photographed as nothing (named, not a white ghost).
             HStack(spacing: .layer2) {
                 if let icon = vm.icon(forPID: tile.pid) {
                     Image(nsImage: icon)
@@ -362,18 +342,7 @@ extension DebuggerPaneView {
         }
     }
 
-    /// The truthful caption, re-derived from the PerceptionCard (first 2–3
-    /// fields — the inspector shows all of them): what the watcher parsed, why
-    /// it's blind, or "no eyes here" — never inferred from pixels.
-    /// accessibilityLimited is PARTIAL, so its fields render.
-    ///
-    /// PER WINDOW, NOT PER WORLD. `card.fields(forWindow:)` answers with THIS
-    /// window's fields when the world published any, and with the world's
-    /// otherwise — so Xcode, Pages and Scrivener render byte for byte as
-    /// before, and thirteen TextEdit notes stop all being captioned with the
-    /// front one's name. `tile.id` is a `CGWindowID`, which is the same
-    /// integer TextEdit publishes as `id of window`; see
-    /// `PerceptionCard.windowFields`.
+    /// Caption from PerceptionCard fields (per window, not per world). Never inferred from pixels.
     @ViewBuilder
     func captionStrip(_ card: PerceptionCard?, windowID: CGWindowID? = nil) -> some View {
         if let card {

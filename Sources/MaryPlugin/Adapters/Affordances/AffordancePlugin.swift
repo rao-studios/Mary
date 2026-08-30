@@ -2,22 +2,11 @@
 //  AffordancePlugin.swift
 //  MaryAdapter
 //
-//  ONE SKILL FOR EVERY FAMILY: act on what the screen is offering.
-//
-//  APPENDED, NOT CATALOGUED — `LookingPlugin`'s shape, for the same reason.
-//  What is on screen is not a registered application's property, so this
-//  declares no bundle identifier, no alias that could claim one, no
-//  `AmbientWorld` case, and no Settings toggle. It is composed in beside
-//  `looking` and the document-corpus adapter at the composition root and
-//  reserved there, which is what keeps it reachable on a turn led by ANY
-//  world — native, dynamic, or none.
-//
-//  WHY IT IS NOT A DECLARED BROWSING COMMAND. `browsing.mary` would be the
-//  obvious home, and it cannot be one: the macUI step grammar locates an
-//  element only through `PluginAccessibilityAnchorLocatorSchema`, which
-//  requires an exact identifier or title under a pinned window. A page's skip
-//  button has neither, and never will. The closed grammar is right; this act
-//  belongs to Mary.
+//  WHAT: One skill for every family — act on what the screen is offering.
+//  IN:   composition root (beside looking / project-corpus)
+//  OUT:  AffordanceRecipes.actOnScreen
+//  PIN:  Appended, not catalogued — LookingPlugin's shape. Not a browsing
+//        command: macUI locators need an exact id/title a skip button lacks.
 //
 
 import Foundation
@@ -31,9 +20,8 @@ public struct AffordancePlugin: MaryAdapter {
 
     public var promptFragment: String? { nil }
     public var abilities: Set<AbilityID> { [] }
-    /// NO ALIASES. An alias is how a phrase names an APPLICATION, and this
-    /// names none; adding "screen" here would put it in competition with
-    /// `looking`, which genuinely answers questions about the screen.
+    /// Empty: an alias names an application, and this names none.
+    /// PIN: "screen" would compete with looking.
     public var applicationAliases: Set<String> { [] }
     public var applicationIdentifiers: Set<String> { [] }
     public var targetedRead: (binding: String, parameter: String)? { nil }

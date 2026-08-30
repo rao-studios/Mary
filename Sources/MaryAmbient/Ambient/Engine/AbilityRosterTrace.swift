@@ -1,15 +1,12 @@
 //
 //  AbilityRosterTrace.swift
+//  MaryAmbient
 //
-//  What the roster stage DECIDED, as a value — recorded by AmbientTraceLog
-//  alongside every other per-turn judgement.
+//  WHAT: What the roster stage decided, as a value.
+//  IN:   MaryBrain arbitrator (frozen registry)
+//  OUT:  AmbientTraceLog
+//  PIN:  Trace is evidence about a turn; choosing a roster stays in MaryBrain.
 //
-//  The arbitrator that produces these lives in MaryBrain, because
-//  choosing a roster needs the frozen registry. The record of the choice
-//  lives here, because a trace is evidence about a turn and that is what
-//  this layer is for.
-//
-
 import Foundation
 
 public struct AbilityRosterSkillKey: Codable, Hashable, Sendable {
@@ -24,10 +21,8 @@ public struct AbilityRosterSkillKey: Codable, Hashable, Sendable {
     }
 }
 
-/// The bounded facts that participated in roster arbitration. Scores are
-/// derived solely from `AbilityRoutingContext` and closed schema fields. Human
-/// descriptions, package prompt text, invocation arguments, and adapter output
-/// never participate.
+/// The bounded facts that participated in roster arbitration. Scores are derived solely
+/// from `AbilityRoutingContext` and closed schema fields.
 public struct AbilityRoutingEvidenceScore: Codable, Hashable, Sendable {
     public var total: Int
     public var directInteraction: Int

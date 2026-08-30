@@ -2,58 +2,9 @@
 //  CodeSurfaceObserver.swift
 //  MaryPlugin
 //
-//  STANDING GROUNDING FOR A CODE EDITOR'S CARET — what Mary knows about where
-//  the user is working BEFORE she says anything, with no tool call.
-//
-//  WHAT WAS MISSING. Three lanes already watch an editor and none of them
-//  answered this. `CorpusObserver` polls the front project every five seconds
-//  and contributes one line of IDENTITY — "Working in Mary — Sources/…/x.swift"
-//  — and its own header explains why it can go no further: it reads the
-//  project-navigator level, where there is no `AXTextArea` and therefore no
-//  buffer. The tier-0 `AmbientSurfaceObserver` publishes a focused ELEMENT
-//  (id, role, label, frame) and no text. The selection lane publishes a real
-//  highlight and, since `[Corpus W/X/Z]`, mints `interaction.code-selection`
-//  from it — but `SelectionHandoffPublisher.captureOutcome` clears its fact on
-//  a `.caret` state, so a bare cursor with nothing selected published NOTHING
-//  AT ALL. The model's only route to "what am I looking at" was to decide, on
-//  its own, to call `read_buffer` first.
-//
-//  SO THIS IS THE FOURTH THING, AND IT IS THE EYES: the declared excerpt
-//  budget's worth of text around the insertion point, the declarations still
-//  open above it, and a Bonnie-shaped live section that rides `leadContext`
-//  so the speaking lane already holds the window. Corpus keeps the identity
-//  line as `ambientLine` and no longer occupies `full`.
-//
-//  IT PUBLISHES ONLY WHEN NOTHING IS SELECTED, and that is not an
-//  optimization. A highlight is a stronger statement of intent than a caret
-//  and it already has an owner — the selection handoff, its Interaction, and
-//  the `.selection` fact the store accepts only through `recordSelection`.
-//  Publishing a cursor fact beside a live highlight would put two claims about
-//  "where the user is" in one prompt under two different authorities, which is
-//  the hazard the store's whole one-authority ordering exists to close. So
-//  when a selection appears this lane RETRACTS and stands down; when it is
-//  dropped, the next poll mints the caret again.
-//
-//  MARY'S WINDOW IS NOT A BLINDNESS. The poll samples the frontmost declared
-//  editor when one is in front, and the standing / tracker-led coding
-//  workspace when the frontmost process is workspace-transparent (Mary's
-//  overlay, system chrome). Asking "what do you think about this code" with
-//  Mary's window up is the turn this exists to ground; skipping the walk
-//  used to leave `liveWork` empty and Lane A asking for a paste.
-//
-//  THE 330 MS PROBLEM, AND WHY THIS COULD NOT SHIP BEFORE. Locating the editor
-//  element is a bounded tree walk measured at ~330 ms (`CodeSurfaceAX`'s own
-//  header); reading attributes off it once located costs ~0.1–0.2 ms. Every
-//  existing caller is a Skill handler, where a third of a second is invisible.
-//  A poll cannot pay it. `CodeSurfaceEditorCache` is the piece that makes this
-//  observer possible at all — see that file for what it re-proves on every
-//  hit, which is the one real correctness risk in this feature.
-//
-//  WHAT IT CONTRIBUTES TO THE PROMPT: the live window. `observedPlace` is the
-//  focused registration so the arbiter can grant this observer `leadContext`.
-//  `CorpusObserver` speaks a neighbourhood digest for the same place; the
-//  arbiter merges the two fulls. Identity stays on `ambientLine`.
-//
+//  WHAT: Standing caret grounding for a declared code editor.
+//  OUT:  leadContext liveWork  IN: CodeSurfaceEditorCache
+//  PIN:  Retracts when a selection is live (selection handoff owns that).
 
 import AppKit
 import ApplicationServices
@@ -68,20 +19,13 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
     public let id = "code_cursor"
 
-    /// `.workspace` IS THE PER-TURN REFRESH. `installBrainConfiguration`'s
-    /// turn preparer refreshes exactly the observers whose senses are
-    /// non-empty, and a caret read taken on the last poll rather than at the
-    /// turn is a caret that may have moved — the same argument that file makes
-    /// for refreshing a declared perception there. The sense is honest on its
-    /// own terms too: what this reads is where the user is working, which is
-    /// what a workspace sense is.
+    /// `.workspace` IS THE PER-TURN REFRESH. `installBrainConfiguration`'s turn preparer
+    /// refreshes exactly the observers whose senses are non-empty, and a caret read taken
+    /// on the last poll rather than at the turn is a caret that may have moved.
     public var ambientSenses: Set<AmbientSense> { [.workspace] }
 
-    /// Slow on purpose, and the same cadence `CorpusObserver` settled on for
-    /// the same reason: settling somewhere in a file is a human-scale event.
-    /// `AmbientFact.cursorFreshWindow` is keyed to this number, so the two
-    /// cannot drift into a fact that claims freshness the poll never
-    /// refreshes.
+    /// Slow on purpose, and the same cadence `CorpusObserver` settled on for the same
+    /// reason: settling somewhere in a file is a human-scale event.
     public static let pollSeconds: TimeInterval = AmbientFact.cursorRefreshFloor
 
     private let store: AmbientContextStore
@@ -123,24 +67,20 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         lineBox.withLock { $0 }
     }
 
-    /// The Bonnie-shaped live window — file, scope, excerpt, deixis.
+    /// Live window — file, scope, excerpt, deixis.
     public func promptContribution() -> String? {
         liveBox.withLock { $0 }
     }
 
-    /// A WINDOW ONTO THE BUFFER, never the whole file. The speaking lane
-    /// holds the caret excerpt; `read_buffer` remains the Skill for a deep
-    /// read. Stated here so `MaryRuntime+Focus` cannot promote this lead
-    /// into a `.document` world whose only text is a path.
+    /// A WINDOW ONTO THE BUFFER, never the whole file. The speaking lane holds the caret
+    /// excerpt; `read_buffer` remains the Skill for a deep read.
     public var holdsWholeDocument: Bool { false }
 
     public func refreshAmbientContext() async {
         pollOnce()
-        // WAIT FOR AN IN-FLIGHT WALK. The poll loop and the turn preparer
-        // share `inFlight`; a turn that arrived mid-walk used to return
-        // immediately with an empty `liveBox`, and Lane A spoke the
-        // blindness clause before the walk could publish. The outer
-        // one-second refresh budget still caps this.
+        // WAIT FOR AN IN-FLIGHT WALK. The poll loop and the turn preparer share `inFlight`;
+        // a turn that arrived mid-walk used to return immediately with an empty `liveBox`,
+        // and Lane A spoke the blindness clause before the walk could publish.
         while inFlight.withLock({ $0 }) {
             try? await Task.sleep(nanoseconds: 20_000_000)
             if Task.isCancelled { return }
@@ -164,10 +104,9 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     public func deactivate() async {
         poller.release()
         retract()
-        // A CACHE MUST NOT OUTLIVE THE POLL THAT MAINTAINS IT. Nothing else
-        // re-proves this entry, so leaving it primed across a deactivation
-        // would hand the next activation an element whose window may have
-        // closed in between.
+        // A CACHE MUST NOT OUTLIVE THE POLL THAT MAINTAINS IT. Nothing else re-proves this
+        // entry, so leaving it primed across a deactivation would hand the next activation
+        // an element whose window may have closed in between.
         CodeSurfaceEditorCache.invalidate()
     }
 
@@ -192,13 +131,6 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 applicationID: hit.applicationID)
         else {
             // NOT AN EDITOR TO SAMPLE — and deliberately NOT a retraction.
-            // `AmbientSurfaceObserver` states the rule this follows: "surfaces
-            // are NOT retracted on switch … drop-at-expiry is its honesty."
-            // Retracting here would be actively wrong, because the commonest
-            // reason Xcode stops being frontmost is the user clicking into
-            // Mary's own window to ask her something — the exact turn this
-            // whole feature exists to ground. `cursorRetention` is what bounds
-            // the claim instead, and the fact says its own age either way.
             return
         }
 
@@ -217,13 +149,9 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 editor: editor, window: window, registration: registration,
                 place: place, bundleID: bundleID, at: now)
         else {
-            // A FRONTMOST EDITOR WITH NO CARET TO REPORT — no source file
-            // open, an unreadable buffer, or a live highlight that owns this
-            // ground instead. Standing knowledge about a cursor in a file
-            // that is no longer open is the confidently-wrong-screen failure,
-            // so it goes. A BACKGROUND editor that will not read must not
-            // retract: the user is speaking to Mary, and yesterday's caret
-            // is still the honest claim until `cursorRetention` expires it.
+            // A FRONTMOST EDITOR WITH NO CARET TO REPORT — no source file open, an
+            // unreadable buffer, or a live highlight that owns this ground instead. A
+            // BACKGROUND editor that will not read must not retract: the user is speaking
             if hit.isFrontmost { retract() }
             return
         }
@@ -302,10 +230,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             content: content,
             subject: Self.subject(of: window),
             applicationID: bundleID,
-            // MEASURED BOUNDS, NEVER INVENTED — this is the excerpt's real
-            // range in the editor's own character coordinates and `total` is
-            // the editor's own count, so `boundsPhrase` can say "characters
-            // 5100–5600 of 18234" and be exactly right.
+            // Measured bounds in the editor's own coordinates. `total` is the editor's count.
             bounds: bounds,
             documentTotal: total,
             anchor: .caret,
@@ -314,22 +239,16 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             capturedAt: now)
     }
 
-    /// The declaration patterns the application's package declared, from the
-    /// CORPUS registry — `CodeSurfaceAdapter.listDeclarations`' own note
-    /// applies verbatim: a package's `corpus` and `codeSurface` blocks sit
-    /// side by side under one `applicationID` but live in two registries, and
-    /// the patterns are the corpus half's. Empty is a valid answer (a code
-    /// surface with no declared outline patterns) and yields a scope line that
-    /// says only the caret's line.
+    /// The declaration patterns the application's package declared, from the CORPUS
+    /// registry — `CodeSurfaceAdapter.listDeclarations`' own note applies verbatim: a
+    /// package's.
     private func declarationPatterns(for registration: CodeSurfaceRegistration) -> [String] {
         corpus.registration(applicationID: registration.applicationID)?
             .schema.relations.declarations ?? []
     }
 
-    /// The file this window is showing, by name. `AXDocument` is a `file://`
-    /// URL string — measured, and the reason `CodeSurfaceWriter.fileURL`
-    /// exists — and against Xcode specifically it is the ACTIVE FILE rather
-    /// than the project root, which is the identity a caret read wants.
+    /// The file this window is showing, by name. `AXDocument` is a `file://` URL string —
+    /// measured, and the reason `CodeSurfaceWriter.fileURL` exists — and against Xcode.
     static func subject(of window: AXUIElement) -> String? {
         if let raw = AX.string(window, kAXDocumentAttribute), !raw.isEmpty {
             let path = URL(string: raw)?.path ?? raw

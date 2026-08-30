@@ -2,9 +2,9 @@
 //  UnitIndexModels.swift
 //  MaryAmbient
 //
-//  The model, protocol, and hashing types AmbientUnitIndexingCoordinator
-//  reads and writes. Split out of UnitIndex.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Model, protocol, and hashing types AmbientUnitIndexingCoordinator reads and writes.
+//  IN:   UnitIndex.swift (split)
+//  OUT:  Totem (closed predicate vocabulary)
 //
 
 import CryptoKit
@@ -12,12 +12,9 @@ import Foundation
 import MaryFoundation
 
 
-/// One edge between two named things in a unit's neighbourhood.
-///
-/// The predicate vocabulary is closed on purpose. These strings reach Totem as
-/// graph relationships and become the retrieval surface, so a producer that
-/// invented its own spelling would create a second, silently unjoinable half
-/// of the same graph.
+/// One edge between two named things in a unit's neighbourhood. The predicate vocabulary is
+/// closed on purpose. These strings reach Totem as graph relationships and become the
+/// retrieval surface.
 public enum UnitRelationPredicate: String, Sendable, Equatable, Codable, CaseIterable {
     /// A file declares a type.
     case declares
@@ -48,13 +45,9 @@ public struct UnitRelation: Sendable, Equatable, Codable {
     }
 }
 
-/// What a model added to a unit: one sentence of what it is for, and the
-/// concept labels that make it reachable from another domain.
-///
-/// Both are OWNER-OBSERVED — written from this user's own code, on this
-/// machine. They may reach a local prompt. They are never exported as
-/// instruction; on the portable side they are inspector metadata, which is
-/// what keeps an imported profile from becoming prompt authority.
+/// What a model added to a unit: one sentence of what it is for, and the concept labels
+/// that make it reachable from another domain. Both are OWNER-OBSERVED — written from this
+/// user's own code, on this machine. They may reach a local prompt.
 public struct UnitAnnotation: Sendable, Equatable, Codable {
     public var precis: String
     public var labels: [String]
@@ -206,36 +199,25 @@ public struct IndexedUnit: Sendable, Equatable {
     }
 }
 
-/// The compact per-project catalogue that survives a relaunch, so a new
-/// process resumes instead of re-indexing everything it already knows.
-/// Modelled on the application-schema manifest, with the one thing that file
-/// lacks: a version.
+/// The compact per-project catalogue that survives a relaunch, so a new process resumes
+/// instead of re-indexing everything it already knows. Modelled on the application-schema
+/// manifest, with the one thing that file lacks: a version.
 public struct UnitIndexManifest: Sendable, Equatable, Codable {
 
-    /// CARRIED FROM DAY ONE, DELIBERATELY. The observation manifest this
-    /// descends from had no version and a loader that swallowed decode
-    /// failures — so adding one later would not have been an error, it would
-    /// have been silent total amnesia. Any
-    /// future field lands beside a version that can refuse rather than forget.
-    ///
-    /// ONE FORMAT. This briefly counted to 2 while fields were being added
-    /// during development; nothing has shipped, and a manifest is re-derivable
-    /// by re-crawling, so there is no older shape worth understanding.
+    /// CARRIED FROM DAY ONE, DELIBERATELY. The observation manifest this descends from had no
+    /// version and a loader that swallowed decode failures.
     public static let currentFormatVersion = 1
 
     public struct Entry: Sendable, Equatable, Codable {
         public var contentHash: String
         public var labels: [String]
         public var indexedAt: Date
-        /// Labels corrected by hand. When present they REPLACE whatever the
-        /// annotator proposes, for this unit, from now on — a correction you
-        /// have to make twice is not a correction. The précis still refreshes,
-        /// so the card does not freeze.
+        /// Labels corrected by hand. When present they REPLACE whatever the annotator proposes, for
+        /// this unit, from now on — a correction you have to make twice is not a correction.
         public var pinnedLabels: [String]?
-        /// Why this unit's labels look the way they do. Previously
-        /// unrecoverable: the row is written BEFORE annotating and labels are
-        /// backfilled only when non-empty, so "not yet", "no annotator" and
-        /// "the annotator refused" were one indistinguishable empty list.
+        /// Why this unit's labels look the way they do. Previously unrecoverable: the row is
+        /// written BEFORE annotating and labels are backfilled only when non-empty, so "not yet",
+        /// "no annotator" and "the annotator refused" were one indistinguishable empty list.
         public var annotation: UnitAnnotationOutcome
 
         public init(
@@ -285,10 +267,9 @@ public struct UnitIndexManifest: Sendable, Equatable, Codable {
         formatVersion == Self.currentFormatVersion
     }
 
-    /// ISO-8601 and sorted keys, so the same manifest encodes to the same
-    /// bytes twice. The application-schema manifest uses `.deferredToDate`
-    /// (a float) while its sibling metadata uses ISO-8601 for the very same
-    /// timestamp; one representation is enough.
+    /// ISO-8601 and sorted keys, so the same manifest encodes to the same bytes twice. The
+    /// application-schema manifest uses `.deferredToDate` (a float) while its sibling metadata
+    /// uses ISO-8601 for the very same timestamp; one representation is enough.
     public static func encoder() -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
@@ -303,16 +284,9 @@ public struct UnitIndexManifest: Sendable, Equatable, Codable {
     }
 }
 
-/// One canonicalizer and one hash for the whole indexing surface.
-///
-/// TWO ALREADY EXIST IN THIS CODEBASE AND THEY DISAGREE:
-/// `DepositSubject.canonical` nils on empty and `TotemMemoryTopology.canonical`
-/// does not. A third in the build this ports from stripped punctuation, so
-/// `my-app` and `my app` collided there and nowhere else — the reason this is
-/// stated as a rule rather than left to whoever writes the next one. A key
-/// that is minted on one machine and resolved on another cannot be built on a
-/// coin flip, so this is the one spelling for anything unit- or
-/// tenet-addressed.
+/// One canonicalizer and one hash for the whole indexing surface. TWO ALREADY EXIST IN THIS
+/// CODEBASE AND THEY DISAGREE: `DepositSubject.canonical` nils on empty and
+/// `TotemMemoryTopology.canonical` does not.
 public enum UnitIndexHashing {
 
     /// Collapse whitespace, lowercase, keep everything else. Punctuation
@@ -338,9 +312,6 @@ public enum UnitIndexHashing {
 public protocol AmbientUnitIndexSink: Sendable {
     func ingest(_ unit: IndexedUnit) async
     func reset() async
-    /// The revision this file was last indexed at, or nil if it has never been
-    /// seen. THE DIFFERENCE BETWEEN "NEW TO ME" AND "CHANGED" — a file being
-    /// read for the first time and a file the user just rewrote are both
-    /// "not what I have", and only the second is evidence about how they write.
+    /// The revision this file was last indexed at, or nil if it has never been seen.
     func knownContentHash(relativePath: String, projectID: String) async -> String?
 }

@@ -2,8 +2,10 @@
 //  CodingAgentWorkspace.swift
 //  MaryPlugin
 //
-//  File tools jailed to one authorized project root. The conversation model
-//  never sees these; only the coding-agent engine does.
+//  WHAT: File tools jailed to one authorized project root.
+//  IN:   CodingAgentBackend / ProjectRootResolver
+//  OUT:  CodingAgentAuthorship (for CorpusObserver style gate)
+//  PIN:  Conversation model never sees these; only the coding-agent engine does.
 //
 
 import Foundation
@@ -189,7 +191,7 @@ public enum CodingAgentWorkspace {
             }
             return original.replacingOccurrences(of: find, with: replace)
         }
-        // Minimal *** Update File hunk: lines starting with '-' then '+' after context.
+        // Minimal *** Update File hunk: '-' then '+' after context.
         var result = original
         let lines = patch.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         var removals: [String] = []
@@ -249,8 +251,8 @@ public enum CodingAgentWorkspace {
     }
 }
 
-/// Paths the on-device coding agent wrote this session. Corpus style must
-/// not treat those mtimes as the user's hand.
+/// Paths the on-device coding agent wrote this session.
+/// OUT: CorpusObserver — do not treat those mtimes as the user's hand.
 public enum CodingAgentAuthorship {
     private static let box = OSAllocatedUnfairLock<Set<String>>(initialState: [])
 

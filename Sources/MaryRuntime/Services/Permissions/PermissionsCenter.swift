@@ -1,17 +1,9 @@
 //
 //  PermissionsCenter.swift
-//  Mary
+//  MaryRuntime
 //
-//  Every permission Mary needs, in one place — so the asking happens once,
-//  deliberately, in Settings, instead of as surprises mid-conversation.
-//
-//  Three kinds of permission on macOS:
-//  - requestable: an API shows the system prompt (mic, speech, calendar,
-//    reminders, contacts, photos, folder access, per-app Automation).
-//  - manual: no prompt exists; the user flips a switch in System Settings
-//    (Full Disk Access, Screen Recording, Accessibility). We deep-link the
-//    exact pane and probe status where the system lets us.
-//  - none: speaker output needs no permission at all.
+//  WHAT: Every permission Mary needs, asked once from Settings.
+//  OUT:  requestable APIs / System Settings deep-links / none (speaker)
 //
 
 import AppKit
@@ -95,20 +87,8 @@ package struct PermissionItem: Identifiable {
 
 package enum PermissionsCenter {
 
-    /// The Automation targets Mary's plugins script.
-    ///
-    /// CHROME IS CONDITIONAL, and the condition is this row's honesty. The
-    /// aggregate status reads `.unknown` while ANY listed target is
-    /// ungranted, so naming a browser the user does not own would leave a
-    /// permanently unresolvable row nobody can clear. Installed ⇒ listed, so
-    /// the row can REPAIR a denial; absent ⇒ not a target at all.
-    ///
-    /// TAUGHT APPLICATIONS JOIN BY THE SAME RULE. A `.mary` package that
-    /// earned eyes is scripted exactly as a compiled plugin is, so its bundle
-    /// belongs in this list — otherwise importing a manuscript package would
-    /// leave the user staring at an Automation row that says "granted" while
-    /// every ceremony in that application silently failed the consent check.
-    /// Gated on `isInstalled`: a target nobody owns is a row nobody can clear.
+    /// Automation targets Mary's plugins script. Chrome and taught apps listed
+    /// only if installed — an absent target is a row nobody can clear.
     static var automationTargets: [String] {
         var targets = baseAutomationTargets
         for registration in AmbientApplicationIndexProvider.current.all
@@ -125,12 +105,7 @@ package enum PermissionsCenter {
     }
 
 
-    /// THE AUTOMATION TARGETS COME FROM THE ROSTER, not a list.
-    ///
-    /// A dozen bundle ids used to sit here, so Mary asked for Automation
-    /// consent to exactly the applications somebody had thought of — and an
-    /// application a user taught her got no prompt at all, which reads as
-    /// Mary silently refusing to work with it.
+    /// Automation targets come from the roster, not a hardcoded list.
     private static var baseAutomationTargets: [String] {
         AmbientApplicationIndexProvider.current.all
             .flatMap { $0.bundleIdentifiers.sorted() }
@@ -254,10 +229,7 @@ package enum PermissionsCenter {
         }
     }
 
-    /// Ask for one target's Automation consent, but ONLY if that app is
-    /// already running and consent is undetermined — never launches anything.
-    /// Lets the Xcode peer-coder surface its dialog at activation (boot or
-    /// settings change) instead of interrupting mid-conversation.
+    /// Ask Automation if the app is running and consent is undetermined. Never launches.
     static func promptAutomationIfRunning(bundleID: String) {
         let isRunning = NSWorkspace.shared.runningApplications
             .contains { $0.bundleIdentifier == bundleID }
@@ -268,22 +240,8 @@ package enum PermissionsCenter {
             &address, typeWildCard, typeWildCard, true)
     }
 
-    /// WHETHER MARY IS RUNNING AS AN APPLICATION, or as a bare development
-    /// binary.
-    ///
-    /// THIS DECIDES WHO OWNS THE ACCESSIBILITY GRANT, which is the single
-    /// most confusing thing about the permissions screen. TCC attributes a
-    /// request to the RESPONSIBLE PROCESS: a binary launched from a terminal
-    /// is the terminal's responsibility, so `AXIsProcessTrusted()` answers
-    /// TRUE whenever that terminal has been granted — for a Mary that has
-    /// never been asked about and will never appear in the Accessibility
-    /// list under her own name.
-    ///
-    /// The symptom is exact and was reported as a bug: pressing "Grant
-    /// everything" changes nothing, because the accessibility rung is
-    /// already reading `.granted` and is skipped. Nothing is broken; the
-    /// grant simply belongs to somebody else, and the screen said "granted"
-    /// without saying to whom.
+    /// Running as an app vs a terminal binary. TCC attributes AX to the
+    /// responsible process — terminal-launched Mary reads the terminal's grant.
     package static var runsAsApplication: Bool {
         Bundle.main.bundleURL.pathExtension == "app"
     }
@@ -310,21 +268,8 @@ package enum PermissionsCenter {
         }
     }
 
-    /// A CORPUS APPLICATION'S LIVE-PATH CONSENTS, surfaced at activation so
-    /// the dialogs land at boot, never mid-edit.
-    ///
-    /// The consent needed is NOT the application's own. A corpus application
-    /// typically has no usable scripting dictionary — Scrivener ships an empty
-    /// one — so Mary never sends it Apple Events. Every ceremony (menu
-    /// click, keystroke) drives SYSTEM EVENTS, which needs (a) Automation
-    /// consent for System Events and (b) Accessibility for this process:
-    /// without AX, a menu click returns "OK" while doing nothing.
-    ///
-    /// An earlier version asked for the application's own automation, which
-    /// was consent nothing ever used while the real need failed later.
-    ///
-    /// Only asks while one of them is already running — never launches
-    /// anything, per the lean-prompt doctrine every corpus read follows.
+    /// Corpus live-path consents at activation: System Events Automation + AX.
+    /// Ask only while the app is running — never launches.
     static func promptCorpusLiveConsents(bundleIdentifiers: [String]) {
         let wanted = Set(bundleIdentifiers.map { $0.lowercased() })
         guard !wanted.isEmpty else { return }
@@ -337,12 +282,7 @@ package enum PermissionsCenter {
         promptAccessibilityOnce()
     }
 
-    /// A BROWSER'S AUTOMATION GRANT CAME BACK DENIED mid-poll — the watcher
-    /// classified errAEEventNotPermitted and called here (once per bundle
-    /// per session; the lane still retracts either way). Two honest moves:
-    /// a not-yet-determined grant re-fires the system dialog, and a genuine
-    /// denial deposits ONE ambient fact so the next turn can say where the
-    /// switch lives instead of silently going blind to tabs.
+    /// Browser Automation denied mid-poll. Undetermined → re-prompt; denial → one ambient fact.
     static func noteBrowserAutomationDenied(bundleID: String) {
         if automationStatus(for: bundleID) == .notDetermined {
             promptAutomationIfRunning(bundleID: bundleID)
@@ -375,24 +315,12 @@ package enum PermissionsCenter {
         promptAccessibilityOnce()
     }
 
-    /// The cross-app selection watcher's one consent. Unlike the two above,
-    /// unconditional — there is no single app to check is running, because
-    /// this watcher reads whichever app is frontmost, and some app always
-    /// is. It sends no Apple Events to anything (native AX only, the same
-    /// door the Pages watcher uses), so there is no Automation grant to ask
-    /// for either — just the same shared one-shot Accessibility dialog.
+    /// Cross-app selection watcher: shared one-shot AX dialog. No Automation (native AX).
     static func promptOtherAppsLiveConsent() {
         promptAccessibilityOnce()
     }
 
-    /// The ephemeral look's two consents, asked at FIRST USE, not at
-    /// activation: a Screen Recording dialog at boot, for a feature the
-    /// user may never invoke, is the intrusive shape every other prompt
-    /// here avoids — and "some app is always frontmost" does not imply
-    /// consent to pixel reading. Screen Recording's dialog only points at
-    /// System Settings (macOS cannot grant it in-process), so the failing
-    /// turn still speaks its honest refusal; the user grants, asks again,
-    /// and the look works.
+    /// Look consents at first use, not boot. Screen Recording dialog points at System Settings.
     static func promptLookingConsents() {
         promptAccessibilityOnce()
         if !CGPreflightScreenCaptureAccess() {

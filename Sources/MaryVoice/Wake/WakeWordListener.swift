@@ -2,26 +2,10 @@
 //  WakeWordListener.swift
 //  MaryVoice
 //
-//  THE EAR THAT ONLY KNOWS HER NAME. While no voice session is running, this
-//  listener holds a microphone of its own — MicCapture + EnergyVAD + one
-//  on-device transcriber — and answers exactly one question per utterance:
-//  was that a wake phrase? A match emits `.wake`; everything else is
-//  DISCARDED — no event, no deposit, no content in any log.
-//
-//  DELIBERATELY NOT A VoicePipeline. The pipeline being installed is what the
-//  rest of the app reads as "voice owns the world" (typed turns drop, the
-//  text-mode speaker floor defers, the ambient engine stands down). Standby
-//  must be invisible to all of that, so it shares the pipeline's PARTS, never
-//  its identity — and it never touches the speaker at all.
-//
-//  SINGLE-USE, like the pipeline: each arm builds a fresh listener; `stop()`
-//  finishes the event streams and the instance is done.
-//
-//  CPU IS BOUNDED BY THE FIRST WORDS, NOT BY LENGTH. Live partials run
-//  `WakePlanner.couldStillWake`; the first "no" cancels transcription for the
-//  rest of that utterance. A room conversation costs a breath of on-device
-//  STT per utterance, while "Hey Mary, book me a table for four at…" stays
-//  transcribable in full up to `maxUtteranceSeconds`.
+//  WHAT: Standby ear — MicCapture + EnergyVAD + STT, answers "was that a wake?"
+//  IN:   app standby arm
+//  OUT:  WakeEvent (.wake / .unavailable) — never a VoicePipeline
+//  PIN:  Single-use. CPU bounded by first words (couldStillWake abort).
 //
 
 import AVFoundation
@@ -30,28 +14,12 @@ import Speech
 import os
 
 public struct WakeListenerConfig: Sendable {
-    /// Endpointing thresholds — the session's tuned values, with
-    /// `voiceProcessing` OFF: there is no session TTS to echo-cancel, and
-    /// voice processing is the thing that drags Bluetooth routes into the
-    /// call profile. Self-speech is handled by the `selfSpeech` gate instead.
+    /// Session VAD, VP off (no TTS to cancel; VP would drag Bluetooth onto HFP). Self-speech is gated separately.
     public var vad: VADConfig
     public var tuning: WakePlanner.Tuning
-    /// A wake capture is bounded: past this the utterance is force-closed and
-    /// matched with whatever transcribed. A longer monologue was not a wake
-    /// attempt; a longer wake REQUEST forwards truncated (documented trade).
+    /// Bound a wake capture; force-close past this. Longer requests forward truncated.
     public var maxUtteranceSeconds: TimeInterval
-    /// When the system default input is Bluetooth/Continuity, bind the
-    /// built-in microphone instead of following the default.
-    ///
-    /// OFF BY DEFAULT, and the reason is measured, twice: auto-binding a
-    /// device the user did not explicitly pick is exactly what the 2026-08-15
-    /// live round ruled against — the bound engine and the system default
-    /// ping-pong (start/error-35/stop churn across IO contexts), and with
-    /// standby as the first live user of the bind path it ended in HAL-client
-    /// SIGSEGVs (two crashes, 2026-08-17). Default-follow binds NOTHING and
-    /// is the proven path. The cost: AirPods-as-input sit on the call profile
-    /// while standby is armed — accepted until the bind path is hardened by
-    /// the Settings device picker.
+    /// Prefer built-in over a wireless default. PIN: off by default (auto-bind ping-pong).
     public var preferBuiltInOverWireless: Bool
 
     public init(
@@ -94,8 +62,7 @@ public actor WakeWordListener {
 
     private let config: WakeListenerConfig
     private let transcriber: any VoiceTranscriber
-    /// The app's "is Mary's own voice in the room?" gate — text-mode TTS
-    /// plays while standby listens, and her own reply must never wake her.
+    /// App gate: is Mary's own TTS in the room? Must not wake standby.
     private let selfSpeech: (@Sendable () async -> Bool)?
     /// Test seam: frames arrive here instead of a microphone, and the
     /// permission preflight is skipped.
@@ -110,20 +77,14 @@ public actor WakeWordListener {
     private var preRollDuration: TimeInterval = 0
 
     private var utteranceOpen = false
-    /// Transcriber currently fed for this utterance. Cleared by early abort,
-    /// after which the frames still track VAD so the close is clean — the
-    /// audio just stops going anywhere.
+    /// Transcriber fed this utterance. Cleared on early abort; VAD still closes cleanly.
     private var sttLive = false
     private var utteranceDuration: TimeInterval = 0
     private var consecutiveFailures = 0
-    /// After a begin() failure, no new utterance opens until this passes —
-    /// without it, VAD re-opens on the very next voiced frame and a single
-    /// transient recognizer hiccup burns the whole failure budget in ~300 ms.
+    /// After begin() fails, wait before reopening — else one hiccup burns the failure budget.
     private var openCooldownUntil = Date.distantPast
     private var stopped = false
-    /// Invalidates frame/partial work across actor reentrancy. Cancellation is
-    /// advisory: a transcriber or self-speech probe may resume normally after
-    /// `stop()`, so every suspension boundary also checks this generation.
+    /// Invalidates in-flight frame/partial work. Check at every suspension; `stop()` is advisory.
     private var generation: UInt64 = 0
 
     private var eventContinuations: [UUID: AsyncStream<WakeEvent>.Continuation] = [:]
@@ -176,8 +137,7 @@ public actor WakeWordListener {
         if let injectedFrames {
             frames = injectedFrames
         } else {
-            // STATUS READS ONLY — standby must never be the thing that
-            // prompts. The session's own start is where consent is asked.
+            // Status reads only — consent is the session start, not standby.
             guard SFSpeechRecognizer.authorizationStatus() == .authorized,
                   AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
             else { throw WakeListenerError.notAuthorized }
@@ -201,9 +161,7 @@ public actor WakeWordListener {
         }
     }
 
-    /// Full teardown. When this returns, the standby microphone is DOWN —
-    /// `MicCapture.stop()` completes the engine teardown synchronously — so a
-    /// session mic starting right after never overlaps this one.
+    /// When this returns the standby mic is down — a session mic must not overlap it.
     public func stop() async {
         guard !stopped else { return }
         stopped = true
@@ -221,9 +179,7 @@ public actor WakeWordListener {
         eventContinuations = [:]
     }
 
-    /// The explicit-pick device for standby, or nil for default-follow.
-    /// Built-in is preferred over a wireless default so AirPods keep their
-    /// listening-quality profile while she merely stands by.
+    /// Explicit pick, or built-in when the default is wireless; else default-follow.
     private func standbyDeviceUID() -> String? {
         guard config.preferBuiltInOverWireless,
               let defaultID = AudioInputDeviceList.defaultInputDeviceID(),
@@ -334,9 +290,7 @@ public actor WakeWordListener {
         await transcriber.append(frame.buffer)
     }
 
-    /// The early abort: the first partial that can no longer become a wake
-    /// phrase ends transcription for this utterance. The utterance itself
-    /// stays open so VAD closes it cleanly; the audio just stops mattering.
+    /// First partial that cannot become a wake ends STT; VAD still closes the utterance.
     private func notePartial(_ text: String, generation: UInt64) async {
         guard isCurrent(generation), utteranceOpen, sttLive else { return }
         guard !WakePlanner.couldStillWake(partial: text, tuning: config.tuning) else { return }

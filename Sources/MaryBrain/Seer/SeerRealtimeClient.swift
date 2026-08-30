@@ -2,18 +2,11 @@
 //  SeerRealtimeClient.swift
 //  MaryBrain
 //
-//  Streams a full realtime turn (interleaved text + server-synthesized PCM)
-//  from Seer's WebSocket route. Sibling of SeerChatClient — the classic SSE
-//  client stays wired as the fallback; the brain picks per turn.
+//  WHAT: Realtime turn over WebSocket (interleaved text + PCM).
+//  IN:   SeerRealtimeProviding
+//  OUT:  tokens + audio frames
+//  PIN:  Error before first frame → invisible classic rerun; mid-turn drop keeps text.
 //
-//  Failure contract: any error BEFORE the first inbound frame throws with
-//  only bookkeeping yielded (the `.scoped` trace — never content, per
-//  `SeerChatEvent.forwardsContent`), so the brain reruns the turn on the
-//  classic lane invisibly. A drop mid-turn throws after partial content —
-//  the brain keeps the received text and hands narration back to the local
-//  voice.
-//
-
 import Foundation
 
 public enum SeerRealtimeError: LocalizedError {
@@ -82,11 +75,7 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
         if let retrievalScope { self.retrievalScope = retrievalScope }
     }
 
-    /// Character change from Settings — NARROWER than `configure` on purpose:
-    /// identity, scope, and model are server configuration and must not be
-    /// clobbered by a voice pick. Without this, the realtime route kept the
-    /// old character until the next boot (only `applyServers` wrote the
-    /// voice), while the classic route followed the picker immediately.
+    /// Character change from Settings — NARROWER than `configure` on purpose: identity, scope
     public func setVoiceID(_ voiceID: String) {
         self.voiceID = voiceID
     }
@@ -138,12 +127,7 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
                 personalTotemID: personalTotemID,
                 retrieval: retrievalScope(owner)
             )
-            // Yielded BEFORE the auth guard and connect/send: a turn that
-            // dies signed-out or on the handshake still traces, so the pane
-            // reads "asked, nothing back" (`AmbientTraceLog`'s
-            // unfinished-turns rationale). `SeerChatEvent.forwardsContent`
-            // classifies this as bookkeeping, so the lane's pre-stream
-            // fallback contract holds.
+            // Yielded BEFORE the auth guard and connect/send: a turn that dies signed-out or on the handshake still traces, so the pane reads "asked
             continuation.yield(.scoped(SeerRequestTrace(scope: scope, transport: .realtime)))
             guard let token = initialToken else {
                 throw SeerRealtimeError.notAuthenticated
@@ -204,10 +188,7 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
                     case "turn.end":
                         sawTurnEnd = true
                     case "error":
-                        // Pre-token errors mean the turn never really started —
-                        // throw so the brain reruns on the classic lane. Later
-                        // errors (grounded stage) arrive alongside a completing
-                        // turn; the server still sends what it has.
+                        // Pre-token errors mean the turn never really started — throw so the brain reruns on the classic lane.
                         if !forwardedAny {
                             throw SeerRealtimeError.server(
                                 stage: inbound.stage ?? "unknown",

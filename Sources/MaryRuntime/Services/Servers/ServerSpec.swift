@@ -1,11 +1,10 @@
 //
 //  ServerSpec.swift
-//  Mary
+//  MaryRuntime
 //
-//  Pure description of one local server Mary manages (no Process, no IO) —
-//  what to launch, where, with which arguments, and how to health-check it.
-//  LocalStackManager does the spawning; keeping this value type side-effect
-//  free makes argument building and binary resolution unit-testable.
+//  WHAT: Pure description of one local server Mary manages (no Process, no IO).
+//  OUT:  LocalStackManager spawn / health-check
+//  PIN:  Side-effect free so argument building is unit-testable.
 //
 
 import Foundation
@@ -68,12 +67,8 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         )
     }
 
-    /// Totem: HTTP on `port`, direct gRPC (Mary's Conduit line) on
-    /// `grpcPort`, dialing Seer's mothership. `nodeID` pins the totem identity
-    /// so the same DB (`~/Documents/totem-db/table-<nodeID>`) loads every
-    /// launch; empty means Totem uses/creates its own persisted node-id.
-    /// `graphBackend` is pinned because Totem's `mlx` default silently
-    /// degrades to keyword-only extraction when the build lacks a metallib.
+    /// Totem: HTTP `port`, gRPC `grpcPort`, dials Seer. nodeID pins table-<uuid>.
+    /// graphBackend pinned — mlx without metallib degrades to keyword-only.
     package static func totem(
         checkoutPath: String,
         port: Int,
@@ -159,32 +154,19 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     }
 }
 
-/// The totem node UUID IS the database identity (`table-<uuid>` on disk), so
-/// Mary must never mint a fresh one while a persisted identity exists —
-/// that would silently orphan the whole DB. Resolution order: explicit config
-/// → Totem's own persisted `~/Documents/totem-db/node-id` → fresh mint.
+/// Node UUID is the DB identity. Config → persisted node-id → mint. Never mint over existing.
 package enum TotemNodeIdentity {
     static var persistedPath: String {
         ("~/Documents/totem-db/node-id" as NSString).expandingTildeInPath
     }
 
-    /// THE acceptance rule, spelled once: a node identity is a UUID,
-    /// canonicalized through `UUID.uuidString` (uppercase) so config, the
-    /// node-id file and on-disk DB names compare equal however they were
-    /// cased. Anything else is nil — a value the server would never load
-    /// must fall through its tier, not ride along verbatim.
+    /// Node identity is a UUID, canonicalized via UUID.uuidString. Anything else is nil.
     package static func canonical(_ value: String) -> String? {
         UUID(uuidString: value.trimmingCharacters(in: .whitespacesAndNewlines))?.uuidString
     }
 
-    /// The identity that already exists, or nil — the disk scanner labels DBs
-    /// live/orphaned against this, and letting it fall through to
-    /// `adoptOrMint`'s fresh UUID would invent a node no DB has ever belonged
-    /// to and mark every real one orphaned. Both tiers apply `canonical` —
-    /// the rule the server loads by — so a non-UUID config falls to the file
-    /// and a corrupt file falls to nil, never into the live-node election.
-    /// `nodeIDFilePath` is injectable so the scanner can resolve inside a
-    /// test-fixture root; production callers take the default.
+    /// Existing identity or nil — scanner labels live/orphaned against this.
+    /// Do not fall through to adoptOrMint's fresh UUID.
     package static func persisted(
         configured: String,
         nodeIDFilePath: String = persistedPath

@@ -1,7 +1,12 @@
 //
 //  AbilityRosterArbitrator+Scoring.swift
+//  MaryBrain
 //
-
+//  WHAT: Additive scoring pass for roster arbitration.
+//  IN:   AbilityRosterArbitrator.swift
+//  OUT:  bounded score deltas
+//  PIN:  Additive, bounded, last — never a veto.
+//
 import MaryFoundation
 import Foundation
 
@@ -57,11 +62,7 @@ extension AbilityRosterArbitrator {
             policy: policy,
             requirements: requirements,
             context: context)
-        // ADDITIVE, BOUNDED, AND LAST. A Skill the index has no opinion about
-        // contributes zero and scores exactly what it scored before this seam
-        // existed — which is the property that makes turning embeddings on
-        // safe to reason about. The cap sits under `utterancePhrase`'s 50 so
-        // an authored phrase always outranks a similarity.
+        // ADDITIVE, BOUNDED, AND LAST. A Skill the index has no opinion about contributes zero and scores exactly what it scored before this seam existed
         let semanticEvidence = skillID
             .flatMap { context.semanticSkillAffinity[$0] }
             .map { SemanticSkillRequestIndex.bonus(for: $0) } ?? 0

@@ -2,10 +2,10 @@
 //  MaryBrain+Life.swift
 //  MaryBrain
 //
-//  Gated codec acting (when a discipline LoRA is ready) and the proactive
-//  Life path Runtime drives from an idle pulse.
+//  WHAT: Gated codec acting (discipline LoRA ready) + proactive Life pulse.
+//  IN:   Runtime idle pulse / lifeLoRALookup
+//  OUT:  Life path speech
 //
-
 import Foundation
 import MaryFoundation
 import os

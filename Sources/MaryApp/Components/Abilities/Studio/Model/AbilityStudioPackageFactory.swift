@@ -1,8 +1,10 @@
 //
 //  AbilityStudioPackageFactory.swift
+//  Mary
 //
-//  Split out of AbilityStudioAuthoring.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Build `.mary` packages from native-app or installed-faculty templates.
+//  IN:   AbilityStudioAuthoring.swift (sibling split)
+//  OUT:  AbilityStudioViewModel authoring
 //
 
 import MaryBrain
@@ -202,9 +204,7 @@ enum AbilityStudioPackageFactory {
             children: eligibilityTerms)
         switch (routing.eligibility, adoptedEligibility) {
         case let (.some(sourceEligibility), .some(adoptedEligibility)):
-            // Adoption may narrow the source route with local vocabulary and
-            // target context, but must never replace/broaden the eligibility
-            // that made the installed contract trustworthy in the first place.
+            // Adoption may narrow the source route; never replace/broaden the original eligibility.
             routing.eligibility = .init(
                 kind: .all,
                 children: [sourceEligibility, adoptedEligibility])

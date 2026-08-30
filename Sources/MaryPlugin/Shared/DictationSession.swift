@@ -2,42 +2,8 @@
 //  DictationSession.swift
 //  MaryAdapter
 //
-//  A HELD WRITING DESTINATION — one slot, opened on purpose, closed on
-//  purpose.
-//
-//  THE PROBLEM IT SOLVES. Dictating a scene into a manuscript, every sentence
-//  was a fresh turn: classified for intent, routed to an Ability, arbitrated
-//  into a roster, and only then typed. Forty sentences meant forty chances for
-//  a classifier to read prose as a command, and the reported failure was
-//  exactly that — "writing | type_at_cursor is unavailable: does not match its
-//  Ability-level routing policy", over and over, at the speed the user could
-//  repeat themselves. The gates that produced it are fixed. But a novelist
-//  mid-scene should not be paying for classification they never wanted: the
-//  fluent thing is to say so ONCE and then just talk.
-//
-//  So a session is a lease on the caret. While it is held, an utterance is
-//  prose unless it is one of a very small number of addressed control phrases.
-//  No intent, no roster, no model. A session cannot resolve into a routing
-//  refusal because it never asks a routing question.
-//
-//  THE THIRD OF A FAMILY, and the distinction matters. `StagedWritingSurface`
-//  is a HINT: one slot, non-consuming, thirty seconds, cleared by the write
-//  that lands in it. `TypingSession` is a REMAINDER: what was left unsaid when
-//  a passage was interrupted. This is a LEASE: long-lived, explicitly opened,
-//  and it refuses rather than decaying silently. Folding any two of those into
-//  one type would make a freshness window mean two things.
-//
-//  IT PINS THE EXACT TEXT ELEMENT, not the app and not the window. Scrivener
-//  with a different document open is a different caret, and prose aimed at
-//  chapter three must not land in chapter nine because both are Scrivener.
-//
-//  THE VERBS LIVE HERE TOO, uninstalled by default — the `PausedTypingSession`
-//  idiom. The reasoning core opens, extends and closes a session without ever
-//  naming the typer. The contract declares; the typer under Adapters/
-//  installs; a process with no typer has no caret to hold and every verb
-//  answers so. That last property is why the idiom stays even now that one
-//  target holds both sides and nothing stops `MaryBrain` naming the typer.
-//
+//  WHAT: Live dictation session around a declared text surface.
+//  OUT:  TyperPlugin
 
 import Foundation
 import os
@@ -98,11 +64,8 @@ public final class DictationSession: @unchecked Sendable {
         }
     }
 
-    /// LAZY EXPIRY, checked at the next utterance — no timer and no background
-    /// wake, because a session that expires while nobody is talking has
-    /// nothing to expire into. Long enough to think between paragraphs, short
-    /// enough that a session forgotten before lunch is not still listening
-    /// after it.
+    /// LAZY EXPIRY, checked at the next utterance — no timer and no background wake,
+    /// because a session that expires while nobody is talking has nothing to expire into.
     public static let idleWindow: TimeInterval = 10 * 60
 
     private let box = OSAllocatedUnfairLock<Held?>(initialState: nil)

@@ -1,5 +1,8 @@
-// The ambient layer speaks in schema vocabulary — InteractionID, PerceptionID,
-// SourceScope, TypedRange, ValueEnvelope. Re-export the small, data-only schema
-// module so consumers do not juggle a second import merely to name a piece of
-// evidence, and so files moved into this package keep compiling unchanged.
+//
+//  MaryFoundationExports.swift
+//  MaryAmbient
+//
+//  WHAT: Re-export MaryFoundation schema types for this package's consumers.
+//  OUT:  InteractionID, PerceptionID, SourceScope, TypedRange, ValueEnvelope
+//
 @_exported import MaryFoundation

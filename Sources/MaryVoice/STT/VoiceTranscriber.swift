@@ -2,10 +2,9 @@
 //  VoiceTranscriber.swift
 //  MaryVoice
 //
-//  How the user's voice becomes words. One transcriber instance lives for the
-//  session; each utterance runs begin → append… → finish. (Named
-//  VoiceTranscriber to stay clear of Apple's SpeechTranscriber API and
-//  FleetAudio's file-based AudioTranscriber.)
+//  WHAT: Per-utterance STT seam: begin → append… → finish.
+//  IN:   VoicePipeline / WakeWordListener
+//  OUT:  AppleSpeechTranscriber (and any future backend)
 //
 
 import AVFoundation
@@ -16,11 +15,7 @@ public protocol VoiceTranscriber: AnyObject, Sendable {
     func begin(format: AVAudioFormat) async throws
     /// Feed one captured buffer.
     func append(_ buffer: AVAudioPCMBuffer) async
-    /// Live partial transcripts for this utterance.
-    ///
-    /// MAY BE EMPTY, and a caller must not treat silence here as silence in
-    /// the room: an utterance-final backend has nothing to say until
-    /// `finish()`. Only the transcript that call returns is load-bearing.
+    /// Live partials for this utterance. May be empty until `finish()`.
     func partials() async -> AsyncStream<String>
     /// Close the utterance and return the final transcript.
     func finish() async throws -> String

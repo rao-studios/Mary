@@ -2,9 +2,9 @@
 //  PluginValidator+Expressions.swift
 //  MaryFoundation
 //
-//  Admission for the recipe expression grammar: exactly one literal or input
-//  reference per expression, inputs that actually exist, and coordinates that
-//  stay inside the normalized unit interval.
+//  WHAT: Expression grammar — one literal or input, existing inputs, unit-interval coords.
+//  IN:   PluginValidator+Steps / +Operations.
+//  OUT:  SchemaIssue.
 //
 
 import Foundation

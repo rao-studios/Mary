@@ -2,11 +2,11 @@
 //  EnergyVAD.swift
 //  MaryVoice
 //
-//  How the user's voice is analyzed, stage one: energy endpointing. RMS above
-//  the start threshold opens an utterance; RMS holding under the (lower)
-//  continue threshold for the hangover closes it. Deliberately simple and
-//  fully inspectable — the VoiceActivityDetector seam exists so a model-based
-//  VAD can replace it without touching the pipeline.
+//  WHAT: Energy endpointing — RMS start / continue / hangover.
+//  IN:   MicFrame.rms → VoicePipeline
+//  OUT:  VADVerdict (speechStart / speechEnd / discardedNoise)
+//
+//  PIN: VoiceActivityDetector seam so a model VAD can replace this.
 //
 
 import Foundation
@@ -23,7 +23,7 @@ public enum VADVerdict: Equatable {
     case speechStart
     /// Speech ended after `duration` of voiced audio (hangover excluded).
     case speechEnd(duration: TimeInterval)
-    /// The burst was shorter than minUtteranceMs — treat as noise.
+    /// Burst shorter than minUtteranceMs — treat as noise.
     case discardedNoise
 }
 
@@ -55,8 +55,7 @@ public final class EnergyVAD: VoiceActivityDetector {
             return .none
         }
 
-        // Speech active: hysteresis — the (lower) continue threshold keeps
-        // an utterance alive through soft syllables.
+        // Hysteresis — lower continue threshold keeps soft syllables alive.
         if rms >= continueThreshold {
             voicedDuration += frameDuration
             silenceDuration = 0
@@ -68,7 +67,6 @@ public final class EnergyVAD: VoiceActivityDetector {
             return .none
         }
 
-        // Utterance closed.
         let duration = voicedDuration
         isSpeechActive = false
         voicedDuration = 0

@@ -2,18 +2,17 @@
 //  AbilityPackageCodec.swift
 //  MaryFoundation
 //
-//  READING AND WRITING A `.mary` FILE. Every byte that is decoded is also
-//  covered by the integrity digest, so unknown members are a decode failure
-//  rather than something quietly dropped (see StrictDecoding.swift).
+//  WHAT: Read/write `.mary`. Digest covers every decoded byte.
+//  IN:   files / Data.
+//  OUT:  MaryAbilityPackage, AbilityPackageValidator.
+//  PIN:  Unknown members fail decode (StrictDecoding). Save drops a stale signature.
 //
 
 import CryptoKit
 import Foundation
 
 public enum AbilityPackageCodec {
-    /// Ability packages are declarative routing graphs, not asset archives.
-    /// Four MiB leaves ample room for large graphs while bounding imported
-    /// JSON decoding and integrity work.
+    /// Import cap. Four MiB bounds JSON decode + integrity work.
     public static let maximumPackageBytes = 4 * 1_024 * 1_024
 
     public enum CodecError: LocalizedError, Equatable {
@@ -52,16 +51,13 @@ public enum AbilityPackageCodec {
         try decode(contents(of: url), verifyIntegrity: verifyIntegrity)
     }
 
-    /// Reads the exact portable package bytes without allowing a file on disk
-    /// to allocate beyond the codec's import boundary.
+    /// Exact portable bytes; refuse oversize files on disk.
     public static func contents(of url: URL) throws -> Data {
         guard url.pathExtension.lowercased() == "mary" else { throw CodecError.invalidExtension }
         return try boundedData(from: url)
     }
 
-    /// Encodes canonical, sorted JSON and refreshes the digest. Saving an
-    /// edited package deliberately drops a stale signature; callers may sign
-    /// the resulting package as a separate, explicit operation.
+    /// Canonical sorted JSON + refreshed digest. Drops a stale signature.
     public static func encoded(
         _ package: MaryAbilityPackage,
         prettyPrinted: Bool = true

@@ -2,9 +2,7 @@
 //  Paper+Type.swift
 //  Mary
 //
-//  Serif type roles, ported from Gita (originally Sis's Views+Text.swift).
-//  The passage style is `Text.note` + .italic() + lineSpacing(7) +
-//  kerning(0.3) — the Void response look.
+//  WHAT: Serif type roles. Passage = Text.note + italic + lineSpacing(7) + kerning(0.3).
 //
 
 import SwiftUI

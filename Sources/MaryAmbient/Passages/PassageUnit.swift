@@ -2,23 +2,11 @@
 //  PassageUnit.swift
 //  MaryBrain
 //
-//  THE STRUCTURE OF A DOCUMENT, said once for every world — a flat list of
-//  named spans, produced by each world's own structure reader (`XcodeStructure`
-//  over `SwiftSymbolLocator`, `PagesStructure` over `body text`,
-//  `ProseStructure` under corpus rules, over a manuscript item's plain text).
+//  WHAT: Structure of a document — a flat list of named spans, for every world.
+//  IN:   XcodeStructure / PagesStructure / ProseStructure
+//  OUT:  PassageWidening (target, body, units)
+//  PIN:  Flat, not a tree. level carries nesting; containment is a range question.
 //
-//  Pure data, and it stays pure data. `PassageWidening` is the only thing that
-//  reasons about these, and it is a testable function of (target, body, units)
-//  — so a new world becomes "produce this array", never "add a case to the
-//  matcher". A per-world matcher is exactly how the Pages read path and the
-//  Scrivener read path came to disagree about what "the paragraph" means.
-//
-//  DELIBERATELY FLAT, not a tree. `level` carries the nesting a heading
-//  hierarchy has, but the array is ordered by `range.lowerBound` and nothing
-//  reads a parent pointer: containment is a range question, and a range answer
-//  cannot go stale the way a rebuilt tree can.
-//
-
 import Foundation
 
 /// WHAT KIND of thing a located span is. Decides an edit's separators (a
@@ -36,10 +24,9 @@ public enum PassageUnitKind: String, Sendable, Equatable, CaseIterable {
     /// A run of words INSIDE a sentence — the only inline kind, and the only
     /// one an edit must not wrap in blank lines.
     case phrase
-    /// A bounded slice with no structural meaning of its own: what the user is
-    /// looking at, a chunk of a document with no headings, the fallback when a
-    /// world can locate but not parse. Named for what it is, so nothing
-    /// mistakes it for a paragraph the document actually has.
+    /// A bounded slice with no structural meaning of its own: what the user is looking at, a
+    /// chunk of a document with no headings, the fallback when a world can locate but not
+    /// parse.
     case window
 
     /// Does this kind stand ALONE between blank lines? Everything but
@@ -82,11 +69,7 @@ public struct PassageUnit: Sendable, Equatable {
 
     public var length: Int { range.count }
 
-    /// Does this unit wholly contain `other`? An empty span at a unit's own
-    /// upper bound counts as OUTSIDE — an insertion point at the end of a
-    /// paragraph belongs to the seam, not to the paragraph, and treating it as
-    /// inside is how "insert after this" lands inside the thing it was meant
-    /// to follow.
+    /// Does this unit wholly contain `other`?
     public func contains(_ other: Range<Int>) -> Bool {
         other.lowerBound >= range.lowerBound
             && other.upperBound <= range.upperBound

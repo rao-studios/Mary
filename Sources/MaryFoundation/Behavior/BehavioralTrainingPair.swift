@@ -2,22 +2,16 @@
 //  BehavioralTrainingPair.swift
 //  MaryFoundation
 //
-//  THE FROZEN SPINE FLEET GATES ON. A sealed BehavioralEpisode is a rich,
-//  optional-heavy codec; Fleet's schema automaton requires every training
-//  output to carry the identical keys and value types. This pair is that
-//  projection: always-present keys, empty strings for absences (JSON null
-//  vs string is a type mismatch the extractor will not reconcile).
-//
-//  Not a second schema version. The episode remains mary.behavior; this is
-//  how one episode becomes one INPUT:/OUTPUT: example and how a gated
-//  decode becomes an episode again. AX geometry is dropped on purpose —
-//  it is not stable across turns and would blow the automaton. Live AX at
-//  infer time is the current ambient world.
+//  WHAT: Frozen INPUT:/OUTPUT: projection of a BehavioralEpisode for Fleet.
+//  IN:   sealed BehavioralEpisode.
+//  OUT:  Fleet extractor; decode back to an episode (AX targets empty).
+//  PIN:  Always-present keys; empty string for absence. Not a second schema.
+//        Drop AX geometry — live AX at infer time is the current world.
 //
 
 import Foundation
 
-/// One Fleet training/inference example, projected from a BehavioralEpisode.
+/// One Fleet training/inference example from a BehavioralEpisode.
 public struct BehavioralTrainingPair: Hashable, Sendable {
     public var input: BehavioralTrainingInput
     public var output: BehavioralTrainingOutput
@@ -32,7 +26,7 @@ public struct BehavioralTrainingPair: Hashable, Sendable {
         output = BehavioralTrainingOutput(episode: episode)
     }
 
-    /// Sorted-key JSON, one object, no pretty-print — the bytes Fleet hashes.
+    /// Sorted-key JSON, one object, no pretty-print — bytes Fleet hashes.
     public func encodedInput() throws -> Data {
         try BehavioralCodec.encoder().encode(input)
     }
@@ -80,8 +74,7 @@ public struct BehavioralTrainingInput: Codable, Hashable, Sendable {
         ambientSummary = Self.summary(from: input.ambient, limit: summaryLimit)
     }
 
-    /// Rebuild the episode input. Empty strings become nils; the capture is
-    /// a stub (mode/lead only) because the pair never stored AX geometry.
+    /// Rebuild episode input. Empty strings → nil; capture is mode/lead only (no AX).
     public func makeInput() -> BehavioralInput {
         let prior = UUID(uuidString: priorEpisodeID)
         let ambient: AmbientCapture?
@@ -214,8 +207,7 @@ public struct BehavioralTrainingOutput: Codable, Hashable, Sendable {
         }
     }
 
-    /// Re-encode a predicted output as a sealed-ready episode. Timestamps and
-    /// identity are minted here; AX targets stay empty for the live world.
+    /// Predicted output → sealed-ready episode. Mint timestamps/ids; AX targets empty.
     public func makeEpisode(
         id: UUID,
         input: BehavioralInput,

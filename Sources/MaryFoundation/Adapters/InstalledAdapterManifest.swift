@@ -2,50 +2,36 @@
 //  InstalledAdapterManifest.swift
 //  MaryFoundation
 //
-//  WHAT AN INSTALLED PROVIDER CLAIMS: the transport Mary dispatches through,
-//  the operations it binds, and how completely it covers the Capabilities and
-//  Interactions an Ability asked for.
+//  WHAT: Installed provider claims — transport, operations, Capability/Interaction coverage.
+//  IN:   adapter handshake at install.
+//  OUT:  AdapterManifestValidator, SkillAvailability, AbilityRuntime.
 //
 
 import Foundation
 
-/// The machine-local provider boundary through which Mary dispatches an
-/// adapter operation. This is not an implementation-language claim and not an
-/// exhaustive call graph of OS facilities used behind that boundary.
-///
-/// In particular, `.native` means Mary enters a compiled provider directly;
-/// that reviewed provider may internally combine fixed Accessibility, Apple
-/// Event, or local-process faculties. Providers whose operation contract is
-/// intentionally defined by one external boundary declare that boundary
-/// instead. `AdapterProviderProvenance.pluginClass`, not this value, records
-/// whether the provider is compiled or Ability-carried declarative data.
+/// Dispatch boundary. `.native` = compiled provider; AdapterProviderProvenance.pluginClass says compiled vs Plugin data.
 public enum AdapterTransport: String, Codable, Hashable, Sendable, CaseIterable {
-    /// Direct dispatch into a compiled provider. No claim of exclusively using
-    /// native frameworks behind that provider boundary is implied.
+    /// Direct dispatch into a compiled provider. Not "native frameworks only".
     case native
-    /// A closed Accessibility interaction boundary.
+    /// Closed Accessibility interaction boundary.
     case accessibility
-    /// A fixed Apple Event / Automation boundary.
+    /// Fixed Apple Event / Automation boundary.
     case automation
-    /// A Bluetooth device boundary.
+    /// Bluetooth device boundary.
     case bluetooth
-    /// A network service boundary.
+    /// Network service boundary.
     case network
-    /// A reviewed fixed local-process boundary.
+    /// Reviewed fixed local-process boundary.
     case localProcess
 }
 
-/// Whether empty typed claim lists mean "not specified yet" or an explicit
-/// statement that the adapter supports none of that contract. Incremental is
-/// the migration-safe default for Mary's existing adapters; new devices and
-/// fully described adapters should publish `.complete`.
+/// Empty claim lists: unspecified (incremental) vs explicit none (complete).
 public enum AdapterClaimCoverage: String, Codable, Hashable, Sendable, CaseIterable {
     case incremental
     case complete
 }
 
-/// One callable operation an installed adapter can satisfy. Its typed claims
-/// are compared with an Ability Skill before that Skill becomes runnable.
+/// One callable operation. Typed claims compared to a Skill before it is runnable.
 public struct InstalledAdapterBinding: Codable, Hashable, Sendable {
     public var adapterID: AdapterID
     public var operation: String
@@ -55,11 +41,8 @@ public struct InstalledAdapterBinding: Codable, Hashable, Sendable {
     public var consumesInteractions: [InteractionID]
     public var observesPerceptions: [PerceptionID]
     public var targetClasses: [String]
-    /// Source-sensitive guarantees enforced inside the local adapter after it
-    /// has resolved the concrete application, document, or selection target.
-    /// Mary enforces duration, payload, stage, confirmation, and target-class
-    /// policy itself; adapters may attest only the three delegated constraint
-    /// kinds accepted by `AdapterManifestValidator`.
+    /// Adapter-enforced source constraints after it resolves the target.
+    /// Mary owns duration/payload/stage/confirm/target-class; AdapterManifestValidator lists the three delegated kinds.
     public var enforcedConstraints: [CapabilityConstraint]
     public var isAvailable: Bool
     public var unavailableReason: String?
@@ -91,10 +74,7 @@ public struct InstalledAdapterBinding: Codable, Hashable, Sendable {
     }
 }
 
-/// Runtime handshake published by one adapter. This is the extension seam for
-/// a new IDE, application, sensor, or Bluetooth device: it names the stable
-/// data contracts it can produce or consume, while Mary retains execution,
-/// permission, routing, and privacy arbitration.
+/// Runtime handshake: contracts this adapter produces/consumes. Mary keeps execution/privacy.
 public struct InstalledAdapterManifest: Codable, Hashable, Sendable, Identifiable {
     public var adapterID: AdapterID
     public var version: SemanticVersion
@@ -108,8 +88,7 @@ public struct InstalledAdapterManifest: Codable, Hashable, Sendable, Identifiabl
     public var grantedPermissions: [PermissionKind]
     public var isAvailable: Bool
     public var unavailableReason: String?
-    /// Nil resolves to a runtime-owned provider — a generic adapter Mary ships.
-    /// Plugin manifests always freeze their Ability-provided provenance.
+    /// Nil = runtime-owned generic adapter. Plugin manifests freeze Ability provenance.
     public var provider: AdapterProviderProvenance?
 
     public init(

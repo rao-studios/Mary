@@ -2,20 +2,9 @@
 //  AXTreeWalker.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  Mary grew five bounded breadth-first walkers over the accessibility
-//  tree, independently, in `SafariWebSurface`, `ProbeShaderFeel`, and (left
-//  alone this pass — see AXEngine.swift) `AXSelectionReader`/`PagesAX`'s
-//  `descendToText` and `RemoteHandsStateProvider`'s children descent. Two of
-//  those five — SafariWebSurface's and ProbeShaderFeel's — were the SAME
-//  loop, verbatim, at two different budgets. This file is that loop, once,
-//  with the budget as a value instead of a pair of file-private constants.
-//
-//  The generic `walkCore` exists so the exact BFS/budget arithmetic can be
-//  pinned by a test without AX IPC: synthetic node graphs stand in for
-//  `AXUIElement`/`AX.children`.
-//
+//  WHAT: Bounded BFS of an accessibility tree. Budget is a value.
+//  OUT:  AXSnapshotBuilder | WebAreaLocator
+//  PIN:  walkCore is generic so tests pin arithmetic without AX IPC.
 
 import ApplicationServices
 
@@ -38,12 +27,6 @@ public enum AXTreeWalker {
     }
 
     /// Bounded breadth-first walk of a live accessibility tree.
-    ///
-    /// Preserves the exact legacy arithmetic byte-for-bit: the node is
-    /// counted as visited BEFORE the cap check (so exactly `maxNodes` nodes
-    /// are ever visited, and the (maxNodes+1)th dequeue aborts before being
-    /// visited), and a node AT `maxDepth` is still visited — only its
-    /// children are withheld.
     public static func walk(
         from root: AXUIElement,
         budget: Budget = .standard,
@@ -57,9 +40,6 @@ public enum AXTreeWalker {
     }
 
     /// The generic core, over any node type with a `children` accessor.
-    /// `walk(from:budget:visit:)` above is `walkCore` specialized to
-    /// `AXUIElement` via `AX.children`; a test specializes it to a plain
-    /// struct graph so the BFS/budget behavior is pinned without live AX.
     static func walkCore<Node>(
         from root: Node,
         children: (Node) -> [Node],

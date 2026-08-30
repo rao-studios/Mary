@@ -2,13 +2,8 @@
 //  SinglePollerClaim.swift
 //  MaryBrain
 //
-//  A support plugin's `activate()`/`deactivate()` pair around one polling
-//  Task, guarded so concurrent activates can't each store a poller. Four
-//  watchers (Pages, Xcode, Applications, DocumentCorpus) hand-rolled this
-//  identical create-then-claim-then-release dance around their own
-//  `OSAllocatedUnfairLock<Task<Void, Never>?>`; this is that dance, named
-//  once.
-//
+//  WHAT: Create-then-claim one polling Task. Concurrent activate cancels the loser.
+//  OUT:  Pages / Xcode / Applications / DocumentCorpus watchers
 
 import os
 
@@ -20,10 +15,8 @@ public final class SinglePollerClaim: @unchecked Sendable {
 
     public var isActive: Bool { box.withLock { $0 != nil } }
 
-    /// Create-then-claim in one lock so concurrent activates can't each store
-    /// a poller (the loser is cancelled; it exits on its first check).
-    /// Returns `true` iff this call won the race and `loop` is now the
-    /// registered poll loop.
+    /// Create-then-claim in one lock so concurrent activates can't each store a poller (the
+    /// loser is cancelled; it exits on its first check).
     @discardableResult
     public func claim(_ loop: @escaping @Sendable () async -> Void) -> Bool {
         let task = Task { await loop() }

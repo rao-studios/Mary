@@ -2,27 +2,16 @@
 //  PassageWideningModels.swift
 //  MaryAmbient
 //
-//  The value types PassageWidening.locate reads, decides among, and
-//  returns. Split out of PassageWidening.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Value types PassageWidening.locate reads, decides among, and returns.
+//  IN:   PassageWidening.swift (split)
+//  PIN:  Attention is text-derived, never a raw AX integer (UTF-16 vs body-text offset).
 //
 
 import Foundation
 
-/// WHERE THE USER'S ATTENTION IS, expressed so it cannot be a lie.
-///
-/// TEXT-DERIVED, NEVER A RAW AX INTEGER. An AX offset counts UTF-16 code units
-/// over a string that includes headers, footers and text boxes; a `body text`
-/// offset counts characters over a string that excludes them. Feeding one into
-/// the other is how the viewport once resolved to the head of the document on
-/// every tick (`ViewportProvenance.diverged` is the detector for exactly this).
-///
-/// So there are two honest sources and no third: a selection range the CALLER
-/// has already validated against this exact body, or the WORDS of the ambient
-/// selection/viewport fact, which are located here by `range(of:)` in the body
-/// itself. If those words are not in the body — the user is in a header, a
-/// text box, a comment field — there is simply no anchor, the rung is skipped,
-/// and the tie-break falls through to document order. Honest, not fudged.
+/// WHERE THE USER'S ATTENTION IS, expressed so it cannot be a lie. TEXT-DERIVED, NEVER A
+/// RAW AX INTEGER. An AX offset counts UTF-16 code units over a string that includes
+/// headers, footers and text boxes.
 public struct PassageAttention: Sendable, Equatable {
 
     /// A selection range the caller has already checked against THIS body.
@@ -159,13 +148,8 @@ public struct PassageDecision: Sendable, Equatable {
     public var isRefusal: Bool { span == nil }
 }
 
-/// The body, folded once: whitespace collapsed to single spaces, punctuation
-/// dropped, case and diacritics folded — with a map back to the ORIGINAL
-/// character offsets, because a match in a normalized string is worthless if
-/// it cannot say where in the real document it happened.
-///
-/// Built once per `locate` and shared by rungs 2 and 4, so the two cannot
-/// disagree about what "the same words" means.
+/// The body, folded once: whitespace collapsed to single spaces, punctuation dropped, case
+/// and diacritics folded.
 public struct FoldedText {
     /// The folded characters.
     public let characters: [Character]
@@ -179,9 +163,8 @@ public struct FoldedText {
         for character in body {
             defer { offset += 1 }
             if character.isWhitespace {
-                // A run of any whitespace becomes one space, and never a
-                // leading one: "\n\n  Purpose" and " Purpose" have to fold to
-                // the same thing or a heading at the top of a document is
+                // A run of any whitespace becomes one space, and never a leading one: "\n\n Purpose" and "
+                // Purpose" have to fold to the same thing or a heading at the top of a document is
                 // unfindable.
                 if let last = characters.last, last != " " {
                     characters.append(" ")
@@ -200,12 +183,8 @@ public struct FoldedText {
         self.origin = origin
     }
 
-    /// Candidates for `needle`, folded the same way, mapped back to original
-    /// offsets.
-    ///
-    /// WORD-BOUNDARY CHECKED, unlike the verbatim rung. Punctuation is gone by
-    /// this point, so without it "purpose" would match inside "purposeful" and
-    /// a fuzzy rung would quietly out-locate an exact one.
+    /// Candidates for `needle`, folded the same way, mapped back to original offsets.
+    /// WORD-BOUNDARY CHECKED, unlike the verbatim rung. Punctuation is gone by this point.
     public func candidates(for needle: String, rung: PassageRung) -> [PassageCandidate] {
         let folded = FoldedText(needle).characters
         guard !folded.isEmpty, folded.count <= characters.count else { return [] }

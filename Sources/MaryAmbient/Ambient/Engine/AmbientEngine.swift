@@ -1,3 +1,13 @@
+//
+//  AmbientEngine.swift
+//  MaryAmbient
+//
+//  WHAT: Resolves a turn once, before prompts or executable Skills are assembled.
+//  IN:   classifiers / attention / lead / profiles
+//  OUT:  AmbientRoute → prompt and memory
+//  PIN:  Worlds vs realms vs places: engine picks a place; AmbientWorld is standing lanes.
+//
+
 import Foundation
 
 /// Resolves a turn once, before prompts or executable Skills are assembled.
@@ -13,12 +23,8 @@ public enum AmbientEngine {
         public var attention: AmbientAttention?
         public var leadApplicationID: String?
         public var profiles: [ApplicationProfile]
-        /// Applications whose LIVE CONTENTS the utterance may be addressing:
-        /// where each one's ambient elements live, and what routing calls
-        /// it. Built by the caller from whatever published recently, so this
-        /// package learns "some scopes belong to some applications" and
-        /// nothing about which applications exist. Empty (the default) makes
-        /// the probe a no-op and every existing caller byte-identical.
+        /// Applications whose LIVE CONTENTS the utterance may be addressing: where each one's
+        /// ambient elements live, and what routing calls it.
         public var addressCandidates: [AmbientAddressProbe.Candidate]
         /// The turn's live focus evidence, kind and age per place — what the
         /// realm needs and `FocusSignal` has already thrown away.
@@ -69,61 +75,19 @@ public enum AmbientEngine {
         let namedApplicationProfiles = inputs.profiles
             .filter { $0.isMentioned(in: inputs.utterance) }
         let namedApplications = Set(namedApplicationProfiles.map(\.id))
-        // A NAMED APPLICATION STANDS THE CUE CLASSIFIER DOWN.
-        //
-        // `namedPlaces` falls back to the DISCIPLINE vocabulary when nothing
-        // is named outright — "this document" reads as writing, and every
-        // place that writes becomes a candidate. That fallback must not speak
-        // for a turn whose user did name somewhere: A REAL NAME BEATS A VIBE.
-        //
-        // THE FAILURE THIS FIXES, from a live transcript: "update this
-        // document in chrome" matched the document-noun cue, classified the
-        // turn as writing, and returned every writing place — on a turn whose
-        // only named application was a browser. That set is what carried an
-        // editor the user did not have open into a browser turn's ranking.
+        // A NAMED APPLICATION STANDS THE CUE CLASSIFIER DOWN. `namedPlaces` falls back to the
+        // DISCIPLINE vocabulary when nothing is named outright — "this document" reads as writing,
+        // and every place that writes becomes a candidate.
         let namedPlaces = namedApplications.isEmpty
             ? AmbientRanker.namedPlaces(in: inputs.utterance)
             : explicitlyNamedPlaces
         let isDeictic = AmbientRanker.isDeictic(inputs.utterance)
 
-        // A source-owned selection is a one-turn interaction, not a workspace
-        // focus signal. When the user's words point at that interaction (or a
-        // revision makes it the mutation target), its source nevertheless has
-        // to lead schema routing for THIS turn: a Pages highlight must not
-        // expose Xcode-only Skills merely because Xcode was the last durable
-        // workspace focus. This value stays inside the immutable route; the
-        // focus tracker and AmbientContextStore's persistent lead remain
-        // untouched.
-        // Literal app names are always exact conflicts. A domain classifier
-        // may also produce one unambiguous workspace (`fix the build` →
-        // Xcode); that singleton is equally authoritative even though the app
-        // name is absent. Broad writing deliberately expands to all three
-        // writing worlds and therefore remains non-conflicting with a Pages,
-        // Scrivener, or TextEdit selection.
+        // A source-owned selection is a one-turn interaction, not a workspace focus signal.
         let conflictPlaces = explicitlyNamedPlaces.isEmpty && namedPlaces.count == 1
             ? namedPlaces
             : explicitlyNamedPlaces
-        // ONE IDENTITY, TWO NAMESPACES — bridged here exactly as the
-        // application test below already bridges it.
-        //
-        // `attention.place` is spelled with the BUNDLE id the watcher
-        // observed; that is deliberate and permanent (see
-        // `applicationProfile(_:represents:)`'s own note). Every NAMED place
-        // is spelled with the registration's logical id. Comparing the two as
-        // places asked whether `.application("xcode")` equals
-        // `.application("com.apple.dt.Xcode")`, decided it did not, and so
-        // concluded that the application the address probe had just named
-        // FROM the user's own highlight conflicted WITH that highlight.
-        // `selectionDefinesTurn` went false, `AbilityRuntime
-        // .routedSignalSnapshot` dropped the selection Interaction before the
-        // roster saw it, and every Skill gated on one — coding's
-        // `revise_code_selection`, writing's `revise_selection` — was
-        // ineligible on precisely the turns they exist for. Live: "make this
-        // comment more concise" on a real Xcode selection.
-        //
-        // A named place that names no application (a bare lane) keeps the
-        // place comparison it always had: there is no profile to bridge
-        // through, and lane identity is already one namespace.
+        // ONE IDENTITY, TWO NAMESPACES.
         let conflictsWithNamedPlace = attention.map { attention in
             conflictPlaces.contains { place in
                 guard let application = place.application,
@@ -149,15 +113,7 @@ public enum AmbientEngine {
         let routedAttention = attention?.isDirectReference == true
             ? (selectionDefinesTurn ? attention : nil)
             : attention
-        // TRUE NAMES ONLY. This used to derive from `namedWorlds`, whose
-        // fallback is the CUE classifier — so "What BUILDing is this" (the
-        // "build" cue prefix-matching a gerund) minted an "explicitly named"
-        // Xcode lead, painted the chip "led: Xcode" with Xcode closed, and
-        // asserted "xcode" as the turn's application (blocking TextEdit
-        // behind the mismatch mirror). A cue may bias focus
-        // (verdicts.focusOverride), admit a roster (admission rung 4), and
-        // steer ranking (namedWorlds' consumers) — it must never mint a
-        // named LEAD or a lead APPLICATION.
+        // TRUE NAMES ONLY.
         let explicitlyNamedLead = explicitlyNamedPlaces.count == 1
             ? explicitlyNamedPlaces.first : nil
         let explicitlyNamedApplicationID = namedApplications.count == 1
@@ -174,10 +130,6 @@ public enum AmbientEngine {
             ? (attentionApplicationID ?? explicitlyNamedLead?.application)
             : (explicitlyNamedApplicationID
                 // A LITERALLY NAMED place outranks a different frontmost one.
-                // A classified cue no longer reaches this rung
-                // (`explicitlyNamedLead` is true-names-only), so
-                // `inputs.leadApplicationID` — the tracker's live evidence —
-                // is reachable on cue-only turns.
                 ?? explicitlyNamedLead?.application
                 ?? inputs.leadApplicationID)
         var routedInputs = inputs
@@ -185,14 +137,6 @@ public enum AmbientEngine {
         routedInputs.leadApplicationID = leadApplicationID
         let abilitySnapshot = inputs.abilitySnapshot ?? AmbientCapabilityIndexProvider.current
         // ADDRESSED, NOT NAMED — and the separation above is the point.
-        // `namedApplications` (line ~58) is computed from literal aliases and
-        // nothing else, because the two rungs that can mint a LEAD read that
-        // set: `conflictsWithNamedApplication` and
-        // `explicitlyNamedApplicationID`. A live tab title is a cue WITH
-        // EVIDENCE — it may admit a roster, carry a place, and arm a decaying
-        // referent; it may never decide whose turn this is. Honoring the
-        // true-names rule by construction rather than by convention is why
-        // this value is computed here, after that set is closed.
         let addressed = AmbientAddressProbe.address(
             utterance: inputs.utterance,
             candidates: inputs.addressCandidates,
@@ -233,14 +177,8 @@ public enum AmbientEngine {
         }
         let supportingContext = writingTarget == .selection ? verdicts.namedPart : nil
 
-        // `(lead, leadApplicationID)` come from the two independent ladders
-        // above and legitimately COEXIST — a native lead world beside a
-        // Dynamic focused-application id. The route derives its single
-        // `leadPlace` from exactly this pair (`AmbientRoute.leadPlace(lead:
-        // leadApplicationID:)`: the id wins the lane only when it names a
-        // registered Dynamic application) and keeps both stored fields,
-        // because the id is routinely a NATIVE plugin owner, which a place
-        // cannot carry.
+        // `(lead, leadApplicationID)` come from the two independent ladders above and legitimately
+        // COEXIST — a native lead world beside a Dynamic focused-application id.
         let allNamedPlaces = namedPlaces.union(
             AmbientRoute.namedPlaces(
                 gate: gate, addressedPlaces: Set(addressed.map(\.place))))
@@ -252,10 +190,9 @@ public enum AmbientEngine {
             attention: attention,
             selectionDefinesTurn: selectionDefinesTurn,
             leadApplicationID: leadApplicationID,
-            // The addressed places ride EXPLICITLY: an address is evidence
-            // from a different ladder than a mention, and the gate cannot
-            // reach it — without this the roster scoping would never see an
-            // application the user addressed by its live contents.
+            // The addressed places ride EXPLICITLY: an address is evidence from a different ladder
+            // than a mention, and the gate cannot reach it — without this the roster scoping would
+            // never see an application the user addressed by its live contents.
             namedPlaces: allNamedPlaces,
             // THE REALM, RESOLVED ONCE. It reads the focus signal rather than
             // re-deciding with it, so `realm.place == leadPlace` holds by
@@ -280,35 +217,23 @@ public enum AmbientEngine {
             needsLocate: writingTarget == .passage,
             needsPreRead: inputs.editIntent == nil && !inputs.actionTurn && verdicts.namedPart != nil,
             needsExecution: needsExecution(for: intent),
-            // ASKED OF THE PLACE. `effectiveLead` is world-typed and answers
-            // `.otherApps` for a taught application, so the budget rule
-            // compared the user's words against the shared host lane rather
-            // than against the manuscript they were in.
+            // ASKED OF THE PLACE. `effectiveLead` is world-typed and answers `.otherApps` for a taught
+            // application, so the budget rule compared the user's words against the shared host lane
+            // rather than against the manuscript they were in.
             rankingMode: AmbientRanker.mode(
                 utterance: inputs.utterance,
                 focusedPlace: AmbientRoute.leadPlace(
                     leadApplicationID: leadApplicationID)))
     }
 
-    /// Application profiles use logical identities while source-owned
-    /// Interactions carry PROCESS identities (a bundle id). Compare their
-    /// canonical Ambient world first, then exact normalized aliases/ids.
-    /// Comparing the
-    /// two raw strings made a same-source phrase such as “this in Pages” look
-    /// like a conflict and discarded the Pages highlight it explicitly named.
+    /// Application profiles use logical identities while source-owned Interactions carry
+    /// PROCESS identities (a bundle id). Compare their canonical Ambient world first, then
+    /// exact normalized aliases/ids.
     private static func applicationProfile(
         _ profile: ApplicationProfile,
         represents attention: AmbientAttention
     ) -> Bool {
-        // DELIBERATELY NOT a place comparison, permanently. Attention carries
-        // `(world, applicationID)` where the applicationID is a BUNDLE id the
-        // watcher observed — a different namespace from the registration's
-        // logical id, the exact confusion `ApplicationProfile` warns about
-        // for aliases. Folding this bridge and the `.otherApps` subject
-        // fallback below into one place comparison would change which
-        // profiles "represent" a `.otherApps` attention (the fallback admits
-        // name-mention matches no place equality can). The rungs stay
-        // spelled out because each admits something the others refuse.
+        // DELIBERATELY NOT a place comparison, permanently.
         if AmbientWorld.from(pluginOwner: profile.id) == attention.world {
             return true
         }
@@ -325,13 +250,8 @@ public enum AmbientEngine {
         }) {
             return true
         }
-        // Generic Accessibility selections intentionally retain the real app
-        // name as their subject while sharing `.otherApps` as a world. This
-        // is a compatibility fallback for an imported representation that has
-        // not declared its bundle id yet; exact bundle identity above remains
-        // the preferred machine contract. A permanent rung, not a pending
-        // fold: a name-mention match is evidence no place equality carries,
-        // so it survives the place migration by design.
+        // Generic Accessibility selections intentionally retain the real app name as their subject
+        // while sharing `.otherApps` as a world.
         return attention.world == .applications
             && attention.subject.map(profile.isMentioned(in:)) == true
     }
@@ -362,11 +282,7 @@ public enum AmbientEngine {
                 inputs.profiles
                     .filter { gate.applications.contains($0.id) }
                     .flatMap(\.abilities))
-            // THE ROSTER IS THE ONLY SOURCE. A fallback used to sit here for
-            // callers with no profiles at all, reading the discipline off a
-            // compiled world; with no compiled worlds there is nothing to
-            // read, and a caller that installs no roster is genuinely telling
-            // Mary she knows of no applications.
+            // THE ROSTER IS THE ONLY SOURCE.
             if leadAbilities.contains(.writing) || namedAbilities.contains(.writing) {
                 return (.compose, .writingRegister)
             }
@@ -400,20 +316,14 @@ public enum AmbientEngine {
         }
     }
 
-    /// A selection is always a valid conversational referent.  It becomes a
-    /// mutation target only when its exact source surface is allowed to
-    /// receive prose.  This mirrors the typer's live revalidation so routing
-    /// never promises `replace_selection` for browser/static text, code, or a
-    /// declared read-only field.
+    /// A selection is always a valid conversational referent. It becomes a mutation target only
+    /// when its exact source surface is allowed to receive prose.
     private static func directSelectionCanReceiveRevision(
         _ attention: AmbientAttention
     ) -> Bool {
-        // Payload recovery is a useful source of *reading* context, but its
-        // characters did not come from the live source element. Likewise, a
-        // canvas descendant does not identify the focused AX element the
-        // typer must revalidate. The schema's read-only recovery channel and
-        // this route must make the same promise: conversational reference,
-        // never `replace_selection`.
+        // Payload recovery is a useful source of *reading* context, but its characters did not
+        // come from the live source element. Likewise, a canvas descendant does not identify the
+        // focused AX element the typer must revalidate.
         guard attention.selectionPayloadRecovery == nil,
               attention.selectionSourceEvidence?.isExact == true
         else {

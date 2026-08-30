@@ -1,11 +1,11 @@
 //
 //  AbilityRosterSkillKey+Runtime.swift
+//  MaryBrain
 //
-//  The key is a trace value and lives in MaryAmbient. Minting one from a
-//  live AbilityRuntimeSkill needs the frozen registry, so that half stays
-//  here with the registry it reads.
+//  WHAT: Mint AbilityRosterSkillKey from a live AbilityRuntimeSkill.
+//  IN:   frozen registry
+//  OUT:  trace key (type lives in MaryAmbient)
 //
-
 import Foundation
 
 extension AbilityRosterSkillKey {

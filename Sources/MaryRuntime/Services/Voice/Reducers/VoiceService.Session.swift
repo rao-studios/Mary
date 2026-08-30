@@ -1,15 +1,11 @@
 //
 //  VoiceService.Session.swift
-//  Mary
+//  MaryRuntime
 //
-//  Start: build the pipeline from configuration, start it, and hold the event
-//  loop for the whole session — every pipeline event lands here, updates live
-//  state, and mirrors durable turn data into ChatService.
-//  Stop: tear the session down; the Start loop ends when the event streams do.
-//
-//  This uses Granite's shipping `streamingTask`. Duplicate sends are rejected
-//  BEFORE they reach Granite by `MaryRuntime.admitVoiceStart`; otherwise a
-//  replacement send would cancel the reducer that owns the live session.
+//  WHAT: Start holds the pipeline event loop; Stop tears the session down.
+//  OUT:  live VoicePhase → UI; durable turns → ChatService.MirrorVoice
+//  PIN:  Duplicate Start rejected by MaryRuntime.admitVoiceStart before Granite
+//        (a replacement send would cancel the reducer that owns the session).
 //
 
 import MaryAmbient
@@ -65,28 +61,11 @@ extension VoiceService {
                 transcriber: transcriber,
                 speaker: MaryRuntime.speaker,
                 responder: MaryRuntime.brain,
-                // CONTINUOUS HEARING RIDES AMBIENTVOICE'S SWITCH, not the STT
-                // backend picker. It is not an alternative way to transcribe a
-                // turn — the acoustic path still does that — it is the same
-                // capability as noticing: she is aware of the room, or she is
-                // not. One switch, one story, and `off` means the microphone
-                // feeds nothing but the utterance in front of it.
-                // CONTINUOUS HEARING IS OFF IN THIS CUT. Its one consumer
-                // was the proactive-speech lane — Mary noticing the room and
-                // saying something unprompted — which is not here. A
-                // transcriber running with nothing reading it is a microphone
-                // left on for no reason.
+                // Continuous hearing is off this cut — no consumer. Acoustic path still transcribes turns.
                 continuous: nil
             )
             guard let lease = await MaryRuntime.voiceSession.install(pipeline) else {
-                // A concurrent Start won the box; ITS loop owns the session
-                // lifecycle. Release only OUR claim — the counter keeps
-                // standby down while the winner runs.
-                //
-                // SAID OUT LOUD rather than returned silently: this branch
-                // used to be indistinguishable from a dead button, and it is
-                // the branch a latched box (see VoiceSessionBox.stop) drove
-                // every single time.
+                // Concurrent Start won the box. Release only our claim; say so out loud.
                 Self.log.notice("start refused: another session owns the pipeline box")
                 mirror(.error("Another listening session is already starting."))
                 await MaryRuntime.wakeStandby.noteSessionAborted()
@@ -111,10 +90,7 @@ extension VoiceService {
             state.phase = .listening
             stream(state)
 
-            // The wake handoff, honored only now that the session is real:
-            // a request rides in as the first turn; a bare wake earns the
-            // greeting. Fired, not awaited — primeTurn runs the WHOLE turn,
-            // and the event loop below must already be consuming.
+            // Wake handoff now that the session is real. Fired, not awaited — loop must consume.
             if let handoff {
                 if let remainder = handoff.remainder {
                     Task { await pipeline.primeTurn(query: remainder) }
@@ -126,10 +102,7 @@ extension VoiceService {
 
             var turnAccumulated = ""
             var isAmending = false
-            /// The turn every in-turn write below belongs to. Without it a
-            /// write resolves through "the last unstamped streaming
-            /// assistant", which in the .exchangeSuperseded → .turnBegan
-            /// window is the NEW turn's bubble.
+            /// Turn every in-turn write belongs to. Required — else writes hit the new bubble.
             var currentTurnID: UUID?
 
             sessionEvents: for await event in events {
@@ -169,10 +142,7 @@ extension VoiceService {
                     break
 
                 case .continuousUnavailable(let reason):
-                    // Said out loud rather than logged: the acoustic path
-                    // keeps working, so the only other symptom is that she
-                    // never remembers anything — which reads as a broken
-                    // engine instead of an absent on-device model.
+                    // Say out loud — acoustic path keeps working; silence would look like a broken engine.
                     state.lastPartial = "Continuous hearing unavailable — \(reason)"
                     stream(state)
 
@@ -184,21 +154,14 @@ extension VoiceService {
                     mirror(.routineDetached(id))
 
                 case .exchangeSuperseded(let id):
-                    // The brain removed that exchange; its accumulation is
-                    // dead text. Left standing, the next token of ANY turn
-                    // re-mirrors the removed turn's whole passage — the
-                    // late-append with a fresh coat of paint.
+                    // Brain removed that exchange — drop accumulation or the next token re-mirrors it.
                     turnAccumulated = ""
                     currentTurnID = nil
                     mirror(.exchangeSuperseded(userTurnID: id))
 
                 case .brainToken(let token):
                     turnAccumulated += token
-                    // Guarded AT THE WRITE, as TextTurnRunner's `forward`
-                    // already was: this loop suspends (spokenSkillUsed, the
-                    // mirror hop) and can resume after the session was torn
-                    // down or the turn abandoned. An unguarded write paints a
-                    // dead turn's text onto whatever bubble is live now.
+                    // Guard at the write — loop may resume after teardown (same as TextTurnRunner.forward).
                     guard !Task.isCancelled else { break sessionEvents }
                     mirror(.assistantText(accumulated: turnAccumulated, turnID: currentTurnID))
 
@@ -249,10 +212,7 @@ extension VoiceService {
                     mirror(.turnCancelled)
 
                 case .stopListeningCommand(let transcript, let ack):
-                    // The exchange is documented in the transcript — why the
-                    // session ended, in her own words — and the mic is already
-                    // down with the ack fully drained, so finishing the stop
-                    // is all that's left.
+                    // Transcript has the why; mic is down. Finish the stop.
                     mirror(.userSpoke(transcript))
                     mirror(.assistantDone(ack, turnID: nil))
                     Task { await MaryRuntime.voiceSession.stop(lease) }
@@ -275,9 +235,7 @@ extension VoiceService {
             await MaryRuntime.voiceSession.stop(lease)
             state = .init()
             stream(state)
-            // THE release point: every session end — Stop button, "stop
-            // listening", pipeline death — finishes the streams and lands
-            // here, long after any ack audio drained.
+            // Release point: every session end lands here after ack audio drains.
             await MaryRuntime.wakeStandby.noteSessionEnded()
         }
 

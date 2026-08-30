@@ -1,3 +1,12 @@
+//
+//  ValueSchemas.swift
+//  MaryFoundation
+//
+//  WHAT: Declared Value shapes, fields, privacy classes.
+//  IN:   `.mary` valueTypes / Skill ports.
+//  OUT:  ValueEnvelopeValidator.
+//
+
 import Foundation
 
 public enum ValueShape: String, Codable, Hashable, Sendable, CaseIterable {
@@ -65,13 +74,13 @@ public struct ValueTypeSchema: Codable, Hashable, Sendable, Identifiable {
 }
 
 public enum DataPrivacyClass: String, Codable, Hashable, Sendable, CaseIterable {
-    /// May be shared as part of a package definition or public schema fixture.
+    /// Package definition / public schema fixture.
     case publicDefinition
-    /// May be used on this machine but is not projected into durable memory.
+    /// This machine only; not durable Totem memory.
     case `private`
-    /// Sensitive user content; redact from diagnostics and never export.
+    /// User content — redact diagnostics, never export.
     case sensitive
-    /// Secret material such as credentials and signing keys.
+    /// Credentials and signing keys.
     case secret
 }
 

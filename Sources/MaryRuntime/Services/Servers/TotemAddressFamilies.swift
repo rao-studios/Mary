@@ -1,24 +1,15 @@
 //
 //  TotemAddressFamilies.swift
-//  Mary
+//  MaryRuntime
 //
-//  WHICH FAMILY A TOTEM ADDRESS BELONGS TO, from the id alone. Totem's tags
-//  and metadata are write-only — the library returns neither — so the lane
-//  and family of everything in the node can only be recovered from the
-//  address prefixes the minters chose. This lives in the app layer because
-//  the app is the only layer that sees every minter: MaryAmbient mints
-//  mary-scope-/mary-doc- (and spells Seer's own memory-/resonance- groups),
-//  MaryBrain mints mary-ability-*/mary-unit-*/mary-style-profile-/
-//  mary-project-schema-/mary-behavior-*, and the runtime mints
-//  mary-behavior-interaction- / mary-style- groups.
+//  WHAT: Which family a Totem address belongs to, from the id prefix alone.
+//  IN:   MaryAmbient / MaryBrain / Runtime minters
+//  PIN:  Library returns neither tags nor metadata — prefixes are the only map.
 //
 
 import MaryFoundation
 
-/// Every address family minted into the shared Totem node, group and
-/// document alike. Each case documents the ONE function that spells its
-/// prefix — the round-trip tests classify ids produced by those very
-/// functions, so this enum cannot quietly disagree with a minter.
+/// Address families in the shared Totem node. Each case names the minter that spells its prefix.
 package enum TotemAddressFamily: String, CaseIterable {
 
     // MARK: Group families
@@ -63,9 +54,7 @@ package enum TotemAddressFamily: String, CaseIterable {
     /// `mary-behavior-…` — sealed BehavioralEpisode on Ability Totem.
     case behaviorEpisode
 
-    /// No minter Mary knows about. Kept as its own bucket rather than
-    /// folded into a nearest neighbour, so foreign or future addresses show
-    /// up in the pane as what they are instead of being misfiled into a lane.
+    /// Unknown prefix — own bucket, not folded into a neighbour.
     case unknown
 }
 
@@ -98,10 +87,7 @@ package struct TotemAddressClassification: Equatable {
     }
 }
 
-/// Pure prefix classification. Group ids and document ids are separate
-/// namespaces with separate callers (the library lists groups; drill-down
-/// lists documents), so each gets its own table — a document id fed to the
-/// group classifier is not a supported question.
+/// Prefix classification. Group ids and document ids are separate namespaces.
 package enum TotemAddressClassifier {
 
     package static func classifyGroup(id: String) -> TotemAddressClassification {
@@ -112,11 +98,7 @@ package enum TotemAddressClassifier {
         classify(id, in: documentTable)
     }
 
-    // CORRECTNESS RULE — LONGEST PREFIX FIRST. Several families share a
-    // spine: `mary-ability-schema-manifest-` begins with
-    // `mary-ability-schema-`, which begins with `mary-ability-`;
-    // `mary-unit-manifest-` begins with `mary-unit-`;
-    // `mary-behavior-interaction-` begins with `mary-behavior-`.
+    // Longest prefix first — families share spines (ability-schema-manifest, unit-manifest, …).
 
     private static let groupTable: [(prefix: String, family: TotemAddressFamily)] =
         byLongestPrefix([

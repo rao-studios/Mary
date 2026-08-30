@@ -2,15 +2,15 @@
 //  AbilitySkillReference.swift
 //  MaryFoundation
 //
-//  A resolved pointer to a Skill in the installed graph, and the receipt one
-//  run of it produces. Both are runtime views over the declarations above.
+//  WHAT: Frozen Skill pointer plus one-run receipt.
+//  IN:   AbilityRuntime dispatch.
+//  OUT:  conversation rows, SkillRunReceipt, BehavioralAction.skill.
+//  PIN:  Snapshot so edit/uninstall never rewrites history.
 //
 
 import Foundation
 
-/// Frozen identity and presentation for one invoked skill. Conversation rows
-/// retain this snapshot so editing or uninstalling a package never rewrites
-/// history.
+/// Frozen identity and presentation for one invoked skill.
 public enum AbilityReferenceSource: String, Codable, Hashable, Sendable, CaseIterable {
     case package
     case adapterFallback
@@ -30,7 +30,7 @@ public struct AbilitySkillReference: Codable, Hashable, Sendable, Identifiable {
     public var adapterID: AdapterID?
     public var bindingOperation: String?
     public var source: AbilityReferenceSource
-    /// Frozen implementation provenance. Nil means a legacy/native provider.
+    /// Frozen implementation provenance. Nil = legacy/native provider.
     public var provider: AdapterProviderProvenance?
 
     public init(
@@ -88,9 +88,8 @@ public struct SkillRunReceipt: Codable, Hashable, Sendable, Identifiable {
     public var inputTypes: [ValueTypeID]
     public var outputTypes: [ValueTypeID]
     public var consumedInteractions: [InteractionInstanceReference]
-    /// True when execution completed normally but the requested source value
-    /// did not exist. Route diagnostics retain this bounded outcome instead
-    /// of the result prose, which may contain selected text or source code.
+    /// Completed normally but the requested source value did not exist.
+    /// Route diagnostics keep this; result prose may contain selected text.
     public var foundNothing: Bool
 
     public init(

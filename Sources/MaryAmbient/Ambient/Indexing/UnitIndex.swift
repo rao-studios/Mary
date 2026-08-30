@@ -2,36 +2,15 @@
 //  UnitIndex.swift
 //  MaryAmbient
 //
-//  The durable half of ambient code indexing: one card per file the user has
-//  settled on, plus its neighbourhood. `AmbientProjectSnapshot` (this file's
-//  older sibling) answers "what shape is this project"; a unit answers "what
-//  is this ONE thing, and what does it touch."
-//
-//  WHY A UNIT AND NOT A BIGGER PROJECT DOCUMENT. The project snapshot is a
-//  single upserted document per project, so every re-index rewrites the whole
-//  thing. That is right for a binder outline and wrong for code: moving from
-//  one file to another would erase what was learned about the first. A unit is
-//  addressed per file, so a neighbourhood accumulates instead of replacing.
-//
-//  THE CONTENT HASH IS THE WHOLE EFFICIENCY STORY. It gates the one expensive
-//  step — annotation costs a model round — so an unchanged file is never
-//  re-read, re-annotated, or re-deposited. Without it, returning to a file you
-//  are working in would re-summarize it every time the idle timer fired.
-//
-//  This layer is deliberately application-agnostic. It names no language, no
-//  editor, and no extractor: Xcode supplies units today, and a Scrivener
-//  chapter or a Keynote deck is the same shape with a different producer.
+//  WHAT: Durable half of ambient code indexing — one card per settled file, plus neighbourhood.
+//  OUT:  Totem. Sibling: AmbientProjectSnapshot (project shape)
+//  PIN:  Content hash gates annotation. Per-file address so a neighbourhood accumulates.
 //
 
 import CryptoKit
 import Foundation
-/// Delays unit indexing until the user has stopped moving, annotates once per
-/// file revision, and publishes.
-///
-/// Shaped after `AmbientProjectIndexingCoordinator` — per-key cancellable
-/// task, idle debounce, fingerprint dedupe, injected sink, `flush()` seam —
-/// with two additions it does not need: a durable manifest, and a serialized
-/// annotation step.
+/// Delays unit indexing until the user has stopped moving, annotates once per file
+/// revision, and publishes. Shaped after `AmbientProjectIndexingCoordinator`.
 public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
 
     /// The manifest rides along with the unit, so the sink persists what the
@@ -47,11 +26,7 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
     private var tasks: [String: Task<Void, Never>] = [:]
     /// projectID -> manifest.
     private var manifests: [String: UnitIndexManifest] = [:]
-    /// Fetches a project's durable manifest on the FIRST sight of a projectID
-    /// this session. Boot restores only the configured projects; a repo the
-    /// user opens without registering it would otherwise lose its manifest on
-    /// every launch — every file "first sighting" again, every file
-    /// re-annotated, and no style on the first edit of anything.
+    /// Fetches a project's durable manifest on the FIRST sight of a projectID this session.
     private var manifestLoader: (@Sendable (String) async -> UnitIndexManifest?)?
     /// Projects already asked for, so one with no durable manifest is asked
     /// exactly once rather than on every crawl.
@@ -112,10 +87,9 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         guard let projectID = unit.projectID, !projectID.isEmpty,
               !unit.relativePath.isEmpty else { return }
         await loadManifestIfUnknown(projectID: projectID)
-        // Already indexed at this exact revision — the gate that makes
-        // re-focusing a file you are working in free. Recorded rather than
-        // silent: a skipped row is what makes the gate observable, and it is
-        // as informative as an indexed one.
+        // Already indexed at this exact revision — the gate that makes re-focusing a file you are
+        // working in free. Recorded rather than silent: a skipped row is what makes the gate
+        // observable, and it is as informative as an indexed one.
         if manifests[projectID]?.entries[unit.relativePath]?.contentHash == unit.contentHash {
             ledger?.noteSkipped(
                 projectName: unit.projectName,
@@ -181,11 +155,8 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
 
     // MARK: - Manual control
 
-    /// Clear one unit's hash gate so the next visit re-reads it.
-    ///
-    /// `reset()` was the only way to do this and it nukes every project, which
-    /// makes "re-index this one file" impossible — the exact operation you
-    /// need after correcting something and wanting to see the correction land.
+    /// Clear one unit's hash gate so the next visit re-reads it. `reset()` was the only way to
+    /// do this and it nukes every project, which makes "re-index this one file" impossible.
     @discardableResult
     public func invalidate(path: String, projectID: String) -> Bool {
         guard manifests[projectID]?.entries.removeValue(forKey: path) != nil else {
@@ -201,10 +172,9 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
         return count
     }
 
-    /// Pin labels for one unit. From here on the annotator's labels are
-    /// discarded for it and these are used instead; the précis still refreshes
-    /// on the next revision, so the card stays current without losing the
-    /// correction.
+    /// Pin labels for one unit. From here on the annotator's labels are discarded for it and
+    /// these are used instead; the précis still refreshes on the next revision, so the card
+    /// stays current without losing the correction.
     public func pinLabels(
         _ labels: [String], path: String, projectID: String
     ) {
@@ -321,10 +291,9 @@ public actor AmbientUnitIndexingCoordinator: AmbientUnitIndexSink {
             labels: unit.annotation?.labels ?? [],
             annotationNote: note,
             forUnit: unit.unitKey)
-        // THE MANIFEST TRAVELS WITH THE UNIT. It used to be rebuilt
-        // independently on the far side of the sink, so a hand-edited label
-        // updated one copy and not the other and the two drifted apart with
-        // nothing to notice.
+        // THE MANIFEST TRAVELS WITH THE UNIT. It used to be rebuilt independently on the far side
+        // of the sink, so a hand-edited label updated one copy and not the other and the two
+        // drifted apart with nothing to notice.
         await indexSink(unit, manifests[projectID] ?? UnitIndexManifest())
     }
 

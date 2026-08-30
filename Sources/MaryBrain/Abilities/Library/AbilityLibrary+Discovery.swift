@@ -1,7 +1,11 @@
 //
 //  AbilityLibrary+Discovery.swift
+//  MaryBrain
 //
-
+//  WHAT: Discover root/bundled `.mary` definitions.
+//  IN:   AbilityLibrary.swift
+//  OUT:  candidate graphs for validation
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit

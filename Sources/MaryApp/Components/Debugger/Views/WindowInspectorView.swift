@@ -2,20 +2,9 @@
 //  WindowInspectorView.swift
 //  Mary
 //
-//  The drill-in for ONE window — the tile the user actually tapped, not the
-//  app it belongs to.
-//
-//  THE FAILURE THIS FIXES: the minimap showed two Pages tiles for one
-//  document, one of them featureless white, and tapping either opened the
-//  identical per-app perception card. `selectedWindowID` was recorded on tap
-//  and then spent on a selection fill and one branch condition — so the two
-//  tiles were, by construction, indistinguishable. Everything here is a
-//  property the sweep already had and threw away at the view boundary.
-//
-//  DOCTRINE: nothing is coalesced. A nil title renders AS a missing title,
-//  never as the app's name — that substitution is what let a ghost window
-//  wear a real window's identity. And windows are NEVER deduped: merging the
-//  duplicate tiles would hide the very thing this view exists to identify.
+//  WHAT: Drill-in for the tapped window tile (not the app).
+//  IN:   DebuggerPaneView
+//  PIN:  Nothing coalesced. Nil title stays missing. Windows are never deduped.
 //
 
 import SwiftUI
@@ -23,8 +12,7 @@ import MaryRuntime
 
 struct WindowInspectorView: View {
     let tile: WindowTile
-    /// Degraded mode enumerates APPS, not windows — there is no SCWindow
-    /// behind the tile, so frame/layer/activity are unknown rather than zero.
+    /// Degraded mode enumerates apps, not windows — no SCWindow, so frame/layer/activity unknown.
     let isDegraded: Bool
 
     var body: some View {
@@ -39,14 +27,12 @@ struct WindowInspectorView: View {
                     row("app", tile.appName)
                     row("pid", "\(tile.pid)")
                 } else {
-                    // Title FIRST and RAW: two windows of one document differ
-                    // by title before they differ by anything else.
+                    // Title first and raw: two windows of one document differ by title first.
                     row("title", tile.title ?? "— (no title reported)",
                         muted: tile.title == nil)
                     row("window id", "\(tile.id)")
                     row("pid", "\(tile.pid)")
-                    // Origin AND size, separately: identical frames on two
-                    // tiles means window tabbing, and only the origin says so.
+                    // Origin and size separately: identical frames often mean window tabbing.
                     row("origin", "x \(number(tile.frame.origin.x)), y \(number(tile.frame.origin.y))")
                     row("size", "\(number(tile.frame.width)) × \(number(tile.frame.height))")
                     row("space", spaceLine)
@@ -62,10 +48,7 @@ struct WindowInspectorView: View {
         }
     }
 
-    /// On-screen and active are DIFFERENT questions. The SCK header is
-    /// explicit that Stage Manager produces off-screen-but-active windows, so
-    /// "other Space, active" is a healthy window and "other Space, inactive"
-    /// beside a capture that drew nothing is the husk shape.
+    /// On-screen vs active are different (Stage Manager: off-screen-but-active is healthy).
     private var spaceLine: String {
         let place = tile.isOnActiveSpace ? "on the active Space" : "on another Space / hidden"
         return place + (tile.isActive ? ", active" : ", not active")

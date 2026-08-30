@@ -2,10 +2,8 @@
 //  TotemsLedgerView.swift
 //  Mary
 //
-//  The app-side write mirror: what Mary SENT versus what Totem HOLDS.
-//  Units carry the builder's deposit sentence; operations are the raw feed,
-//  newest first. The Corpus pane manages these records — this tab only asks
-//  whether they made it into the totem, so it reads and never mutates.
+//  WHAT: App-side write mirror — what Mary sent vs what Totem holds. Read-only.
+//  IN:   TotemExplorerViewModel. Corpus pane mutates these records.
 //
 
 import MaryAmbient
@@ -17,10 +15,7 @@ struct TotemsLedgerView: View {
     @Binding var selectedUnitKey: String?
 
     var body: some View {
-        // THE UNIT AND OPERATION LANES ARE NOT IN THIS CUT. They showed the
-        // code-index crawl — which files were read, what each deposit did —
-        // and that corpus is deferred. What is left is the ledger's actual
-        // subject: what Mary deposited and what she retrieved.
+        // Ledger is deposits and retrievals; unit/operation crawl lanes are out.
         VStack(alignment: .leading, spacing: .layer3) {
             SectionLabel("Ledger")
             Text("Deposits and retrievals appear here as Mary uses her memory.")

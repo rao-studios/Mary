@@ -1,8 +1,16 @@
+//
+//  ValueEnvelope.swift
+//  MaryFoundation
+//
+//  WHAT: Schema-typed payload plus provenance. Raw values stay inside the envelope.
+//  IN:   Skills / adapters → this carrier.
+//  OUT:  ValueEnvelopeValidator, route traces, receipts (`payloadDigest`).
+//
+
 import CryptoKit
 import Foundation
 
-/// Auditable origin metadata for a typed value. Parent identifiers form a
-/// lightweight data-flow graph without copying sensitive payloads into logs.
+/// Origin metadata. Parent ids form a data-flow graph without logging payloads.
 public struct ValueProvenance: Codable, Hashable, Sendable {
     public var adapterID: AdapterID?
     public var operation: String?
@@ -25,8 +33,7 @@ public struct ValueProvenance: Codable, Hashable, Sendable {
     }
 }
 
-/// The sole runtime carrier for schema-typed data. Raw values stay inside this
-/// envelope; route traces and receipts use `payloadDigest` and identifiers.
+/// Sole runtime carrier for schema-typed data.
 public struct ValueEnvelope: Codable, Hashable, Sendable, Identifiable {
     public var id: UUID
     public var typeID: ValueTypeID

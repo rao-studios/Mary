@@ -2,8 +2,9 @@
 //  AXSelectionReader+Reads.swift
 //  MaryAmbient
 //
-//  Split out of AXSelectionReader.swift (docs/DECOMPOSITION.md Wave 4)
-//  — pure relocation, no declaration changed.
+//  WHAT: Extract a selection from the AX element that changed.
+//  IN:   AXSelectionReader.swift (split)
+//  OUT:  FocusedSelectionSample
 //
 
 import AppKit
@@ -15,10 +16,9 @@ extension AXSelectionReader {
 
     // MARK: - Reads
 
-    /// Extract a selection from the element that AX says changed. This is the
-    /// shared primitive for generic capture and Pages' richer adapter; neither
-    /// caller guesses at a role or walks an arbitrary document tree to decide
-    /// what a real selection means.
+    /// Extract a selection from the element that AX says changed. This is the shared primitive
+    /// for generic capture and Pages' richer adapter; neither caller guesses at a role or walks
+    /// an arbitrary document tree to decide what a real selection means.
     public static func selectionState(
         of element: AXUIElement,
         role suppliedRole: String? = nil,

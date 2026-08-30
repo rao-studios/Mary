@@ -2,18 +2,16 @@
 //  KokoroAssets.swift
 //  MaryVoice
 //
-//  Resolves the vendored Kokoro model directory. The assets ship as SwiftPM
-//  resources of this package (git-lfs), so the normal home is Bundle.module.
-//  When the app is assembled into Mary.app the resource bundle is copied
-//  into Contents/Resources — the fallback scan covers that case.
+//  WHAT: Resolve vendored KokoroModels directory (Bundle.module, then app bundle).
+//  IN:   KokoroEngine.loadModels
+//  OUT:  models directory URL
 //
 
 import Foundation
 
 public enum KokoroAssets {
 
-    /// The bundled KokoroModels directory, or nil if the resources are missing
-    /// (e.g. a checkout without `git lfs pull`).
+    /// Bundled KokoroModels, or nil if resources are missing (no git lfs pull).
     public static func modelsDirectory() -> URL? {
         if let url = Bundle.module.url(forResource: "KokoroModels", withExtension: nil),
            looksValid(url) {

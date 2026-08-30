@@ -1,12 +1,11 @@
 //
 //  WindowCaptureService.swift
-//  Mary
+//  MaryRuntime
 //
-//  Mary's literal eyes: ScreenCaptureKit window enumeration + per-window
-//  thumbnails across ALL Spaces. Lives app-side (macOS 15, Screen-Recording-
-//  gated) — MaryBrain stays TCC-cheap and headless-safe, the same doctrine
-//  that keeps WorkspaceFocusObserver out of the probes. Captures ONLY while
-//  the Debugger pane is polling; no pane, no WindowServer traffic.
+//  WHAT: ScreenCaptureKit enumeration + per-window thumbnails across Spaces.
+//  IN:   Debugger pane polling (no pane → no WindowServer traffic)
+//  OUT:  WindowTileModel rules; maps SCWindow → WindowInfo at the boundary
+//  PIN:  App-side (macOS 15, Screen Recording). MaryBrain stays TCC-cheap.
 //
 
 import CoreGraphics
@@ -18,21 +17,12 @@ package actor WindowCaptureService {
     /// The pruned thumbnail cache — the whole memory story (~15 MB ceiling
     /// at 40 windows; closed windows drop every sweep).
     private var thumbnails: [CGWindowID: (image: CGImage, at: Date)] = [:]
-    /// What the last screenshot of each window actually did. Kept SEPARATE
-    /// from `thumbnails` because the interesting states are exactly the ones
-    /// with no image: a throw and a successful capture of a window with
-    /// nothing drawn in it used to be the same absence.
+    /// Last screenshot outcome per window. Separate from thumbnails — throw vs blank.
     private var captureStates: [CGWindowID: WindowCaptureState] = [:]
     private var requestFired = false
 
-    /// One sweep: preflight → enumerate → filter/group (pure) → refresh a
-    /// staggered batch of thumbnails → merged model. On preflight failure the
-    /// caller builds the NSWorkspace roster (NSRunningApplication is main-
-    /// thread machinery; this actor never touches AppKit).
-    ///
-    /// `uncappedGroupID` / `captureGroupIDs` carry the filter bar's selection
-    /// down to where it actually costs something. Both are defaulted so the
-    /// unfiltered sweep is unchanged.
+    /// One sweep: preflight → enumerate → filter/group → staggered thumbnails.
+    /// Preflight fail → caller builds NSWorkspace roster (this actor never touches AppKit).
     package func poll(
         visibleWindowIDs: Set<CGWindowID>,
         frontmostBundleID: String?,
@@ -74,17 +64,12 @@ package actor WindowCaptureService {
                 frame: window.frame,
                 layer: window.windowLayer,
                 isOnScreen: window.isOnScreen,
-                // The one property this boundary used to drop. Off-Space AND
-                // active is Stage Manager doing its job; off-Space, inactive
-                // and never-rendered is a husk.
+                // isActive: off-Space+active is Stage Manager; inactive+never-rendered is a husk.
                 isActive: window.isActive))
             scWindows[window.windowID] = window
         }
 
-        // NEVER filtered: the filter narrows what gets PHOTOGRAPHED, never
-        // what gets enumerated — the pane's tab bar is built out of
-        // `model.groups`, so an app that vanishes from the sweep vanishes
-        // from the bar and can never be filtered back to.
+        // Never filter enumeration — model.groups feeds the tab bar.
         let eligible = WindowTileBuilder.eligible(infos, ownPID: getpid())
         var groups = WindowTileBuilder.groups(
             eligible,
@@ -93,11 +78,7 @@ package actor WindowCaptureService {
             watchedBundlePrefixes: watchedBundlePrefixes,
             uncappedGroupID: uncappedGroupID)
 
-        // Refresh a staggered batch — scroll-visible tiles first, then the
-        // stalest. SEQUENTIAL, never parallel: one in-flight screenshot at a
-        // time keeps WindowServer pressure flat. The candidate list is where
-        // the capture scope lands: in `.filtered` the whole budget goes to
-        // the tab in view (a Pages tile refreshes several times faster).
+        // Staggered batch, sequential — one screenshot at a time. Filtered: budget on tab in view.
         let shownIDs = WindowTileBuilder.captureCandidates(groups, scopedTo: captureGroupIDs)
         let batch = WindowTileBuilder.refreshBatch(
             candidates: shownIDs,
@@ -116,10 +97,7 @@ package actor WindowCaptureService {
             config.showsCursor = false
             config.ignoreShadowsSingleWindow = true
             config.scalesToFit = true
-            // `shouldBeOpaque` stays UNSET on purpose. Setting it would paint
-            // an unrendered window's transparent surface white and destroy
-            // the only signal that says "this window has no backing store" —
-            // which is the exact question the ghost tile raised.
+            // shouldBeOpaque stays unset — transparent = never drawn, not white fill.
             do {
                 let image = try await SCScreenshotManager.captureImage(
                     contentFilter: filter, configuration: config)
@@ -128,18 +106,11 @@ package actor WindowCaptureService {
                 if state == .captured {
                     thumbnails[id] = (image, Date())
                 } else {
-                    // A featureless surface is NOT a thumbnail. Storing it
-                    // drew a blank rectangle that looked identical to a
-                    // never-photographed tile; dropping it lets the pane say
-                    // what actually happened.
+                    // Featureless surface is not a thumbnail — drop it so the pane can say so.
                     thumbnails[id] = nil
                 }
             } catch {
-                // Minimized windows and close races throw — the tile keeps
-                // its last thumbnail (age visible) or the icon card. Never a
-                // broken pane. The reason is RECORDED now instead of being
-                // bound and discarded: "it threw" and "it came back empty"
-                // are different diagnoses of a blank tile.
+                // Throw keeps last thumbnail. Record the reason — throw vs empty differ.
                 captureStates[id] = .failed(error.localizedDescription)
             }
         }
@@ -166,10 +137,7 @@ package actor WindowCaptureService {
         return MinimapModel(mode: .live, groups: groups, sweptAt: Date())
     }
 
-    /// The first-open ceremony: CGRequestScreenCaptureAccess once per app
-    /// launch — the dialog points at System Settings, the grant lands after
-    /// relaunch (banner copy says so), and asking also registers Mary in
-    /// the Screen Recording pane's list. Never nags twice.
+    /// CGRequestScreenCaptureAccess once per launch. Never nags twice.
     package func requestAccessIfNeverAsked() {
         guard !requestFired else { return }
         requestFired = true

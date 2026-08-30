@@ -2,42 +2,22 @@
 //  PluginValidator+CodeSurface.swift
 //  MaryFoundation
 //
-//  THE CODE-SURFACE DECLARATION'S BOUNDS.
-//
-//  Nothing here reads a file or touches a screen — the declaration is
-//  coordinates, so the rules that matter are cost rules and collision rules,
-//  the same two families `PluginValidator+ProseSurface` checks for its own
-//  declaration. Half of that file's rules do not apply here: there is no
-//  chord to demand a modifier for and no watch cadence to floor, because a
-//  code surface is read-only and declares neither (see
-//  `PluginCodeSurfaceSchema`'s header for why).
-//
-//  COST, because a read budget bounds how much text crosses the boundary in
-//  one call, and an ambient excerpt — were anything reading it yet — would be
-//  charged to the prompt on every turn. So the package proposes and this file
-//  bounds, at the same ceilings the prose family uses: a source file is not
-//  categorically smaller than a manuscript chapter.
-//
-//  COLLISION, because a handle prefix is a letter a person says out loud, and
-//  it mints from the SAME namespace `PluginProseSurfaceSchema.handlePrefix`
-//  does. The cross-package half of that check lives in `PluginGraphValidator`,
-//  which checks both families' prefixes together; here we can only insist
-//  this package's own prefix is well formed.
+//  WHAT: Code-surface cost and collision bounds (read-only; no chords/watch).
+//  IN:   PluginValidator.validate.
+//  OUT:  SchemaIssue. Cross-package prefixes: PluginGraphValidator.
+//  PIN:  Same read ceilings as PluginValidator+ProseSurface.
 //
 
 import Foundation
 
 public extension PluginValidator {
 
-    /// Read ceilings, at the same numbers `PluginValidator+ProseSurface`
-    /// uses — a source file earns no smaller an allowance than a manuscript
-    /// chapter.
+    /// Same read ceilings as PluginValidator+ProseSurface.
     static let maximumCodeWholeDocumentCharacters = 200_000
     static let maximumCodeRegionCharacters = 50_000
     static let maximumCodeAmbientExcerptCharacters = 2_000
 
-    /// The most editor roles worth trying before concluding the window holds
-    /// no buffer.
+    /// Max editor roles before concluding the window holds no buffer.
     static let maximumCodeEditorRoles = 4
 
     static func validateCodeSurface(
@@ -47,9 +27,7 @@ public extension PluginValidator {
     ) {
         let path = "\(root).codeSurface"
 
-        // ONE UPPER-CASE LETTER, for the same reason
-        // `PluginValidator+ProseSurface` insists on one: a spoken handle like
-        // "[C2]" stays unambiguous only if the prefix is exactly this shape.
+        // One upper-case letter. Same shape as +ProseSurface.
         let prefix = surface.handlePrefix
         if prefix.count != 1
             || !(prefix.unicodeScalars.first.map { CharacterSet.uppercaseLetters.contains($0) } ?? false) {
@@ -59,9 +37,7 @@ public extension PluginValidator {
                 "A handle prefix is exactly one upper-case letter, so a spoken handle stays unambiguous.")
         }
 
-        // AT LEAST ONE ROLE — an empty list is a surface that can never be
-        // found, which would otherwise fail later, at read time, as "no
-        // buffer open" rather than here as a malformed package.
+        // At least one role — empty would fail later as "no buffer open".
         if surface.editorRoles.isEmpty {
             error(
                 "missing-code-editor-role",
@@ -82,9 +58,7 @@ public extension PluginValidator {
                 "\(path).editorRoles",
                 "Editor role \(duplicate.rawValue) appears more than once.")
         }
-        // ROLES THAT HOLD TEXT. Every other role in the vocabulary describes
-        // a control, and descending to one would find a button where a
-        // buffer was promised.
+        // Text-holding roles only.
         for (index, role) in surface.editorRoles.enumerated()
         where !codeCapableRoles.contains(role) {
             error(
@@ -111,10 +85,7 @@ public extension PluginValidator {
             error: error)
     }
 
-    /// The Accessibility roles that can actually hold editable text — the
-    /// same set `PluginValidator+ProseSurface.proseCapableRoles` names,
-    /// because the underlying question ("does this role hold text at all")
-    /// does not change between the two families.
+    /// Same text-holding roles as PluginValidator+ProseSurface.proseCapableRoles.
     static var codeCapableRoles: Set<PluginAccessibilityRole> {
         [.textArea, .textField]
     }

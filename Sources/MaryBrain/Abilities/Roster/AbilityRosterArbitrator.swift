@@ -1,12 +1,16 @@
+//
+//  AbilityRosterArbitrator.swift
+//  MaryBrain
+//
+//  WHAT: Closed roster stage — which Skills are callable this turn.
+//  IN:   AbilityRuntimeSnapshot + route + safety gate
+//  OUT:  AbilityRosterArbitration (selectedKeys + trace)
+//  PIN:  selectedKeys is the single authority for schema, counts, and dispatch.
+//
 import MaryFoundation
 import Foundation
 
-/// Stable identity for one Skill in an activated package. `SkillID` values are
-/// conventionally namespaced, but package identity remains part of router state
-/// so two independently imported packages can never suppress one another by
-/// accidentally choosing the same string.
-/// Result of the closed roster stage. Callers use the selected key set as the
-/// single authority for schema projection, schema counts, and direct dispatch.
+/// Stable identity for one Skill in an activated package.
 struct AbilityRosterArbitration: Sendable {
     var selectedKeys: Set<AbilityRosterSkillKey>
     var trace: AbilityRosterTrace
@@ -61,10 +65,7 @@ enum AbilityRosterArbitrator {
         var key: AbilityRosterSkillKey { AbilityRosterSkillKey(runtime) }
     }
 
-    /// `baseFailure` is Mary's complete pre-arbitration safety gate. The
-    /// arbitrator can only remove candidates from that safe set; it can never
-    /// create adapter availability, permission, confirmation, Interaction
-    /// authority, or workflow safety that the runtime did not already prove.
+    /// `baseFailure` is Mary's complete pre-arbitration safety gate.
     static func arbitrate(
         skills: [AbilityRuntimeSkill],
         context: AbilityRoutingContext,
@@ -96,44 +97,7 @@ enum AbilityRosterArbitrator {
             }
         }
 
-        // Ability-level conflict groups operate across packages. This is the
-        // intentional seam for choosing Writing vs Coding vs another imported
-        // Ability — PEER DISCIPLINES, when a turn is ambiguous about which
-        // craft it is. An explicitly selected Ability may retain a routed
-        // support Ability, but support never bypasses that Ability's own base
-        // policy.
-        //
-        // AN APPLICATION ABILITY EXTENDS A DISCIPLINE; IT DOES NOT CONTEST IT.
-        //
-        // THE FAILURE THIS FIXES, measured live in a taught Scrivener: both
-        // `writing.mary` and `scrivener.mary` declared
-        // `conflictGroup: "ability"`, so they entered the same winner-take-all
-        // election — and the arithmetic made it unwinnable for both at once.
-        // Writing's `.intent` predicate scores 100, Scrivener's
-        // `.namedApplication` scores 70, so on a compose turn Writing won and
-        // ALL EIGHT of Scrivener's own verbs were dropped as `.inactiveAbility`;
-        // on any other turn Writing's predicate failed, Scrivener won, and the
-        // support closure below refused to re-admit Writing because it needs a
-        // base-eligible Skill — so `type_at_cursor` came back "was not offered
-        // in this turn's Skill roster — it does not match its Ability-level
-        // routing policy". Exactly one half of the manuscript vocabulary was
-        // reachable per turn, always.
-        //
-        // The package said "I extend Writing" three times — `paradigm:
-        // applicationExpertise`, a non-optional dependency on `writing`, and
-        // `defaultSupportingAbilities: ["writing"]` — and "I compete with
-        // Writing" once, and the one won. `AbilityParadigm`'s own header is
-        // unambiguous: "The two compose; they are not alternatives", and "An
-        // application Ability extends a discipline rather than replacing it."
-        //
-        // So an `applicationExpertise` Ability is admitted on its OWN base
-        // eligibility (the `members.contains` guard below, unchanged) and
-        // brings its declared supporting Abilities. It never displaces a
-        // discipline and can never be displaced by one. Note this is not a
-        // Scrivener repair: `design`/`sketch` and `browsing`/`chrome` compose
-        // today only because their predicate vocabularies happen to SCORE
-        // IDENTICALLY (70 vs 70) and fall through the tie clause — an accident
-        // that the next package to gate on `.intent` would have broken too.
+        // Ability-level conflict groups operate across packages.
         var activeAbilities = Set<AbilityKey>()
         var groupedAbilities: [String: [AbilityKey]] = [:]
         for abilityKey in byAbility.keys.sorted() {
@@ -228,10 +192,7 @@ enum AbilityRosterArbitrator {
                 && failures[AbilityRosterSkillKey($0)] == nil
         }
 
-        // A Skill named as a fallback is standby-only. It becomes a candidate
-        // exactly when an unavailable primary in the same package and Ability
-        // reaches it in declaration order. If any available primary owns that
-        // fallback, it remains hidden so the provider never receives both.
+        // A Skill named as a fallback is standby-only.
         let allFallbackTargets = Set(ordered.flatMap { owner in
             owner.skill.routing.fallbacks.compactMap { fallbackID in
                 ordered.first(where: {
@@ -337,10 +298,7 @@ enum AbilityRosterArbitrator {
                     : "is a standby fallback while its primary is eligible")
         }
 
-        // Skill conflict groups are deliberately package/Ability scoped. An
-        // imported package cannot suppress a separate package merely by
-        // guessing its group string. Cross-Ability selection belongs to the
-        // Ability-level group handled above.
+        // Skill conflict groups are deliberately package/Ability scoped. An imported package cannot suppress a separate package merely by guessing its group string.
         var selected = Set<AbilityRosterSkillKey>()
         let candidates = activeCandidates.values.sorted { stableOrder($0.runtime, $1.runtime) }
         let grouped = Dictionary(grouping: candidates) { candidate -> ConflictKey? in

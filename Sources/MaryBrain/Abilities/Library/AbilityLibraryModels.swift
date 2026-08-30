@@ -2,10 +2,10 @@
 //  AbilityLibraryModels.swift
 //  MaryBrain
 //
-//  Split out of AbilityLibrary.swift (docs/DECOMPOSITION.md Wave 2) —
-//  pure relocation, no declaration changed.
+//  WHAT: Model types for AbilityLibrary.
+//  IN:   AbilityLibrary.swift (sibling split)
+//  OUT:  records / validation / overlay types
 //
-
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -44,11 +44,7 @@ public struct AbilityLibraryReloadReport: Sendable {
     }
 }
 
-/// An optimistic editing lease created by Ability Studio. The draft may be
-/// edited freely, but saving still proves that both the selected source and
-/// the writable destination are exactly as they were when editing began.
-/// Immutable bundled/source/signed packages target a separate Application
-/// Support override, so their original bytes are never rewritten.
+/// An optimistic editing lease created by Ability Studio.
 public struct AbilityPackageEditSession: Sendable {
     public let packageID: PackageID
     public let draftJSON: String

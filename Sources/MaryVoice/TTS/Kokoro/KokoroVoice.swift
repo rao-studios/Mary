@@ -2,7 +2,9 @@
 //  KokoroVoice.swift
 //  MaryVoice
 //
-//  Faithful port of SeerTTS/KokoroTTSDemo.
+//  WHAT: Kokoro voice style embedding from JSON, keyed by phoneme count.
+//  IN:   KokoroEngine.loadVoice
+//  OUT:  256-dim vector for synthesis
 //
 
 import Foundation
@@ -10,13 +12,8 @@ import Accelerate
 
 // MARK: - Voice
 
-/// Kokoro voice style embedding loaded from a JSON file.
-///
-/// The voice JSON is keyed by phoneme count (e.g. `{"1": [...], "2": [...], ..., "510": [...]}`).
-/// The correct embedding for a given synthesis call is selected by the number of input tokens
-/// (BOS + phonemes + EOS, before zero-padding). This matches FluidAudio's approach exactly.
-///
-/// Note: embeddings are used as-is without L2 normalization — the voice files are pre-conditioned.
+/// Kokoro voice style embedding. JSON keyed by phoneme count.
+/// Lookup matches FluidAudio. PIN: embeddings used as-is (pre-conditioned, no L2).
 final class KokoroVoice {
     let name: String
     private let json: Any
@@ -37,13 +34,8 @@ final class KokoroVoice {
         return KokoroVoice(name: name, json: json)
     }
 
-    /// Return the 256-dim style vector for the given phoneme count.
-    ///
-    /// Lookup priority (mirrors FluidAudio's `parseVoiceEmbeddingVector`):
-    ///   1. Direct flat array
-    ///   2. Dict key `"embedding"`
-    ///   3. Dict key matching `voiceName`
-    ///   4. Numeric dict key — exact match, then closest lower, then any
+    /// 256-dim style vector for the given phoneme count.
+    /// Lookup: flat array, then "embedding", then voiceName, then numeric keys.
     func embedding(for phonemeCount: Int) -> [Float]? {
         parseVector(from: json, phonemeCount: phonemeCount)
     }
@@ -58,7 +50,7 @@ final class KokoroVoice {
         if let embed = dict["embedding"], let v = asFloatArray(embed) { return v }
         if let voiceSpecific = dict[name], let v = asFloatArray(voiceSpecific) { return v }
 
-        // Numeric keys — exact match, then closest lower, then any
+        // Numeric keys — exact, then closest lower, then any
         var candidates: [(Int, [Float])] = []
         for (key, value) in dict {
             guard let intKey = Int(key), let v = asFloatArray(value) else { continue }

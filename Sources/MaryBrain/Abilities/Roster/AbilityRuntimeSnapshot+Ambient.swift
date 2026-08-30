@@ -1,15 +1,12 @@
 //
 //  AbilityRuntimeSnapshot+Ambient.swift
+//  MaryBrain
 //
-//  The frozen registry, seen through the two-member window the ambient layer
-//  actually needs.
+//  WHAT: Frozen registry through the two-member window MaryAmbient needs.
+//  IN:   AbilityRuntimeSnapshot
+//  OUT:  capability-index install
+//  PIN:  MaryAmbient must not name AbilityRuntimeSnapshot.
 //
-//  MaryAmbient must not name AbilityRuntimeSnapshot — routing an utterance
-//  needs one fact from the capability graph, not the graph. This is where the
-//  real thing satisfies that window, and where the provider is installed so a
-//  caller that hands the engine no index still gets the live one.
-//
-
 import MaryAmbient
 import Foundation
 

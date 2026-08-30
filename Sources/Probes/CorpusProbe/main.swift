@@ -2,16 +2,8 @@
 //  main.swift
 //  CorpusProbe — `mary-corpus-probe`
 //
-//  THE JOIN THE SUITE CANNOT MAKE: does a REAL editor, showing a REAL project,
-//  produce a crawl and a style reading through the SHIPPED declaration?
-//
-//  Every part is unit-tested against fixtures. What no fixture can answer is
-//  whether the accessibility tree in front of us says what the observer thinks
-//  it says — the plan assumed `AXDocument` carried the active file and it
-//  carries the project root instead, which is exactly the kind of thing only a
-//  live read finds.
-//
-//    mary-corpus-probe
+//  WHAT: Live editor + real project through the shipped declaration (join the suite cannot make).
+//  OUT:  CLI: mary-corpus-probe
 //
 
 import AppKit
@@ -35,34 +27,25 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
     if !passed { failures += 1 }
 }
 
-// THE LIVE BUFFER/SELECTION LANE — a distinct question from everything below
-// (the live in-memory buffer, not a disk read), checked FIRST and by its own
-// unique flag so it can never be shadowed by `ProjectProbe.shouldRun`'s
-// broader match on the bare token "project".
+// Live buffer/selection lane. Own flag so ProjectProbe's "project" token cannot shadow it.
 if CodeSurfaceProbe.shouldRun(CommandLine.arguments) {
     await CodeSurfaceProbe.run(CommandLine.arguments)
     exit(failures == 0 ? 0 : 1)
 }
 
-// THE WRITE-SIDE SIBLING — its own unique flag, same reasoning as
-// `CodeSurfaceProbe` above, checked right after it so the two live beside
-// each other in both files.
+// Write-side sibling. Own flag, checked immediately after CodeSurfaceProbe.
 if CodeSurfaceWriteProbe.shouldRun(CommandLine.arguments) {
     await CodeSurfaceWriteProbe.run(CommandLine.arguments)
     exit(failures == 0 ? 0 : 1)
 }
 
-// THE FOURTH-CHANNEL PERCEPTION LANE — its own unique flag, same reasoning
-// as `CodeSurfaceProbe` above: it must never be shadowed by `ProjectProbe
-// .shouldRun`'s broader match on the bare token "project".
+// Fourth-channel perception. Own flag — must not be shadowed by ProjectProbe.
 if ScrivenerPerceptionProbe.shouldRun(CommandLine.arguments) {
     await ScrivenerPerceptionProbe.run(CommandLine.arguments)
     exit(failures == 0 ? 0 : 1)
 }
 
-// THE EXPLICIT-APP RUNG, on its own — see `ScrivenerPerceptionProbe`'s
-// header. Checked right after the flag above so the two live beside each
-// other, same as `CodeSurfaceProbe`/`CodeSurfaceWriteProbe`.
+// Explicit-app rung. Own flag, beside the perception lane above.
 if ScrivenerPerceptionProbe.shouldRunExplicitApp(CommandLine.arguments) {
     await ScrivenerPerceptionProbe.runExplicitApp(CommandLine.arguments)
     exit(failures == 0 ? 0 : 1)
@@ -126,12 +109,7 @@ CorpusSupport.shared.reconcile(registrations)
 check(!registrations.isEmpty, "a package declares a corpus",
       registrations.map(\.applicationID).joined(separator: ", "))
 
-// THE CRAWL NEEDS DECLARED UNITS, and not every corpus has them. A corpus
-// that declares a `structure` is a PROJECT — read through its manifest by
-// `mary-corpus-probe project` — and may name no file extension at all. Taking
-// the first registration was right while one existed; with two it silently
-// measured the wrong one, reporting "units:" empty and then failing to settle
-// a file that was never going to be there.
+// Crawl registrations that declare include extensions, not project-only corpora.
 let crawlable = registrations.filter { !$0.schema.include.isEmpty }
 let wantedApp = CommandLine.arguments.firstIndex(of: "--app").flatMap { index -> String? in
     index + 1 < CommandLine.arguments.count ? CommandLine.arguments[index + 1] : nil
@@ -156,10 +134,7 @@ guard let pid = CorpusSupport.pid(of: registration) else {
     print("\n\(registration.displayName) isn't running. Open it with a project and try again.")
     exit(1)
 }
-// `--file <project-relative>` names a unit directly, for verifying the crawl
-// without rearranging somebody's editor. The AX read still runs and still
-// reports what it found: the override replaces only the UNIT, never the root,
-// so what is being tested downstream is a real project resolved a real way.
+// `--file` overrides the unit only; AX still reads a real project root.
 let arguments = Array(CommandLine.arguments.dropFirst())
 let override = arguments.firstIndex(of: "--file").flatMap { index -> String? in
     index + 1 < arguments.count ? arguments[index + 1] : nil

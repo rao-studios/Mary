@@ -2,11 +2,8 @@
 //  ContributionInspectorSheet.swift
 //  Mary
 //
-//  Tap a brushstroke → this sheet: what the totem contributed to that span.
-//  Royalty and influence come from the contribution itself; document names
-//  and group labels load from Totem over Conduit; content previews are a
-//  HEURISTIC — Totem has no content-by-id fetch, so we search with the
-//  credited span's text and match hits back to the owner's documents.
+//  WHAT: Tap a brushstroke → totem contribution for that span.
+//  PIN:  Content preview is a search heuristic (Totem has no content-by-id).
 //
 
 import MaryBrain

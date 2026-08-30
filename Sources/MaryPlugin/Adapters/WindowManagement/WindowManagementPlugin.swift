@@ -2,8 +2,10 @@
 //  WindowManagementPlugin.swift
 //  MaryBrain
 //
-//  Runtime bindings for the window-management ability. Public invocation
-//  names stay snake_case; the portable adapter identity stays hyphenated.
+//  WHAT: Runtime Skill bindings for window management.
+//  IN:   WindowManagementService
+//  OUT:  list / raise / raise-all / restore / full-screen
+//  PIN:  Invocation names snake_case; adapter identity hyphenated.
 //
 
 import Foundation
@@ -47,10 +49,7 @@ public struct WindowManagementPlugin: MaryAdapter {
             capabilities: [CapabilityID],
             input: ValueTypeID,
             output: ValueTypeID,
-            // ONE CLASS, GENERIC. A second entry named one application's windows,
-        // so that application's window Skills were eligible by default and
-        // every other application's were not. A place mints its own
-        // `<id>-window` class through the turn classifier when it leads.
+            // PIN: one generic class. A place mints `<id>-window` when it leads.
         targets: [String] = ["macos-application-window"]
         ) -> InstalledAdapterBinding {
             let enforced = Set(capabilities.flatMap { guarantees[$0] ?? [] })
@@ -167,15 +166,7 @@ public struct WindowManagementPlugin: MaryAdapter {
             preparesSurface: true)
     }
 
-    /// FULL SCREEN FOR THE WINDOW, which is not the same request as full
-    /// screen for a VIDEO.
-    ///
-    /// "Make it full screen" over a playing video means the player's own
-    /// control, and that is `act_on_screen`'s job — it presses what the page
-    /// offers. This is the other half of the same phrase: the window itself,
-    /// in any application, for the many times nothing on screen offers it.
-    /// Neither is a fallback for the other; they answer different "it"s, and
-    /// the descriptions say which.
+    /// Full screen for the window — not a video's on-page control (`act_on_screen`).
     private var makeWindowFullScreen: SkillBinding {
         SkillBinding(
             name: "make_window_full_screen",
@@ -224,9 +215,7 @@ public struct WindowManagementPlugin: MaryAdapter {
             aliases: Self.windowAliases)
     }
 
-    /// The same reference, optional. "Make it full screen" names no window,
-    /// and the service reads an omitted one as the frontmost — the only
-    /// honest meaning of "it".
+    /// Same reference, optional. Omitted = frontmost — the honest meaning of "it".
     private var optionalWindowParameter: ModelSkillSchema.Parameter {
         .init(
             name: "window", type: "string",
@@ -235,22 +224,12 @@ public struct WindowManagementPlugin: MaryAdapter {
             aliases: Self.windowAliases)
     }
 
-    /// WHAT A MODEL CALLS A WINDOW WHEN IT DOES NOT SAY "WINDOW".
-    ///
-    /// `title` is the live one: asked to raise "Untitled 47", the model sent
-    /// `{"app":"TextEdit","title":"Untitled 47"}` — the natural word for the
-    /// only thing that distinguishes one untitled document from another. The
-    /// rest are the same substitution in the other directions this Skill's own
-    /// description invites ("exact window title", "document").
-    ///
-    /// Shared by both spellings of the parameter so the required and optional
-    /// forms can never drift apart on what they will accept.
+    /// Names a model writes instead of `window`. Shared by required and optional forms.
     private static let windowAliases = [
         "title", "window_title", "windowtitle", "window_name", "name", "document",
     ]
 
-    /// The same, for the application half — the two spellings AppKit itself
-    /// uses either side of `NSRunningApplication`.
+    /// AppKit spellings either side of NSRunningApplication.
     private static let applicationAliases = [
         "application", "app_name", "application_name", "bundle_id", "bundle_identifier",
     ]

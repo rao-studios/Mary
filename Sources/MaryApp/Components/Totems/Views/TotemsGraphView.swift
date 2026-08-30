@@ -2,15 +2,8 @@
 //  TotemsGraphView.swift
 //  Mary
 //
-//  The entity graph, asked on demand: seed + kind + hops + documents in,
-//  entities, edges and cited docs out — plus the repair bench. EVERY repair
-//  is irreversible or expensive, so every one of them funnels through the
-//  single confirmation dialog below; nothing in this file mutates on a bare
-//  button.
-//
-//  The seed TextField stages in local @State on purpose: the Center's
-//  @Store debounces 200 ms per keystroke, which blurs typing. It lands in
-//  the bound Center state only on submit.
+//  WHAT: Entity graph (seed + kind + hops) plus repair bench.
+//  PIN:  Every repair through one confirmation. Seed TextField is local @State (submit).
 //
 
 import MaryTotem

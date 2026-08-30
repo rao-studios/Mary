@@ -2,12 +2,9 @@
 //  PerceptionCard.swift
 //  MaryRuntime
 //
-//  ONE WATCHED PLACE AS THE DEBUGGER SEES IT — the join key between the
-//  window tiles (an SCWindow's owning bundle id) and Mary's parsed truth.
-//
-//  Cards are the SINGLE source for both the tile captions and the inspector
-//  detail. Pure data, built by the snapshot view model, serialized by the
-//  report.
+//  WHAT: One watched place as the debugger sees it.
+//  IN:   snapshot view model (tiles join on SCWindow bundle id)
+//  OUT:  tile captions + inspector detail; PerceptionReport serializes these
 //
 
 import Foundation
@@ -16,18 +13,7 @@ import MaryAmbient
 import MaryBrain
 import MaryFoundation
 
-/// The subject of one card.
-///
-/// IT USED TO BE AN ENUM with four compiled cases and one open one, and the
-/// comment above it already knew that was wrong: "the kinds stay closed and
-/// the instances open". In Mary there are no compiled cases left to keep
-/// closed — every place is a taught application — so the type is what it was
-/// always describing: a place, with the debugger's questions on it.
-///
-/// A PANE THAT SILENTLY OMITS A WATCHED APPLICATION is the pane failing at the
-/// one job it has, which is why `current()` reads the live roster rather than
-/// an `allCases` frozen at compile time: which cards exist changes whenever a
-/// package is imported or removed.
+/// Subject of one card — a taught place. `current()` reads the live roster.
 package struct PerceptionWorld: Hashable, Identifiable {
 
     package let place: AmbientPlace
@@ -58,10 +44,7 @@ package struct PerceptionWorld: Hashable, Identifiable {
 
     package var hasLiveObserver: Bool { place.hasEyes }
 
-    /// EVERY PLACE THE ROSTER KNOWS, in a stable order.
-    ///
-    /// Sorted by token rather than by a hand-written list, because a debugger
-    /// whose rows move between launches is a debugger nobody trusts.
+    /// Every place the roster knows, sorted by token (stable across launches).
     package static func current() -> [PerceptionWorld] {
         AmbientApplicationIndexProvider.current.all
             .map { PerceptionWorld($0.place) }
@@ -88,13 +71,7 @@ package struct PerceptionWorld: Hashable, Identifiable {
 }
 
 extension PinnedWorld {
-    /// THE canonical pin-string mapping — the debugger's badge mirror and the
-    /// tile badge both read this, and nothing else may spell it.
-    ///
-    /// The logical application id IS the roster's owner vocabulary, so there
-    /// is no second spelling to keep in step. Its predecessor had three arms
-    /// for two compiled worlds and one open one, which is how a badge came to
-    /// disagree with the pin it mirrored.
+    /// Canonical pin-string. Debugger badge and tile badge both read this.
     package var badgeKey: String { applicationID }
 
     /// The report's pin token: `writing(quill)`, `coding(forge)`.
@@ -105,16 +82,11 @@ extension PinnedWorld {
 
 package struct PerceptionCard: Identifiable, Equatable {
 
-    /// Why (or how far) Mary can't see — precedence pinned in the builder:
-    /// appNotRunning → watcherInactive → automationDenied → pollFailure →
-    /// accessibilityLimited. Running gates denied because deniedBox survives
-    /// an app quit; a "denied" caption on a quit app would be a lie.
+    /// Why Mary can't see. Precedence: appNotRunning → watcherInactive →
+    /// automationDenied → pollFailure → accessibilityLimited.
+    /// Running gates denied (deniedBox survives quit).
     package enum Blindness: Equatable {
-        /// No watcher exists. TextEdit ships this way deliberately: its
-        /// recipes read notes on demand and its writer reaches a background
-        /// window without one, so there is nothing to poll — but the world IS
-        /// registered, so the pane owes it a card that says so rather than
-        /// omitting it.
+        /// No watcher. World is still registered — pane owes a card, not omission.
         case noWatcher
         /// Plugin disabled → the poll loop isn't running.
         case watcherInactive
@@ -177,27 +149,8 @@ package struct PerceptionCard: Identifiable, Equatable {
     /// Tile overlay ∩ inspector detail: tiles show the first 2–3, the
     /// inspector shows all.
     package var fields: [Field]
-    /// PER-WINDOW FIELDS, for a world that has more than one window open —
-    /// keyed by `CGWindowID`, which is the same integer the tiles carry as
-    /// `WindowTile.id`.
-    ///
-    /// THE BUG THIS FIXES, reported from the pane: with thirteen TextEdit
-    /// notes open, every one of the thirteen tiles was captioned with the
-    /// FRONT note's name and size, because a caption was re-derived from the
-    /// world's card and a world has one card. Three visibly different notes
-    /// read "mary-raise-a.txt / 16 characters" underneath all three. The
-    /// assumption was never written down because until TextEdit no world could
-    /// break it: one document per app made "the world's card" and "this
-    /// window's card" the same sentence.
-    ///
-    /// EXACT, NOT MATCHED BY TITLE. Measured: TextEdit's AppleScript
-    /// `id of window` and Core Graphics' `kCGWindowNumber` are the SAME
-    /// integer (109 = "Untitled 18", and so on for all eleven). So the join
-    /// needs no title comparison — which is fortunate, because eleven notes
-    /// called `Untitled N` would defeat one.
-    ///
-    /// Empty for every single-window world, and `fields(forWindow:)` then
-    /// answers exactly what `fields` always did.
+    /// Per-window fields keyed by CGWindowID (= WindowTile.id). Join is exact
+    /// id, not title. Empty for single-window worlds → fields(forWindow:) == fields.
     var windowFields: [Int: [Field]] = [:]
 
     /// The fields describing ONE window: its own when the world published
@@ -219,15 +172,8 @@ package struct PerceptionCard: Identifiable, Equatable {
     /// "leads — full context" / "ambient line only" / "absent this turn" —
     /// the live mirror of WorkspaceFocusArbiter routing.
     package var routing: String
-    /// WHERE this world's contribution actually went this turn: "voice +
-    /// abilities" / "abilities only" / "voice only" / "neither". `routing` answers
-    /// how much of it the arbiter carried; this answers which LANES received
-    /// it — and in a dual-lane architecture that is the diagnostic the pane
-    /// was missing. The sync bug (Mary narrating a deleted paragraph from
-    /// retrieval while her eyes were on the live document) reported healthy
-    /// here for weeks: perception SUCCEEDED and Pages read "leads — full
-    /// context", because nothing on the card ever said the speaking lane
-    /// never got it. This row would have read "abilities only".
+    /// Which lanes received this contribution: voice+abilities / abilities only /
+    /// voice only / neither. `routing` is how much; this is who got it.
     package var delivery: String
 
     package var id: String { world.rawValue }
@@ -272,65 +218,25 @@ package struct FocusSummary: Equatable {
     package var ambient: WorkspaceFocus?
     /// effectiveFocus() — what the next turn will use.
     package var effective: WorkspaceFocus?
-    /// WHERE the writing signal came from.
-    ///
-    /// One field, not two. Its predecessor kept this beside a compiled
-    /// `writingApp` projection that could not name a taught application — so
-    /// a manuscript session in one lit up whichever compiled world the enum
-    /// defaulted to, and the pane showed a card claiming the focus for a
-    /// document nobody was in. Nil means no writing signal at all, which is
-    /// a real state and used to be unrepresentable.
+    /// Where the writing signal came from. Nil = none (a real state).
     package var writingPlace: AmbientPlace?
     package var pinned: PinnedWorld?
     /// Inferred, not read: effectiveFocus() = override ?? pin ?? ambient, so
     /// any disagreement with the tier below IS an override. Almost always
     /// false — the pane is open between turns, when overrides are cleared.
     package var overrideActive: Bool
-    /// Whether a WRITING app has earned the lead, or is merely open. Mirrors
-    /// `WorkspaceFocusTracker.writingInPlay()`, which the arbiter now gates
-    /// the writing lead on — shown because "Pages is running, and it is not
-    /// leading" is otherwise indistinguishable on this pane from a bug.
+    /// Writing app earned the lead vs merely open. Mirrors writingInPlay().
     package var writingInPlay: Bool = true
-    /// Where the last thing Mary READ actually went. The per-card `delivery`
-    /// row describes a WATCHER's contribution; a Skill result had no row
-    /// anywhere, which is how a successful `pages_body` read reaching nobody
-    /// looked perfectly healthy on this pane while the voice denied the
-    /// passage existed. Nil = no read since launch.
+    /// Where the last Skill read went. Nil = none since launch.
     package var readDelivery: ReadDelivery?
-    /// WHAT SHE IS STILL HOLDING WITH NO WINDOW BEHIND IT — a straight query
-    /// of the ambient context store, not a re-derivation. Two kinds of fact
-    /// land here, and the second would otherwise be invisible on this pane:
-    ///
-    /// - READS that survive the turn that fetched them, each with its bounds
-    ///   and its age.
-    /// - EYELESS facts of every sort — a calendar read, a reminders digest.
-    ///   The cards join facts to worlds through `PerceptionWorld`, which only
-    ///   knows the three watched apps, so a calendar fact joins NO card. It
-    ///   rides both prompts; showing it nowhere would be exactly the
-    ///   prompt/pane drift the store was built to end.
-    ///
-    /// Empty = the store holds neither (nothing fetched, nothing standing, or
-    /// everything aged out).
+    /// Held facts with no window — store query. Reads that survived + eyeless
+    /// (calendar, reminders). Empty = store holds neither.
     package var heldReads: [AmbientFact] = []
-    /// Which branch of the user's three-way budget rule decided the ORDER the
-    /// prompt rendered those facts in. Shown beside them because "relevance"
-    /// vs "focused-world priority" is the difference between two very
-    /// different prompts built from the same store.
+    /// Which budget-rule branch ordered those facts (relevance vs focused-world).
     package var rankingMode: AmbientRankingMode = .relevance
 
-    /// Which card the effective focus lights up — `.writing` belongs to
-    /// exactly one place, never two.
-    ///
-    /// ASKED OF THE PLACE, not of the compiled `writingApp`: that enum cannot
-    /// name a taught application, so a manuscript session in one used to light
-    /// up whichever compiled world the enum defaulted to — a card claiming the
-    /// focus for a document nobody was in.
-    /// Whether this card is the place the next turn will use.
-    ///
-    /// ASKED OF THE PLACE'S OWN DISCIPLINE. The version this replaces compared
-    /// the coding side against one compiled world by name, so an IDE the user
-    /// taught Mary could never be the effective card no matter what it
-    /// declared.
+    /// Which card effective focus lights — `.writing` is one place.
+    /// Asked of the place's own discipline, not a compiled world name.
     package func isEffective(_ world: PerceptionWorld) -> Bool {
         guard let effective else { return false }
         switch effective {

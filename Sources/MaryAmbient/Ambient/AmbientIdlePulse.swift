@@ -2,9 +2,8 @@
 //  AmbientIdlePulse.swift
 //  MaryAmbient
 //
-//  A snapshot of the quiet world as a BehavioralInput, plus a discipline
-//  hint. Runtime is the only consumer that infers and dispatches. This
-//  layer does not import Totem or Fleet.
+//  WHAT: Snapshot of the quiet world as a BehavioralInput, plus a discipline hint.
+//  OUT:  Runtime (infer and dispatch). This layer does not import Totem or Fleet.
 //
 
 import Foundation

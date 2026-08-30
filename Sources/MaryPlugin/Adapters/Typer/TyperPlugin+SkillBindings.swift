@@ -1,5 +1,10 @@
 //
 //  TyperPlugin+SkillBindings.swift
+//  MaryBrain
+//
+//  WHAT: Writing Ability Skill bindings (type, resume, dictate, passages).
+//  IN:   TyperPlugin.swift (sibling split)
+//  OUT:  performTyping / DictationSession / PassageRecipes
 //
 
 import AppKit
@@ -15,11 +20,7 @@ extension TyperPlugin {
                 description: "Type prose at the user's cursor in any ordinary text surface. A fresh highlight returns to its source. Never type code or terminal commands.",
                 parameters: [
                     .init(name: "text", type: "string", description: "The prose to type, exactly as it should appear.", required: true),
-                    // NO APP LIST. Naming three applications here was a
-                    // capability claim about software the user may not have,
-                    // and it taught the model that anything unlisted was not
-                    // an option. The parameter takes whatever the roster
-                    // knows, which is the actual rule.
+                    // PIN: no closed app list — roster is the rule.
                     .init(name: "app", type: "string", description: "The application's NAME, never a document title. Omit to type into the just-opened document, or into the surface in front of the user.",
                           required: false),
                     .init(name: "mode", type: "string", description: "compose for new prose, or replace_selection only when the user has highlighted the words to replace.",
@@ -34,10 +35,7 @@ extension TyperPlugin {
                         requested: args["app"],
                         preferredApplicationID: AmbientContextStore.shared
                             .route()?.routedAttention?.applicationID) else {
-                        // A browser page is deliberately unresolvable here
-                        // (SelectionSurfacePolicy) — the web writer owns it.
-                        // Steer instead of refusing generically, so the
-                        // model's next call is the right verb.
+                        // Browser pages are unresolvable here (SelectionSurfacePolicy) — web writer owns them.
                         if let front = NSWorkspace.shared.frontmostApplication?
                             .bundleIdentifier,
                            AmbientPlaceResolver.isBrowser(bundleID: front) {
@@ -55,12 +53,9 @@ extension TyperPlugin {
                             ok: false,
                             summary: "Use compose for new prose or replace_selection for highlighted text.")
                     }
-                    // A fresh passage supersedes any paused one — newest wins.
+                    // Fresh passage supersedes any paused one.
                     TypingSession.shared.clear()
-                    // Explicit = the user (or a staging binding) named where
-                    // this goes; implicit = resolution fell through to
-                    // attention/frontmost, where the Xcode focus-steal gate
-                    // still applies.
+                    // Explicit = named/staged; implicit = attention/frontmost (focus-steal gate still applies).
                     let explicit = args["app"] != nil
                         || StagedWritingSurface.shared.fresh() != nil
                     return await Self.performTyping(
@@ -69,15 +64,7 @@ extension TyperPlugin {
                 },
                 spokenFailureHint: "check Accessibility in my Settings",
                 stage: true,
-                // THE HANDLES THIS ORPHANED. Typing at the caret touches no
-                // `PassageRegistry`, no `ContentUndoStore` and no ambient fact
-                // — it is the only write in the tree that skips the invariant
-                // the passage runner maintains. Live: she typed at the cursor,
-                // then the follow-up replace on a handle she was still holding
-                // said "it isn't in the document any more," because her own
-                // keystrokes had landed inside the stored words. The flag is
-                // all this plugin knows about passages; the registry does the
-                // rest around the call.
+                // Caret write skips PassageRegistry — unroutedWrite so handles re-anchor.
                 unroutedWrite: true
             ),
 
@@ -93,8 +80,7 @@ extension TyperPlugin {
                 },
                 spokenFailureHint: "check Accessibility in my Settings",
                 stage: true,
-                // The remainder of the same passage, typed at the same caret —
-                // the same unrouted write with a pause in the middle of it.
+                // Same unrouted caret write, remainder of the paused passage.
                 unroutedWrite: true
             ),
             SkillBinding(
@@ -121,8 +107,7 @@ extension TyperPlugin {
                 },
                 spokenFailureHint: "check Accessibility in my Settings",
                 stage: true,
-                // The session's spans are unrouted writes at the user's own
-                // caret, exactly as `type_at_cursor` is.
+                // Session spans are unrouted caret writes, like type_at_cursor.
                 unroutedWrite: true
             ),
 

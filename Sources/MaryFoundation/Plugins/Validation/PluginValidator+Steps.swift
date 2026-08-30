@@ -2,9 +2,9 @@
 //  PluginValidator+Steps.swift
 //  MaryFoundation
 //
-//  Admission for one operation input and one recipe step — the anchors a step
-//  may reference, the values it may carry, and the ordering rules that keep a
-//  recipe a bounded sequence rather than a program.
+//  WHAT: One input and one recipe step — anchors, values, ordering.
+//  IN:   PluginValidator+Operations.
+//  OUT:  PluginValidator+Expressions, +Tokens.
 //
 
 import Foundation

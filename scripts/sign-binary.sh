@@ -1,17 +1,9 @@
 #!/bin/bash
-# Stable-sign one built Mary binary so TCC grants survive rebuilds.
-#
-# Shared by scripts/dev.sh (terminal builds → .build/…/Mary) and the Xcode
-# scheme's LAUNCH PRE-ACTION (DerivedData builds). The point of a STABLE
-# certificate: the designated requirement becomes identifier + certificate —
-# not the per-build cdhash and not the path — so the .build binary and the
-# DerivedData binary satisfy the SAME TCC grant. Grant Accessibility once,
-# keep it across rebuilds AND across both launch paths.
-#
-# Without this, SwiftPM's own signing step signs AD-HOC (`codesign --sign -`),
-# whose identity IS the cdhash and therefore changes every build. macOS then
-# treats each rebuild as a brand-new app: the System Settings checkbox still
-# LOOKS enabled while AXIsProcessTrusted() quietly returns false.
+# WHAT: Stable-sign one built Mary binary so TCC grants survive rebuilds.
+# IN:   path to binary — scripts/dev.sh and the Xcode launch pre-action.
+# PIN:  Designated requirement = identifier + certificate, not per-build
+#       cdhash. Ad-hoc identity IS the cdhash; AXIsProcessTrusted goes false
+#       while System Settings still looks enabled.
 #
 #   ./scripts/sign-binary.sh /path/to/Mary
 #
@@ -22,9 +14,7 @@ if [ ! -f "$BIN" ]; then
     exit 0
 fi
 
-# Prefer an Apple Development identity; fall back to a self-made
-# "Mary Dev Signing" cert (Keychain Access → Certificate Assistant →
-# Create a Certificate → Code Signing, if you have neither).
+# Prefer Apple Development; else Keychain "Mary Dev Signing" (Code Signing).
 IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \
     | awk -F'"' '/Apple Development|Mary Dev Signing/ {print $2; exit}')"
 

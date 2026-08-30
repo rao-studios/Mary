@@ -2,19 +2,8 @@
 //  MediaSurfaceRegistration.swift
 //  MaryPlugin
 //
-//  ONE APPLICATION'S DECLARED TRANSPORT COORDINATES, resolved for use.
-//
-//  `ProseSurfaceRegistration`'s sibling, and deliberately its twin in shape:
-//  a package writes a `mediaSurface` block, the compiler pairs it with the
-//  application's identity, and everything the compiled lane needs to read
-//  that player is in this value — while nothing in the lane names the player.
-//
-//  WHY A SEPARATE TYPE FROM THE SCHEMA, unchanged from the prose lane's
-//  reasoning: the schema is what an author writes and a validator admits;
-//  this is what the runtime uses, with identity attached and the label
-//  comparisons already folded to their matching form. A schema change cannot
-//  silently alter runtime behaviour, and the mapping is one place with a test.
-//
+//  WHAT: One app's declared transport coordinates, identity attached.
+//  IN:   PluginMediaSurfaceSchema  OUT: MediaSurfaceSupport
 
 import Foundation
 import MaryAmbient
@@ -35,12 +24,9 @@ public struct MediaSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
     /// The declared block, verbatim.
     public let schema: PluginMediaSurfaceSchema
 
-    /// The process FAMILY, when the package declared one. Same field,
-    /// same reason as `ApplicationRegistration.bundleIdentifierPrefix`:
-    /// `bundleIdentifiers` is exact and stays the authority for launching,
-    /// but membership — "is the running player one of this package's?" — is
-    /// a prefix question for any vendor who ships `…player3` and then
-    /// `…player4`. Absent means the exact identifiers are the whole answer.
+    /// The process FAMILY, when the package declared one. Same field, same reason as
+    /// `ApplicationRegistration.bundleIdentifierPrefix`: `bundleIdentifiers` is exact and
+    /// stays the authority for launching, but membership.
     public let bundleIdentifierPrefix: String?
 
     public init(
@@ -58,15 +44,7 @@ public struct MediaSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
     }
 
     /// EXACT FIRST, THEN THE FAMILY — the same two-tier question
-    /// `ApplicationRegistration.owns(bundleID:)` answers for ambient routing
-    /// and `TypingSurface.isRunning` answers for the taught-writing-surface
-    /// rung (`[Corpus P]`), asked here through the identical boundary
-    /// predicate, `ApplicationRegistration.isInFamily`. This registration
-    /// used to compare only the exact declared id — the same latent shape
-    /// `[Corpus P]` fixed elsewhere and noted, but deliberately left
-    /// unchanged, here (no currently-taught media application declares a
-    /// versioned bundle id, so nothing live broke) — closed now rather than
-    /// waiting for a fourth incident.
+    /// `ApplicationRegistration.owns(bundleID:)` answers.
     public func owns(bundleID: String) -> Bool {
         SurfaceClaimOwnership.exactThenFamily(
             bundleID: bundleID,
@@ -79,16 +57,8 @@ public struct MediaSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
 
     // MARK: - Label matching
 
-    /// LABELS ARE COMPARED CASE- AND WHITESPACE-INSENSITIVELY, folded once
-    /// here so the walk does not re-derive it per node.
-    ///
-    /// The tolerance is not politeness. A transport label is authored by the
-    /// application and read through Accessibility, and the two ends disagree
-    /// about capitalization more often than not — Apple Music publishes
-    /// "do not shuffle" in lower case beside "Pause" in title case, in the
-    /// same eight-button bar. A package author reading the bar with a probe
-    /// writes down what they see; a package that only matched exact bytes
-    /// would fail on whichever of those two they guessed wrong.
+    /// LABELS ARE COMPARED CASE- AND WHITESPACE-INSENSITIVELY, folded once here so the walk
+    /// does not re-derive it per node.
     static func folded(_ text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
@@ -108,13 +78,9 @@ public struct MediaSurfaceRegistration: Sendable, Equatable, SurfaceClaim {
         toggleState(label, labels: schema.shuffle, byPrefix: false)
     }
 
-    /// Whether this label says repeat is on.
-    ///
-    /// BY PREFIX, because a player distinguishes modes it cannot express in
-    /// two words: "repeat one" and "repeat all" are both repeat being on, and
-    /// both begin with the word the package declared. Matched the other way
-    /// round — declared word as the prefix of the label — so declaring
-    /// "repeat" admits both and declaring "repeat one" admits only that.
+    /// Whether this label says repeat is on. BY PREFIX, because a player distinguishes
+    /// modes it cannot express in two words: "repeat one" and "repeat all" are both repeat
+    /// being on, and both begin with the word the package declared.
     public func repeatState(_ label: String) -> Bool? {
         toggleState(label, labels: schema.repeatMode, byPrefix: true)
     }

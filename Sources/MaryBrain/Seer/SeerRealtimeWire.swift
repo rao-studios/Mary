@@ -2,14 +2,11 @@
 //  SeerRealtimeWire.swift
 //  MaryBrain
 //
-//  Wire shapes for Seer's realtime WebSocket route (`GET /v1/realtime/chat`).
-//  One turn per connection. Outbound: a single `turn.start` embedding the
-//  exact ChatRequest the SSE route accepts. Inbound: JSON text frames
-//  (token/phase/audio.begin/tts.failed/metadata/turn.end/error) plus raw
-//  binary frames of float32 LE mono PCM; `audio.begin` announces the format
-//  once and socket order implies audio sequence.
+//  WHAT: Wire shapes for Seer realtime (`GET /v1/realtime/chat`).
+//  IN:   SeerRealtimeClient
+//  OUT:  turn.start / token / audio / turn.end
+//  PIN:  One turn per connection.
 //
-
 import Foundation
 
 enum SeerRealtimeWire {

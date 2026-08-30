@@ -2,40 +2,11 @@
 //  Subprocess.swift
 //  MaryBrain
 //
-//  Async Process wrapper shared by Skill bindings and the script runner. Timeouts
-//  terminate the child; task cancellation kills it — a barge-in mid-script
-//  must never leak a 30-second osascript.
-//
-//  THE FAILURE THAT DEFEATED EVERY DEADLINE ABOVE THIS FILE. The termination
-//  handler used to call `readToEnd()` on the pipe, and `readToEnd` waits for
-//  EOF — which on a pipe means every WRITER has closed it, not just the child
-//  we spawned. A child that spawns its own child hands the write end straight
-//  to the grandchild: `zsh -c "… &"`, `osascript` running `do shell script`,
-//  `claude -p` starting a build. So the child exited, the termination handler
-//  fired, the read parked forever, and the continuation was never resumed.
-//  The watchdog could not rescue it — it guarded on `process.isRunning`, which
-//  is already false once the child is gone, so it returned without marking a
-//  timeout and without resolving anybody.
-//
-//  Measured on this machine before the fix: `zsh -c "echo hi; (sleep 60 &);
-//  exit 0"` under a TWO SECOND timeout never returned at all; the caller was
-//  still parked when the grandchild's sixty seconds ran out. Every AppleScript
-//  and shell call in the app is bounded by this function, so the standing
-//  claim that "AppleScript is hard-capped at 30 s" was false for exactly the
-//  scripts that shell out. It is true now.
-//
-//  THE SECOND FAILURE, same handler, different victim: `readToEnd()` also
-//  RACED the readability handler. Both read the same descriptor from different
-//  queues, so the trailing read routinely came back empty because the
-//  readability handler had already taken the bytes — and `finish` then
-//  snapshotted `data` and resumed BEFORE that handler's append landed. That is
-//  `SubshellSafetyTests.shellRunsInCodingProjectRoot` failing once in 48
-//  full-suite runs with a real `pwd` returning empty output.
-//
-//  Both are closed the same way: nothing on the resolve path may block on the
-//  pipe, and nothing may read it outside the accumulator's lock. Bytes are
-//  taken with a non-blocking drain (`PipeDrain`), and the deadline resumes the
-//  continuation itself rather than asking the process for permission first.
+//  WHAT: Async Process wrapper for Skill bindings and the script runner.
+//  IN:   adapters / script runner
+//  OUT:  PipeDrain / OutputAccumulator
+//  PIN:  Timeouts terminate; cancel kills. Never block on the pipe (no
+//        readToEnd). Deadline resumes the continuation itself.
 //
 
 import Foundation
@@ -57,25 +28,13 @@ public enum Subprocess {
         }
     }
 
-    /// SIGTERM, then SIGKILL this many seconds later. A child that ignores the
-    /// polite signal still dies; a child that handles it gets a moment to.
+    /// SIGTERM, then SIGKILL this many seconds later.
     public static let escalationGrace: TimeInterval = 2
 
-    /// One second past the SIGKILL (2 + 1). A cancel normally unwinds the
-    /// instant the child dies and the termination handler resolves with the
-    /// partial output — but a child nobody can kill (uninterruptible sleep on
-    /// a stalled mount) would otherwise park the CALLER forever, which is the
-    /// same shape of hang this file exists to end. Computed so the `+ 1`
-    /// coupling survives a per-call grace (see `run`'s parameter).
+    /// One second past SIGKILL. Unwinds the caller even if the child cannot be killed.
     public static var cancelUnwind: TimeInterval { escalationGrace + 1 }
 
-    /// Run to completion with a timeout, off the cooperative pool.
-    ///
-    /// `escalationGrace` is per-call injection (parameter-with-default, the
-    /// repo's seam style — a settable static would be process-global state
-    /// racing every concurrent caller): tests stretch it to prove the
-    /// DEADLINE released the caller rather than the SIGKILL ladder, and
-    /// production callers never pass it.
+    /// Run to completion with a timeout. Tests may stretch `escalationGrace`; production never passes it.
     @discardableResult
     public static func run(
         _ executable: String,
@@ -98,10 +57,7 @@ public enum Subprocess {
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
-        // From here on every read of this descriptor is our own non-blocking
-        // `read(2)`. A blocking one — `readToEnd`, `availableData` — is the bug
-        // in the header, and O_NONBLOCK makes writing one again impossible
-        // rather than merely discouraged.
+        // Non-blocking reads only. O_NONBLOCK makes a blocking readToEnd impossible.
         PipeDrain.makeNonBlocking(pipe.fileHandleForReading)
 
         let state = OutputAccumulator(
@@ -109,9 +65,7 @@ public enum Subprocess {
             escalationGrace: escalationGrace)
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
-                // Parked in the accumulator, not captured per-handler: the
-                // watchdog now resumes it too, and it must be able to do that
-                // without the termination handler ever having run.
+                // Parked in the accumulator so the watchdog can resume without the termination handler.
                 state.attach(continuation: continuation)
 
                 // Drain incrementally — a full pipe would deadlock the child.
@@ -121,9 +75,7 @@ public enum Subprocess {
                     state.noteExit(status: finished.terminationStatus)
                 }
 
-                // Attach BEFORE run so onCancel can always reach the child;
-                // a cancel that lands pre-run sees isRunning == false and the
-                // checkCancellation above prevents spawning into a dead task.
+                // Attach before run so onCancel can always reach the child.
                 state.attach(process: process)
 
                 do {
@@ -138,32 +90,20 @@ public enum Subprocess {
                 state.armWatchdog()
             }
         } onCancel: {
-            // A barge-in/supersede mid-script must never leak a 30-second
-            // osascript: SIGTERM now, SIGKILL if it lingers, and an unwind
-            // backstop so the caller is released even if neither lands.
+            // Barge-in must not leak a 30s osascript: SIGTERM, then SIGKILL, then unwind.
             state.terminateOnCancel()
         }
     }
 }
 
-/// Non-blocking pipe reads — the only kind either subprocess path in this
-/// module is allowed to make.
-///
-/// THE FAILURE THIS PREVENTS is the one in `Subprocess.swift`'s header and in
-/// `CodingAgentManager.spawn`: `readToEnd()` waits for EOF, EOF means every
-/// writer closed, and a grandchild that inherited the write end is a writer we
-/// never spawned and cannot see. Reading only what the kernel already holds
-/// asks nothing of the grandchild.
+/// Non-blocking pipe reads — the only kind either subprocess path may make.
+/// PIN: readToEnd waits for every writer including grandchildren we cannot see.
 public enum PipeDrain {
 
-    /// A pipe buffer is 64 KB, so one buffer of that size empties a full one
-    /// in a single syscall.
+    /// 64 KB — one syscall empties a full pipe buffer.
     private static let chunkBytes = 65_536
 
-    /// 64 × 64 KB = 4 MB per drain — four times the megabyte the accumulator
-    /// will retain. A writer that can outrun that will not be caught by
-    /// reading harder; the cap is here so a firehose cannot pin the lock this
-    /// runs under (in `CodingAgentManager` that lock orders every session).
+    /// 4 MB per drain so a firehose cannot pin the accumulator lock.
     private static let maxChunksPerDrain = 64
 
     public static func makeNonBlocking(_ handle: FileHandle) {
@@ -174,8 +114,7 @@ public enum PipeDrain {
         _ = fcntl(descriptor, F_SETFL, flags | O_NONBLOCK)
     }
 
-    /// Everything the kernel is already holding, and not one byte more.
-    /// `atEOF` means every writer has closed — including any grandchild.
+    /// What the kernel already holds. `atEOF` = every writer closed, including grandchildren.
     public static func availableBytes(_ handle: FileHandle) -> (data: Data, atEOF: Bool) {
         let descriptor = handle.fileDescriptor
         guard descriptor >= 0 else { return (Data(), true) }
@@ -191,28 +130,20 @@ public enum PipeDrain {
             }
             if count == 0 { return (collected, true) }
             if errno == EINTR { continue }
-            // EAGAIN/EWOULDBLOCK: drained. Anything else: the descriptor is
-            // gone, and there is nothing left to wait for either way.
+            // EAGAIN/EWOULDBLOCK: drained. Anything else: descriptor gone.
             break
         }
         return (collected, false)
     }
 }
 
-/// Lock-guarded accumulation + one-shot continuation resolution, shared
-/// between the readability handler (background thread), termination handler,
-/// the timeout watchdog, and the cancellation unwind.
-///
-/// THE LOCK ORDERS THE READS, not just the appends. Every read of the pipe
-/// happens inside it, so the trailing read on the exit path cannot overtake a
-/// readability handler that has already taken bytes but not yet appended them
-/// — the interleaving that returned an empty `pwd`.
+/// Lock-guarded accumulation + one-shot continuation. Shared by readability,
+/// termination, watchdog, and cancel unwind. PIN: the lock orders pipe reads.
 private final class OutputAccumulator: @unchecked Sendable {
     private let lock = NSLock()
     private let reading: FileHandle
     private let timeout: TimeInterval
-    /// Per-call SIGTERM→SIGKILL grace — `Subprocess.escalationGrace` unless
-    /// the caller injected one (tests stretch it; see `Subprocess.run`).
+    /// Per-call SIGTERM→SIGKILL grace. Tests stretch it; see Subprocess.run.
     private let escalationGrace: TimeInterval
     private var data = Data()
     private var timedOutAfter: TimeInterval?
@@ -240,7 +171,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         self.process = process
     }
 
-    /// The readability handler's whole body.
+    /// Readability handler body.
     func drain() {
         lock.lock()
         guard !resolved else { lock.unlock(); return }
@@ -250,25 +181,14 @@ private final class OutputAccumulator: @unchecked Sendable {
         if read.atEOF { stopReading() }
     }
 
-    /// Cap retained output at 1 MB — spoken summaries never need more. The
-    /// READ that produced this chunk is never skipped, cap or no cap: stop
-    /// reading and the child blocks on a full pipe, which is the deadlock the
-    /// incremental drain exists to prevent.
-    ///
-    /// The chunk is trimmed to the remaining budget rather than dropped whole,
-    /// so the cap is a BOUND. The old `if data.count < cap { append(chunk) }`
-    /// let one last chunk cross it, and a chunk is now up to `PipeDrain`'s
-    /// 4 MB per drain rather than one 64 KB `availableData`.
+    /// Cap retained output at 1 MB. Never skip the read — a full pipe deadlocks the child.
     private func appendLocked(_ chunk: Data) {
         let remaining = 1_048_576 - data.count
         guard remaining > 0 else { return }
         data.append(chunk.count <= remaining ? chunk : chunk.prefix(remaining))
     }
 
-    /// A dispatch read source stays hot at EOF, so a child that closes stdout
-    /// and then keeps running would spin a core until it exited. Cleared off
-    /// the FileHandle's own queue — setting the handler from inside itself can
-    /// deadlock against that queue.
+    /// Clear the handler off the FileHandle's queue — setting it from inside itself can deadlock.
     private func stopReading() {
         DispatchQueue.global().async { [reading] in reading.readabilityHandler = nil }
     }
@@ -278,9 +198,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         guard !resolved else { lock.unlock(); return }
         appendLocked(PipeDrain.availableBytes(reading).data)
         resolved = true
-        // `String(decoding:)` rather than `String(data:encoding:)`: the 1 MB
-        // cap can cut mid-UTF-8-sequence, and the old `?? ""` threw away the
-        // whole megabyte when it did. Lose one character instead.
+        // String(decoding:) — a mid-UTF-8 cap must not throw away the whole megabyte.
         let output = String(decoding: data, as: UTF8.self)
         let expired = timedOutAfter
         lock.unlock()
@@ -291,9 +209,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         }
     }
 
-    /// Armed after a successful `run()`. Held as a cancellable work item so a
-    /// fast command doesn't leave this accumulator (and its megabyte, and the
-    /// Process) pinned on a global queue until a 300-second deadline elapses.
+    /// Cancellable work item so a fast command does not pin this accumulator until timeout.
     func armWatchdog() {
         let item = DispatchWorkItem { [weak self] in self?.timeOut() }
         lock.lock()
@@ -303,11 +219,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         DispatchQueue.global().asyncAfter(deadline: .now() + timeout, execute: item)
     }
 
-    /// THE DEADLINE IS THE CALLER'S GUARANTEE, so it resumes the continuation
-    /// itself and kills afterwards. The old order — terminate, then wait for
-    /// the termination handler to resolve — made the effective cap `timeout`
-    /// plus however long the child took to die, and no cap at all once the
-    /// termination handler could block.
+    /// Deadline resumes the continuation, then kills. Do not wait on termination.
     private func timeOut() {
         lock.lock()
         guard !resolved else { lock.unlock(); return }
@@ -319,10 +231,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         escalate(child)
     }
 
-    /// Task cancellation: terminate the child (SIGTERM), escalate to SIGKILL
-    /// after the grace — the same ladder as the timeout watchdog — and unwind
-    /// the caller regardless. Safe to call from any thread; no-op when the
-    /// process already exited, never attached, or the call already resolved.
+    /// SIGTERM, then SIGKILL after grace, then unwind. No-op if already resolved.
     func terminateOnCancel() {
         lock.lock()
         let child = process
@@ -335,8 +244,7 @@ private final class OutputAccumulator: @unchecked Sendable {
         }
     }
 
-    /// Only reached when the child outlived SIGKILL — normally the termination
-    /// handler has long since resolved with the partial output.
+    /// Reached only if the child outlived SIGKILL.
     private func unwindCancellation() {
         lock.lock()
         guard !resolved else { lock.unlock(); return }
@@ -356,18 +264,14 @@ private final class OutputAccumulator: @unchecked Sendable {
     private func escalate(_ child: Process?) {
         guard let child, child.isRunning else { return }
         child.terminate()
-        // Strong capture for the length of the grace: a weakly-held Process
-        // that deallocated in between would silently skip the SIGKILL, which
-        // is the half of the ladder that handles a child ignoring SIGTERM.
+        // Strong capture for the grace: a weakly-held Process would skip SIGKILL.
         DispatchQueue.global().asyncAfter(deadline: .now() + escalationGrace) {
             guard child.isRunning else { return }
             kill(child.processIdentifier, SIGKILL)
         }
     }
 
-    /// Teardown then resume, and NEVER while holding `lock`: clearing
-    /// `readabilityHandler` can wait on the FileHandle's own queue, and a
-    /// handler already running there is waiting on `lock`.
+    /// Teardown then resume, never while holding `lock` (handler vs FileHandle queue deadlock).
     private func deliver(_ result: Swift.Result<Subprocess.Result, Error>) {
         lock.lock()
         let waiting = continuation

@@ -2,35 +2,10 @@
 //  MicCapture.swift
 //  MaryVoice
 //
-//  How the user's voice enters the application: one AVAudioEngine input tap,
-//  exposed as an AsyncStream of (buffer, rms) frames. Kokoro playback owns a
-//  separate engine — capture and playback never share a graph.
-//
-//  The tap can follow a SPECIFIC input device (bound by UID — a Continuity
-//  iPhone, a USB mic) or the system default. Devices come and go mid-session,
-//  so every teardown/rebuild is serialized through one control queue and
-//  reuses the same stream continuation: the pipeline never sees a device
-//  change, only frames.
-//
-//  ONE RULE ABOVE ALL, AND IT IS PAID FOR IN CRASHES: never bind a specific
-//  device unless the USER explicitly picked it. AVAudioEngine's default-follow
-//  runs on a `CADefaultDeviceAggregate`; writing
-//  `kAudioOutputUnitProperty_CurrentDevice` moves the AUHAL off it and the two
-//  then ping-pong every couple of seconds (start → error 35 → stop → start),
-//  which is the mic icon flickering without ever sustaining — and, when a
-//  background feature does it automatically, a HAL-client SIGSEGV (measured
-//  2026-08-15, crashed twice on 2026-08-17 when standby auto-picked the
-//  built-in mic). `deviceUID` is for the Settings picker. Default-follow binds
-//  NOTHING.
-//
-//  WIRELESS ROUTES ARE THE HARD CASE, and the reason this file is not fifty
-//  lines. AirPods and Continuity iPhones do not appear atomically: the device
-//  enumerates before it can deliver audio, arrives with a different sample
-//  rate than the built-in mic, and re-registers under a fresh transient
-//  AudioDeviceID on every grab. A capture that reads the format once at
-//  start() and never listens again is why toggling the mic on and off until
-//  it "takes" was ever necessary — the tap is now the thing that follows the
-//  hardware, so the user does not have to.
+//  WHAT: AVAudioEngine input tap → AsyncStream of MicFrame.
+//  IN:   VoicePipeline.start / WakeWordListener
+//  OUT:  MicFrame (separate engine from Kokoro playback)
+//  PIN:  Bind a device only when the user picked it. Default-follow binds nothing.
 //
 
 import AVFoundation
@@ -54,27 +29,16 @@ public final class MicCapture: @unchecked Sendable {
 
     private static let log = Logger(subsystem: "MaryVoice", category: "MicCapture")
 
-    /// Attempts to bring the tap up at session start, and the pause between
-    /// them — enough to cover a Bluetooth route mid-connection without
-    /// leaving a mic-less machine hanging.
+    /// Bounded start retries while a Bluetooth route is still settling.
     private static let startAttempts = 4
     private static let startRetryDelay: TimeInterval = 0.25
 
-    /// AVAudioEngine has no public "all AVAudioIOUnit callbacks retired"
-    /// barrier. `stop()` and `removeTap` stop future work, but the CoreAudio
-    /// I/O queue can still hold callbacks which retain neither the engine nor
-    /// its nodes. Deallocating the graph at that point is the measured crash.
-    /// Keep stopped graphs alive beyond the longest wireless-route settling
-    /// window before allowing ARC to destroy their AudioUnits.
+    /// Keep stopped graphs alive past CoreAudio I/O-unit retirement (measured crash).
     private static let engineRetirementQueue = DispatchQueue(
         label: "mary.mic.engine-retirement")
     private static let engineRetirementGrace: TimeInterval = 10
 
-    /// Recreated on every rebuild: toggling voice processing on a stopped
-    /// engine leaves the input node reporting a STALE format, and the next
-    /// installTap throws NSException "format mismatch" (reproduced live with
-    /// a Continuity iPhone). A fresh engine is exactly the initial-start
-    /// path, which is known-good.
+    /// Fresh engine per rebuild — toggling VP on a stopped engine leaves a stale format.
     private var engine: AVAudioEngine?
     private var tapInstalled = false
     private var continuation: AsyncStream<MicFrame>.Continuation?
@@ -123,13 +87,7 @@ public final class MicCapture: @unchecked Sendable {
             throw CaptureError.alreadyStarted
         }
 
-        // A SETTLING ROUTE IS NOT A MISSING MICROPHONE. AirPods enumerate
-        // before they can deliver audio, and for that window the HAL reports
-        // the device with no usable format — `configureAndStart` throws
-        // `.noInput`, the session refuses to start, and the only recourse the
-        // user has is to toggle listening again until the timing happens to
-        // line up. That toggling ritual is this retry. Bounded, because a
-        // machine with genuinely no input must still say so.
+        // Settling route ≠ missing mic. Bounded retry; genuine no-input still fails.
         do {
             try controlQueue.sync {
                 guard self.continuation == nil else {
@@ -156,11 +114,7 @@ public final class MicCapture: @unchecked Sendable {
                     throw CancellationError()
                 }
 
-                // The HAL side of the rebuild triggers: hardware
-                // appearing/vanishing (the selected device unplugging while
-                // a stalled engine says nothing). Capture the generation so
-                // a callback already queued when stop begins cannot revive
-                // the graph.
+                // Hardware plug/unplug. Generation-gated so a queued callback cannot revive a stopped graph.
                 deviceMonitor = AudioDeviceMonitor(queue: controlQueue) { [weak self] in
                     guard let self, self.lifecycleGate.allows(generation),
                           self.activeGeneration == generation else { return }
@@ -188,14 +142,9 @@ public final class MicCapture: @unchecked Sendable {
         return stream
     }
 
-    /// Stop permission is revoked before waiting for the control queue, then
-    /// the continuation and graph are detached inside that queue. Both halves
-    /// matter: queued rebuilds see a closed generation immediately, and no
-    /// teardown can overlap a graph mutation already executing on the queue.
+    /// Close the generation, then detach continuation + graph on `controlQueue`.
     public func stop() {
-        // This flag is intentionally closed BEFORE waiting for the control
-        // queue. If configure/start is already running, every boundary it
-        // crosses sees the stop intent and declines to publish the graph.
+        // Close the gate before waiting on the queue so an in-flight start will not publish.
         lifecycleGate.requestStop()
         let live = controlQueue.sync { () -> AsyncStream<MicFrame>.Continuation? in
             let live = continuation
@@ -211,9 +160,7 @@ public final class MicCapture: @unchecked Sendable {
         live?.finish()
     }
 
-    /// Live device switch (Settings). nil reverts to the system default.
-    /// The rebuild reuses the existing continuation, so downstream VAD/STT
-    /// never notice beyond at most one dropped utterance.
+    /// Settings device switch. nil = system default. Reuses the live continuation.
     public func setPreferredDevice(uid: String?) {
         controlQueue.async {
             // An explicit re-pick always retries, even a suppressed device.
@@ -226,10 +173,7 @@ public final class MicCapture: @unchecked Sendable {
 
     // MARK: - Configure (shared by start, rebuilds, canary fallback)
 
-    /// Every engine (re)start goes through here, on `controlQueue`. Ordering
-    /// is load-bearing: `setVoiceProcessingEnabled` swaps the underlying I/O
-    /// unit and DISCARDS a previously set current-device property, so the
-    /// device must be bound after it — and the node format read after both.
+    /// Every (re)start on `controlQueue`. PIN: bind device after VP (it swaps the I/O unit).
     private func configureAndStart(for generation: UInt64) throws {
         guard lifecycleGate.allows(generation),
               activeGeneration == generation,
@@ -247,13 +191,7 @@ public final class MicCapture: @unchecked Sendable {
 
         let (deviceID, deviceUID) = resolveDesiredDevice()
 
-        // Full-duplex listening picks up Mary's own speaker output; Apple's
-        // voice processing cancels the echo so barge-in detection hears the
-        // USER, not Kokoro. Best-effort: some devices/routes refuse — fall
-        // back to the plain tap and let the boosted RMS threshold guard alone.
-        // A device the canary already proved dead under VP never gets it
-        // again this session, and the routes listed in
-        // `isWirelessRoute` never get it at all.
+        // Echo-cancel so barge-in hears the user, not playback. Best-effort; skip wireless / canary-dead.
         let vpKey = Self.voiceProcessingKey(for: deviceID, uid: deviceUID)
         let wantVP = voiceProcessing
             && !Self.isWirelessRoute(deviceID)
@@ -268,25 +206,7 @@ public final class MicCapture: @unchecked Sendable {
         }
         echoCancellationActive = input.isVoiceProcessingEnabled
 
-        // BIND ONLY WHAT WAS ASKED FOR. Writing
-        // `kAudioOutputUnitProperty_CurrentDevice` moves the AUHAL off the
-        // `CADefaultDeviceAggregate` that AVAudioEngine builds for
-        // default-follow and onto the raw device — and for AirPods that is
-        // actively destructive.
-        //
-        // MEASURED 2026-08-15: binding the AirPods directly while they were
-        // merely the system default produced fourteen seconds of
-        //
-        //     Started Input {74-77-86-…:input} → _StartIO: Start failed,
-        //     StartAndWaitForState returned error 35 → Stopped →
-        //     HALB_IOThread::_Start: there already is a thread →
-        //     Started Input {CADefaultDeviceAggregate-…} → SetPropertyData:
-        //     call to the proxy failed, Error 2003332927 ('who?')
-        //
-        // ping-ponging between the two roughly every two seconds — the mic
-        // icon appearing and vanishing in the menu bar, never sustaining,
-        // and CoreAudio left with a leaked IO thread. The bind is what the
-        // explicit picker needs; default-follow must not pay for it.
+        // Bind only an explicit pick. Default-follow must stay on CADefaultDeviceAggregate.
         if deviceUID != nil {
             bindInputDevice(deviceID, on: input)
             followedDefaultID = nil
@@ -297,10 +217,7 @@ public final class MicCapture: @unchecked Sendable {
         activeDeviceUID = deviceUID
         activeRouteIsWireless = Self.isWirelessRoute(deviceID)
 
-        // Read the node format AFTER voice processing — it changes it
-        // (measured live: 48 kHz becomes NINE channels). Downstream (VAD,
-        // STT) expects mono, so the tap always requests an explicit mono
-        // format at the node's rate; the engine converts.
+        // Format after VP (it changes it). Tap is explicit mono at the node's rate.
         let nodeFormat = input.outputFormat(forBus: 0)
         guard nodeFormat.sampleRate > 0, nodeFormat.channelCount > 0 else {
             throw CaptureError.noInput
@@ -331,10 +248,7 @@ public final class MicCapture: @unchecked Sendable {
         do {
             try newEngine.start()
         } catch {
-            // Seen live (-10875): the voice-processing unit can fail to
-            // INITIALIZE even though enabling it succeeded. A plain tap
-            // beats a dead mic — retry once without VP (the key is now in
-            // the failed set, so the recursion resolves wantVP to false).
+            // VP enable can succeed then start fails (-10875). Retry once without VP.
             let shouldRetryWithoutVP = input.isVoiceProcessingEnabled
                 && lifecycleGate.allows(generation)
             tearDownCurrentEngine()
@@ -345,9 +259,7 @@ public final class MicCapture: @unchecked Sendable {
             return
         }
 
-        // `engine.start()` is synchronous but not interruptible. A concurrent
-        // stop closes the gate before waiting for this queue; do not publish
-        // an engine that crossed that stop boundary while starting.
+        // start() is not interruptible; drop the graph if stop closed the gate meanwhile.
         guard lifecycleGate.allows(generation) else {
             tearDownCurrentEngine()
             throw CancellationError()
@@ -374,32 +286,12 @@ public final class MicCapture: @unchecked Sendable {
         armFrameFlowWatchdog(for: generation)
     }
 
-    /// The zero-RMS canary sees frames that ARRIVE; a rebuilt engine can also
-    /// claim to run while delivering nothing at all (observed live with a
-    /// Continuity iPhone after a canary rebuild). A blind restart of the same
-    /// route is deliberately NOT the remedy: repeated graph destruction while
-    /// CoreAudio is still settling caused both route churn and the measured
-    /// AVAudioIOUnit use-after-free. We permit one meaningful recovery — a
-    /// selected-device fallback or disabling a dead voice-processing path —
-    /// then wait for an actual hardware/configuration event.
-    ///
-    /// Generation-guarded: a rebuild can block the control queue for
-    /// seconds, and a watchdog armed for an OLDER start would otherwise fire
-    /// the moment the queue unblocks and judge the brand-new engine with no
-    /// grace time. That exact cascade (four grabs in ~12 s) is what made a
-    /// Continuity iPhone drop its session live. Each start only ever
-    /// answers to the watchdog it armed.
+    /// Frame-flow watchdog. One recovery (fallback or drop VP), then wait for hardware.
+    /// Generation-guarded so a blocked rebuild cannot judge a brand-new engine.
     private func armFrameFlowWatchdog(for lifecycleGeneration: UInt64) {
         let marker = framesObserved
         let engineStartGeneration = startGeneration
-        // A WIRELESS ROUTE IS SLOW, NOT DEAD. Opening the AirPods microphone
-        // makes them renegotiate the Bluetooth profile — the output stream
-        // drops and comes back as part of it — and that took whole seconds
-        // when it was measured. Judging it at 2.5 s and rebuilding does not
-        // rescue the start, it CANCELS one that was still in progress, and
-        // the next attempt inherits a half-torn-down route. The budget below
-        // is omitted for the same reason: on a wireless route, retrying the
-        // same graph harder is the failure mode, not the fix.
+        // Wireless is slow, not dead. Longer grace; do not rebuild mid-settle.
         let grace = activeRouteIsWireless ? 6.0 : 2.5
         controlQueue.asyncAfter(deadline: .now() + grace) { [weak self] in
             guard let self,
@@ -412,10 +304,7 @@ public final class MicCapture: @unchecked Sendable {
             }
             self.deadStartCount += 1
             if self.requestedDeviceUID != nil, !self.requestedSuppressed {
-                // Present but dead (a Continuity phone that dropped its
-                // session still enumerates). A silent mic is the worst
-                // outcome for a voice app — take the default until the
-                // hardware changes state, then try the preference again.
+                // Preference enumerates but delivers no frames — fall back until the next hardware event.
                 self.requestedSuppressed = true
                 Self.log.error("selected input delivers no frames; using system default until the next device event")
                 self.performRebuild(force: true, for: lifecycleGeneration)
@@ -477,11 +366,7 @@ public final class MicCapture: @unchecked Sendable {
     private var deviceMonitor: AudioDeviceMonitor?
     private var configChangeObserver: NSObjectProtocol?
 
-    /// Detaches the live graph on `controlQueue`, then quarantines its object
-    /// graph. The quarantine is an object-lifetime requirement, not a debounce:
-    /// generation gates protect Mary callbacks, while this strong capture
-    /// protects CoreAudio's own already-enqueued callbacks from a dangling
-    /// AVAudioEngine/AVAudioNode target.
+    /// Detach the graph, then quarantine it past CoreAudio's already-enqueued I/O callbacks.
     private func tearDownCurrentEngine() {
         if let observer = configChangeObserver {
             NotificationCenter.default.removeObserver(observer)
@@ -535,12 +420,7 @@ public final class MicCapture: @unchecked Sendable {
         guard lifecycleGate.allows(generation),
               activeGeneration == generation else { return }
 
-        // LET A SETTLING ROUTE SETTLE. A Bluetooth profile switch fires a
-        // burst of HAL notifications while it happens — device list, default
-        // input, engine configuration — and rebuilding on each one restarts
-        // the very negotiation that was producing them. Anything that is not
-        // the watchdog waits until the current start has had its quiet
-        // window, and coalesces into one rebuild when it has.
+        // Let a settling route settle. Coalesce HAL bursts into one rebuild.
         let settle = activeRouteIsWireless ? 2.0 : 0.5
         let sinceStart = Date().timeIntervalSince(lastStartAt)
         if !force, sinceStart < settle {
@@ -548,19 +428,7 @@ public final class MicCapture: @unchecked Sendable {
             return
         }
 
-        // Idempotence: our own engine restart echoes back as a configuration
-        // change. When the running tap already matches the desired device and
-        // VP state, there is nothing to do — this is what terminates the
-        // notification → rebuild → notification cycle. (`force` is the
-        // frame-flow watchdog's override: there everything LOOKS right and
-        // the stream is dead anyway.)
-        //
-        // Matching is BY UID for a requested device: a Continuity iPhone —
-        // and AirPods, measured since — re-registers with a fresh transient
-        // AudioDeviceID on every grab, so comparing IDs makes each rebuild
-        // invalidate itself, a ~2/s rebuild loop. The ID comparison remains
-        // only for default-follow, where a default SWITCH must be noticed
-        // and nothing else can tell us it happened.
+        // Idempotence: match by UID for a requested device (IDs churn). ID only for default-follow.
         let (desiredID, desiredUID) = resolveDesiredDevice()
         let vpKey = Self.voiceProcessingKey(for: desiredID, uid: desiredUID)
         let wantVP = voiceProcessing
@@ -600,11 +468,7 @@ public final class MicCapture: @unchecked Sendable {
 
     // MARK: - Tap + dead-stream canary
 
-    /// ~21 ms at 48 kHz — fine-grained enough for VAD, cheap enough to tap.
-    /// Includes the dead-stream canary: if voice processing yields ~1.5s of
-    /// EXACTLY zero audio (a known macOS failure mode), fall back to the
-    /// plain tap so the mic never silently dies. A truly silent room still
-    /// carries a nonzero noise floor on real hardware.
+    /// ~21 ms tap. Dead-stream canary (exact-zero VP) lives in `noteFrame`.
     private func installTap(
         on engine: AVAudioEngine,
         format tapFormat: AVAudioFormat,
@@ -634,14 +498,7 @@ public final class MicCapture: @unchecked Sendable {
     /// Bumped on every engine start; stale frame-flow watchdogs check it and
     /// stand down (controlQueue).
     private var startGeneration: UInt64 = 0
-    /// Devices (by UID, "default" only when the HAL will not name the
-    /// device) where voice processing was refused or produced a dead stream —
-    /// never re-attempted this session, so a device-change rebuild can't
-    /// ping-pong back into a tap the canary already proved dead.
-    ///
-    /// Keyed by the RESOLVED device's UID even when following the system
-    /// default: a shared "default" key would let a failure on one device
-    /// disable echo cancellation on the next one the user switches to.
+    /// Resolved-UID keys where VP failed or went silent. Never retried this session.
     private var vpFailedDeviceKeys: Set<String> = []
 
     private static func voiceProcessingKey(
@@ -650,29 +507,7 @@ public final class MicCapture: @unchecked Sendable {
         uid ?? deviceID.flatMap(AudioInputDeviceList.uid(for:)) ?? "default"
     }
 
-    /// Routes that arrive over the air, which has two consequences here: no
-    /// voice processing (below), and a start that legitimately takes seconds,
-    /// so the frame-flow watchdog must not call one dead at 2.5 s.
-    ///
-    /// VOICE PROCESSING IS NEVER ATTEMPTED ON THESE rather than
-    /// attempted-and-recovered. Both entries are measured, not assumed.
-    ///
-    /// CONTINUITY IPHONES: AUVoiceIO either starts dead (frames never arrive)
-    /// or fails to initialize (-10875), and the resulting restart churn makes
-    /// the phone drop the whole audio session — the "Audio Disconnected"
-    /// banner, with the phone still showing itself as connected.
-    ///
-    /// BLUETOOTH (AIRPODS): enabling VP moves the headset onto the
-    /// call/HFP profile, which is both the wrong thing to do to a listening
-    /// session and unstable while the route is still settling — measured
-    /// 2026-08-15, a connecting pair produced a continuous stream of
-    ///
-    ///     [vp::vx::Voice_Processor] failed to process downlink voice proc …
-    ///     audio time stamp does not have valid sample time
-    ///
-    /// for as long as the tap was up. AirPods run their own noise suppression
-    /// on-device, and the boosted barge-in threshold covers the echo case
-    /// that VP was there for.
+    /// Wireless: no VP, longer start grace. Continuity VP dies; AirPods VP forces HFP.
     private static func isWirelessRoute(_ deviceID: AudioDeviceID?) -> Bool {
         guard let deviceID else { return false }
         return AudioInputDeviceList.isContinuityCapture(deviceID)

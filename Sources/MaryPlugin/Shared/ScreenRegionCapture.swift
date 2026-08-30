@@ -2,22 +2,10 @@
 //  ScreenRegionCapture.swift
 //  MaryPlugin
 //
-//  WHAT THE PERSON IS LOOKING AT, AS PIXELS — anywhere on the computer.
-//  One bounded, ephemeral read of the region the user is attending to:
-//  estimate a focus region (the Accessibility element under the cursor,
-//  a browser's web content, the window's content area, or honestly the
-//  whole focused window), capture exactly that rectangle through
-//  ScreenCaptureKit, and compress it in memory. Read-only — no input, no
-//  focus change — and honest about its two permissions: finding the region
-//  needs Accessibility, capturing it needs Screen Recording.
-//
-//  This file is the canonical statement of the pixel doctrine: ambient
-//  perception (watchers, anchors, selection) is AX + AppleScript only and
-//  never reads pixels. Screen Recording has exactly three sanctioned uses —
-//  the debugger's minimap, take_screenshot (user-requested, persists to the
-//  Desktop), and this ephemeral look (user-requested, in-memory only; the
-//  bytes are never persisted, logged, or archived).
-//
+//  WHAT: One ephemeral pixel read of the attended region.
+//  IN:   AX focus / web / window  OUT: in-memory JPEG
+//  PIN:  Ambient perception is AX only. Screen Recording: minimap,
+//        take_screenshot, and this look — never watchers.
 
 import AppKit
 import ApplicationServices
@@ -51,10 +39,7 @@ public enum ScreenRegionCapture {
     public struct View: Sendable {
         /// The frontmost application's name ("Safari", "Preview", "Slack").
         public let appTitle: String
-        /// The frontmost application's bundle identifier — STRUCTURAL, not
-        /// prose. This is what lets a look become focus EVIDENCE for the
-        /// looked-at app's realm; before it existed the identity was
-        /// discarded into the display-name fallback and routing stayed inert.
+        /// The frontmost application's bundle identifier — STRUCTURAL, not prose.
         public let bundleID: String?
         /// The focused window's title — usually the page or document title.
         public let windowTitle: String?
@@ -99,10 +84,7 @@ public enum ScreenRegionCapture {
 
         let application = AXUIElementCreateApplication(frontmost.processIdentifier)
         AXUIElementSetMessagingTimeout(application, 0.5)
-        // Best-effort web-area discovery lives in this file's own BFS
-        // (`webAreaFrame`). Mary has no BrowserAXReadiness facade; the
-        // chooser already degrades to the whole window when the page tree
-        // is still asleep.
+        // Best-effort web-area discovery lives in this file's own BFS (`webAreaFrame`).
         guard let window = element(application, kAXFocusedWindowAttribute as String)
                 ?? element(application, kAXMainWindowAttribute as String),
               let windowRect = frame(of: window) else {
@@ -295,19 +277,8 @@ public enum ScreenRegionCapture {
             height: (size.height * scale).rounded(.down))
     }
 
-    /// The compression ladder: each rung is tried in order and the first
-    /// result under `payloadCap` wins; the last rung is taken regardless.
-    /// 1568 px is Mistral vision's effective resolution — larger buys
-    /// nothing; the tail rungs exist for pathological gradient-heavy frames.
-    ///
-    /// THE FAST PROFILE IS THE DEFAULT NOW (user decision, 2026-08-11:
-    /// "precision first, but compress the payloads fast enough to reach the
-    /// snappy 3s or less"). The look's latency is dominated by
-    /// base64 + HTTP + vision inference, all roughly linear in payload — a
-    /// ≤200KB frame at 1024px keeps typical end-to-end looks around/under
-    /// 3s while remaining comfortably readable for describe-what-you-see
-    /// questions. The standard ladder stays available for a future caller
-    /// that wants maximum fidelity over speed.
+    /// The compression ladder: each rung is tried in order and the first result under
+    /// `payloadCap` wins; the last rung is taken regardless.
     enum CaptureProfile {
         case fast
         case standard

@@ -1,21 +1,11 @@
 //
 //  KokoroAudioProcessor.swift
-//  Sis
+//  MaryVoice
 //
-//  Created by Ritesh Pakala Rao on 12/23/25.
-//
-//  AVAudio graph chain (tone shaping & style only):
-//
-//    playerNode → timePitch → eq → reverb → mainMixerNode
-//
-//  Note: de-essing and rumble removal are handled upstream by KokoroDSP
-//  on the raw float samples (matching FluidAudio exactly). This graph
-//  only applies tonal shaping from TTSSpeechStyle.
-//
-//  Default state is flat / transparent (gains 0, reverb 0 %).
-//  KokoroDSP handles de-essing and rumble on the raw samples.
-//  TTSSpeechStyle.apply() sets non-neutral values before each utterance.
-//  TimePitch: rate 1.0, pitch 0 cents — adjusted per TTSSpeechStyle
+//  WHAT: AVAudio graph for style only (tone / rate / reverb).
+//  IN:   KokoroEngine.playStyled
+//  OUT:  playerNode → timePitch → eq → reverb → mainMixerNode
+//  PIN:  De-ess/rumble live in KokoroDSP, not this graph.
 //
 
 import AVFoundation
@@ -52,7 +42,7 @@ final class KokoroAudioProcessor {
 
     // MARK: - Graph
 
-    /// Attach all nodes and wire: playerNode → timePitch → eq → reverb → mainMixerNode
+    /// Wire: playerNode → timePitch → eq → reverb → mainMixerNode
     func connect(player: AVAudioPlayerNode, to engine: AVAudioEngine, format: AVAudioFormat) {
         engine.attach(timePitch)
         engine.attach(eq)
@@ -65,8 +55,7 @@ final class KokoroAudioProcessor {
 
     // MARK: - Style application
 
-    /// Apply a TTSSpeechStyle's resolved audio parameters to all nodes.
-    /// Call this before starting the engine for the next utterance.
+    /// Apply resolved audio parameters. Call before starting the engine.
     func apply(_ style: TTSSpeechStyle) {
         let p = style.audioParameters
 

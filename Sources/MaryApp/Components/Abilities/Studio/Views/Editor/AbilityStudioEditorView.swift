@@ -4,20 +4,12 @@ import SwiftUI
 
 // MARK: - Ability Editor shell
 
-/// The visual authoring surface for a `.mary` package.
-///
-/// There is deliberately no editor-only document format. Every control below
-/// decodes, transforms, and canonically re-encodes the same draft string used
-/// by Ability Studio's Schema tab through `mutateDraftPackage`. Visual mode and
-/// source mode are therefore two views of one real Mary package.
+/// Visual authoring for a `.mary` package. Same draft string as the Schema tab (`mutateDraftPackage`).
 enum AbilityStudioEditorStage: String, CaseIterable, Identifiable {
     case identity
     case intent
     case actions
-    // NO `plans` OR `artifacts` STAGE. Their editors edited package sections
-    // Mary's grammar does not carry — semantic design plans and the artifact
-    // domain, both belonging to the canvas lane this cut excludes. A tab that
-    // can only ever say "not supported" is worse than one that is not there.
+    // No plans/artifacts stages — those sections are not in Mary's package grammar.
     case wiring
     case review
 

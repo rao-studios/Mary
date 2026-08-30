@@ -2,11 +2,11 @@
 //  AmbientElementIndex.swift
 //  MaryAmbient
 //
-//  ONE SCOPE'S ELEMENTS, VECTORIZED. Immutable and Sendable — rebuilt
-//  wholesale at the scope's write funnel and swapped under the store's
-//  lock, the same lifecycle `SemanticAbilityRequestIndex` ships.
+//  WHAT: One scope's elements, vectorized. Immutable; rebuilt at the write funnel.
+//  IN:   AmbientElementRecord
+//  OUT:  AmbientElementIndexStore / AmbientReferenceGate
+//  PIN:  Same lifecycle as SemanticAbilityRequestIndex — wholesale swap under the store lock.
 //
-
 import Foundation
 
 /// The prebuilt per-element vectors for one scope, plus the scoring path.

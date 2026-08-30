@@ -2,9 +2,8 @@
 //  BrushStroke.swift
 //  Mary
 //
-//  A hand-painted highlight stroke with seeded randomness — unique per
-//  segment, stable across redraws. Verbatim port from Sis
-//  (Components/Chat/Views/Highlight/HighlightHelpers.swift).
+//  WHAT: Seeded hand-painted highlight; unique per segment, stable across redraws.
+//  OUT:  ContributionHighlightText
 //
 
 import SwiftUI

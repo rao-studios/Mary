@@ -1,11 +1,14 @@
-// Defines durable archive identity and the retrieval scope that mirrors it.
+//
+//  DepositSubject.swift
+//  MaryAmbient
+//
+//  WHAT: Durable archive identity and the retrieval scope that mirrors it.
+//  OUT:  Totem. ArchivePolicy lives on SkillOutcome in MaryPlugin — not a copy here.
+//
 
 import Foundation
 
-// `ArchivePolicy` is NOT here. It travels on `SkillOutcome`, in MaryPlugin,
-// because the binding that produces an outcome is the thing that knows what
-// the outcome means for memory — and MaryAmbient sits below MaryPlugin, so
-// a copy here could only ever be a second answer drifting from the first.
+// `ArchivePolicy` is NOT here.
 
 /// How a workspace identifies the item being archived.
 public enum ContentIdentityKind: String, Sendable, Equatable {
@@ -53,33 +56,7 @@ public struct RetrievalScope: Sendable, Equatable {
     /// Nothing specific in view — general memory.
     public static let general = RetrievalScope()
 
-    /// SEER'S OWN long-term memory groups — not Mary's. Written by the
-    /// server on every conversation, and therefore the only place the user's
-    /// history across projects survives. Ids verified verbatim against the
-    /// seer-server sources (this is the ONE place they are spelled):
-    ///
-    ///   `memory-<ownerId>`     — `Core/Seer+AutoMemory.swift`
-    ///                            (`id: "memory-\(request.ownerId)"`,
-    ///                             `label: Seer.autoMemoryGroupLabel` = "Memory")
-    ///   `resonance-<ownerId>`  — `API/Routes/Handles/handleChatStreamCompletions.swift`
-    ///                            and `API/Routes/Realtime/Realtime.swift`
-    ///                            (`id: "resonance-\(seerRequest.ownerId)"`,
-    ///                             `label: Sinatra.resonanceGroupLabel` = "Resonance")
-    ///
-    /// The owner id is interpolated RAW, exactly as the server does — no
-    /// canonicalization. Lowercasing it here would mint a group the server
-    /// never writes to, which fails the way every bug in this file fails:
-    /// silently, as an empty result set.
-    ///
-    /// THE REGRESSION THIS EXISTS FOR: scoping a focused turn to the document
-    /// group ALONE (`aggregate: false`, one `mary-scope-…`) blacked out
-    /// long-term memory on nearly every turn, because "focused" is the normal
-    /// state, not the exception. Worse, on the first turn in a project the
-    /// scope group does not exist yet, so retrieval returned literally
-    /// nothing. Carrying these two groups alongside Mary's Personal
-    /// interaction group is what makes a never-yet-created scope group
-    /// harmless: an unknown group contributes no candidates, and the turn
-    /// still retrieves memory instead of collapsing to zero results.
+    /// SEER'S OWN long-term memory groups.
     public static func memoryGroups(ownerID: String) -> [Group] {
         [
             Group(id: "memory-\(ownerID)", label: "Memory"),
@@ -96,11 +73,8 @@ public struct DepositSubject: Sendable, Equatable {
     /// Canonical app key in the focus arbiter's own vocabulary — "xcode",
     /// "pages", "scrivener". Nil = no app owned this turn.
     public var app: String?
-    /// The document as a STABLE name: project-relative path for code, the
-    /// document or manuscript name for prose. A name that wobbles between
-    /// deposits is a new document every time, which is the bug this slice
-    /// closes — so callers pass the same canonical spelling the prompt and
-    /// the knowledge graph use.
+    /// The document as a STABLE name: project-relative path for code, the document or
+    /// manuscript name for prose.
     public var documentIdentity: String?
     /// The workspace enclosing the document (project root, .scriv package).
     /// Nil when the document IS the workspace, as in Pages.
@@ -137,13 +111,7 @@ public struct DepositSubject: Sendable, Equatable {
 
     // MARK: - Keys (the single source of both ids)
 
-    /// Names the WORKSPACE — the retrieval unit. The project when there is
-    /// one (sibling files in one repo are one memory); the document itself
-    /// when there isn't (a Pages document is its own world).
-    ///
-    /// Owner-qualified because one Totem DB holds many owners: Totem drops a
-    /// group id already owned by someone else, so an un-owned group name
-    /// would silently swallow a second user's deposits on a shared node.
+    /// Names the WORKSPACE — the retrieval unit. The project when there is one.
     public func scopeKey(ownerID: String) -> String? {
         guard let app = Self.canonical(app),
               let place = Self.canonical(projectIdentity) ?? Self.canonical(documentIdentity)
@@ -171,10 +139,9 @@ public struct DepositSubject: Sendable, Equatable {
         scopeKey(ownerID: ownerID).map { "mary-scope-\(Self.stableHash($0))" }
     }
 
-    /// The deterministic document id for a `.stateSnapshot`. Nil when there
-    /// is no document identity to key on — the caller must fall back to an
-    /// episodic uuid rather than invent one, or two unrelated deposits would
-    /// start overwriting each other.
+    /// The deterministic document id for a `.stateSnapshot`. Nil when there is no document
+    /// identity to key on — the caller must fall back to an episodic uuid rather than invent
+    /// one, or two unrelated deposits would start overwriting each other.
     public func stateDocumentID(ownerID: String) -> String? {
         documentKey(ownerID: ownerID).map { "mary-doc-\(Self.stableHash($0))" }
     }
@@ -212,11 +179,9 @@ public struct DepositSubject: Sendable, Equatable {
         return collapsed.isEmpty ? nil : collapsed
     }
 
-    /// FNV-1a 64, hex. Swift's `Hasher` is seeded per PROCESS — using it here
-    /// would mint a different document id on every launch, which is exactly
-    /// the append-only behavior being removed. This is deliberately a plain
-    /// arithmetic hash: no CryptoKit dependency in a package that must build
-    /// for macOS 14, and trivially pinnable by a test.
+    /// FNV-1a 64, hex. Swift's `Hasher` is seeded per PROCESS — using it here would mint a
+    /// different document id on every launch, which is exactly the append-only behavior being
+    /// removed.
     public static func stableHash(_ value: String) -> String {
         var hash: UInt64 = 0xcbf2_9ce4_8422_2325
         for byte in Array(value.utf8) {

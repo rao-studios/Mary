@@ -2,12 +2,11 @@
 //  SeerChatClient.swift
 //  MaryBrain
 //
-//  Streams chat completions from the local Seer server. SSE reading follows
-//  Sis's NetworkService: `data: ` lines, `[DONE]` terminator, one refresh-
-//  and-retry on 401. The reader NEVER stops at the last text token — the
-//  contribution rides a trailing chunk with empty choices.
+//  WHAT: Stream chat completions from local Seer (SSE).
+//  IN:   SeerChatProviding
+//  OUT:  tokens + trailing contribution chunk
+//  PIN:  Never stop at the last text token — contribution rides empty choices.
 //
-
 import Foundation
 
 /// Injectable SSE seam: open a request, get (status, line stream).
@@ -36,10 +35,7 @@ public actor SeerChatClient: SeerChatProviding {
     /// Empty = Seer's default model. Sent as the request `model` otherwise.
     private var chatModel: String = ""
     private let transport: any SeerSSETransport
-    /// Read at REQUEST time, not configure time: "is a document focused" is a
-    /// per-turn fact, and `configure` only runs when Settings change. Default
-    /// = general, which is exactly the hardcoded `aggregate: true` this
-    /// replaces — an install that never wires a provider behaves as before.
+    /// Read at REQUEST time, not configure time: "is a document focused" is a per-turn fact, and `configure` only runs when Settings change.
     private var retrievalScope: @Sendable (String) -> RetrievalScope = { _ in .general }
 
     public init(
@@ -117,11 +113,7 @@ public actor SeerChatClient: SeerChatProviding {
                 personalTotemID: personalTotemID,
                 retrieval: retrievalScope(owner)
             )
-            // Yielded BEFORE the auth guard and the transport open: an
-            // attempt that dies signed-out or mid-open still traces, so the
-            // pane reads "asked, nothing back" rather than "no retrieval
-            // asked" — the attempts that never finish are the ones worth
-            // seeing (`AmbientTraceLog`'s unfinished-turns rationale).
+            // Yielded BEFORE the auth guard and the transport open: an attempt that dies signed-out or mid-open still traces, so the pane reads "asked
             continuation.yield(.scoped(SeerRequestTrace(scope: scope, transport: .sse)))
             guard var token = initialToken else {
                 throw SeerChatError.notAuthenticated
@@ -176,10 +168,7 @@ public actor SeerChatClient: SeerChatProviding {
         var request = URLRequest(url: baseURL.appendingPathComponent("v1/chat/completions"))
         request.httpMethod = "POST"
         request.httpBody = body
-        // IDLE timeout. The WALL CLOCK is on the session
-        // (`StreamingHTTP.resourceTimeout`) — this number alone never bounded
-        // anything, because an SSE stream sending heartbeats and no `data:`
-        // chunks resets it on every byte. See `StreamingHTTP`.
+        // IDLE timeout. The WALL CLOCK is on the session (`StreamingHTTP.resourceTimeout`)
         request.timeoutInterval = StreamingHTTP.idleTimeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("text/event-stream", forHTTPHeaderField: "Accept")

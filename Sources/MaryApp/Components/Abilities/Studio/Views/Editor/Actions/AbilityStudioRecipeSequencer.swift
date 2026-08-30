@@ -3,16 +3,7 @@ import SwiftUI
 
 // MARK: - Visual recipe blocks
 
-/// WHO OWNS THE STEPS being sequenced.
-///
-/// ONE CASE, AND IT USED TO BE TWO. The second was `designTemplate` — steps
-/// belonging to a semantic design plan's private template, edited through a
-/// separate integrity type and written to `plugin.designPlan`. Mary's package
-/// grammar has no design plan, so a callable operation is the only thing that
-/// can own a recipe here. An enum with one case is a struct wearing a costume,
-/// but this one keeps its shape deliberately: it is the seam the design lane
-/// would return through, and its `schemaPath` still has to say which of a
-/// package's arrays the steps live in.
+/// Who owns the sequenced steps. One case: a callable operation (`schemaPath` names the array).
 enum AbilityStudioRecipeOwner: Hashable {
     case callable(operation: String, index: Int)
 
@@ -54,11 +45,7 @@ struct AbilityStudioRecipeSequencer: View {
     private var steps: [PluginRecipeStepSchema] { lane.steps(in: operation) }
     private var authorableKinds: [PluginRecipeStepKind] {
         if lane == .cleanup { return [.keyChord, .wait] }
-        // THE POINTER BRANCH WENT WITH THE DESIGN LANE. A surface-navigation
-        // template could author pointer moves and clicks; nothing else could,
-        // and Mary's compiler refuses pointer steps at compile time anyway
-        // (`PluginCompiledStep`, `.pointerUnavailable`). What is authorable
-        // here is what the executor can actually perform.
+        // Authorable steps are what the executor can perform (compiler refuses pointer).
         return PluginRecipeStepKind.authorableCases
     }
 
@@ -98,10 +85,7 @@ struct AbilityStudioRecipeSequencer: View {
         let id = abilityStudioFirstUnusedName(
             stem: lane == .cleanup ? "cleanup" : "step",
             existing: steps.map(\.id))
-        // NO SEEDED DEFAULTS. The two that stood here — ⌃⇥ for a
-        // navigation template's chord, and a centred pointer step
-        // against the last captured anchor — were both design-lane, and
-        // the pointer one authored a step the compiler refuses.
+        // No seeded defaults; design-lane chords/pointer steps are gone.
         let step = PluginRecipeStepSchema.editorDefault(kind: kind, id: id)
         switch owner {
         case .callable:

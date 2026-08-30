@@ -2,37 +2,10 @@
 //  PluginCorpusStructureSchema.swift
 //  MaryFoundation
 //
-//  HOW A WRITING PROJECT IS SHAPED ON DISK — declared, not coded.
-//
-//  WHY THIS EXTENDS `corpus` RATHER THAN BEING A LANE OF ITS OWN. A corpus is
-//  the CRAFT axis: a body of work Mary can learn the shape of over time. Code
-//  was simply the first notation it was asked about, which is why the block
-//  is `corpus` and not `codeCorpus`. A manuscript is another notation, and a
-//  manuscript that lives as a directory — a manifest, per-item text files, an
-//  index — is a second way of being ON DISK rather than a second kind of
-//  thing to learn. So this is a `structure` sub-block, and a package that
-//  declares only `include`/`notation` behaves exactly as before.
-//
-//  THE FAMILY, and it is genuinely a family rather than one application
-//  wearing a schema: "a writing project that lives as a directory, with a
-//  manifest naming its parts". Scrivener is one member; Ulysses and any
-//  folder-of-markdown are others, which is why `manifestKind` has a
-//  `fileSystemTree` case where the tree IS the outline and an item's id is
-//  its relative path.
-//
-//  ⚠️ LOCATE-ONLY, AND THE REASON IS DATA LOSS. Nothing in this schema
-//  describes WRITING into the project, and that is deliberate rather than
-//  unfinished. An editor with the project open autosaves on its own schedule;
-//  a write from outside races that save and LOSES, silently, with no failing
-//  call anywhere — the user simply finds their paragraph gone later. Mary
-//  reads the project from disk and makes changes through the application's
-//  own commands, which is slower and cannot lose work.
-//
-//  EVERY FIELD IS A NAME OR A RELATIVE PATH. No absolute paths (a corpus
-//  addressed absolutely is machine-local, which the addressing doctrine
-//  forbids), no executables, no shell. A path template names positions —
-//  `{id}`, `{name}` — and anything left over after substitution is a refusal
-//  rather than a guess.
+//  WHAT: Writing-project shape on disk — `corpus.structure` sub-block.
+//  IN:   PluginCorpusSchema.structure.
+//  OUT:  corpus probe / PluginValidator+Corpus.
+//  PIN:  Locate-only. Names and relative paths; no write into autosaving apps.
 //
 
 import Foundation
@@ -41,19 +14,13 @@ import Foundation
 public enum PluginCorpusDiscovery: String, Codable, Hashable, Sendable, CaseIterable {
     /// A directory whose name ends in a known extension — `.scriv`.
     case directoryExtension
-    /// A directory holding a file that names it, for projects with no
-    /// distinguishing extension.
+    /// Directory holding a naming file (no distinguishing extension).
     case manifestPresence
 }
 
-/// How to tell whether the application currently has the project open.
-///
-/// IT MATTERS BECAUSE OF THE AUTOSAVE RACE ABOVE: a ceremony that drives the
-/// application must have the project open, and a read from disk is only
-/// trustworthy when it is not mid-save.
+/// Open-state test. Drive only when open; disk read not mid-save.
 public enum PluginCorpusOpenState: String, Codable, Hashable, Sendable, CaseIterable {
-    /// A lock file exists inside the project while it is open. Note a
-    /// crash leaves one behind, so this is paired with the process check.
+    /// Lock file while open. Pair with process check (crash leftover).
     case lockFile
     /// The owning application is running.
     case runningApplication
@@ -102,13 +69,7 @@ public struct PluginCorpusPart: Codable, Hashable, Sendable {
     }
 }
 
-/// Where the outline lives and how to read it.
-///
-/// MEASURED against a real project rather than assumed: the element and
-/// attribute names below are what a `.scrivx` actually contains — items carry
-/// their id in a `UUID` attribute and their kind in `Type`, the title is a
-/// child ELEMENT rather than an attribute, and nesting is a `Children`
-/// wrapper rather than direct containment.
+/// Outline location and XML names (scrivx-shaped: UUID, Type, title element, Children).
 public struct PluginCorpusManifest: Codable, Hashable, Sendable {
     public var kind: PluginCorpusManifestKind
     /// The manifest file, relative to the project root, with `{name}` for the
@@ -130,8 +91,7 @@ public struct PluginCorpusManifest: Codable, Hashable, Sendable {
     public var containerTypes: [String]
     /// The kind naming the manuscript root, if there is one.
     public var draftType: String?
-    /// The kind naming the trash, whose contents are EXCLUDED from every
-    /// read — a deleted chapter is not part of the work.
+    /// Trash kind. Contents excluded from every read.
     public var trashType: String?
 
     public init(
@@ -203,12 +163,7 @@ public struct PluginCorpusManifest: Codable, Hashable, Sendable {
     }
 }
 
-/// One structure edit the application offers through its own menus.
-///
-/// THE ACT IS A CLOSED ENUM AND THE PATH IS DATA. A package supplies
-/// coordinates — where this application keeps its "move" command — and cannot
-/// name a seventh kind of act or word its refusal. That boundary is what
-/// keeps a declaration from becoming a script.
+/// Closed structure act + menu path data. Package cannot name a seventh act.
 public struct PluginCorpusCeremony: Codable, Hashable, Sendable {
     public enum Act: String, Codable, Hashable, Sendable, CaseIterable {
         case addItem
@@ -218,11 +173,9 @@ public struct PluginCorpusCeremony: Codable, Hashable, Sendable {
     }
 
     public var act: Act
-    /// The menu path, as far as it is FIXED. For `moveToContainer` the last
-    /// level is the user's own folder and is read at runtime.
+    /// Fixed menu path. `moveToContainer` last level is the user's folder at runtime.
     public var menuPath: [String]
-    /// Whether the path's final level is completed from the project rather
-    /// than declared — "Move To" opening onto folders that exist today.
+    /// Final menu level completed from the project, not declared.
     public var completedByContainer: Bool
 
     public init(act: Act, menuPath: [String], completedByContainer: Bool = false) {
@@ -265,9 +218,7 @@ public struct PluginCorpusStructureSchema: Codable, Hashable, Sendable {
     public var lockFilePath: String?
     public var manifest: PluginCorpusManifest
     public var parts: [PluginCorpusPart]
-    /// A URL that opens one item in the application, with `{project}` and
-    /// `{id}`. Percent-encoded per position; braces left over after
-    /// substitution are a refusal.
+    /// Open-item URL template. Leftover braces refuse.
     public var documentURLTemplate: String?
     /// The handle letter a spoken reference mints under — "[D3]".
     public var handlePrefix: String?

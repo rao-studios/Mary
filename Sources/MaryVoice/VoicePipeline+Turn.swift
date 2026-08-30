@@ -2,6 +2,10 @@
 //  VoicePipeline+Turn.swift
 //  MaryVoice
 //
+//  WHAT: One conversational turn — transcribe, intercept, submit, speak.
+//  IN:   VoicePipeline.handle (endpoint / amend) → this
+//  OUT:  VoiceTranscriber / LanguageResponder / SpeechRouter / VoicePipelineEvent
+//
 
 import Foundation
 
@@ -9,8 +13,7 @@ extension VoicePipeline {
 
     // MARK: - The turn
 
-    /// Deterministic amend join (user decision): the models interpret the
-    /// correction; no extra model pass sanitizes it.
+    /// Deterministic amend join. PIN: models interpret the correction; no extra pass.
     static let amendJoinSeparator = " — "
 
     // ROUTE: Entry point for processing a completed turn from the transcriber
@@ -24,8 +27,7 @@ extension VoicePipeline {
             }
             // Nothing intelligible.
             if amendCapture.amendContext != nil {
-                // The correction audio defeated STT — fall back to just the
-                // original query rather than dropping the turn.
+                // Correction audio defeated STT — keep the original query.
                 await submitTurn(correction: "")
                 return
             }
@@ -39,9 +41,8 @@ extension VoicePipeline {
         }
 
         if amendCapture.pendingAmendCommit {
-            // The user superseded while THIS transcript was resolving — it
-            // becomes the amend's "original"; the correction is in the side
-            // buffer, never submitted anywhere yet.
+            // User superseded while this transcript was resolving — it becomes
+            // the amend original; correction is in the side buffer.
             amendCapture.amendContext = (original: text, wasSubmitted: false)
             await beginAmendCapture()
             return
@@ -50,9 +51,7 @@ extension VoicePipeline {
         if amendCapture.amendContext != nil {
             await submitTurn(correction: text)
         } else if await interceptStopListening(text) {
-            // A session command, not a query — intercepted at the seam
-            // where "the model never sees it" is enforceable (decideHeard's
-            // IntakePlanner is the in-pipeline matching precedent).
+            // Session command, not a query — intercepted before the responder.
         } else {
             emit(.finalTranscript(text))
             await submitTurn(query: text, superseding: false)
@@ -60,8 +59,7 @@ extension VoicePipeline {
     }
 
     // ROUTE: SubmitTurn is reused by continous hearing
-    /// Composes the amended query and submits it, superseding the aborted
-    /// turn when it had already reached the responder.
+    /// Compose amended query and submit, superseding if the aborted turn reached the responder.
     private func submitTurn(correction: String) async {
         guard let amend = amendCapture.amendContext else { return }
         amendCapture.amendContext = nil
@@ -86,19 +84,14 @@ extension VoicePipeline {
     // ROUTE: Execute turn
     func submitTurn(query: String, superseding: Bool) async {
         guard !terminated else { return }
-        // The user has the floor with a NEW utterance. Any old detached
-        // buffer—whether waiting, speaking, or halfway through a cut—belongs
-        // to work they have moved past. The fresh lease below rejects its
-        // in-flight speaker calls; clear its local state here too so it cannot
-        // be revived by the next proactive token.
+        // The user has the floor with a new utterance. Drop stale follow-up
+        // state; the fresh lease rejects in-flight speaker calls.
         proactive.forceStop()
         transition(to: .thinking)
         lastFinalTranscript = query
-        // A new turn starts silent — whatever the last turn's audio state
-        // was, nothing is playing yet, so the mic must not be pre-deafened.
+        // New turn starts silent — do not pre-deafen the mic.
         speakerAudioLive = false
-        // A new voice utterance is a hard barge-in boundary even if the prior
-        // model task has already finished and only its TTS drain remains.
+        // Voice utterance is a hard barge-in boundary even if only TTS drain remains.
         guard let speakerLease = await voiceFloor.claim() else { return }
 
         // Watch the speaker so `speaking` begins exactly when audio does.
@@ -107,8 +100,7 @@ extension VoicePipeline {
         }) else { return }
 
         var accumulated = ""
-        // Server-voiced turns (realtime Seer route): the router decides what
-        // the local speaker gets vs. what rides the remote-PCM seam.
+        // Server-voiced turns: router splits local tokens vs remote PCM.
         var router = SpeechRouter(speaker: speaker, speakerLease: speakerLease)
         do {
             respondStarted = true
@@ -121,40 +113,26 @@ extension VoicePipeline {
                 if Task.isCancelled { break }
                 switch event {
                 case .turnBegan(let id):
-                    // The exchange now on screen. Every later follow-up's
-                    // origin is judged against this.
                     currentUserTurnID = id
                     emit(.turnBegan(id))
                 case .routineDetached(let id):
                     emit(.routineDetached(id))
                 case .exchangeSuperseded(let id):
-                    // The superseded turn — possibly a TEXT turn — may still
-                    // be draining shared-speaker audio. `submitTurn` claimed
-                    // this turn's fresh voice floor before opening the stream,
-                    // which already performed the atomic hard stop; doing a
-                    // second unleased stop here would revoke THIS router.
+                    // This turn already claimed a fresh floor (hard stop). Do
+                    // not unleased-stop here — that would revoke this router.
                     emit(.exchangeSuperseded(userTurnID: id))
                 case .token(let token):
                     accumulated += token
                     emit(.brainToken(token))
-                    // Re-checked AT THE CALL, not just at the top of the
-                    // loop: reaching the speaker is an actor hop, and a
-                    // barge-in or supersede can land inside it. A cancelled
-                    // turn that still feeds hands the speaker a string
-                    // belonging to nobody's current baseline — the splice
-                    // this slice exists to kill. The speaker's own prefix
-                    // check is the backstop; this is the gate.
+                    // Re-check at the call: actor hop to speaker; barge-in can
+                    // land inside it. Cancelled turn must not splice stale text.
                     guard !Task.isCancelled else { continue }
                     await router.consumeToken(accumulated: accumulated)
                 case .speechSource(let source):
                     router.consumeSpeechSource(source, accumulated: accumulated)
                 case .retractSpeech:
-                    // Guarded AT THE CALL for the same reason `.token` is:
-                    // retracting reaches the SHARED speaker across an actor
-                    // hop, and a barge-in or supersede landing inside it would
-                    // have this dead turn soft-stop the new turn's audio.
-                    // `accumulated` is deliberately left standing — the
-                    // takeover rewinds the ear, never the transcript.
+                    // Same gate as `.token`. Leave `accumulated` — rewind the
+                    // ear, never the transcript.
                     guard !Task.isCancelled else { continue }
                     await router.consumeRetractSpeech(accumulated: accumulated)
                 case .audioChunk(let pcm, let sampleRate):
@@ -198,25 +176,19 @@ extension VoicePipeline {
     func handleSpeakerEvent(_ event: SpeakerEvent) {
         switch event {
         case .started:
-            // .thinking → normal reply; .listening(false) → follow-up
-            // playback. Either way, .speaking arms the boosted barge-in
-            // governor so the user can interrupt.
+            // `.thinking` → reply; `.listening(false)` → follow-up. Either
+            // way `.speaking` arms boosted barge-in.
             speakerAudioLive = true
             if state == .thinking || state == .listening(utteranceActive: false) {
                 transition(to: .speaking)
             }
         case .chunkScheduled(let text):
-            // Audio is queued on the player again — re-arm the boost BEFORE
-            // it becomes audible, so her own voice never trips the mic.
+            // Audio queued — re-arm boost before it is audible.
             speakerAudioLive = true
             emit(.ttsChunkStarted(text))
         case .audioIdle, .drained, .stopped:
-            // The room went quiet while the turn stays open (or the turn
-            // ended). Demote the onset: there is no echo left to guard
-            // against, and holding the boost is what swallowed the user's
-            // normal-volume speech and made the reply arrive late. `.paused`
-            // is deliberately NOT here — a provisional barge-in is exactly
-            // when the boosted cadence must survive to decide.
+            // Room quiet (turn may stay open). Drop the boost. PIN: `.paused`
+            // stays boosted — provisional barge-in still deciding.
             speakerAudioLive = false
         default:
             break

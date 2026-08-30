@@ -2,34 +2,10 @@
 //  SeerUnitAnnotator.swift
 //  MaryBrain
 //
-//  THE ANNOTATOR THAT ACTUALLY RUNS, because Mary's engine is always the
-//  on-device one.
+//  WHAT: Hosted unit annotator over Seer `/v1/complete`.
+//  IN:   InferenceUnitAnnotator declines (Mary's engine is always exclusive)
+//  OUT:  précis / labels via bounded complete route, not chat
 //
-//  `InferenceUnitAnnotator` next door declines whenever its engine requires
-//  exclusive generation — and Mary's does, every time, since the acting lane
-//  runs locally in both modes. Left alone, that would mean no unit ever gets a
-//  précis: every card structure-only, forever, for a reason that reads like a
-//  bug and is not one.
-//
-//  So the hosted path gets its own annotator over Seer's `/v1/complete`.
-//  Summarising a file needs no tools, no memory, and no contributions — the
-//  things Seer's chat lane always adds. `/v1/chat/completions` is a PERSONA
-//  lane with Totem RAG and a trailing Gita contribution; handed a JSON
-//  contract it still answered in prose about the file. `parse` requires an
-//  object with a précis and at least one label, so every one of those replies
-//  became nil. This annotator uses the bounded complete route instead, the
-//  sibling of `/v1/vision/look`: system + user, one JSON body, no SSE trailer.
-//
-//  IT STILL DECLINES RATHER THAN QUEUES. When Seer is unreachable the answer
-//  is nil, the unit deposits with its structure, and the ledger says why. A
-//  background summariser that made the user wait would be a worse trade than
-//  no summary at all.
-//
-//  THE SYSTEM PROMPT RIDES `instructions`, AND FORGETTING IT COST EVERY
-//  SUMMARY IN HOSTED MODE. `InferenceUnitAnnotator.systemPrompt` is not
-//  decoration — it is the JSON contract `parse` enforces on the way out.
-//
-
 import Foundation
 import MaryAmbient
 import MaryFoundation

@@ -1,41 +1,14 @@
 #!/bin/bash
-# Compile Frigate's vendored MLX Metal shaders into mlx.metallib, next to the
-# built binary.
+# WHAT: Compile Frigate's vendored MLX Metal shaders into mlx.metallib.
+# IN:   [debug|release] (default debug). FRIGATE_DIR overrides Frigate path.
+# OUT:  .build/$CONFIG/mlx.metallib — MLX's first search rung (binary dir).
+# PIN:  `swift build` has no Metal step. Without this, GPU load fails at
+#       runtime. Skip when no .metal is newer than the library.
 #
-#   ./scripts/build-metallib.sh [debug|release]     (default: debug)
+#   ./scripts/build-metallib.sh [debug|release]
 #
-# Override Frigate's location with FRIGATE_DIR=/path/to/Frigate.
+# Callers: scripts/dev.sh, scripts/make-app.sh.
 #
-# WHY THIS SCRIPT EXISTS AT ALL. `swift build` cannot compile Metal. Xcode's
-# package support can — it turns a target's `.metal` sources into a
-# `default.metallib` inside `Frigate_Cmlx.bundle` — but the SwiftPM command
-# line has no Metal compiler step of any kind, so every binary in `.build`
-# ships without the shaders MLX needs to run on the GPU. The failure is at
-# RUNTIME and reads:
-#
-#   MLX error: Failed to load the default metallib. library not found
-#   library not found library not found library not found
-#
-# — four "library not found"s because `load_default_library` in
-# `mlx/backend/metal/device.cpp` tries four places and reports them all.
-#
-# WHERE MLX LOOKS, in its own order:
-#   1. <binary dir>/mlx.metallib          ← what this script writes
-#   2. <binary dir>/Resources/mlx.metallib
-#   3. default.metallib in a loaded SwiftPM bundle (needs SWIFTPM_BUNDLE)
-#   4. <binary dir>/Resources/default.metallib
-#   5. METAL_PATH, a compile-time constant — "default.metallib", relative,
-#      so it resolves against the working directory and almost never hits
-#
-# The first rung is the one worth targeting: it depends on the binary's own
-# location rather than on bundle loading or the working directory. Note that
-# Frigate defines SWIFTPM_BUNDLE as "mlx-swift_Cmlx" — a name inherited from
-# upstream that no longer matches anything, since SwiftPM would name the
-# bundle after ITS package, `Frigate_Cmlx`. Rung 3 is not a road out of this.
-#
-# RUN IT AFTER `swift build`, before running anything that touches the local
-# engine. `scripts/dev.sh` and `scripts/make-app.sh` both call it.
-
 set -e
 
 CONFIG="${1:-debug}"
@@ -53,10 +26,7 @@ fi
 
 mkdir -p "$BINARY_DIR"
 
-# SKIP WHEN IT IS ALREADY CURRENT. Three callers invoke this and the compile
-# is ~50 files; re-running it on every launch would make `dev.sh` feel broken.
-# `find -newer` asks the only question that matters: did any shader change
-# after the library was written.
+# Skip when current — three callers; ~50 files per compile.
 if [ -f "$METALLIB_OUT" ] \
    && [ -z "$(find "$MLX_METAL_DIR" -name '*.metal' -newer "$METALLIB_OUT" -print -quit)" ]; then
     echo "build-metallib: $METALLIB_OUT is current"

@@ -2,38 +2,11 @@
 //  SemanticAbilityRequestIndex.swift
 //  MaryBrain
 //
-//  EMBEDDING RECALL FOR THE ABILITY-REQUEST SEAM. `requestedAbilities(in:)`
-//  is exact whole-token matching and fails closed: "draw a circle" requests
-//  NOTHING without the literal word "Sketch" in the utterance — pinned
-//  behavior, and the right default. This index adds RECALL on top: a
-//  sentence-embedding similarity between the utterance and each Ability's
-//  authored trigger corpus, unioned with (never replacing, never vetoing)
-//  the exact matches.
+//  WHAT: Embedding recall for the Ability-request seam.
+//  IN:   AbilityTriggerSchema corpus (authored package data)
+//  OUT:  union with exact `requestedAbilities(in:)`
+//  PIN:  Additive only; fails closed; never identifies a Skill.
 //
-//  THE CORPUS ALREADY EXISTED. `AbilityTriggerSchema.intentAliases` and
-//  route-disposition fixtures are authored, bounded package data validated at
-//  admission. They join the same tokens, phrases, aliases, and summary the
-//  exact matcher and Studio already trust. Fixtures that expect abstention,
-//  clarification, or any disposition other than `route` are deliberately not
-//  positive examples.
-//
-//  CONSTRAINTS, in order of importance:
-//  - SYNCHRONOUS AND CHEAP: the call sits inside the pure
-//    `AmbientEngine.resolve` chain. The model loads once at reload (off the
-//    turn path); a query costs one vectorization plus a few hundred dot
-//    products.
-//  - FAIL CLOSED: no OS embedding asset, no index — `nil` everywhere
-//    degrades to exact-only, which is today's behavior byte for byte.
-//  - ADDITIVE ONLY: the union in `requestedAbilities` means no similarity
-//    score can remove an exact match. `negativeTokens` participate as a
-//    similarity MARGIN (a "figma" corpus pushes "draw it in figma" below
-//    sketch's threshold), mirroring the exact matcher's veto in spirit
-//    without gaining the power to veto exact matches.
-//  - DETERMINISTIC TESTS: `NLEmbedding` output varies by OS build, so the
-//    vectorizer is a protocol and every CI assertion uses a fake. The real
-//    model runs only behind an opt-in calibration harness.
-//
-
 import MaryAmbient
 import Foundation
 
@@ -84,10 +57,7 @@ public struct SemanticAbilityRequestIndex: Sendable {
                 $0.replacingOccurrences(of: "-", with: " ")
                     .replacingOccurrences(of: ".", with: " ")
             }
-            // Fixtures widen only Ability NOMINATION. They never identify a
-            // Skill or operation here; the ordinary roster still enforces its
-            // routing predicates, target authority, provider compatibility,
-            // and raw-primitive boundary before projection and dispatch.
+            // Fixtures widen only Ability NOMINATION. They never identify a Skill or operation here
             positiveTerms += record.package.fixtures
                 .filter { $0.expectedDisposition == "route" }
                 .map(\.utterance)

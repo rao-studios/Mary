@@ -2,12 +2,10 @@
 //  SpokenPhrase.swift
 //  MaryBrain
 //
-//  Everything every plugin renders for the ear lives here: twelve-hour time
-//  phrases, weekday names, counts as words, byte sizes, phone digits, and
-//  site names instead of raw URLs. Skill summaries feed TTS directly — no
-//  ISO dates, no 24-hour clocks, no URLs, no punctuation soup.
+//  WHAT: Everything plugins render for the ear — time, weekday, counts, sizes, phones, sites.
+//  IN:   Skill summaries → TTS
+//  PIN:  No ISO dates, 24-hour clocks, URLs, or punctuation soup.
 //
-
 import Foundation
 
 public enum SpokenPhrase {

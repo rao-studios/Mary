@@ -2,15 +2,9 @@
 //  AXWindowRoster.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  A non-throwing, best-effort wrapper over `AccessibilityWindowCore.axWindows`
-//  for the builder's use. `AccessibilityWindowCore` throws — the right
-//  contract for an action that reports failure to a user ("I couldn't raise
-//  that window") — but a snapshot builder's honest answer to "AX declined"
-//  is an empty roster plus a trust check, not a thrown error interrupting a
-//  render loop.
-//
+//  WHAT: Best-effort window list for the snapshot builder.
+//  IN:   AccessibilityWindowCore.axWindows  OUT: AXSnapshotBuilder
+//  PIN:  Throws become empty roster — a render loop must not abort.
 
 import ApplicationServices
 import Foundation

@@ -2,37 +2,18 @@
 //  CorpusRegistration.swift
 //  MaryPlugin
 //
-//  WHICH APPLICATIONS HAVE A CORPUS, resolved from what their packages
-//  declared. The prose lane's registry, in the same shape, for the same
-//  reason: one generic producer needs to know whose coordinates it is using.
-//
-//  ONE ROSTER, TWO CONSUMERS, and the distinction is worth stating because
-//  the second one answers a different question with the same fact:
-//
-//    · `CorpusObserver` (a MaryObserver) watches a corpus PASSIVELY — it
-//      crawls the files, counts style evidence, and feeds the unit index. It
-//      answers nothing and is never called by the model.
-//    · `ProjectCorpusAdapter` (a MaryAdapter) answers the model — an
-//      outline, a document's text, a search — and changes a project's shape
-//      through its application's own menus.
-//
-//  Those are different PROTOCOLS answering different questions, and they
-//  legitimately differ. What they must not differ about is WHICH
-//  APPLICATIONS have a corpus, which is one fact declared in one block: a
-//  second registration type and a second registry would mean two answers to
-//  that question, kept in step by hand.
-//
-//  The `structure` sub-block is what tells them apart at use: a corpus
-//  without one is a body of files to learn from (xcode.mary), and only a
-//  corpus WITH one is a project with an outline to read.
+//  WHAT: Which applications have a corpus, from package declarations.
+//  IN:   PluginCorpusSchema
+//  OUT:  CorpusObserver (passive) / ProjectCorpusAdapter (answers the model)
+//  PIN:  One roster, two consumers. `structure` distinguishes a project outline
+//        from a body of files to learn from.
 //
 
 import Foundation
 import MaryAmbient
 import MaryFoundation
 
-/// One application's corpus declaration, bound to the application it came
-/// from.
+/// One application's corpus declaration, bound to that application.
 public struct CorpusRegistration: Sendable, Equatable, SurfaceClaim {
     public let applicationID: String
     public let bundleIdentifiers: [String]
@@ -51,19 +32,10 @@ public struct CorpusRegistration: Sendable, Equatable, SurfaceClaim {
         self.schema = schema
     }
 
-    /// How this project is shaped on disk, when it is a project rather than a
-    /// folder of files. Nil for a notation-only corpus.
+    /// Disk shape when this is a project. Nil for a notation-only corpus.
     public var structure: PluginCorpusStructureSchema? { schema.structure }
 
-    /// PREFIX-MATCHED, and the case it exists for is a real one: Scrivener's
-    /// bundle id carries its major version — `…scrivener3` today,
-    /// `…scrivener4` next year — and the Setapp build adds its own suffix, so
-    /// a package naming the family should not stop working at the next
-    /// release. Exact matching also silently excludes `com.apple.dt.Xcode-beta`
-    /// from a declaration that names Xcode.
-    ///
-    /// Membership only. Nothing here launches anything, and launching needs
-    /// an exact id.
+    /// Prefix-matched family membership. Launching still needs an exact id.
     public func owns(bundleID: String) -> Bool {
         SurfaceClaimOwnership.declaredStem(
             bundleID: bundleID,
@@ -71,7 +43,7 @@ public struct CorpusRegistration: Sendable, Equatable, SurfaceClaim {
     }
 }
 
-/// The installed corpora, swapped whole when packages change.
+/// Installed corpora, swapped whole when packages change.
 public final class CorpusSupport: @unchecked Sendable {
 
     public static let shared = CorpusSupport()
@@ -80,9 +52,7 @@ public final class CorpusSupport: @unchecked Sendable {
 
     public init() {}
 
-    /// FROZEN SWAP, not a mutation. Importing or editing a package changes the
-    /// whole answer, and a reader mid-poll must see one consistent roster
-    /// rather than half of each.
+    /// Frozen swap. A reader mid-poll must see one consistent roster.
     public func reconcile(_ registrations: [CorpusRegistration]) {
         roster.reconcile(registrations)
     }
@@ -93,8 +63,7 @@ public final class CorpusSupport: @unchecked Sendable {
         roster.registration(bundleID: bundleID)
     }
 
-    /// The corpora that are PROJECTS — the ones a project lane can read an
-    /// outline out of, as opposed to a body of files to learn style from.
+    /// Corpora with a `structure` — projects a lane can read an outline from.
     public var withStructure: [CorpusRegistration] {
         all.filter { $0.structure != nil }
     }

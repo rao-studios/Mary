@@ -2,18 +2,9 @@
 //  CorpusViewModel.swift
 //  Mary
 //
-//  The Corpus pane's bridge to what indexing actually did.
-//
-//  `RouteTraceViewModel`'s shape, for its stated reasons: a 1 Hz poll of
-//  lock-boxed stores, ONE impure `gather()`, a PURE `build(_:)` over an
-//  `Inputs` value, and an Equatable diff before republishing so a quiet second
-//  repaints nothing. The pure core is what makes the pane testable from
-//  `Tests/MaryTests` with a frozen clock, which matters more here than
-//  usual: the rows encode the promotion and conflict rules, and those are
-//  exactly the things worth pinning.
-//
-//  Live data never round-trips through Granite's `@Store` — its 200 ms
-//  debounce blurs precisely what this pane exists to show.
+//  WHAT: Corpus pane bridge — 1 Hz poll, one impure gather(), pure build(_:).
+//  OUT:  Corpus*View. Equatable diff before republish.
+//  PIN:  Live data never through Granite @Store (200 ms debounce).
 //
 
 import MaryAmbient
@@ -26,8 +17,7 @@ import Foundation
 struct CorpusUnitRow: Identifiable, Equatable {
     var id: String { record.unitKey }
     var record: UnitIndexRecord
-    /// Rendered here rather than in the view, so the pure builder decides what
-    /// the pane says about a unit's state.
+    /// Rendered here so the builder decides the pane's sentence.
     var statusLine: String
     var isStale: Bool
 }
@@ -48,9 +38,7 @@ struct CorpusTierSection: Identifiable, Equatable {
     var title: String
     var subtitle: String
     var rows: [CorpusTenetRow]
-    /// The scope this section IS. Carried rather than re-parsed out of `id`:
-    /// a scope now has an identity, and reconstructing one from a display
-    /// string is how the two would drift.
+    /// Scope identity (not re-parsed from `id`).
     var scope: StyleScope?
 }
 
@@ -60,13 +48,7 @@ struct CorpusProjectRow: Identifiable, Equatable {
     var unitCount: Int
 }
 
-/// One Ability, and every rung of schema underneath it.
-///
-/// This is the chain rendered: the Ability is the craft, and the sections are
-/// the language it is written in, the applications that realize it, and the
-/// projects it has been practised on. A schema at the Ability rung is what
-/// makes you use Sketch differently from anyone else using Sketch; the
-/// application rung is what stays with Sketch.
+/// One Ability and every schema rung under it (craft → language → apps → projects).
 struct CorpusAbilitySection: Identifiable, Equatable {
     var id: String
     var ability: AbilityID
@@ -77,8 +59,7 @@ struct CorpusAbilitySection: Identifiable, Equatable {
     var providedBy: String
     var sections: [CorpusTierSection]
     var tenetCount: Int
-    /// No producer files evidence for this Ability yet. Shown rather than
-    /// hidden — the shape of the system should be legible before it is full.
+    /// No producer yet. Shown so the system's shape is visible while empty.
     var isUnobserved: Bool
 }
 
@@ -117,16 +98,9 @@ final class CorpusViewModel: ObservableObject {
         var observed: [StyleTenet] = []
         var conflicts: [(asserted: StyleTenet, observed: StyleTenet)] = []
         var vetoed: Set<String> = []
-        /// Who is registered to learn what. CARRIED, not read from the shared
-        /// registry inside `build` — the whole point of the pure core is that
-        /// the same inputs give the same pane, and a process-wide singleton
-        /// read mid-build breaks that for tests and for parallel suites alike.
+        /// Who learns what. Carried (not a singleton read inside `build`).
         var producers: [StyleProducer] = []
-        /// Which applications DECLARE a corpus for which ability. In the build
-        /// this ports from the same question was asked of `AmbientWorld` —
-        /// which abilities a lane realizes — and Mary's lanes realize none:
-        /// an application is a package, and a craft is something its package
-        /// declares. Carried rather than read, for the reason above.
+        /// Which applications declare a corpus for which ability. Carried, not read.
         var corpora: [(applicationID: String, ability: AbilityID?, notation: String)] = []
         var selectedProjectID: String?
         var now: Date = Date()
@@ -167,10 +141,7 @@ final class CorpusViewModel: ObservableObject {
     private func gather() -> Inputs {
         let store = StyleEvidenceStore.shared
         let now = Date()
-        // ONE weighted pass, shared three ways. `tenets`, `observed` and
-        // `conflicts` each used to recompute it, so a pane left open re-weighted
-        // every contribution in the corpus three times a second and discarded
-        // the result unchanged nearly every time.
+        // One weighted pass shared by tenets / observed / conflicts.
         let observed = store.observedTenets(at: now)
         return Inputs(
             units: UnitIndexLedger.shared.allUnits(),
@@ -217,9 +188,7 @@ final class CorpusViewModel: ObservableObject {
             CorpusUnitRow(
                 record: record,
                 statusLine: statusLine(for: record),
-                // An hour without a re-index while its project keeps moving is
-                // not stale by itself — a file you have not touched is simply
-                // current. Staleness here means the deposit never landed.
+                // Stale = deposit never landed (not "file untouched").
                 isStale: record.deposit == .failed)
         }
         built.operations = Array(inputs.operations.prefix(120))
@@ -227,9 +196,7 @@ final class CorpusViewModel: ObservableObject {
         return built
     }
 
-    /// The one place a unit's state becomes a sentence. Every branch names a
-    /// distinguishable outcome — before `UnitAnnotationOutcome` existed, three
-    /// of these were one indistinguishable empty label list.
+    /// Unit state as a sentence. Each branch is a distinguishable outcome.
     nonisolated static func statusLine(for record: UnitIndexRecord) -> String {
         switch record.annotation {
         case .pending: return "waiting to be summarised"
@@ -246,8 +213,7 @@ final class CorpusViewModel: ObservableObject {
         case .seerUnavailable: return "structure only — Seer is not signed in"
         case .empty: return "structure only — the summariser returned an empty reply"
         case .unparsable: return "structure only — the summariser did not return a précis"
-        // Written by a newer build and decayed on the way in. Named rather
-        // than hidden: an unrecognised state is still a state.
+        // Named: an unrecognised state is still a state.
         case .unknown: return "in a state this version doesn't recognise"
         }
     }
@@ -274,10 +240,7 @@ final class CorpusViewModel: ObservableObject {
                 }
         }
 
-        // ONE SECTION PER OBSERVED SCOPE, broadest rung first. Built from the
-        // scopes that actually exist rather than from a fixed list, so a
-        // second language or a second application appears without this
-        // function learning its name.
+        // One section per observed scope, broadest first (not a fixed list).
         var seen: [StyleScope] = []
         for tenet in inputs.tenets where !seen.contains(tenet.scope) {
             seen.append(tenet.scope)
@@ -332,28 +295,12 @@ final class CorpusViewModel: ObservableObject {
 
     // MARK: - The Ability cut
 
-    /// Group every rung under the Ability it belongs to.
-    ///
-    /// The Ability→application edge comes from `AmbientWorld.ability`, the one
-    /// mapping — not from a second table here that could disagree with the
-    /// routing predicate it also feeds.
-    /// One card per ABILITY — the thing being learned about — with the
-    /// applications it is observed through named beneath it.
-    ///
-    /// THE ORDER OF THE QUESTION CHANGED. This used to start from
-    /// `AmbientWorld.realizedAbilities` and re-derive each ability's owners and
-    /// notations here, which was a fourth copy of a filter the store already
-    /// owns. It now starts from the REGISTERED PRODUCERS: an ability appears
-    /// because something is registered to learn it, which is the same fact the
-    /// user sees — Xcode is there because the Xcode plugin is in use, Scrivener
-    /// because its package is.
+    /// One card per Ability from registered producers. Ability→application from AmbientWorld.ability.
     nonisolated static func abilities(_ inputs: Inputs) -> [CorpusAbilitySection] {
         let allTiers = tiers(inputs)
         let producers = inputs.producers
 
-        // Every ability a world realizes, whether or not anything learns it
-        // yet — an instrument that showed only what it can already see would
-        // hide the shape of the system.
+        // Every realized ability, observed or not — empty producers still show the shape.
         var abilities: [AbilityID] = producers.map(\.ability)
         for declared in inputs.corpora {
             guard let ability = declared.ability, !abilities.contains(ability) else { continue }
@@ -372,8 +319,7 @@ final class CorpusViewModel: ObservableObject {
                 case .ability: return scope.identity == ability.rawValue
                 case .application: return owners.contains(scope.identity ?? "")
                 case .language: return languages.contains(scope.identity ?? "")
-                // A project belongs to whichever Ability was practised in it,
-                // which its own units name.
+                // Project belongs to the Ability practised in its units.
                 case .project:
                     let producedBy = Set(
                         inputs.units
@@ -399,13 +345,7 @@ final class CorpusViewModel: ObservableObject {
         }
     }
 
-    /// The dimensions a given craft can meaningfully hold.
-    ///
-    /// Derived from what its registered producer has ever observed, falling
-    /// back to the notation-free set when nothing has been seen yet — a
-    /// manuscript can carry a comment posture in the general sense, but not a
-    /// concurrency primitive, and offering one is inviting a tenet that
-    /// nothing will ever corroborate.
+    /// Dimensions this craft can hold. From producer observations; notation-free fallback if unseen.
     nonisolated static func assertableDimensions(
         for ability: AbilityID,
         producers: [StyleProducer] = StyleProducerRegistry.shared.all()
@@ -421,10 +361,7 @@ final class CorpusViewModel: ObservableObject {
             .filter { readsANotation || !notationBound.contains($0) }
     }
 
-    /// WHY THIS APPEARS AT ALL. Xcode is at the top of the pane because an
-    /// Xcode plugin is in use; Scrivener would be because its dynamic package
-    /// is. Saying so is the difference between a list of applications and an
-    /// account of what Mary is actually learning from.
+    /// Why this Ability appears (plugin/package in use), not just a list of apps.
     nonisolated static func providedBy(
         ability: AbilityID,
         producer: StyleProducer?,
@@ -442,9 +379,7 @@ final class CorpusViewModel: ObservableObject {
         return "Observed through \(spoken(producer.applications))."
     }
 
-    /// The notations an application's work is written in — asked of the
-    /// registry rather than restated here. This was a second copy of the
-    /// runtime's table, and two tables that must agree are one bug waiting.
+    /// Notations for an application's work — from the registry, not a second table here.
     nonisolated static func notations(
         forApplication applicationID: String,
         producers: [StyleProducer] = StyleProducerRegistry.shared.all(),
@@ -453,9 +388,7 @@ final class CorpusViewModel: ObservableObject {
         if let learned = producers.first(where: { $0.observes(application: applicationID) }) {
             return learned.languages
         }
-        // Nothing has learned this application yet, but its package still says
-        // what its work is written in — which is the honest answer before the
-        // first settle rather than an empty list.
+        // Package still names the notation before anything has settled.
         return corpora
             .filter { $0.applicationID == applicationID }
             .map(\.schema.notation)
@@ -463,14 +396,7 @@ final class CorpusViewModel: ObservableObject {
 
     // MARK: - The raw cut
 
-    /// One profile per subject, encoded through the SAME codec the export path
-    /// uses — so what the tab shows and what you could hand to someone else
-    /// are the same bytes, digest included, rather than a debug rendering that
-    /// merely resembles them.
-    /// The document as it is actually written — one per ABILITY, matching
-    /// `persistStyleProfile` exactly. It used to derive subjects from the
-    /// `.application` rung, which meant the Raw tab and the durable documents
-    /// could describe different things.
+    /// One profile per Ability through the same codec as export (digest included).
     nonisolated static func rawProfiles(_ inputs: Inputs) -> [CorpusRawProfile] {
         inputs.producers.compactMap { producer in
             let subject = producer.ability.rawValue
@@ -514,8 +440,7 @@ final class CorpusViewModel: ObservableObject {
         }
         let agreement = Int((tenet.agreement * 100).rounded())
         var line = "\(tenet.support) for · \(tenet.counter) against · \(agreement)% agreement"
-        // Age is the half of the story the pane could not previously tell: a
-        // tenet that has gone quiet looks identical to a live one without it.
+        // Age: a quiet tenet looked identical to a live one without it.
         line += " · \(AmbientAge.string(max(0, Date().timeIntervalSince(tenet.lastObservedAt)))) ago"
         return line
     }

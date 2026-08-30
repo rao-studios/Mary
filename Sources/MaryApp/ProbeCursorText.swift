@@ -2,15 +2,8 @@
 //  ProbeCursorText.swift
 //  Mary
 //
-//  Inserts white "hello world" at the caret of whatever application is
-//  frontmost:
-//
-//    swift run Mary --probe-cursor-text
-//
-//  Colored insertion goes through the pasteboard because neither the
-//  accessibility API nor synthesized keystrokes carry text attributes — only
-//  a rich-text paste does. The clipboard is saved and restored around the
-//  paste the same way SelectionHandoffCoordinator does around its copy.
+//  WHAT: Paste colored "hello world" at the frontmost caret (clipboard save/restore).
+//  OUT:  CLI: swift run Mary --probe-cursor-text
 //
 
 import AppKit

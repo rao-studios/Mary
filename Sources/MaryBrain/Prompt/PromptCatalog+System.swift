@@ -2,24 +2,16 @@
 //  PromptCatalog+System.swift
 //  MaryBrain
 //
-//  The Skill lane's sections. Every literal here came out of
-//  `MaryPrompts.system` unchanged, and every post-mortem came with it —
-//  these comments are the record of live failures, and the text is only safe
-//  to edit by someone who has read why it says what it says.
+//  WHAT: Skill-lane prompt sections.
+//  IN:   MaryPrompts.system literals (byte-identical)
+//  OUT:  PromptPlan.full
+//  PIN:  Each section emits its own leading separator. Do not edit """ bodies.
 //
-//  EACH SECTION EMITS ITS OWN LEADING SEPARATOR. `identity` leads with
-//  nothing because it is first; everything else carries the exact separator
-//  it had when it was a `+=`. See `PromptSection`'s header.
-//
-
 import Foundation
 
 extension PromptCatalog {
 
-    /// The catalog every plan renders from — both lanes, one registry, so a
-    /// plan can name any section and the two lanes share the section types
-    /// without sharing their prose (they say the same things differently, on
-    /// purpose).
+    /// Both lanes, one registry. Shared section types; different prose on purpose.
     public static let standard = PromptCatalog(systemSections + voiceSections)
 
     static var systemSections: [PromptSection] {
@@ -38,7 +30,7 @@ extension PromptCatalog {
 
     static let identity = PromptSection(
         id: .identity,
-        rationale: "Who she is. Always first, and the only section with no leading separator. The Skill lane's own identity — Seer-mode identity rides `SeerWire.Persona`, not this string."
+        rationale: "Who she is. Always first; no leading separator. Seer identity rides SeerWire.Persona."
     ) { _ in
         """
         You are Mary — that is your name; always identify as Mary, never \
@@ -94,22 +86,8 @@ extension PromptCatalog {
         """
     }
 
-    /// NOTE the single newline before "Named Skills are" — it is not a paragraph
-    /// break in the original and must not become one.
-    ///
-    /// CORRECTED 2026-08-28 (Corpus I): this used to describe `run_applescript`
-    /// and `run_shell` as general-purpose escape hatches — "run_shell reads,
-    /// searches, edits files, and builds" — from the AppleScript-lane era.
-    /// Both are gone from this cut (`AbilityRuntime.swift`'s own note: "THE
-    /// RAW MACHINE PRIMITIVES ARE NOT IN THIS CUT... They are gone with the
-    /// AppleScript lane"; `RuntimePrimitiveOperations.names` only RESERVES the
-    /// two names so no imported package can claim them, it does not bind
-    /// them to anything). Telling the model it has a `run_shell` it can reach
-    /// for "reads, searches, edits files" is exactly the shell-first bias
-    /// this codebase already fixed once in Bonnie — except here the shell
-    /// tool it was pointed at does not exist at all, so a read/search turn
-    /// had nowhere real to land. The corpus and code-surface lanes are the
-    /// real answer now; naming them here is what closes that gap.
+    /// Named Ability Skills lead. Single newline before "Named Skills are" is not a paragraph break.
+    /// PIN: Do not describe run_shell / run_applescript as reachable — reserved names only.
     static let commandKinds = PromptSection(
         id: .commandKinds,
         rationale: "Typed Ability Skills lead — the only real command kind in this cut."
@@ -148,8 +126,7 @@ extension PromptCatalog {
         """
     }
 
-    /// The CONFIRM protocol. Interpolates two compile-time constants, so it
-    /// is static despite the interpolation.
+    /// CONFIRM protocol. Static despite interpolating two compile-time constants.
     static let confirmation = PromptSection(
         id: .confirmation,
         rationale: "The CONFIRM protocol, and the rule against asking twice."
@@ -172,13 +149,10 @@ extension PromptCatalog {
 
     // MARK: - The roster block
 
-    /// The implementation roster line per plugin: adapter identity, summary,
-    /// and the operations it can back. Adapter labels are deliberately
-    /// distinguished from the callable Ability Skill schemas supplied to the
-    /// model alongside this prompt.
+    /// Adapter roster lines. Labels are diagnostic identity, never callable names.
     static let rosterHeader = PromptSection(
         id: .rosterHeader,
-        rationale: "One line per installed adapter, clearly separated from callable Ability Skills."
+        rationale: "One line per installed adapter; not a callable Skill name."
     ) { inputs in
         guard !inputs.plugins.isEmpty else { return "" }
         var text = """
@@ -195,21 +169,15 @@ extension PromptCatalog {
         return text
     }
 
-    /// A SEPARATE LOOP from the roster lines, exactly as it was: every line
-    /// first, then every fragment. Interleaving them would read the same and
-    /// render differently.
+    /// Every fragment after every roster line — same order as the original `+=`.
+    /// PIN: Interleaving would read the same and render differently.
     static let rosterFragments = PromptSection(
         id: .rosterFragments,
-        rationale: "Each plugin's promptFragment — ~5,200 chars, the roster's real cost."
+        rationale: "Each plugin promptFragment — the roster's real cost."
     ) { inputs in
         guard !inputs.plugins.isEmpty else { return "" }
         var text = ""
-        // A suppressed owner is a rival writing world the turn's lead scoped
-        // out of the schema roster — its fragment would describe tools the
-        // model cannot call this turn, which is the temptation the scoping
-        // exists to remove. The rosterHeader above still lists the adapter
-        // (existence is stated), and the collapsed ambient line teaches that
-        // NAMING the world brings it back.
+        // Skip fragments for owners the lead scoped out of the schema roster.
         for plugin in inputs.plugins
         where !inputs.standingDownFragmentOwners.contains(plugin.name) {
             if let fragment = plugin.promptFragment {
@@ -219,18 +187,10 @@ extension PromptCatalog {
         return text
     }
 
-    /// THE DOCTRINE, STATED WHERE THE ROSTER IS STATED. Everything after this
-    /// point describes what Mary can SEE — the focused file, the live
-    /// document, the window she is reading. Read on its own that is a
-    /// description of her capability, and it was read that way: "Mary
-    /// doesn't conduct tasks for Calendar and Reminders now because she can't
-    /// see them." Eyes are an UPGRADE for the apps the user works inside,
-    /// never a precondition for acting; a live section is about which document
-    /// she perceives and edits, never about which of the Skills above she may
-    /// call.
+    /// Eyes are an upgrade, never a precondition. Stated beside the roster it governs.
     static let eyesDoctrine = PromptSection(
         id: .eyesDoctrine,
-        rationale: "Eyes are an upgrade, never a precondition — stated beside the roster it governs."
+        rationale: "Eyes are an upgrade, never a precondition."
     ) { inputs in
         guard !inputs.plugins.isEmpty else { return "" }
         return "\n\n" + """
@@ -245,22 +205,11 @@ extension PromptCatalog {
         """
     }
 
-    /// THE PARADIGM, stated ONCE and stated with the roster — because the
-    /// failure was a grep-shaped drift, not a missing sentence. "Never replace
-    /// a document's text wholesale" was written about `set body text`
-    /// clobbering an entire document; spread across four fragments, with
-    /// typing at the caret the only write verb in the tree, what a model
-    /// actually reads is "replacing is banned and the only way to write is the
-    /// cursor". So "replace the Purpose section with the tighter version"
-    /// became a caret write: the tighter version landed wherever the user had
-    /// last clicked and the Purpose section stayed exactly where it was.
-    ///
-    /// The per-world fragments describe the ACT and the locate-first
-    /// discipline; the rule itself lives here, next to the roster it governs,
-    /// so there is one place to read it and one place to change it.
+    /// Writing vs revising, stated once beside the roster.
+    /// PIN: A revision never goes in at the cursor.
     static let compositionParadigm = PromptSection(
         id: .compositionParadigm,
-        rationale: "Writing vs revising, stated exactly once. Pinned by everyWorkspaceWorldDistinguishesCompositionFromRevision."
+        rationale: "Writing vs revising, stated once beside the roster."
     ) { inputs in
         guard !inputs.plugins.isEmpty else { return "" }
         return "\n\n" + """
@@ -296,9 +245,8 @@ extension PromptCatalog {
         return "\n\nThe user's configured projects are: \(list)."
     }
 
-    /// Ambient notes: one-line stand-ins for a world the focus arbiter
-    /// collapsed (e.g. "Scrivener is also open on…"). Plain lines, no header —
-    /// a collapsed side must never reactivate its doctrine.
+    /// Ambient notes: one-line stand-ins for a collapsed world. Headerless on purpose.
+    /// PIN: A collapsed side must never reactivate its doctrine.
     static let ambientNotes = PromptSection(
         id: .ambientNotes,
         rationale: "Collapsed worlds' routing lines. Headerless on purpose."
@@ -310,31 +258,17 @@ extension PromptCatalog {
         return text
     }
 
-    /// THE LEAD PLACE'S HEADER — it names the place, and nothing else does.
-    ///
-    /// Rendering one place's context under another's banner is the single
-    /// worst thing this layer can do, because it is invisible to everyone
-    /// except the user, who hears Mary confidently describe a document that is
-    /// not open. The name comes from the arbiter, which got it from the
-    /// roster; there is no ternary here to answer a three-way question with,
-    /// and no default to fall back to.
+    /// Lead place header — it names the place, and nothing else does.
     static let leadHeader = PromptSection(
         id: .leadHeader,
-        rationale: "Names the place that owns the live context, so no place renders under another's banner."
+        rationale: "Names the place that owns the live context."
     ) { inputs in
         guard !inputs.leadContext.isEmpty, !inputs.leadPlaceName.isEmpty
         else { return "" }
         return "\n\n=== Working in \(inputs.leadPlaceName) ==="
     }
 
-    /// The lead place's watcher contributions, verbatim.
-    ///
-    /// NO DOCTRINE BLOCK RIDES WITH THEM. There used to be one — a paragraph
-    /// of pair-programming instruction that rendered whenever a particular
-    /// IDE led — and it was written here, in the prompt layer, naming that
-    /// IDE's Skills and its shell and its git habits. Doctrine about how to
-    /// work in a place belongs to the package that teaches Mary the place;
-    /// this section renders what the place said and adds nothing.
+    /// Lead place watcher contributions, verbatim. No doctrine block rides with them.
     static let leadSections = PromptSection(
         id: .leadSections,
         rationale: "The lead place's live contributions."
@@ -346,14 +280,10 @@ extension PromptCatalog {
         return text
     }
 
-    /// THE MERGED WORLDS — compact lines for places with fresh evidence
-    /// beside the lead. The lead's full section states the live work; this
-    /// names what ELSE is genuinely in play (recent activity within the
-    /// co-active horizon, or a fresh glance), each line carrying its facts'
-    /// own bounds and ages. Single-place turns render nothing.
+    /// Compact lines for co-active places beside the lead. Single-place turns render nothing.
     static let coActiveSections = PromptSection(
         id: .coActiveSections,
-        rationale: "Compact context for co-active places — the merged-worlds view beside the lead."
+        rationale: "Co-active places — compact lines beside the lead."
     ) { inputs in
         guard !inputs.coActiveContext.isEmpty else { return "" }
         var text = "\n\n=== Also in play ==="
@@ -363,21 +293,11 @@ extension PromptCatalog {
         return text
     }
 
-    /// THE AMBIENT CONTEXT STORE, rendered. Everything above describes the
-    /// world as it stands THIS INSTANT; this section is what Mary is still
-    /// holding from earlier in the conversation — passages she actually read,
-    /// and worlds the arbiter collapsed to a routing line.
-    ///
-    /// It lands after the live sections deliberately: live perception leads,
-    /// and a held fact must never be mistaken for the current wording. Each
-    /// one carries its own age (`AmbientFact.agePhrase`) so a stale fact
-    /// states its age instead of claiming authority.
-    ///
-    /// TERMINAL: nothing may follow it. Pinned by
-    /// `theSystemPromptRendersTheStoreAfterTheLiveSections`.
+    /// Held facts from earlier. Live perception leads; each fact carries its age.
+    /// PIN: Terminal — `theSystemPromptRendersTheStoreAfterTheLiveSections`.
     static let heldFacts = PromptSection(
         id: .heldFacts,
-        rationale: "What she is still holding from earlier, each carrying its age. Lands last.",
+        rationale: "Held facts from earlier, each with its age. Lands last.",
         ordering: .last
     ) { inputs in
         MaryPrompts.heldSection(facts: inputs.heldFacts, mentions: inputs.heldMentions)

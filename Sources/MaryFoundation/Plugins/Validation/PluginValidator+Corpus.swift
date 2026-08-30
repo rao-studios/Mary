@@ -2,37 +2,16 @@
 //  PluginValidator+Corpus.swift
 //  MaryFoundation
 //
-//  THE CORPUS DECLARATION'S BOUNDS.
-//
-//  A corpus block is the one place a package hands Mary REGULAR EXPRESSIONS to
-//  run, and that is what shapes every rule here.
-//
-//  COMPILATION IS NOT OPTIONAL. A pattern that does not compile is caught at
-//  admission, in the validator, with a path pointing at the exact rule — not
-//  at crawl time, six hours later, as a silently missing edge in a
-//  neighbourhood nobody knew was incomplete. The whole class of "the corpus
-//  quietly stopped learning" bug is closed here.
-//
-//  THE VOCABULARY IS CLOSED. `dimension` and `value` are strings on the wire
-//  so this schema does not move every time the style vocabulary grows — which
-//  means a typo is a string that matches nothing rather than a compiler error.
-//  Checking them against `StyleDimension`/`StyleValue` at admission is what
-//  turns "this rule silently never votes" into "this package does not load".
-//
-//  SHAPE, because the three rule kinds use disjoint halves of one struct: a
-//  `vote` with no candidates and a `ratio` with no threshold are both
-//  well-formed JSON that can never produce an observation, and a package whose
-//  style block is inert should say so at admission rather than at inspection.
+//  WHAT: Corpus admission — compile regexes, closed StyleDimension/StyleValue, rule shape.
+//  IN:   PluginValidator.validate / AbilityPackageValidator (package.corpus).
+//  OUT:  SchemaIssue. Disk facts: corpus probe, not here.
 //
 
 import Foundation
 
 public extension PluginValidator {
 
-    /// A pattern longer than this is refused. The crawl already caps the TEXT
-    /// a pattern runs over; this caps the pattern itself, because
-    /// pathological backtracking is a property of the expression and not of
-    /// the input's size.
+    /// Pattern-length cap. Crawl already caps input text; this caps the expression.
     static let maximumCorpusPatternLength = 400
 
     static func validateCorpus(
@@ -42,10 +21,7 @@ public extension PluginValidator {
     ) {
         let path = "\(root).corpus"
 
-        // A CRAWLED CORPUS MUST MATCH SOMETHING. A corpus with a `structure`
-        // is reached through its manifest and part templates instead, so it
-        // legitimately names no extension — and requiring one there would
-        // make a package crawl a project's RTF as if it were prose.
+        // Crawled corpus needs include. Structure corpora use the manifest, not extensions.
         if corpus.include.isEmpty, corpus.structure == nil {
             error(
                 "corpus-includes-nothing",
@@ -67,9 +43,7 @@ public extension PluginValidator {
                     "\(path).projectMarkers[\(index)]",
                     "A project marker names a file or folder that marks a root; an empty one matches nothing.")
             }
-            // A MARKER IS A NAME, NOT A PATH. The climb looks at one directory
-            // level's entries, so a marker with a separator in it matches
-            // nothing and would silently make every file rootless.
+            // Marker is a name, not a path. Separators match nothing.
             if marker.contains("/") {
                 error(
                     "corpus-marker-is-a-path",
@@ -85,10 +59,7 @@ public extension PluginValidator {
                 "A corpus names its notation in one word: it is the scope a style profile is filed under.")
         }
 
-        // THE CRAWL CANNOT RESOLVE A REFERENCE WITHOUT DECLARATIONS. References
-        // name things; only the declarations probe says which file declares
-        // one. A corpus with references and no declarations walks one hop and
-        // then stops, quietly, which looks exactly like a small project.
+        // References need declarations. Else one hop then silence.
         if !corpus.relations.references.isEmpty, corpus.relations.declarations.isEmpty {
             error(
                 "corpus-references-without-declarations",
@@ -127,19 +98,7 @@ public extension PluginValidator {
 
     // MARK: - The project's shape on disk
 
-    /// THE SAME BARGAIN AS A PATTERN, one layer out: a structure block is a
-    /// claim about a directory nobody has looked in yet, and every field of it
-    /// can be individually well-formed JSON while the whole says nothing a
-    /// reader can act on. A manifest declared `xmlManifest` with no element
-    /// names parses, admits, and then fails at the moment a user asks for
-    /// their outline — which is the worst moment to find out, because by then
-    /// they have asked for something.
-    ///
-    /// WHAT IS NOT CHECKED HERE is anything about the disk. Whether the
-    /// project exists, whether the manifest is where the template says, and
-    /// whether the element names match that file are facts about a real
-    /// project, and they belong to `mary-corpus-probe project` rather than to
-    /// admission. This checks only that the declaration COULD be satisfied.
+    /// Structure must be actionable JSON. Disk facts belong to the corpus probe.
     static func validateCorpusStructure(
         _ structure: PluginCorpusStructureSchema,
         path: String,
@@ -158,9 +117,7 @@ public extension PluginValidator {
                 "\(path).projectExtension",
                 "A project extension is written without a leading dot.")
         }
-        // A LOCK FILE IS THE ONE OPEN-STATE TEST THAT NEEDS COORDINATES. The
-        // others read the process table; this one reads a path, and without it
-        // the test silently answers "not open" for every project forever.
+        // lockFile needs a path; without it every project reads "not open".
         if structure.openState.contains(.lockFile),
            (structure.lockFilePath ?? "").isEmpty {
             error(
@@ -192,8 +149,7 @@ public extension PluginValidator {
         }
 
         if let template = structure.documentURLTemplate {
-            // BRACES LEFT OVER AFTER SUBSTITUTION ARE A REFUSAL AT READ TIME,
-            // so a placeholder nothing fills is a URL that never opens.
+            // Unfilled placeholders refuse at read time.
             let remaining = template
                 .replacingOccurrences(of: "{project}", with: "")
                 .replacingOccurrences(of: "{id}", with: "")
@@ -228,8 +184,7 @@ public extension PluginValidator {
                     "\(ceremonyPath).menuPath[\(level)]",
                     "Every level of a menu path names a menu; an empty one matches nothing.")
             }
-            // TWO CEREMONIES FOR ONE ACT is a package disagreeing with itself,
-            // and the reader would silently take whichever came first.
+            // Duplicate ceremony for one act — reader would take the first.
             if !seenActs.insert(ceremony.act).inserted {
                 error(
                     "corpus-structure-ceremony-duplicated",
@@ -246,10 +201,7 @@ public extension PluginValidator {
     ) {
         switch manifest.kind {
         case .xmlManifest:
-            // THE ID IS THE JOIN between the outline and the text on disk. An
-            // outline parsed without one reads perfectly and can open nothing
-            // — the probe reports it as "88/88 ids present" precisely because
-            // zero is the failure that looks like success.
+            // Item id joins outline to disk. Missing id parses but opens nothing.
             let required: [(String, String?)] = [
                 ("pathTemplate", manifest.pathTemplate),
                 ("rootElement", manifest.rootElement),
@@ -270,9 +222,7 @@ public extension PluginValidator {
             }
 
         case .fileSystemTree:
-            // THE TREE IS THE OUTLINE, so element names describe nothing and
-            // are silently ignored at read time — a declaration that looks
-            // like it is working and is not.
+            // fileSystemTree ignores element names. Declaring them is inert.
             let ignored: [(String, String?)] = [
                 ("pathTemplate", manifest.pathTemplate),
                 ("rootElement", manifest.rootElement),
@@ -290,11 +240,7 @@ public extension PluginValidator {
             }
         }
 
-        // A TYPE THAT NAMES NOTHING IN THE LIST is the quiet version of the
-        // same bug: the trash type decides what is excluded, and one spelled
-        // differently from the manifest's excludes nothing at all. Only the
-        // internal agreement is checkable here — whether "TrashFolder" is
-        // really Scrivener's spelling is the probe's question.
+        // Trash type must appear in the kind list. Spelling vs disk is the probe.
         for (name, value) in [
             ("draftType", manifest.draftType), ("trashType", manifest.trashType),
         ] {
@@ -307,9 +253,7 @@ public extension PluginValidator {
         }
     }
 
-    /// A declared path is refused at READ time if it leaves the project, and
-    /// refusing it at admission instead turns a mid-ceremony failure into a
-    /// package that does not load.
+    /// Paths that leave the project fail at admission, not mid-ceremony.
     static func validateCorpusRelativePath(
         _ template: String,
         path: String,
@@ -329,9 +273,7 @@ public extension PluginValidator {
                 path,
                 "Corpus paths are relative to the project root: an absolute one is machine-local and reads the same file on every project.")
         }
-        // `..` INSIDE A TEMPLATE is refused even when it would resolve back
-        // inside, because a template is written once and substituted many
-        // times — the id decides where it lands.
+        // `..` in a template is refused even if it would resolve inside.
         if template.split(separator: "/").contains("..") {
             error(
                 "corpus-structure-path-traverses",
@@ -457,9 +399,7 @@ public extension PluginValidator {
                     "A \(counter.source.rawValue) counter needs a pattern.")
                 return
             }
-            // A SELF-REFERENCE RESOLVES A NAME, so it must capture one — the
-            // whole counter is "does this name appear in this file's own
-            // declarations", and without a capture group there is no name.
+            // selfReference must capture a name.
             validateCorpusPattern(
                 pattern, path: "\(path).pattern",
                 requiresCapture: counter.source == .selfReference, error: error)
@@ -496,9 +436,7 @@ public extension PluginValidator {
         do {
             expression = try NSRegularExpression(pattern: pattern)
         } catch let compileFailure {
-            // NAMED, because the implicit `error` a bare `catch` binds would
-            // shadow the reporting closure of the same name — and the shadow
-            // compiles far enough to be confusing.
+            // Named catch — bare `error` would shadow the reporting closure.
             error(
                 "corpus-pattern-invalid",
                 path,

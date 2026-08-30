@@ -2,15 +2,11 @@
 //  SeerContribution.swift
 //  MaryBrain
 //
-//  Gita contribution metadata riding Seer chat responses — which totem
-//  owners/documents informed the reply, credited down to character spans of
-//  the response text. Ported from Sis's GitaContribution; lives in MaryBrain
-//  because both the Seer chat lane and the app's highlight UI consume it.
+//  WHAT: Gita contribution metadata on Seer chat responses.
+//  IN:   trailing SSE chunk
+//  OUT:  highlight UI (character spans)
+//  PIN:  Spans are offsets into the visible string; clamp for graphemes.
 //
-//  Spans are CHARACTER OFFSETS into the visible response string; reconstruct
-//  with `index(_:offsetBy:limitedBy:)` clamping (graphemes can drift).
-//
-
 import Foundation
 
 public struct SeerContribution: Codable, Sendable, Equatable {

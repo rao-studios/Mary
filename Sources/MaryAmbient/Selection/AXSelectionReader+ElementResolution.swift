@@ -2,8 +2,9 @@
 //  AXSelectionReader+ElementResolution.swift
 //  MaryAmbient
 //
-//  Split out of AXSelectionReader.swift (docs/DECOMPOSITION.md Wave 4)
-//  — pure relocation, no declaration changed.
+//  WHAT: Element-resolution cascade for a focused or changed AX node.
+//  IN:   AXSelectionReader.swift (split)
+//  OUT:  AXSelectionReader+Reads
 //
 
 import AppKit
@@ -14,10 +15,7 @@ import Foundation
 extension AXSelectionReader {
 
     // MARK: - Element resolution
-    //
-    // The same cascade as `PagesAX.textElement(of:)` / `descendToText(from:)`
-    // — kept byte-for-byte equivalent in shape rather than shared code, per
-    // this file's header.
+    // Same cascade as `PagesAX.textElement(of:)` / `descendToText(from:)` — equivalent shape, not shared code.
 
     static func textElement(
         of app: AXUIElement
@@ -29,10 +27,9 @@ extension AXSelectionReader {
         return descendToText(from: window)
     }
 
-    /// Breadth-first, hard-bounded by depth AND node count. Prefers a real
-    /// `AXTextArea`; accepts any element that answers a text attribute as a
-    /// fallback, since an arbitrary third-party app's text-carrying role is
-    /// unknowable in advance.
+    /// Breadth-first, hard-bounded by depth AND node count. Prefers a real `AXTextArea`;
+    /// accepts any element that answers a text attribute as a fallback, since an arbitrary
+    /// third-party app's text-carrying role is unknowable in advance.
     private static func descendToText(
         from root: AXUIElement
     ) -> (element: AXUIElement, resolution: PerceptionElementResolution)? {
@@ -68,12 +65,8 @@ extension AXSelectionReader {
         var surfaceID: UInt { AXSelectionReader.sourceSurfaceID(of: element) }
     }
 
-    /// The pure decision behind a bounded discovery walk. It is deliberately
-    /// not "first positive wins": AX tree order is layout order, not the user
-    /// interaction. A canvas fallback can speak only when it finds exactly one
-    /// distinct AX source surface. A nonempty unreadable range is a candidate too,
-    /// because selecting a title just because the real body range could not be
-    /// hydrated would be an invented reference.
+    /// The pure decision behind a bounded discovery walk. It is deliberately not "first
+    /// positive wins": AX tree order is layout order, not the user interaction.
     enum SelectionDiscoveryOutcome {
         case selected(SelectionCandidate)
         case unreadable(SelectionCandidate)
@@ -92,13 +85,8 @@ extension AXSelectionReader {
             switch state {
             case .selected, .unreadableNonemptyRange:
                 let incoming = SelectionCandidate(state: state, element: element)
-                // A main-window descent can revisit a focused-subtree leaf.
-                // Rechecking the same AX object does not make the source
-                // ambiguous; a second AX object always does. Source-local
-                // ranges and identical text are not cross-element identity:
-                // a Pages title and body can both be 0..<N and spell the same
-                // words, so treating them as aliases would restore the
-                // first-in-tree title bug.
+                // A main-window descent can revisit a focused-subtree leaf. Rechecking the same AX object
+                // does not make the source ambiguous; a second AX object always does.
                 guard seenSurfaces.insert(incoming.surfaceID).inserted else { return }
                 switch state {
                 case .selected:
@@ -140,10 +128,8 @@ extension AXSelectionReader {
         }
     }
 
-    /// Search a bounded AX subtree for explicit selection evidence. Unlike
-    /// `descendToText`, this intentionally remembers no merely textual nodes.
-    /// It also refuses to choose between competing selected descendants; the
-    /// focused/observer element is the only authoritative source identity.
+    /// Search a bounded AX subtree for explicit selection evidence. Unlike `descendToText`,
+    /// this intentionally remembers no merely textual nodes.
     static func collectSelectionEvidence(
         of root: AXUIElement,
         includeRoot: Bool,

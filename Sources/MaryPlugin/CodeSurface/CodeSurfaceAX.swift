@@ -2,14 +2,9 @@
 //  CodeSurfaceAX.swift
 //  MaryPlugin
 //
-//  READING AN APPLICATION'S LIVE CODE BUFFER THROUGH ACCESSIBILITY — with no
-//  application named anywhere in this file.
-//
-//  Locate and buffer reads live on `DeclaredTextAX` (shared with prose).
-//  This file is the code-surface name for those reads. READ-ONLY,
-//  DELIBERATELY — no `select`/`setSelectedText` here. Write policy stays on
-//  `CodeSurfaceWriter` (disk + dirty-buffer gate).
-//
+//  WHAT: Code-surface name for DeclaredTextAX reads. Read-only.
+//  OUT:  CodeSurfaceAdapter / Observer
+//  PIN:  No select/setSelectedText. Writes stay on CodeSurfaceWriter.
 
 import ApplicationServices
 import CoreGraphics

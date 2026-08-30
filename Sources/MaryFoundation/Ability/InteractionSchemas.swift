@@ -1,3 +1,12 @@
+//
+//  InteractionSchemas.swift
+//  MaryFoundation
+//
+//  WHAT: Interaction ownership, claim/clear policy, evidence, schema.
+//  IN:   `.mary` interactions[] → AbilityPackageValidator+Schemas.
+//  OUT:  Ambient capture, SkillRequirements.
+//
+
 import Foundation
 
 public enum InteractionOwnership: String, Codable, Hashable, Sendable, CaseIterable {
@@ -7,7 +16,7 @@ public enum InteractionOwnership: String, Codable, Hashable, Sendable, CaseItera
 }
 
 public enum InteractionClaimPolicy: String, Codable, Hashable, Sendable, CaseIterable {
-    /// Exactly one turn may consume the interaction instance.
+    /// One turn consumes the instance.
     case oneTurn
     /// Reusable until expiry or supersession.
     case reusable

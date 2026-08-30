@@ -2,38 +2,10 @@
 //  AmbientApplicationObserver.swift
 //  MaryAmbient
 //
-//  THE EYES A REGISTERED APPLICATION EARNED, FINALLY OPEN.
-//
-//  A package that declares a perception contract has said, and admission has
-//  verified: here is a non-mutating operation you may run unattended, this
-//  often. `ApplicationRegistration.hasEyes` has answered true for such an app
-//  since the contract landed — and NOTHING POLLED. Every consumer of the
-//  contract (the passage budget, the enum gate, the pane) was wired to a
-//  claim no component made true: a Sketch fact aged out unless the model
-//  happened to call a read skill, which is exactly the "live-looking card
-//  over a document nothing reads" the admission validator exists to refuse.
-//
-//  This is the driver. One lane per sighted registration, each on its own
-//  declared cadence, in the digest refresher's exact idiom:
-//
-//   - SLEEP FIRST, ALWAYS. The first tick lands one interval after
-//     activation, never at it — activation happens at boot and on every
-//     Settings save, and a poll storm at boot is the digest's documented
-//     failure. The loop never awaits the work either: it pokes and sleeps,
-//     so no hung read can wedge the cadence.
-//   - COALESCED per lane: a poke that lands while a read runs marks pending
-//     and collapses; everything that arrived during a run becomes one re-run.
-//   - The WORK is installed, not known. This package cannot name the
-//     executor that runs a `.mary` operation — that is the whole layering —
-//     so the reader is a closure the brain installs, and until it is
-//     installed the observer is a set of silent timers, honestly: no reader,
-//     no claims.
-//
-//  A FAILING LANE RETRACTS. Three consecutive misses (the app quit, the tool
-//  vanished, consent revoked) forget the lane's perceived facts rather than
-//  leaving a stale outline standing as live knowledge. The lane keeps
-//  polling — the app coming back is the common case — but between the
-//  retraction and the next success, Mary honestly holds nothing.
+//  WHAT: Eyes a registered application earned — poll the declared perception contract.
+//  IN:   ApplicationRegistration.hasEyes
+//  OUT:  AmbientContextStore.replacePerceived
+//  PIN:  One lane per sighted registration, on its declared cadence.
 //
 
 import Foundation
@@ -87,11 +59,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
         readerBox.withLock { $0 = read }
     }
 
-    /// Re-derives the lane set from the live registry. Idempotent — called at
-    /// boot and on every registry change; lanes whose registration kept its
-    /// contract keep their timers (and their cadence phase), lanes whose
-    /// registration vanished are cancelled and their perceived facts
-    /// forgotten.
+    /// Re-derives the lane set from the live registry.
     public func activate() {
         let sighted = AmbientApplicationIndexProvider.current.all.filter(\.hasEyes)
         var retired: [AmbientPlace] = []
@@ -202,10 +170,9 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
                 return .replace(current.place, current.freshFor)
             }
             current.misses += 1
-            // The app is gone or the read is broken. Between here and the
-            // next success, Mary holds nothing — a stale outline standing
-            // as live sight is the lie this component exists to end, not to
-            // automate.
+            // The app is gone or the read is broken. Between here and the next success, Mary holds
+            // nothing — a stale outline standing as live sight is the lie this component exists to
+            // end, not to automate.
             return current.misses == Self.missBudget
                 ? .retract(current.place) : .none
         }

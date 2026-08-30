@@ -2,47 +2,13 @@
 //  SpokenReference.swift
 //  MaryAdapter
 //
-//  ONE PHRASE, ONE THING — OR AN HONEST REFUSAL, GENERALIZED.
-//
-//  `PageElementResolver`'s ladder (this file's direct ancestor — see that
-//  file's header for the doctrine behind each rung) was written against
-//  `PageElement`, a live-AX, browser-only type. The snapshot lane's
-//  `AXScreenElement` needs the exact same ladder — an ordinal narrowed by
-//  kind, an exact name, a unique containment, an all-words match, honest
-//  refusal naming the rivals — over a type with no live handle and no URL.
-//  Rather than fork the ladder (and its measured, easy-to-get-subtly-wrong
-//  tie-breaks) a second time, this file lifts it to run over any
-//  `SpokenReferable` element; `PageElementResolver` becomes a thin,
-//  byte-compatible wrapper around it, and this is the only place the logic
-//  itself lives.
-//
-//  INDEX-BASED, NOT A GENERIC ENUM. `PageElementResolution` stays exactly as
-//  it was (`.one(PageElement)` / `.ambiguous([PageElement])` / `.none`) —
-//  changing its shape was never the point, and this package still builds in
-//  Swift 5 language mode, where a `Sendable`-conforming enum over a
-//  non-Sendable payload is a warning, not an error. `resolve` here returns
-//  positions into the caller's own array instead, so it needs no generic
-//  enum and no Sendable ceremony of its own; each lane's wrapper maps
-//  indices back to its own element type and its own outcome shape.
-//
-//  THE THREE SUBTLETIES A LOOSE PORT WOULD LOSE (verified against
-//  `PageElementResolver.swift` line for line before this file was written):
-//    - the EXACT-NAME rung's rivals are UNCAPPED — `.ambiguous(exact)`, not
-//      `.ambiguous(Array(exact.prefix(spokenRivalLimit)))` — because the
-//      refusal's own "There are N things" count depends on the true count;
-//    - the CONTAINMENT tie-break compares RAW `label.count`, not the
-//      normalized phrase length;
-//    - `stripped` runs against the ALREADY-KIND-NARROWED pool, not the
-//      whole element list, so a kind word only strips once the pool has
-//      already been cut down to that kind.
-//
+//  WHAT: Phrase ladder shared by page and snapshot lanes.
+//  OUT:  PageElementResolver | ScreenElementResolver
 
 import Foundation
 
-/// What the ladder needs from an element: something spoken, and — if it
-/// belongs to a countable category — which one. `spokenKind == nil` means
-/// the element joins no kind's pool at all: a page's plain static text must
-/// never count toward "the third link", and this is how it opts out.
+/// What the ladder needs from an element: something spoken, and — if it belongs to a
+/// countable category — which one.
 public protocol SpokenReferable {
     var spokenLabel: String { get }
     var spokenKind: PageElementKind? { get }
@@ -58,10 +24,7 @@ public enum SpokenReference {
     /// header for why an index, not a generic enum, is the return shape.
     public enum Outcome: Sendable, Equatable {
         case one(Int)
-        /// More than one thing fits, and picking would be a guess. Indices,
-        /// in the SAME order the ladder found them — the exact-rung case is
-        /// intentionally uncapped here; each lane's wrapper decides whether
-        /// to truncate before it speaks.
+        /// More than one thing fits, and picking would be a guess.
         case ambiguous([Int])
         case none
     }
@@ -167,10 +130,8 @@ public enum SpokenReference {
             .trimmingCharacters(in: .whitespaces)
     }
 
-    /// Remove the words that classified the target rather than named it —
-    /// the kind word itself and the determiners around it. Ported unchanged
-    /// from `PageElementResolver.stripped` (zero external callers,
-    /// verified, so it moved wholesale rather than needing a shim).
+    /// Remove the words that classified the target rather than named it — the kind word
+    /// itself and the determiners around it.
     static func stripped(_ phrase: String, of kind: PageElementKind?) -> String {
         var value = phrase
         let noise = ["the", "that", "this", "a", "an", "one", "please"]

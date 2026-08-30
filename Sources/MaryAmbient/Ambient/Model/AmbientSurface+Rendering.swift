@@ -2,17 +2,11 @@
 //  AmbientSurface+Rendering.swift
 //  MaryBrain
 //
-//  ONE PHRASING, TWO READERS — the `AmbientFact+Rendering` doctrine: the
-//  prompt and the pane both call `surfaceLine(at:)`, so they cannot phrase
-//  the same screen two ways.
+//  WHAT: One phrasing for a surface — prompt and pane both call surfaceLine(at:).
+//  IN:   AmbientSurface
+//  OUT:  TIER 0 prompt line. Specific elements ride AmbientElementIndex.
+//  PIN:  Never the roster. Line names at most notableLimit; rest is a count.
 //
-//  NEVER THE ROSTER. A surface holds up to 120 elements; the LINE names at
-//  most `notableLimit` of them (focused first, then reading order) and says
-//  how many more there are. The prompt gets orientation, not an inventory —
-//  a phrase that needs a specific element rides the element index, which
-//  holds the full slate.
-//
-
 import Foundation
 
 public extension AmbientSurface {

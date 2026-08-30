@@ -2,23 +2,11 @@
 //  AmbientTextVectorizer.swift
 //  MaryAmbient
 //
-//  TEXT → VECTOR, THE SEAM EVERY EMBEDDING CONSUMER SHARES. This lives in
-//  MaryAmbient — not MaryBrain — because turning a phrase into a vector
-//  is REPRESENTATION, not inference: it needs only a system framework
-//  (NaturalLanguage), and the ambient world is where the things worth
-//  embedding live. MaryBrain's ability-request index consumes the same
-//  protocol through a typealias.
+//  WHAT: Text → vector. The seam every embedding consumer shares.
+//  OUT:  AmbientElementIndex / MaryBrain ability-request index (typealias)
+//  PIN:  Synchronous and cheap. Fail closed when OS has no English embedding.
+//        CI injects fakes; real NLEmbedding is opt-in calibration only.
 //
-//  CONSTRAINTS:
-//  - SYNCHRONOUS AND CHEAP: callers sit on the pure resolve chain. A
-//    vectorization is one NLEmbedding lookup behind a lock.
-//  - FAIL CLOSED: `NLAmbientTextVectorizer.shared` is nil when the OS ships
-//    no English embedding asset; every consumer degrades to its lexical
-//    path, which is the pre-embedding behavior.
-//  - DETERMINISTIC TESTS: `NLEmbedding` output varies by OS build, so CI
-//    injects fakes; the real model runs only behind opt-in calibration.
-//
-
 import Foundation
 import NaturalLanguage
 import os

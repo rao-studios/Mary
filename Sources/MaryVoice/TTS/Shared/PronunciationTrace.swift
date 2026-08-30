@@ -2,10 +2,9 @@
 //  PronunciationTrace.swift
 //  MaryVoice
 //
-//  How every word got its sound. The phonemizer resolves each word through a
-//  ladder of tiers; the trace records which tier won so mispronunciations are
-//  diagnosable at a glance (probe `pronounce`, engine tap, speaker events)
-//  instead of buried in console prints.
+//  WHAT: Per-word ladder trace for one synthesis call.
+//  IN:   KokoroPhonemizer
+//  OUT:  probe `pronounce` / engine tap / SpeakerEvent.pronunciation
 //
 
 import Foundation
@@ -86,7 +85,7 @@ public struct PronunciationReport: Sendable {
         self.totalTokens = totalTokens
     }
 
-    /// Words that didn't resolve through a wanted tier — the ones to fix.
+    /// Words that didn't resolve through a wanted tier.
     public var concerns: [WordPronunciation] {
         words.filter { $0.source == .dropped || ($0.source == .spelled && $0.detail != "acronym") }
     }

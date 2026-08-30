@@ -2,28 +2,12 @@
 //  AmbientContextStore+Surface.swift
 //  MaryBrain
 //
-//  TIER 0 — see `AmbientContextStore.swift`'s header for the tier doctrine.
-//  Every access to `surfaceBox` lives here; the main file holds only the
-//  stored box (extensions cannot hold stored properties).
+//  WHAT: TIER 0 surface box. Every access to surfaceBox lives here.
+//  IN:   observers → noteSurface
+//  OUT:  prompt (AmbientSurface.surfaceLine). Sibling: AmbientContextStore
+//  PIN:  Latest-wins by capture time, not receipt. Surfaces drop at expiry, never degrade.
+//        No element publication — facts vectorize; a second slate would double-rank.
 //
-//  LATEST-WINS BY CAPTURE TIME, not receipt — the `recordSelection`
-//  ordering doctrine: a slow walk that completes late must not overwrite a
-//  newer capture of the same lane.
-//
-//  SURFACES DROP AT EXPIRY, never degrade. A fact past freshness renders
-//  with its age and loses authority — honest, because held knowledge ages.
-//  A surface past freshness is a screen that may no longer exist; holding
-//  it would be a confidently wrong screen waiting for a question. Pruning
-//  happens on every touch, so the box stays bounded without a timer (one
-//  entry per lane besides).
-//
-//  DELIBERATELY NO ELEMENT PUBLICATION. Facts vectorize into the element
-//  index on every write (`publishElements`); the surface does not — the
-//  affordance slate is the observer's own publication, scoped exactly as
-//  today, and a second slate of the same screen would double-rank phrase
-//  resolution.
-//
-
 import Foundation
 
 extension AmbientContextStore {

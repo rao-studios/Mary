@@ -1,15 +1,11 @@
 //
 //  TextTurnRunner.swift
-//  Mary
+//  MaryRuntime
 //
-//  The text-mode turn driver — successor to the SendText streaming reducer.
-//  A Granite streaming reducer holds a boot/turn-scoped snapshot of the whole
-//  state and republishes it per emit (and a second send CANCELS the in-flight
-//  one, stranding isGenerating — the stuck-turn defect), so text turns now
-//  run as a plain actor loop that forwards BrainEvents into the single sync
-//  writer (MirrorVoice). Overlap is a SUPERSEDE, not a drop: the new request
-//  cancels the current run, removes its partial exchange from chat AND
-//  history together, and answers the new text.
+//  WHAT: Text-mode turn driver — actor loop, not a Granite streaming reducer.
+//  OUT:  BrainEvents → ChatService.MirrorVoice
+//  PIN:  Overlap is a supersede: cancel current, drop partial exchange from
+//        chat AND history, answer the new text.
 //
 
 import MaryBrain
@@ -26,16 +22,9 @@ package actor TextTurnRunner {
     /// Identity of the current run — the finished task clears itself only if
     /// a superseding submit hasn't already replaced it.
     private var currentToken: UUID?
-    /// Set the moment the current run observes .completed. A completed run
-    /// whose task hasn't cleared itself yet is NOT in flight: treating it as
-    /// one would drive respondSuperseding and delete a FINISHED exchange
-    /// from history while chat keeps it. The composer's isBusy gate can't
-    /// reach that window, but the Ability Runs undo path submits ungated.
+    /// True once this run observed .completed. Completed-but-not-cleared is not in-flight.
     private var currentCompleted = false
-    /// The text turn currently allowed to mutate the shared speaker. This is
-    /// independent of `current`: model generation ends before its final TTS
-    /// drain, so clearing `current` must not let an old detached
-    /// `SpeechRouter.finish()` flush into the next turn.
+    /// Text turn allowed to mutate the speaker. Independent of `current` (TTS may still drain).
     private var speakerOwnerToken: UUID?
 
     package func submit(
@@ -45,31 +34,20 @@ package actor TextTurnRunner {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
-        // Cross-mode guard: a live voice session owns the brain and the
-        // speaker (single-driver rule); the UI already disables send — a
-        // stray path (Ability Runs undo) drops with a log instead of racing
-        // the pipeline.
+        // Voice session owns brain + speaker. Stray path drops with a log.
         guard await MaryRuntime.voiceSession.current() == nil else {
             Self.log.warning("typed turn dropped — a voice session is live")
             return
         }
 
         let superseding = current != nil && !currentCompleted
-        // Claim audio BEFORE the first await below. A prior run's detached
-        // router finisher may be poised to resume; invalidating its owner now
-        // prevents it from flushing after the new turn has reset the shared
-        // speaker.
+        // Claim audio before the first await — invalidate a poised router finisher.
         let token = UUID()
         currentToken = token
         speakerOwnerToken = token
         currentCompleted = false
         current?.cancel()
-        // Every accepted user request is a speech barge-in, not only a model
-        // supersede. The old condition excluded a response once it had emitted
-        // `.completed`, even though that response (or a detached follow-up)
-        // could still be audibly draining for seconds. This hard-stops the
-        // shared speaker and revokes queued detached-follow-up leases as one
-        // floor handoff.
+        // Every accepted request is barge-in. Hard-stop speaker, revoke detached leases.
         guard let speakerLease = await FollowUpSpeech.shared.beginUserTurn() else {
             // The only expected rejection is a voice session that claimed
             // the floor between the UI guard above and this actor hop. Do not
@@ -82,15 +60,9 @@ package actor TextTurnRunner {
             Self.log.warning("typed turn dropped — the voice floor won while sending")
             return
         }
-        // `beginUserTurn` deliberately awaits the speaker's hard stop. Actor
-        // reentrancy means another submit may claim a newer token while this
-        // one is suspended. Do not resurrect this stale request by installing
-        // its task after the newer turn has already started.
+        // beginUserTurn awaits hard stop. Do not install this task if a newer token won.
         guard currentToken == token, speakerOwnerToken == token else { return }
-        // A voice session can claim after `beginUserTurn` returned but before
-        // this actor resumes. The speaker remains the authority, so check its
-        // lease once more and abandon rather than opening a non-speaking text
-        // turn. Re-check our token after the actor hop for the same reason.
+        // Re-check speaker lease and token after the actor hop.
         guard await MaryRuntime.speaker.ownsFloor(speakerLease) else {
             guard currentToken == token, speakerOwnerToken == token else { return }
             current = nil
@@ -122,11 +94,7 @@ package actor TextTurnRunner {
         }
     }
 
-    /// Is a typed turn still in flight? Half of text mode's "the room is
-    /// quiet" — a follow-up must not take the floor while a reply is still
-    /// being generated, even in the gap between two spoken chunks. A run that
-    /// has already observed `.completed` is not in flight: its audio is the
-    /// speaker's business, and `isSpeaking` covers that half.
+    /// Typed turn still generating? Completed run is not in-flight — audio is isSpeaking.
     package func isRunning() -> Bool {
         current != nil && !currentCompleted
     }
@@ -167,14 +135,7 @@ package actor TextTurnRunner {
         let speaker = MaryRuntime.speaker
         await speaker.setStyle(MaryRuntime.styleSelection.style)
 
-        // Every forward re-checks cancellation AT THE CALL: an event body
-        // can suspend (router, spokenSkillUsed) and resume after a
-        // superseding submit cancelled this run — an unguarded late mirror
-        // would land a stale chip on the NEW turn's bubble via activeTurnID
-        // resolution. A forward that passes this check enqueued on main
-        // BEFORE the superseder's own mirrors (cancel happens-before them),
-        // so at worst it applies to the old bubble and is swept by
-        // .textSuperseded — never the new one.
+        // Re-check cancellation at each forward — late mirror must not hit the new bubble.
         let forward: @Sendable (ChatService.MirrorVoice.Meta.Kind) -> Void = { kind in
             guard !Task.isCancelled else { return }
             mirror(kind)
@@ -201,29 +162,17 @@ package actor TextTurnRunner {
                 switch event {
                 case .turnBegan(let id):
                     turnID = id
-                    // WHICH EXCHANGE IS ON SCREEN. Text mode's answer to the
-                    // pipeline's `currentUserTurnID`: without it a late
-                    // follow-up has nothing to be stale against and cuts into
-                    // whatever is speaking. Same id the brain stamps onto
-                    // `originUserTurnID`, so the comparison is exact.
+                    // Exchange on screen — text-mode currentUserTurnID. Same id as originUserTurnID.
                     await FollowUpSpeech.shared.noteUserTurn(id, lease: speakerLease)
                     forward(.turnBegan(id))
                 case .token(let token):
                     accumulated += token
                     forward(.assistantText(accumulated: accumulated, turnID: turnID))
-                    // `forward` guards the mirror; the SPEAKER needed the same
-                    // guard and never had it. consumeToken suspends on the
-                    // shared speaker, and a superseding submit can land inside
-                    // that suspension — resuming afterwards feeds a
-                    // length-offset suffix of THIS turn's passage into the new
-                    // turn's live stream.
+                    // Guard the speaker the same way as forward — consumeToken suspends.
                     guard !Task.isCancelled, await ownsSpeaker() else { continue }
                     await router.consumeToken(accumulated: accumulated)
                 case .speechSource(let source):
-                    // A MID-TURN server→local swap is an audible character
-                    // change (realtime's continuous render → per-chunk
-                    // classic) — it must not be a mystery. Same episodic
-                    // channel as the Seer voice degrade notices.
+                    // Mid-turn server→local swap — same notice channel as Seer voice degrade.
                     if lastSpeechSource == .server, source == .local {
                         MaryRuntime.onVoiceDegrade?(
                             "Seer's realtime voice dropped for this reply — finishing with the standard voice.")
@@ -231,13 +180,7 @@ package actor TextTurnRunner {
                     lastSpeechSource = source
                     router.consumeSpeechSource(source, accumulated: accumulated)
                 case .retractSpeech:
-                    // THE TAKEOVER, in text mode. One arm, because the routing
-                    // machine is shared: a typed turn is spoken aloud too, so a
-                    // stale acknowledgement is exactly as wrong here as it is
-                    // over the mic. Guarded at the call like `.token` — a
-                    // superseded run must not soft-stop the shared speaker out
-                    // from under the turn that replaced it. The bubble keeps
-                    // its text; only the ear is rewound.
+                    // Takeover. Guarded like .token — superseded run must not soft-stop the new speaker.
                     guard !Task.isCancelled, await ownsSpeaker() else { continue }
                     await router.consumeRetractSpeech(accumulated: accumulated)
                 case .audioChunk(let pcm, let sampleRate):
@@ -255,22 +198,14 @@ package actor TextTurnRunner {
                                 skill: reference)),
                         turnID: turnID))
                 case .skillResult(let record):
-                    // THE WHOLE RECORD, not four loose fields. The chip, the
-                    // execution log and the dataset row are then rendered
-                    // from one value — they cannot disagree about what
-                    // happened, because there is nothing to keep in step.
-                    // The raw machine summary lives on the run row (the chip
-                    // modal), never in the chat body.
+                    // Whole BehavioralActionRecord — chip, log, dataset share one value.
                     forward(.abilityRunResult(record: record, turnID: turnID))
                 case .contribution(let json):
                     forward(.contribution(json: json, turnID: turnID))
                 case .routineDetached(let origin):
                     forward(.routineDetached(origin))
                 case .exchangeSuperseded(let id):
-                    // This turn superseded an in-flight exchange (a stray
-                    // overlap the runner didn't drive itself): mirror the
-                    // keyed removal, and stop the superseded turn's audio
-                    // still draining through the shared speaker.
+                    // Stray overlap: drop the keyed exchange, stop its draining audio.
                     forward(.exchangeSuperseded(userTurnID: id))
                     guard !Task.isCancelled, await ownsSpeaker() else { continue }
                     _ = await speaker.hardStop(lease: speakerLease)
@@ -288,13 +223,7 @@ package actor TextTurnRunner {
             // A cancelled run exits silently — the superseding submit
             // already cleaned up its exchange and owns the page now.
             guard !Task.isCancelled else { return }
-            // A stream that ended with neither .completed nor a thrown error
-            // was superseded BRAIN-SIDE (a voice turn overlapped this text
-            // turn): its .exchangeSuperseded already dropped this turn's
-            // bubbles and the superseding flow owns the page — a final
-            // assistantDone here would clobber the new turn's bookkeeping.
-            // Every legitimate completion yields .completed, so this gate is
-            // mechanical, not heuristic.
+            // No .completed and no throw → brain-side supersede. Do not assistantDone.
             guard sawCompleted else { return }
             forward(.assistantDone(fullText, turnID: turnID))
         } catch {
@@ -302,27 +231,14 @@ package actor TextTurnRunner {
             forward(.error(error.localizedDescription))
         }
 
-        // Speak the remainder without holding the loop open for playback —
-        // but ONLY if this run still owns the floor. `SpeechRouter.finish()`
-        // calls `speaker.flush()`, which speaks `sentenceBatch + rawBuffer`
-        // and clears the diff baseline. Unconditional, it sat BELOW every
-        // cancellation guard above it, so a superseded run flushed its
-        // leftovers into the middle of the new turn's reply and corrupted
-        // the baseline behind it. A cancelled run neither feeds nor flushes
-        // the shared speaker.
+        // Flush remainder only if this run still owns the floor.
         guard !Task.isCancelled else { return }
         let finishedRouter = router
         Task {
-            // The model task intentionally finishes before playback drains.
-            // That means this task can begin after a later user request has
-            // already claimed the speaker. Do not let an old `flush()` reach
-            // the new stream in that case.
+            // Model finishes before playback drains — do not flush if a newer request owns the speaker.
             guard await ownsSpeaker() else { return }
             await finishedRouter.finish()
-            // `finish()` is conditional at the speaker and may have lost to
-            // a newer user/follow-up floor while it drained. Releasing is
-            // conditional too, so this old finalizer cannot clear that newer
-            // owner.
+            // Release only if finish() still owned the floor.
             _ = await speaker.releaseFloor(speakerLease)
             await releaseSpeaker()
         }

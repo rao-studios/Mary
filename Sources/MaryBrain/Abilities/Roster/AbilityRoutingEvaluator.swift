@@ -1,3 +1,11 @@
+//
+//  AbilityRoutingEvaluator.swift
+//  MaryBrain
+//
+//  WHAT: Embedding similarity between utterance and each Skill's trigger corpus.
+//  IN:   SemanticSkillRequestIndex
+//  OUT:  affinities for scoring
+//
 import Foundation
 
 /// Facts the closed routing predicate language is allowed to inspect. This is
@@ -18,11 +26,7 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     public var grantedPermissions: Set<PermissionKind>
     public var sourceResolution: SourceResolution
     public var workspaceFamily: String?
-    /// Embedding similarity between this turn's utterance and each Skill's
-    /// authored corpus. EVIDENCE, NEVER ADMISSION: `evaluate` and `isEligible`
-    /// below do not read this, and must not — a predicate tree is a package
-    /// author's statement about meaning, and a similarity has no standing to
-    /// overrule one. `AbilityRosterArbitrator.evidence` is its only consumer.
+    /// Embedding similarity between this turn's utterance and each Skill's authored corpus.
     public var semanticSkillAffinity: [SkillID: Float]
 
     public init(

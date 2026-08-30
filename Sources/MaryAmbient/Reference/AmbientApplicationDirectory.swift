@@ -2,17 +2,12 @@
 //  AmbientApplicationDirectory.swift
 //  MaryBrain
 //
-//  BUNDLE ID → HUMAN NAME, session-scoped.
+//  WHAT: Session-scoped bundle ID → human name.
+//  IN:   activations (localizedName)
+//  OUT:  AmbientPlace.displayName
+//  PIN:  Generic-application places identity is the bundle ID (stable for
+//        clearLead / termination); the chip must not show the raw id.
 //
-//  Generic-application places carry the BUNDLE ID as their identity (stable,
-//  exactly matchable by `clearLead(ifApplication:)` and app-termination) —
-//  but a chip reading "led: com.apple.Notes" would be machine truth worn as
-//  UI. The localizedName is in hand at the two places activations are
-//  observed; it lands here, and `AmbientPlace.displayName` reads it back.
-//  Bounded by the number of distinct apps a session touches, like the
-//  evidence ledger.
-//
-
 import Foundation
 import os
 

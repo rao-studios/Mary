@@ -2,40 +2,10 @@
 //  AmbientAddressProbe.swift
 //  MaryAmbient
 //
-//  DID THE USER ADDRESS AN APPLICATION BY SOMETHING IT IS SHOWING?
-//
-//  `ApplicationProfile.isMentioned` answers "did they say this app's NAME",
-//  by exact whole-token match against authored aliases. That is the right
-//  question and it fails closed in one specific way: a user looking at a
-//  Google Doc says "this google doc", which is not a browser's name, so
-//  nothing is addressed — and the turn falls to whatever stale lead the
-//  tracker held. The repair is not a longer alias list (someone has to guess
-//  every phrase in advance, forever); it is to ask the SECOND question:
-//  does the utterance name something one of these applications is currently
-//  showing?
-//
-//  WHY THIS IS NOT `AmbientReferenceGate`, though it reads the same index.
-//  That gate answers "WHICH of these elements" for an application the user
-//  has already opened, and its lexical floors are calibrated for that: its
-//  name floor matches ANY WORD of an element's name (0.92), and its kind
-//  floor fires on the kind word alone (0.95). Point those at THIS question
-//  and a tab called "The DEFIANCE Act — Congress.gov" addresses the browser
-//  on any sentence containing "the", while the word "tab" addresses it on
-//  every record at once. Same index, same vectors, different question,
-//  therefore different rules — and no floors.
-//
-//  ADDITIVE, NEVER A VETO. Nothing here can remove an application another
-//  mechanism named: the result is unioned downstream, `excluding` keeps it
-//  from re-deciding a literal name, and it has no subtraction path at all.
-//  It also never mints a LEAD — the engine keeps its named-application set
-//  literal precisely so `explicitlyNamedApplicationID` stays a true-names
-//  question. Addressing admits a roster and arms a decaying referent; it
-//  does not decide whose turn this is.
-//
-//  FAIL-CLOSED. No candidates, no index, or no embedding asset on the OS and
-//  the semantic channel returns nothing — leaving the spoken-title channel,
-//  which is pure token matching. Every degradation lands on today's
-//  behaviour.
+//  WHAT: Did the user address an application by something it is showing?
+//  IN:   AmbientElementIndexStore
+//  OUT:  routing. Sibling: ApplicationProfile.isMentioned (name) / AmbientReferenceGate (which element).
+//  PIN:  Repair is not a longer alias list.
 //
 
 import Foundation
@@ -79,24 +49,16 @@ public enum AmbientAddressProbe {
         }
     }
 
-    /// THE SAME NUMBER `SemanticAbilityRequestIndex` USES, deliberately.
-    /// Both ask "did this utterance assert a thing?", a question whose null
-    /// hypothesis is true on the overwhelming majority of turns and whose
-    /// false positive pollutes routing. The element gate's 0.50 answers a
-    /// different question — "which of these, given the user already opened
-    /// this app" — where the alternatives are peers and abstaining helps
-    /// nobody. One constant for one question; move it once, with a
-    /// calibration table, in this file.
+    /// THE SAME NUMBER `SemanticAbilityRequestIndex` USES, deliberately. Both ask "did this
+    /// utterance assert a thing?", a question whose null hypothesis is true on the overwhelming
+    /// majority of turns and whose false positive pollutes routing.
     public static let acceptanceThreshold: Float = 0.62
 
     /// How fresh a scope's publication must be to speak for the world.
     public static let candidateHorizon: TimeInterval = 5 * 60
 
-    /// G1's vocabulary: definite reference. Someone pointing at something
-    /// that already exists says "this"/"the"/"my"; someone creating
-    /// something says "a". The indefinite case is the main false-positive
-    /// family ("draw a circle", "add a draft") and it is excluded by shape
-    /// rather than by score.
+    /// G1's vocabulary: definite reference. Someone pointing at something that already exists
+    /// says "this"/"the"/"my"; someone creating something says "a".
     static let referentialWords: Set<String> = [
         "this", "that", "these", "those", "the",
         "my", "our", "your", "its", "his", "her", "their",
@@ -118,10 +80,9 @@ public enum AmbientAddressProbe {
         let words = tokens(of: trimmed)
         guard !words.isEmpty else { return [] }
 
-        // G1 — REFERENTIAL SHAPE. Deliberately broader than
-        // `referencesApplicationAnaphorically`, which requires a leading
-        // continuation verb and would reject "what's in my google doc" — the
-        // no-look path this exists to serve.
+        // G1 — REFERENTIAL SHAPE. Deliberately broader than `referencesApplicationAnaphorically`,
+        // which requires a leading continuation verb and would reject "what's in my google doc" —
+        // the no-look path this exists to serve.
         guard !words.isDisjoint(with: referentialWords)
                 || AmbientRanker.isDeictic(trimmed)
         else { return [] }
@@ -139,11 +100,8 @@ public enum AmbientAddressProbe {
             var basis = AmbientAddress.Basis.semantic
             for entry in index.entries {
                 guard isDistinctive(entry.record) else { continue }   // G3
-                // G4 — the spoken-title channel: the user said the title, as
-                // a contiguous multi-token window. This is `isMentioned`'s
-                // matcher applied to an OBSERVED name instead of an authored
-                // alias, which is the whole thesis in one rung, and the only
-                // channel that survives degraded mode.
+                // G4 — the spoken-title channel: the user said the title, as a contiguous multi-token
+                // window.
                 if let name = entry.record.name, spoke(name, in: words) {
                     best = 1
                     basis = .spokenTitle
@@ -166,10 +124,9 @@ public enum AmbientAddressProbe {
 
     // MARK: - Guards
 
-    /// G3 — could this record's name identify anything on its own? A tab
-    /// called "Home", "New Tab" or "Untitled" must never address an
-    /// application at any score, and the test is the tree's existing notion
-    /// of a word worth matching on.
+    /// G3 — could this record's name identify anything on its own? A tab called "Home", "New
+    /// Tab" or "Untitled" must never address an application at any score, and the test is the
+    /// tree's existing notion of a word worth matching on.
     static func isDistinctive(_ record: AmbientElementRecord) -> Bool {
         guard let name = record.name else { return false }
         let words = tokens(of: name)

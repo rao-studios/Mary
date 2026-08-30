@@ -1,16 +1,12 @@
 //
 //  MaryRuntime+TTS.swift
-//  Mary
+//  MaryRuntime
 //
-//  Moved verbatim from MaryRuntime.swift (phase 3): the TTS backend
-//  boot/apply spine (bootKokoro, reapplyTTSBackend, applyTTSBackend and the
-//  `activeTTSBackend` / `lastRequestedTTS` state they maintain), the
-//  voice-notice channel (`onVoiceDegrade`, the once-per-episode Seer degrade
-//  note, the revoked-script-consent notice), and the coding follow-up
-//  bridge — the other boot-time bridge, started by installBrainConfiguration.
-//
-//  No behavior change and no promotions: every writer and reader of the
-//  private state here moved together, so `private` still means private.
+//  WHAT: TTS boot/apply spine, voice-notice channel, coding follow-up bridge.
+//  IN:   Config Speech picker, Seer sign-in, installBrainConfiguration
+//  OUT:  KokoroEngine / SeerTTS / KokoroStreamSpeaker / brain.emitCodingFollowUp
+//  PIN:  Hosted character slugs never load as on-device voices. Seer installs
+//        unconditionally; auth is per-synthesis.
 //
 
 import MaryBrain
@@ -22,30 +18,17 @@ import os
 
 extension MaryRuntime {
 
-    /// What the speaker is actually synthesizing with right now — differs
-    /// from config when the Mistral key is missing and Kokoro covers.
+    /// What the speaker is synthesizing with now. Differs from config when Kokoro covers.
     nonisolated(unsafe) package private(set) static var activeTTSBackend: TTSBackend = .kokoro
 
-    /// The on-device voice every fallback lands on when the requested name is
-    /// not one the bundle carries.
+    /// On-device voice every fallback lands on when the request is not in the bundle.
     package static let defaultKokoroVoice = "af_heart"
 
-    /// The Kokoro voice actually LOADED — which differs from the requested
-    /// name when config named one the bundle has no embedding for. The app
-    /// heals its own config from this, so the picker and the speaker cannot
-    /// drift apart in silence.
+    /// Kokoro voice actually loaded. App heals config from this so picker and speaker agree.
     nonisolated(unsafe) package private(set) static var activeKokoroVoice: String?
 
-    /// The bundled voice to actually load for `requested`: the request when it
-    /// names a real on-device voice, `af_heart` otherwise, and failing that
-    /// whatever the bundle does carry. Nil only when `voices/` is empty.
-    ///
-    /// THE SECOND LINE OF DEFENCE behind the config split. A hosted character
-    /// slug (`fr_marie`) is a SERVER voice — Seer synthesizes it and no style
-    /// embedding for it ships on device — so handed to the on-device engine it
-    /// names a file that was never meant to exist. Config no longer stores one
-    /// in the on-device slot; this makes sure that if one ever arrives again,
-    /// by any route, the voice still comes up.
+    /// Bundled voice for `requested`: request if present, else `af_heart`, else first.
+    /// Hosted slugs (`fr_marie`) have no on-device embedding — never load them as files.
     package static func onDeviceVoice(named requested: String, in modelsDir: URL) -> String? {
         let available = KokoroEngine.availableVoices(in: modelsDir)
         if available.contains(requested) { return requested }
@@ -53,8 +36,7 @@ extension MaryRuntime {
         return available.first
     }
 
-    /// One-time boot: load `.env`, bring Kokoro up from the bundled assets.
-    /// Returns a user-facing error string on failure, nil on success.
+    /// One-time boot: load `.env`, bring Kokoro up. User-facing error string or nil.
     package static func bootKokoro(voice: String) async -> String? {
         DotEnv.loadMaryEnvironment()
         guard let modelsDir = KokoroAssets.modelsDirectory() else {
@@ -79,22 +61,17 @@ extension MaryRuntime {
         }
     }
 
-    /// The last CONFIGURED request, remembered so a later sign-in can replay
-    /// it without the caller having to reach back into config.
+    /// Last configured request — replay after Seer sign-in without reaching into config.
     nonisolated(unsafe) private static var lastRequestedTTS: (backend: TTSBackend, voice: String)?
 
-    /// Replay the last configured backend — called after a successful Seer
-    /// sign-in so a session that booted unauthenticated recovers without the
-    /// user touching the Speech picker.
+    /// Replay last configured backend after a successful Seer sign-in.
     package static func reapplyTTSBackend() async -> String? {
         guard let lastRequestedTTS else { return nil }
         return await applyTTSBackend(
             lastRequestedTTS.backend, hostedVoice: lastRequestedTTS.voice)
     }
 
-    /// Point the shared speaker at the configured TTS backend. Kokoro stays
-    /// booted regardless — it is the instant-switch target and the fallback.
-    /// Returns a user-facing notice when silently falling back, nil otherwise.
+    /// Point the shared speaker at the configured TTS backend. Kokoro stays booted.
     package static func applyTTSBackend(_ backend: TTSBackend, hostedVoice: String) async -> String? {
         lastRequestedTTS = (backend, hostedVoice)
         switch backend {
@@ -103,38 +80,24 @@ extension MaryRuntime {
             activeTTSBackend = .kokoro
             return nil
         case .seer:
-            // SEER MEANS SEER — the user's decision, verbatim. The engine is
-            // installed UNCONDITIONALLY: auth is a per-synthesis fact
-            // (`tokenProvider` → `SeerSession.validToken`, which refreshes
-            // and re-signs-in), never an apply-time pin. The old apply-time
-            // guard parked the whole session on Kokoro when Seer happened to
-            // be down at boot, and nothing ever re-applied — settings said
-            // Seer, audio was Kokoro, forever.
+            // Auth is per-synthesis (`tokenProvider` → SeerSession.validToken), not apply-time.
             await seerTTS.setCharacter(.named(hostedVoice))
-            // Per-chunk degradation: a dead Seer (its /v1/speak fatalErrors
-            // when MISTRAL_API_KEY vanishes) hands each chunk to Kokoro —
-            // after the engine's own re-auth-and-retry, and it says so.
+            // Dead Seer hands each chunk to Kokoro after re-auth-and-retry.
             await seerTTS.setFallback(kokoro)
             await seerTTS.setOnDegrade { reason in
                 Task { await noteSeerVoiceDegraded(reason) }
             }
-            // A 401 despite locally-valid bookkeeping means the SERVER
-            // rejected the token (restart, new signing key, revoked session)
-            // — force a genuine refresh so the retry carries a new one.
+            // 401 despite local bookkeeping: server rejected the token — force refresh.
             await seerTTS.setOnReauth {
                 _ = await seerSession.refreshAfter401()
             }
-            // Recovery re-arms the once-per-EPISODE notice: the second outage
-            // must be as visible as the first.
+            // Recovery re-arms the once-per-episode notice.
             await seerTTS.setOnRecover {
                 seerVoiceDegradeNoted.withLock { $0 = false }
             }
-            // The realtime route renders server-side with its own voice id —
-            // it follows the Character picker through here, narrowly, so a
-            // voice change no longer waits for the next boot.
+            // Realtime route follows the Character picker through here.
             await seerRealtime.setVoiceID("\(hostedVoice)_neutral")
-            // Cloud chunks may grow after the first: fewer seams on long
-            // passages, one prosody arc per batch.
+            // Cloud chunks may grow after the first: fewer seams, one prosody arc.
             await speaker.setSynthesizer(seerTTS, policy: .cloud)
             activeTTSBackend = .seer
             if await !seerSession.isAuthenticated {
@@ -144,12 +107,8 @@ extension MaryRuntime {
         }
     }
 
-    /// ONE NOTE PER EPISODE for per-chunk Seer voice degradation — enough to
-    /// know it happened without narrating every network hiccup. The engine's
-    /// `onRecover` re-arms it on the first successful Seer chunk after a
-    /// degrade, so a later outage is as visible as the first. The app layer
-    /// wires `onVoiceDegrade` to its notice channel (the chat mirror);
-    /// headless tools leave it nil and the note goes to the log.
+    /// One note per episode for Seer voice degradation. onRecover re-arms.
+    /// App wires onVoiceDegrade to the chat mirror; headless tools log.
     nonisolated(unsafe) package static var onVoiceDegrade: (@Sendable (String) -> Void)?
     private static let seerVoiceDegradeNoted = OSAllocatedUnfairLock(initialState: false)
     private static func noteSeerVoiceDegraded(_ reason: String) async {
@@ -167,10 +126,8 @@ extension MaryRuntime {
         }
     }
 
-    /// Bridge coding-agent session completions to the brain's proactive voice,
-    /// speaking ONLY on failure (a successful background edit lands silently
-    /// in the front editor). Awaited pair-program sessions return through
-    /// the workflow and must not be spoken twice here.
+    /// Coding-agent completions → proactive voice. Speak only on background failure.
+    /// Awaited pair-program sessions return through the workflow — do not speak twice.
     nonisolated(unsafe) private static var codingFollowUpBridgeStarted = false
     static func startCodingFollowUpBridge() {
         guard !codingFollowUpBridgeStarted else { return }

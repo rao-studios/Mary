@@ -72,3 +72,4 @@ build/
 # they are per-developer, not project contract.
 .vscode/
 .DS_Store
+/.cursor

@@ -2,34 +2,10 @@
 //  AXAmbientContext.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  WHAT THE ENGINE SEES, AS ONE VALUE. The snapshot types answer "what did
-//  the walk find"; this file answers the ambient question — "what is on
-//  screen for this app, right now" — in one derived, plain-Sendable artifact:
-//  the app's identity, its active window, the roster of nameable things in
-//  reading order, the focused element, and what the two sub-engine lanes
-//  (web, scripting) know about the parts a plain walk cannot see. It is the
-//  engine's contribution to the ambient tier — `AmbientBridge.surface(from:)`
-//  renders it into the ambient layer's vocabulary, and Clyde inspects it
-//  raw.
-//
-//  APP-AGNOSTIC, LIKE EVERYTHING ELSE HERE. `bundleID` is reported, never
-//  branched on; family identity (`AmbientPlace`) attaches OUTSIDE the
-//  engine, where the resolver lives. Deriving is PURE — snapshot in, value
-//  out — so every field is table-testable without AX.
-//
-//  SILENCE NEVER CLAIMS ABSENCE. A one-shot walk has no wake verdict
-//  (`web.readiness == nil` means "not yet read", never "empty page") and no
-//  fill history (`scripting.verdict == nil` means "never tried"). The
-//  streaming path fills both from `AXSnapshotStreamer.Stats`.
-//
-//  EQUALITY IGNORES CAPTURE TIMING — the `AXAppSnapshot.==` precedent:
-//  `Capture`'s own `==` skips `capturedAt`/`walkDuration`, so two
-//  derivations that saw the identical screen compare equal and a consumer
-//  (Clyde's panel, the observer's skip-when-unchanged) can cheaply decline
-//  to republish.
-//
+//  WHAT: One-shot ambient artifact — identity, front window, roster, focus.
+//  IN:   AXAppSnapshot (pure derive)
+//  OUT:  AmbientBridge.surface | AXAmbientPresentation
+//  PIN:  bundleID reported, never branched. Silence ≠ absence. == skips timing.
 
 import CoreGraphics
 import Foundation
@@ -78,10 +54,8 @@ public struct AXAmbientContext: Sendable, Equatable {
         public var id: AXNodeID
         public var role: String
         public var label: String?
-        /// Nil when the node declined to answer a frame — `AXNodeSnapshot`'s
-        /// own convention. Was silently dropped before the bridge's frame
-        /// projection landed: the focused element is the single most
-        /// act-relevant thing on screen, and it carried no geometry at all.
+        /// Nil when the node declined to answer a frame — `AXNodeSnapshot`'s own
+        /// convention.
         public var frame: CGRect?
 
         public init(id: AXNodeID, role: String, label: String?, frame: CGRect? = nil) {
@@ -92,14 +66,7 @@ public struct AXAmbientContext: Sendable, Equatable {
         }
     }
 
-    // NO WEB OR SCRIPTING LANE. Bonnie's context carried two: a web lane
-    // (Chromium/Electron content, which builds no accessibility hierarchy
-    // until an assistive client asks) and a scripting lane (gaps where AX was
-    // never implemented, filled from an application's own scripting
-    // dictionary). Both sub-engines are deferred, and a lane reporting on an
-    // engine that does not exist is a capability claim rather than an
-    // observation. They return WITH their engines — the shape is theirs to
-    // bring, not this file's to hold empty.
+    // No web or scripting lane here. Those return with their engines.
 
     /// What the derivation cost and how complete it is. `==` deliberately
     /// ignores `capturedAt`/`walkDuration` — see the header.
@@ -135,15 +102,7 @@ public struct AXAmbientContext: Sendable, Equatable {
         }
     }
 
-    /// THE SCOPE THE AMBIENT TIER PUBLISHES, named once so the observer that
-    /// ships a surface and any inspector that displays one cannot disagree
-    /// about what "the elements" means.
-    ///
-    /// `.all` rather than `.actionable`: a surface is what is ON SCREEN, not
-    /// only what can be pressed — and the affordance slate derived from the
-    /// same walk needs the roles that fall outside `.actionable`
-    /// (`AXRow`, `AXCell`, `AXImage`, `AXHeading`), which it then filters
-    /// down itself.
+    /// Scope the ambient tier publishes. `.all` = on screen, not only actionable.
     public static let ambientScope = AXElementRoster.Scope.all
 
     public var app: AppIdentity
@@ -157,9 +116,6 @@ public struct AXAmbientContext: Sendable, Equatable {
     public var scope: AXElementRoster.Scope
     public var focused: FocusedElement?
     /// This process hosts web content — see the note at the derivation site.
-    /// True with an empty element roster is the "I can see the window and not
-    /// the page" state, and the only honest thing to say about an unwoken
-    /// Chromium or Electron target.
     public var webContentHost: Bool
     public var capture: Capture
 
@@ -200,10 +156,9 @@ public struct AXAmbientContext: Sendable, Equatable {
             observersTotal: observersTotal)
     }
 
-    /// First node claiming focus, searched front-to-back across the
-    /// non-minimized windows — the active window first, then the rest,
-    /// because AX focus can legitimately sit in a palette behind the front
-    /// window. Nil when nothing claims it.
+    /// First node claiming focus, searched front-to-back across the non-minimized windows —
+    /// the active window first, then the rest, because AX focus can legitimately sit. Nil
+    /// when nothing claims it.
     static func focusedElement(in snapshot: AXAppSnapshot) -> FocusedElement? {
         for window in snapshot.windows where !window.isMinimized {
             guard let root = window.root else { continue }

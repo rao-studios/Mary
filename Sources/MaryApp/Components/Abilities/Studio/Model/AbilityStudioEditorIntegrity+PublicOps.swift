@@ -165,10 +165,7 @@ extension AbilityStudioEditorIntegrity {
         }
     }
 
-    /// Replaces a local Skill's provider-owned contract with the complete
-    /// contract Mary already validated for an installed compiled faculty.
-    /// This is adoption, not binding composition: an author cannot attach one
-    /// operation to an unrelated or weaker semantic contract.
+    /// Adopt a compiled faculty's validated contract; never a weaker one.
     static func adoptInstalledFaculty(
         _ option: AbilityStudioInstalledFacultyOption,
         for skillID: SkillID,

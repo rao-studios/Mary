@@ -1,4 +1,9 @@
-// The reasoning core speaks the adapter contract — SkillBinding, SkillOutcome,
-// AbilityExecutionContext. Re-export MaryPlugin so consumers do not juggle a
-// third import to read a receipt.
+//
+//  MaryAdapterExports.swift
+//  MaryBrain
+//
+//  WHAT: Re-export MaryPlugin so consumers can name SkillBinding / SkillOutcome.
+//  IN:   MaryBrain public surface
+//  OUT:  @_exported import MaryPlugin
+//
 @_exported import MaryPlugin

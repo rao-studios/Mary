@@ -2,21 +2,10 @@
 //  DictationRunner.swift
 //  MaryAdapter
 //
-//  THE TYPER'S ANSWER TO THE KIT'S DICTATION VERBS.
-//
-//  `DictationSession`, at the contract root, holds the caret and declares
-//  open, type and scratch. This installs them. The split is the
-//  `PausedTypingSession` idiom: `MaryBrain` owns the turn loop where a held
-//  session short-circuits and drives it through the contract alone, so a
-//  process with no typer installed still answers every verb coherently.
-//
-//  ONE VERIFICATION, AT THE OPEN. Everything a `type_at_cursor` run proves
-//  before its first keystroke is proved once here: a resolved target, a prose
-//  surface, Accessibility, verified activation with a visible window, and a
-//  live focused text element. What the session pins is the result of that
-//  proof, so the sentences that follow do not re-litigate it.
-//
-//  AND THE OPEN IS THE ONLY MOMENT DICTATION MAY MOVE FOCUS. See `typeSpan`.
+//  WHAT: Install DictationSession open / type / scratch for the typer.
+//  IN:   DictationSession (kit) / TyperPlugin
+//  OUT:  KeyboardTyper / TypingSession
+//  PIN:  Verify once at open. Open is the only moment dictation may move focus.
 //
 
 import AppKit
@@ -42,9 +31,7 @@ enum DictationRunner {
                 "I couldn't tell where to write. Click into the document you want, then say take this down.")
         }
         guard TypingSurface.canReceiveProse(bundleID: target.bundleID) else {
-            // Browsers are deliberately outside the CGEvent prose path, so a
-            // Google Docs tab is not a v1 dictation surface. Say which, rather
-            // than failing vaguely — the user can move to a real editor.
+            // Browsers are outside the CGEvent prose path.
             return .refused(
                 "I can't dictate into \(target.spokenName). Open the document in a writing app and say take this down there.")
         }
@@ -73,9 +60,7 @@ enum DictationRunner {
         }
         let sample = AXSelectionReader.focusedWritableSurfaceSample(
             pid: front.processIdentifier)
-        // A PAUSED PASSAGE MUST NOT SURVIVE INTO A SESSION. Newest wins, the
-        // same rule `type_at_cursor` applies — otherwise a later "continue"
-        // would surprise-type a remainder into the middle of a scene.
+        // A paused passage must not survive into a session — newest wins.
         TypingSession.shared.clear()
         let held = DictationSession.Held(
             bundleID: target.bundleID,
@@ -90,19 +75,8 @@ enum DictationRunner {
 
     // MARK: - Typing a span
 
-    /// EVERY LATER UTTERANCE, and the contract differs from `performTyping` in
-    /// exactly one way that matters: **this never activates.**
-    ///
-    /// `type_at_cursor` brings its target forward, which is right for a
-    /// one-shot instruction. A held session must not: the user who alt-tabs to
-    /// Mail mid-scene has stopped dictating, and dragging Scrivener back to
-    /// spray a paragraph into it is the worst thing this feature could do. So
-    /// the pinned target must ALREADY own the foreground, and the pinned text
-    /// element must still be the focused one — a different document in the same
-    /// app is a different caret.
-    ///
-    /// If anyone later "fixes" a flaky test by adding a `bringForward` here,
-    /// that is the bug returning. `DictationSessionTests` asserts the absence.
+    /// Later utterances. PIN: never activates — pinned target must already own focus.
+    /// DictationSessionTests asserts the absence of bringForward.
     static func typeSpan(_ text: String) async -> DictationSession.SpanResult {
         guard let held = DictationSession.shared.held() else { return .unavailable }
         guard AppAutomationGate.accessibilityBlock() == nil else {
@@ -179,10 +153,7 @@ enum DictationRunner {
 
     // MARK: - Shaping
 
-    /// Consecutive utterances are one paragraph, not one word. Without this,
-    /// "she waited" then "and listened" arrives as "she waitedand listened".
-    /// A span that already begins with whitespace or a newline is left alone —
-    /// that is the structural controls' doing.
+    /// Join consecutive utterances with a space unless the span already leads with whitespace.
     static func joined(_ text: String, after held: DictationSession.Held) -> String {
         guard held.wordsTyped > 0 else { return text }
         guard let first = text.first else { return text }

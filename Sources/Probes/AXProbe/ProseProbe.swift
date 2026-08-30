@@ -2,25 +2,9 @@
 //  ProseProbe.swift
 //  AXProbe
 //
-//  THE ONE QUESTION THE SUITE CANNOT ANSWER: does the prose lane actually
-//  read and write a real editor — and does a write reach a window that is NOT
-//  in front?
-//
-//  Everything that DECIDES on the write path is pure and table-tested
-//  (`ProseWriteLocator`). Everything that ACTS is accessibility, which cannot
-//  be exercised in a test process. So the act is measured here, against a
-//  running application, and the result is a design decision rather than a
-//  green tick: if a background write does not land, `ProseSurfaceWriter`
-//  ships with `raisesBackgroundWindows: true` and the user sees a window come
-//  forward for every edit to a note they are not looking at.
-//
-//  IT WRITES TO A REAL DOCUMENT, so it is opt-in twice: `--prose --write`, and
-//  it refuses unless the document it is about to touch is one it created
-//  itself in this run. A probe that edited the user's actual notes to prove a
-//  point would be a poor trade.
-//
-//    mary-ax-probe --prose                  # read: roster, front document
-//    mary-ax-probe --prose --write          # the full ladder, on a scratch note
+//  WHAT: Prose lane read/write against a real editor (incl. background window).
+//  OUT:  CLI: mary-ax-probe --prose [--write]
+//  PIN:  --write only touches a scratch note this run created.
 //
 
 import AppKit
@@ -34,10 +18,7 @@ enum ProseProbe {
 
     static func shouldRun(_ arguments: [String]) -> Bool { arguments.contains("--prose") }
 
-    /// A TextEdit-shaped registration, built here rather than loaded from a
-    /// package — the package lane lands in a later stage, and this probe
-    /// exists to prove the compiled half in the meantime. Every field is one
-    /// a package will declare.
+    /// TextEdit-shaped registration built in-probe (fields a package will declare).
     static func textEditRegistration() -> ProseSurfaceRegistration {
         ProseSurfaceRegistration(
             applicationID: "textedit",

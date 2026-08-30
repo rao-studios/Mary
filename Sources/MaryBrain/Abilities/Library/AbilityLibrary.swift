@@ -1,3 +1,12 @@
+//
+//  AbilityLibrary.swift
+//  MaryBrain
+//
+//  WHAT: Load `.mary` graphs; swap one immutable snapshot at a time.
+//  IN:   bundled + Application Support overlay
+//  OUT:  AbilityRuntimeSnapshot for the roster
+//  PIN:  A bad edit never disturbs last-known-good.
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -5,20 +14,9 @@ import Darwin
 import Foundation
 import os
 
-/// Loads root/bundled `.mary` definitions plus a writable Application
-/// Support overlay. Candidate graphs validate completely before one immutable
-/// snapshot replaces another; a bad edit never disturbs the last-known-good
-/// runtime.
+/// Loads root/bundled `.mary` definitions plus a writable Application Support overlay.
 public final class AbilityLibrary: @unchecked Sendable {
-    /// The installed Ability graph is the activation boundary for a Dynamic
-    /// Plugin. Native Plugin Settings never participate here. The production
-    /// library reflects the process's live macOS grant for the one permission
-    /// the closed `macUI` interpreter can currently use; execution rechecks
-    /// that grant immediately before touching the target application.
-    ///
-    /// Individually constructed libraries retain the fail-closed resolver
-    /// default below so tests, tools, and future hosts must opt into machine
-    /// authority explicitly.
+    /// The installed Ability graph is the activation boundary for a Dynamic Plugin. Native Plugin Settings never participate here.
     public static let shared = AbilityLibrary(packageGrantedPermissions: { request in
         var granted: Set<PermissionKind> = []
         if request.requestedPermissions.contains(.accessibility), AXIsProcessTrusted() {
@@ -88,9 +86,6 @@ public final class AbilityLibrary: @unchecked Sendable {
         fileManager: FileManager = .default,
         runtimeVersion: SemanticVersion = AbilityLibrary.detectedRuntimeVersion,
         // A standalone library is inert until its host injects machine truth.
-        // Mary's process singleton above treats successful Ability
-        // installation as provider activation and supplies the live OS grant;
-        // this default keeps other hosts and tests fail-closed.
         packageGrantedPermissions: @escaping PluginCompiler.GrantedPermissionResolver = { _ in [] }
     ) {
         self.fileManager = fileManager
@@ -114,9 +109,6 @@ public final class AbilityLibrary: @unchecked Sendable {
     }
 
     /// Returns the active registry, loading package definitions on first use.
-    /// The app normally configures concrete adapter bindings during boot; this
-    /// lazy path keeps schema-driven routing honest in package tests, probes,
-    /// and other callers that resolve a route before the app runtime exists.
     public func snapshotEnsuringLoaded() -> AbilityRuntimeSnapshot {
         lock.lock()
         let isConfigured = state.configured
@@ -155,11 +147,6 @@ public final class AbilityLibrary: @unchecked Sendable {
     }
 
     /// Points MaryAmbient at this registry the first time one is loaded.
-    ///
-    /// Installed HERE rather than only at the app's composition root because a
-    /// loaded registry is exactly the precondition the ambient layer's index
-    /// describes — so every caller that has one, including a test, gets the
-    /// live answer instead of an empty index.
     static let installAmbientIndex: Void = {
         AmbientCapabilityIndexProvider.install {
             AbilityLibrary.shared.snapshotEnsuringLoaded()
@@ -188,22 +175,7 @@ public final class AbilityLibrary: @unchecked Sendable {
         return "1.0.0"
     }
 
-    /// The checkout this source file lives in, found by WALKING UP UNTIL THE
-    /// SHAPE MATCHES rather than by counting directories.
-    ///
-    /// THE FAILURE THIS PREVENTS: what stood here was
-    /// `for _ in 0..<6 { deleteLastPathComponent() }`, six being however deep
-    /// this file happened to sit. Moving it one directory — an ordinary tidy
-    /// — would have pointed the source-tree location at
-    /// `…/MaryBrain/Abilities`, which does not exist. Package loading would
-    /// then silently fall back to whatever stale copy the app bundle carried,
-    /// and the flagship plugin would go quietly wrong in a way that looks
-    /// like a Sketch bug. A path derived from a hop count is a path that
-    /// breaks when someone reorganizes files; this one cannot.
-    ///
-    /// Nil when no ancestor qualifies — a compiled binary running from an
-    /// unrelated tree, where the bundled and installed locations are the
-    /// honest answer anyway.
+    /// The checkout this source file lives in, found by WALKING UP UNTIL THE SHAPE MATCHES rather than by counting directories.
     static func repositoryRoot(from filePath: String) -> URL? {
         var candidate = URL(fileURLWithPath: filePath)
         // Bounded: deep enough for any checkout layout, finite on a
@@ -216,14 +188,7 @@ public final class AbilityLibrary: @unchecked Sendable {
         return nil
     }
 
-    /// True when this directory has an `Abilities` folder holding at least one
-    /// real `.mary` package.
-    ///
-    /// THE NAME ALONE IS NOT ENOUGH, and that is not hypothetical: the
-    /// MaryBrain source tree has its own directory called `Abilities` (the
-    /// one this file lives in), so a walk that stopped at the first folder
-    /// with that name stopped four levels short — inside the package, not at
-    /// the checkout. Asserting the CONTENT asks the question we actually mean.
+    /// True when this directory has an `Abilities` folder holding at least one real `.mary` package.
     static func holdsAbilityPackages(_ directory: URL) -> Bool {
         let abilities = directory.appendingPathComponent("Abilities", isDirectory: true)
         guard let entries = try? FileManager.default.contentsOfDirectory(

@@ -1,3 +1,11 @@
+//
+//  CapabilityExecutionPolicy.swift
+//  MaryBrain
+//
+//  WHAT: Closed execution policy for a capability (confirm / allow / refuse).
+//  IN:   roster / safety gate
+//  OUT:  policy applied at dispatch
+//
 import MaryFoundation
 import Foundation
 

@@ -2,9 +2,9 @@
 //  PluginExpressions.swift
 //  MaryFoundation
 //
-//  THE ONLY ARITHMETIC A RECIPE MAY DO. A scalar, text, point, or rect is
-//  composed from literals, declared inputs, and observed geometry — never from
-//  package-authored code — so every value a step uses stays inspectable.
+//  WHAT: Closed recipe arithmetic — literal, input, observed geometry.
+//  IN:   PluginRecipeStep fields.
+//  OUT:  PluginValidator+Expressions, macUI interpreter.
 //
 
 import Foundation
@@ -15,10 +15,7 @@ public struct PluginScalarExpression: Codable, Hashable, Sendable {
     public var value: Double?
     public var input: String?
     public var defaultValue: Double?
-    /// A bounded literal added to an INPUT-sourced value at resolution —
-    /// "the created region's origin plus a small inset". Meaningless (and
-    /// refused by validation) beside a pure literal, whose author can simply
-    /// write the sum.
+    /// Offset added to an input-sourced value. Refused beside a pure literal.
     public var offset: Double?
 
     public init(value: Double) {
@@ -52,9 +49,7 @@ public struct PluginScalarExpression: Codable, Hashable, Sendable {
     }
 }
 
-/// Printable text supplied literally by an Ability or through one declared
-/// operation input. The interpreter rejects control characters and newlines
-/// before acquiring foreground input authority.
+/// Printable text. Interpreter rejects controls/newlines before foreground input.
 public struct PluginTextExpression: Codable, Hashable, Sendable {
     public var value: String?
     public var input: String?

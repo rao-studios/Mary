@@ -2,14 +2,10 @@
 //  KokoroTextNormalizer.swift
 //  MaryVoice
 //
-//  Rewrites unspeakable orthography into words BEFORE word-splitting, so both
-//  speak() and streaming synthesis benefit. Pure tables + precompiled regexes,
-//  O(sentence), no model calls — the 15 ms streaming character is preserved.
-//
-//  Pass order is load-bearing: money and times consume their digits before the
-//  bare-cardinal pass sees them. Every emitted word resolves in the shipped
-//  lexicon/cache (verified against the data). Normalization is idempotent —
-//  outputs contain no digits or symbols the passes match.
+//  WHAT: Unspeakable orthography → words before split. Pure tables + regex.
+//  IN:   KokoroPhonemizer
+//  OUT:  rewritten text + substitution pairs for PronunciationReport
+//  PIN:  Pass order is load-bearing (money/times before bare cardinals).
 //
 
 import Foundation
@@ -154,10 +150,7 @@ struct KokoroTextNormalizer {
         Pass(regex: regex(#"\be\.g\.(?=[\s,]|$)"#)) { _ in "for example" },
         Pass(regex: regex(#"\bi\.e\.(?=[\s,]|$)"#)) { _ in "that is" },
         Pass(regex: regex(#"\bNo\.\s?(?=\d)"#)) { _ in "number " },
-        // 11. Units after a number word (the cardinal pass already ran, so the
-        //     "number" is now words — gate on the ORIGINAL text having had a
-        //     digit is lost; instead gate on the unit following a known number
-        //     word to avoid rewriting prose "in", "min" names, etc.)
+        // 11. Units after a number word (cardinal pass already ran). Gate on known number words, not digits.
         Pass(regex: regex(
             #"\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|trillion)\s(km|mi|kg|lb|lbs|GB|MB|TB|KB|GHz|MHz|ms|hr|hrs|min|mins|sec|secs|ft|mph)\b"#
         )) { g in

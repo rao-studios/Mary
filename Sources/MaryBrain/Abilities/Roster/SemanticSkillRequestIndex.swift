@@ -2,36 +2,11 @@
 //  SemanticSkillRequestIndex.swift
 //  MaryBrain
 //
-//  EMBEDDING RECALL, ONE TIER DOWN. `SemanticAbilityRequestIndex` answers
-//  "which Ability is this turn about" and stops there — its own header says
-//  fixtures "never identify a Skill or operation here". That was the honest
-//  scope of the ability seam, and it left a gap: below it, nothing matches
-//  language at all. Skill election is typed evidence, and the last mile is the
-//  model reading tool descriptions. So "put on my running mix" reaches
-//  Multimedia and then competes among seven media tools on wording alone.
+//  WHAT: Embedding recall one tier down — which Skill the utterance is about.
+//  IN:   Skill trigger corpus
+//  OUT:  affinities for the arbitrator
+//  PIN:  Same four constraints as SemanticAbilityRequestIndex; additive only.
 //
-//  THIS IS THE SAME MECHANISM, AIMED AT SKILLS, and it inherits the same four
-//  constraints for the same reasons:
-//  - SYNCHRONOUS AND CHEAP: built at registry reload, off the turn path; a
-//    query costs one vectorization and a few hundred dot products.
-//  - FAILS CLOSED: no OS embedding asset, no index — nil everywhere degrades
-//    to today's behavior byte for byte.
-//  - ADDITIVE ONLY, and here that word has to be enforced rather than
-//    asserted, because a Skill tier has something the Ability tier does not:
-//    an eligibility gate. So this returns a SCORE, never a verdict, and its
-//    one consumer adds it into `AbilityRoutingEvidenceScore.total`. It is
-//    never read by `isEligible` and never by `excludes`. An affinity of zero
-//    scores exactly what the Skill scores today.
-//  - DETERMINISTIC TESTS: `NLEmbedding` varies by OS build, so the vectorizer
-//    stays a protocol and CI asserts through a fake.
-//
-//  THE CORPUS IS DATA THAT ALREADY EXISTS. No schema change, no new validator,
-//  nothing for a package author to learn: a Skill's title and summary, the
-//  invocation name the model already sees, the utterance predicates its
-//  routing policy already admits, and the package's own route fixtures — which
-//  have carried an `expectedSkill` all along that the ability index reads past.
-//
-
 import MaryAmbient
 import MaryFoundation
 import Foundation
@@ -41,17 +16,9 @@ import Foundation
 public struct SemanticSkillRequestIndex: Sendable {
 
     /// Below this, a Skill is not being talked about and contributes nothing.
-    /// Deliberately the same floor the Ability index uses — the two ask the
-    /// same question of the same model, and one number is easier to calibrate
-    /// than two.
     public static let defaultThreshold: Float = 0.62
 
     /// The most an embedding can add to a Skill's evidence.
-    ///
-    /// UNDER `utterancePhrase`'s 50, ON PURPOSE. An authored phrase is a
-    /// package saying "this is what those words mean"; a similarity is a guess
-    /// that they might. When the two disagree the author has to win, or
-    /// authoring stops being worth doing.
     public static let maximumBonus: Int = 45
 
     private struct Entry: Sendable {
@@ -88,11 +55,7 @@ public struct SemanticSkillRequestIndex: Sendable {
                 if let eligibility = skill.routing.eligibility {
                     terms += utteranceValues(in: eligibility)
                 }
-                // THE FIELD THE ABILITY INDEX READS PAST. A route fixture that
-                // names this Skill is a package author stating, in a whole
-                // spoken sentence, that these words mean this Skill — the best
-                // training text in the package, and until now it was only ever
-                // used to widen Ability nomination.
+                // THE FIELD THE ABILITY INDEX READS PAST. A route fixture that names this Skill is a package author stating, in a whole spoken sentence
                 terms += fixtures
                     .filter { $0.expectedSkill == skill.id }
                     .map(\.utterance)
@@ -118,12 +81,7 @@ public struct SemanticSkillRequestIndex: Sendable {
     }
 
     /// Best similarity per Skill, for every Skill that clears the floor.
-    ///
-    /// A SCORE RATHER THAN A SET, which is the whole difference from the
-    /// Ability seam. That one returns membership because its consumer unions;
-    /// this one's consumer ranks, and collapsing a similarity to a boolean
-    /// here would make a Skill that barely cleared the floor indistinguishable
-    /// from one the utterance is plainly about.
+    /// A SCORE RATHER THAN A SET, which is the whole difference from the Ability seam.
     public func affinities(in utterance: String) -> [SkillID: Float] {
         guard let raw = vectorizer.vector(for: utterance) else { return [:] }
         let query = Self.normalized(raw)
@@ -157,9 +115,6 @@ public struct SemanticSkillRequestIndex: Sendable {
     }
 
     /// Every `utteranceToken` / `utterancePhrase` value in a predicate tree.
-    /// Only those two: a target class or an interaction id is a machine fact,
-    /// and embedding it would teach the index that "media player" is something
-    /// a person says when they mean this Skill.
     static func utteranceValues(in predicate: RoutingPredicate) -> [String] {
         switch predicate.kind {
         case .utteranceToken, .utterancePhrase:

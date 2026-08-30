@@ -1,27 +1,11 @@
 //
 //  MaryRuntime+Prompt.swift
-//  Mary
+//  MaryRuntime
 //
-//  Moved from MaryRuntime.swift's installBrainConfiguration (phase 3): the
-//  prompt-assembly bodies that ran inside `brain.set*` closures, hoisted to
-//  named statics so the install function reads as wiring:
-//
-//    heldContext(_:budget:suppressing:)        HOISTED nested closure. It
-//                                              captured nothing, so the
-//                                              signature is the closure's
-//                                              own, verbatim.
-//    systemPromptText(plugins:projects:deps:)  the setSystemPromptProvider body
-//    seerInstructionsText(pass:deps:)          the setSeerInstructionsProvider body
-//
-//  Bodies are byte-verbatim (original indentation kept so the move stays
-//  verbatim); the only edits are the two `resolveFocus(...)` calls, which
-//  now pass `deps:` — the capture boundary — and the swap of the `.text`
-//  wrappers for `systemRender`/`seerRender`, whose returned text is
-//  byte-identical (the wrappers ARE those renders' `.text`) and whose spend
-//  waterfall now reaches `RetrievalTraceLedger` instead of being thrown
-//  away. The invariant that survives: prompt, roster, archive and retrieval
-//  all derive from the SAME resolveFocus decision; nothing here recomputes
-//  it.
+//  WHAT: Prompt-assembly bodies hoisted from installBrainConfiguration.
+//  OUT:  heldContext, systemPromptText, seerInstructionsText
+//  PIN:  Prompt, roster, archive, retrieval all derive from the same
+//        resolveFocus. Spend waterfall → RetrievalTraceLedger.
 //
 
 import MaryBrain
@@ -33,11 +17,8 @@ import os
 
 extension MaryRuntime {
 
-        /// RENDER, DON'T RECOMPUTE. Ask the store for the current facts, rank
-        /// them under the user's three-way budget rule, render. Everything
-        /// that loses the budget degrades to a one-line mention WITH ITS
-        /// BOUNDS — never a silent omission, because silence is what taught
-        /// Mary to say a passage wasn't in the document.
+        /// Render, don't recompute. Rank under the budget; losers become a
+        /// one-line mention with bounds — never a silent omission.
     static func heldContext(
             _ resolved: (
                 sections: WorkspaceFocusArbiter.PromptSections,
@@ -58,19 +39,7 @@ extension MaryRuntime {
                 route: store.route())
             let attention = routed.attention
             var alreadyRendered: Set<AmbientKey> = alsoRendered
-            // WHAT THE LIVE BLOCK ALREADY SAID.
-            //
-            // The lead place's facts are in front of the model as live work;
-            // repeating them under "Still in hand" says the same thing twice
-            // with a DIFFERENT freshness claim, which is the two-contradicting
-            // -authorities hazard in miniature.
-            //
-            // ONE COMPARISON NOW. This was two branches — a compiled world
-            // matched on `fact.world`, a taught application on `fact.place` —
-            // and the second existed because the first answered nil for every
-            // taught application, so the dedup set came out empty and the same
-            // facts rendered twice. The lane IS the lead place; there was only
-            // ever one question.
+            // Skip facts the live block already said (one comparison: lead place).
             if let lead = resolved.leadPlace {
                 alreadyRendered.formUnion(
                     routed.facts
@@ -80,16 +49,8 @@ extension MaryRuntime {
                         }
                         .map(\.key))
             }
-            // TIER 0, ORDERED HERE. The lead lane's surface leads, because
-            // this is the side holding `leadPlace` — it works for a dynamic
-            // application lead as well as a native world, which the ranker's
-            // native-only `focusedWorld` signal cannot express.
-            //
-            // Surfaces deliberately bypass `routedHeldAmbient`'s fact
-            // admission: the surface IS what "this" and "on screen" point
-            // at, so gating it behind the route's fact filter would withhold
-            // the foundation exactly when deixis needs it. The budget still
-            // bounds it, and the ranker drops what does not fit.
+            // Tier 0: lead lane's surface first (works for dynamic apps).
+            // Surfaces bypass routedHeldAmbient admission — they ARE "this"/"on screen".
             let surfaces = leadFirstSurfaces(store.surfaces(), lead: resolved.leadPlace)
             return AmbientRanker.render(
                 facts: routed.facts,
@@ -102,12 +63,7 @@ extension MaryRuntime {
                 budget: budget)
         }
 
-    /// Surfaces in reading order, except the lead place moves to the front.
-    ///
-    /// The lead lane's surface leads because it works for a dynamic
-    /// application lead as well as a native world, which the ranker's
-    /// native-only `focusedWorld` signal cannot express. Shared by the
-    /// renderer and the behavioral capture so both describe the same order.
+    /// Surfaces in reading order, lead place first. Shared by renderer and capture.
     private static func leadFirstSurfaces(
         _ surfaces: [AmbientSurface], lead: AmbientPlace?
     ) -> [AmbientSurface] {
@@ -118,13 +74,8 @@ extension MaryRuntime {
         return surfaces
     }
 
-    /// The tails both per-turn prompts append to their plan render: ambient
-    /// guidance, then the ability projection — same texts, same order for
-    /// both lanes. Takes ONE route value because guidance and projection
-    /// each used to read the store themselves, leaving a window where the
-    /// two tails of a single prompt described different routes.
-    /// `appendedChars` counts the tails separately so the spend waterfall
-    /// stays honest about what it does not itemize.
+    /// Tails both prompts append: ambient guidance, then ability projection.
+    /// One route value so both tails describe the same route.
     private static func promptWithTails(
         render: PromptRender,
         lane: PromptLane,
@@ -158,35 +109,19 @@ extension MaryRuntime {
             // boxes, so the live focus reaches the prompt every turn.
             let resolved = resolveFocus(deps: deps)
             let sections = resolved.sections
-            // THE MERGED WORLDS: places with fresh evidence beside the lead
-            // (the responder-layer signal) render compact mention-grade
-            // lines. Their keys seed heldContext's dedup so a fact never
-            // renders twice in one prompt. Single-place turns produce
-            // nothing here — the byte-parity rule.
+            // Merged worlds: compact mentions beside the lead. Keys seed heldContext dedup.
             let signal = WorkspaceFocusTracker.shared.signal()
             let coActive = AmbientRanker.coActiveLines(
                 places: signal.coActive
                     .filter { $0 != resolved.leadPlace }
                     .map { ($0, signal.glanced.contains($0)) },
                 facts: AmbientContextStore.shared.facts())
-            // The orchestrator lane gets the SMALLER budget: it acts, it does
-            // not recite, and its prompt already carries every plugin's
-            // fragment. It still gets the facts — a lane that knows the
-            // passage is already in hand does not go and read it again.
+            // Orchestrator gets the smaller budget — it acts, does not recite.
             let held = heldContext(
                 resolved, budget: AmbientRanker.abilityBudget,
                 alsoRendered: coActive.keys)
-            // RIVAL WRITING FRAGMENTS STAND DOWN on a writing-led turn.
-            //
-            // A fragment describes tools; describing a rival editor's tools
-            // while the schema list carries this one's is how the model gets
-            // steered into an application the user is not in. Suppressed =
-            // every OTHER place that writes, minus the ones this turn
-            // admitted — read from `admittedPlaceMentions`, the same ladder
-            // the roster scope applies, rather than a hand-copied twin of it.
-            //
-            // Naming a sibling place, or resolving a referent in one,
-            // restores its fragment on exactly that turn.
+            // Rival writing fragments stand down. Suppressed = other writers minus
+            // admittedPlaceMentions. Naming a sibling restores its fragment this turn.
             let standingDownFragmentOwners: Set<String> = {
                 guard let lead = resolved.leadPlace, lead.focus == .writing
                 else { return [] }
@@ -203,19 +138,12 @@ extension MaryRuntime {
                         }
                         .map(\.id))
             }()
-            // `systemRender` is `.system`'s own body — `.system` is a thin
-            // wrapper returning `systemRender(...).text` — so the text below
-            // is byte-identical to the wrapper call it replaces; the render
-            // form just keeps the spend waterfall the wrapper threw away.
+            // systemRender is .system's body; render form keeps the spend waterfall.
             let render = MaryPrompts.systemRender(
                 plugins: plugins, projects: projects,
                 leadContext: sections.leadContext,
                 ambientNotes: sections.ambientNotes,
-                // TIER 0 LEADS: the accessibility surface is the ground the
-                // held details stand on, so it is the first thing this
-                // section says. Prepended rather than assembled separately
-                // so `MaryPrompts` stays untouched — the assembly, and
-                // therefore its golden digests, is unchanged.
+                // Tier 0 leads: accessibility surface first. Prepended so MaryPrompts stays untouched.
                 heldFacts: held.surfaceLines + held.blocks,
                 heldMentions: held.mentions,
                 leadPlace: sections.leadPlace,
@@ -226,16 +154,11 @@ extension MaryRuntime {
                 budget: AmbientRanker.abilityBudget,
                 route: AmbientContextStore.shared.route())
             let text = assembled.text
-            // STAGED, NOT BOOKED: this provider is zero-arg by design and
-            // cannot name its exchange; the turn loop claims the stage onto
-            // the row it opens a few statements after this returns, on the
-            // same actor.
+            // Staged, not booked — turn loop claims the stage after this returns.
             RetrievalTraceLedger.shared.stageSystemPrompt(
                 spend: assembled.spend,
                 ambient: assembled.ambient)
-            // THE INPUT HALF OF THE EPISODE, staged from the same inputs the
-            // render above used. The turn loop claims this a few statements
-            // after this provider returns — see `BehavioralAssembler`.
+            // Input half of the episode. Turn loop claims it — see BehavioralAssembler.
             let now = Date()
             brainWiring.behavior.stageCapture(
                 AmbientCaptureBuilder.capture(
@@ -258,25 +181,7 @@ extension MaryRuntime {
     ) -> String {
             let resolved = resolveFocus(assertedFocus: pass.assertedFocus, deps: deps)
             let sections = resolved.sections
-            // The three capability lines come from ONE function now
-            // (MaryPrompts.capabilityLine), because hand-written here they
-            // drifted apart and the drift was the bug: Scrivener's said
-            // "write and revise the manuscript directly", Xcode's said "edit
-            // the code directly", and Pages' said "your hands type at their
-            // cursor" — a voice told its only power is typing where the caret
-            // sits, on the very turn the user asked for a section to be
-            // replaced. All three name the same two acts in the same order.
-            // ONE CAPABILITY LINE, from one function.
-            //
-            // Three were once hand-written here and drifted apart, and the
-            // drift WAS the bug: one said "write and revise the manuscript
-            // directly", one said "edit the code directly", and one said
-            // "your hands type at their cursor" — a voice told its only power
-            // is typing where the caret sits, on the very turn the user asked
-            // for a section to be replaced.
-            //
-            // ASKED OF THE LEAD PLACE, so a taught application gets its own
-            // name in the sentence rather than borrowing another's.
+            // One capability line from MaryPrompts.capabilityLine, asked of the lead place.
             let capability: String? = sections.leadPlace.flatMap { place in
                 place.application.map {
                     MaryPrompts.capabilityLine(
@@ -284,32 +189,10 @@ extension MaryRuntime {
                             applicationID: $0, focus: place.focus ?? .writing))
                 }
             }
-            // THE LIVE WORK ITSELF, not just the boolean above.
-            //
-            // Only the coding half was ever passed, and every writing branch
-            // of the arbiter hard-set it empty — so a writing turn's speaking
-            // lane got the persona, the date, one sentence, and every factual
-            // claim about the document came from owner-wide retrieval. That
-            // is how Mary described a paragraph the user had already deleted
-            // while the debugger showed her reading the live one.
-            //
-            // ONE SECTION NOW, so there is nothing to concatenate and nothing
-            // to forget: the arbiter grants exactly one place a full section.
+            // Live work itself — arbiter grants exactly one place a full section.
             let liveWork = sections.leadContext
-            // `readPassages` rides SEPARATELY from `liveWork`, not appended to
-            // it: MaryPrompts renders it at the very END of the live block,
-            // under a sentence that names it the authority for the question.
-            // Concatenating here would put a freshly-read passage and a stale
-            // ambient excerpt side by side with nothing ranking them — and the
-            // ambient one is the excerpt the user had already scrolled away
-            // from when she denied the passage existed.
-            // THE AMBIENT CONTEXT STORE, read by the voice. `suppressing:`
-            // is this turn's own fetch-first passage: the dispatcher already
-            // registered it as a fact on the way through, and rendering the
-            // same text twice — once as a held fact carrying an age, once
-            // under "I read this just now, it IS the authority" — is exactly
-            // the two-contradicting-authorities hazard the block's ordering
-            // exists to close. One text, one claim.
+            // readPassages rides separately (end of live block). suppressing: this
+            // turn's fetch-first passage — one text, one claim.
             let held = heldContext(
                 resolved, budget: AmbientRanker.voiceBudget,
                 suppressing: pass.readPassages)
@@ -320,17 +203,7 @@ extension MaryRuntime {
                 capability: capability,
                 groundedResults: pass.groundedResults,
                 liveWork: liveWork,
-                // STATED BY THE ARBITER, not re-derived here. This used to be
-                // `codingContext.isEmpty ? .writing(sections.writingApp) :
-                // .coding` — a two-valued test for a four-valued question,
-                // reading a field four of the arbiter's five return paths never
-                // assigned. On a browser-led turn both native sections are
-                // empty, so the test said "writing" and the unassigned field
-                // said "Scrivener": the live "I'm looking at the live text in
-                // front of you in Scrivener right now", answering a question
-                // about Chrome. The capability ladder above already had this
-                // right — explicit checks, honest nil — and this line now
-                // agrees with it by construction.
+                // Stated by the arbiter, not re-derived here.
                 liveWorkWorld: sections.liveWorld,
                 // TIER 0 LEADS — see the Skill lane's note above; both lanes
                 // present the surface before the details it supports.

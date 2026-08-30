@@ -1,13 +1,15 @@
 //
 //  TypingMode.swift
+//  MaryPlugin
 //
-//  How a typing verb should treat what is already there. Named by the
-//  runtime when it fills in a caret-write argument, so it is contract.
+//  WHAT: How a typing verb treats what is already there.
+//  IN:   runtime (fills a caret-write argument)
+//  OUT:  TyperPlugin
 //
 
 import Foundation
 
-/// How the text at the live writing surface should change.
+/// Compose at the caret, or replace the live selection.
 public enum TypingMode: String, Sendable {
     case compose
     case replaceSelection = "replace_selection"

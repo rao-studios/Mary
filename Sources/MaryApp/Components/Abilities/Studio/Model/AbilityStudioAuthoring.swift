@@ -1,10 +1,7 @@
 import MaryBrain
 import Foundation
 
-/// Reference-safe mutations for a visual Ability editor. Every public edit is
-/// transactional: related identifiers move together and an invalid graph never
-/// replaces the last valid document. The raw Schema tab can still represent an
-/// incomplete hand-edited draft; visual blocks deliberately cannot.
+/// Transactional visual edits; Schema tab may still hold an incomplete draft.
 struct AbilityStudioAuthoringDocument: Sendable {
     internal(set) var package: MaryAbilityPackage
     var contextPackages: [MaryAbilityPackage]
@@ -55,13 +52,7 @@ struct AbilityStudioAuthoringDocument: Sendable {
         try commit { transform(&$0.ability) }
     }
 
-    // THE ARTIFACT-DOMAIN TRANSACTIONS ARE NOT IN THIS CUT. Two mutations
-    // stood here — declare/replace/clear a discipline's artifact domain, and
-    // the same for a dependency's kind-lexicon extension. Mary's package
-    // grammar carries no `artifactDomain`, because the domain it described
-    // (a declared vocabulary of nouns, ids and geometry for a canvas) is the
-    // artifact lane this cut excludes. An editor for a section the schema
-    // cannot hold would write drafts that no validator accepts.
+    // No artifact-domain mutations; schema has no artifactDomain.
 
     @discardableResult
     mutating func addRemoteHandsAction(

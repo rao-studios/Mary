@@ -2,35 +2,11 @@
 //  RetrievalTraceLedger.swift
 //  MaryBrain
 //
-//  WHAT RETRIEVAL WAS ASKED, AND WHAT CAME BACK — one row per exchange,
-//  newest first.
+//  WHAT: What retrieval was asked, and what came back — one row per exchange.
+//  IN:   Seer clients (scope + contribution)
+//  OUT:  debugger / highlight UI
+//  PIN:  Same lock-boxed ring shape as AmbientTraceLog / AbilityExecutionLog.
 //
-//  Shaped exactly like `AmbientTraceLog`, which is itself shaped like
-//  `AbilityExecutionLog` has already copied that
-//  shape a third time: an NSLock-guarded ring buffer, process-wide,
-//  in-memory, session-scoped, late-attach mutators that silently drop notes
-//  for evicted rows, no callouts under the lock. Copying the blessed shape
-//  again is the house pattern, not duplication.
-//
-//  IT EXISTS BECAUSE THE RETRIEVAL STORY IS INVISIBLE TODAY. The resolved
-//  `RetrievalScope` is minted per request inside the two Seer clients, the
-//  `requestID` goes out on the wire and is never seen again, and the returned
-//  `SeerContribution` is consumed by the highlight UI and dropped. Retrieval
-//  is the core of the simulated-cognition paradigm, and it was the one
-//  mechanism in this area with no ledger row — "why didn't she remember
-//  that?" had no runtime answer. Rows join `AmbientTraceLog` by `exchangeID`,
-//  so a route and its retrieval can be read side by side without guessing by
-//  position.
-//
-//  REDACTION IS COMPILE-ENFORCED, not reviewed-for: no field of any record
-//  here can carry prose. Ids, labels, scores, counts only. The projection
-//  inits are the only way in — `SeerContributionTrace` reduces spans to
-//  counts, and `AmbientInjectionTrace`'s sole init takes an
-//  `AmbientRendering`, so block text has no field to land in.
-//
-//  PURELY OBSERVATIONAL: nothing may read this ledger on a decision path.
-//
-
 import MaryAmbient
 import Foundation
 
@@ -112,10 +88,7 @@ public struct SeerRequestTrace: Sendable, Equatable, Identifiable {
     }
 }
 
-/// What came back: owners, influence and credit — with every character span
-/// PROJECTED TO COUNTS. Span arrays index into the spoken reply, so storing
-/// them here would be storing a map of prose; the counts answer the pane's
-/// question ("how much of the reply did this owner inform?") without it.
+/// What came back: owners, influence and credit — with every character span PROJECTED TO COUNTS.
 public struct SeerContributionTrace: Sendable, Equatable {
 
     public struct OwnerTrace: Sendable, Equatable, Identifiable {
@@ -273,9 +246,6 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
     }
 
     /// Opens the exchange's row — newest first, like `AmbientTraceLog`.
-    /// Called beside that log's `record(...)` in the turn loop, BEFORE either
-    /// lane exists, for the same reason the route row is: a turn that never
-    /// finishes must still leave its trace.
     public func open(
         exchangeID: UUID,
         routeTraceID: UUID? = nil,
@@ -306,16 +276,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
         records[index].requests.append(request)
     }
 
-    /// FIRST WINS, mirroring the lane's own `result.contribution` rule: a
-    /// second contribution on one exchange is a duplicate, not a correction,
-    /// and overwriting would let a fallback lane rewrite what the first lane
-    /// was actually credited with.
-    ///
-    /// The request pairing is derived HERE, at booking time: a contribution
-    /// answers the row's most recently booked request — on the two-request
-    /// fallback shape, the classic rerun's own — so the rule lives beside
-    /// the row it books instead of in a hand-carried local duplicated
-    /// across both lane runners.
+    /// FIRST WINS, mirroring the lane's own `result.contribution` rule: a second contribution on one exchange is a duplicate, not a correction
     public func noteContribution(
         _ contribution: SeerContributionTrace,
         forExchange id: UUID
@@ -344,15 +305,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
         records[index].promptSpend.append(spend)
     }
 
-    /// STAGE, DON'T BOOK: the system-prompt provider is deliberately zero-arg
-    /// (`@Sendable () -> String`), so it cannot name the exchange it is
-    /// building for. Threading an id through that seam would widen a closure
-    /// five installs share for the benefit of one observer. Instead the
-    /// provider stages its account here and the turn loop CLAIMS it onto the
-    /// row it opens a few statements later — single producer (the turn loop's
-    /// one prompt build), single consumer (the row-open beside it), both on
-    /// the brain actor, so a stage can never belong to any turn but the one
-    /// that claims next.
+    /// STAGE, DON'T BOOK: the system-prompt provider is deliberately zero-arg (`@Sendable () -> String`), so it cannot name the exchange it is building for.
     public func stageSystemPrompt(
         spend: PromptSpendTrace, ambient: AmbientInjectionTrace
     ) {
@@ -361,10 +314,7 @@ public final class RetrievalTraceLedger: @unchecked Sendable {
         stagedSystemPrompt = (spend, ambient)
     }
 
-    /// Claims the staged system-prompt account onto the exchange's row. The
-    /// stage is cleared EVEN when the row is missing — a stale stage
-    /// attaching to some later exchange would be a row lying about whose
-    /// prompt it describes, which is worse than a dropped note.
+    /// Claims the staged system-prompt account onto the exchange's row.
     public func claimStagedSystemPrompt(forExchange id: UUID) {
         lock.lock()
         defer { lock.unlock() }

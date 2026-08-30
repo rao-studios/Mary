@@ -2,9 +2,9 @@
 //  SkillAvailability.swift
 //  MaryFoundation
 //
-//  Whether a declared Skill can actually run right now: an adapter is present,
-//  the permissions are granted, and nothing is missing. This is the answer the
-//  runtime and the inspector both read.
+//  WHAT: Whether a declared Skill can run now (adapter, permissions, gaps).
+//  IN:   AbilityRuntime inventory join.
+//  OUT:  inspector, roster.
 //
 
 import Foundation

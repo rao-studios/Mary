@@ -2,22 +2,10 @@
 //  CorpusPatterns.swift
 //  MaryPlugin
 //
-//  COMPILING AND RUNNING WHAT A PACKAGE DECLARED.
-//
-//  Every regular expression here came out of a `.mary` file, which is the
-//  reason for the two rules this type exists to enforce.
-//
-//  COMPILED ONCE AND CACHED. A crawl runs every declared pattern over every
-//  file in a neighbourhood — a dozen patterns across two dozen files is a few
-//  hundred compilations of the same handful of expressions if nothing
-//  remembers them. The validator already proved they compile at admission; the
-//  cache is about not paying for it again.
-//
-//  A FAILURE HERE IS SILENCE, NOT A CRASH. The validator refuses a package
-//  whose patterns do not compile, so anything reaching this file has already
-//  been checked. If one somehow has not, the honest answer is zero matches —
-//  the corpus learns less than it could, which is what a missing pattern
-//  always means, and never a crash on a background poll.
+//  WHAT: Compile and run package-declared regular expressions.
+//  IN:   PluginCorpusSchema / CorpusCrawl / CorpusStyleReader
+//  OUT:  cached NSRegularExpression
+//  PIN:  Compile once and cache. Failure is silence (zero matches), not a crash.
 //
 
 import Foundation
@@ -28,8 +16,7 @@ public enum CorpusPatterns {
     private static let cache = OSAllocatedUnfairLock<[String: NSRegularExpression]>(
         initialState: [:])
 
-    /// Nil for a pattern that will not compile — see the header on why that is
-    /// silence rather than a throw.
+    /// Nil if the pattern will not compile — silence, not a throw.
     public static func expression(_ pattern: String) -> NSRegularExpression? {
         if let cached = cache.withLock({ $0[pattern] }) { return cached }
         guard let compiled = try? NSRegularExpression(pattern: pattern) else { return nil }
@@ -44,12 +31,7 @@ public enum CorpusPatterns {
             in: text, range: NSRange(text.startIndex..., in: text))
     }
 
-    /// Every first-capture-group value `pattern` finds in `text`, in order.
-    ///
-    /// THE FIRST GROUP AND NOT THE WHOLE MATCH, because a relation pattern's
-    /// job is to name a thing: `\bstruct\s+(\w+)` finds a declaration and the
-    /// NAME is the part worth having. The validator insists relation patterns
-    /// capture for exactly this reason.
+    /// First-capture-group values, in order. PIN: the name, not the whole match.
     public static func captures(_ pattern: String, in text: String) -> [String] {
         guard !text.isEmpty, let expression = expression(pattern) else { return [] }
         let full = NSRange(text.startIndex..., in: text)
@@ -61,21 +43,13 @@ public enum CorpusPatterns {
         }
     }
 
-    /// One `captures(_:in:)` match, together with the 1-based line it starts
-    /// on.
+    /// One capture plus the 1-based line it starts on.
     public struct PositionedCapture: Sendable, Equatable {
         public let name: String
         public let line: Int
     }
 
-    /// `captures(_:in:)`'s sibling for a reader — not a crawl edge — that
-    /// wants to say WHERE a name was found, not only that it was: an
-    /// outline, unlike a relation, is read by a person and has to point.
-    ///
-    /// Reuses the same compiled/cached expression `captures` does; this adds
-    /// only the line count `captures` deliberately leaves out (see that
-    /// function's header on why the name alone was enough for a relation
-    /// edge).
+    /// Same cache as `captures`, plus line numbers — for an outline a person reads.
     public static func capturesWithLines(_ pattern: String, in text: String) -> [PositionedCapture] {
         guard !text.isEmpty, let expression = expression(pattern) else { return [] }
         let full = NSRange(text.startIndex..., in: text)

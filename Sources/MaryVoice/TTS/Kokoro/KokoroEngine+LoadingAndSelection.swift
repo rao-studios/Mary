@@ -1,5 +1,10 @@
 //
 //  KokoroEngine+LoadingAndSelection.swift
+//  MaryVoice
+//
+//  WHAT: Load models, pick variant, seed proper-noun IPA.
+//  IN:   KokoroEngine.swift (same actor)
+//  OUT:  loadedModels / phonemizer / g2p
 //
 
 import Foundation
@@ -12,26 +17,8 @@ extension KokoroEngine {
     // MARK: - Loading
 
     /// Load models from the kokoro resource directory.
-    ///
-    /// Expected layout:
-    /// ```
-    /// modelsDir/
-    ///   kokoro_24_10s.mlmodelc    (or .mlpackage)  — any known variant, ≥1 required
-    ///   vocab_index.json
-    ///   us_gold.json
-    ///   us_silver.json            (optional, adds coverage)
-    ///   voices/
-    ///     af_heart.json
-    ///     ...
-    /// ```
-    ///
-    /// - Parameter variants: Explicit list of variant names to load (e.g. `["kokoro_24_10s",
-    ///   "kokoro_24_15s"]`). Pass an empty array (the default) to auto-discover and load every
-    ///   variant whose model file is present in `modelsDir`.
-    ///
-    /// At synthesis time the engine automatically selects the smallest loaded variant whose
-    /// token window fits the input, so short utterances use the fastest model and long ones
-    /// never get truncated unnecessarily.
+    /// Layout: kokoro_*.mlmodelc, vocab_index.json, us_gold.json, us_silver.json?, voices/*.json
+    /// Empty `variants` = auto-discover every present model. Synthesis picks the smallest fit.
     public func loadModels(
         from modelsDir: URL,
         variants: [String] = [],
@@ -153,10 +140,7 @@ extension KokoroEngine {
 
     // MARK: - Model selection
 
-    /// Speech runs ≈17 phoneme tokens per second, so a dense 242-token input
-    /// produces ~14 s of audio — past the 10 s model's window, which would
-    /// CLIP the tail. Selection therefore honors both the token window and
-    /// the estimated audio duration.
+    /// ≈17 phoneme tokens/s — selection honors both token window and estimated duration.
     static let phonemeTokensPerSecond: Double = 17
 
     /// Returns the smallest loaded model that fits `tokenCount` in its token
@@ -169,19 +153,10 @@ extension KokoroEngine {
         } ?? loadedModels.last
     }
 
-    /// IPA for proper nouns / names that the CMU/gold lexicons don't cover.
-    ///
-    /// HER OWN NAME IS NOT IN HERE, and its absence is the point. An override
-    /// is for a word the lexicons miss; "Mary" is ordinary English and the
-    /// gold lexicon has it (`mˈɛɹi`, the same vowel it gives "merry" and
-    /// "marry"), so an entry here could only ever disagree with it. Seeding
-    /// one would also put the assistant's name in exactly the place a rename
-    /// cannot reach — a spelling sweep rewrites the key and leaves the IPA
-    /// saying the old name out loud, which is precisely how this was found.
+    /// IPA for proper nouns the gold lexicons omit. PIN: do not seed "Mary"
+    /// (ordinary English; a rename would leave the old IPA speaking).
     func seedBuiltInProperNouns() {
-        // The user's name, as they pronounce it: R-eh-TESH PAA-ka-la Rao
-        // (Rao rhymes with cow; capital W is the aʊ diphthong in this vocab).
-        // Possessives compose free via the morphology tier.
+        // User's name, as pronounced. Possessives compose via morphology.
         phonemizer.addCustomPronunciation("Ritesh", ipa: "ɹɛtˈɛʃ")
         phonemizer.addCustomPronunciation("Pakala", ipa: "pˈɑkɑlɑ")
         phonemizer.addCustomPronunciation("Rao", ipa: "ɹˈW")
@@ -189,13 +164,7 @@ extension KokoroEngine {
         phonemizer.addCustomPronunciation("Marielle", ipa: "mɑːriɛl")
     }
 
-    /// Register a pronunciation override for any word the built-in lexicon mispronounces.
-    ///
-    /// Uses Kokoro IPA notation (same character set as the loaded vocab). Example:
-    /// ```swift
-    /// await engine.addCustomPronunciation("Marielle", ipa: "mɑːriɛl")
-    /// ```
-    /// The override persists for the lifetime of this engine instance.
+    /// IPA override for this engine instance. Same character set as the loaded vocab.
     public func addCustomPronunciation(_ word: String, ipa: String) {
         phonemizer.addCustomPronunciation(word, ipa: ipa)
     }

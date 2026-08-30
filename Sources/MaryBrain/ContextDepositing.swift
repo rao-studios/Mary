@@ -1,5 +1,11 @@
-// The brain's fire-and-forget seam for durable Ability execution memory.
-
+//
+//  ContextDepositing.swift
+//  MaryBrain
+//
+//  WHAT: Fire-and-forget seam for durable Ability execution memory.
+//  IN:   MaryBrain archive path
+//  OUT:  Totem via runtime-injected depositor
+//
 import Foundation
 
 public protocol ContextDepositing: Sendable {
@@ -20,9 +26,5 @@ public protocol ContextDepositing: Sendable {
         projectionPlan: AbilityTotemProjectionPlan?
     ) async
 
-    // APPLICATION-USE LEARNING IS NOT IN THIS CUT. A member here used to hand
-    // the corpus one observation per successful capability use — which
-    // application served which kind of work — and the corpus that learns from
-    // those is deferred. It returns with the corpus, not before: a sink with
-    // nothing reading it is a promise the code cannot keep.
+    // APPLICATION-USE LEARNING IS NOT IN THIS CUT.
 }

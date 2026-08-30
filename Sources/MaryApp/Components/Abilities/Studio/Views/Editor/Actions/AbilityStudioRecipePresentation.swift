@@ -61,11 +61,7 @@ extension PluginRecipeStepSchema {
 }
 
 extension PluginRecipeStepKind {
-    /// WHAT THE EXECUTOR CAN ACTUALLY PERFORM. Mary's hands post keys, text,
-    /// waits, window rebinds, and the pointer family — move, click, drag,
-    /// scroll, and a read-only Accessibility capture used as a later
-    /// coordinate space. An editor must not author what the runtime will
-    /// not run; these cases are exactly that set.
+    /// Steps the executor can perform (keys, text, waits, rebinds, pointer).
     static var authorableCases: [Self] {
         [
             .keyChord, .typeText, .pointerMove, .pointerClick, .pointerDrag,

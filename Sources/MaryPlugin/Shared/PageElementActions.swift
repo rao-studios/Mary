@@ -2,23 +2,17 @@
 //  PageElementActions.swift
 //  MaryAdapter
 //
-//  Split out of PageElementReader.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
-//
+//  WHAT: Press / set / focus a PageElement.
+//  IN:   PageElementReader.swift (sibling split)
+//  OUT:  browsing skills
 
 import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
 
-/// PRESSING AND REVEALING — the hand's mechanics, kept beside the eye that
-/// found the target.
-///
-/// This lives in the kit rather than in the recipe that calls it for the
-/// reason `SafariWebSurface`'s header states: "open a tab, find the editable
-/// region, put text in it" is machine capability, and so is "press the
-/// element you just resolved". The recipe layer owns the choreography around
-/// it — the stage lease, verified activation, the re-read, the receipt.
+/// PRESSING AND REVEALING — the hand's mechanics, kept beside the eye that found the
+/// target.
 public enum PageElementActions {
 
     /// Ask AX to focus the live element and prove the resulting state. There
@@ -62,12 +56,8 @@ public enum PageElementActions {
             wasOffered: element.offersDecrement)
     }
 
-    /// Move an adjustable control to a normalized position.
-    ///
-    /// A live, settable AX range is the only path in this shared AX helper.
-    /// Pointer fallback belongs to the browser interaction executor, whose
-    /// Remote Hands session pins the exact process and window, detects human
-    /// interruption, revalidates displays, and restores focus and cursor.
+    /// Move an adjustable control to a normalized position. A live, settable AX range is
+    /// the only path in this shared AX helper.
     @discardableResult
     public static func setFraction(
         _ fraction: Double,
@@ -93,10 +83,8 @@ public enum PageElementActions {
         setFraction(1, of: element)
     }
 
-    /// Set one exact raw range value while proving that the bounds used to
-    /// author it are still the live bounds. Unlike normalizing to a fraction,
-    /// this cannot turn "90 seconds" into 180 when a media duration changes
-    /// between enumeration and mutation.
+    /// Set one exact raw range value while proving that the bounds used to author it are
+    /// still the live bounds.
     @discardableResult
     public static func setValue(
         _ target: Double,
@@ -138,10 +126,8 @@ public enum PageElementActions {
         return result.isFinite ? result : nil
     }
 
-    /// Pure screen geometry for the bounded pointer fallback. Fractions zero
-    /// and one are inset from the track's ends, never placed on or outside its
-    /// border. A vertical range follows the conventional screen mapping:
-    /// minimum at the bottom, maximum at the top.
+    /// Pure screen geometry for the bounded pointer fallback. Fractions zero and one are
+    /// inset from the track's ends, never placed on or outside its border.
     public static func screenPoint(
         forFraction fraction: Double,
         in frame: CGRect,
@@ -238,10 +224,7 @@ public enum PageElementActions {
             NSNumber(value: target)) == .success
         else { return false }
 
-        // Chromium can acknowledge this setter while leaving an HTML range
-        // unchanged. A successful API return is therefore not an effect
-        // receipt: read the live value back before allowing the caller to
-        // skip its pinned pointer fallback.
+        // Chromium can acknowledge this setter while leaving an HTML range unchanged.
         guard PageElementReader.numeric(
                 element.axElement, kAXMinValueAttribute) == expectedMinimum,
               PageElementReader.numeric(
@@ -255,12 +238,6 @@ public enum PageElementActions {
     }
 
     /// AXPress first, then a real click at the element's measured midpoint.
-    ///
-    /// MEASURED on live pages, and the reason this is a ladder rather than a
-    /// call: web controls commonly advertise `AXPress` and do nothing with
-    /// it, while an embedded player's play button advertises no press action
-    /// at all and only answers a click. This is `satisfyHumanCheck`'s proven
-    /// shape, promoted from a one-off to the general case.
     @discardableResult
     public static func press(
         _ element: PageElement, pid: pid_t

@@ -2,9 +2,9 @@
 //  PluginValidator+Operations.swift
 //  MaryFoundation
 //
-//  Admission for the exported adapter and for each declarative operation:
-//  its inputs, its recipe shape, the postconditions it must prove, and the
-//  semantics it declares about what it is for.
+//  WHAT: Adapter export + per-operation inputs, recipe shape, postconditions, semantics.
+//  IN:   PluginValidator.validate.
+//  OUT:  PluginValidator+Steps, +Tokens.
 //
 
 import Foundation

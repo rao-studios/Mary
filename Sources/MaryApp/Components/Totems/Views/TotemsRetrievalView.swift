@@ -2,11 +2,8 @@
 //  TotemsRetrievalView.swift
 //  Mary
 //
-//  Why the panel exists: per-turn rows of what retrieval was asked and what
-//  came back — route → plan → sent scope → contribution → ambient injection
-//  → prompt-spend waterfall — with the builder's warnings on top. Partial
-//  rows render their NAMED state and stay; a dropped row would hide exactly
-//  the turn worth explaining.
+//  WHAT: Per-turn retrieval: route → plan → scope → contribution → ambient → spend.
+//  PIN:  Partial rows stay as named states.
 //
 
 import MaryBrain

@@ -2,13 +2,11 @@
 //  SeerWire.swift
 //  MaryBrain
 //
-//  Wire types for the local Seer server's HTTP API — auth and chat
-//  completions. Mirrors Sis's Requests.Auth/Requests.Chat shapes (snake_case
-//  keys, tolerant chunk decode). Verified live against the local server:
-//  SSE frames are whole-JSON `data: {…}` lines; the contribution rides a
-//  TRAILING chunk with empty `choices`; `data: [DONE]` terminates.
+//  WHAT: Wire types for Seer's HTTP API — auth and chat completions.
+//  IN:   Seer clients
+//  OUT:  snake_case decode; SSE `data: {…}` + trailing contribution
+//  PIN:  `data: [DONE]` terminates.
 //
-
 import Foundation
 import MaryPlugin
 
@@ -58,11 +56,7 @@ enum SeerWire {
         var repetitionPenalty = 1.1
         var repetitionContextSize = 20
         var instructions: String?
-        /// Identifies Mary to Seer: the server switches retrieved context to
-        /// SUPPORT framing (background for the current request, Skill deposits
-        /// on their own tier) instead of primary conversational material.
-        /// Rides both transports — the realtime turn.start wraps this same
-        /// request. Old servers ignore the unknown key.
+        /// Identifies Mary to Seer: the server switches retrieved context to SUPPORT framing (background for the current request
         var client = "mary"
         /// Who she is on this request. Seer's prompt otherwise says
         /// "Your name is Seer". Rides both transports — the realtime
@@ -79,10 +73,7 @@ enum SeerWire {
         }
     }
 
-    /// Mary's identity for Seer's personality section — the only place the
-    /// voice lane states who she is. Clock and TTS stay on `seerPreamble`;
-    /// repeating this in `instructions` made Seer wrap "Your name is Mary"
-    /// around a second "You are Mary".
+    /// Mary's identity for Seer's personality section — the only place the voice lane states who she is.
     struct Persona: Encodable, Equatable {
         var name: String
         var voice: String
@@ -98,32 +89,12 @@ enum SeerWire {
         )
     }
 
-    /// The `seer` object steering RAG. `owner_id` is overridden server-side
-    /// by the JWT for non-admin routes; sent anyway to match Sis.
-    ///
-    /// `groups` + `aggregate` are the whole of client-side scoping, and the
-    /// server already honors both — matched field-for-field against
-    /// `SeerRequest` (seer-server `Sources/Core/Models/Seer.Request.swift`):
-    /// *"Multi-group filter for chat completions. When non-nil and non-empty,
-    /// HNSW search is restricted to documents belonging to any of these
-    /// groups"* and *"aggregate == true → search all of the owner's documents
-    /// (across all groups); false → search only the group provided"*.
-    /// `Seer+TotemFanout` reads `request.groups?.map(\.id)` into the Totem
-    /// search request, so only `id` is load-bearing — but the whole object
-    /// must still DECODE, which is why `groups` is `[SeerGroupRef]` and not
-    /// `[String]`: `SeerRequest.init(from:)` does
-    /// `decodeIfPresent([Seer.Group].self, forKey: .groups)`, and a type
-    /// mismatch there throws and fails the ENTIRE request rather than
-    /// degrading. Unknown keys are still ignored by old servers (the standing
-    /// precedent for `client` above); a wrongly-TYPED known key is not.
+    /// The `seer` object steering RAG. `owner_id` is overridden server-side by the JWT for non-admin routes; sent anyway to match Sis.
+    /// `groups` + `aggregate` are the whole of client-side scoping, and the server already honors both
     struct SeerScope: Encodable {
         var ownerID: String
         var scope = "personal"
-        /// Was hardcoded `true`. Kept as the default so an unscoped turn is
-        /// byte-identical to before; a focused document flips it to false so
-        /// retrieval cannot reach outside that document's group — including
-        /// the legacy owner-wide pool, which is where the deleted paragraph
-        /// lived.
+        /// Was hardcoded `true`. Kept as the default so an unscoped turn is byte-identical to before
         var aggregate = true
         /// Nil-omitted; nil = no group filter (today's shape exactly).
         var groups: [SeerGroupRef]?
@@ -139,10 +110,7 @@ enum SeerWire {
         }
     }
 
-    /// The minimum `Seer.Group` the server will decode: `id`, `label` and
-    /// `owner_id` are `decode` (required); `documents`, `access`,
-    /// `total_earnings` and `metadata` are all `decodeIfPresent`, so they are
-    /// omitted here rather than faked.
+    /// The minimum `Seer.Group` the server will decode: `id`, `label` and `owner_id` are `decode` (required)
     struct SeerGroupRef: Encodable, Equatable {
         var id: String
         var label: String
@@ -156,11 +124,7 @@ enum SeerWire {
 
     // MARK: - Scope construction
 
-    /// ONE builder for BOTH transports. The realtime route wraps the
-    /// identical `ChatRequest`, so a scope applied to the SSE lane alone
-    /// would present as "scoping works until I switch transports in
-    /// Settings" — a bug with no visible cause. Neither client is allowed to
-    /// spell a `SeerScope` itself.
+    /// ONE builder for BOTH transports. The realtime route wraps the identical `ChatRequest`
     static func scope(
         ownerID: String,
         personalTotemID: String?,

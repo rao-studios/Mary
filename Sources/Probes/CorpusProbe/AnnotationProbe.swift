@@ -2,31 +2,9 @@
 //  AnnotationProbe.swift
 //  CorpusProbe — `mary-corpus-probe annotate`
 //
-//  THE JOIN NOTHING ELSE MAKES: does a REAL unit, through the REAL annotator
-//  the app wires in this install's engine mode, reach the ledger as
-//  `.ran` — the outcome the Corpus pane renders as "summarised"?
-//
-//  Every other lane of this probe stops short of annotation on purpose: the
-//  crawl half builds its coordinators with `ledger: nil` and no annotator at
-//  all, because what it is asking about is the crawl. So the one step that
-//  costs a model round — and the only step that can fail against a live
-//  server — had no live coverage anywhere, and a defect in it was invisible
-//  outside the Corpus pane's own status line.
-//
-//  It found one. `SeerUnitAnnotator` sent `instructions: nil`, dropping the
-//  JSON contract `InferenceUnitAnnotator.parse` enforces, and Seer's chat —
-//  a persona lane with retrieval, not a completion endpoint — answered in
-//  prose. Every unit in hosted mode came back `.failed`.
-//
-//  IT READS THE INSTALL'S OWN CONFIG rather than assuming a mode. Which
-//  annotator can answer depends on the Brain card's choice and on
-//  `seerEnabled`, and a probe that hardcoded hosted would prove nothing about
-//  the machine it ran on. `--engine local|hosted` overrides for the other
-//  half of the truth table.
-//
-//    mary-corpus-probe annotate
-//    mary-corpus-probe annotate --engine local
-//    mary-corpus-probe annotate --file Sources/MaryAmbient/.../UnitIndex.swift
+//  WHAT: Real unit through the install's annotator → ledger `.ran`.
+//  OUT:  CLI: mary-corpus-probe annotate [--engine local|hosted] [--file …]
+//  PIN:  Reads the install's own config (not a hardcoded hosted path).
 //
 
 import Foundation
@@ -192,10 +170,7 @@ enum AnnotationProbe {
             print("      labels: \(record.labels.joined(separator: ", "))")
         }
 
-        // THE ASSERTION, AND IT DIFFERS BY MODE ON PURPOSE. On device,
-        // declining IS the correct outcome and the pane says so; asserting
-        // `.ran` there would be asserting a product decision this probe does
-        // not get to make.
+        // On-device decline is the correct outcome; do not assert `.ran`.
         if refuses {
             check(record.annotation == .refusedExclusiveEngine,
                   "declined by policy, as the on-device lane is meant to",
@@ -220,13 +195,7 @@ enum AnnotationProbe {
         return failures == 0 ? 0 : 1
     }
 
-    /// `CorpusViewModel.statusLine` lives in the app target, which neither a
-    /// probe nor a test target can import — MaryApp has no test target at all.
-    /// Mirrored here so the probe prints the sentence the user will actually
-    /// see, and kept honest by hand: if a branch there changes wording, change
-    /// it here. The mirror is worth the duplication because the outcome enum
-    /// alone (`.failed`) does not tell you what the user is looking at, and
-    /// what the user is looking at is the entire report.
+    /// Mirror of CorpusViewModel.statusLine (app target; keep wording in sync).
     static func statusLine(for outcome: UnitAnnotationOutcome) -> String {
         switch outcome {
         case .pending: return "waiting to be summarised"
@@ -246,12 +215,7 @@ enum AnnotationProbe {
 
 // MARK: - The persisted config
 
-/// The Brain card's choice as it sits on disk, read WITHOUT booting Granite.
-///
-/// The store is a binary plist under the app's own support directory, written
-/// by `@Store(persist: "mary.persistence.config.0001")`. A probe that spun up
-/// the real service to read three fields would also adopt its autosave, and
-/// the point here is to observe the install, not to write to it.
+/// Brain card on disk (`mary.persistence.config.0001`), without booting Granite.
 enum PersistedConfig {
 
     struct Values {

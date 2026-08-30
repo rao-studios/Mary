@@ -2,8 +2,9 @@
 //  PluginAdapterSchema.swift
 //  MaryFoundation
 //
-//  The adapter a Plugin exports: the operation surface Mary
-//  dispatches into, declared as data rather than compiled code.
+//  WHAT: Adapter a Plugin exports — operation surface as data, not compiled code.
+//  IN:   PluginSchema.adapters.
+//  OUT:  PluginValidator+Operations, AbilityRuntime dispatch.
 //
 
 import Foundation

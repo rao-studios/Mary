@@ -2,25 +2,10 @@
 //  AXDesktopPlane.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  THE ONE COORDINATE FLIP. AX reports frames in a GLOBAL, TOP-LEFT-ORIGIN
-//  space (origin at the top-left of the PRIMARY screen, y increasing
-//  downward) — the same convention CoreGraphics' display space uses
-//  (`CGDisplayBounds`, and therefore `ScreenRegionCapture`/`AXFrameProjection`,
-//  need no flip at all — they never touch `NSScreen`). `NSScreen.frame` is
-//  Cocoa's space instead: origin at the primary screen's BOTTOM-left, y
-//  increasing upward, and a screen above/left/right of the primary reported
-//  in that same bottom-up frame. This is the ONE place in the repo that
-//  needs the flip, because it is the one place Cocoa's `NSScreen` enters at
-//  all (`init(cocoaScreenFrames:primaryScreenHeight:)`); everything
-//  downstream — `fit(into:)`, `viewRect(for:in:)` — is scale and translate
-//  only, no further sign flips.
-//
-//  Pure geometry, no AppKit types in the math path, so the flip and the
-//  multi-display layout it produces are unit-testable without a real screen
-//  (see AXDesktopPlaneTests).
-//
+//  WHAT: The one Cocoa→AX coordinate flip (NSScreen bottom-left → AX top-left).
+//  IN:   NSScreen.frames (primary first) + primary height
+//  OUT:  fit / viewRect / axPoint — scale+translate only after this
+//  PIN:  ScreenRegionCapture and AXFrameProjection never flip; they stay in CG.
 
 import CoreGraphics
 import Foundation
@@ -34,14 +19,8 @@ public struct AXDesktopPlane: Sendable, Equatable {
     /// outlines.
     public let screenBounds: [CGRect]
 
-    /// - Parameters:
-    ///   - cocoaScreenFrames: `NSScreen.screens.map(\.frame)`, in Cocoa's
-    ///     bottom-left-origin space, PRIMARY SCREEN FIRST (AppKit's own
-    ///     convention — `NSScreen.screens[0]` is always the primary/menu-bar
-    ///     screen).
-    ///   - primaryScreenHeight: the primary screen's frame height — needed to
-    ///     anchor the flip before secondary-screen frames (which may extend
-    ///     above or below the primary) are converted against it.
+    /// - cocoaScreenFrames: `NSScreen.screens.map(\.frame)`, in Cocoa's bottom-left-origin
+    /// space, PRIMARY SCREEN FIRST (AppKit's own convention.
     public init(cocoaScreenFrames: [CGRect], primaryScreenHeight: CGFloat) {
         let axFrames = cocoaScreenFrames.map { cocoa -> CGRect in
             // AX's y increases downward from the primary screen's top; Cocoa's
@@ -91,31 +70,21 @@ public struct AXDesktopPlane: Sendable, Equatable {
             height: axRect.height * scale)
     }
 
-    /// The inverse of `viewRect(for:in:)` — a point in the VIEW back to AX
-    /// space. One consumer: resolving a click into "which element is here"
-    /// (`AXHitTest`), which needs the tap converted into the same space
-    /// every node's `frame` is already in.
+    /// The inverse of `viewRect(for:in:)` — a point in the VIEW back to AX space.
     public func axPoint(for viewPoint: CGPoint, in viewSize: CGSize) -> CGPoint {
         let (scale, offset) = fit(into: viewSize)
         guard scale > 0 else { return .zero }
         return CGPoint(x: (viewPoint.x - offset.x) / scale, y: (viewPoint.y - offset.y) / scale)
     }
 
-    /// A plane FOCUSED on one AX-space rect instead of the whole desktop —
-    /// `screenBounds` rides along unchanged (so screen outlines still draw,
-    /// even if they end up off-canvas once zoomed well inside one window),
-    /// only `desktopBounds`, and therefore every `fit`/`viewRect`/`axPoint`
-    /// call downstream of it, changes. This is the whole mechanism a
-    /// click-to-zoom stage needs: "draw as if this rect were the desktop."
+    /// A plane FOCUSED on one AX-space rect instead of the whole desktop — `screenBounds`
+    /// rides along unchanged (so screen outlines still draw, even if.
     public func focused(on rect: CGRect) -> AXDesktopPlane {
         AXDesktopPlane(desktopBounds: rect, screenBounds: screenBounds)
     }
 
-    /// The direct constructor `focused(on:)` uses. Not the primary entry
-    /// point (Clyde always starts from `init(cocoaScreenFrames:...)`, the
-    /// one real coordinate flip) — this is for building a DERIVED plane from
-    /// values already in AX space, and for tests that want a plane without
-    /// touching `NSScreen`.
+    /// The direct constructor `focused(on:)` uses. Not the primary entry point (Clyde
+    /// always starts from `init(cocoaScreenFrames:...)`, the one real coordinate flip).
     public init(desktopBounds: CGRect, screenBounds: [CGRect]) {
         self.desktopBounds = desktopBounds
         self.screenBounds = screenBounds

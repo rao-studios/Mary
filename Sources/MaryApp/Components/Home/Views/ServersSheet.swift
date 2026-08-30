@@ -2,10 +2,8 @@
 //  ServersSheet.swift
 //  Mary
 //
-//  The local stack's control room: Seer, Totem, and Fleet status with start/stop/
-//  restart/build, the account that authenticates the APIs, and the stack
-//  configuration (checkouts, ports, totem identity). Servers auto-launch at
-//  boot and die with the app; this sheet is for watching and overriding.
+//  WHAT: Local stack control room (Seer/Totem/Fleet, account, checkouts/ports).
+//  OUT:  ServersViewModel
 //
 
 import MaryBrain

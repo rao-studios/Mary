@@ -1,14 +1,10 @@
 //
 //  TotemGraphPolicy.swift
-//  Mary
+//  MaryRuntime
 //
-//  Mary's managed additions to Totem's graph-extraction policy: the custom
-//  ontology kinds its deposits use (so the server-side LLM extractor speaks
-//  the same vocabulary) and co-mention auto-edges (so ambient documents
-//  self-link their cast). Pushed as GET → merge → PUT over Totem's HTTP port
-//  — raw JSON merge, so unknown policy fields survive untouched and the push
-//  is idempotent. Prospective-only: existing docs pick changes up on
-//  re-extraction, which is fine for a policy that mostly shapes new deposits.
+//  WHAT: Mary's ontology kinds + co-mention auto-edges on Totem's graph policy.
+//  OUT:  GET → merge → PUT on Totem HTTP `/v1/graph/policy`
+//  PIN:  Raw JSON merge so unknown fields survive. Idempotent. Prospective-only.
 //
 
 import Foundation
@@ -27,8 +23,7 @@ package enum TotemGraphPolicy {
         ("type", "a type declared in the user's own code, named as they named it"),
     ]
 
-    /// Merge Mary's kinds + enable co-mention edges. Returns true when the
-    /// PUT succeeded; failures are boot-tolerable (log-and-continue).
+    /// Merge Mary's kinds + enable co-mention edges. Boot-tolerable on failure.
     package static func push(totemPort: Int) async -> Bool {
         guard let url = URL(string: "http://127.0.0.1:\(totemPort)/v1/graph/policy") else {
             return false

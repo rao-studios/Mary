@@ -2,27 +2,9 @@
 //  ProbeAmbientSurface.swift
 //  Mary
 //
-//  DOES THE SCREEN ACTUALLY REACH THE STORE? — the tier-0 lane end to end,
-//  with no model, no network, and no window of its own.
-//
-//      swift run Mary --probe-ambient-surface [--polls N] [--interval S]
-//
-//  `--probe-screen-elements` measures what the ENGINE exposes; this one
-//  follows that same walk the rest of the way: through
-//  `AmbientBridge.surface(from:place:)` into `AmbientContextStore`'s surface
-//  tier, and out again as the exact line
-//  (`AmbientSurface.surfaceLine`) the prompt and the debugger pane both
-//  render. Three readers, one truth — this is the third.
-//
-//  IT DRIVES THE REAL OBSERVER, not a copy of its logic. Anything it prints
-//  is what a live turn would hold, including the refusals: an untrusted
-//  Accessibility grant, a frontmost application the target ladder excludes
-//  (Mary itself, system chrome), and the affordance lane's browser
-//  carve-out all show up here as themselves.
-//
-//  POINT IT AT SOMETHING BY SWITCHING APPS. The observer reads whatever is
-//  frontmost, so the useful way to run this is with a delay: start it, click
-//  the app you want to measure, and let the polls land there.
+//  WHAT: Tier-0 screen → AmbientContextStore → prompt line (real observer).
+//  OUT:  stdout. CLI: swift run Mary --probe-ambient-surface [--polls N] [--interval S]
+//  PIN:  Switch apps while it polls; frontmost is the subject.
 //
 
 import AppKit
@@ -95,11 +77,7 @@ enum ProbeAmbientSurface {
                 print("  LINE (what the prompt and the pane both render):")
                 print("    \(surface.surfaceLine())")
 
-                // The addressing record — what Clyde's JSON button and
-                // this probe show for the same element MUST agree, since
-                // both call `AmbientBridge.record(from:window:capturedAt:)`.
-                // A second walk, for display only (§ below re-derives for
-                // the same reason).
+                // Addressing record — same `AmbientBridge.record` as the JSON button.
                 if let context = AXEngine.ambientContext(pid: target.pid) {
                     let window = context.activeWindow?.frame
                     if let focused = context.focused {

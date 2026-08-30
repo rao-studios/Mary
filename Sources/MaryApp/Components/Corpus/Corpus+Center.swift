@@ -15,10 +15,7 @@ extension Corpus {
             var selectedSubject: String? = nil
         }
 
-        // Transient (no `persist:`) like Home, Debugger and Router — click-
-        // scoped state ONLY. The 1 Hz poll never routes through here: Granite's
-        // @Store debounces 200 ms, which would blur exactly the live indexing
-        // this pane exists to watch.
+        // Transient Center; 1 Hz poll stays off @Store (200 ms debounce).
         @Store public var state: State
     }
 }

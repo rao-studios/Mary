@@ -1,8 +1,11 @@
 //
 //  TotemRetrievalCaptures.swift
+//  Mary
 //
-//  Split out of TotemExplorerViewModel.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: App-side fixtures of projection-only Seer traces.
+//  IN:   TotemExplorerViewModel (sibling split)
+//  OUT:  TotemExplorerViewModel.gather / tests
+//  PIN:  Brain traces stay unconstructable; these mirrors are the test seam.
 //
 
 import MaryAmbient
@@ -14,11 +17,8 @@ import SwiftUI
 
 // MARK: - Retrieval captures (input side)
 
-/// App-side mirror of `SeerRequestTrace`. It exists because the MaryBrain
-/// trace types are projection-only BY DESIGN — their inits are the redaction
-/// seam — so the app cannot construct fixtures of them, and an untestable
-/// `build` would defeat the pure core. `gather()` projects the ledger's rows
-/// through these; tests construct them directly.
+/// App-side mirror of `SeerRequestTrace`. Brain traces are projection-only;
+/// `gather()` projects ledger rows through these; tests construct them directly.
 struct TotemSeerRequestCapture: Equatable {
     var id: String
     var sentAt: Date
@@ -62,8 +62,7 @@ struct TotemSeerRequestCapture: Equatable {
     }
 }
 
-/// App-side mirror of `RetrievalTraceRecord` — same reason as its request
-/// sibling above.
+/// App-side mirror of `RetrievalTraceRecord` — same seam as `TotemSeerRequestCapture`.
 struct TotemRetrievalCapture: Equatable {
     var id: UUID
     var exchangeID: UUID

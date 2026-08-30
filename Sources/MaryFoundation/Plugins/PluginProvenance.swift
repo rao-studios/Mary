@@ -2,21 +2,14 @@
 //  PluginProvenance.swift
 //  MaryFoundation
 //
-//  WHERE A PROVIDER CAME FROM. This is provenance for inventories and
-//  receipts, never an authorization level — both classes below are subject to
-//  exactly the same capability checks.
+//  WHAT: Where a provider came from. Inventories/receipts, not authorization.
+//  IN:   InstalledAdapterManifest.provider, AbilitySkillReference.provider.
+//  OUT:  same capability checks either class.
 //
 
 import Foundation
 
-/// The two ways a provider can exist.
-///
-/// Note what is NOT here: an "application plugin" class. Mary compiles in no
-/// knowledge of any particular application. A RUNTIME provider is generic by
-/// construction — the typer, the prose surface, window management — and a
-/// PACKAGE provider is an adapter a Plugin declares and Mary's managed-UI
-/// engine interprets. Which application either one is serving at a given
-/// moment is a fact about the turn, not about the provider.
+/// Runtime (compiled generic) vs package (interpreted Plugin). No per-app class.
 public enum PluginProviderClass: String, Codable, Hashable, Sendable, CaseIterable {
     /// A generic adapter compiled into Mary, configured by declaration.
     case runtime

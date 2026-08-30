@@ -2,35 +2,8 @@
 //  MediaSurfaceAdapter.swift
 //  MaryPlugin
 //
-//  THE SKILLS A DECLARED PLAYER CAN ANSWER — say what is playing, drive the
-//  transport, find a song in the catalog.
-//
-//  WHY THESE ARE HERE AND NOT IN A PACKAGE, the same two reasons the prose
-//  adapter gives. A managed-UI recipe presses keys and reports whether the
-//  press landed; it has no channel for handing a value back, so `now_playing`
-//  — whose whole purpose is a value — must bind to a compiled provider. And a
-//  media key is not a chord: it is an `NSSystemDefined` event the recipe
-//  grammar cannot express at all, so `control_playback` needs one too.
-//
-//  NO PLAYER IS NAMED. Every Skill takes an optional `app`; the registration
-//  behind it decides everything else — which window to read, what its
-//  transport group is called, which word its button wears while playing.
-//
-//  WHAT THE PORT LEFT BEHIND, and what turned out not to be left behind at
-//  all. Bonnie's plugin offered `play_playlist`, `play_song_in_playlist`,
-//  `list_playlists`, library `search_music` and `rate_track`, all of them
-//  Apple Events against Music's scripting dictionary — and Mary has no Apple
-//  Events lane and asks for no Automation grant. The whole group was written
-//  off on that basis, WHICH WAS THE WRONG INFERENCE for most of it: an Apple
-//  Event was the road Bonnie took, not the destination. The sidebar is an
-//  ordinary `AXOutline`, so `list_playlists`, `play_playlist`,
-//  `find_playlist` and `shuffle_playlist` are all here and all reached
-//  through Accessibility (see `MediaSurfaceLibrary`).
-//
-//  STILL GENUINELY OUT: `rate_track` and library-scoped `search_music`, which
-//  read and write catalog metadata rather than press anything on screen.
-//  Those really do want a lane this build does not have.
-//
+//  WHAT: Skills a declared player answers (now_playing, transport, catalog, playlists).
+//  PIN:  No player named. rate_track / library search stay out (no metadata lane).
 
 import AppKit
 import Foundation
@@ -59,40 +32,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
          listPlaylists, findPlaylist, playPlaylist, shufflePlaylist]
     }
 
-    /// THE TYPED HANDSHAKE, declared rather than defaulted.
-    ///
-    /// THE FAILURE THIS FIXES: the protocol's default manifest publishes an
-    /// operation's NAME and nothing else — no capabilities, no Value types, no
-    /// target classes. Every Capability in `multimedia.mary` that reads or
-    /// drives a player constrains itself with `allowedTargetClass:
-    /// media-player`, and `InstalledAdapterInventory` refuses a binding whose
-    /// operation does not IMPLEMENT one of the allowed classes. An operation
-    /// claiming no class implements none, so `control_playback`, `now_playing`,
-    /// `list_playlists` and `play_playlist` were all published, all installed,
-    /// and all unavailable:
-    ///
-    ///     control_playback is unavailable: Operation control_playback does not
-    ///     implement an allowed target class: media-player.
-    ///
-    /// AND IT LOOKED SELECTIVE, which is what made it puzzling rather than
-    /// obvious: `search_music` and `play_music` stayed READY throughout,
-    /// because `catalog.search` and `catalog.open` constrain no target class,
-    /// so the check never ran for them. Two Skills working is a far better
-    /// disguise for a missing declaration than none working.
-    ///
-    /// `providesPerceptions` is the same omission one level up. Every
-    /// multimedia Skill requires `perception.player-transport`, the package
-    /// declares it, and NOTHING published it — which is what
-    /// `multimedia.open-player` was reporting from behind its own package
-    /// adapter. Reading a player's transport is precisely what this adapter
-    /// does; saying so is what makes the Skills that need it eligible.
-    ///
-    /// STILL `.incremental`, deliberately. An empty list here keeps meaning
-    /// "not specified" rather than "supports none", which is what lets
-    /// `search_music` — which queries a web endpoint and touches no player —
-    /// leave its target class and observed Perception blank without being
-    /// refused for it. This adapter earns `.complete` when the lanes its
-    /// header describes as missing actually land.
+    /// Typed handshake, declared rather than defaulted.
+    /// PIN: operations must implement `media-player` or inventory refuses them.
     public var adapterManifest: InstalledAdapterManifest {
         let adapterID = AdapterID.normalized(name)
         func operation(
@@ -100,10 +41,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
             capability: CapabilityID,
             input: ValueTypeID,
             output: ValueTypeID,
-            // MEDIA-PLAYER OR NOTHING, per operation rather than adapter-wide:
-            // the two catalog operations reach the iTunes Search endpoint and
-            // target no application at all, and claiming a class they do not
-            // drive would be the same untruth in the opposite direction.
+            // MEDIA-PLAYER OR NOTHING, per operation rather than adapter-wide: the two
+            // catalog operations reach the iTunes Search endpoint and target no application
+            // at all, and claiming a class they do not drive would be the same untruth in
             targets: [String] = ["media-player"],
             observesTransport: Bool = true
         ) -> InstalledAdapterBinding {
@@ -177,11 +117,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 "multimedia.catalog-query",
                 "multimedia.catalog-results",
             ],
-            // WHAT THE MACHINE ACTUALLY GRANTED is not this adapter's to
-            // decide; these name the two boundaries its operations cross, and
-            // the Capability schemas requiring them are checked against this
-            // list. Accessibility reads the transport and the sidebar; the
-            // network reaches the public iTunes Search endpoint.
+            // WHAT THE MACHINE ACTUALLY GRANTED is not this adapter's to decide; these name
+            // the two boundaries its operations cross, and the Capability schemas requiring
+            // them are checked against this list.
             grantedPermissions: [.accessibility, .network])
     }
 
@@ -211,10 +149,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     ok: true,
                     summary: Self.spoken(reading, registration: registration),
                     archivePolicy: .stateSnapshot,
-                    // NOTHING PLAYING IS A MISS, not a failure. The read
-                    // worked; there is simply no answer to give, and a turn
-                    // that says so is more useful than one that reports an
-                    // error against a player sitting quietly.
+                    // NOTHING PLAYING IS A MISS, not a failure. The read worked; there is
+                    // simply no answer to give, and a turn that says so is more useful than
+                    // one that reports an error against a player sitting quietly.
                     foundNothing: reading.title == nil && reading.isPlaying != true,
                     target: reading.element,
                     adapterTrail: ["media-surface"])
@@ -234,10 +171,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
             }
             return "Nothing is playing in \(registration.displayName)."
         }
-        // PARENTHESES, NOT A DASH, and the reason is the data: the subtitle
-        // is already dash-joined by the player ("Enfant Sauvage — Petrichor"),
-        // so appending it with another dash produced a sentence with three of
-        // them in a row and no way to tell which one separated what.
+        // PARENTHESES, NOT A DASH, and the reason is the data: the subtitle is already
+        // dash-joined by the player ("Enfant Sauvage.
         var sentence = reading.isPlaying == false
             ? "Paused on \"\(title)\""
             : "Playing \"\(title)\""
@@ -289,11 +224,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         ok: false,
                         summary: "The media key didn't go through — check Mary's Accessibility permission.")
                 }
-                // THE READ-BACK IS BEST EFFORT, and deliberately does not
-                // gate the outcome. A media key goes to the system, not to a
-                // process we can wait on; reporting failure because no
-                // declared player was running would call a successful pause
-                // of a browser video a failure.
+                // Read-back is best effort and does not gate the outcome.
+                // PIN: a media key goes to the system, not a process we can wait on.
                 let settled = await Self.settledReading(support: support)
                 return SkillOutcome(
                     ok: true,
@@ -324,10 +256,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
 
         var key: MediaTransport.Key {
             switch self {
-            // ONE KEY FOR BOTH, because the hardware has one: the system
-            // media key is a TOGGLE. Mary offers the two words a person
-            // actually says and sends the same event for each — the
-            // alternative is refusing "play" while paused, which is absurd.
+            // ONE KEY FOR BOTH, because the hardware has one: the system media key is a
+            // TOGGLE.
             case .play, .pause: return .playPause
             case .next: return .next
             case .previous: return .previous
@@ -425,14 +355,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                             ok: false,
                             summary: "I found \(track.spokenDescription) but couldn't open it.")
                     }
-                    // OPENING IS NOT PLAYING, which is the whole bug this
-                    // second half fixes. A Store URL navigates the player to
-                    // the track's page and leaves it there; the first version
-                    // reported success at exactly that point, and the song sat
-                    // on screen in silence. The page's own play control is
-                    // what starts it — never the transport's, which would
-                    // resume whatever was queued before and play the wrong
-                    // thing convincingly.
+                    // OPENING IS NOT PLAYING, which is the whole bug this second half
+                    // fixes.
                     guard let (registration, pid) = support.resolve(nil) else {
                         return SkillOutcome(
                             ok: true,
@@ -496,13 +420,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
             })
     }
 
-    /// SEARCHING IS NOT LISTING, AND IT IS NOT PLAYING. `list_playlists`
-    /// answers "what do I have" by reading the whole sidebar out, which is the
-    /// wrong answer to "do I have a jazz playlist?" — and `play_playlist`
-    /// answers it by starting one, which is worse, because the question was
-    /// not a request for music. This is the read that sits between them: the
-    /// same fuzzy ladder `play_playlist` resolves a spoken name with, stopping
-    /// one step short of pressing anything.
+    /// SEARCHING IS NOT LISTING, AND IT IS NOT PLAYING. `list_playlists` answers "what do I
+    /// have" by reading the whole sidebar out, which is the wrong answer to "do I have a
+    /// jazz playlist?".
     private var findPlaylist: SkillBinding {
         SkillBinding(
             name: "find_playlist",
@@ -622,15 +542,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
             })
     }
 
-    /// SHUFFLE FIRST, THEN PLAY, and the order is load-bearing: a player
-    /// applies shuffle when it builds the queue, so setting the mode after the
-    /// first track has started leaves that track where it was and shuffles
-    /// only what follows — which sounds like the mode was ignored.
-    ///
-    /// THE MODE IS NOT THE POINT OF THE TURN. A shuffle that could not be set
-    /// is reported alongside the music rather than instead of it: the user
-    /// asked to hear a playlist, and refusing to play it because a toggle went
-    /// unread would be answering a smaller question than the one asked.
+    /// SHUFFLE FIRST, THEN PLAY, and the order is load-bearing: a player applies shuffle
+    /// when it builds the queue, so setting the mode after the first track has started
+    /// leaves that track where it was and shuffles only what follows.
     private var shufflePlaylist: SkillBinding {
         SkillBinding(
             name: "shuffle_playlist",

@@ -1,5 +1,9 @@
 //
 //  TotemContextStore+UnitIndex.swift
+//  MaryRuntime
+//
+//  WHAT: Per-project unit-index manifests in Totem.
+//  OUT:  TotemDirectClient
 //
 
 import MaryBrain
@@ -10,21 +14,8 @@ extension TotemContextStore {
 
     // MARK: - Unit index
 
-    /// Files one card per indexed unit into the project's own personal-lane
-    /// group, and refreshes that project's catalogue.
-    ///
-    /// WHY THE LABELS ARE IN THE TEXT. `PartitionHit` returns only
-    /// `{totemID, partitionID, documentID, ownerID, text, score}` — tags do
-    /// not come back, metadata does not come back, and there is no timestamp.
-    /// So the concept labels ride the document BODY and the entity graph,
-    /// where retrieval can actually reach them. Putting them solely in `tags:`
-    /// would deposit cleanly and be permanently unfindable, which is the
-    /// failure that looks most like success.
-    /// THE MANIFEST ARRIVES WITH THE UNIT. It used to be rebuilt here from
-    /// scratch, which made this store a SECOND owner of the same state — so a
-    /// hand-pinned label updated the coordinator's copy and not this one, and
-    /// the two drifted with nothing to notice. The coordinator owns it now;
-    /// this only writes it down.
+    /// One card per indexed unit into the project's group; refresh the catalogue.
+    /// Labels ride the document body (PartitionHit returns no tags). Coordinator owns the manifest.
     func depositUnitIndex(_ unit: IndexedUnit, manifest: UnitIndexManifest) async {
         guard let owner = await session.userID,
               let projectID = unit.projectID, !projectID.isEmpty,
@@ -86,10 +77,7 @@ extension TotemContextStore {
             projectID: projectID, projectName: projectName, ownerID: owner)
     }
 
-    /// Restores one project's catalogue so a relaunch resumes. A manifest
-    /// whose format this build cannot read is refused rather than half-applied
-    /// — the caller starts fresh, which loses learning but never mixes two
-    /// formats.
+    /// Restore one project's catalogue. Unreadable format is refused, not half-applied.
     func loadUnitManifest(projectID: String) async -> UnitIndexManifest? {
         guard let owner = await session.userID, !projectID.isEmpty else { return nil }
         let id = TotemMemoryTopology.unitManifestID(projectID: projectID, ownerID: owner)

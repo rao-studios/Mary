@@ -1,29 +1,16 @@
 //
 //  TotemGraphAdmin.swift
-//  Mary
+//  MaryRuntime
 //
-//  IRREVERSIBLE knowledge-graph surgery over Totem's HTTP port: rename,
-//  merge, delete, re-kind entities; delete relationships; re-run extraction
-//  on one document. Merge and delete destroy rows the server cannot restore,
-//  so every UI caller must sit behind a confirmation dialog — nothing in this
-//  file asks twice. Re-extract is not destructive but is not free either: the
-//  server replays its LLM extractor over the document before answering, which
-//  is why that one call gets a long deadline while the row edits keep the
-//  5-second budget of the TotemGraphPolicy pattern this file copies (plain
-//  URLSession, port passed per call, http://127.0.0.1 base).
-//
-//  Routes and JSON keys mirror Totem's GraphAdmin.swift verbatim; the shared
-//  {success, surviving_id?, entity_count?} response collapses to one
-//  MutationResult so callers re-query the graph instead of trusting a shape.
+//  WHAT: Irreversible graph surgery over Totem HTTP (rename/merge/delete/re-kind).
+//  OUT:  MutationResult — callers re-query; do not trust response shape
+//  PIN:  UI must confirm. Routes/keys mirror Totem GraphAdmin. Re-extract
+//        gets a long deadline; row edits keep the 5s TotemGraphPolicy budget.
 //
 
 import Foundation
 
-/// The server's verdict on one graph mutation. `survivingID` is the entity id
-/// that remains after a re-key (rename/merge/set-kind may collapse into an
-/// existing entity); `entityCount` is the post-re-extraction total. `success:
-/// false` with a 200 means the target id did not exist — not a transport
-/// failure, so it is data, not a throw.
+/// Graph mutation verdict. success:false + 200 = missing id (data, not transport).
 package struct MutationResult: Equatable, Sendable {
     package var success: Bool
     package var survivingID: String?
@@ -86,10 +73,7 @@ package enum TotemGraphAdmin {
 
     // MARK: - Re-extraction
 
-    /// The server runs its graph extractor's LLM over the document body before
-    /// replying — the long timeout is the cost of a synchronous route, not a
-    /// generous default. `ownerID` rides in the nested `totem` envelope the
-    /// route decodes as its DatabaseRequest.
+    /// Re-extract: long timeout for the synchronous LLM route. ownerID in nested totem envelope.
     package static func reextractDocument(documentID: String, ownerID: String, port: Int) async throws -> MutationResult {
         try await post(
             "/v1/graph/re-extract",

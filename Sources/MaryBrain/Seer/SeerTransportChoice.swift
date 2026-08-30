@@ -2,9 +2,10 @@
 //  SeerTransportChoice.swift
 //  MaryBrain
 //
-//  Which route carries a Seer-mode turn's reply.
+//  WHAT: Which route carries a Seer-mode turn's reply (classic vs realtime).
+//  IN:   Settings / brain
+//  OUT:  SeerChatClient or SeerRealtimeClient
 //
-
 import Foundation
 
 public enum SeerTransportChoice: String, Codable, CaseIterable, Sendable {

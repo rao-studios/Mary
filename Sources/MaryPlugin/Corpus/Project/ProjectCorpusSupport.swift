@@ -2,51 +2,11 @@
 //  ProjectCorpusSupport.swift
 //  MaryPlugin
 //
-//  WHICH PROJECT IS OPEN, AND WHO HAS IT.
-//
-//  "PROJECT" IS THE PRECISE WORD, and the alternatives are both taken. This
-//  lane serves only corpora that declare a `structure` — a notation-only
-//  corpus, a body of source files learned from by style, is EXPLICITLY
-//  EXCLUDED and a test asserts it — so "document corpus" would name the
-//  opposite of what it filters for. And across the ambient layer "document"
-//  already means the thing open in an editor right now (`documentNoun`,
-//  `documentKey`, `holdsWholeDocument`), so a second meaning here would make
-//  one word mean "a file on disk somewhere in a project" three modules away.
-//
-//  What distinguishes this lane is that its corpus has an OUTLINE: a manifest
-//  naming items, their nesting, and where each one's text lives. That is a
-//  project, and the vocabulary throughout — `projectRoot`, `noSuchProject` —
-//  agrees.
-//
-//  THE PROJECT COMES FROM THE APPLICATION, NOT FROM A SEARCH — measured
-//  2026-08-28, and it collapses most of what this file was going to be. The
-//  predecessor discovered projects with Spotlight over a declared extension
-//  plus a list of "activity paths", which is a guess refined by heuristics: it
-//  can find projects nobody has open, miss one saved somewhere unusual, and
-//  has to rank what it finds. Scrivener's own window publishes `AXDocument` as
-//  the project root's file URL, exactly as Xcode publishes its workspace root.
-//
-//  So: ask the running application what it has open. The answer is exact,
-//  costs one attribute read, needs no index, and is never stale — and when no
-//  application has anything open, the honest answer is that there is no
-//  project rather than a list of ones on disk somewhere.
-//
-//  THE DECLARED EXTENSION IS A CHECK, NOT A SEARCH. A package says a project
-//  is a `.scriv`, and a window claiming to hold something else is not the
-//  corpus this registration describes — which matters because an application
-//  can have several kinds of window open.
-//
-//  OPEN-STATE IS NOT THE SAME QUESTION. `lockFile` and `runningApplication`
-//  answer "is it safe to expect the application to act on this", which the
-//  ceremonies need; `AXDocument` answers "what is it showing", which the reads
-//  need. A crash leaves a lock file behind, which is why the two are paired
-//  rather than either being trusted alone.
-//
-//  NO ROSTER OF ITS OWN. Which applications have a corpus is one fact from one
-//  declaration block, and it lives in `CorpusSupport` — see that file's header
-//  for the two consumers and why they share it. What is here is the part that
-//  is genuinely about PROJECTS: finding the one an application has open, and
-//  deciding whether it can be acted on.
+//  WHAT: Which project is open, and who has it.
+//  IN:   CorpusSupport / AXDocument / lockFile
+//  OUT:  ProjectCorpusAdapter / ProjectRootResolver
+//  PIN:  Ask the running app. Extension is a check, not a search.
+//        lockFile + process = ceremonies; AXDocument = reads.
 //
 
 import AppKit
@@ -55,14 +15,7 @@ import Foundation
 import MaryAmbient
 import MaryFoundation
 
-/// One project, open in one process.
-///
-/// IT CARRIES ITS STRUCTURE rather than reaching back through the
-/// registration for it. A corpus reaches this type only by having one — the
-/// roster is filtered on exactly that — so an `OpenCorpus` with no structure
-/// is a state that cannot occur, and holding it as an optional would make
-/// every reader unwrap something that is never nil and invent a sentence for
-/// a case that never happens.
+/// One project, open in one process. Carries `structure` — never optional.
 public struct OpenCorpus: Sendable, Equatable {
     public let registration: CorpusRegistration
     public let structure: PluginCorpusStructureSchema
@@ -95,11 +48,7 @@ public enum ProjectCorpusSupport {
 
     // MARK: - What is open
 
-    /// Every project currently open in a declared application.
-    ///
-    /// EVERY WINDOW, not just the front one: a writer with two manuscripts
-    /// open has two, and naming one of them should reach it without first
-    /// bringing it forward.
+    /// Every project open in a declared application — every window, not just front.
     public static func openCorpora() -> [OpenCorpus] {
         let declared = all()
         guard !declared.isEmpty else { return [] }
@@ -119,9 +68,7 @@ public enum ProjectCorpusSupport {
                     ofWindow: window, structure: structure,
                     projectMarkers: registration.schema.projectMarkers)
                 else { continue }
-                // ONE PROJECT, ONE ENTRY. An application shows the same
-                // project in several windows — an editor and an outliner — and
-                // each would otherwise arrive as a rival for the same name.
+                // One project, one entry — several windows would otherwise rival the same name.
                 guard !found.contains(where: { $0.projectRoot == root }) else { continue }
                 found.append(OpenCorpus(
                     registration: registration,
@@ -133,20 +80,9 @@ public enum ProjectCorpusSupport {
         return found
     }
 
-    /// The project one window is showing, if it is one this registration
-    /// describes.
-    ///
-    /// `.fileSystemTree` TAKES A DIFFERENT ROAD, and the reason is the same
-    /// one `CorpusObserver`'s own header records: `AXDocument` on a workspace
-    /// editor is the ACTIVE FILE, not the project — measured live against
-    /// Xcode with a source file open, where no window attribute carries the
-    /// workspace at all. A bundle-style project (`.scriv`) never has this
-    /// problem because its window's `AXDocument` names the bundle itself; a
-    /// directory-of-source project does, because there is no bundle boundary
-    /// for the window to report. So this climbs to the nearest ancestor
-    /// holding a declared marker — the identical algorithm the passive style
-    /// crawl already uses, so the two lanes can never disagree about which
-    /// folder is "the project" for the same window.
+    /// Project this window is showing, if this registration describes it.
+    /// PIN: `.fileSystemTree` climbs markers (`CorpusObserver.projectRoot`);
+    /// `AXDocument` is the active file, not the workspace.
     static func projectRoot(
         ofWindow window: AXUIElement, structure: PluginCorpusStructureSchema,
         projectMarkers: [String] = []
@@ -154,8 +90,7 @@ public enum ProjectCorpusSupport {
         guard let raw = AX.string(window, kAXDocumentAttribute), !raw.isEmpty,
               let url = URL(string: raw), url.isFileURL
         else { return nil }
-        // A trailing slash on a directory URL leaves `pathExtension` empty,
-        // so the comparison is made on the standardized path.
+        // Trailing slash leaves pathExtension empty — compare standardized paths.
         let standardized = URL(fileURLWithPath: url.path).standardizedFileURL
 
         if structure.manifest.kind == .fileSystemTree {
@@ -163,13 +98,9 @@ public enum ProjectCorpusSupport {
             guard FileManager.default.fileExists(
                 atPath: standardized.path, isDirectory: &isDirectory)
             else { return nil }
-            // A window already showing a folder (no file open) is itself the
-            // answer — exactly `CorpusObserver.documentRoot`'s own rule.
+            // Window showing a folder is itself the root — same as CorpusObserver.documentRoot.
             if isDirectory.boolValue { return standardized }
-            // NOT FOUND IS NOTHING TO CRAWL, not a guess. A loose file this
-            // corpus's markers cannot place belongs to no project, and
-            // guessing its containing folder is how a read learns from work
-            // that is not the user's.
+            // Unplaceable file: nothing to crawl, not a guess at the folder.
             guard !projectMarkers.isEmpty,
                   let rootPath = CorpusObserver.projectRoot(
                     containing: standardized.deletingLastPathComponent().path,
@@ -186,13 +117,8 @@ public enum ProjectCorpusSupport {
         return standardized
     }
 
-    /// The project a request addresses.
-    ///
-    /// A NAME IS AUTHORITY AND NEVER FALLS THROUGH. "Read the outline of
-    /// gitas-ballad" while another manuscript is in front means that one, and
-    /// a name that matches nothing must refuse rather than silently answering
-    /// about a different book. Otherwise: the only one open, and a refusal
-    /// naming both when two are and nothing said which.
+    /// Project a request addresses. Named project wins; no silent fallback.
+    /// One open → that one. Two unnamed → refuse naming both.
     public static func resolve(_ named: String?) -> Result<OpenCorpus, Refusal> {
         let open = openCorpora()
         guard !open.isEmpty else {
@@ -200,10 +126,7 @@ public enum ProjectCorpusSupport {
         }
         if let named, !named.isEmpty {
             let wanted = named.lowercased()
-            // EXACT BEFORE CONTAINED, so a project whose name is a prefix of
-            // another's is still reachable by saying it exactly — "ballad"
-            // and "ballad-notes" open together must not make "ballad"
-            // ambiguous.
+            // Exact before contained — a prefix name stays reachable by saying it exactly.
             let exact = open.filter { $0.name.lowercased() == wanted }
             if exact.count == 1 { return .success(exact[0]) }
             if exact.count > 1 { return .failure(.ambiguous(exact.map(\.name))) }
@@ -243,11 +166,7 @@ public enum ProjectCorpusSupport {
 
     // MARK: - Is the application ready to be driven
 
-    /// Whether the owning application is in a state where a ceremony can act.
-    ///
-    /// SEPARATE FROM `resolve`, because a read does not need it. A project can
-    /// be read off disk while its application is busy; only a menu-driven
-    /// change needs the application present and attending.
+    /// Whether a ceremony can act. Separate from `resolve` — reads do not need it.
     public static func isOpenForEditing(_ corpus: OpenCorpus) -> Bool {
         let structure = corpus.structure
         let states = structure.openState
@@ -259,10 +178,7 @@ public enum ProjectCorpusSupport {
                     .isTerminated == false
         }
         if states.contains(.lockFile), let path = structure.lockFilePath {
-            // A CRASH LEAVES A LOCK BEHIND, which is exactly why this is
-            // paired with the process check rather than trusted alone — a
-            // stale lock would otherwise say "open" about a project nothing
-            // has had open for a week.
+            // Crash leaves a lock; pair with the process check, never trust alone.
             let lock = corpus.projectRoot.appendingPathComponent(path)
             satisfied = satisfied && FileManager.default.fileExists(atPath: lock.path)
         }

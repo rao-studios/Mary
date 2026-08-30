@@ -2,10 +2,7 @@
 //  TotemsNodesView.swift
 //  Mary
 //
-//  The fleet as Seer sees it, and the disk as it actually is. The two
-//  sections deliberately come from different authorities — a dead Seer must
-//  not blank the disk museum, and a wiped disk must not hide a live fleet —
-//  so each renders (or excuses itself) independently.
+//  WHAT: Fleet as Seer sees it, disk as it is — independent sections/authorities.
 //
 
 import SwiftUI

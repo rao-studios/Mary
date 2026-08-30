@@ -2,16 +2,10 @@
 //  AbilityPackageValidator.swift
 //  MaryFoundation
 //
-//  ADMISSION FOR ONE `.mary` PACKAGE, read in the order a reviewer would:
-//  who the package says it is, what its Skills promise, what schemas it
-//  declares, whether those declarations point at anything real, and finally
-//  whether the shape it claims to be (paradigm, artifact domain, plugin)
-//  matches the structure actually present.
-//
-//  Each section below is one pass over the package; every one of them appends
-//  to the same `PackageIssueSink`, which owns the shared vocabulary checks.
-//  `validateGraph` in AbilityPackageValidator+Graph.swift adds what only
-//  becomes visible once several packages are installed together.
+//  WHAT: Admission for one `.mary` — identity → skills → schemas → paradigm → plugin.
+//  IN:   MaryAbilityPackage.
+//  OUT:  PackageIssueSink; AbilityPackageValidator+Graph for the installed set.
+//  PIN:  Siblings: +Skills, +Schemas, +Paradigm. PluginValidator admits the Plugin.
 //
 
 import Foundation
@@ -29,8 +23,7 @@ public enum AbilityPackageValidator {
         return AbilityPackageValidation(issues: sink.issues)
     }
 
-    /// Identity, version, presentation, routing terms, and dependency edges —
-    /// everything that is true of the package before any schema is read.
+    /// Identity, version, presentation, routing terms, dependency edges.
     static func validateIdentity(
         _ package: MaryAbilityPackage,
         _ sink: PackageIssueSink
@@ -124,8 +117,7 @@ public enum AbilityPackageValidator {
         sink.validateRouting(package.ability.routing, path: "ability.routing")
     }
 
-    /// The application affinities a package names, then the Plugin it
-    /// carries, which is admitted by its own closed-grammar validator.
+    /// Named affinities, then PluginValidator for a carried Plugin.
     static func validateApplicationsAndPlugin(
         _ package: MaryAbilityPackage,
         _ sink: PackageIssueSink

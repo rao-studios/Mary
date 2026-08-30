@@ -1,5 +1,10 @@
 //
 //  TotemContextStore+StyleProfile.swift
+//  MaryRuntime
+//
+//  WHAT: Style-profile documents in Totem.
+//  IN:   StyleEvidenceStore tenets
+//  OUT:  TotemDirectClient
 //
 
 import MaryBrain
@@ -11,12 +16,7 @@ extension TotemContextStore {
 
     // MARK: - Style profile
 
-    /// Persist the whole profile as one canonical document.
-    ///
-    /// It is stored in the SAME portable envelope the export path uses, not a
-    /// private encoding — so what survives a relaunch and what you could hand
-    /// to someone else are the same bytes, and the format only has to be right
-    /// once.
+    /// Persist the profile as one document in the same envelope the export path uses.
     func depositStyleProfile(
         _ tenets: [StyleTenet],
         vetoedTenetKeys: [String] = [],
@@ -24,9 +24,7 @@ extension TotemContextStore {
         subject: String,
         at now: Date
     ) async {
-        // An EMPTY profile is deposited deliberately — it is how a forget
-        // becomes durable. Skipping it left the old document standing, and the
-        // next relaunch restored what the user had just erased.
+        // Empty profile is deposited — that is how a forget becomes durable.
         guard let owner = await session.userID else { return }
         let profile = StyleProfile(
             profile: .init(
@@ -41,19 +39,7 @@ extension TotemContextStore {
         guard let data = try? StyleProfileCodec.encoded(profile),
               let content = String(data: data, encoding: .utf8) else { return }
 
-        // THE STYLE GRAPH JOINS THE ABILITY GRAPH. `ability` is already a kind
-        // in `TotemGraphPolicy.maryKinds` and `ability_id` already rides
-        // every Skill deposit's metadata, so naming the Ability here is what
-        // lets a design tenet and a design Skill receipt be the same subject
-        // in the graph rather than two unrelated islands. Every relationship
-        // endpoint ships as an entity — Totem drops relations whose endpoints
-        // do not resolve.
-        // THE SUBJECT IS THE ABILITY, and the applications are what it is
-        // bound to — which is the edge worth having in the graph. This used to
-        // file the subject as `kind: "app"` and then look the ability back up
-        // through `AmbientWorld.from(pluginOwner:)`, a lookup that returns nil
-        // for every DYNAMIC package: Scrivener's ability edge would silently
-        // have gone missing, which is exactly the case the reframe is about.
+        // Subject is the ability; applications are bindings. Every relation endpoint is an entity.
         var entities = [TotemEntityIn(name: subject, kind: "ability")]
         var relationships: [TotemRelationIn] = []
         for application in applications {
@@ -155,11 +141,7 @@ extension TotemContextStore {
             withJSONObject: fields, options: [.sortedKeys])) ?? Data()
     }
 
-    /// EVERY RELATIONSHIP ENDPOINT SHIPS AS AN ENTITY. Totem drops a relation
-    /// whose subject or object does not match an entity name in the same item,
-    /// and an item carrying relations but no entities loses them entirely to
-    /// LLM re-extraction. So the entity set is derived FROM the relations
-    /// rather than assembled beside them — the two cannot drift.
+    /// Entity set derived from relations — Totem drops endpoints that do not resolve.
     static func unitComposition(
         _ unit: IndexedUnit
     ) -> (entities: [TotemEntityIn], relationships: [TotemRelationIn]) {
@@ -206,11 +188,6 @@ extension TotemContextStore {
         return (entities, relationships)
     }
 
-    // A `persistApplicationSchemaManifest` stood here, writing the durable
-    // half of the application-schema OBSERVER — the coordinator C2 declined to
-    // port, because Mary's packages state what an application is rather than
-    // having it guessed at. With nothing producing those facts there is
-    // nothing to persist, and a writer for a store that is never written is
-    // worse than absent: it looks like a feature.
+    // Application-schema observer persist was not ported — packages declare, nothing to guess.
 
 }

@@ -1,4 +1,12 @@
-// Archives completed actions and application knowledge into Totem.
+//
+//  TotemContextStore.swift
+//  MaryRuntime
+//
+//  WHAT: Archives completed actions and application knowledge into Totem.
+//  OUT:  TotemDirectClient. Siblings: +Addressing, +AbilityProjection,
+//        +BehavioralEpisode, +StyleProfile, +UnitIndex.
+//  PIN:  Ability Totem is BehavioralEpisode, not a skill receipt.
+//
 
 import MaryBrain
 import MaryTotem
@@ -12,15 +20,11 @@ package actor TotemContextStore: ContextDepositing {
     var client: TotemDirectClient
     let session: SeerSession
     var applicationProfiles: [String: ApplicationProfile] = [:]
-    /// Which application produced a project's units, so the manifest lands in
-    /// the SAME Totem group they did. This was hardcoded to Xcode's owner,
-    /// which filed a Scrivener manuscript's index under the code editor.
+    /// Application that produced a project's units — manifest group matches theirs.
     var unitManifestOwners: [String: String] = [:]
-    /// The per-project catalogue of what has been indexed and at which
-    /// revision, so a relaunch resumes instead of re-reading every file.
+    /// Per-project catalogue of indexed units + revision. Relaunch resumes.
     var unitManifests: [String: UnitIndexManifest] = [:]
-    /// Summaries are clamped so one giant Skill result (a whole file read)
-    /// doesn't become a bloated totem document.
+    /// Clamp so one giant Skill result is not a bloated totem document.
     let summaryLimit = 2000
 
     init(session: SeerSession, host: String = "127.0.0.1", port: Int = 9090) {
@@ -44,9 +48,7 @@ package actor TotemContextStore: ContextDepositing {
         succeeded: Bool,
         projectionPlan: AbilityTotemProjectionPlan?
     ) async {
-        // Ability Totem is the sealed BehavioralEpisode, not a skill receipt.
-        // Machine-local adapter dumps used to land as mary-skill-* in Personal;
-        // those actions already ride BehavioralOutput.
+        // Ability Totem is BehavioralEpisode, not a skill receipt. Dumps ride BehavioralOutput.
         return
     }
 

@@ -2,17 +2,8 @@
 //  StageArbiter.swift
 //  MaryBrain
 //
-//  THE STAGE = the frontmost app + synthetic input (keystrokes, menu
-//  clicks). Only one action can hold it: a typed passage needs its target
-//  frontmost between every chunk, and any binding that activates an app or
-//  drives menus would yank that focus mid-word. Background actions (code
-//  edits on disk, git, music playback) claim nothing and run freely in
-//  parallel.
-//
-//  Policy (user decision): the NEWEST request wins. A stage-claiming binding
-//  preempts the current holder before running — the holder's onPreempt
-//  pauses it RESUMABLY (the typer saves its remainder), never a silent kill.
-//
+//  WHAT: Who holds leadContext when several observers see the same place.
+//  OUT:  CodeSurfaceObserver | ProseSurfaceObserver | CorpusObserver
 
 import Foundation
 
@@ -37,9 +28,8 @@ public final class StageArbiter: @unchecked Sendable {
     }
 
     /// Atomically preempt and acquire the stage. Unlike the legacy two-call
-    /// `preemptForNewClaim`/`claim` sequence, this never overwrites a holder
-    /// that failed to release: the caller either owns the returned lease or
-    /// receives nil without driving focus or synthetic input.
+    /// `preemptForNewClaim`/`claim` sequence, this never overwrites a holder that failed to
+    /// release: the caller either owns the returned lease or receives nil without driving
     public func acquire(
         owner: String,
         timeout: TimeInterval = 2,

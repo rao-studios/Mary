@@ -2,17 +2,11 @@
 //  ContentUndoStore.swift
 //  MaryBrain
 //
-//  A reusable, plugin-agnostic "prior content" store with hash-guarded
-//  revert semantics: record what a document looked like before an edit, and
-//  only hand it back if the current content still matches what the edit
-//  produced (the user hasn't worked on top of it since).
+//  WHAT: Prior-content store with hash-guarded revert.
+//  IN:   Xcode peer-coder (direct-mode); content-app plugins without VCS
+//  OUT:  take(for:currentHash:) — prior content, or nil if the user worked on top
+//  PIN:  Only hand back if current still matches what the edit produced.
 //
-//  The Xcode peer-coder records into it during direct-mode edits; its spoken
-//  undo story is git. Content-app plugins WITHOUT version control underneath
-//  (Scrivener-class writing Skills, Notes) build their own revert Skills on
-//  this store — that's why it lives in Shared/.
-//
-
 import CryptoKit
 import Foundation
 import os

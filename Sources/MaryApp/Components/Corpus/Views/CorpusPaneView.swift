@@ -2,8 +2,8 @@
 //  CorpusPaneView.swift
 //  Mary
 //
-//  The pane's frame: a bar that never scrolls away, three tabs, and a notice
-//  line for the result of whatever you last changed.
+//  WHAT: Corpus frame — sticky bar, three tabs, last-change notice.
+//  OUT:  CorpusUnits / Profile / Operations / Schema
 //
 
 import MaryAmbient

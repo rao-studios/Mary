@@ -2,33 +2,24 @@
 //  VoicePipelineConfig.swift
 //  MaryVoice
 //
-//  Everything tunable about the loop lives here so Settings can expose it and
-//  the probe can sweep it.
+//  WHAT: Tunable loop knobs. Settings exposes them; the probe can sweep them.
+//  IN:   Settings / probe / VoicePipeline.init
+//  OUT:  STTBackend / TTSBackend / VADConfig / VoicePipeline
 //
 
 import Foundation
 
-/// Which speech-to-text backend the pipeline uses.
-///
-/// ONE CASE, AND IT STAYS AN ENUM. Mary hears through Apple's Speech
-/// framework alone — the utterance-final alternative was dropped with its
-/// package, and dropping it took a whole dependency graph with it. The type
-/// survives because `VoiceTranscriber` is the seam a second backend arrives
-/// through, and a config field is cheaper to keep than to reintroduce.
+/// STT backend. One case today; enum stays so `VoiceTranscriber` can grow.
 public enum STTBackend: String, Sendable, Codable, CaseIterable {
-    /// Apple's Speech framework — on-device, live partial results.
+    /// Apple Speech — on-device, live partials.
     case apple
 }
 
-/// Which text-to-speech backend the speaker synthesizes with.
+/// TTS backend the speaker synthesizes with.
 public enum TTSBackend: String, Sendable, Codable, CaseIterable {
-    /// Kokoro CoreML models, fully on-device.
+    /// Kokoro CoreML, on-device.
     case kokoro
-    /// The local Seer server's /v1/speak proxy — needs a signed-in session.
-    ///
-    /// EVERY CLOUD VOICE GOES THROUGH HERE. Mary has one hosted engine, so a
-    /// second cloud TTS case would be a second API key, a second outage mode
-    /// and a second set of transcode assumptions for the same sound.
+    /// Local Seer `/v1/speak` — signed-in session. PIN: all cloud voice goes here.
     case seer
 
     public var displayName: String {
@@ -39,7 +30,7 @@ public enum TTSBackend: String, Sendable, Codable, CaseIterable {
     }
 }
 
-/// Endpointing thresholds for the energy VAD.
+/// Energy-VAD endpointing thresholds. OUT: EnergyVAD / BargeInGovernor.
 public struct VADConfig: Sendable, Codable, Equatable {
     /// RMS above this opens an utterance.
     public var speechStartRMS: Float
@@ -51,14 +42,11 @@ public struct VADConfig: Sendable, Codable, Equatable {
     public var minUtteranceMs: Int
     /// Audio kept from before speechStart and replayed into STT.
     public var preRollMs: Int
-    /// While Kokoro speaks, speechStartRMS is multiplied by this so the mic
-    /// doesn't trigger on the speaker's own audio. Barge-in must beat it.
+    /// While Kokoro speaks, multiply speechStartRMS by this. Barge-in must beat it.
     public var bargeInRMSBoost: Float
-    /// Quiet time after a provisional barge-in pause before playback resumes
-    /// (the interruption was noise, not speech).
+    /// Quiet after a provisional barge-in pause before playback resumes (noise, not speech).
     public var bargeResumeMs: Int
-    /// Ask the input node for Apple voice processing (echo cancellation) so
-    /// full-duplex listening ignores Mary's own speaker output.
+    /// Apple voice processing (echo cancel) so full-duplex ignores Mary's speaker.
     public var voiceProcessing: Bool
 
     public init(
@@ -86,8 +74,7 @@ public struct VADConfig: Sendable, Codable, Equatable {
              preRollMs, bargeInRMSBoost, bargeResumeMs, voiceProcessing
     }
 
-    /// Tolerant decode: this struct is persisted inside the app's config
-    /// store — a newly added field must never fail an old store's restore.
+    /// Tolerant decode — persisted in the app config store; new fields must not fail old restores.
     public init(from decoder: Decoder) throws {
         self.init()
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -108,12 +95,10 @@ public struct VoicePipelineConfig: Sendable {
     /// Kokoro voice name, e.g. "af_heart".
     public var voice: String
     public var vad: VADConfig
-    /// Override for the Kokoro models directory; nil uses the bundled assets.
+    /// Override for the Kokoro models directory; nil uses bundled assets.
     public var kokoroModelsDir: URL?
-    /// When set, an utterance matching "stop listening" is intercepted before
-    /// the responder ever sees it: this line is spoken, then
-    /// `.stopListeningCommand` is emitted for the app to end the session.
-    /// nil disables the intercept entirely (probes, tests).
+    /// When set, "stop listening" is intercepted: this line is spoken, then
+    /// `.stopListeningCommand`. nil disables (probes, tests).
     public var stopListeningAck: String?
 
     public init(

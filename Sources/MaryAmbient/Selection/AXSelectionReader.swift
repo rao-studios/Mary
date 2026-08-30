@@ -2,29 +2,9 @@
 //  AXSelectionReader.swift
 //  MaryBrain
 //
-//  The shared source-selection ability. It reads the exact AX element an
-//  application says is focused (or an AX observer says changed), then hands
-//  that result to the canonical selection packet. Pages uses the same
-//  extraction cascade as TextEdit, Scrivener, and generic text surfaces;
-//  application plugins add document context afterward rather than inventing
-//  a separate definition of a highlight.
-//
-//  `focusedSelectionSample` remains the strict authority for mutation: the
-//  typer must only write to the element the application says is focused.
-//  Highlight capture has a different job. Some canvas editors (notably
-//  Pages) focus a container while a descendant alone exposes AXSelectedText
-//  or a text-marker range. `sourceSelectionSample` therefore makes one
-//  bounded, evidence-only descent for a *positive* selection. It never
-//  accepts a title, value, visible text, or caret merely because that element
-//  looks textual. There is no AppleScript body to cross-validate an arbitrary
-//  app's offsets, so the shared ability preserves the text and treats ranges
-//  as source-element coordinates until a plugin can validate them.
-//
-//  DOCTRINE, same as `PagesAX.swift`: this file never reads the screen.
-//  Mary's AMBIENT perception is Accessibility + AppleScript only; pixels
-//  are read solely on explicit request (the debugger minimap,
-//  take_screenshot, and the ephemeral look — see ScreenRegionCapture for
-//  the canonical statement), never by a watcher or reader like this one.
+//  WHAT: Shared source-selection ability — exact AX element → canonical selection packet.
+//  OUT:  SelectionHandoffPublisher. Splits: +Models / +Reads / +ElementResolution
+//  PIN:  focusedSelectionSample is mutation authority. sourceSelectionSample is evidence-only descent.
 //
 
 import AppKit
@@ -34,21 +14,15 @@ import Foundation
 
 public enum AXSelectionReader {
 
-    /// Which AX representation actually supplied the selected characters.
-    /// Canvas applications frequently expose a range before they expose
-    /// `AXSelectedText`, so the attribute name alone is not a correctness
-    /// boundary.
-    /// Nil when AX is untrusted, nothing text-shaped could be resolved, the
-    /// selection is empty (caret-only cursor), or the resolved element is a
-    /// secure field. Blocking IPC to `pid` — call from a poll task only,
-    /// never the main actor.
+    /// Which AX representation actually supplied the selected characters. Canvas applications
+    /// frequently expose a range before they expose `AXSelectedText`, so the attribute name
+    /// alone is not a correctness boundary.
     public static func read(pid: pid_t) -> Reading? {
         guard AppAutomationGate.accessibilityBlock() == nil else { return nil }
         let app = AXUIElementCreateApplication(pid)
-        // Mirrors `PagesAX.read(pid:)`'s own note: this governs the
-        // APPLICATION element only (`AXUIElement.h` — "setting the timeout on
-        // another accessibility object sets it only for that object"); a busy
-        // app must not stall the poll loop.
+        // Mirrors `PagesAX.read(pid:)`'s own note: this governs the APPLICATION element only
+        // (`AXUIElement.h` — "setting the timeout on another accessibility object sets it only for
+        // that object"); a busy app must not stall the poll loop.
         AXUIElementSetMessagingTimeout(app, 1.0)
         guard let resolved = textElement(of: app) else { return nil }
         let element = resolved.element
@@ -62,10 +36,9 @@ public enum AXSelectionReader {
         }
     }
 
-    /// Read the AX element the application currently names as focused, with
-    /// no main-window descent or role preference. This is the selection
-    /// ability's authority path: an app owns its focused editing element even
-    /// if a canvas exposes it as an unexpected role.
+    /// Read the AX element the application currently names as focused, with no main-window
+    /// descent or role preference. This is the selection ability's authority path: an app owns
+    /// its focused editing element even if a canvas exposes it as an unexpected role.
     public static func focusedSelectionSample(
         pid: pid_t, messagingTimeout: TimeInterval = 0.25
     ) -> FocusedSelectionSample {
@@ -83,25 +56,8 @@ public enum AXSelectionReader {
             editability: editability(of: focused))
     }
 
-    /// THE TYPING GATE'S SAMPLE — focused element first, then a bounded
-    /// main-window descent. This is deliberately a SEPARATE entry point from
-    /// `focusedSelectionSample` (the selection ability's strict authority) and
-    /// from `sourceSelectionSample` (positive-selection discovery): its
-    /// question is only "is there somewhere safe to type", so it may accept a
-    /// caret-capable descendant that the selection-handoff doctrine below must
-    /// refuse.
-    ///
-    /// THE FAILURE THIS FIXES (the Pages fresh-document incident): a
-    /// `make new document` window focuses a canvas container while the real
-    /// body text area sits one descent below — `focusedSelectionSample`
-    /// answered `.unavailable`, the typer refused with "I couldn't find a
-    /// text cursor in Pages", and the draft never landed. `PagesAX
-    /// .textElement` has known to descend for exactly this reason since the
-    /// first Pages incident; the generic typing gate now uses the same
-    /// cascade (`textElement(of:)` — focused-if-textual, else descend
-    /// preferring a real `AXTextArea`).
-    ///
-    /// A secure field never supplies the surface, on either path.
+    /// THE TYPING GATE'S SAMPLE — focused element first, then a bounded main-window descent. A
+    /// secure field never supplies the surface, on either path.
     public static func focusedWritableSurfaceSample(
         pid: pid_t, messagingTimeout: TimeInterval = 0.25
     ) -> FocusedSelectionSample {
@@ -157,19 +113,9 @@ public enum AXSelectionReader {
             sourceEvidence: .discoveredDescendant)
     }
 
-    /// Capture a direct source selection without weakening the typing target
-    /// contract. The focused element gets the first, exact attempt. When an
-    /// app exposes focus as a canvas/container, a short descent of that
-    /// subtree and then the main window may supply a selection ONLY when an
-    /// element explicitly returns nonempty selected text, marker text, or a
-    /// nonempty range that can be hydrated to text. Merely textual elements
-    /// are deliberately invisible to this resolver.
-    ///
-    /// A discovered descendant can establish a positive selection, but can
-    /// never establish a caret. If no positive evidence is found, only the
-    /// actual focused element's caret is returned. That distinction prevents
-    /// an unrelated title/control child from clearing a handoff as Pages is
-    /// yielding focus to Mary.
+    /// Capture a direct source selection without weakening the typing target contract. The
+    /// focused element gets the first, exact attempt. A discovered descendant can establish a
+    /// positive selection, but can never establish a caret. If no positive evidence is found.
     public static func sourceSelectionSample(
         pid: pid_t, messagingTimeout: TimeInterval = 0.25
     ) -> FocusedSelectionSample {
@@ -192,10 +138,9 @@ public enum AXSelectionReader {
             let state = selectionState(of: focused, resolution: .focusedElement)
             focusedState = state
             if !shouldSearchDescendants(afterFocusedState: state) {
-                // A readable exact selection and an unreadable exact nonempty
-                // range are both source ownership. The latter must reach the
-                // handoff as explicit unpublishable evidence instead of being
-                // replaced by a descendant selected through AX tree order.
+                // A readable exact selection and an unreadable exact nonempty range are both source
+                // ownership. The latter must reach the handoff as explicit unpublishable evidence instead
+                // of being replaced by a descendant selected through AX tree order.
                 return selectionSample(
                     processID: pid, state: state, capturedAt: capturedAt,
                     fallbackElement: focused,
@@ -210,13 +155,9 @@ public enum AXSelectionReader {
                 into: &discovery)
         }
 
-        // AX may put the actual text surface outside the canvas container it
-        // calls focused. Avoid rewalking the same object, but otherwise add
-        // bounded, positive candidates from the main window. A tree walk does
-        // not encode interaction identity: it may only yield one semantic
-        // selection. Two selected descendants (including an unreadable one)
-        // are an ambiguity, never a license to choose whichever node happened
-        // to arrive first in breadth-first order.
+        // AX may put the actual text surface outside the canvas container it calls focused. Avoid
+        // rewalking the same object, but otherwise add bounded, positive candidates from the main
+        // window.
         if let mainWindow,
            focused.map({ !CFEqual($0, mainWindow) }) ?? true,
            !discovery.isAmbiguous {
@@ -247,11 +188,7 @@ public enum AXSelectionReader {
                 fallbackElement: evidence.element,
                 sourceEvidence: .discoveredDescendant)
         case .ambiguous:
-            // A focused canvas plus two positive descendants has no source
-            // ownership signal. It is intentionally not `.unavailable`: a
-            // source-specific capture must preserve this positive-but-
-            // unpublishable result so the generic fallback cannot choose a
-            // different title/control leaf.
+            // A focused canvas plus two positive descendants has no source ownership signal.
             return FocusedSelectionSample(
                 processID: pid, state: .ambiguousSelection, capturedAt: capturedAt,
                 sourceEvidence: .discoveredDescendant)
@@ -288,10 +225,8 @@ public enum AXSelectionReader {
         return selectionState(of: focused, resolution: .focusedElement)
     }
 
-    /// Build a sample from a state while preserving the exact descendant that
-    /// supplied positive evidence. A strict focused sample keeps its old
-    /// source identity; a discovered source selection must instead identify
-    /// the selected leaf so a sibling's caret cannot clear it later.
+    /// Build a sample from a state while preserving the exact descendant that supplied positive
+    /// evidence.
     private static func selectionSample(
         processID: pid_t,
         state: SelectionState,
@@ -321,10 +256,9 @@ public enum AXSelectionReader {
             sourceEvidence: sourceEvidence)
     }
 
-    /// Exposed for source observers that must bind their notification to the
-    /// actual focused text element. The timeout is set on BOTH the app and
-    /// child because Accessibility does not inherit an app timeout to child
-    /// elements.
+    /// Exposed for source observers that must bind their notification to the actual focused
+    /// text element. The timeout is set on BOTH the app and child because Accessibility does
+    /// not inherit an app timeout to child elements.
     public static func focusedElement(
         pid: pid_t, messagingTimeout: TimeInterval = 0.25
     ) -> AXUIElement? {
@@ -343,10 +277,9 @@ public enum AXSelectionReader {
         UInt(CFHash(element))
     }
 
-    /// `kAXNumberOfCharacters` is expressed in Accessibility's UTF-16
-    /// coordinate space. It is source metadata only; callers must never pair
-    /// it with an unrelated application body merely because the counts happen
-    /// to be close.
+    /// `kAXNumberOfCharacters` is expressed in Accessibility's UTF-16 coordinate space. It is
+    /// source metadata only; callers must never pair it with an unrelated application body
+    /// merely because the counts happen to be close.
     public static func characterCount(of element: AXUIElement) -> Int? {
         guard let number = AX.number(element, kAXNumberOfCharactersAttribute),
               number.intValue >= 0
@@ -372,18 +305,8 @@ public enum AXSelectionReader {
         return .unknown
     }
 
-    /// A password field, best-effort. A custom-rendered secure field (a web
-    /// view, some Electron apps) that doesn't expose the standard AX role
-    /// slips past this — there is no airtight AX-level guarantee here, but
-    /// the standard role is refused every time it's honoured. Pure and
-    /// test-pinned, unlike the IPC around it.
-    ///
-    /// A LITERAL, not `kAXSecureTextFieldRole` — unlike `kAXTextAreaRole`
-    /// (used elsewhere in this file) that symbol is not exposed by
-    /// `ApplicationServices`. `"AXSecureTextField"` is Apple's own documented,
-    /// stable role string (`NSAccessibility.Role.secureTextField.rawValue`
-    /// resolves to the same value) — every other role check in this codebase
-    /// already treats these as plain strings via `as String` regardless.
+    /// A password field, best-effort. A custom-rendered secure field that doesn't expose the
+    /// standard AX role slips past this.
     public static let secureTextFieldRole = "AXSecureTextField"
 
     public static func isSecureField(role: String?) -> Bool {

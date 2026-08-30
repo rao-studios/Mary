@@ -2,28 +2,18 @@
 //  VoicePipeline.swift
 //  MaryVoice
 //
-//  The conversational auto-loop:
+//  WHAT: Conversational auto-loop. Orchestrates four collaborators.
+//  IN:   MicCapture / EnergyVAD / VoiceTranscriber / LanguageResponder / KokoroStreamSpeaker
+//  OUT:  VoicePipelineEvent (UI / probes / tests)
+//        VoiceFloorOwner / AmendCapture / ProactiveDeliveryState / FollowUpPriority
+//        VoicePipeline+*.swift (same actor)
 //
 //    idle ─start()→ listening(waiting) ─VAD speechStart→ listening(active)
 //      ─VAD endpoint→ transcribing ─final transcript→ thinking
 //      ─first TTS audio→ speaking ─reply done + drained→ listening(waiting)
 //    speaking ─sustained user speech→ barge-in → listening(active)
 //
-//  The mic tap never closes mid-session: while Mary speaks it watches for
-//  barge-in (with a boosted threshold so she ignores her own voice), and a
-//  ~300 ms pre-roll ring is replayed into the transcriber so first syllables
-//  never clip. Every stage multicasts VoicePipelineEvents to any number of
-//  subscribers — the app's UI, the probe CLI, tests.
-//
-//  This actor is the orchestrator: it sequences calls to four collaborators
-//  that each own one slice of state —
-//    - VoiceFloorOwner: who owns the shared speaker's voice floor right now.
-//    - AmendCapture: the thinking-phase-interrupt correction buffer.
-//    - ProactiveDeliveryState: what proactive speech is buffered, and whose.
-//    - FollowUpPriority: the pure decision over what a follow-up token does.
-//  Turn/session/frame orchestration itself is split by MARK region across
-//  VoicePipeline+*.swift files in this same directory — same actor, same
-//  isolation domain, no behavior change from the split itself.
+//  PIN: Mic stays open for barge-in. ~300 ms pre-roll into the transcriber.
 //
 
 import AVFoundation
@@ -40,9 +30,8 @@ public actor VoicePipeline {
     var amendCapture: AmendCapture
     var proactive = ProactiveDeliveryState()
 
-    /// A pipeline is single-use. Once teardown starts, no continuation that
-    /// was already suspended in a collaborator may reopen the microphone,
-    /// reclaim the shared speaker, or cancel a later session's responder.
+    /// Single-use. After teardown starts, no suspended continuation may reopen
+    /// the mic, reclaim the speaker, or cancel a later session's responder.
     private(set) var terminated = false
     private var terminationComplete = false
     private var terminationWaiters: [CheckedContinuation<Void, Never>] = []
@@ -55,63 +44,47 @@ public actor VoicePipeline {
     var partialTask: Task<Void, Never>?
 
     let vad: EnergyVAD
-    /// (buffer, duration) ring holding the last ~preRollMs of audio.
+    /// (buffer, duration) ring — last ~preRollMs of audio, replayed into STT.
     var preRoll: [(AVAudioPCMBuffer, TimeInterval)] = []
     var preRollDuration: TimeInterval = 0
-    /// Sustained voiced time while speaking — the barge-in trigger.
+    /// Sustained voiced time while speaking — barge-in trigger.
     var bargeGovernor: BargeInGovernor?
-    /// True only while audio is ACTUALLY audible. `.speaking` is a turn-level
-    /// state that outlives the sound: a turn held open across a Skill call, a
-    /// slow lane, or a second model pass sits in `.speaking` with a silent
-    /// speaker. The `bargeInRMSBoost` exists so the mic ignores Mary's OWN
-    /// voice — with no voice playing it only deafens her to the user, who
-    /// then speaks at normal volume, is swallowed, and hears the held reply
-    /// arrive late (traced from a live session).
+    /// True only while audio is actually audible. `.speaking` outlives sound
+    /// (Skill / slow lane). Boost only while live, else the mic deafens the user.
     var speakerAudioLive = false
     var levelFrameCounter = 0
 
-    /// Whether responder.respond was actually called for the current turn.
+    /// Whether responder.respond was called for the current turn.
     var respondStarted = false
-    /// The exchange currently on screen — every `.turnBegan`. The reference
-    /// point a follow-up's origin is judged against.
+    /// Exchange currently on screen — every `.turnBegan`. Follow-up origin check.
     var currentUserTurnID: UUID?
-    /// True only while the responder's event loop is live — `.speaking` alone
-    /// can't distinguish mid-generation from post-generation drain, and the
-    /// follow-up preemption semantics differ (cancel the turn vs. cut audio).
+    /// True while the responder event loop is live. Distinguishes mid-generation
+    /// from post-generation drain (follow-up preemption differs).
     var generationActive = false
 
     private var eventContinuations: [UUID: AsyncStream<VoicePipelineEvent>.Continuation] = [:]
 
-    /// CONTINUOUS HEARING IS OPTIONAL AND ADDITIVE. Nil is the shipping
-    /// default and the whole acoustic path behaves exactly as it always has;
-    /// supplying one adds a session-long transcript beside it that can only
-    /// REMEMBER or OFFER, never take.
+    /// Optional session-long transcript. Nil = shipping default; supplying one
+    /// can only remember or offer, never take the acoustic path's turn.
     let continuous: (any ContinuousTranscribing)?
     let intakeTuning: IntakePlanner.Tuning
-    /// Finalized spans accumulated since the last decision.
+    /// Finalized spans since the last IntakePlanner decision.
     var heardBuffer = ""
-    /// Fires once the room has been quiet for `completionSilence`. Cancelled
-    /// and rescheduled by each new span, which is what lets a pause mid-thought
-    /// extend the utterance instead of cutting it in half — the exact failure
-    /// the flat 850 ms hangover causes.
+    /// Debounce after the last span. Cancelled/rescheduled per span so a pause
+    /// mid-thought extends the utterance. PIN: longer than the 850 ms hangover.
     var heardDecisionTask: Task<Void, Never>?
     var continuousTask: Task<Void, Never>?
 
     var proactiveTask: Task<Void, Never>?
 
-    /// The last query submitted (or about to be) — the amend flow's
-    /// "original" when the user supersedes it.
+    /// Last query submitted — amend flow's "original".
     var lastFinalTranscript = ""
 
-    /// True while the goodbye is in flight. `handleProactive` refuses under
-    /// it: `proactiveTask` is cancelled below, but one already-dispatched
-    /// event can still land mid-drain, and a follow-up stealing the ack's
-    /// lease would clip the goodbye and blurt a fragment of old work.
+    /// True while the goodbye is in flight. `handleProactive` refuses; a late
+    /// follow-up must not steal the ack's lease.
     var stopExitInProgress = false
-    /// Identity of the acknowledgement currently ending this session. Actor
-    /// reentrancy matters here: `speaker.flush` may be suspended in Seer or in
-    /// real audio playback while an external stop tears the session down.
-    /// Identity prevents that stale continuation from emitting a second stop.
+    /// Ack currently ending this session. Survives `speaker.flush` suspend so a
+    /// stale continuation cannot emit a second stop.
     var stopExitID: UUID?
 
     public init(
@@ -135,8 +108,7 @@ public actor VoicePipeline {
 
     // MARK: - Events
 
-    /// A fresh stream of pipeline events for each subscriber. Streams end when
-    /// the session stops.
+    /// Fresh multicast stream. Ends when the session stops. OUT: VoicePipelineEvent.
     public func events() -> AsyncStream<VoicePipelineEvent> {
         let id = UUID()
         let (stream, continuation) = AsyncStream<VoicePipelineEvent>.makeStream(bufferingPolicy: .unbounded)
@@ -158,15 +130,12 @@ public actor VoicePipeline {
         }
     }
 
-    // MARK: - Test seams (preemption tests drive handleProactive directly;
-    // a real session needs a mic and a human)
+    // MARK: - Test seams (preemption tests drive handleProactive without a mic)
 
     func setStateForTesting(_ newState: VoicePipelineState) async {
         state = newState
-        // Production reserves the voice floor in `start()`. The direct
-        // proactive-playback seams model a live session without opening a
-        // microphone, so give them the same reservation rather than letting
-        // tests bypass the ownership protocol.
+        // Production claims the floor in `start()`. Direct playback seams need
+        // the same reservation without opening a microphone.
         if newState != .idle, voiceFloor.currentLease == nil {
             _ = await voiceFloor.claim()
         }
@@ -198,9 +167,8 @@ public actor VoicePipeline {
     public func start() async throws {
         guard !terminated else { throw CancellationError() }
         guard state == .idle else { return }
-        // Reserve the floor before opening the mic. A text-mode follow-up
-        // that was holding for quiet must not use the listening gap as a
-        // chance to speak over a just-started voice session.
+        // Claim the floor before the mic. A text-mode follow-up waiting for
+        // quiet must not speak over a just-started voice session.
         guard let startLease = await voiceFloor.claim() else { throw CancellationError() }
         let mic = MicCapture(voiceProcessing: config.vad.voiceProcessing)
         let frames: AsyncStream<MicFrame>
@@ -215,8 +183,7 @@ public actor VoicePipeline {
         preRoll = []
         preRollDuration = 0
         transition(to: .listening(utteranceActive: false))
-        // No format means no tap installed, so there is nothing to hear —
-        // the acoustic path will fail on its own terms and say so.
+        // No tap format → nothing to hear; the acoustic path fails on its own.
         if let format = mic.format { await startContinuousHearing(format: format) }
         guard !terminated, state != .idle else {
             mic.stop()
@@ -231,8 +198,7 @@ public actor VoicePipeline {
             }
         }
 
-        // Detached routines speak their grounded follow-ups through the same
-        // speaker — when the room is quiet.
+        // Detached-routine follow-ups share this speaker when the room is quiet.
         proactiveTask = Task {
             for await event in responder.proactiveEvents() {
                 if Task.isCancelled { break }
@@ -252,15 +218,11 @@ public actor VoicePipeline {
         terminated = true
         voiceFloor.markTerminated()
 
-        // Close the logical session before any cancellation hop. A cancelled
-        // proactive stream may deliver one last event; idle state makes that
-        // event inert instead of letting it rebuild follow-up state while the
-        // microphone is shutting down.
+        // Close logical session before cancellation hops. A last proactive event
+        // must see idle, not rebuild follow-up state.
         transition(to: .idle)
-        // Invalidate an acknowledgement suspended in synthesis/playback. If
-        // an external stop wins that race, its hard speaker stop is the end of
-        // the session; the old acknowledgement must not later emit a second
-        // stop command when its flush unwinds.
+        // Drop an ack still suspended in synthesis. External stop wins; stale
+        // flush must not emit a second stop command.
         stopExitID = nil
         stopExitInProgress = false
         micLoopTask?.cancel()
@@ -278,16 +240,13 @@ public actor VoicePipeline {
         partialTask = nil
         voiceFloor.stopWatch()
 
-        // Physical ownership is released before the first collaborator await.
-        // `continuous.endSession()` may bridge an analyzer that is slow or
-        // wedged; an explicit UI/error stop must never leave the CoreAudio tap
-        // alive behind it. The spoken-command path reaches this method only
-        // after its acknowledgement has already drained and stopped the mic.
+        // Release physical ownership before the first collaborator await.
+        // `continuous.endSession()` may wedge; UI stop must not leave the tap up.
         mic?.stop()
         mic = nil
         proactive.forceStop()
-        // A stale marker across sessions would make the NEXT session's first
-        // barge-in look like it interrupted a remark that ended long ago.
+        // Stale ambient marker would make the next session's first barge-in look
+        // like it interrupted a remark that ended long ago.
         proactive.ambientCandidateID = nil
         currentUserTurnID = nil
         speakerAudioLive = false
@@ -295,10 +254,8 @@ public actor VoicePipeline {
         respondStarted = false
         generationActive = false
 
-        // These collaborators belong only to this pipeline. They may bridge
-        // Speech frameworks that never return from shutdown, so start both
-        // cleanups independently and do not let either hold the shared session
-        // box. They retain themselves until their own cleanup finishes.
+        // These collaborators belong to this pipeline. Detach cleanup so a wedged
+        // Speech shutdown cannot hold the shared session box.
         let retiringTranscriber = transcriber
         Task.detached(priority: .utility) {
             await retiringTranscriber.cancel()
@@ -309,16 +266,12 @@ public actor VoicePipeline {
             }
         }
 
-        // A claim/handoff already dispatched to the shared speaker must settle
-        // before the unconditional session-floor release. Once this returns,
-        // all old TTS work is lease-revoked and its output graph is retired.
+        // In-flight claim/handoff must settle before unconditional floor release.
         await voiceFloor.waitForOwnershipOperations()
         await voiceFloor.releaseUnconditionally()
 
-        // Responder cancellation is shared with text mode and the next voice
-        // session, so it remains inside the ownership fence. Drain any older
-        // cancellation first, then make this stop's cancellation the final one
-        // before exposing the box as free.
+        // Responder cancel is shared with text mode. Drain older cancels, then
+        // this stop's cancel, then expose the box as free.
         await voiceFloor.waitForResponderCancellations()
         await voiceFloor.cancelResponder()
         for continuation in eventContinuations.values {
@@ -332,7 +285,7 @@ public actor VoicePipeline {
         for waiter in waiters { waiter.resume() }
     }
 
-    /// Manual interrupt (UI button / hotkey) — same path as acoustic barge-in.
+    /// Manual interrupt (UI button / hotkey). OUT: same path as acoustic barge-in.
     public func bargeIn() async {
         guard state == .speaking || state == .thinking || state == .transcribing else { return }
         await performBargeIn()

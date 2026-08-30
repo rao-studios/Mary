@@ -2,11 +2,11 @@
 //  MarySeerSkillEngine.swift
 //  MaryBrain
 //
-//  Lane B hosted: one POST to `/v1/skills/complete` per acting round.
-//  Dispatch stays on-device. If Seer is not ready, the optional local MLX
-//  engine carries the round — same shape as Lane A falling back to localTurn.
+//  WHAT: Lane B hosted — one POST to `/v1/skills/complete` per acting round.
+//  IN:   orchestrator lane
+//  OUT:  invocation synthesis; dispatch on-device
+//  PIN:  If Seer is unready, optional local MLX carries the round.
 //
-
 import Foundation
 
 public actor MarySeerSkillEngine: InferenceEngine {

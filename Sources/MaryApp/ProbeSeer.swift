@@ -2,18 +2,9 @@
 //  ProbeSeer.swift
 //  Mary
 //
-//  Headless full-stack turn: local servers up, Seer sign-in, dual-lane brain
-//  (Seer voice + engine orchestrator), contribution printed at the end.
-//
-//    swift run Mary --probe-seer "what do you remember about me?"
-//    swift run Mary --probe-seer "hi" --engine mistral [--speak]
-//    swift run Mary --probe-seer "hi" --transport realtime [--speak]
-//        (WebSocket route: interleaved tokens + server TTS; timing prints
-//        submit→first-audio for A/B against classic)
-//    swift run Mary --probe-seer "slow job" --follow            (wait for the
-//        detached routine's grounded follow-up)
-//    swift run Mary --probe-seer "slow job" --follow --then "stop"
-//        (second turn after 2 s — exercises routine stop / one-at-a-time)
+//  WHAT: Headless full-stack Seer turn (servers, sign-in, dual-lane brain).
+//  OUT:  contribution + timing. CLI: swift run Mary --probe-seer "…" [--follow] [--then]
+//  PIN:  Always wires Seer, even if Brain card says on-device.
 //
 
 import MaryBrain

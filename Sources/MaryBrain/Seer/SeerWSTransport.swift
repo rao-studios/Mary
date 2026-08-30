@@ -2,11 +2,10 @@
 //  SeerWSTransport.swift
 //  MaryBrain
 //
-//  Injectable WebSocket seam for the realtime Seer route, mirroring
-//  SeerSSETransport: tests script frames offline, the app wires URLSession.
-//  First WebSocket usage in the repo.
+//  WHAT: Injectable WebSocket seam for the realtime Seer route.
+//  IN:   SeerRealtimeClient
+//  OUT:  tests script frames; app wires URLSession
 //
-
 import Foundation
 
 /// One WebSocket frame, either direction.
@@ -36,10 +35,7 @@ public protocol SeerWSTransport: Sendable {
     func connect(_ request: URLRequest) async throws -> SeerWSConnection
 }
 
-/// URLSessionWebSocketTask-based transport. Upgrade failures (including 401)
-/// surface as the first `receive()` error — the realtime client treats any
-/// pre-frame failure as "fall back to the classic route", whose own
-/// refresh-and-retry then applies.
+/// URLSessionWebSocketTask-based transport. Upgrade failures (including 401) surface as the first `receive()` error
 public struct URLSessionWSTransport: SeerWSTransport {
     public init() {}
 

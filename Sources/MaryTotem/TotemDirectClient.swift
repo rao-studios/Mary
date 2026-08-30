@@ -2,15 +2,9 @@
 //  TotemDirectClient.swift
 //  MaryTotem
 //
-//  One-shot gRPC calls against the local Totem node's direct server (:9090),
-//  which registers only TotemQuery, TotemLibrary, and TotemGraph — TotemUpdate
-//  and everything else ride Seer's mothership session or Totem's HTTP port.
-//
-//  Each call opens its own plaintext HTTP/2 connection (the pattern Conduit
-//  itself uses for out-of-band heartbeats): Mary's calls are sparse
-//  (a deposit per Skill invocation, inspector reads), so connection reuse isn't
-//  worth the lifecycle bookkeeping of a held channel to a server the user can
-//  restart from the Servers sheet at any time.
+//  WHAT: One-shot gRPC against the local Totem direct server (:9090).
+//  OUT:  TotemQuery / TotemLibrary / TotemGraph. Writes elsewhere ride Seer or HTTP.
+//  PIN:  Fresh plaintext HTTP/2 per call — sparse calls; user may restart from Servers.
 //
 
 import Conduit
@@ -59,11 +53,7 @@ public actor TotemDirectClient {
         }
     }
 
-    /// Clears EVERY document owned by `ownerID` on this node (all groups,
-    /// including saved memories) — the Totem server treats an empty id list as
-    /// remove-all-for-owner. The node id / on-disk DB identity is preserved;
-    /// only contents go. Named to keep that "empty means wipe" intent explicit
-    /// at call sites. Returns the removed count.
+    /// Clear every document for ownerID (empty id list = wipe). Node identity stays.
     @discardableResult
     public func clearOwner(ownerID: String) async throws -> Int {
         try await remove(documentIDs: [], ownerID: ownerID)
@@ -124,10 +114,7 @@ public actor TotemDirectClient {
         }
     }
 
-    /// Full document content by id (TotemLibrary.Documents) — partition texts
-    /// reassembled in stored order. Inaccessible/unknown ids are omitted by
-    /// the server; an old Totem binary without the RPC throws (UNIMPLEMENTED),
-    /// so callers should keep a fallback.
+    /// Full document by id. Unknown ids omitted; old Totem may throw UNIMPLEMENTED.
     public func documents(ids: [String], ownerID: String) async throws -> [DocumentContent] {
         let request = TotemProtoMap.documentsRequest(ids: ids, ownerID: ownerID)
         return try await withLibraryStub(timeout: .seconds(30)) { stub, options in
@@ -180,12 +167,7 @@ public actor TotemDirectClient {
         }
     }
 
-    /// Traverses the entity graph around a seed (TotemGraph.Query). `entity`
-    /// matches an entity by name; `query` free-text-matches server-side; both
-    /// empty is browse mode (top entities by mention, same as `graphStats`).
-    /// The server clamps `hops` to 1...3 and maps 0 to 1; `limit` 0 means the
-    /// server default of 20. 30-second timeout matching `search`'s: a
-    /// free-text query pays a server-side embedding.
+    /// Graph around a seed. Empty entity+query = browse. hops clamped 1…3; limit 0 → 20.
     public func graphQuery(
         entity: String = "",
         query: String = "",
@@ -371,10 +353,7 @@ enum TotemProtoMap {
         return request
     }
 
-    /// Browse mode is the zero-seed corner of `graphQueryRequest` — proto3
-    /// never serializes zero-value scalars, so setting the defaults explicitly
-    /// keeps the bytes identical to the ownerID+limit request `graphStats` has
-    /// always sent.
+    /// Browse mode = zero-seed graphQueryRequest. Explicit defaults keep proto3 bytes identical.
     static func graphBrowseRequest(ownerID: String, limit: Int) -> Totem_V1_TotemGraphQueryRequest {
         graphQueryRequest(
             entity: "", query: "", kinds: [], hops: 0,

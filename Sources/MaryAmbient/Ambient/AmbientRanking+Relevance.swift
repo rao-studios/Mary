@@ -1,5 +1,10 @@
 //
 //  AmbientRanking+Relevance.swift
+//  MaryAmbient
+//
+//  WHAT: Relevance ranking for held facts against the utterance.
+//  IN:   AmbientRanker
+//  OUT:  AmbientAddressProbe / AffordanceResolver (same stopWords)
 //
 
 import Foundation
@@ -8,18 +13,8 @@ extension AmbientRanker {
 
     // MARK: - Relevance
 
-    /// Words worth matching on — everything else is grammar the document does
-    /// not share. Internal (was private) so `AmbientAddressProbe` can apply
-    /// the SAME notion of "a word that distinguishes something" when it
-    /// decides whether an observed title is distinctive enough to address its
-    /// application; two spellings of that judgement would drift.
-    ///
-    /// PUBLIC (was internal) for the same reason one rung further out:
-    /// `AffordanceResolver` lives in MaryAdapter, because resolving a
-    /// goal against what is on screen needs the Accessibility reading this
-    /// package deliberately does not have — and it must ask exactly this
-    /// question when it decides whether a control's label shares anything
-    /// distinctive with the phrase, or merely shares "the".
+    /// Words worth matching on — everything else is grammar the document does not share. PUBLIC
+    /// for the same reason one rung further out: `AffordanceResolver` lives in MaryAdapter.
     public static let stopWords: Set<String> = [
         "the", "a", "an", "and", "or", "but", "of", "to", "in", "on", "at",
         "for", "with", "about", "is", "are", "was", "were", "it", "this",
@@ -29,35 +24,17 @@ extension AmbientRanker {
         "tell", "say", "says", "said", "show", "give", "again", "just", "so",
     ]
 
-    /// Does the utterance CONCERN this eyeless source? The expansion trigger
-    /// for the standing line: token overlap against the fact's own words, its
-    /// subject and the source's name ("calendar", "reminders"). The same
-    /// signal `relevance` already scores on, asked as a yes/no because the
-    /// rendering decision is a yes/no.
-    ///
-    /// Deliberately NOT a numeric threshold on `relevance`: that score carries
-    /// a recency term worth up to +1.0, so a digest refreshed thirty seconds
-    /// ago would clear any threshold set low enough to be useful — which is
-    /// how a courtesy line ends up spending the whole block budget on a turn
-    /// that had nothing to do with it.
+    /// Does the utterance CONCERN this eyeless source? The expansion trigger for the standing
+    /// line: token overlap against the fact's own words, its subject and the source's name .
+    /// Deliberately NOT a numeric threshold on `relevance`: that score carries a recency term.
     public static func concernsEyeless(_ fact: AmbientFact, utterance: String) -> Bool {
-        // A LIVE, currently-held perception (a `.applications` highlight, so far
-        // the only case) is not a standing digest — it only exists in the
-        // store while the user has something ACTUALLY selected right now
-        // (`replacePerceived` wipes it within one poll tick otherwise), so
-        // deixis ("this", "here", "on screen") is exactly the phrasing this
-        // fact exists to answer — the same way it already is for a focused
-        // workspace world (`isDeictic`, used by `concernsFocusedWorld` above).
-        // Gated on `isPerceived` so it can never fire for a `.digest`/
-        // `.namedRead` fact — both are `!isPerceived`, so this is inert for
-        // calendar/reminders-style standing lines today.
+        // A LIVE, currently-held perception is not a standing digest.
         if fact.slot.isPerceived, isDeictic(utterance) { return true }
         let wanted = tokens(utterance)
         guard !wanted.isEmpty else { return false }
-        // THE PLACE'S TOKEN AND NAME. With the world's, a Sketch fact's
-        // haystack read `other_apps Applications`, so "sketch the logo" could not
-        // match the very fact it was asking about — the fact was held, ranked
-        // last, and never surfaced.
+        // THE PLACE'S TOKEN AND NAME. With the world's, a Sketch fact's haystack read `other_apps
+        // Applications`, so "sketch the logo" could not match the very fact it was asking about —
+        // the fact was held, ranked last, and never surfaced.
         var searchable = fact.content + " " + (fact.subject ?? "")
             + " " + fact.place.token + " " + fact.place.displayName
         if case .namedRead(_, let phrase) = fact.slot { searchable += " " + phrase }
@@ -72,11 +49,7 @@ extension AmbientRanker {
                 .filter { $0.count > 2 && !stopWords.contains($0) })
     }
 
-    /// How much this fact has to do with what the user just said. Deliberately
-    /// simple and total: token overlap, plus the standing doctrine as small
-    /// additive terms — the user's own request outranks a passive observation,
-    /// live perception outranks cached text, and a stale fact loses ground
-    /// without disappearing.
+    /// How much this fact has to do with what the user just said.
     public static func relevance(
         of fact: AmbientFact, to utterance: String, at now: Date = Date()
     ) -> Double {
@@ -105,17 +78,9 @@ extension AmbientRanker {
         return score
     }
 
-    /// Rank facts under the user's three-way rule. Focus priority is a
-    /// PARTITION, not a bonus: a focused-place fact never sorts below an
-    /// unfocused one in that mode, however relevant the other is — which is
-    /// what "apply focused priority INSTEAD" means.
-    ///
-    /// PLACES, NOT WORLDS. Bonnie offered a world-typed shim beside this that
-    /// wrapped its argument in `.lane(...)`, which worked while a world WAS
-    /// an application. Here every application shares the one `.applications`
-    /// lane, so comparing worlds would rank every application as focused
-    /// whenever any of them was — the shim is not narrower, it is wrong, and
-    /// so it is gone.
+    /// Rank facts under the user's three-way rule. Focus priority is a PARTITION, not a bonus:
+    /// a focused-place fact never sorts below an unfocused one in that mode, however relevant
+    /// the other is — which is what "apply focused priority INSTEAD" means.
     public static func rank(
         facts: [AmbientFact],
         utterance: String,
@@ -146,18 +111,8 @@ extension AmbientRanker {
         return (mode, sorted.map(\.fact))
     }
 
-    /// RANK, THEN RENDER. `alreadyRendered` names the facts the caller has
-    /// already put in front of the model in FULL (the leading world's live
-    /// section) — they are skipped here rather than mentioned, because they
-    /// are not omitted, they are above.
-    ///
-    /// `surfaces` IS TIER 0 AND SPENDS FIRST — the caller passes them
-    /// lead-lane first (it is the side holding `leadPlace`; this stays
-    /// place-ignorant). The foundation is charged to the budget before any
-    /// detail, which is the tiering made literal. A surface that does not
-    /// fit is DROPPED rather than degraded to a mention: it is live
-    /// perception, not held knowledge, and a half-rendered screen claims
-    /// something no one measured.
+    /// RANK, THEN RENDER. `alreadyRendered` names the facts the caller has already put in front
+    /// of the model in FULL.
     public static func render(
         facts: [AmbientFact],
         utterance: String,
@@ -176,10 +131,9 @@ extension AmbientRanker {
             let attended = attention?.matches(fact) == true
             guard attended || !alreadyRendered.contains(fact.key) else { return false }
             guard !fact.content.isEmpty else { return false }
-            // The turn's own fetch-first passage rides its own authority
-            // block; rendering it twice would put the same text under two
-            // different freshness claims — the exact hazard the ONE-authority
-            // ordering exists to close.
+            // The turn's own fetch-first passage rides its own authority block; rendering it twice
+            // would put the same text under two different freshness claims — the exact hazard the
+            // ONE-authority ordering exists to close.
             return !suppressed.contains { $0.contains(fact.content) }
         }
         let ranked = rank(

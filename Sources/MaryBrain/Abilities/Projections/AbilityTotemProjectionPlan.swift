@@ -1,12 +1,15 @@
+//
+//  AbilityTotemProjectionPlan.swift
+//  MaryBrain
+//
+//  WHAT: Frozen Totem projection plan for a package result.
+//  IN:   package schema
+//  OUT:  depositor-enforced plan (or nil = machine-local only)
+//
 import MaryFoundation
 import Foundation
 
-/// One package-authored Totem projection resolved against the exact Ability
-/// registry revision used to execute a Skill.
-///
-/// Projections remain independent. In particular, a broad redacted receipt
-/// never intersects with (and thereby erases) a narrow content record such as
-/// Architect's project rationale.
+/// One package-authored Totem projection resolved against the exact Ability registry revision used to execute a Skill.
 public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
     public var id: ProjectionID
     public var purpose: TotemProjectionPurpose
@@ -46,11 +49,6 @@ public struct ResolvedTotemProjection: Sendable, Equatable, Identifiable {
 }
 
 /// Frozen persistence instructions for one executed Skill.
-///
-/// Receipt projections are eligible for every terminal execution state;
-/// content projections are deposited only after success. A packaged Skill
-/// with no selected durable projection receives `.denied`, while `nil` at the
-/// lookup boundary denotes a machine-local adapter without a package policy.
 public struct AbilityTotemProjectionPlan: Sendable, Equatable {
     public var packageID: PackageID
     public var packageVersion: SemanticVersion

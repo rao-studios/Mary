@@ -2,11 +2,10 @@
 //  MaryCodingEngine.swift
 //  MaryBrain
 //
-//  On-device coding delegate. Hub-downloads the selected MLX id (default:
-//  the Gemma 4 12B coder 4-bit snapshot) and synthesizes rounds for the
-//  shared jailed loop. Frigate only supplies the architecture.
+//  WHAT: On-device coding delegate (MLX).
+//  IN:   CodingAgentTurnLoop
+//  OUT:  synthesized rounds; Frigate supplies architecture
 //
-
 import Foundation
 import MLXLLM
 import MLXLMCommon

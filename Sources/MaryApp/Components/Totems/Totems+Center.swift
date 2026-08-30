@@ -23,10 +23,7 @@ extension Totems {
             var selectedExchangeID: String? = nil
         }
 
-        // Transient (no `persist:`) like Home, Debugger and Router — click-
-        // scoped state ONLY. The 1 Hz poll never routes through here: Granite's
-        // @Store debounces 200 ms, which would blur exactly the live retrieval
-        // this pane exists to watch.
+        // Transient Center; 1 Hz retrieval poll stays off @Store.
         @Store public var state: State
     }
 }

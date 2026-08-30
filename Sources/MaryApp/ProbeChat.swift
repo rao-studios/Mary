@@ -2,16 +2,8 @@
 //  ProbeChat.swift
 //  Mary
 //
-//  Headless one-turn chat for precision testing from the terminal — the same
-//  brain/speaker the app uses, no window:
-//
-//    swift run Mary --probe-chat "hello there" --engine tinker --speak
-//    swift run Mary --probe-chat "what time is it" --engine mistral
-//    swift run Mary --probe-chat "what's playing" --engine mistral-api
-//
-//  Prints streamed tokens as they arrive, then a [metrics] ttft/total line
-//  for engine A/Bs; --speak also routes them through Kokoro exactly like
-//  the app does.
+//  WHAT: Headless one-turn chat (same brain/speaker, no window).
+//  OUT:  streamed tokens + [metrics]. CLI: swift run Mary --probe-chat "…" --engine …
 //
 
 import MaryBrain

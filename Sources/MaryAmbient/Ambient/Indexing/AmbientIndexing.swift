@@ -2,34 +2,15 @@
 //  AmbientIndexing.swift
 //  MaryAmbient
 //
-//  THE PROJECT LANE: one structural snapshot per project the user works in —
-//  its name, the document in front of them, its section headings, how big it
-//  is. Deliberately structural: headings and shape are project context, while
-//  body text stays behind explicit reads.
+//  WHAT: Project lane — one structural snapshot per project (name, focused document, headings, size).
+//  OUT:  Totem (durable). Body text stays behind explicit reads.
+//  PIN:  Schema is declared by the package, not learned. StyleTenet/StyleEvidence are how a person works.
 //
-//  WHAT THIS FILE NO LONGER CONTAINS, and why the absence is the design. The
-//  source build put a second coordinator here that LEARNED an application's
-//  schema by watching it — accumulating observations about which slots an
-//  application tends to fill, with confidence rising and falling, until Mary
-//  had a picture of what kind of thing it was. Mary does not need to guess:
-//  an application arrives as a package that STATES what it is, what it can
-//  be observed through, and what its documents are called. Keeping the
-//  observer would have meant two sources of truth for one fact, with the
-//  learned one free to drift away from the declared one and no rule for
-//  which wins.
-//
-//  Its mechanics were good and are not lost — support counts, decay,
-//  counter-evidence, a format version from the first commit. `StyleTenet` and
-//  `StyleEvidence` are that design generalized, applied to the one thing Mary
-//  genuinely cannot be told and has to observe: how a person works.
-//
-
 import Foundation
 
-/// A durable-project indexing candidate. The snapshot is intentionally
-/// structural: its section names and location are project context, while body
-/// text remains available only through explicit reads and the normal action
-/// archive.
+/// A durable-project indexing candidate. The snapshot is intentionally structural: its
+/// section names and location are project context, while body text remains available only
+/// through explicit reads and the normal action archive.
 public struct AmbientProjectSnapshot: Sendable, Equatable {
     public var subject: DepositSubject
     public var projectName: String

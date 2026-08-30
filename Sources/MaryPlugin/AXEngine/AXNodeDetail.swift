@@ -2,26 +2,15 @@
 //  AXNodeDetail.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  THE DETAIL LANE'S PUBLISHED SHAPE. The streamed walk pays for eight
-//  fields per node and nothing more — that diet is what keeps the wireframe
-//  at 60fps, and it is deliberately starved of everything a CLOSE look
-//  wants: text content, control values, styled runs. `AXDetailReader` is
-//  the lane that pays for those, on demand, for ONE zoomed subtree at a
-//  time; these are the value types it publishes. Same doctrine as
-//  `AXNodeSnapshot`: plain Sendable values, no `AXUIElement` anywhere —
-//  detail decorates ids the snapshot already carries, so a renderer joins
-//  the two by `AXNodeID` and never touches AX itself.
-//
+//  WHAT: Detail-lane published shape (text, values, styled runs).
+//  IN:   AXDetailReader  OUT: renderer join by AXNodeID
+//  PIN:  Plain Sendable — no AXUIElement. Snapshot diet stays starved.
 
 import CoreGraphics
 import Foundation
 
-/// An sRGB color as AX reported it — decoded once at read time so no
-/// CoreGraphics color object crosses the seam. A provider color is a claim
-/// about the TARGET app's canvas, not Clyde's; presentation decides whether
-/// it survives (`AXDetailPresentation.usableForeground`).
+/// An sRGB color as AX reported it — decoded once at read time so no CoreGraphics color
+/// object crosses the seam.
 public struct AXTextRunColor: Sendable, Equatable {
     public var red: Double
     public var green: Double
@@ -36,11 +25,9 @@ public struct AXTextRunColor: Sendable, Equatable {
     }
 }
 
-/// One maximal same-styled slice of a text element's content, decoded from
-/// the AX text-attribute keys (`AXFont`, `AXForegroundColor`, …) that
-/// `kAXAttributedStringForRange` answers with. Every styling field is
-/// optional-or-false because every provider omits a different subset —
-/// Chromium commonly answers the plain string with no attributes at all.
+/// One maximal same-styled slice of a text element's content, decoded from the AX
+/// text-attribute keys (`AXFont`, `AXForegroundColor`, …) that
+/// `kAXAttributedStringForRange` answers with.
 public struct AXTextRun: Sendable, Equatable {
     public var text: String
     public var fontName: String?
@@ -78,11 +65,7 @@ public struct AXTextRun: Sendable, Equatable {
     }
 }
 
-/// One node's detail decoration — everything the streamed walk's diet
-/// refuses at 60fps. Every field nil/empty means "the provider declined",
-/// never "asked and got an answer of nothing"; the reader's diet decides
-/// which fields were even asked for (a checkbox is never asked for text
-/// runs, a container is never asked for anything).
+/// One node's detail decoration — everything the streamed walk's diet refuses at 60fps.
 public struct AXNodeDetail: Sendable, Equatable {
     public var id: AXNodeID
     /// `kAXValue` as a string — static text content, field contents, a
@@ -146,11 +129,8 @@ public struct AXNodeDetail: Sendable, Equatable {
     }
 }
 
-/// The detail lane's answer for one focused subtree — decorations keyed by
-/// the SAME ids the published snapshot carries, so the renderer's existing
-/// recursion joins them for free. A node absent from `nodes` either fell
-/// outside the budget, vanished between walk and read, or is synthesized
-/// (`.scripted`) and has no live element to ask.
+/// The detail lane's answer for one focused subtree — decorations keyed by the SAME ids the
+/// published snapshot carries, so the renderer's existing recursion joins them for free.
 public struct AXSubtreeDetail: Sendable, Equatable {
     public var rootID: AXNodeID
     public var nodes: [AXNodeID: AXNodeDetail]

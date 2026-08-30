@@ -1,8 +1,10 @@
 //
 //  TotemExplorerRows.swift
+//  Mary
 //
-//  Split out of TotemExplorerViewModel.swift (docs/DECOMPOSITION.md
-//  Wave 2) — pure relocation, no declaration changed.
+//  WHAT: Pure row models for the Totems pane.
+//  IN:   TotemExplorerViewModel (sibling split)
+//  OUT:  Totems*View
 //
 
 import MaryAmbient
@@ -19,8 +21,7 @@ struct TotemFleetHeader: Equatable {
     var mothershipID: String
     var totalDocumentCount: Int
     var totalGroupCount: Int
-    /// Seer's honest "no fleet" (zero registered nodes), distinct from
-    /// "fleet unreachable" — which is a notice, not a header.
+    /// Seer's honest "no fleet" (zero nodes). Unreachable is a notice, not a header.
     var enabled: Bool
     var nodeCount: Int
 }
@@ -33,20 +34,17 @@ struct TotemNodeRow: Identifiable, Equatable {
     var lastSeenLine: String
     var isActive: Bool
     var acceptingStorage: Bool
-    /// The live-node identity diff: this fleet row is the node the local
-    /// configuration (or the persisted node-id file) says Mary loads.
+    /// Live-node identity: this row is the node config (or persisted node-id) says Mary loads.
     var isConfiguredNode: Bool
     var stats: TotemNodeStats?
-    /// Rendered here rather than in the view, so the pure builder decides
-    /// what the pane says about a node's holdings.
+    /// Built here so the pane speaks the builder's line, not the view's.
     var statsLine: String?
 }
 
 struct TotemDiskRow: Identifiable, Equatable {
     var id: String
     var isLive: Bool
-    /// Which of the table/graph/registry triple actually flushed — orphans
-    /// often kept only part of it.
+    /// Which of table/graph/registry flushed — orphans often kept only part.
     var layersLine: String
     var bytes: Int64
     var sizeLine: String
@@ -103,16 +101,13 @@ struct TotemLaneSection: Identifiable, Equatable {
     var groups: [TotemGroupRow]
 }
 
-/// One drilled document, as a snapshot: either the full body (Documents RPC)
-/// or the ContributionInspector fallback tier — library metadata plus a
-/// search-hit preview — with the degradation NAMED in `notice`.
+/// Drilled document snapshot. Full body or ContributionInspector fallback; degradation named in `notice`.
 struct TotemDocumentDetail: Identifiable, Equatable {
     var id: String
     var name: String
     var groupLabel: String
     var createdAt: Date?
-    /// Partition texts joined in stored order. Nil when only the fallback
-    /// tier could answer.
+    /// Partition texts in stored order. Nil when only the fallback tier answered.
     var body: String?
     /// Fallback preview from a name-seeded search hit.
     var preview: String?
@@ -124,7 +119,7 @@ struct TotemDocumentDetail: Identifiable, Equatable {
 
 // MARK: - Graph
 
-/// The request as the panel shapes it — pure, so the clamp is pinnable.
+/// Request as the panel shapes it — pure, so the clamp is pinnable.
 struct TotemGraphRequestShape: Equatable {
     var query: String
     var kinds: [String]
@@ -145,8 +140,7 @@ struct TotemScopeGroupTag: Identifiable, Equatable {
 }
 
 struct TotemRetrievalRequestRow: Identifiable, Equatable {
-    /// The wire `requestID` — how the pane says which request the
-    /// contribution answered.
+    /// Wire `requestID` — which request the contribution answered.
     var id: String
     var transport: SeerTransportKind
     var aggregate: Bool
@@ -163,9 +157,7 @@ struct TotemMemoryPlanRow: Equatable {
     var relationshipHints: [String]
 }
 
-/// A derivation the pure builder computed and the panel exists to show.
-/// Derived every build, NEVER stored — a cached warning about live ledgers
-/// is a stale claim.
+/// Builder-computed warning. Derived every build, never stored (live ledgers go stale).
 struct TotemRetrievalWarning: Identifiable, Equatable {
     enum Kind: String, Equatable {
         case behaviouralCorpusUnreachable
@@ -178,13 +170,11 @@ struct TotemRetrievalWarning: Identifiable, Equatable {
     var kind: Kind
     var message: String
 
-    /// Message participates because one row can carry the same kind twice
-    /// (one budget/waterfall warning per prompt lane).
+    /// Same kind can appear twice (one budget/waterfall warning per prompt lane).
     var id: String { kind.rawValue + "|" + message }
 }
 
-/// One turn's retrieval story. Partial rows are NAMED STATES, never dropped:
-/// a route with no retrieval, or a ledger row with no route, is still a row.
+/// One turn's retrieval. Partial rows are named states, never dropped.
 struct TotemRetrievalTurnRow: Identifiable, Equatable {
     var id: String
     var date: Date
@@ -196,8 +186,7 @@ struct TotemRetrievalTurnRow: Identifiable, Equatable {
     var contribution: SeerContributionTrace?
     var ambient: [AmbientInjectionTrace]
     var promptSpend: [PromptSpendTrace]
-    /// The named partial state ("no retrieval asked", "no route row…"), nil
-    /// for a complete row.
+    /// Named partial ("no retrieval asked", "no route row…"); nil when complete.
     var state: String?
     var warnings: [TotemRetrievalWarning]
 }

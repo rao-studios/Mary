@@ -2,30 +2,9 @@
 //  CodeSurfaceWriteProbe.swift
 //  CorpusProbe
 //
-//  THE DISK-WRITE PATH, DRIVEN THROUGH REAL DISPATCH — the write-side sibling
-//  of `CodeSurfaceProbe`, for Step 5 of the plan
-//  ("why-does-mary-keep-mutable-rabbit.md"): Mary can now WRITE a code
-//  change into Xcode, through `replace_selection` → `PassageEditRunner.edit`
-//  → `CodeSurfaceWriter`'s atomic disk write.
-//
-//    mary-corpus-probe --dispatch-code-write --replace-text "// replaced"
-//                                                ← real write: dispatches replace_selection
-//                                                  against whatever is genuinely selected in
-//                                                  Xcode's front editor, confirms the file on
-//                                                  disk changed and that a fresh read_buffer
-//                                                  shows the same words.
-//    mary-corpus-probe --dispatch-code-write --expect-refusal
-//                                                ← THE CLEAN-BUFFER GATE: dispatches
-//                                                  replace_selection and asserts it REFUSES —
-//                                                  run this after typing an unsaved edit into
-//                                                  Xcode's front editor without saving it.
-//
-//  DELIBERATELY SCRATCH-FILE-FIRST. This probe never names a project file; it
-//  operates on whatever Xcode happens to have open and selected, and every
-//  live pass this branch's plan required was run against a throwaway file
-//  created for exactly this purpose — never a tracked source file — per the
-//  plan's own caution that this is "the highest-risk piece of work on this
-//  branch so far."
+//  WHAT: Disk-write path via real dispatch (replace_selection → CodeSurfaceWriter).
+//  OUT:  CLI: mary-corpus-probe --dispatch-code-write [--replace-text|--expect-refusal]
+//  PIN:  Operates on whatever Xcode has selected; scratch-file-first.
 //
 
 import ApplicationServices
@@ -165,14 +144,7 @@ enum CodeSurfaceWriteProbe {
         print("      \(writeOutcome.summary)")
 
         heading("after the write")
-        // POLLED, not a single fixed wait — Xcode's own file watcher notices
-        // the rename and reloads the editor asynchronously, and MEASURED
-        // LIVE this genuinely takes a variable amount of time: one pass saw
-        // the AX tree briefly unreadable a beat after the rename (mid-
-        // reload) before settling within a couple of seconds. This is the
-        // exact "1-3s" window `PassageEditRunner`'s header and this branch's
-        // plan both name; polling is what makes the probe robust to the
-        // measured variance rather than racing a single guessed delay.
+        // Poll until the live buffer shows the write (Xcode reload is async).
         var bufferAfter = SkillOutcome(ok: false, summary: "")
         for attempt in 1...6 {
             try? await Task.sleep(nanoseconds: 500_000_000)

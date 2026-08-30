@@ -2,34 +2,8 @@
 //  ActedElementReader.swift
 //  MaryPlugin
 //
-//  WHAT WAS JUST ACTED ON, READ AT THE MOMENT OF ACTING.
-//
-//  An adapter that types, presses or writes knows the act happened; what it
-//  has never known is WHERE. Bonnie's typer awaited a focused text surface and
-//  returned a `Bool`, discarding the element it had just proven; its hands
-//  returned a window rectangle and an opaque token. So no record of any action
-//  could say what it touched, and "she typed into the wrong window" was a
-//  report nobody could check afterwards.
-//
-//  This reader closes that. One AX read of the focused element, turned into
-//  the same `AXElementRecord` the surface tier publishes, so an action's
-//  target and a captured surface element line up by identity — the join the
-//  behavioural dataset is built on.
-//
-//  WHY NOT `AmbientBridge.record(from:window:capturedAt:)`. That takes an
-//  `AXScreenElement` from a completed tree WALK, and this path has no walk: an
-//  adapter about to type holds a focused element and nothing else, and walking
-//  the whole application to describe one element would be a second, slower,
-//  possibly-disagreeing answer to a question already settled. Both funnel
-//  through the SAME identity and kind spellings (`AmbientBridge.identity`,
-//  `PageElementKindDerivation`), which is what makes the two records
-//  comparable — pinned by test rather than by intention.
-//
-//  BEST EFFORT, ALWAYS. Every failure returns nil: no accessibility grant, a
-//  process that just exited, an application that exposes no focused element.
-//  An act that worked must never be reported as failed because describing it
-//  did not, so no caller may treat nil as anything but "unrecorded".
-//
+//  WHAT: Last-acted element from the snapshot roster.
+//  IN:   AXElementRoster / PageElementReader  OUT: affordance / spoken resolve
 
 import ApplicationServices
 import AppKit
@@ -40,13 +14,7 @@ import MaryFoundation
 
 public enum ActedElementReader {
 
-    /// The focused element of a running process, as a record.
-    ///
-    /// - Parameters:
-    ///   - pid: the process that was acted on.
-    ///   - capturedAt: the moment to stamp. Passed rather than taken so a
-    ///     caller can stamp the act's own instant instead of the instant it
-    ///     got round to describing it.
+    /// The focused element of a running process, as a record..
     public static func focusedElement(
         pid: pid_t, capturedAt: Date = Date()
     ) -> AXElementRecord? {
@@ -76,10 +44,9 @@ public enum ActedElementReader {
 
         return AXElementRecord(
             identity: AmbientBridge.identity(role: role, label: label),
-            // ORDINAL ZERO, MEANING "NOT FROM A ROSTER". A published element's
-            // ordinal is its reading-order position among the elements it was
-            // published alongside; there is no roster here, and inventing a
-            // position would make a record look like it came from a walk.
+            // ORDINAL ZERO, MEANING "NOT FROM A ROSTER". A published element's ordinal is
+            // its reading-order position among the elements it was published alongside;
+            // there is no roster here, and inventing a position would make a record look
             ordinal: 0,
             role: role,
             subrole: AX.string(element, kAXSubroleAttribute),
@@ -124,11 +91,9 @@ public enum ActedElementReader {
         return ""
     }
 
-    /// The window this element sits in, by walking parents.
-    ///
-    /// BOUNDED, because a malformed hierarchy can cycle: an AX parent chain is
-    /// another process's data structure, and an unbounded climb through one is
-    /// a hang in Mary wearing another application's bug.
+    /// The window this element sits in, by walking parents. BOUNDED, because a malformed
+    /// hierarchy can cycle: an AX parent chain is another process's data structure, and an
+    /// unbounded climb through one is a hang in Mary wearing another application's bug.
     static func windowElement(of element: AXUIElement) -> AXUIElement? {
         var current = element
         for _ in 0..<maximumAncestorClimb {

@@ -1,8 +1,16 @@
+//
+//  SourceScope.swift
+//  MaryFoundation
+//
+//  WHAT: Proven identity for an interaction or perception (device → document).
+//  IN:   adapters fill only what they can prove.
+//  OUT:  InteractionInstanceReference, SkillRunReceipt, route traces.
+//  PIN:  Absent document = application-scoped, never inferred.
+//
+
 import Foundation
 
-/// Hierarchical identity for the source of an interaction or perception.
-/// Device and application adapters fill only what they can prove; an absent
-/// document is an honest application-scoped interaction, not an inferred one.
+/// Hierarchical source identity.
 public struct SourceScope: Codable, Hashable, Sendable {
     public var deviceID: String?
     public var applicationID: String?
@@ -88,8 +96,7 @@ public enum PayloadCompleteness: String, Codable, Hashable, Sendable, CaseIterab
     case unavailable
 }
 
-/// Privacy-safe trace reference. Raw interaction values never ride route
-/// reports, Totem receipts, or exported ability packages.
+/// Privacy-safe trace pointer. Raw values stay off routes, Totem receipts, packages.
 public struct InteractionInstanceReference: Codable, Hashable, Sendable, Identifiable {
     public var id: UUID
     public var schemaID: InteractionID

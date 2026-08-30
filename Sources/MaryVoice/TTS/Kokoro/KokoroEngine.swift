@@ -2,10 +2,10 @@
 //  KokoroEngine.swift
 //  MaryVoice
 //
-//  On-device Kokoro TTS using FluidAudio's CoreML models (no SDK dependency).
-//  Faithful port of SeerTTS/KokoroTTSDemo's TTSClient with two deliberate
-//  changes: the @MainActor singleton becomes an injectable actor, and the
-//  iOS AVAudioSession branches are dropped (this package is macOS-only).
+//  WHAT: On-device Kokoro TTS (FluidAudio CoreML, no SDK).
+//  IN:   KokoroStreamSpeaker / speak()
+//  OUT:  waveform → KokoroDSP / playback
+//  PIN:  Injectable actor (not MainActor singleton); macOS-only.
 //
 
 import Foundation
@@ -26,32 +26,29 @@ public actor KokoroEngine {
     }
     /// All loaded models, sorted by maxTokens ascending (smallest first).
     var loadedModels: [LoadedModel] = []
-    /// The sample rate of the most recently used model — kept in sync by synthesizeWaveform.
+    /// Sample rate of the most recently used model — kept in sync by synthesizeWaveform.
     public internal(set) var sampleRate: Double = 24_000
 
     let phonemizer = KokoroPhonemizer()
     let g2p        = KokoroG2P()
     var currentVoice: KokoroVoice?
 
-    // Both neutral and styled playback share the same engine/player pair.
-    // postProcessor == nil distinguishes the neutral (no-effects) path.
+    // Neutral and styled playback share engine/player. postProcessor == nil → neutral.
     var effectsEngine: AVAudioEngine?
     var effectsPlayer: AVAudioPlayerNode?
     var postProcessor: KokoroAudioProcessor?
 
     var configChangeObserver: NSObjectProtocol?
 
-    /// Where the models were loaded from — kept for G2P validation reloads.
+    /// Where models were loaded from — G2P validation reloads.
     var modelsDirectory: URL?
 
-    /// The trace of the most recent synthesis.
+    /// Trace of the most recent synthesis.
     public internal(set) var lastPronunciationReport: PronunciationReport?
     var pronunciationContinuations: [UUID: AsyncStream<PronunciationReport>.Continuation] = [:]
 
     public init() {
-        // Rebuild effects engine when hardware changes (Bluetooth connect/disconnect,
-        // headphones plug/unplug, AirPlay switch) so the graph matches the new bus rate.
-        // Registered lazily on first load; actor inits can't touch self in a closure.
+        // Rebuild effects engine on hardware-rate change. Registered lazily on first load.
     }
 
     deinit {

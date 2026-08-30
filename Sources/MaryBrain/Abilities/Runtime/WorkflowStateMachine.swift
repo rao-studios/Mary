@@ -1,10 +1,16 @@
+//
+//  WorkflowStateMachine.swift
+//  MaryBrain
+//
+//  WHAT: Deterministic runner for `.mary` workflow Skills.
+//  IN:   SkillSchema.stateMachine after AbilityRuntime graph/safety checks
+//  OUT:  step graph → execute closures → SkillOutcome
+//  PIN:  Knows nothing about plugins or models; resolution/execution injected.
+//
 import MaryFoundation
 import Foundation
 
-/// One typed value in a workflow's private port ledger. Existing Plugin
-/// bindings accept string dictionaries, so `value` remains their transport;
-/// `valueType` preserves the schema identity through every step that declares
-/// one and makes the eventual adapter upgrade lossless.
+/// One typed value in a workflow's private port ledger. `value` is Plugin transport; `valueType` keeps schema identity.
 struct WorkflowPortValue: Sendable, Equatable {
     var value: String
     var valueType: ValueTypeID?
@@ -88,10 +94,8 @@ enum WorkflowStateMachine {
                 producerStepID: nil)
         }
 
-        // Model parameters and typed ports are independent schemas. Most
-        // current Skills have one typed request port whose model projection is
-        // named `task`, `question`, or `instruction`; preserve the type while
-        // adapting that single value rather than throwing it away.
+        // Model parameters and typed ports are independent schemas.
+        // PIN: One typed request port may share a model parameter name (`task` / `question` / `instruction`).
         if skill.inputs.count == 1,
            let input = skill.inputs.first,
            ports[input.name] == nil,
@@ -150,10 +154,7 @@ enum WorkflowStateMachine {
 
             let result = await execute(step, ports, arguments)
             let outcome = result.outcome
-            // Requested/deferred/cancelled operations do not represent a
-            // settled value that later steps may consume. The workflow returns
-            // that honest state instead of racing ahead (notably, a deferred
-            // code edit must not immediately run its build step).
+            // Requested/deferred/cancelled is not a settled value later steps may consume.
             if outcome.status == .requested
                 || outcome.status == .deferred
                 || outcome.status == .cancelled {

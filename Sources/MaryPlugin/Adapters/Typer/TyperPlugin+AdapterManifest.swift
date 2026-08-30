@@ -1,5 +1,11 @@
 //
 //  TyperPlugin+AdapterManifest.swift
+//  MaryBrain
+//
+//  WHAT: Writing Ability machine contract.
+//  IN:   TyperPlugin
+//  OUT:  InstalledAdapterManifest
+//  PIN:  Adapter owns execution; `.mary` package owns routing. Empty claims fail closed.
 //
 
 import AppKit
@@ -9,10 +15,7 @@ import os
 extension TyperPlugin {
 
 
-    /// Complete machine contract for the Writing Ability. The adapter owns
-    /// execution; the `.mary` package owns routing and composition. Keeping
-    /// these claims explicit makes a mismatched imported package fail closed
-    /// instead of treating an empty list as permission to do anything.
+    /// Writing Ability contract. Adapter executes; `.mary` package routes.
     public var adapterManifest: InstalledAdapterManifest {
         let adapterID = AdapterID("typer")
         func guarantee(
@@ -30,11 +33,7 @@ extension TyperPlugin {
                 guarantee(.requiresFrontmostApplication, "original-target-application"),
                 guarantee(.sourceMustMatchTarget, "paused-session-target"),
             ],
-            // A held session proves its caret once and then refuses to move
-            // focus: `DictationRunner.typeSpan` requires the pinned target to
-            // ALREADY own the foreground and the pinned text element to still
-            // be focused, and closes the session rather than chasing. That is a
-            // stricter promise than the write-at-surface one, not a weaker one.
+            // PIN: DictationRunner.typeSpan never activates — pinned caret must still own focus.
             "text.hold-dictation": [
                 guarantee(.requiresFrontmostApplication, "target-application"),
             ],

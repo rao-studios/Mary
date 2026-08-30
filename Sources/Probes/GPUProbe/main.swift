@@ -2,23 +2,9 @@
 //  main.swift
 //  GPUProbe — `mary-gpu-probe`
 //
-//  DOES THE ON-DEVICE ENGINE HAVE A GPU TO RUN ON? One question, asked before
-//  a 4 GB model download rather than after it.
-//
-//    mary-gpu-probe            # read the search path
-//    mary-gpu-probe --run      # and then actually execute on the GPU
-//
-//  WHY `--run` IS OPT-IN. MLX reports a missing metallib by throwing
-//  `std::runtime_error` from C++, which is not a Swift error and not
-//  catchable — it takes the process down. So the default pass reads the
-//  search path and stops, and the operation runs only once a library has been
-//  found, where it is expected to succeed. A probe that crashed on exactly the
-//  broken setup it exists to diagnose would be worse than no probe.
-//
-//  This is the check that was missing. `make-app.sh` copied `mlx.metallib`
-//  into the app "if present" and called `build-metallib.sh` "if present", and
-//  when the script had not been ported the app assembled cleanly and died at
-//  first use with four words: library not found.
+//  WHAT: Does the on-device engine have a GPU (before a 4 GB download).
+//  OUT:  CLI: mary-gpu-probe [--run]
+//  PIN:  --run is opt-in; missing metallib is an uncatchable C++ abort.
 //
 
 import Foundation

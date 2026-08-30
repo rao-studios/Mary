@@ -1,5 +1,10 @@
 //
 //  WorkspaceFocusTracker+ActivityTracking.swift
+//  MaryAmbient
+//
+//  WHAT: Activity stamps into the focus ledger (generic apps, writing, coding).
+//  IN:   WorkspaceFocusTracker.swift (split)
+//  OUT:  leadBox / FocusSignal
 //
 
 import AppKit
@@ -23,22 +28,14 @@ extension WorkspaceFocusTracker {
             applicationID: bundleID))
     }
 
-    /// A SUCCESSFUL LOOK at this place's app. A glance is sight, not
-    /// presence: it never touches `box`/`leadBox`, so the lead cannot be
-    /// hijacked by looking around — but the glanced place co-activates, which
-    /// is what carries "look at the doc in that window" into "now help me
-    /// write it in Pages". NOT gated by `signalsAllowed()`: the look is the
-    /// user's own deliberate ask (like `pin`), not a ceremony echo.
+    /// A SUCCESSFUL LOOK at this place's app.
     public func noteGlance(place: AmbientPlace) {
         stampEvidence(place: place, kind: .glance, gated: false)
     }
 
-    /// A WATCHER SAW REAL WORK in a place it does not lead. Stamps ledger
-    /// evidence ONLY — never `leadBox`, never `box`: a browser's lead already
-    /// arrives through `record(bundleID:)`, and a tab changing in a
-    /// background window is not the user moving there. Gated like every
-    /// ambient signal, so a self-driving hold or a ceremony echo still
-    /// suppresses it.
+    /// A WATCHER SAW REAL WORK in a place it does not lead. Stamps ledger evidence ONLY — never
+    /// `leadBox`, never `box`: a browser's lead already arrives through `record(bundleID:)`,
+    /// and a tab changing in a background window is not the user moving there.
     public func noteWork(place: AmbientPlace, processBundleID: String? = nil) {
         stampEvidence(
             place: place, kind: .activity, processBundleID: processBundleID)
@@ -66,11 +63,7 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// The place of the FRESHEST live glance — "what did Mary just look
-    /// at". The referent-arming seam reads this right after a served
-    /// pre-lane look, so the NEXT turn's "here"/"it" can inherit the
-    /// looked-at application (the live miss: the look described a Google
-    /// Doc, nothing armed, and "add a draft here" circled into TextEdit).
+    /// The place of the FRESHEST live glance — "what did Mary just look at".
     public func latestGlancePlace(at now: Date = Date()) -> AmbientPlace? {
         ledgerBox.withLock { ledger in
             ledger.values
@@ -94,12 +87,7 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// The same question against an EXPLICIT horizon. The browser-resolution
-    /// ladder's recent-evidence rung passes `signalHorizon` (20 min): the
-    /// user who worked in Chrome twelve minutes ago has let the co-active
-    /// horizon lapse, but the lead's own staleness bound still honestly
-    /// answers "which browser was that" — the identical bound the lead
-    /// itself stands on.
+    /// The same question against an EXPLICIT horizon.
     public func evidenceProcess(
         for place: AmbientPlace,
         within horizon: TimeInterval,
@@ -113,13 +101,8 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// THE FRESH EVIDENCE ITSELF, unranked and unprojected.
-    ///
-    /// `signal(at:)` below answers "who leads and who else is warm", which is
-    /// what the prompt needs. A realm needs something else: the KIND and the
-    /// AGE of each place's claim, because "conformed but cold" and "conformed
-    /// and was touched four seconds ago" are the two facts that explain a
-    /// choice, and a ranked list of places has already thrown both away.
+    /// THE FRESH EVIDENCE ITSELF, unranked and unprojected. `signal(at:)` below answers "who
+    /// leads and who else is warm", which is what the prompt needs.
     public func freshEvidence(at now: Date = Date()) -> [AmbientPlace: FocusEvidence] {
         ledgerBox.withLock { ledger in
             ledger = ledger.filter {
@@ -130,11 +113,8 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// THE PROJECTED RESPONDER-LAYER SIGNAL. `lead` is exactly
-    /// `leadPlace(at:)` — the parity rule: single-place sessions answer
-    /// byte-identically to the pre-ledger tracker. `coActive` is every other
-    /// place with fresh evidence, strongest-evidence-then-recency ranked;
-    /// `glanced` marks the ones whose only claim is sight.
+    /// THE PROJECTED RESPONDER-LAYER SIGNAL. `lead` is exactly `leadPlace(at:)` — the parity
+    /// rule: single-place sessions answer byte-identically to the pre-ledger tracker.
     public func signal(at now: Date = Date()) -> FocusSignal {
         let lead = leadPlace(at: now)
         let fresh = ledgerBox.withLock { ledger -> [FocusEvidence] in
@@ -155,12 +135,8 @@ extension WorkspaceFocusTracker {
             glanced: Set(ranked.filter { $0.kind == .glance }.map(\.place)))
     }
 
-    /// A registered dynamic application became the user's evident workspace.
-    /// Same gating as `note()`: suppression and self-driving holds apply.
-    /// Stamps the unified lead box with the registration's own place — the
-    /// raw host-lane pair is the fallback for an id the index has not
-    /// caught up with (`record` only routes registered ids here, so the
-    /// fallback is the same pair the registration would spell).
+    /// A registered dynamic application became the user's evident workspace. Same gating as
+    /// `note()`: suppression and self-driving holds apply.
     public func noteDynamicApplication(_ id: String) {
         guard signalsAllowed() else { return }
         let place = AmbientApplicationIndexProvider.current
@@ -174,12 +150,8 @@ extension WorkspaceFocusTracker {
             .init(tier: .activation, world: .applications, subject: id, applicationID: id))
     }
 
-    /// A CHANGED canvas selection is evidence of the user working in the app
-    /// — the dynamic analogue of a native watcher's `noteWriting` on real
-    /// work. The first sighting only BASELINES (a standing selection Mary
-    /// booted into is not an interaction); a later different signature
-    /// refreshes the dynamic record. An unchanged selection re-reported
-    /// every poll asserts nothing.
+    /// A CHANGED canvas selection is evidence of the user working in the app — the dynamic
+    /// analogue of a native watcher's `noteWriting` on real work.
     public func noteDynamicSelection(application id: String, signature: String) {
         guard signalsAllowed() else { return }
         let changed: Bool = selectionBox.withLock { last in
@@ -196,13 +168,7 @@ extension WorkspaceFocusTracker {
         stampEvidence(place: registration.place, kind: .activity)
     }
 
-    /// The REALM that currently deserves the lead, or nil. Mirrors
-    /// `effectiveFocus()` precedence: a turn override or a pin (both native
-    /// vocabulary today) outranks ambient evidence; below them the unified
-    /// box answers directly — the freshest stamp already won at write time,
-    /// bounded by `signalHorizon`. A native place carries a nil application
-    /// lane, which is what lets callers that only care about dynamic leads
-    /// project `leadPlace()?.application` and fall through on native ones.
+    /// The REALM that currently deserves the lead, or nil.
     public func leadPlace(at now: Date = Date()) -> AmbientPlace? {
         guard overrideBox.withLock({ $0 }) == nil,
               pinBox.withLock({ $0 }) == nil else { return nil }
@@ -213,26 +179,7 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// HOW LONG A LEAD KEEPS LEADING — deliberately shorter than
-    /// `signalHorizon`, which it used to share.
-    ///
-    /// The two answer different questions. `signalHorizon` bounds an
-    /// OBSERVATION ("the user was last seen in a writing app") and its
-    /// generosity is argued correctly where it is declared. This bounds an
-    /// ASSERTION ("this place is what the turn is about"), which grounds the
-    /// prompt and paints the lead badge — a much stronger claim on much the
-    /// same evidence, and it was outliving that evidence by fifteen minutes.
-    /// The tree's own comments name the result twice: "a stale Xcode lead
-    /// stood for its whole 20-minute horizon while the user plainly watched a
-    /// video in a browser", and the quit-app variant beside `clearNative`.
-    ///
-    /// `clearNative`/`clearLead` already withdraw a lead whose app QUIT. This
-    /// covers the other half — the app that is still running and has simply
-    /// been abandoned, which is the case in the screenshots.
-    ///
-    /// Same value as `AmbientContextStore.leadHorizon` and for the same
-    /// reason: both are copies of one claim, and a copy that asserts longer
-    /// than its source is the stale-lead bug wearing another coat.
+    /// HOW LONG A LEAD KEEPS LEADING.
     public static let leadHorizon: TimeInterval = FocusSignal.coActiveHorizon
 
     /// Lifecycle stand-down: the application quit; ambient evidence must
@@ -247,23 +194,13 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// Lifecycle stand-down for a NATIVE workspace app: the process quit, so
-    /// its ambient claims — the lead, its ledger evidence, and the
-    /// coding/writing focus signal it stamped — must not outlive it. The
-    /// mirror of `clearLead(ifApplication:)`, which can never match a native
-    /// place (a native place carries a nil application lane — which is
-    /// exactly how a quit Xcode's stale `.coding` box survived 20 minutes
-    /// and led a turn about a YouTube video). Deliberately leaves the
-    /// override and the pin alone: a word and a click are user intent, not
-    /// ambient evidence.
+    /// Lifecycle stand-down for a NATIVE workspace app: the process quit, so its ambient claims
+    /// — the lead, its ledger evidence, and the coding/writing focus signal it stamped — must
+    /// not outlive it.
     public func clearNative(world: AmbientWorld) {
         leadBox.withLock { if $0?.place == AmbientPlace.lane(world) { $0 = nil } }
         ledgerBox.withLock { $0[AmbientPlace.lane(world)] = nil }
         // The held discipline belongs to a PLACE, and a lane is not a place.
-        // Bonnie compared the quitting world against a compiled writing app
-        // here, guarding against "quitting Pages clears Scrivener's claim";
-        // Mary's equivalent guard is the place comparison below, and it is
-        // exact rather than by-world.
         box.withLock { held in
             guard held?.focus == .writing else { return }
             if writingPlaceBox.withLock({ $0 }) == AmbientPlace.lane(world) {

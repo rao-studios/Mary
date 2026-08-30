@@ -1,9 +1,16 @@
+//
+//  StrictDecoding.swift
+//  MaryFoundation
+//
+//  WHAT: Reject unknown object keys before reading values.
+//  IN:   AbilityPackageCodec / StyleProfileCodec keyed decode.
+//  OUT:  DecodingError at the `.mary` boundary.
+//  PIN:  Synthesized Codable would drop bytes the digest must cover.
+//
+
 import Foundation
 
-/// A key that accepts every JSON object member so a decoder can compare the
-/// actual wire shape with a type's closed `CodingKeys` set. Swift's synthesized
-/// `Codable` intentionally ignores unknown members; `.mary` files cannot,
-/// because ignored bytes would also be absent from the verified digest.
+/// CodingKey that surfaces every JSON member so it can be compared to closed `CodingKeys`.
 struct StrictDecodingKey: CodingKey, Hashable {
     var stringValue: String
     var intValue: Int?
@@ -20,9 +27,7 @@ struct StrictDecodingKey: CodingKey, Hashable {
 }
 
 extension Decoder {
-    /// Rejects the first object member not declared by `Keys`. Call this before
-    /// reading any values so executable-looking additions fail at the decoding
-    /// boundary, before integrity is evaluated over the decoded value model.
+    /// First undeclared member → fail, before digest is taken over the model.
     func rejectUnknownKeys<Keys>(_ keys: Keys.Type) throws
     where Keys: CodingKey & CaseIterable {
         let values = try container(keyedBy: StrictDecodingKey.self)

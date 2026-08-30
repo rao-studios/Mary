@@ -2,16 +2,11 @@
 //  LookingPlugin.swift
 //  MaryPlugin
 //
-//  THE EPHEMERAL LOOK. One skill: glance at the region of the screen the
-//  user is attending to — any application — and describe it in words. The
-//  actual look lives in Mary's brain (capture + vision faculty); the root
-//  app injects it at install, so this package never learns brain internals.
-//  APPENDED, NOT CATALOGUED — what the user is looking at is not a
-//  registered application's property.
-//
-//  Privacy shape: the glance is user-requested, in-memory only, and the
-//  pixels are never persisted, logged, or archived — the description text
-//  is the only thing that survives the call.
+//  WHAT: Glance at the attended screen region and describe it.
+//  IN:   brain capture + vision (injected at install)
+//  OUT:  SkillBinding (look) → description text
+//  PIN:  Appended faculty, not a catalogued app. Pixels never persist;
+//        description is the only survivor.
 //
 
 import Foundation

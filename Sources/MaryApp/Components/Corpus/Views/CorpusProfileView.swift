@@ -2,14 +2,7 @@
 //  CorpusProfileView.swift
 //  Mary
 //
-//  What Mary concluded, by tier — including the tiers that have no producer
-//  yet, because an experiment surface that hides what it cannot see is the
-//  wrong instrument.
-//
-//  A conflict between what you SAID and what your code SHOWS is rendered as
-//  both, side by side. The assertion wins in the brief; the disagreement is
-//  the most interesting row in the pane and resolving it away would throw out
-//  the reason for keeping both.
+//  WHAT: Conclusions by tier (including empty tiers). Said vs shown rendered side by side.
 //
 
 import MaryAmbient
@@ -34,11 +27,7 @@ struct CorpusProfileView: View {
         .padding(.horizontal, .layer4)
     }
 
-    /// ABILITY FIRST, application beneath. The pane used to lead with Xcode,
-    /// which read as though the editor were the thing being learned about. It
-    /// is not: Xcode appears because an Xcode plugin is in use, and the fact
-    /// worth showing is the craft — with the plugin named as the reason it is
-    /// on screen at all.
+    /// Craft first; the plugin is why the application appears.
     private func abilitySection(_ ability: CorpusAbilitySection) -> some View {
         VStack(alignment: .leading, spacing: .layer2) {
             VStack(alignment: .leading, spacing: 1) {
@@ -168,11 +157,7 @@ struct CorpusProfileView: View {
             if assertingScope == tier.id {
                 HStack(spacing: .layer2) {
                     Picker("", selection: $draftDimension) {
-                        // ONLY WHAT THIS CRAFT CAN ACTUALLY HAVE. Every
-                        // dimension used to be offered on every tier, so a
-                        // manuscript's card invited an assertion about Swift
-                        // concurrency — a tenet nothing could ever corroborate
-                        // or contradict.
+                        // Dimensions this craft can actually hold.
                         ForEach(
                             CorpusViewModel.assertableDimensions(
                                 for: ability, producers: vm.producers),

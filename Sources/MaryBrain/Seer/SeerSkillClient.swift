@@ -2,13 +2,10 @@
 //  SeerSkillClient.swift
 //  MaryBrain
 //
-//  One bounded skill-invocation round through Seer's `/v1/skills/complete`.
-//  Auth follows SeerCompleteClient: bearer from the shared session, one
-//  refresh-and-retry on 401. Spoken turns stay on the chat client; corpus
-//  annotation stays on `/v1/complete`. This lane only synthesizes invocations —
-//  Mary still dispatches tools on device.
+//  WHAT: One bounded skill-invocation round through `/v1/skills/complete`.
+//  IN:   MarySeerSkillEngine
+//  OUT:  invocation synthesis; Mary still dispatches on device
 //
-
 import Foundation
 
 public protocol SeerSkillTransport: Sendable {

@@ -2,27 +2,8 @@
 //  StagedWritingSurface.swift
 //  MaryBrain
 //
-//  THE JUST-STAGED WRITING DESTINATION — one slot, newest wins.
-//
-//  The incident this closes: "draft those sections in a fresh Pages document"
-//  ran `new_pages_document`, and the follow-up `type_at_cursor` resolved its
-//  target from ROUTED ATTENTION — computed at TURN START, before the document
-//  existed — so typing chased a stale pre-turn highlight (or refused) while
-//  the fresh document sat empty. A binding that deliberately puts a writing
-//  surface in front records it here; the typer's resolve ladder consults this
-//  slot BEFORE turn-start attention, so create → type lands in the created
-//  document mechanically.
-//
-//  TRUTHFULNESS CONTRACT (the user's direct requirement): record ONLY on
-//  PROVEN staging — an app-level op after frontmost verification, a
-//  window-level op after focused-window verification, a document create after
-//  its own script confirmed the document. An unverified activation must never
-//  become typing-destination evidence.
-//
-//  The slot decays on its own (freshnessWindow) and is consumed by the typing
-//  run that lands in it — a hint about "the surface just staged for you",
-//  never a standing preference.
-//
+//  WHAT: Lease the keyboard for a write. Focus must not move mid-sentence.
+//  OUT:  TyperPlugin | KeyChordPress
 
 import Foundation
 import os

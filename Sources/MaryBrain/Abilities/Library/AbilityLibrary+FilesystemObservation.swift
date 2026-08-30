@@ -1,7 +1,11 @@
 //
 //  AbilityLibrary+FilesystemObservation.swift
+//  MaryBrain
 //
-
+//  WHAT: Watch Ability package directories for changes.
+//  IN:   AbilityLibrary.swift
+//  OUT:  reload → new snapshot
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -27,10 +31,7 @@ extension AbilityLibrary {
     func refreshFilesystemObservation(
         for locations: [AbilityPackageLocation]
     ) {
-        // `reload()` owns the transaction lock. Observer work can itself be
-        // waiting for that lock, so re-arming must be enqueued rather than
-        // synchronously crossing from the transaction lock to this queue.
-        // The immediate fingerprint check below closes the enqueue gap.
+        // `reload()` owns the transaction lock. Observer work can itself be waiting for that lock
         observationQueue.async { [weak self] in
             guard let self else { return }
             self.observedReloadWorkItem?.cancel()
@@ -104,10 +105,7 @@ extension AbilityLibrary {
         _ = reload()
     }
 
-    /// Content-addresses every direct `.mary` file in every configured root,
-    /// plus root existence and precedence. Exact package bytes (including JSON
-    /// whitespace) therefore trigger a reload while unrelated directory
-    /// writes do not.
+    /// Content-addresses every direct `.mary` file in every configured root, plus root existence and precedence.
     func fingerprint(
         of locations: [AbilityPackageLocation]
     ) -> Data {

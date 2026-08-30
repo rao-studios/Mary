@@ -1,7 +1,11 @@
 //
 //  SelectionHandoffCoordinator+Registration.swift
+//  MaryBrain
 //
-
+//  WHAT: Register / unregister source-owned selection capture hooks.
+//  IN:   application abilities
+//  OUT:  SelectionHandoffCoordinator (boxes)
+//
 import AppKit
 import ApplicationServices
 import Foundation
@@ -40,10 +44,8 @@ extension SelectionHandoffCoordinator {
         return id
     }
 
-    /// Register a request-boundary source capture that may await a bounded
-    /// application transaction. Async callbacks are invoked only by the
-    /// async pre-turn entry points; lifecycle notifications remain bookkeeping
-    /// and never start application I/O on their delivery thread.
+    /// Register a request-boundary source capture that may await a bounded application
+    /// transaction.
     @discardableResult
     public func registerAsync(
         applicationID: String,

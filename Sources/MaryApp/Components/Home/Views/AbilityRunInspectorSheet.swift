@@ -2,26 +2,20 @@
 //  AbilityRunInspectorSheet.swift
 //  Mary
 //
-//  THE SILO the machine summaries moved into. "Sketch completed the
-//  document-model command…" used to stack up as chat paragraphs; the chat
-//  body is prose-only now, and everything a skill call actually did — its
-//  arguments, its receipt summary, its status — lives here, one tap away on
-//  the chip that named it. `ContributionInspectorSheet` is the presentation
-//  precedent (tap an inline element → a sheet).
+//  WHAT: Skill-call silo (args, receipt, status). Chat body stays prose-only.
+//  IN:   AbilityBadgeRow tap
+//  OUT:  BehavioralEpisode (turn) beside this Skill's calls
 //
 
 import MaryBrain
 import SwiftUI
 import MaryRuntime
 
-/// The tapped chip's identity plus the runs it made on that utterance —
-/// `Identifiable` so `.sheet(item:)` drives presentation.
+/// Tapped chip identity + runs on that utterance. `Identifiable` for `.sheet(item:)`.
 struct InspectedAbilityRuns: Identifiable {
     let reference: AbilitySkillReference
     let runs: [BehavioralActionRecord]
-    /// The turn this reply belongs to — the id a sealed `BehavioralEpisode`
-    /// is filed under, so the sheet can show the whole turn beside this one
-    /// Skill's calls. Nil on restored rows written before turns were stamped.
+    /// Turn this reply belongs to (sealed episode id). Nil on restored rows from before stamps.
     var turnID: UUID? = nil
     var id: String { reference.id }
 }
@@ -30,11 +24,7 @@ struct AbilityRunInspectorSheet: View {
     let inspected: InspectedAbilityRuns
     @Environment(\.dismiss) private var dismiss
 
-    /// WHICH QUESTION THE SHEET IS ANSWERING.
-    ///
-    /// "What did this Skill do" and "what did this whole turn do" are
-    /// different questions with different answers, and stacking both in one
-    /// scroll made the first one — the one the tap asked — harder to find.
+    /// Skill vs whole-turn. Separate lenses; the tap asked for the Skill first.
     private enum Lens: String, CaseIterable, Identifiable {
         case skill = "This Skill"
         case episode = "Episode"
@@ -87,12 +77,7 @@ struct AbilityRunInspectorSheet: View {
 
     // MARK: - The episode
 
-    /// THE WHOLE TURN, not just this Skill's part of it.
-    ///
-    /// A chip is the door to the sealed Ability episode in Totem: a person
-    /// tapping one is already asking "what happened here", and the honest
-    /// answer usually involves the calls that ran either side of the one
-    /// they tapped.
+    /// Whole turn, not just this Skill. Chip opens the sealed episode.
     @ViewBuilder
     private var episodeSection: some View {
         if let episode {
@@ -111,10 +96,7 @@ struct AbilityRunInspectorSheet: View {
         } else if !episodeLoaded {
             emptyNote("Reading the episode…")
         } else if !inspected.runs.isEmpty {
-            // STILL OPEN. An episode is sealed at the END of its turn, and a
-            // routine still running holds its turn's episode open — so the
-            // live rows on the utterance are the only account there is yet,
-            // and they are a true one.
+            // Episode seals at turn end; live utterance rows are the account while open.
             ScrollView {
                 VStack(alignment: .leading, spacing: .layer3) {
                     emptyNote("This turn is still open — sealed when it finishes.")
@@ -181,8 +163,7 @@ struct AbilityRunInspectorSheet: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Off the main actor: Totem `documents` is a gRPC hop, and the sheet
-    /// must open at once whether or not the read has landed.
+    /// Off MainActor: Totem `documents` is a gRPC hop; sheet must open immediately.
     private func loadEpisode() async {
         guard let turnID = inspected.turnID else {
             episodeLoaded = true
@@ -208,10 +189,7 @@ struct AbilityRunInspectorSheet: View {
         }
     }
 
-    /// WHO ACTUALLY DID IT. The sheet has room the chip does not, and the
-    /// receipt has carried this all along without anything showing it: which
-    /// plugin ran, and whether it was compiled into Mary or taught by an
-    /// Ability package.
+    /// Which plugin ran (compiled vs package-taught). Chip has no room for this.
     @ViewBuilder
     private var provenance: some View {
         if let provider = inspected.reference.provider {
@@ -229,10 +207,7 @@ struct AbilityRunInspectorSheet: View {
         }
     }
 
-    /// - Parameter dimmed: this row belongs to a different Skill than the chip
-    ///   that was tapped. Shown, because the calls either side are most of why
-    ///   someone opens the episode at all — dimmed, because they are context
-    ///   for the one they asked about rather than the answer.
+    /// - Parameter dimmed: other Skill on the same turn — shown as context, not the answer.
     private func runCard(
         _ run: BehavioralActionRecord, dimmed: Bool = false
     ) -> some View {
@@ -250,21 +225,11 @@ struct AbilityRunInspectorSheet: View {
                         .foregroundStyle(Color.primary.opacity(0.5))
                 }
                 Spacer()
-                // STOP, WHILE THERE IS STILL SOMETHING TO STOP.
-                //
-                // `.unsettled` is on the row from the moment the call is
-                // announced, and until now it was a status word with nothing
-                // behind it — a person watching a wedged call had no recourse
-                // but to say "stop", which kills every routine at once. This
-                // stops the one call; its lane carries on.
+                // Stop this call only; the lane continues.
                 if run.disposition == .unsettled {
                     Button("Stop") { RunControl.stopRun(id: run.id) }
                         .buttonStyle(.maryQuiet)
                 }
-                // HOW LONG IT TOOK, beside when it started. The record has
-                // carried both ends since it was first written; only the
-                // start was ever shown, which is the half that cannot answer
-                // "why did that feel slow".
                 if let duration = AbilityRunPresentation.duration(run) {
                     Text(duration)
                         .font(.system(size: 10, design: .monospaced))
@@ -289,9 +254,7 @@ struct AbilityRunInspectorSheet: View {
                     .foregroundStyle(Color.primary.opacity(0.8))
                     .textSelection(.enabled)
             }
-            // WHAT IT TOUCHED, and through which adapters. The inspector is
-            // where a person goes to ask "but WHERE did that land", and until
-            // the record carried a target there was no answer to give.
+            // Target + adapters: where the call landed.
             if let target = run.action.target {
                 Text("\(target.label.isEmpty ? target.role : target.label) — \(target.windowTitle)")
                     .font(.system(size: 11, design: .monospaced))

@@ -2,17 +2,11 @@
 //  BrainWiring.swift
 //  MaryBrain
 //
-//  THE BRAIN'S CROSS-CUTTING STORES, named in one place — the ownership
-//  program's Stage-0 seam (docs/ownership/STAGE-0-entry-gate.md, Step 3).
+//  WHAT: Brain's cross-cutting stores, named in one place.
+//  IN:   composition root (process-wide) or defaults
+//  OUT:  ledger / ambient / focus / assembler
+//  PIN:  Defaults are fresh, never `.shared`.
 //
-//  Transitional defaults construct FRESH instances — never `.shared` — so an
-//  uninjected brain is isolated by construction: two brains built side by
-//  side in one test process cannot write into each other's ledgers, which is
-//  the shared-state half of the suite's old parallel-vs-serial divergence.
-//  The composition root passes its own (the process-wide singletons, made
-//  explicit and greppable). The defaults are deleted in Stage 8.
-//
-
 import MaryAmbient
 import Foundation
 
@@ -25,11 +19,7 @@ public struct BrainWiring: Sendable {
     public var readLedger: ReadDeliveryLedger
     public var ambient: AmbientContextStore
     public var elementIndex: AmbientElementIndexStore
-    /// WHAT MARY DID, one episode per user turn. Default-fresh like the rest,
-    /// and default-recorderless: an assembler with nowhere to seal is a
-    /// working assembler that writes nothing, which is exactly what a test or
-    /// a recording-disabled build wants. The composition root passes one with
-    /// a store behind it.
+    /// WHAT MARY DID, one episode per user turn. Default-fresh like the rest
     public var behavior: BehavioralAssembler
 
     public init(

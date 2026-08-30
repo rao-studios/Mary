@@ -2,22 +2,9 @@
 //  TotemExplorerViewModel.swift
 //  Mary
 //
-//  The Totems panel's single data layer: nodes, library, graph, write ledger
-//  and the per-turn retrieval story, one VM for all five tabs.
-//
-//  `CorpusViewModel`'s shape, for its stated reasons: a 1 Hz poll of
-//  lock-boxed stores, ONE impure `gather()`, a PURE `build(_:)` over an
-//  `Inputs` value, and an Equatable diff before republishing so a quiet
-//  second repaints nothing. Live data never round-trips through Granite's
-//  `@Store` — its 200 ms debounce blurs precisely what a debugger exists to
-//  show. On top of the poll sit the async fetchers this pane needs and the
-//  Corpus pane does not: a ~5 s fleet/disk loop (ServersViewModel's authTask
-//  cadence), user-driven library paging and document drill, and a
-//  cancel-replace graph query — each writes a raw snapshot and calls
-//  `refresh()`, so the pure core stays the only place rows are shaped.
-//
-//  Every network fetcher degrades to a NAMED notice (Seer offline, Totem
-//  down, not signed in), never a blank pane and never a throw into a view.
+//  WHAT: Totems pane data — nodes, library, graph, ledger, retrieval (one VM).
+//  OUT:  Totems*View. TotemExplorerRows / TotemRetrievalCaptures (siblings)
+//  PIN:  Named notices on fetch fail, never a blank pane. Never Granite @Store.
 //
 
 import MaryAmbient
@@ -56,10 +43,7 @@ final class TotemExplorerViewModel: ObservableObject {
     @Published private(set) var graphNotice: String?
     @Published private(set) var mutationNotice: String?
     @Published private(set) var isMutating = false
-    /// The shape behind the current graph result — the Graph tab names what
-    /// it is showing from this, and repair re-runs re-ask it. Written when
-    /// the query is asked; the cancel-replace fence keeps the landed result
-    /// the newest asked shape, and a failure names itself in `graphNotice`.
+    /// Shape of the graph on screen. Repair re-asks it. Failures name themselves in `graphNotice`.
     @Published private(set) var lastGraphRequest: TotemGraphRequestShape?
 
     // Ledger
@@ -73,20 +57,11 @@ final class TotemExplorerViewModel: ObservableObject {
     /// Gold overlay on the Life button while a discipline is training.
     @Published private(set) var lifeIsTraining = false
 
-    /// SEEDED VIA `configure(...)` from the pane's config relay —
-    /// `ConfigService` state lives behind a Granite `@Relay` only views hold,
-    /// and this VM must not grow a Granite dependency for two scalars. The
-    /// disk scanner still answers with an empty configured id (the persisted
-    /// node-id file wins), so a pane that never seeds these degrades, it
-    /// does not break.
+    /// Seeded via `configure(...)` from the pane's config relay (no Granite on this VM).
     private(set) var configuredTotemNodeID: String = ""
     private(set) var totemHTTPPort: Int = ServerSpec.Defaults.totemPort
 
-    /// The config-seeding entry point — re-entrant on purpose, so the pane
-    /// re-seeds a running VM when config changes. Repairs and the live-node
-    /// diff read the seeded values at call time, and the disk-skip key
-    /// carries the node id, so a re-seed re-elects the live node on the next
-    /// ~5 s pass even over an unchanged directory.
+    /// Re-entrant config seed. Re-seed re-elects the live node on the next ~5 s disk pass.
     func configure(nodeID: String, port: Int) {
         configuredTotemNodeID = nodeID
         totemHTTPPort = port
@@ -105,13 +80,10 @@ final class TotemExplorerViewModel: ObservableObject {
     private var libraryHasMoreRaw = false
     private var libraryCursor = ""
     private var graphSnapshot: GraphQueryResult?
-    /// The skip key for the ~5 s disk pass: the fingerprint the previous
-    /// scan was taken under, and the node id it elected against — a config
-    /// re-seed must rescan even when the directory has not moved.
+    /// Disk-pass skip key (fingerprint + elected node id). Re-seed forces a rescan.
     private var diskFingerprint: TotemDiskScanner.Fingerprint?
     private var diskScanNodeID: String?
-    /// Cancel-replace fence: a slow 3-hop result must not land over a newer
-    /// query, and gRPC calls do not reliably observe Task cancellation.
+    /// Cancel-replace fence: a slow 3-hop must not land over a newer query.
     private var queryGeneration = 0
 
     // MARK: - Lifecycle
@@ -210,16 +182,10 @@ final class TotemExplorerViewModel: ObservableObject {
         let previousNodeID = diskScanNodeID
         let hasInventory = diskSnapshot != nil
 
-        // Fleet GET and disk scan share nothing — siblings on purpose, so a
-        // dead Seer's 5 s timeout never holds the disk section hostage.
+        // Fleet GET and disk scan are siblings — a dead Seer must not hold the disk section.
         let fleetTask = Task { try await MaryRuntime.seerTotems.fleet() }
 
-        // Stat-only but synchronous: one readdir per directory plus a stat
-        // per DB file must not ride the main actor. The two-stat fingerprint
-        // gates the full pass — an unchanged directory under an unchanged
-        // elected identity reuses the previous inventory. Fingerprint before
-        // scan: a write landing between the two makes the NEXT pass rescan,
-        // never miss.
+        // Fingerprint off MainActor; unchanged dir+identity reuses inventory. Fingerprint before scan.
         let (scanned, fingerprint) = await Task.detached(
             priority: .utility
         ) { () -> (TotemDiskInventory?, TotemDiskScanner.Fingerprint) in
@@ -238,8 +204,7 @@ final class TotemExplorerViewModel: ObservableObject {
             fleetSnapshot = try await fleetTask.value
             fleetNotice = nil
         } catch {
-            // The stale fleet stays on screen beside the notice — a dead Seer
-            // must not blank a list the disk section still corroborates.
+            // Stale fleet stays beside the notice; a dead Seer must not blank the list.
             fleetNotice = "Seer offline — node list unavailable"
         }
         refresh()
@@ -249,9 +214,7 @@ final class TotemExplorerViewModel: ObservableObject {
 
     func loadLibrary(reset: Bool) {
         guard !isLoadingLibrary else { return }
-        // A reset is also the retry affordance: the stale notice clears NOW,
-        // not when the refetch answers, so the pane shows loading rather
-        // than the old failure sitting over a spinner.
+        // Reset clears the stale notice now so the pane shows loading, not the old failure.
         if reset { libraryNotice = nil }
         isLoadingLibrary = true
         Task { [weak self] in
@@ -280,8 +243,7 @@ final class TotemExplorerViewModel: ObservableObject {
             if reset {
                 libraryGroups = page.groups
             } else {
-                // Dedupe on append — the defensive paging `clearGroups` also
-                // does, so a non-advancing cursor cannot double the pane.
+                // Dedupe on append so a non-advancing cursor cannot double the pane.
                 let known = Set(libraryGroups.map(\.id))
                 libraryGroups += page.groups.filter { !known.contains($0.id) }
             }
@@ -297,8 +259,7 @@ final class TotemExplorerViewModel: ObservableObject {
 
     private func refreshAbilityDepositHint() async {
         let hasAbilityGroup = libraryGroups.contains { $0.id.hasPrefix("mary-ability-") }
-        // Preflight already named Totem-down / not-signed-in — do not stack a
-        // second line that says the same thing.
+        // Preflight already named Totem-down / not-signed-in — don't stack a second line.
         if hasAbilityGroup || libraryNotice != nil {
             abilityDepositHint = nil
             return
@@ -351,10 +312,7 @@ final class TotemExplorerViewModel: ObservableObject {
             return
         }
 
-        // Fallback (Totem binary predating the Documents RPC): library
-        // metadata plus a name-seeded search preview — the inspector's tier
-        // two, seeded with the document name because this pane has no reply
-        // text to seed with.
+        // Fallback: library metadata + name-seeded search preview (no reply text to seed).
         var name = ""
         var groupLabel = ""
         var createdAt: Date?
@@ -466,9 +424,7 @@ final class TotemExplorerViewModel: ObservableObject {
         }
     }
 
-    /// The one repair that needs an owner (the route's DatabaseRequest
-    /// envelope) — and the one with a 120 s deadline, priced by the server
-    /// replaying its LLM extractor before answering.
+    /// Repair that needs an owner (DatabaseRequest envelope). 120 s deadline (LLM extractor).
     func reextractDocument(id: String) {
         guard !isMutating else { return }
         isMutating = true
@@ -508,15 +464,13 @@ final class TotemExplorerViewModel: ObservableObject {
             mutationNotice = error.localizedDescription
         }
         isMutating = false
-        // The graph on screen described the pre-mutation world; re-ask the
-        // same question rather than trusting the response shape.
+        // Graph on screen is pre-mutation; re-ask rather than trusting the response shape.
         if let shape = lastGraphRequest { runGraphQuery(shape) }
     }
 
     // MARK: - Guards
 
-    /// The two preconditions every Totem gRPC read shares. Failing either
-    /// yields a NAMED notice — the pane never shows an unexplained empty.
+    /// Shared Totem gRPC preflight. Failure is a named notice, never an unexplained empty.
     private func totemReadPreflight() async -> (owner: String?, notice: String?) {
         guard isTotemHealthy else {
             return (nil, "Totem isn't running — start it from the Servers sheet.")
@@ -554,10 +508,7 @@ final class TotemExplorerViewModel: ObservableObject {
     // MARK: Nodes
 
     nonisolated private static func buildNodes(_ inputs: Inputs, into built: inout Built) {
-        // Config beats the node-id file, exactly as the server loads: the
-        // scanner already applied that rule, so its verdict leads. Before a
-        // scan lands the configured id stands in — through the SAME
-        // acceptance rule the server loads by, not a third spelling of it.
+        // Config beats the node-id file (same rule as the server). Scanner verdict leads.
         let liveID = inputs.disk?.liveNodeID
             ?? TotemNodeIdentity.canonical(inputs.configuredNodeID)
 
@@ -586,8 +537,7 @@ final class TotemExplorerViewModel: ObservableObject {
         }
 
         if let disk = inputs.disk {
-            // The scanner already ordered live-first, newest orphan next —
-            // re-sorting here would be a second spelling of its rule.
+            // Scanner already ordered live-first, newest orphan next.
             built.diskRows = disk.nodes.map { node in
                 var layers: [String] = []
                 if node.hasTable { layers.append("table") }
@@ -642,17 +592,14 @@ final class TotemExplorerViewModel: ObservableObject {
                 })
         }
 
-        // One chip per family PRESENT, in the enum's declared order — the
-        // pane offers what exists rather than a fixed roster of empties.
+        // One chip per family present, in enum order — not a roster of empties.
         built.familyChips = TotemAddressFamily.allCases.compactMap { family in
             let count = rows.filter { $0.family == family }.count
             guard count > 0 else { return nil }
             return TotemFamilyChip(family: family, title: familyTitle(family), count: count)
         }
 
-        // Lane buckets, fixed order. Seer-owned groups are NOT a Mary lane
-        // (the server has no lanes), and unknown addresses are shown as what
-        // they are instead of being misfiled — the classifier's own rule.
+        // Lane buckets, fixed order. Seer-owned is not a Mary lane; unknown stays unknown.
         let sections: [(id: String, title: String, subtitle: String, groups: [TotemGroupRow])] = [
             ("ability", "Ability lane",
              "Behavioral codec for the activated discipline — input and output of each sealed turn.",
@@ -674,8 +621,7 @@ final class TotemExplorerViewModel: ObservableObject {
         built.libraryHasMore = inputs.hasMoreGroups
     }
 
-    /// The view's chip filter — lane raw value (`ability`/`personal`) or a
-    /// family raw value. Nil = everything.
+    /// Chip filter: lane (`ability`/`personal`) or family raw value. Nil = everything.
     nonisolated static func sections(
         _ sections: [TotemLaneSection], matching filter: String?
     ) -> [TotemLaneSection] {
@@ -718,12 +664,7 @@ final class TotemExplorerViewModel: ObservableObject {
 
     // MARK: Graph helpers
 
-    /// UI never offers hops 0 (the wire maps 0 → 1, but relying on the
-    /// server to repair a request is how two layers drift), and the seed
-    /// goes out as FREE TEXT — the wire's exact-name mode is deliberately
-    /// never used: exact-name match returns nothing for a near miss and one
-    /// field cannot know which it holds — semantic match covers both, priced
-    /// by the client's 30 s deadline.
+    /// Hops never 0 (wire maps 0→1). Seed is free text, not exact-name (30 s semantic match).
     nonisolated static func shapeGraphRequest(
         seed: String, kind: String?, hops: Int, includeDocuments: Bool
     ) -> TotemGraphRequestShape {
@@ -735,14 +676,12 @@ final class TotemExplorerViewModel: ObservableObject {
             includeDocuments: includeDocuments)
     }
 
-    /// Edge endpoints may be pruned by `limit` — the id is the honest
-    /// fallback, never a force-unwrap.
+    /// Edge endpoints may be pruned by `limit` — id is the fallback, never force-unwrap.
     nonisolated static func entityName(_ id: String, in result: GraphQueryResult?) -> String {
         result?.entities.first { $0.id == id }?.name ?? id
     }
 
-    /// `success: false` with a nil surviving id is Totem's "no such entity"
-    /// — data, not a transport failure, and the pane says so.
+    /// `success: false` + nil surviving id = Totem "no such entity" (data, not transport).
     nonisolated static func mutationLine(_ result: MutationResult) -> String {
         guard result.success else {
             return result.survivingID == nil
@@ -764,8 +703,7 @@ final class TotemExplorerViewModel: ObservableObject {
     // MARK: Retrieval
 
     nonisolated static func retrievalRows(_ inputs: Inputs) -> [TotemRetrievalTurnRow] {
-        // Newest route wins a duplicated exchange id — both ring buffers are
-        // newest-first, so `first` is the freshest claim.
+        // Newest route wins a duplicated exchange id (both buffers newest-first).
         var routesByExchange: [UUID: AmbientTraceRecord] = [:]
         for record in inputs.routes {
             guard let exchangeID = record.exchangeID,
@@ -780,8 +718,7 @@ final class TotemExplorerViewModel: ObservableObject {
             if route != nil { joined.insert(capture.exchangeID) }
             rows.append(turnRow(capture: capture, route: route))
         }
-        // Route rows with no ledger row are still turns — dropped, they would
-        // hide exactly the case the pane explains ("why no retrieval?").
+        // Route with no ledger row is still a turn ("why no retrieval?").
         for record in inputs.routes {
             if let exchangeID = record.exchangeID, joined.contains(exchangeID) { continue }
             rows.append(turnRow(capture: nil, route: record))
@@ -812,7 +749,7 @@ final class TotemExplorerViewModel: ObservableObject {
                     && capture?.contributionRequestID == request.id)
         }
 
-        // Partial rows carry NAMED states — never blank, never dropped.
+        // Partial rows carry named states — never blank, never dropped.
         var states: [String] = []
         if route == nil {
             states.append("no route row for this exchange")
@@ -824,8 +761,7 @@ final class TotemExplorerViewModel: ObservableObject {
         }
 
         return TotemRetrievalTurnRow(
-            // One of the pair is always present; the literal keeps the pure
-            // core deterministic even if that ever stops holding.
+            // One of the pair is always present; literal keeps the pure core deterministic.
             id: capture?.exchangeID.uuidString ?? route.map { $0.id.uuidString } ?? "unjoined",
             date: capture?.date ?? route?.date ?? Date.distantPast,
             utterance: route?.utterance,
@@ -853,9 +789,7 @@ final class TotemExplorerViewModel: ObservableObject {
                 promptSpend: capture?.promptSpend ?? []))
     }
 
-    /// THE PANEL'S WHOLE POINT — pure derivations over one turn's plan,
-    /// scope, contribution and prompt accounting. Computed per build, never
-    /// stored.
+    /// Pure derivations over one turn's plan, scope, contribution, prompt spend. Never stored.
     nonisolated static func retrievalWarnings(
         plan: TotemMemoryPlan?,
         requests: [TotemSeerRequestCapture],
@@ -891,17 +825,7 @@ final class TotemExplorerViewModel: ObservableObject {
                 message: "Asked, nothing back — \(seerRequests.count) Seer request\(seerRequests.count == 1 ? "" : "s") went out and no contribution returned."))
         }
 
-        // The stored counts cannot separate a DEMOTED fact from a mention
-        // that is one BY DESIGN (a background world's perception, the
-        // eyeless aside): `AmbientRanker.render` books one key per fact
-        // either way, so `keys.count` always equals blocks + mentions, and
-        // block text is truncated INTO the budget rather than over it. What
-        // the counts can say honestly: mentions exist while block capacity
-        // was the binding constraint — every full-render slot spent, or char
-        // slack too thin to seat another header (a tenth of the budget,
-        // about one mention line). An aside beside a full roster is
-        // indistinguishable from a demotion here, so the message claims a
-        // full budget, never a drop.
+        // Counts cannot tell demotion from a by-design mention. Message claims a full budget, never a drop.
         for injection in ambient where injection.mentionCount > 0 {
             let slack = injection.budget - injection.blockChars
             let blocksAtCap = injection.blockCount >= AmbientRanker.maxBlocks
@@ -927,8 +851,7 @@ final class TotemExplorerViewModel: ObservableObject {
 
     // MARK: Formatting
 
-    /// Locale-stable on purpose — rows are Equatable-diffed and pinned by
-    /// tests, and `ByteCountFormatter` is neither.
+    /// Locale-stable — rows are Equatable-diffed; `ByteCountFormatter` is not.
     nonisolated static func byteLine(_ bytes: Int64) -> String {
         let units: [(Int64, String)] = [(1 << 30, "GB"), (1 << 20, "MB"), (1 << 10, "KB")]
         for (size, suffix) in units where bytes >= size {
@@ -937,13 +860,7 @@ final class TotemExplorerViewModel: ObservableObject {
         return "\(bytes) B"
     }
 
-    /// NOT `AmbientAge` — that scale tops out at 30 days by design (facts
-    /// decay), and the disk museum's orphans are months old. An age this
-    /// pane cannot spell would render as "an unknown time ago".
-    /// Buckets are COARSE on purpose: these strings ride Equatable rows
-    /// through the 1 Hz diff, and a per-second spelling republishes an
-    /// unchanged fleet forever. Sub-minute collapses to one form; above it
-    /// the floor moves at most once per minute, hour, day.
+    /// Coarse age (not AmbientAge's 30-day fact scale). Sub-minute is one form so 1 Hz diff stays quiet.
     nonisolated static func ageLine(_ seconds: TimeInterval) -> String {
         guard seconds.isFinite, seconds >= 0 else { return "moments" }
         if seconds < 60 { return "under a minute" }
@@ -952,9 +869,7 @@ final class TotemExplorerViewModel: ObservableObject {
         return "\(Int(seconds / 86_400))d"
     }
 
-    /// Totem stamps `createdAt` in Unix seconds; zero means unstamped, and a
-    /// magnitude that can only be milliseconds is decayed rather than
-    /// rendered as the year 51982.
+    /// Totem `createdAt` is Unix seconds; zero = unstamped. Milliseconds magnitudes are decayed.
     nonisolated static func documentDate(fromCreatedAt createdAt: Int64) -> Date? {
         guard createdAt > 0 else { return nil }
         if createdAt > 1_000_000_000_000 {

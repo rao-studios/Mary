@@ -2,22 +2,14 @@
 //  HandleMap.swift
 //  MaryBrain
 //
-//  Session-stable short handles ("E1", "R2", "P3"…) for entity identifiers,
-//  so the LLM never round-trips fragile long ids through conversation. Each
-//  plugin owns a map with its own prefix letter; the prefixes are listed in
-//  docs/PLUGINS.md.
+//  WHAT: Session-stable short handles ("E1", "R2", "P3") for entity identifiers.
+//  IN:   ContainerRegistry.State / PassageRegistry.State
+//  OUT:  LLM conversation (never the long id)
+//  PIN:  Each plugin owns a map with its own prefix letter.
 //
-
 import Foundation
 
-// `Sendable` IS SPELLED OUT because this type is `public`. While it was
-// internal Swift inferred the conformance from its stored properties — all of
-// them `String`, `[String: String]`, `Int` — and `ContainerRegistry.State` and
-// `PassageRegistry.State` are `Sendable` structs that hold one. Promoting the
-// type to cross the MaryAmbient boundary silently dropped that inference,
-// because Swift never infers `Sendable` for a public type: an outside module
-// must be told, not left to guess. The two registries then warned, and those
-// warnings are hard errors under the Swift 6 language mode.
+// `Sendable` IS SPELLED OUT because this type is `public`.
 public struct HandleMap: Sendable {
     public let prefix: String
     private var byIdentifier: [String: String] = [:]

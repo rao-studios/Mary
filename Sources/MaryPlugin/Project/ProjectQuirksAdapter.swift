@@ -2,9 +2,10 @@
 //  ProjectQuirksAdapter.swift
 //  MaryPlugin
 //
-//  ON-THE-JOB NOTES FOR THE LIVE PROJECT. Stored at `{root}/.mary/quirks.md`
-//  so a second IDE working the same checkout sees the same knowledge. The
-//  seed is language-generic; nothing here names an application.
+//  WHAT: On-the-job notes for the live project.
+//  IN:   ProjectRootResolver
+//  OUT:  {root}/.mary/quirks.md
+//  PIN:  Language-generic seed; a second IDE on the same checkout shares it.
 //
 
 import Foundation

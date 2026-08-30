@@ -2,14 +2,15 @@
 //  VoiceCharacter.swift
 //  MaryVoice
 //
-//  The catalog of Mistral TTS characters. A character is a slug prefix plus
-//  the emotions it can render; the wire voice_id is "<prefix>_<emotion>".
+//  WHAT: Mistral TTS character catalog. Wire id is "<prefix>_<emotion>".
+//  IN:   Settings / SeerTTSEngine
+//  OUT:  voice_id for /v1/speak
 //
 
 import Foundation
 
 public struct VoiceCharacter: Sendable, Identifiable, Hashable {
-    /// Slug prefix, e.g. "fr_marie" — this is what settings persists.
+    /// Slug prefix, e.g. "fr_marie" — what settings persists.
     public let id: String
     public let displayName: String
     public let emotions: Set<MarieEmotion>
@@ -20,7 +21,7 @@ public struct VoiceCharacter: Sendable, Identifiable, Hashable {
         self.emotions = emotions
     }
 
-    /// The Mistral `voice_id` for this character speaking with `emotion`.
+    /// Mistral `voice_id` for this character speaking with `emotion`.
     public func voiceID(for emotion: MarieEmotion) -> String {
         "\(id)_\(emotion.rawValue)"
     }
@@ -32,8 +33,7 @@ public struct VoiceCharacter: Sendable, Identifiable, Hashable {
 
     public static let all: [VoiceCharacter] = [.marie]
 
-    /// Lookup by persisted id; unknown ids fall back to Marie so a stale
-    /// config value can never produce an invalid voice_id.
+    /// Lookup by persisted id; unknown ids fall back to Marie.
     public static func named(_ id: String) -> VoiceCharacter {
         all.first { $0.id == id } ?? .marie
     }

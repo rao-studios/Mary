@@ -2,25 +2,10 @@
 //  AccessibilityWindowCore.swift
 //  MaryAdapter
 //
-//  Split out of Adapters/WindowManagement/AccessibilityWindowManagementAdapter.swift
-//  (AXEngine consolidation) — pure relocation, no declaration changed. The
-//  `AccessibilityWindowManagementAdapter` struct that used to sit beside this
-//  enum stayed in Adapters/ (it is a WindowManagementAdapter, not tree
-//  machinery); TextEditWindowManagementAdapter also calls this enum by its
-//  bare name, unaffected by the move — both are the same MaryAdapter target.
-//
-//  THE RAISE PRIMITIVES, EXTRACTED so the TextEdit specialist can borrow them.
-//
-//  TextEdit's own dictionary is better than AX at NAMING windows — stable
-//  `window id`s that survive reordering, a roster that filters ghosts, a
-//  conversation resolver — but its `set index of w to 1` write reorders the
-//  scriptable window list without reliably raising anything on screen, and it
-//  returns no error when it does nothing. `kAXRaiseAction` is the primitive
-//  with a checked return code, and this core is the one place it lives:
-//  activation-with-verification, restore, raise, and the window enumeration
-//  they need. The generic adapter delegates here unchanged; the TextEdit
-//  adapter pairs its script-named windows onto these elements by title.
-//
+//  WHAT: Raise primitives (AX window list, raise, front).
+//  IN:   AccessibilityWindowManagementAdapter | TextEditWindowManagementAdapter
+//  OUT:  AXWindowRoster
+//  PIN:  Sibling of Adapters/WindowManagement — not tree machinery.
 
 import AppKit
 import ApplicationServices
@@ -72,28 +57,10 @@ enum AccessibilityWindowCore {
         }
     }
 
-    /// A STRING LITERAL BECAUSE APPLE NEVER EXPORTED THE CONSTANT. The
-    /// attribute has been public and documented since Lion, but there is no
-    /// `kAXFullscreenAttribute` in the Swift overlay (nor in the C headers) —
-    /// AppKit's own full-screen support went in through `NSWindow`, and the
-    /// AX name was left as a bare string. Spelled once, here, rather than at
-    /// each of its three uses.
+    /// A STRING LITERAL BECAUSE APPLE NEVER EXPORTED THE CONSTANT.
     static let fullScreenAttribute = "AXFullScreen"
 
     /// Enter or leave full screen, with a CHECKED write and a CHECKED read.
-    ///
-    /// `AXFullScreen` IS THE HONEST PRIMITIVE, and the alternative is worth
-    /// naming: Control-Command-F is a keystroke into whatever is frontmost,
-    /// it is remappable, and it reports nothing. This is a settable window
-    /// attribute — one write, one verification, one true sentence about what
-    /// happened. It also composes with the rest of this file rather than
-    /// needing the stage.
-    ///
-    /// A window that does not expose the attribute REFUSES rather than
-    /// silently doing nothing: many panels and some older applications have
-    /// no full-screen mode at all, and "I made it full screen" about a window
-    /// that did not move is the class of lie this whole adapter exists to
-    /// avoid.
     static func setFullScreen(
         _ element: AXUIElement, enabled: Bool, title: String
     ) throws {
@@ -132,35 +99,15 @@ enum AccessibilityWindowCore {
         }
     }
 
-    /// Activate and WAIT until the process is actually frontmost. macOS 14's
-    /// cooperative activation can refuse silently; an unverified activate
-    /// followed by raises is how "Brought all N windows forward" reported
-    /// success while everything stayed behind the user's browser.
-    ///
-    /// TWO ROADS, VERIFIED ONCE EACH. `NSRunningApplication.activate` is
-    /// cooperative and a non-frontmost caller (a probe, a background Mary)
-    /// can be refused outright — observed live: the refusal was honest, and
-    /// then the activation landed AFTER the deadline anyway. The Apple Events
-    /// `activate` verb takes the other door (the target activates itself),
-    /// so a missed first deadline retries through it before giving up.
+    /// Activate and WAIT until the process is actually frontmost.
     static func activate(pid: pid_t) async -> Bool {
-        // The two roads now live in `VerifiedActivation`, at the contract root —
-        // extracted verbatim so `open_app` and the typer's pre-keystroke gate
-        // share this adapter's proven pattern instead of running their own
-        // single-road activations. Behavior identical; one implementation.
+        // The two roads now live in `VerifiedActivation`, at the contract root — extracted
+        // verbatim so `open_app` and the typer's pre-keystroke gate share this.
         await VerifiedActivation.bringForward(pid: pid).succeeded
     }
 
-    // THE FRONTMOST VERIFICATION LEFT WITH THE ACTIVATION IT SERVED.
-    //
-    // `isFrontmost` and `frontmost(pid:within:)` lived here and were the
-    // originals — main-actor reads, written because "TextEdit didn't come to
-    // the foreground" was a VERIFICATION failure, not an activation one, and a
-    // background poll of `NSWorkspace.frontmostApplication` can stay stale for
-    // a whole deadline. `VerifiedActivation` now owns both roads and both
-    // reads; keeping a second copy here meant the fix could be improved in one
-    // place and left behind in the other, which is precisely how the original
-    // incident shipped twice.
+    // `isFrontmost` and `frontmost(pid:within:)` lived here and were the originals —
+    // main-actor reads, written because "TextEdit didn't come to the foreground" was.
 
     static func copyString(_ element: AXUIElement, _ attribute: String) -> String? {
         AX.string(element, attribute)

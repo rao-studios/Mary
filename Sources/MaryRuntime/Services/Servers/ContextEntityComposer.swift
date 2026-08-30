@@ -1,4 +1,10 @@
-// Builds the explicit Totem graph payload for an archived Ability run.
+//
+//  ContextEntityComposer.swift
+//  MaryRuntime
+//
+//  WHAT: Explicit Totem graph payload for an archived Ability run.
+//  OUT:  TotemEntityIn / TotemRelationIn on the deposit
+//
 
 import MaryBrain
 import MaryTotem

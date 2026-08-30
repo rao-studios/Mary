@@ -2,10 +2,9 @@
 //  PackageIssueSink.swift
 //  MaryFoundation
 //
-//  The checks every section of package admission shares, and the collector
-//  they append to. These are the vocabulary-level rules — a portable id,
-//  present text, a bounded routing term, a well-formed routing predicate —
-//  rather than anything about what a particular declaration means.
+//  WHAT: Shared vocabulary checks + issue collector for package admission.
+//  IN:   AbilityPackageValidator siblings.
+//  OUT:  SchemaIssue list.
 //
 
 import Foundation
@@ -33,10 +32,7 @@ final class PackageIssueSink {
         }
     }
 
-    /// Ability selection is an authorization-adjacent routing input. Keep
-    /// every searchable term bounded and canonical so an empty alias can
-    /// never match every utterance and punctuation/whitespace differences
-    /// cannot acquire machine-dependent substring semantics.
+    /// Bounded canonical search terms so empty/punctuation cannot match every utterance.
     func validateSearchTerms(
         _ values: [String],
         path: String,
@@ -151,9 +147,7 @@ extension AbilityPackageValidator {
                 options: .regularExpression) != nil
     }
 
-    /// Model enum cases enter a provider callable schema. Keep them as short
-    /// opaque values so a package cannot smuggle instruction prose through a
-    /// field that otherwise looks closed and typed.
+    /// Short opaque enum cases — no instruction prose through a typed field.
     static func machineTokenIsValid(_ value: String) -> Bool {
         value.range(
             of: #"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"#,

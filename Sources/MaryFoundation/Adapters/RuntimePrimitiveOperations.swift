@@ -1,7 +1,13 @@
-/// Mary-owned runtime operations that may be exposed directly by the host,
-/// but can never be claimed, rebound, or composed by an imported Ability
-/// package. Keeping the vocabulary in MaryFoundation lets admission and the
-/// runtime compatibility join enforce the same closed boundary.
+//
+//  RuntimePrimitiveOperations.swift
+//  MaryFoundation
+//
+//  WHAT: Host-only operations packages cannot claim or compose.
+//  IN:   AbilityPackageValidator / runtime compatibility join.
+//  OUT:  AbilityRuntime dispatch gate.
+//
+
+/// Closed host vocabulary. Same set for admission and runtime.
 public enum RuntimePrimitiveOperations {
     public static let names: Set<String> = [
         "run_applescript",

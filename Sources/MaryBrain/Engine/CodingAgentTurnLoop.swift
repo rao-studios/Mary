@@ -2,10 +2,11 @@
 //  CodingAgentTurnLoop.swift
 //  MaryBrain
 //
-//  Shared jailed pair-coding loop. Local MLX and Seer `/v1/code/complete`
-//  only swap how a round is synthesized; dispatch stays in CodingAgentWorkspace.
+//  WHAT: Shared jailed pair-coding loop.
+//  IN:   MaryCodingEngine / MarySeerCodingEngine
+//  OUT:  CodingAgentWorkspace dispatch
+//  PIN:  Engines only swap synthesis; dispatch stays on device.
 //
-
 import Foundation
 import MaryPlugin
 

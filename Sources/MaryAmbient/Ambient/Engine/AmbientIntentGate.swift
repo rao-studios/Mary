@@ -1,3 +1,12 @@
+//
+//  AmbientIntentGate.swift
+//  MaryAmbient
+//
+//  WHAT: Question forms that decide which durable context to consult.
+//  OUT:  memory lane / relationship-family vocabulary → Totem
+//  PIN:  Small projection — augments the user's words with graph intent.
+//
+
 import MaryFoundation
 import Foundation
 
@@ -68,11 +77,8 @@ public struct AmbientIntentGate: Sendable, Equatable {
     public var questions: Set<AmbientQuestion>
     public var requestedAbilities: Set<AbilityID>
     public var applications: [String]
-    /// The subset of `applications` asserted by what an application is
-    /// SHOWING rather than by its name (`AmbientAddressProbe`). Labelled so
-    /// any consumer that needs the literal half can recover it exactly —
-    /// `Set(applications).subtracting(addressedApplications)` — instead of
-    /// re-running a second matcher and drifting from this one.
+    /// The subset of `applications` asserted by what an application is SHOWING rather than by
+    /// its name (`AmbientAddressProbe`).
     public var addressedApplications: Set<String>
     public var signature: AmbientQuestionSignature
     public var memory: TotemMemoryPlan
@@ -98,10 +104,9 @@ public struct AmbientIntentGate: Sendable, Equatable {
         leadApplicationID: String?,
         profiles: [ApplicationProfile],
         abilities: any AbilityCapabilityIndex = AmbientCapabilityIndexProvider.current,
-        /// Applications the utterance addressed by their live contents (see
-        /// `AmbientAddressProbe`). Additive: they join `applications`, never
-        /// `named`, so every rung below that reads a NAME keeps reading only
-        /// names. Defaulted empty — every existing caller is unchanged.
+        /// Applications the utterance addressed by their live contents (see `AmbientAddressProbe`).
+        /// Additive: they join `applications`, never `named`, so every rung below that reads a NAME
+        /// keeps reading only names.
         addressed: [AmbientAddress] = []
     ) -> AmbientIntentGate {
         let questions = questionForms(in: utterance)

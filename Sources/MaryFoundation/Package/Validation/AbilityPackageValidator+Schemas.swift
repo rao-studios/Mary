@@ -2,10 +2,9 @@
 //  AbilityPackageValidator+Schemas.swift
 //  MaryFoundation
 //
-//  THE SCHEMAS A PACKAGE DECLARES — Capabilities, Interactions, Perceptions,
-//  Value Types, and Totem projections — checked first for internal
-//  well-formedness and then for whether every id they point at resolves to
-//  something this package owns or a dependency must supply.
+//  WHAT: Declared Capabilities, Interactions, Perceptions, Value Types, Totem projections.
+//  IN:   AbilityPackageValidator.validate.
+//  OUT:  PackageIssueSink. Cross-package owners: +Graph.
 //
 
 import Foundation
@@ -242,9 +241,7 @@ extension AbilityPackageValidator {
         }
     }
 
-    /// Value Types referenced but not owned here are a dependency's to supply;
-    /// Totem projections must be selected by exactly the kind of declaration
-    /// their purpose allows.
+    /// Unowned Value Types must come from a dependency. Totem purpose matches selector kind.
     static func validateSchemaReferences(
         _ package: MaryAbilityPackage,
         _ sink: PackageIssueSink

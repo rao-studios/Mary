@@ -1,5 +1,10 @@
 //
 //  WorkspaceFocusTracker+FocusAndPin.swift
+//  MaryAmbient
+//
+//  WHAT: Activation, pin, and current() overlays (override > pin > ambient).
+//  IN:   WorkspaceFocusTracker.swift (split)
+//  OUT:  AmbientContextStore.noteLead / PinnedWorld
 //
 
 import AppKit
@@ -13,35 +18,12 @@ extension WorkspaceFocusTracker {
         AmbientContextStore.shared.noteAttention(.init(tier: .activation, world: world))
     }
 
-    // THE SCRIVENER BUNDLE CONSTANTS ARE GONE (2026-08-15).
-    //
-    // They were the last compiled statement of "which process is Scrivener",
-    // and this file's own header always licensed their removal: "A host with
-    // different worlds replaces this file, or supplies its own registry."
-    // The registry is `ApplicationRegistration`, the family is
-    // `bundleIdentifierPrefix` — declared once in the package and answered
-    // once by `owns(bundleID:)` — and the exact ids stay `bundleIdentifiers`
-    // for the things that cannot take a family: launching, Automation
-    // consent, permission targets, and the typer's typing target.
-
-    /// While Mary itself drives an app, the signals that follow are
-    /// ARTIFACTS of Mary's ceremony, not the user's intent: a Scrivener
-    /// paste activates Scrivener (didActivate → record), the poll loops
-    /// sample that frontmost, and the autosave advances the manuscript mtime
-    /// (noteWritingActivity). Recording any of them would flip the arbiter so
-    /// the NEXT turn follows Mary's own side effect. Suppress the whole
-    /// window; the pre-ceremony state — the user's true focus — survives
-    /// untouched. A genuine app switch inside the window is re-recorded by
-    /// the 1.5s watcher polls right after it expires.
+    /// Suppress ambient signals while Mary is driving an app — those activations are ceremony, not intent.
     public func suppress(for interval: TimeInterval) {
         suppressBox.withLock { $0 = Date().addingTimeInterval(interval) }
     }
 
-    /// Open-ended suppression for self-driving work whose duration is
-    /// unknown up front (a 60-second typed passage outlives any fixed
-    /// window). Signals are ignored while ANY hold is open; `end` closes the
-    /// hold and arms a fixed TAIL to swallow the trailing echoes (autosave
-    /// mtime, the last poll samples). Refcounted: overlapping holds nest.
+    /// Open-ended suppression for self-driving work whose duration is unknown up front.
     public func beginSelfDriving() -> UUID {
         let id = UUID()
         holdsBox.withLock { _ = $0.insert(id) }
@@ -54,24 +36,7 @@ extension WorkspaceFocusTracker {
         suppress(for: tail)
     }
 
-    /// The single write seam: the freshest activity wins. Called by
-    /// record(bundleID:) for window focus and by the watchers for real work.
-    /// No-op while suppressed (a Mary-driven ceremony is in flight).
-    /// Stamps the unified lead box too — a native signal must displace a
-    /// dynamic lead by the SAME recency rule that used to live as a
-    /// cross-box comparison, and a background edit is exactly as native a
-    /// signal as an activation.
-    /// `at:` is the file's own `current(at:)` idiom on the write side: a test
-    /// proving "the window expired" stamps a signal from past the window
-    /// instead of blocking a cooperative-pool thread to wait it out.
-    /// ONE SIGNAL METHOD: a discipline and the place it happened in.
-    ///
-    /// Bonnie had two — `note(_:)` for coding, which derived Xcode from the
-    /// discipline, and `noteWriting(app:)` for writing, which took a closed
-    /// enum. Both derivations only worked because the compiled worlds were
-    /// countable. A caller here always knows WHERE the signal came from (it
-    /// read a registration to learn the discipline in the first place), so
-    /// the place is passed rather than guessed.
+    /// Single write seam — freshest activity wins. Window focus and watchers both call this.
     public func note(
         _ focus: WorkspaceFocus, place: AmbientPlace, at now: Date = Date()
     ) {
@@ -82,26 +47,13 @@ extension WorkspaceFocusTracker {
         stampEvidence(place: place, kind: .activity)
     }
 
-    /// Writing activity from a place — the shorthand for `note(.writing,
-    /// place:)`, kept because "the user is writing HERE" is the signal most
-    /// callers mean.
+    /// Shorthand for `note(.writing, place:)`.
     public func noteWriting(place: AmbientPlace) {
         note(.writing, place: place)
     }
 
-    /// WHERE the current `.writing` signal belongs. Nil when nobody has
-    /// written anywhere yet.
-    ///
-    /// OPTIONAL, DELIBERATELY. Bonnie's equivalent returned a closed enum
-    /// that could not fail to answer, so before any writing happened it
-    /// answered with a default — and a passage verb aimed at "the writing
-    /// place" would land in an application the user had never opened. Nil is
-    /// the honest form of that state and forces the caller to handle it.
-    ///
-    /// During an override turn the pin stands aside entirely: the turn
-    /// behaves exactly as if unpinned, falling to ambient truth. A
-    /// half-honoured pin — the override's discipline with the pin's place —
-    /// is how an utterance about one document gets routed to another.
+    /// Place the current `.writing` signal belongs. Nil if nobody has written yet.
+    /// PIN: During an override the pin stands aside — ambient truth for that turn.
     public func writingPlace() -> AmbientPlace? {
         func ambient() -> AmbientPlace? { writingPlaceBox.withLock { $0 } }
         if overrideBox.withLock({ $0 }) != nil { return ambient() }
@@ -133,21 +85,7 @@ extension WorkspaceFocusTracker {
         return !suppressed
     }
 
-    /// HOW LONG AN AMBIENT SIGNAL STILL DESCRIBES WHERE THE USER IS.
-    ///
-    /// `current()` had no decay at all: once a signal landed it stood until
-    /// something else overwrote it, so a single glance at a writing app hours
-    /// ago still asserted "the user is writing" on every turn since. Combined
-    /// with a contribution gated on the app merely RUNNING, that is how a
-    /// Pages document nobody had touched came to lead — and hand the voice a
-    /// live-document block and a Pages deposit scope — on a question about the
-    /// user's calendar.
-    ///
-    /// Deliberately generous. This is a staleness bound on an OBSERVATION, not
-    /// an idle timer: someone reading a long document without touching the
-    /// keyboard is still working in it, and every watcher re-samples the
-    /// frontmost app every 1.5–10 s, so an app the user is actually in never
-    /// comes close to this. Past it we simply stop asserting.
+    /// How long an ambient signal still describes where the user is.
     public static let signalHorizon: TimeInterval = 20 * 60
 
     public func current(at now: Date = Date()) -> WorkspaceFocus? {
@@ -158,16 +96,8 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// IS A WRITING APP GENUINELY IN PLAY? The gate `WorkspaceFocusArbiter`
-    /// applies before a writing world may take the lead off the back of
-    /// nothing but being open. True only while the ambient signal is a
-    /// WRITING signal inside the horizon — window truth, not a running
-    /// process.
-    ///
-    /// The override and the pin are deliberately NOT consulted: both already
-    /// resolve to `.writing` through `effectiveFocus()`, and the arbiter's
-    /// `.writing` branch never asks this question. "If I do name it, it must
-    /// work" survives untouched.
+    /// Whether a writing app is genuinely in play — gate `WorkspaceFocusArbiter` uses.
+    /// PIN: Override and pin are not consulted; both already resolve to `.writing`.
     public func writingInPlay(at now: Date = Date()) -> Bool {
         box.withLock { held in
             guard let held, held.focus == .writing else { return false }
@@ -175,10 +105,7 @@ extension WorkspaceFocusTracker {
         }
     }
 
-    /// The utterance-aware focus the prompt/roster should use:
-    /// override > pin > ambient. A named domain wins for its turn; the pin
-    /// wins over everything ambient; current() stays window truth untouched —
-    /// neither a word nor a click rewrites where the user actually is.
+    /// Utterance-aware focus: override > pin > ambient. `current()` stays window truth.
     public func effectiveFocus() -> WorkspaceFocus? {
         if let override = overrideBox.withLock({ $0 }) { return override }
         if let pin = pinBox.withLock({ $0 }) { return pin.focus }

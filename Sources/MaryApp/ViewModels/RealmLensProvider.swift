@@ -2,15 +2,9 @@
 //  RealmLensProvider.swift
 //  Mary
 //
-//  WHICH REALM LED EACH CHAT TURN — the transcript's half of the Routes
-//  pane's story. `RouteTraceViewModel`'s shape exactly: a 1 Hz poll of the
-//  lock-boxed `AmbientTraceLog`, one impure `gather()`, a PURE `build(_:)`
-//  over an `Inputs` value, and an Equatable diff before republishing so a
-//  quiet second repaints nothing.
-//
-//  The lens reads LIVE state only. Nothing here persists into the transcript
-//  model: a restored conversation, or a row older than the trace log's ring
-//  (50 turns), simply resolves no entry and shows no capsule.
+//  WHAT: Which realm led each chat turn (transcript half of Routes).
+//  IN:   AmbientTraceLog (1 Hz). OUT: AbilityBadgeRow capsules.
+//  PIN:  Live only; restored/old turns resolve no entry.
 //
 
 import MaryBrain
@@ -74,11 +68,7 @@ final class RealmLensProvider: ObservableObject {
 
     // MARK: - Pure
 
-    /// `nonisolated` because it is pure — the same declaration its sibling
-    /// `RouteTraceViewModel.build` carries, so the join is table-testable
-    /// from XCTest without hopping to the main actor. Records arrive newest
-    /// first; the newest row for an exchange wins (a superseding resubmit
-    /// records again under the same id).
+    /// Pure/nonisolated; newest record for an exchange wins.
     nonisolated static func build(_ inputs: Inputs) -> [UUID: RealmLensEntry] {
         var built: [UUID: RealmLensEntry] = [:]
         for record in inputs.records {

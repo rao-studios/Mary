@@ -2,18 +2,11 @@
 //  WakePlanner.swift
 //  MaryVoice
 //
-//  WHAT WAKES HER, AND WHAT MERELY MENTIONS HER — the pure decisions in front
-//  of standby listening and the "stop listening" exit. A direct sibling of
-//  `IntakePlanner` in this directory, and the same shape: a caseless enum, an
-//  `Equatable` verdict, no clock, no actor.
+//  WHAT: Pure wake / stop-listening matchers for standby and session exit.
+//  IN:   WakeWordListener / VoicePipeline.interceptStopListening
+//  OUT:  Wake.bare | Wake.request | isStopListening
 //
-//  DELIBERATELY NOT `IntakePlanner.namesHer`. That matcher answers "is she
-//  named ANYWHERE in this line?" for continuous hearing, where the cost of a
-//  match is a turn the user was already speaking toward her. Standby is the
-//  opposite economy: a false positive here does not produce a bad reply — it
-//  OPENS THE MICROPHONE and ACTS. So wake matching is positional (the name
-//  must lead, at most behind a greeting word), and "I told Mary about it"
-//  wakes nothing.
+//  Sibling of IntakePlanner. PIN: positional (name must lead), not namesHer.
 //
 
 import Foundation
@@ -21,15 +14,11 @@ import Foundation
 public enum WakePlanner {
 
     public struct Tuning: Sendable, Equatable {
-        /// The name plus the STT homophones a wake phrase actually arrives as.
-        /// Precedent: MaryBrain's `dictationAddressWords` — duplicated here
-        /// because MaryVoice cannot import MaryBrain.
+        /// Name plus STT homophones. Duplicated from MaryBrain — MaryVoice cannot import it.
         public var wakeNames: Set<String> = ["mary", "bonny", "bonni", "bonne"]
-        /// Words allowed BEFORE the name: "hey mary", "okay mary".
-        /// Position-strict everywhere else.
+        /// Words allowed before the name. Position-strict everywhere else.
         public var preambleWords: Set<String> = ["hey", "ok", "okay", "hi"]
-        /// Address + politeness words stripped from both ends when matching
-        /// the stop command, so "Mary, please stop listening now" lands.
+        /// Address + politeness stripped from both ends when matching stop.
         public var commandAddressWords: Set<String> =
             ["mary", "bonny", "bonni", "bonne", "hey", "ok", "okay", "please", "now"]
 
@@ -40,23 +29,18 @@ public enum WakePlanner {
     public enum Wake: Sendable, Equatable {
         /// "Hey Mary." — greet and listen.
         case bare
-        /// "Hey Mary, open mail" — the request rides along as the first
-        /// turn, original casing and punctuation preserved.
+        /// "Hey Mary, open mail" — remainder is the first turn.
         case request(String)
     }
 
-    /// nil when the utterance is not addressed as a wake phrase. The name
-    /// must be the first word or preceded only by preamble words. Matching is
-    /// per-token over a lowercased letters-and-digits form, so "Mary," and
-    /// "mary?" count and "summary"/"primary" never do — see
-    /// `IntakePlanner.Tuning.wakeWords` on why this name needs the boundary
-    /// more than the last one did.
+    /// nil when not a wake phrase. Name must be first or after preamble only.
+    /// Per-token letters-and-digits so "Mary," counts and "summary" never does.
     public static func wake(in text: String, tuning: Tuning = .standard) -> Wake? {
         let rawTokens = text.split(whereSeparator: { $0.isWhitespace }).map(String.init)
         var wakeIndex: Int?
         for (index, raw) in rawTokens.enumerated() {
             let token = normalize(raw)
-            // Bare punctuation the recognizer coughed up decides nothing.
+            // Bare punctuation decides nothing.
             if token.isEmpty { continue }
             if tuning.wakeNames.contains(token) {
                 wakeIndex = index
@@ -72,10 +56,7 @@ public enum WakePlanner {
         return remainder.isEmpty ? .bare : .request(remainder)
     }
 
-    /// Early-abort gate for live partials: can this utterance still become a
-    /// wake phrase? False the moment the leading words rule the name out —
-    /// which is what bounds standby transcription to the first breath of every
-    /// non-wake utterance in the room.
+    /// Early-abort for live partials: can this still become a wake phrase?
     public static func couldStillWake(partial: String, tuning: Tuning = .standard) -> Bool {
         let tokens = partial.split(whereSeparator: { $0.isWhitespace })
             .map { normalize(String($0)) }
@@ -88,16 +69,14 @@ public enum WakePlanner {
         guard index < tokens.count else { return true }
         let head = tokens[index]
         if tuning.wakeNames.contains(head) { return true }
-        // The final token of a live partial may still be mid-word ("bonn").
+        // Final token of a live partial may still be mid-word.
         guard index == tokens.count - 1 else { return false }
         return tuning.wakeNames.contains { $0.hasPrefix(head) }
             || tuning.preambleWords.contains { $0.hasPrefix(head) }
     }
 
-    /// Deterministic session exit: with address words stripped from both
-    /// ends, the utterance must EQUAL the command — whole and exact, the
-    /// dictation-control rule. "stop listening to the album" is prose, and
-    /// bare "stop" stays with the routine-cancel vocabulary downstream.
+    /// Deterministic session exit: after stripping address words, must equal
+    /// the command. Bare "stop" stays with routine-cancel downstream.
     public static func isStopListening(_ text: String, tuning: Tuning = .standard) -> Bool {
         var tokens = text.split(whereSeparator: { $0.isWhitespace })
             .map { normalize(String($0)) }
@@ -112,13 +91,12 @@ public enum WakePlanner {
         return phrase == "stop listening" || phrase == "quit listening"
     }
 
-    /// The `IntakePlanner.namesHer` normalization, applied per token.
+    /// `IntakePlanner.namesHer` normalization, per token.
     private static func normalize(_ token: String) -> String {
         String(token.lowercased().filter { $0.isLetter || $0.isNumber })
     }
 
-    /// Punctuation a remainder may start with after the name's own token is
-    /// dropped: "Hey Mary — what's up" → "what's up".
+    /// Punctuation a remainder may start with after the name token is dropped.
     private static let remainderLeadTrim = CharacterSet.whitespaces
         .union(CharacterSet(charactersIn: ",;:—–-…."))
 }

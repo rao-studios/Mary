@@ -1,11 +1,16 @@
+//
+//  SchemaSignalRuntime.swift
+//  MaryBrain
+//
+//  WHAT: Process-wide ingress for schema-typed environmental data.
+//  IN:   installed adapter (must advertise schema ID first)
+//  OUT:  validated interaction / perception eligible for a turn
+//
 import MaryFoundation
 import Foundation
 import os
 
-/// Process-wide ingress for schema-typed environmental data. An installed
-/// adapter must first advertise the schema ID in its manifest. Publishing then
-/// validates the Value, provenance, scope, privacy, and evidence before the
-/// instance is eligible for a turn.
+/// Process-wide ingress for schema-typed environmental data. An installed adapter must first advertise the schema ID in its manifest.
 public final class SchemaSignalRuntime: @unchecked Sendable {
     public static let shared = SchemaSignalRuntime()
     private static let ambientSelectionAdapterID = AdapterID("mary.ambient-selection")
@@ -184,10 +189,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
             at: now)
     }
 
-    /// Mary's ambient selection handoff is the only non-adapter bridge into
-    /// a turn. Accepting the source packet here, rather than accepting caller-
-    /// constructed RuntimeInteractionInstances, keeps evidence rank and
-    /// mutation authority behind this file's schema validator.
+    /// Mary's ambient selection handoff is the only non-adapter bridge into a turn.
     func snapshotForTurn(
         registry: AbilityRuntimeSnapshot? = nil,
         ambientSelection: AmbientSelectionHandoff?,
@@ -221,10 +223,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
         }
     }
 
-    /// Adapts the existing source-owned selection packet into the generic
-    /// schema signal path. This is deliberately a validator/normalizer, not a
-    /// second selection store: AmbientContextStore remains responsible for AX
-    /// capture and the one-turn handoff owns the resulting instance.
+    /// Adapts the existing source-owned selection packet into the generic schema signal path.
     func bridgeSelection(
         _ handoff: AmbientSelectionHandoff,
         registry: AbilityRuntimeSnapshot,
@@ -348,19 +347,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
     ) -> ValueEnvelope? {
         let payload: MaryValue
         if handoff.place.focus == .coding {
-            // WHAT THE SOURCE ACTUALLY PROVED — and no more. This opened
-            // `guard let document = handoff.scope.documentID else { return
-            // nil }`, and NOTHING in the live selection path ever sets that
-            // field: `SelectionHandoffPublisher.captureOutcome` passes no
-            // `scope:` at all, so `AmbientSelectionHandoff.init` fills only
-            // application, process and surface identity. The coding half of
-            // this bridge therefore returned nil for every real Xcode
-            // highlight there has ever been — the SECOND break sitting
-            // directly behind the missing `interaction.code-selection`
-            // declaration, and invisible while the first one was in front of
-            // it. The editor identity is always provable; file, language and
-            // project ride along only when a source proves them, which is
-            // exactly the optionality `coding.selection-context` declares.
+            // WHAT THE SOURCE ACTUALLY PROVED — and no more.
             var context: [String: MaryValue] = [
                 "application": .string(handoff.applicationID),
             ]

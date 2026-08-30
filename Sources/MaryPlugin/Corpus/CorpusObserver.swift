@@ -2,39 +2,11 @@
 //  CorpusObserver.swift
 //  MaryPlugin
 //
-//  WHAT THE USER HAS SETTLED ON, and the crawl it starts.
-//
-//  WHAT THE ACCESSIBILITY TREE ACTUALLY OFFERS — measured against a real
-//  workspace with a real project open, because the design turned on it and the
-//  assumption was wrong:
-//
-//    · `AXDocument` on the workspace window is the PROJECT ROOT
-//      (`file:///…/Mary`), NOT the active file. The plan assumed the file;
-//      it is the folder, and that turns out to be the better half of the
-//      bargain — the source build had to ask over Apple Events for the
-//      workspace anchor and Mary gets it free.
-//    · The active FILE appears in one place only: the window title, as
-//      `Project — Name`.
-//    · There is no `AXTextArea` and no per-file `AXDocument` anywhere in the
-//      tree. The editor publishes no buffer, which is why the source build
-//      shipped whole buffers over Apple Events to read one. The corpus never
-//      needed that: it reads the file from DISK, which is also the only
-//      trustworthy copy — that build's own notes record the scriptable
-//      document as a shadow whose edits the editor pane never takes.
-//
-//  SO RESOLUTION IS ROOT-FROM-AX PLUS NAME-FROM-TITLE, and a name is not a
-//  path. Two files can share a basename, and the doctrine for that is
-//  inherited whole from the build this replaces, where it was learned the
-//  expensive way: a same-named file in two projects sent an edit into the
-//  WRONG repository. AMBIGUITY RESOLVES TO NOTHING. Never a guess, never the
-//  first match.
-//
-//  THE FRESH-EDIT GATE. A file whose last write predates this session is a
-//  checkout or another tool's work, not the user's hand — it is indexed for
-//  structure and contributes NO style evidence. Reading a colleague's branch
-//  must not file the colleague's habits as yours. Delegated coding-agent
-//  writes join the same gate: `CodingAgentAuthorship` records paths the
-//  on-device agent just wrote, so those mtimes do not file as the user's style.
+//  WHAT: What the user settled on, and the crawl it starts.
+//  IN:   AX (root + title) / CorpusCrawl / CorpusStyleReader
+//  OUT:  unit index / prompt neighbourhood / style (fresh edits only)
+//  PIN:  Ambiguity resolves to nothing. Style only if mtime is this session
+//        and not CodingAgentAuthorship.
 //
 
 import AppKit
@@ -59,17 +31,13 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
     }
 
     private let settledBox = OSAllocatedUnfairLock<Settled?>(initialState: nil)
-    /// Identity of the last structure crawl that produced units, so a view
-    /// that has not grown neighbours can skip the sink without skipping the
-    /// walk that would discover them.
+    /// Last structure crawl identity — skip the sink if neighbours have not grown.
     private let lastStructureBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     /// Rendered neighbourhood, ready for the prompt. Written after a crawl,
     /// cleared on deactivate — never the identity line.
     private let digestBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let poller = SinglePollerClaim()
-    /// One crawl at a time. The claim above owns the LOOP; this owns a single
-    /// pass, so a per-turn refresh cannot start a second walk over the same
-    /// project while one is still reading it.
+    /// One crawl at a time. The claim owns the loop; this owns a single pass.
     private let inFlight = OSAllocatedUnfairLock<Bool>(initialState: false)
     private let support: CorpusSupport
     /// Set by the runtime; nil means indexing is switched off and the poll
@@ -93,8 +61,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         enabledBox.withLock { $0 = isEnabled }
     }
 
-    /// Where a completed crawl goes. Injected so this file knows nothing about
-    /// Totem, the indexing coordinator, or the style store.
+    /// Where a completed crawl goes. Injected so this file knows nothing about Totem.
     public func setSink(
         _ sink: @escaping @Sendable ([IndexedUnit], [StyleObservation], CorpusRegistration) async -> Void
     ) {
@@ -112,12 +79,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return "Working in \(settled.projectName) — \(settled.relativePath)"
     }
 
-    /// The neighbourhood digest, once a crawl has produced units. Identity
-    /// stays on `ambientLine` — putting THAT in `full` occupied `leadContext`
-    /// and left the voice with a path instead of source. The digest is the
-    /// other half of the live coding section: the files around the open one,
-    /// so a generic "what's this project" turn is not answering from a caret
-    /// excerpt alone.
+    /// Neighbourhood digest after a crawl. Identity stays on `ambientLine`.
     public func promptContribution() -> String? {
         digestBox.withLock { $0 }
     }
@@ -149,9 +111,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         digestBox.withLock { $0 = nil }
     }
 
-    /// Cadence. Slow on purpose: settling on a file is a human-scale event.
-    /// Viewing is enough to crawl structure and neighbours; a fresh edit is
-    /// only required for style.
+    /// Cadence. Slow: settling is human-scale. Viewing crawls structure; style needs a fresh edit.
     public static let pollSeconds: TimeInterval = 5
 
     /// Identity of a crawl's structure, so a view can retry neighbours
@@ -162,9 +122,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         }.sorted().joined(separator: ";")
     }
 
-    /// Compact enough for a prompt section, structural enough to explore from.
-    /// Never a file body — declarations, related paths, and the focused file
-    /// named first because that is where the walk started.
+    /// Prompt-sized neighbourhood: declarations, related paths, focused file first.
     package static func neighborhoodDigest(
         units: [IndexedUnit], focusedPath: String, limit: Int = 12
     ) -> String {
@@ -268,8 +226,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             at: now,
             discipline: discipline)
         if units.isEmpty {
-            // A claimed unit that produced nothing may be briefly unreadable;
-            // do not lock the settle, so the next poll retries neighbours.
+            // Claimed but empty may be briefly unreadable — do not lock settle.
             let claimed = corpus.include.contains(
                 (focus.relativePath as NSString).pathExtension)
             if !claimed {
@@ -278,10 +235,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
             return
         }
 
-        // THE PROMPT SEES THIS CRAWL, not only Totem after the idle timer.
-        // Generic exploration turns used to arrive with a caret excerpt and
-        // no neighbourhood, because `promptContribution` was nil by policy
-        // and the units sat in the indexer until annotation finished.
+        // Prompt sees this crawl now, not only Totem after the idle timer.
         digestBox.withLock {
             $0 = Self.neighborhoodDigest(
                 units: units, focusedPath: focus.relativePath)
@@ -299,9 +253,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
 
         guard let sink = sinkBox.withLock({ $0 }) else { return }
 
-        // STYLE ONLY FROM A FRESH EDIT, and only from the focused file — the
-        // neighbours were pulled in because this one points at them, not
-        // because the user just wrote them.
+        // Style only from a fresh edit of the focused file, not its neighbours.
         var observations: [StyleObservation] = []
         if Self.isFreshEdit(focus.absolutePath, at: now),
            let read = CorpusCrawl.read(
@@ -311,10 +263,7 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         }
         if structureUnchanged && observations.isEmpty { return }
 
-        // AWAITED, NOT FIRE-AND-FORGET. Two detached ingests have no ordering
-        // guarantee, and a stale crawl landing second would pin an older hash
-        // into the manifest — a file permanently "changed". The poller claim
-        // already serializes crawls, so awaiting here serializes ingests free.
+        // Awaited, not fire-and-forget. A stale ingest second would pin an older hash.
         await sink(structureUnchanged ? [] : units, observations, registration)
     }
 
@@ -380,19 +329,8 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
                 .appendingPathComponent(relative).path)
     }
 
-    /// The project folder the window is working in, from its `AXDocument`.
-    ///
-    /// ⚠️ `AXDocument` IS THE ACTIVE FILE, not the workspace — measured
-    /// 2026-08-28 against a live editor with a source file open, and it is the
-    /// opposite of what this code first assumed. No window attribute carries
-    /// the workspace at all: `AXProxy` and `AXTitleUIElement` are nil, and the
-    /// title carries only the project's NAME.
-    ///
-    /// So the root is found by climbing to the nearest ancestor holding a
-    /// DECLARED marker. Without that climb the fallback below takes the folder
-    /// the open file happens to sit in — which silently scopes "the project's
-    /// style" to a handful of neighbours and names the project after a
-    /// subdirectory.
+    /// Project folder from `AXDocument`. PIN: that attribute is the active file,
+    /// not the workspace — climb to the nearest ancestor holding a declared marker.
     static func documentRoot(
         of window: AXUIElement, corpus: PluginCorpusSchema
     ) -> String? {
@@ -419,12 +357,8 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         }
     }
 
-    /// The nearest ancestor of `directory` holding one of `markers`.
-    ///
-    /// A marker beginning with a dot matches as a SUFFIX, so `.xcodeproj`
-    /// finds `Thing.xcodeproj`; any other name matches exactly. The climb is
-    /// bounded because a path is data and a symlink loop is somebody else's
-    /// directory tree.
+    /// Nearest ancestor holding a marker. Dotted markers match as suffix
+    /// (`.xcodeproj` finds `Thing.xcodeproj`); other names match exactly. Climb is bounded.
     static func projectRoot(
         containing directory: String, markers: [String], maximumDepth: Int = 24
     ) -> String? {
@@ -446,21 +380,12 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return nil
     }
 
-    /// `Project — Name` → `Name`, using the package's declared separator.
-    /// Kept as the default identity's parse so existing tests that call this
-    /// directly still describe that common editor shape.
+    /// `Project — Name` → `Name` via the package's declared separator.
     static func activeName(inTitle title: String) -> String? {
         PluginWorkspaceIdentitySchema.default.focusedFileName(inTitle: title)
     }
 
-    /// A NAME IS NOT A PATH. Match it against the project's own units and
-    /// insist on exactly one answer — see this file's header for the edit that
-    /// went into the wrong repository when a predecessor guessed.
-    ///
-    /// The title may or may not carry the extension depending on the editor's
-    /// display settings, so both spellings are accepted; a name matching no
-    /// unit (a settings tab, a file this corpus does not claim) is nothing to
-    /// crawl rather than a failure.
+    /// A name is not a path. Exactly one matching unit, with or without extension.
     static func resolve(name: String, root: String, corpus: PluginCorpusSchema) -> String? {
         let candidates = CorpusCrawl.projectFiles(root: root, corpus: corpus).filter { path in
             let component = (path as NSString).lastPathComponent

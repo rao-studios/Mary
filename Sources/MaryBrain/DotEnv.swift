@@ -2,21 +2,11 @@
 //  DotEnv.swift
 //  MaryBrain
 //
-//  Seer's loadDotEnv, ported: parse KEY=VALUE lines into the process
-//  environment at boot. Mary's `.env` is gitignored.
+//  WHAT: Parse KEY=VALUE into the process environment at boot.
+//  IN:   repo `.env` then Seer `.env`
+//  OUT:  process env
+//  PIN:  App never authenticates with SEER_TOKEN; only the voice probe reads it.
 //
-//  WHAT SEER_TOKEN IS, AND IS NOT. The app never authenticates with it —
-//  every Seer request (chat, realtime, TTS, Totem) rides a Bearer token
-//  minted by `SeerSession`'s account sign-in, which runs by itself at boot
-//  with the admin account. The one reader of SEER_TOKEN is the standalone
-//  voice probe, which has no session to mint from and takes a static bearer
-//  from the environment instead. An enum named `SeerAuth` used to stand
-//  here presenting the token as "the one hosted credential", and two
-//  Settings rows rendered its presence as the hosted lane's health — telling
-//  people to go edit a dotfile the app never reads, while the actual
-//  requirement, being signed in, went unreported.
-//
-
 import MaryVoice
 import Foundation
 
@@ -28,15 +18,7 @@ public enum DotEnv {
     /// probe credential and not the app's.
     static let probeTokenKey = "SEER_TOKEN"
 
-    /// Mary's boot loader: the repo's own `.env` first, then the Seer
-    /// checkout's as a fallback, never overwriting what is already set — so
-    /// the probes work out of the box on this machine without copying keys
-    /// between repositories.
-    ///
-    /// ONE KEY, because there is one hosted engine. The version this descends
-    /// from probed two providers' variables and fell back if EITHER was
-    /// missing, which meant a machine configured for one of them still went
-    /// reading another repository's dotfile every launch.
+    /// Mary's boot loader: the repo's own `.env` first, then the Seer checkout's as a fallback, never overwriting what is already set
     public static func loadMaryEnvironment() {
         load()
         if ProcessInfo.processInfo.environment[probeTokenKey] == nil {

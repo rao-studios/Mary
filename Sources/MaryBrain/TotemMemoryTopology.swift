@@ -1,3 +1,11 @@
+//
+//  TotemMemoryTopology.swift
+//  MaryBrain
+//
+//  WHAT: Names the two logical Totems while they share the local Totem service.
+//  IN:   deposit / retrieval
+//  OUT:  RetrievalScope.Group / document ids
+//
 import Foundation
 import MaryAmbient
 import MaryFoundation
@@ -162,10 +170,7 @@ public enum TotemMemoryTopology {
         return String(format: "%016llx", hash)
     }
 
-    /// One durable profile per application subject. Tenets are scoped
-    /// internally (language / application / project), so they travel together
-    /// in one document rather than being scattered across per-scope addresses
-    /// that would have to be re-joined to answer any question about them.
+    /// One durable profile per application subject.
     public static func styleProfileDocumentID(subject: String, ownerID: String) -> String {
         let key = UnitIndexHashing.canonical(ownerID) + "|" + UnitIndexHashing.canonical(subject)
         return "mary-style-profile-\(UnitIndexHashing.stableHash(key))"

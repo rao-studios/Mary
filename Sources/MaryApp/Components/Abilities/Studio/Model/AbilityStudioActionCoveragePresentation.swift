@@ -1,12 +1,7 @@
 import MaryBrain
 import Foundation
 
-/// A visual-editor interpretation of a package-owned macUI provider.
-///
-/// The schema deliberately keeps locally declared Skills and imported portable
-/// Skill realizations separate. This presentation preserves that distinction
-/// while making it visible to an author who should not need to infer ownership
-/// from identifiers or jump between editor stages.
+/// Visual-editor view of a package-owned macUI provider. Local vs portable Skills stay separate.
 struct AbilityStudioActionCoveragePresentation {
     enum ActionOwnership: Hashable {
         case local(skillID: SkillID, title: String)

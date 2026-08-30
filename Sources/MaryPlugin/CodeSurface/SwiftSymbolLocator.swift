@@ -2,19 +2,9 @@
 //  SwiftSymbolLocator.swift
 //  MaryPlugin
 //
-//  Finds a Swift declaration in source text so a code-surface edit can replace it
-//  wholesale or insert after it. Deliberately lightweight — a comment/string
-//  mask pass, a header regex, and brace matching — NOT SwiftSyntax:
-//
-//  - We only ever edit at whole-declaration boundaries (replace a whole
-//    func/type, or append). That needs coarse location, not expression-level
-//    parsing.
-//  - SwiftSyntax is toolchain-coupled and heavy; landing it in this package
-//    (which carries the delicate MLX/Frigate module-alias graph) is exactly
-//    where the build is most fragile. When the locator can't resolve cleanly
-//    it soft-fails and the binding prefers an additive edit — never a bad
-//    splice. SwiftSyntax stays the documented upgrade path.
-//
+//  WHAT: Coarse Swift declaration span (mask, header regex, braces).
+//  OUT:  CodeSurfaceEdit
+//  PIN:  Not SwiftSyntax. Soft-fail → additive edit, never a bad splice.
 
 import Foundation
 
@@ -212,11 +202,8 @@ public enum SwiftSymbolLocator {
         }
     }
 
-    /// The chain of declarations enclosing a character offset, outermost
-    /// first (e.g. [struct SettingsSheet, var body]) — the precise "where is
-    /// the cursor" answer. One masked scan: every code-position `{` is pushed
-    /// with its owning declaration header (if the brace belongs to one);
-    /// whatever declaration braces are open at `offset` form the chain.
+    /// The chain of declarations enclosing a character offset, outermost first (e.g.
+    /// [struct SettingsSheet, var body]) — the precise "where is the cursor" answer.
     static func scopeChain(at offset: Int, in source: String) -> [SymbolSpan] {
         let chars = Array(source)
         guard offset >= 0, offset <= chars.count, !chars.isEmpty else { return [] }
@@ -244,10 +231,9 @@ public enum SwiftSymbolLocator {
             let afterHeader = Range(match.range, in: source)!.upperBound
             guard let open = firstCodeBrace(source, chars: chars, regions: regions, after: afterHeader),
                   headerByBrace[open] == nil else { continue }
-            // The brace must belong to THIS header: nothing but signature-ish
-            // text between them — approximated by requiring no `}` at code
-            // position in the gap (a closed scope means the brace is later
-            // code, not this header's body).
+            // The brace must belong to THIS header: nothing but signature-ish text between
+            // them — approximated by requiring no `}` at code position in the gap (a closed
+            // scope.
             var belongs = true
             var i = source.distance(from: source.startIndex, to: afterHeader)
             while i < open {

@@ -2,13 +2,8 @@
 //  AbilityRunPresentation.swift
 //  Mary
 //
-//  WHAT A DISPOSITION LOOKS LIKE, in one place.
-//
-//  The words and the colours lived privately inside AbilityRunInspectorSheet,
-//  which was fine while the sheet was the only surface that showed a run's
-//  state. The chip shows it now too, and two private copies of "what
-//  `.unsettled` means" is how a chip comes to say one thing while the sheet
-//  it opens says another.
+//  WHAT: Shared words and colors for a run's disposition.
+//  OUT:  AbilityBadgeRow / AbilityRunInspectorSheet
 //
 
 import MaryBrain
@@ -17,8 +12,7 @@ import SwiftUI
 
 enum AbilityRunPresentation {
 
-    /// The sheet's vocabulary, unchanged — plain words for what happened,
-    /// never status codes.
+    /// Sheet vocabulary — plain words, never status codes.
     static func label(_ run: BehavioralActionRecord) -> String {
         switch run.disposition {
         case .succeeded: return run.foundNothing ? "looked, found nothing" : "completed"
@@ -41,8 +35,7 @@ enum AbilityRunPresentation {
         }
     }
 
-    /// How long it took, once it has finished. Sub-second work is the common
-    /// case and reads as noise at three decimals, so it rounds to tenths.
+    /// Duration once finished. Sub-second rounds to tenths (or ms).
     static func duration(_ run: BehavioralActionRecord) -> String? {
         guard let duration = run.duration else { return nil }
         return duration < 1
@@ -52,15 +45,7 @@ enum AbilityRunPresentation {
 
     // MARK: - The chip's own state
 
-    /// ONE CHIP, MANY CALLS. A chip names a Skill, and a reply may have called
-    /// that Skill several times; the chip has room for one state.
-    ///
-    /// The order is a claim about what a person needs to know first, not a
-    /// severity ranking: work still RUNNING outranks everything, because it is
-    /// the only state that will change and the only one worth waiting on. A
-    /// failure outranks a success, because three successes and a failure is a
-    /// reply that did not fully land. Everything settled and fine is the quiet
-    /// case, and looks exactly as chips always have.
+    /// One chip, many calls. Running outranks; then failure; settled is quiet.
     enum ChipState {
         case running
         case attention
@@ -83,17 +68,14 @@ enum AbilityRunPresentation {
         return needsAttention ? .attention : .settled
     }
 
-    /// The state, said in words, for the chip's accessibility label and its
-    /// tooltip. Nil when there is nothing to add — a settled chip reads as it
-    /// always did.
+    /// Chip tooltip/accessibility. Nil when settled (chip reads as it always did).
     static func stateWord(_ runs: [BehavioralActionRecord]) -> String? {
         switch chipState(runs) {
         case .running:
             let count = runs.filter { $0.disposition == .unsettled }.count
             return count > 1 ? "\(count) still running" : "still running"
         case .attention:
-            // The specific word, not a generic "problem" — "refused" and
-            // "did not go through" are different things to a person.
+            // Specific word, not a generic "problem" (`refused` vs `did not go through`).
             return runs.first { $0.disposition != .succeeded }.map(label)
         case .settled:
             return nil
@@ -101,9 +83,7 @@ enum AbilityRunPresentation {
     }
 }
 
-/// The running chip's pulse. A slow opacity breath rather than a spinner: the
-/// chip row is a quiet part of the page and a spinning indicator in it reads
-/// as an error state.
+/// Running-chip pulse. Slow opacity breath, not a spinner (spinner reads as error).
 struct RunningPulse: View {
     let tint: Color
     @State private var animating = false

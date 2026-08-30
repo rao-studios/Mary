@@ -2,12 +2,10 @@
 //  MaryRuntime+Corpus.swift
 //  MaryRuntime
 //
-//  THE CORPUS'S WRITES, in one place.
-//
-//  Each of these touches stores that must agree: the coordinator's manifest
-//  (the hash gate), the evidence store (what the corpus believes), the ledger
-//  (what the pane shows) and Totem (the durable copy). Doing them inline from
-//  a view would be several chances to update all but one.
+//  WHAT: Corpus writes — manifest, evidence, ledger, Totem must agree.
+//  IN:   CorpusObserver units/observations
+//  OUT:  unitIndexer, StyleEvidenceStore, TotemContextStore, UnitIndexLedger
+//  PIN:  Ability-keyed profiles, never application-keyed. Observer is injected.
 //
 
 import MaryPlugin
@@ -19,37 +17,21 @@ import os
 
 extension MaryRuntime {
 
-    /// Write the style profile out, coalesced.
-    ///
-    /// A crawl publishes up to two dozen units and every one of them can move
-    /// a tally, so persisting per unit would be two dozen Totem writes for one
-    /// settle. This collapses them the way `AmbientDigestRefresher` collapses
-    /// its refreshes: latest wins, never stack.
+    /// Write the style profile, coalesced. Latest wins — one settle, not one write per unit.
     static func requestStyleProfileSave(after delay: TimeInterval = 5) {
         styleSaveBox.withLock { task in
             task?.cancel()
             task = Task {
                 try? await Task.sleep(nanoseconds: UInt64(max(0, delay) * 1_000_000_000))
                 guard !Task.isCancelled else { return }
-                // Sweep BEFORE writing: what gets persisted should be what the
-                // corpus believes after ageing, not before it.
+                // Sweep before write: persist what the corpus believes after ageing.
                 refreshStyleCorpus()
                 await persistStyleProfile()
             }
         }
     }
 
-    /// ONE DOCUMENT PER SUBJECT. This used to read the entire store and label
-    /// all of it `subject: xcode` — correct only while Xcode was the sole
-    /// producer, and a silent overwrite the moment anything else filed
-    /// evidence. Each application's profile now carries its own tenets plus
-    /// the broader rungs its work sits under (its Ability, its languages),
-    /// which is exactly what the export format is for.
-    /// Publish what the corpus now says, report what changed, and drop what
-    /// has gone quiet.
-    ///
-    /// Runs on the same coalesced tick as the profile write, so a settle does
-    /// one sweep rather than one per unit.
+    /// Publish current corpus, report changes, drop quiet subjects. Same coalesced tick.
     static func refreshStyleCorpus(at now: Date = Date()) {
         let store = StyleEvidenceStore.shared
         store.publish(at: now)
@@ -69,8 +51,7 @@ extension MaryRuntime {
                 applications: producer.applications,
                 languages: producer.languages,
                 at: now)
-            // An empty document is WRITTEN, never skipped: it is what makes a
-            // forget durable.
+            // Empty document is written — that is what makes a forget durable.
             await totemContext.depositStyleProfile(
                 tenets,
                 vetoedTenetKeys: Array(store.vetoed()),
@@ -84,17 +65,11 @@ extension MaryRuntime {
 
 extension MaryRuntime {
 
-    /// Point the corpus observer at its switch and its stores.
-    ///
-    /// THE OBSERVER KNOWS NOTHING ABOUT ANY OF THIS. It reads a window, walks
-    /// a project and produces units and observations; where they go is
-    /// injected here, which is what keeps MaryPlugin free of Totem and the
-    /// evidence store, and what lets a test hand it an array instead.
+    /// Point CorpusObserver at its switch and stores. Observer does not know Totem.
     package static func installCorpusPipeline() {
         let observer = CorpusObserver.shared
 
-        // READ PER POLL, not captured once: a person switching indexing off
-        // expects the next poll to stop, not the next launch.
+        // Per-poll read, not captured once — switching off takes effect next poll.
         observer.setEnabled { corpusIndexingEnabledBox.withLock { $0 } }
 
         observer.setSink { units, observations, registration in
@@ -108,10 +83,7 @@ extension MaryRuntime {
                 await unitIndexer.ingest(unit)
             }
             guard !observations.isEmpty else { return }
-            // ABILITY-KEYED, NEVER APPLICATION-KEYED. Learning how somebody
-            // codes in one editor has to teach Mary how they code in the
-            // next one, and a profile filed under the application cannot be
-            // read by a second application realizing the same craft.
+            // Ability-keyed: a second editor realizing the same craft must read this profile.
             let place = AmbientPlace.application(registration.applicationID)
             guard let ability = place.ability else { return }
             let source = "\(registration.applicationID)|\(registration.schema.notation)"
@@ -128,13 +100,10 @@ extension MaryRuntime {
         }
     }
 
-    /// Mirrors the config flag so the observer's per-poll read is a lock and
-    /// not a hop into Granite from a background task.
+    /// Mirrors the config flag so the observer's per-poll read is a lock, not a Granite hop.
     static let corpusIndexingEnabledBox = OSAllocatedUnfairLock<Bool>(initialState: true)
 
-    /// The live answer, for anything that needs to read the switch rather
-    /// than set it. The lock itself stays internal: a caller holding it could
-    /// keep the observer waiting mid-poll.
+    /// Live switch. Lock stays internal — a caller holding it could stall a poll.
     package static var corpusIndexingIsEnabled: Bool {
         corpusIndexingEnabledBox.withLock { $0 }
     }
@@ -145,11 +114,7 @@ extension MaryRuntime {
 
 
 
-    /// Pin corrected labels to a unit.
-    ///
-    /// The manifest is written first and then re-persisted, because the
-    /// coordinator owns it — writing Totem first would leave the durable copy
-    /// ahead of the gate that decides whether the next crawl even looks.
+    /// Pin corrected labels. Manifest first, then Totem — coordinator owns the hash gate.
     package static func pinUnitLabels(
         _ labels: [String], unitKey: String, path: String,
         projectID: String, projectName: String
@@ -166,14 +131,12 @@ extension MaryRuntime {
             : "Pinned. These labels survive every re-index from now on."
     }
 
-    /// Forget a unit: its manifest row, its ledger row, and its Totem document.
+    /// Forget a unit: manifest row, ledger row, Totem document.
     package static func forgetUnit(
         unitKey: String, path: String, projectID: String, projectName: String
     ) async -> String {
         await unitIndexer.forget(path: path, projectID: projectID)
-        // Style evidence must not outlive the unit it was read from — the
-        // crawl keys sources as `project|relativePath|dimension`, so the
-        // prefix removes the file's one opinion on every dimension at once.
+        // Style evidence must not outlive the unit. Crawl keys `project|relativePath|dimension`.
         StyleEvidenceStore.shared.withdraw(sourcesWithPrefix: "\(projectName)|\(path)|")
         let removed = await totemContext.forgetUnit(unitKey: unitKey)
         if let manifest = await unitIndexer.manifest(forProject: projectID) {
@@ -212,8 +175,7 @@ extension MaryRuntime {
         return "Cleared \(count) files. They re-index as you visit them."
     }
 
-    /// State a tenet by hand. It renders from the next turn and outranks the
-    /// corpus; the corpus keeps counting so the disagreement stays visible.
+    /// State a tenet by hand. Renders next turn; corpus keeps counting so disagreement stays visible.
     package static func assertTenet(
         dimension: StyleDimension, value: StyleValue, scope: StyleScope,
         vocabulary: [String] = []
@@ -245,7 +207,7 @@ extension MaryRuntime {
         return "Unsilenced."
     }
 
-    /// Drop everything learned from the corpus, keeping what was said by hand.
+    /// Drop inferred corpus; keep what was stated by hand.
     static func forgetObservedStyle() async -> String {
         StyleEvidenceStore.shared.resetObservations()
         await persistStyleProfile()

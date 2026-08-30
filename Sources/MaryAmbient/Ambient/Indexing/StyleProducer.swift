@@ -2,25 +2,10 @@
 //  StyleProducer.swift
 //  MaryAmbient
 //
-//  WHO IS LEARNING, AND WHAT THEY ARE LEARNING ABOUT.
+//  WHAT: Who is learning, and what they are learning about — ability, not application.
+//  OUT:  StyleEvidence / Corpus pane / persistence (one document per producer)
+//  PIN:  Profile keyed by ability so a second app realizing the same craft can read it.
 //
-//  The corpus used to name Xcode. That was never the fact: Xcode appears
-//  because an Xcode PLUGIN is in use, and Scrivener would appear because a
-//  dynamic package is. The thing being learned about is the ABILITY — the kind
-//  of work — and the application is where it happened to be observed.
-//
-//  The distinction is load-bearing rather than cosmetic. A durable profile
-//  keyed by application cannot be read by a second application realizing the
-//  same craft, so learning how someone codes in Xcode teaches Mary nothing
-//  about how they code anywhere else. Keyed by ability, it does.
-//
-//  A producer is that declaration: one ability, the applications it is observed
-//  through, the notations it reads (empty for prose), and the sentence its
-//  block opens with. The composition root registers them, which is why this
-//  type carries no `AmbientWorld` and no language literal — those belong at the
-//  one place that knows which plugins are installed.
-//
-
 import MaryFoundation
 import Foundation
 import os
@@ -58,13 +43,9 @@ public struct StyleProducer: Sendable, Equatable {
     }
 }
 
-/// The registered producers, in registration order.
-///
-/// Iterated by persistence (one document per producer), by the Corpus pane
-/// (one section per producer), and by each crawl (which carries its own
-/// producer so it never has to ask who it is). Replacing the old
-/// `styleObservingWorlds = [.xcode]` constant with a registry is what makes a
-/// second producer a registration rather than a change to the core.
+/// The registered producers, in registration order. Iterated by persistence (one document
+/// per producer), by the Corpus pane (one section per producer), and by each crawl (which
+/// carries its own producer so it never has to ask who it is).
 public final class StyleProducerRegistry: @unchecked Sendable {
 
     public static let shared = StyleProducerRegistry()

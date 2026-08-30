@@ -2,11 +2,8 @@
 //  PerceptionInspectorView.swift
 //  Mary
 //
-//  The drill-in for one watched world: the raw snapshot Mary holds, why
-//  it's blind (and the fix), what the NEXT turn's prompt receives, and the
-//  pin control. Everything renders from one PerceptionCard — the same
-//  source as the tile captions — so a Copy (or a screenshot) of this card
-//  is a complete perception bug report.
+//  WHAT: Drill-in for one watched world (snapshot, blindness, next prompt, pin).
+//  IN:   one PerceptionCard (same as tile captions)
 //
 
 import SwiftUI
@@ -80,20 +77,9 @@ struct PerceptionInspectorView: View {
                 // Stacked, not side by side: the pane's content floor is
                 // ~268pt and both values are phrases, not numbers.
                 stat("Delivery", card.delivery)
-                // Delivery describes this WATCHER's contribution; a Skill
-                // result had no row at all, which is how a `pages_body` read
-                // that succeeded and reached nobody looked healthy here while
-                // the voice denied the passage existed.
+                // Watcher's contribution (not Skill results).
                 stat("Last read", focus.readDelivery?.summary ?? "none this session")
-                // WHAT SHE IS STILL HOLDING, and under which branch of the
-                // budget rule the next prompt will order it. Delivery answers
-                // "where did this world's LIVE contribution go"; this answers
-                // "what survived the turn that fetched it" — the row that
-                // makes the continuity fix visible without a trace.
-                // Counted as FACTS, not reads: eyeless worlds (calendar,
-                // reminders) hold facts here too — a read of theirs, or their
-                // standing line — and they join no card, because there is no
-                // window to draw a card of.
+                // Held facts (eyeless worlds too), not live contribution.
                 stat(
                     "Holding",
                     focus.heldReads.isEmpty

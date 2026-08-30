@@ -1,11 +1,7 @@
 import MaryBrain
 import Foundation
 
-/// Reference-preserving mutations used by Ability Studio's visual controls.
-///
-/// These edits operate on a candidate package. The view model validates and
-/// canonically encodes that candidate before replacing the visible draft, so a
-/// rejected cascade never leaves half-renamed schema behind.
+/// Visual mutations on a candidate; VM validates before replacing the draft.
 enum AbilityStudioEditorIntegrity {
     enum MutationError: LocalizedError, Equatable {
         case applicationNotFound(String)

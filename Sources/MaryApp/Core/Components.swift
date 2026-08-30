@@ -57,19 +57,7 @@ extension ButtonStyle where Self == MaryButtonStyle {
     static var maryQuiet: MaryButtonStyle { MaryButtonStyle(prominent: false) }
 }
 
-/// A one-line label chip that CANNOT squish, by construction.
-///
-/// THE BUG THIS PREVENTS, and it has bitten more than once: chips laid out in
-/// a `LazyVGrid(GridItem(.adaptive(minimum: 28)))` inherit the COLUMN's width.
-/// That grid is right for icon chips and catastrophic for word ones — the
-/// Routes pane's intent tabs came out as "dec/ide", "com/pos/e", "conve/rse".
-///
-/// The two modifiers below are the whole fix and belong together: `lineLimit(1)`
-/// says never stack, and `fixedSize(horizontal: true, …)` says never accept a
-/// width narrower than the text. With both, a chip is immune to whatever
-/// container it is dropped into — which is the point, because the next person
-/// to reach for a grid will not have read this comment. Pair it with
-/// `FlowLayout`, which measures subviews at their intrinsic width.
+/// One-line label chip that cannot squish (`lineLimit(1)` + `fixedSize`). Pair with FlowLayout.
 struct MaryChip: View {
     let label: String
     var isOn: Bool = false
@@ -126,11 +114,7 @@ struct MaryStat: View {
                 .font(.marySans(9))
                 .foregroundStyle(Color.maryInk.opacity(0.5))
         }
-        // A tile's width authority is its own content, never a row's leftover
-        // share: under HStack compression "Documents" breaks mid-word and
-        // "20.6 MB" splits across lines. Refuse compression here and let the
-        // ROW wrap whole tiles (FlowLayout) — the same ruling FlowLayout.swift
-        // records for text chips.
+        // Tile width is its content; FlowLayout wraps whole tiles.
         .lineLimit(1)
         .fixedSize()
     }

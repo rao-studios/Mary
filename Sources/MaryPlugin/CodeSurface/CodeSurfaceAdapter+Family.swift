@@ -2,12 +2,8 @@
 //  CodeSurfaceAdapter+Family.swift
 //  MaryPlugin
 //
-//  THE REST OF THE CODE-SURFACE FAMILY — current file, symbol, lines, and
-//  the disk writes Bonnie's native editor plugin already had. Nothing here
-//  names an application. `read_symbol` uses `SwiftSymbolLocator` when the
-//  live project's corpus notation is `swift`; otherwise it searches the
-//  package's declared `declarations` patterns.
-//
+//  WHAT: Family skill wiring for CodeSurfaceAdapter.
+//  IN:   CodeSurfaceAdapter.swift (sibling split)
 
 import AppKit
 import Foundation

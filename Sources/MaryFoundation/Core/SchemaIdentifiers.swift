@@ -1,10 +1,16 @@
+//
+//  SchemaIdentifiers.swift
+//  MaryFoundation
+//
+//  WHAT: Portable dotted ids for the schema graph (abilities, skills, perceptions).
+//  IN:   `.mary` decode / AbilityPackageValidator → these wrappers.
+//  OUT:  SkillSchemas, InstalledAdapterInventory, AbilityRuntime.
+//  PIN:  No machine-local path, plugin instance, pid, or display name.
+//
+
 import Foundation
 
-/// A stable, portable identifier used by Mary's schema graph.
-///
-/// Identifiers are lower-case, dot-separated names such as `writing` or
-/// `interaction.text-selection`. They never contain a machine-local path,
-/// plugin instance, process id, or display name.
+/// Lower-case dotted id (`writing`, `interaction.text-selection`).
 public protocol SchemaIdentifier: RawRepresentable, Codable, Hashable,
     Sendable, CustomStringConvertible, ExpressibleByStringLiteral
 where RawValue == String {
@@ -36,18 +42,11 @@ public struct AbilityID: SchemaIdentifier {
     public static let coding: Self = "coding"
     public static let windowManagement: Self = "window-management"
     public static let design: Self = "design"
-    /// Named in Swift because the ambient layer asks "does this registration
-    /// realize browsing?" to decide whether a bundle is a browser at all —
-    /// which is how Chrome and any later browser package join the browser
-    /// workspace without being written into a compiled table.
+    /// Named so ambient can ask "does this registration realize browsing?"
+    /// OUT: browser workspace membership without a compiled table.
     public static let browsing: Self = "browsing"
-    // NO ENTRY IS REQUIRED HERE TO SHIP A `.mary`. `AbilityID` is
-    // `ExpressibleByStringLiteral`, so `"shaderfeel"` is a complete identifier
-    // wherever one is wanted; these six exist only because compiled Swift
-    // refers to them by name often enough that a typo should be a build error.
-    // A package nothing in Swift names by hand — ShaderFeel is the first — adds
-    // nothing here, and the prompt registry derives its label from the id
-    // rather than from a case (see `AbilityPromptProjection.contractLabel`).
+    // PIN: Packages ship ids as string literals. These cases are Swift call-sites
+    //      only (`AbilityPromptProjection.contractLabel` derives labels from the id).
 }
 
 public struct SkillID: SchemaIdentifier {
@@ -95,33 +94,9 @@ public struct PerceptionID: SchemaIdentifier {
     public static let windowFocus: Self = "perception.window-focus"
 }
 
-/// A PERCEPTION MARY HERSELF CONCLUDES, and the one she concludes it from.
-///
-/// WHY THIS TABLE EXISTS. An adapter publishes a Perception by claiming it in
-/// its manifest, and `InstalledAdapterInventory` refuses to install any binding
-/// whose required Perception nothing claims. That rule is right, and it has a
-/// blind spot: some Perceptions are not sensed by an adapter at all. They are
-/// CONCLUDED, by Mary, from one that was — a workspace lead whose declared
-/// focus is coding is a code workspace in focus, and no adapter needs to say so
-/// twice.
-///
-/// Without this table those conclusions are indistinguishable from a missing
-/// lane. Every Skill requiring `code-workspace-focus` installed `.blocked` and
-/// vanished from the model's roster — the whole `xcode.mary` lane, in silence —
-/// because the derivation happens at turn time while the inventory reads only
-/// the static claim. The claim was missing; the evidence never was.
-///
-/// ⚠️ THE ENTRIES ARE NOT A WISH LIST. Each row is a promise that
-/// `AbilityRuntime` actually performs this derivation on every turn, and there
-/// are exactly as many rows as there are insertion sites. A row for a
-/// derivation that does not exist un-blocks a Skill that will never have its
-/// Perception, which is strictly worse than the bug this fixes: the failure
-/// moves from "silently absent" to "offered and wrong".
-///
-/// `perception.text-surface-focus` is deliberately ABSENT. Nothing derives it
-/// and nothing publishes it — but it is only ever an OPTIONAL perception, so it
-/// blocks no Skill, and adding it here to tidy the ledger would be exactly the
-/// false promise above.
+/// Perceptions AbilityRuntime concludes from an adapter-claimed one.
+/// OUT: InstalledAdapterInventory (static claims) + AbilityRuntime (turn insert).
+/// PIN: Rows = insertion sites. `text-surface-focus` stays off — optional, nothing derives it.
 public enum DerivedPerceptions {
 
     public static let base: [PerceptionID: PerceptionID] = [
@@ -157,8 +132,7 @@ public struct PackageID: SchemaIdentifier {
 public enum SchemaIdentifierValidation {
     public static let maximumUTF8Length = 128
 
-    /// Portable ids intentionally use a smaller alphabet than Swift symbols,
-    /// file names, or provider tool names.
+    /// Smaller alphabet than Swift symbols or provider tool names.
     public static func isValid(_ value: String) -> Bool {
         guard !value.isEmpty,
               value.utf8.count <= maximumUTF8Length,

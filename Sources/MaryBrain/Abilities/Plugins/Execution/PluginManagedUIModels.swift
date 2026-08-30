@@ -2,43 +2,21 @@
 //  PluginManagedUIModels.swift
 //  MaryBrain
 //
-//  THE VOCABULARY OF ONE MANAGED-UI TRANSACTION — what can go wrong, what a
-//  compiled step looks like, and what a materialized operation binds to.
+//  WHAT: Vocabulary of one managed-UI transaction.
+//  IN:   PluginManagedUIExecutor
+//  OUT:  errors / compiled steps / materialized operations
 //
-//  These are small because the transaction is. A package declares a bounded
-//  sequence of local acts; Mary compiles it against the turn's arguments,
-//  brings the target forward, performs the acts, and reports. Pointer
-//  coordinates stay normalized until the hands denormalize them against the
-//  focused window (or a captured Accessibility frame) at perform time.
-//
-
 import Foundation
 import MaryFoundation
 
-/// Everything that can stop a managed-UI transaction, each with the sentence
-/// Mary says out loud.
-///
-/// SPOKEN, NOT LOGGED. A refusal the user cannot hear is a silence they will
-/// read as a bug in Mary rather than a limit of the recipe, so every case
-/// carries a plain sentence naming the thing that could not happen.
+/// Everything that can stop a managed-UI transaction, each with the sentence Mary says out loud.
 enum PluginManagedUIError: LocalizedError, Equatable {
     case applicationNotRunning(String)
-    /// MORE THAN ONE PROCESS ANSWERS TO THIS DECLARATION, so there is no
-    /// single foreground target.
-    ///
-    /// A DIFFERENT ANSWER FROM "not running", and the difference is what the
-    /// user can do about it: told the application is closed they will open a
-    /// third copy of something already open twice. Refusing rather than
-    /// picking is the point — enumeration order is not a decision, and the
-    /// keystrokes would land in whichever window the OS happened to list
-    /// first.
+    /// MORE THAN ONE PROCESS ANSWERS TO THIS DECLARATION, so there is no single foreground target.
     case applicationAmbiguous(String)
     case activationRefused(String, reason: String?)
     case missingArgument(String)
-    /// An argument the operation never declared. REFUSED RATHER THAN IGNORED:
-    /// a model that invented a parameter believes it did something, and
-    /// dropping it quietly makes the recipe run with the model's intent
-    /// missing and nobody told.
+    /// An argument the operation never declared. REFUSED RATHER THAN IGNORED: a model that invented a parameter believes it did something
     case unknownInput(String)
     case missingInput(String)
     case invalidInput(String)
@@ -117,10 +95,6 @@ struct PluginManagedUIProviderIdentity: Sendable, Equatable {
 }
 
 /// A step with every expression already resolved against the turn's arguments.
-///
-/// COMPILED BEFORE ANYTHING IS TOUCHED. The whole sequence resolves first, so
-/// a recipe whose third step is missing an argument fails before the first
-/// keystroke rather than halfway through the user's document.
 enum PluginCompiledStep: Sendable, Equatable {
     case keyChord(key: PluginKey, modifiers: [PluginKeyModifier])
     case typeText(String)

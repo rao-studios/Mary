@@ -1,5 +1,11 @@
 //
 //  SelectionHandoffCoordinator+Capture.swift
+//  MaryBrain
+//
+//  WHAT: Invoke registered capture hooks when a source yields or a request needs the race barrier.
+//  IN:   SelectionHandoffCoordinator.swift (split)
+//  OUT:  CaptureOutcome → AmbientContextStore
+//  PIN:  Transport ordering only — does not decide what the user's request means.
 //
 
 import AppKit
@@ -9,22 +15,17 @@ import os
 
 extension SelectionHandoffCoordinator {
 
-    /// Whether this exact process still owns the source surface at the moment
-    /// an Accessibility read finishes. This is transport ordering only: it
-    /// rejects a stale read after another application has taken over; it does
-    /// not decide what the user's request means.
+    /// Whether this exact process still owns the source surface at the moment an Accessibility
+    /// read finishes. This is transport ordering only: it rejects a stale read after another
+    /// application has taken over; it does not decide what the user's request means.
     public func sourceStillOwnsFocus(applicationID: String, processID: pid_t) -> Bool {
         guard let frontmost = NSWorkspace.shared.frontmostApplication else { return false }
         return frontmost.bundleIdentifier == applicationID
             && frontmost.processIdentifier == processID
     }
 
-    /// Authorize an AX result *after* its potentially blocking read. An active
-    /// source preflight (or Pages' live observer) may still be current while
-    /// its source is frontmost. A pending race barrier, by contrast, is valid
-    /// only after Mary has taken the foreground and the coordinator still
-    /// holds its short, unconsumed handoff lease. Anything else (for example
-    /// Pages/TextEdit -> Safari while AX is responding) is stale UI data.
+    /// Authorize an AX result *after* its potentially blocking read. An active source preflight
+    /// (or Pages' live observer) may still be current while its source is frontmost.
     public func acceptsCapturedSelection(
         applicationID: String,
         processID: pid_t,
@@ -33,22 +34,17 @@ extension SelectionHandoffCoordinator {
     ) -> Bool {
         let sourceOwnsFocus = sourceStillOwnsFocus(
             applicationID: applicationID, processID: processID)
-        // A pending race barrier exists only to bridge source -> Mary. If
-        // the source still owns focus, this is not that boundary; the explicit
-        // active-source preflight below is the only path that may commit a
-        // hands-free selection in that state. `.sourceDeactivation` is also
-        // used by Pages' live AX observer as its deferred-event label, so its
-        // source-frontmost case remains a normal observer capture; the actual
-        // lifecycle method above never invokes a capture at that point.
+        // A pending race barrier exists only to bridge source -> Mary. If the source still owns
+        // focus, this is not that boundary; the explicit active-source preflight below is the only
+        // path that may commit a hands-free selection in that state.
         if sourceOwnsFocus {
             return Self.captureResultIsAuthorized(
                 trigger: trigger, sourceOwnsFocus: true, hasDeferredLease: false)
         }
 
-        // A deferred handoff is intentionally only Page/TextEdit -> Mary,
-        // never Page/TextEdit -> some unrelated app. Looking at this boundary
-        // protects the interval before AppKit has delivered the new app's
-        // activation notification.
+        // A deferred handoff is intentionally only Page/TextEdit -> Mary, never Page/TextEdit ->
+        // some unrelated app. Looking at this boundary protects the interval before AppKit has
+        // delivered the new app's activation notification.
         guard let composerApplicationID = Bundle.main.bundleIdentifier,
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier
                 == composerApplicationID
@@ -71,23 +67,18 @@ extension SelectionHandoffCoordinator {
         case .activeSourcePreflight:
             return sourceOwnsFocus
         case .sourceDeactivation:
-            // Pages also uses this label for a live observer callback. The
-            // lifecycle method no longer calls `capture` on deactivation, so
-            // allowing the source-frontmost observer case does not reopen the
-            // source -> arbitrary-app handoff race.
+            // Pages also uses this label for a live observer callback. The lifecycle method no longer
+            // calls `capture` on deactivation, so allowing the source-frontmost observer case does not
+            // reopen the source -> arbitrary-app handoff race.
             return sourceOwnsFocus || hasDeferredLease
         case .pendingRaceBarrier:
             return !sourceOwnsFocus && hasDeferredLease
         }
     }
 
-    /// Capture the app that is actually still active at speech/request start.
-    /// This closes the hands-free path: voice input does not necessarily bring
-    /// Mary forward, so it may have no deactivation event to hand the
-    /// highlight off.  The caller supplies the frontmost id as a transport
-    /// boundary; this method never turns it into workspace focus or a world
-    /// decision.  When Mary is already frontmost, the previous-source
-    /// pending handoff is the sole authority and no fresh probe runs.
+    /// Capture the app that is actually still active at speech/request start. This closes the
+    /// hands-free path: voice input does not necessarily bring Mary forward, so it may have no
+    /// deactivation event to hand the highlight off.
     @discardableResult
     public func captureCurrentSource(
         applicationID: String?,
@@ -151,12 +142,8 @@ extension SelectionHandoffCoordinator {
         registerAnySource { applicationID, _ in capture(applicationID) }
     }
 
-    /// Deliver a lifecycle handoff to the source app's registered abilities.
-    /// A dedicated representation gets the first attempt. The generic ability
-    /// is then the fallback only when no specialist produced source evidence.
-    /// An unreadable or ambiguous specialist result is a valid containment
-    /// boundary, not a failure that authorizes a second AX tree walk to pick a
-    /// different title/control leaf.
+    /// Deliver a lifecycle handoff to the source app's registered abilities. A dedicated
+    /// representation gets the first attempt.
     @discardableResult
     public func captureOutcome(
         applicationID: String?,
@@ -174,9 +161,8 @@ extension SelectionHandoffCoordinator {
         }
         var outcome: CaptureOutcome = .noEvidence
         for callback in callbacks {
-            // Invoke every registered representation even after one has
-            // handled the source; a second observer can still perform its
-            // source-local lifecycle work. Combine afterward so only an
+            // Invoke every registered representation even after one has handled the source; a second
+            // observer can still perform its source-local lifecycle work. Combine afterward so only an
             // all-`noEvidence` specialist set reaches the generic ability.
             outcome = CaptureOutcome.combining(outcome, callback(trigger))
         }
@@ -189,10 +175,9 @@ extension SelectionHandoffCoordinator {
         return outcome
     }
 
-    /// Async source delivery used only at the request boundary. Every
-    /// specialist still gets its source-local lifecycle attempt; generic AX
-    /// fallback runs only if both synchronous and asynchronous specialists
-    /// report no positive evidence.
+    /// Async source delivery used only at the request boundary. Every specialist still gets its
+    /// source-local lifecycle attempt; generic AX fallback runs only if both synchronous and
+    /// asynchronous specialists report no positive evidence.
     @discardableResult
     public func captureOutcomeAsync(
         applicationID: String?,
@@ -237,10 +222,9 @@ extension SelectionHandoffCoordinator {
             trigger: trigger).handled
     }
 
-    /// Boolean compatibility for lifecycle callers that only need to know
-    /// whether some source ability claimed the interaction. A specialist's
-    /// intentional abstention counts as claimed, specifically so it suppresses
-    /// generic fallback.
+    /// Boolean compatibility for lifecycle callers that only need to know whether some source
+    /// ability claimed the interaction. A specialist's intentional abstention counts as
+    /// claimed, specifically so it suppresses generic fallback.
     @discardableResult
     public func capture(
         applicationID: String?,

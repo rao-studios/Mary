@@ -1,3 +1,11 @@
+//
+//  AbilityStudioView.swift
+//  Mary
+//
+//  WHAT: Ability Studio package list.
+//  OUT:  AbilityStudioEditorView. Install/activation via AbilityStudioViewModel.
+//
+
 import MaryBrain
 import SwiftUI
 
@@ -16,8 +24,7 @@ struct AbilityStudioView: View {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(record.package.ability.title)
-                            // Show the Ability role, application affinity, and
-                            // any extended discipline in one comparable line.
+                            // Role, application affinity, extended discipline.
                             Text(Self.paradigmDetail(record.package))
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)

@@ -2,21 +2,9 @@
 //  main.swift
 //  PackageProbe — `mary-package-probe`
 //
-//  VALIDATE AND SEAL THE SHIPPED ABILITY PACKAGES.
-//
-//  A `.mary` file is DATA that decides what Mary can do, so the two things
-//  that can be wrong with it are both structural: it says something the
-//  schema does not allow, or its digest does not cover what it now says.
-//  Both are silent at runtime — a package that fails to decode is a package
-//  that quietly is not installed — which is why they get a tool rather than a
-//  comment asking people to be careful.
-//
-//    mary-package-probe check            # decode + validate every package
-//    mary-package-probe seal             # recompute digests in place
-//
-//  SEALING IS A SEPARATE VERB FROM CHECKING, deliberately. `seal` rewrites
-//  files; a habit of running it to "see if things are fine" is a habit of
-//  rewriting files to see if things are fine.
+//  WHAT: Validate and seal shipped Ability packages.
+//  OUT:  CLI: mary-package-probe check | seal
+//  PIN:  seal rewrites files; check does not.
 //
 
 import Foundation
@@ -92,21 +80,7 @@ case "check":
             print("  ✗ \(file.lastPathComponent): \(error.localizedDescription)")
         }
     }
-    // VALIDATED AS A GRAPH, not one at a time. Packages reference each other
-    // — a dependency, a supporting ability, a skill another package realizes
-    // — and half the errors worth catching only exist between two of them.
-    //
-    // `AbilityPackageValidator.validateGraph` AND NOT `PluginGraphValidator`,
-    // which is what stood here and is only the second half of the job: it
-    // checks what packages say ABOUT EACH OTHER and never re-checks what each
-    // one says about itself. So a package could be individually malformed and
-    // this probe would print a tick. It did: `coding.mary` shipped a routing
-    // eligibility GROUP carrying a scalar `value`, which is refused by
-    // `AbilityPackageValidator.validate` — and the probe reported 5/5 valid
-    // while the test suite failed on it. `validateGraph` is a strict superset
-    // (it runs `validate` over every package, then the plugin graph), and it
-    // is what `AbilityLibrary` itself activates against. The gate an author
-    // reaches for must not be weaker than the one that loads the result.
+    // Validate as a graph via AbilityPackageValidator.validateGraph (same gate as AbilityLibrary).
     let validation = AbilityPackageValidator.validateGraph(loaded)
     for package in loaded {
         let file = "\(package.package.id.rawValue).mary"
@@ -127,10 +101,7 @@ case "check":
                 }
                 if !issues.isEmpty { line += "  (\(issues.count) note(s))" }
                 print(line)
-                // AND SAY WHAT THEY ARE. Counting them was worse than
-                // silence: a package that reported "5 note(s)" and would not
-                // name one left the author to guess whether the validator had
-                // spotted something worth fixing or was clearing its throat.
+                // Name the notes; a count without names is worse than silence.
                 for issue in issues.prefix(8) {
                     print("      · \(issue.code) at \(issue.path): \(issue.message)")
                 }

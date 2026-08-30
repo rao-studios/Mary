@@ -2,15 +2,11 @@
 //  ScreenLookFaculty.swift
 //  MaryBrain
 //
-//  ONE EPHEMERAL LOOK AT WHAT THE USER SEES. The pure composer between the
-//  capture (ScreenRegionCapture, injected) and the description (Seer's
-//  vision route, injected): orchestrate the two, map every failure to an
-//  honest spoken sentence, and let the description ride the outcome summary
-//  — the text side channel that keeps the chat engines image-free. The
-//  image bytes live only inside this call: never archived (`.none`), never
-//  logged, never part of any outcome field.
+//  WHAT: One ephemeral look at what the user sees.
+//  IN:   ScreenRegionCapture + Seer vision (both injected)
+//  OUT:  description on the outcome summary; image bytes die with the call
+//  PIN:  Never archived, never logged.
 //
-
 import MaryPlugin
 import Foundation
 
@@ -19,11 +15,7 @@ public enum ScreenLookFaculty {
     /// What the capture saw, minus nothing: the bytes ride here and die here.
     public struct Sight: Sendable {
         public let appTitle: String
-        /// The looked-at app's bundle identifier — STRUCTURAL. The one piece
-        /// of the capture that says WHICH app the user glanced at; carrying
-        /// it here (instead of losing it into the prose summary) is what
-        /// makes a look focus evidence and lets the fact file under the
-        /// looked-at realm. Defaulted nil so existing constructions compile.
+        /// The looked-at app's bundle identifier — STRUCTURAL.
         public let bundleID: String?
         public let windowTitle: String?
         /// Spoken provenance ("the region under your cursor", "the whole
@@ -49,12 +41,7 @@ public enum ScreenLookFaculty {
         }
     }
 
-    /// `home` files the successful look as ambient evidence — glance stamp +
-    /// a fact in the looked-at realm — and answers whether it deposited (the
-    /// outcome then carries `ambientDeposited` so the dispatcher's generic
-    /// path doesn't file a second fact under `.dynamic("looking")`). Nil (the
-    /// default) keeps the faculty pure for tests: no stamp, no deposit,
-    /// dispatcher behavior unchanged.
+    /// `home` files the successful look as ambient evidence — glance stamp + a fact in the looked-at realm
     public static func look(
         query: String?,
         capture: @Sendable () async throws -> Sight,

@@ -2,35 +2,8 @@
 //  VerifiedActivation.swift
 //  MaryBrain
 //
-//  THE ONE ACTIVATION AUTHORITY — every op whose name promises "in front"
-//  proves it here, by the same two roads.
-//
-//  macOS 14's cooperative activation can refuse silently, and it refuses
-//  most readily exactly when Mary acts from the background — which is how
-//  "TextEdit didn't come forward" ended a turn whose intent was plainly
-//  visible in its own action calls. The WindowManagement adapter solved this
-//  first (AccessibilityWindowManagementAdapter.activate): unhide, then the
-//  cooperative `NSRunningApplication.activate(options: [.activateAllWindows])`
-//  road, verified; then the Apple Events `activate` verb (the target
-//  activates ITSELF — the other door), verified again. But `open_app` and the
-//  typer's pre-keystroke gate each ran their own single-road activation, so
-//  the fix existed in the tree while the incident kept shipping. One
-//  function now; every caller.
-//
-//  VERIFICATION READS ON THE MAIN ACTOR. `NSWorkspace.frontmostApplication`
-//  is maintained from workspace notifications on the main run loop; polled
-//  from a background executor the cached value can stay stale for the whole
-//  deadline, reporting a successful raise as a failure (observed live).
-//
-//  WHY THIS RETURNS A REASON AND NOT A BOOL. A bare `false` made a permission
-//  denial, a Space-switch that outran the deadline, and a genuine refusal
-//  indistinguishable, and every caller then invented its own sentence for all
-//  three. That mattered more than it sounds: `MaryBrain+Lanes` treats a
-//  failed `preparesSurface` Skill as grounds to try the NEXT surface, so a
-//  false negative here does not merely fail — it rotates the work to another
-//  application ("TextEdit didn't come forward" → the lane rolled on to Pages).
-//  A wrong answer writes to the wrong document, so the answer carries why.
-//
+//  WHAT: Activate an app and prove the frontmost pid matches.
+//  OUT:  looking / window / surface skills
 
 import AppKit
 import ApplicationServices
@@ -40,10 +13,8 @@ import Foundation
 public struct Activation: Sendable, Equatable {
 
     public enum Road: Sendable, Equatable {
-        /// Already frontmost and visible; nothing was moved. Not a no-op worth
-        /// avoiding — a three-operation turn used to activate six times, every
-        /// one a visible window flash and a `didActivate` the focus tracker
-        /// then had to be told to ignore.
+        /// Already frontmost and visible; nothing was moved. Not a no-op worth avoiding — a
+        /// three-operation turn used to activate six times, every one a visible window.
         case alreadyForward
         /// `NSRunningApplication.activate(options: [.activateAllWindows])`.
         case cooperative
@@ -96,19 +67,11 @@ public struct Activation: Sendable, Equatable {
 
 public enum VerifiedActivation {
 
-    /// The Apple Events road gets its OWN short budget. It used to inherit
-    /// the Apple Events budget Bonnie used (30s), so a call documented as taking
-    /// two seconds could block for thirty-three.
+    /// Apple Events road gets its own short budget (3s), not the 30s scripting default.
     private static let appleEventsBudget: TimeInterval = 3.0
 
-    /// Bring the app owning `pid` forward and PROVE it.
-    ///
-    /// `requireVisibleWindow` additionally proves a window is on screen. Being
-    /// frontmost is not the same as being visible: an app whose windows are
-    /// all minimized takes the foreground with nothing to type into, and the
-    /// typer then sends keystrokes at no surface. It costs an Accessibility
-    /// read, so it is opt-in — `raise`/`raiseAll` already restore windows
-    /// themselves and do not need it.
+    /// Bring the app owning `pid` forward and PROVE it. `requireVisibleWindow` additionally
+    /// proves a window is on screen.
     @discardableResult
     public static func bringForward(
         pid: pid_t,
@@ -136,24 +99,15 @@ public enum VerifiedActivation {
         case .cancelled: return .lost(.cancelled)
         case .timedOut: break
         }
-        // NO SECOND ROAD. Bonnie had one: an Apple Event `activate` for
-        // applications that ignore NSWorkspace. Mary sends no Apple Events
-        // at all — there is no AppleScript lane and no Automation grant to
-        // ask for — so an application that will not come forward on the first
-        // road is honestly reported as refusing rather than pursued through a
-        // channel this build does not have.
+        // No Apple Event `activate` fallback. NSWorkspace is the only road.
 
         // One last read: a Space switch can land just past the deadline.
         guard await isFrontmost(pid: pid) else { return .lost(.refused) }
         return await settle(.appleEvents, pid: pid, requireVisibleWindow: requireVisibleWindow)
     }
 
-    /// Bring the app with the EXACT `bundleID` forward and prove an app
-    /// matching `matchPrefix` (default: the id itself) is frontmost.
-    ///
-    /// The prefix is the FAMILY: Scrivener ships as `…scrivener3` today and
-    /// `…scrivener4` next, and the Setapp build carries its own suffix, so
-    /// membership is a prefix test even though launching needs an exact id.
+    /// Bring the app with the EXACT `bundleID` forward and prove an app matching
+    /// `matchPrefix` (default: the id itself) is frontmost.
     @discardableResult
     public static func bringForward(
         bundleID: String,
@@ -179,17 +133,6 @@ public enum VerifiedActivation {
     // MARK: - Process selection
 
     /// A REGULAR PROCESS OF THE FAMILY, never a background helper.
-    ///
-    /// `SafariWebSurface` documents why the filter is not optional:
-    /// `com.apple.SafariPlatformSupport.Helper` and
-    /// `com.apple.Safari.SandboxBroker` both carry the `com.apple.Safari`
-    /// prefix, and "every AX read against it honestly reports zero windows,
-    /// which reads exactly like 'the page exposed nothing'." An activation
-    /// that returned true for a windowless XPC helper was a false positive
-    /// with no symptom until the typing went nowhere.
-    ///
-    /// The exact id wins when it is running; the prefix is the fallback, so a
-    /// next-major or Setapp build is found rather than reported absent.
     static func regularApplication(bundleID: String, prefix: String) -> NSRunningApplication? {
         let regular = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
             .filter { !$0.isTerminated && $0.activationPolicy == .regular }

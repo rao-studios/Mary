@@ -2,12 +2,9 @@
 //  PerceptionSnapshotViewModel.swift
 //  Mary
 //
-//  Bridges the watcher lock-boxes + focus tracker to the debugger pane —
-//  500 ms poll, AbilityExecutionLogViewModel's shape, started/stopped by the pane's
-//  appear/disappear. NEVER Granite @Store: the 200 ms debounce would blur a
-//  realtime inspector (the standing doctrine — Debugger.Center holds only
-//  click-scoped state). The core is pure: gather() does every impure read,
-//  buildCards()/buildFocus() are table-testable functions of Inputs.
+//  WHAT: Watcher lock-boxes + focus → debugger (500 ms poll).
+//  OUT:  PerceptionCard via gather() / buildCards() / buildFocus()
+//  PIN:  Never Granite @Store. gather() is the only impure read.
 //
 
 import AppKit

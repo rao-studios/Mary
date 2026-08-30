@@ -2,25 +2,16 @@
 //  AmbientElementRecord.swift
 //  MaryAmbient
 //
-//  THE SHAPE OF AN EMBEDDABLE AMBIENT ELEMENT. Every world that wants its
-//  contents reachable by meaning — design layers on a canvas, prose passages
-//  in a document, held facts — serializes them into these records under its
-//  own RULESET, and the shared index (`AmbientElementIndexStore`) makes them
-//  rankable against what a person just said.
+//  WHAT: Shape of an embeddable ambient element.
+//  IN:   world rulesets at each write funnel
+//  OUT:  AmbientElementIndexStore → AmbientReferenceGate
+//  PIN:  No registry. A new world opts in with a conformance and noteElements.
 //
-//  A ruleset is ONE PURE TRANSFORM from a world's own element type to
-//  records, called at that world's existing write funnel. Deliberately no
-//  registry, no dynamic discovery: a new world opts in by writing a
-//  conformance and calling `noteElements` where its data already arrives.
-//
-
 import Foundation
 
-/// What an invocation needs from its target — the pairing between the
-/// functionality being invoked and the elements the gate may offer it.
-/// A move needs a frame; a rewrite needs prose. Resolution filters the
-/// ranked slate by this, so "move the screenshot" can never resolve to a
-/// paragraph however similar the words.
+/// What an invocation needs from its target — the pairing between the functionality being
+/// invoked and the elements the gate may offer it. A move needs a frame; a rewrite needs
+/// prose.
 public struct AmbientElementCapabilities: OptionSet, Sendable, Hashable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
@@ -33,11 +24,9 @@ public struct AmbientElementCapabilities: OptionSet, Sendable, Hashable {
     public static let prose = AmbientElementCapabilities(rawValue: 1 << 2)
     /// Contains other elements — a page, artboard, or group.
     public static let container = AmbientElementCapabilities(rawValue: 1 << 3)
-    /// Can be pressed right now — a button, link, or control that offers an
-    /// action. THE ONE CAPABILITY THAT IS ABOUT TIME as much as about shape:
-    /// a layer is styleable for as long as it exists, while a Skip Ads button
-    /// is pressable for five seconds. Its scopes are therefore published and
-    /// retracted on the perception's own clock, never accumulated.
+    /// Can be pressed right now — a button, link, or control that offers an action. THE ONE
+    /// CAPABILITY THAT IS ABOUT TIME as much as about shape: a layer is styleable for as long
+    /// as it exists, while a Skip Ads button is pressable for five seconds.
     public static let pressable = AmbientElementCapabilities(rawValue: 1 << 4)
     /// Takes typed text — a search box, a form field. Distinct from `prose`,
     /// which means "carries quotable text": a paragraph is prose and not
@@ -48,13 +37,8 @@ public struct AmbientElementCapabilities: OptionSet, Sendable, Hashable {
 /// Which slice of the ambient world a record belongs to — the index is
 /// partitioned by scope so a Sketch query never ranks against Pages prose.
 public struct AmbientElementScope: Hashable, Sendable {
-    /// WHERE the partition lives: a native world's place, or a registered
-    /// application's dynamic place. Was `world: AmbientWorld?` with nil
-    /// meaning "a design application discriminated only by `key`" — the
-    /// place spells that lane explicitly, and every factory maps its old
-    /// spelling onto a distinct new one, so existing partitions are
-    /// preserved (a design app's `.application(id)` can never collide with
-    /// a fact lane's `.lane(world)`).
+    /// WHERE the partition lives: a native world's place, or a registered application's dynamic
+    /// place.
     public var place: AmbientPlace
     /// The document partition WITHIN the place: `world|documentKey` for
     /// document-partitioned worlds, the application's logical id for design

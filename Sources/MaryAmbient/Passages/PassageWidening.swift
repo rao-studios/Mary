@@ -2,39 +2,10 @@
 //  PassageWidening.swift
 //  MaryBrain
 //
-//  "READ WIDER, THEN DECIDE ALONE." The user's rule, and the whole of this
-//  file's job: given what they called it, find the piece of the document they
-//  meant, and NEVER come back with "which one did you mean?".
-//
-//  Pure. No document, no app, no AX, no I/O — (target, body, units, attention)
-//  in, a decision out. That is deliberate: the one part of a revision that has
-//  to be RIGHT is the part that decides what gets overwritten, and a function
-//  that can be tabled and pinned is the only kind of right that survives a
-//  refactor.
-//
-//  A FIXED LADDER, STOP AT THE FIRST RUNG THAT YIELDS ANYTHING:
-//
-//    0 verbatim     the target's own words, exactly, in the body
-//    1 structural   a unit LABEL — "Purpose section" → the section headed
-//                   Purpose. This is the rung the live failure needed.
-//    2 normalized   whitespace collapsed, punctuation stripped, case and
-//                   diacritics folded
-//    3 overlap      token overlap over paragraphs and sections, reusing
-//                   `AmbientRanker.tokens`
-//    4 widened      a FRAGMENT of the target found verbatim, then widened to
-//                   the smallest block unit enclosing it
-//
-//  Stopping at the first rung matters as much as the rungs do. A ladder that
-//  pooled every rung's hits would let a fuzzy token match outscore the exact
-//  words the user just said, and the tie-break's first term — rung ascending —
-//  would be the only thing standing between us and that. Two guards for one
-//  invariant, on purpose.
-//
-//  BECAUSE SHE DECIDES UNATTENDED, the decision carries its own recoverability:
-//  the runner-up is named, the confidence says how close it was, and the trace
-//  says which rung fired. A wrong pick that names the alternative is one
-//  sentence away from being right; a wrong pick that says nothing is the
-//  Purpose section still standing.
+//  WHAT: Given what they called it, find the piece of the document they meant.
+//  IN:   target, body, PassageUnit, attention
+//  OUT:  PassageWideningModels decision. Never "which one did you mean?"
+//  PIN:  Fixed ladder, stop at the first rung that yields. Pure — no I/O.
 //
 
 import Foundation
@@ -43,68 +14,22 @@ public enum PassageWidening {
 
     // MARK: - The constants, and the arithmetic behind each
 
-    /// Rung 3's floor: what fraction of the target's content words a paragraph
-    /// or section must actually contain.
-    ///
-    /// HALF, and the arithmetic is the short targets people speak. "The
-    /// Purpose section" is two content tokens after `AmbientRanker.tokens`
-    /// drops "the" — so half means one of them, which is what makes the live
-    /// case reachable at all. Four tokens means two. Below a half, a SINGLE
-    /// incidental word carries the match, and "the batteries paragraph" lands
-    /// on whichever paragraph mentions batteries in passing rather than the
-    /// one about them.
+    /// Rung 3 floor — fraction of the target's content words a unit must contain.
+    /// PIN: Half, because spoken targets are short after stopwords drop.
     public static let minimumOverlap = 0.5
 
-    /// How far ahead the winner must be to be `.chosen` rather than
-    /// `.contested`.
-    ///
-    /// A QUARTER, measured in the same units as `overlap` — fractions of the
-    /// target's content words. On a two-token target one extra word is worth
-    /// 0.50, comfortably decisive; on a four-token target it is worth exactly
-    /// 0.25, so one extra word is the boundary and the comparison is `<`,
-    /// which makes "matched one more of your words" decisive and "matched
-    /// exactly as many" contested. Two candidates that account for the same
-    /// words are ALWAYS contested, which is the honest reading of a tie.
+    /// Margin the winner needs for `.chosen` rather than `.contested` (quarter of target tokens).
     public static let decisiveMargin = 0.25
 
-    /// THE SAFETY VALVE ON DECIDING ALONE. A span WE widened to, larger than
-    /// this, is refused and the narrower alternative named.
-    ///
-    /// 4000 characters is twice `AmbientFact.contentCap` (2000) — a span this
-    /// size cannot even be held whole as an ambient fact, which means Mary
-    /// could not read back to the user what she had just overwritten. Deciding
-    /// alone is only defensible while the decision is reportable. Replacing
-    /// four thousand characters unattended is not a surgical edit; it is the
-    /// wholesale clobber the doctrine bans by name, arrived at by arithmetic
-    /// instead of by intent.
-    ///
-    /// THE CAP IS ON OUR WIDENING, NOT ON THE USER'S OWN NAMING. A section
-    /// they named by its heading is their instruction, however long it is
-    /// (rung 1); a span we chose for them because their words were only a
-    /// fragment is ours (rung 4), and ours is the one that has to justify
-    /// itself.
+    /// Max widened span we will decide alone. Larger is refused and the narrower alternative named.
     public static let maxSpan = 4000
 
-    /// THE MISS, in the words this tree already uses. Quoted from
-    /// `PagesPlugin.targetedOutcome` — one phrasing for one fact. A second
-    /// wording for "I looked and it isn't in the body text" is precisely the
-    /// drift that let the same miss be narrated three different ways.
-    ///
-    /// A Swift buffer has no headers or footers, so half this sentence is
-    /// Pages-shaped in an Xcode turn. Kept anyway: the operative half — "or
-    /// the wording differs" — is the same fact everywhere, and a per-world
-    /// variant of a refusal is a per-world refusal, which is what "this
-    /// paradigm should apply to all applications in the workspace world" rules
-    /// out.
+    /// Miss sentence — quoted from `PagesPlugin.targetedOutcome`. One phrasing for one fact.
     public static let missReason =
         "Headers, footers, text boxes and table cells live outside body text, "
         + "so it may be there and unreadable this way — or the wording differs."
 
-    /// The words that name A PART OF a document rather than naming one. "The
-    /// Purpose section" is the heading `Purpose` plus a noun saying what kind
-    /// of thing it is, and stripping that noun is the entire fix for the live
-    /// failure. Kept tight on purpose: "Introduction" and "Summary" are real
-    /// heading names and must never be stripped.
+    /// Words that name a part of a document rather than naming one. Stripped so "Purpose section" → "Purpose".
     public static let partNouns: Set<String> = [
         "section", "sections", "paragraph", "paragraphs", "para", "paras",
         "chapter", "chapters", "heading", "headings", "header", "part",
@@ -112,8 +37,7 @@ public enum PassageWidening {
         "function", "func", "method", "declaration", "decl",
     ]
 
-    /// Determiners a spoken target starts with. Dropped so "the Purpose
-    /// section" and "Purpose" reach the same place.
+    /// Leading determiners. Dropped so "the Purpose section" and "Purpose" reach the same place.
     public static let leadingDeterminers: Set<String> = [
         "the", "a", "an", "my", "our", "that", "this", "its", "his", "her",
         "their", "whole", "entire",
@@ -121,13 +45,7 @@ public enum PassageWidening {
 
     // MARK: - The ladder
 
-    /// Find the piece of `body` that `target` names.
-    ///
-    /// `units` is whatever the world's structure reader produced. AN EMPTY
-    /// ARRAY IS LEGAL: rungs 1 and 3 have nothing to match against and drop
-    /// out, and rung 4's fragment stands un-widened. That is the honest
-    /// behaviour for a world that can read text but not parse it — degraded,
-    /// still useful, and never pretending to structure it cannot see.
+    /// Find the piece of `body` that `target` names. Empty `units` is legal — rungs 1 and 3 drop out.
     public static func locate(
         target: String,
         in body: String,
@@ -148,14 +66,7 @@ public enum PassageWidening {
 
         var candidates: [PassageCandidate] = []
 
-        // RUNG 0 — the user's own words, exactly.
-        //
-        // TWO PASSES, and the order matters. The literal target FIRST, so a
-        // quoted whole sentence matches its own full stop and comes back as
-        // the paragraph it is rather than as that paragraph minus one
-        // character. Only if that finds nothing does the sentence-mark-stripped
-        // form get a turn, which is what catches the trailing period a model
-        // adds to "the Purpose section."
+        // Rung 0 — user's own words, exactly. Literal first so a quoted sentence keeps its full stop.
         let literal = trimTarget(target)
         candidates = named(verbatimCandidates(literal, in: body), units: units)
         if candidates.isEmpty, wanted != literal {
@@ -163,35 +74,25 @@ public enum PassageWidening {
         }
         trace.append("rung 0 verbatim: \(candidates.count)")
 
-        // RUNG 1 — a unit's LABEL. THE RUNG THE LIVE FAILURE NEEDED: "replace
-        // the Purpose section" reaches the section headed Purpose because
-        // `structuralTarget` drops the trailing part-noun.
+        // Rung 1 — unit label. `structuralTarget` drops the trailing part-noun ("Purpose section" → "Purpose").
         if candidates.isEmpty {
             candidates = structuralCandidates(structural, units: units)
             trace.append("rung 1 structural (\"\(structural)\"): \(candidates.count)")
         }
 
-        // RUNG 2 — the same words, allowing for spacing, punctuation, case and
-        // diacritics. Word-boundary checked, because at this distance from the
-        // literal "purpose" must not match inside "purposeful".
+        // Rung 2 — same words, folded. Word-boundary so "purpose" does not match inside "purposeful".
         if candidates.isEmpty {
             candidates = named(folded.candidates(for: wanted, rung: .normalized), units: units)
             trace.append("rung 2 normalized: \(candidates.count)")
         }
 
-        // RUNG 3 — how much of what they said this paragraph or section
-        // actually contains. `AmbientRanker.tokens` does the tokenizing, which
-        // means ONE stopword list in this tree; a second one is the drift this
-        // codebase refuses.
+        // Rung 3 — token overlap. `AmbientRanker.tokens` is the one stopword list in this tree.
         if candidates.isEmpty {
             candidates = overlapCandidates(structural, in: body, units: units)
             trace.append("rung 3 token overlap (>= \(minimumOverlap)): \(candidates.count)")
         }
 
-        // RUNG 4 — their words were only a FRAGMENT of what is written. Find
-        // the longest run of them that is really there, then widen to the
-        // smallest block unit enclosing it, which by construction begins where
-        // a paragraph, section or declaration begins rather than mid-sentence.
+        // Rung 4 — their words were only a fragment of what is written.
         if candidates.isEmpty {
             candidates = widenedCandidates(wanted, folded: folded, units: units)
             trace.append("rung 4 widened: \(candidates.count)")
@@ -204,21 +105,14 @@ public enum PassageWidening {
 
         let ordered = candidates.sorted { precedes($0, $1, anchor: anchor) }
         let winner = ordered[0]
-        // THE RUNNER-UP HAS TO BE A DIFFERENT ANSWER. Two candidates over the
-        // SAME span are one answer nominated twice, and naming one as the
-        // other's rival makes `confidence` report `.contested` about a pick
-        // that nothing competed with — then the report offers the user, as the
-        // alternative, the very span it just chose. Rung 4 no longer
-        // manufactures those (see `widenedCandidates`), but a structure reader
-        // that emits a section and a paragraph over one span would, and this
-        // is the layer that must not care which reader it is talking to.
+        // Runner-up must be a different span.
         let runnerUp = ordered.dropFirst().first { $0.range != winner.range }
         let confidence = confidence(winner: winner, runnerUp: runnerUp)
         trace.append(
             "picked \(winner.range.lowerBound)..<\(winner.range.upperBound) "
             + "at rung \(winner.rung.rawValue) (\(winner.rung.label)), \(confidence.rawValue)")
 
-        // THE SAFETY VALVE. Only rung 4 can trip it — see `maxSpan`.
+        // Safety valve — only rung 4 can trip it. See `maxSpan`.
         if winner.rung == .widened, winner.range.count > maxSpan {
             trace.append("refused: widened span \(winner.range.count) > \(maxSpan)")
             var decision = refusal(
@@ -246,25 +140,9 @@ public enum PassageWidening {
 
     // MARK: - The tie-break: A TOTAL ORDER
 
-    /// FIVE TERMS, IN THIS ORDER, and the order is the point: `locate` must
-    /// never return "ambiguous, ask the user", because the user's own rule is
-    /// "read wider, then DECIDE ALONE". A partial order would leave ties, and
-    /// a tie is a question.
-    ///
-    ///   1. RUNG ascending — an exact hit beats a fuzzy one, always. (Within a
-    ///      single `locate` every candidate shares a rung, since the ladder
-    ///      stops at the first that yields anything. The term is here because
-    ///      the ORDER is the contract, not because this call site needs it.)
-    ///   2. OVERLAP descending — more of what the user actually said.
-    ///   3. NEAREST THE ATTENTION ANCHOR — when there is one. Skipped entirely
-    ///      when there is not, rather than treated as distance-from-zero,
-    ///      which would silently become "earliest in the document" and hide
-    ///      the fact that we never located their attention at all.
-    ///   4. EARLIEST in the document — stable, and matches how a person reads.
-    ///   5. SHORTEST span — the more surgical of two overlapping picks.
-    ///
-    /// After 4 and 5, two survivors have the same lower bound and the same
-    /// length: they are the same span, and which one "wins" cannot matter.
+    /// Total order so `locate` never returns "ask the user".
+    /// STEPS: rung asc → overlap desc → nearest attention (skip if no anchor)
+    ///        → earliest in document → shortest span.
     public static func precedes(
         _ lhs: PassageCandidate, _ rhs: PassageCandidate, anchor: Int?
     ) -> Bool {
@@ -281,8 +159,7 @@ public enum PassageWidening {
         return lhs.range.count < rhs.range.count
     }
 
-    /// 0 when the anchor is inside the span — a candidate the user is looking
-    /// at is not "near", it is where they are.
+    /// 0 when the anchor is inside the span — they are looking at it, not near it.
     public static func distance(from range: Range<Int>, to anchor: Int) -> Int {
         if anchor < range.lowerBound { return range.lowerBound - anchor }
         if anchor >= range.upperBound { return anchor - range.upperBound + 1 }
@@ -305,16 +182,7 @@ public enum PassageWidening {
             .map { PassageCandidate(range: $0, kind: .phrase, rung: .verbatim) }
     }
 
-    /// IS THIS HIT A WHOLE WORD, or the inside of a longer one?
-    ///
-    /// "Replace purpose with aim" against a document containing "purposeful"
-    /// would otherwise produce "aimful" — a silent, surgical, completely wrong
-    /// edit, which is the exact species of failure this whole file exists to
-    /// make unreachable. Even the literal rung checks it.
-    ///
-    /// Checked only on an END THAT IS ITSELF ALPHANUMERIC: a target quoted
-    /// with its own full stop, or one that starts mid-punctuation, has no word
-    /// boundary to test there and must not be rejected for lacking one.
+    /// Whole-word hit, not the inside of a longer word ("purpose" vs "purposeful").
     public static func standsAlone(
         _ range: Range<Int>, in characters: [Character], target: String
     ) -> Bool {
@@ -330,13 +198,7 @@ public enum PassageWidening {
         return true
     }
 
-    /// A span that IS a unit gets that unit's kind and label back.
-    ///
-    /// Rungs 0 and 2 search raw text and know nothing about structure, so a
-    /// verbatim quote of an entire paragraph would otherwise come back as a
-    /// `.phrase` — and `PassageEdit` would then insert around it with no blank
-    /// lines, welding two paragraphs together. The structure was there; this
-    /// is only refusing to throw it away.
+    /// If the span is a unit, attach that unit's kind and label (rungs 0 and 2 search raw text).
     public static func named(_ candidates: [PassageCandidate], units: [PassageUnit]) -> [PassageCandidate] {
         guard !units.isEmpty else { return candidates }
         return candidates.map { candidate in
@@ -356,9 +218,7 @@ public enum PassageWidening {
         guard !target.isEmpty else { return [] }
         let wanted = fold(target)
         guard !wanted.isEmpty else { return [] }
-        // Exact label first. Containment is the fallback and never mixes with
-        // it: "Purpose" matching the heading `Purpose` must not have to
-        // compete with `Purpose and scope` on a tie-break.
+        // Exact label first. Containment is fallback and never mixes with it.
         let exact = units.filter { fold($0.label) == wanted }
         let matched = exact.isEmpty
             ? units.filter { !$0.label.isEmpty && fold($0.label).contains(wanted) }
@@ -385,16 +245,7 @@ public enum PassageWidening {
         return candidates
     }
 
-    /// Their words were a fragment. Take the longest run of consecutive target
-    /// words that is really in the body — strictly shorter than the whole
-    /// target, because the whole target was rungs 0 and 2's job — and widen it
-    /// to the smallest BLOCK unit that contains it.
-    ///
-    /// A `.phrase` unit is never a widening target: widening exists to make a
-    /// replacement start where a paragraph starts, and widening a phrase to a
-    /// phrase moves nothing. With no enclosing block unit at all the bare
-    /// fragment stands as the candidate — a world with no structure reader can
-    /// still be edited, it just cannot be widened.
+    /// Widened fragment — longest consecutive target-word run that is really in the body.
     public static func widenedCandidates(
         _ target: String, folded: FoldedText, units: [PassageUnit]
     ) -> [PassageCandidate] {
@@ -405,8 +256,7 @@ public enum PassageWidening {
             var hits: [PassageCandidate] = []
             for start in 0...(words.count - length) {
                 let fragment = words[start..<(start + length)].joined(separator: " ")
-                // A fragment with no content word in it is grammar, not a
-                // location: "of the" appears everywhere and locates nothing.
+                // Fragment with no content word is grammar, not a location.
                 guard !AmbientRanker.tokens(fragment).isEmpty else { continue }
                 let overlap = Double(length) / Double(words.count)
                 for hit in folded.candidates(for: fragment, rung: .widened) {
@@ -422,19 +272,7 @@ public enum PassageWidening {
                         narrower: hit.range))
                 }
             }
-            // ONE BLOCK IS ONE ANSWER, however many fragments reached it.
-            // Every consecutive run of the target's words is tried against the
-            // body, so a target with two disjoint fragments inside one
-            // paragraph ("alpha beta … victor whiskey") nominates that
-            // paragraph TWICE — identical range, identical overlap, differing
-            // only in `narrower`. Two things break if both survive: the span
-            // becomes its own runner-up, so `confidence` reads `.contested`
-            // about a pick nothing competed with; and `narrower` is decided by
-            // whichever way `sorted` happened to fall, because the duplicates
-            // are inseparable under `precedes` and Swift's sort is not stable.
-            // The block is the answer and the fragment is only the evidence
-            // for it, so the EARLIEST fragment is kept — `start` ascends, so
-            // that is simply the first one seen.
+            // One block is one answer, however many fragments reached it.
             if !hits.isEmpty {
                 var seen: Set<Range<Int>> = []
                 return hits.filter { seen.insert($0.range).inserted }
@@ -445,10 +283,7 @@ public enum PassageWidening {
 
     // MARK: - Target shaping
 
-    /// THE LITERAL TARGET: surrounding whitespace and the quote marks a model
-    /// wraps things in, and nothing else. Sentence punctuation SURVIVES here —
-    /// stripping it is what turns a quoted whole paragraph into that paragraph
-    /// minus its full stop, which then matches no unit and loses its structure.
+    /// Literal target — surrounding whitespace and wrapping quote marks, nothing else.
     public static func trimTarget(_ target: String) -> String {
         target
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -456,9 +291,7 @@ public enum PassageWidening {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// The literal target with the sentence mark a model tacked on the end
-    /// removed — "the Purpose section." → "the Purpose section". Used by rungs
-    /// 1 through 4, and by rung 0 only as its second pass.
+    /// Trim plus trailing sentence mark. Rungs 1–4; rung 0 uses it as its second pass.
     public static func cleanTarget(_ target: String) -> String {
         var text = trimTarget(target)
         while let last = text.last, last == "." || last == "?" || last == "!" || last == "," {
@@ -467,9 +300,7 @@ public enum PassageWidening {
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// "the Purpose section" → "Purpose". Leading determiners off the front,
-    /// then part-nouns off the back until only the NAME is left. Repeated
-    /// because "the whole Purpose section heading" is a thing people say.
+    /// "the Purpose section" → "Purpose". Strip leading determiners, then trailing part-nouns.
     public static func structuralTarget(_ target: String) -> String {
         var words = target.split(whereSeparator: \.isWhitespace).map(String.init)
         while let first = words.first,
@@ -482,9 +313,7 @@ public enum PassageWidening {
         return words.joined(separator: " ")
     }
 
-    /// Case- and diacritic-insensitive, which is what "matching a heading"
-    /// means when the heading is typed by a person and the target is spoken by
-    /// one.
+    /// Case- and diacritic-insensitive fold — spoken target vs typed heading.
     public static func fold(_ text: String) -> String {
         text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -506,10 +335,7 @@ public enum PassageWidening {
         return found
     }
 
-    /// The characters at `range`, clamped. Clamped rather than trapped because
-    /// a range that outran its body is exactly the stale-hint case the whole
-    /// design assumes will happen, and crashing on it would be the loudest
-    /// possible way to lose a document.
+    /// Characters at `range`, clamped. Stale hints outrun the body — do not trap.
     public static func substring(of body: String, _ range: Range<Int>) -> String {
         let length = body.count
         let lower = max(0, min(range.lowerBound, length))
@@ -525,10 +351,7 @@ public enum PassageWidening {
     public static func refusal(
         target: String, trace: [String], sentence: String? = nil
     ) -> PassageDecision {
-        // The first sentence is `XcodeEditError.noMatch`'s, the second is
-        // `PagesPlugin.targetedOutcome`'s. Both quoted rather than rewritten —
-        // one phrasing for one fact, in a tree where the same miss has already
-        // been narrated three different ways.
+        // Quoted from `XcodeEditError.noMatch` then `PagesPlugin.targetedOutcome` — one phrasing per fact.
         let said = sentence
             ?? "I couldn't find \"\(String(cleanTarget(target).prefix(40)))\" to change. \(missReason)"
         return PassageDecision(

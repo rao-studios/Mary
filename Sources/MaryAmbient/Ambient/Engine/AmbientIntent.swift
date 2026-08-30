@@ -1,6 +1,11 @@
-// The resolved shape of one user turn. Routing guides prompts and memory, not
-// what applications or Abilities the user may reach.
-
+//
+//  AmbientIntent.swift
+//  MaryAmbient
+//
+//  WHAT: Resolved shape of one user turn.
+//  OUT:  AmbientRoute / prompts and memory. Not which apps or Abilities the user may reach.
+//  PIN:  AmbientSignal sits beside the answer so a wrong route is visible in one glance.
+//
 import Foundation
 
 /// What the user is doing this turn.
@@ -51,12 +56,9 @@ public enum AmbientIntent: String, Sendable, Equatable, CaseIterable, Codable {
     public var touchesExistingProse: Bool { self == .revise }
 }
 
-/// WHICH SIGNAL DECIDED, kept beside the answer so a wrong route is
-/// debuggable in one glance instead of by re-deriving seven classifiers.
-///
-/// `AmbientRankingMode` carries `transformUnfocused` for exactly this reason —
-/// "the case exists so that fallback is visible and pinnable rather than
-/// indistinguishable from the default". Same discipline, one layer up.
+/// WHICH SIGNAL DECIDED, kept beside the answer so a wrong route is debuggable in one
+/// glance instead of by re-deriving seven classifiers. `AmbientRankingMode` carries
+/// `transformUnfocused` for exactly this reason.
 public enum AmbientSignal: String, Sendable, Equatable, CaseIterable, Codable {
     /// An architecture or brainstorming request.
     case architectAbility

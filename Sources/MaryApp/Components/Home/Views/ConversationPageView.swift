@@ -2,9 +2,8 @@
 //  ConversationPageView.swift
 //  Mary
 //
-//  The paper page: the conversation flowing down one scroll, the focal
-//  (latest) utterance in full ink and history fading above it. Gita's
-//  StoryPageView minus the markup layer.
+//  WHAT: Conversation scroll — latest utterance full ink, history fading above.
+//  OUT:  UtteranceView / StreamingUtteranceView / AbilityBadgeRow
 //
 
 import SwiftUI
@@ -25,26 +24,11 @@ struct ConversationPageView: View {
 
     var body: some View {
         ScrollView {
-            // VStack, not Lazy. Lazy rows are never measured until they are
-            // materialized, so `.defaultScrollAnchor(.bottom)` re-derived the
-            // pinned offset from ESTIMATED heights — and the rows here range
-            // from a one-line user line to a multi-paragraph reply with chips,
-            // so the estimate is badly wrong. Under a bottom `safeAreaInset`
-            // whose own height moves (the live partial transcript), the anchor
-            // could land past the true end of the content and show nothing but
-            // page. Dragging re-synced it against real geometry, which is why
-            // the wall came back "when I scroll up".
-            //
-            // Affordable because the transcript is bounded by the Settings
-            // context window now; laziness was paying for a list that no
-            // longer exists.
+            // VStack, not Lazy — bottom scroll-anchor needs real heights, not estimates.
             VStack(alignment: .leading, spacing: 28) {
                 ForEach(Array(conversation.utterances.enumerated()), id: \.element.id) {
                     index, utterance in
-                    // Depth passed IN rather than looked up: `fade`/`blur`
-                    // each ran a `firstIndex(where:)` over the whole
-                    // conversation, per row, per render — O(n²) every frame,
-                    // at up to 60 frames a second.
+                    // Depth passed in (not firstIndex per row — that was O(n²) per frame).
                     utteranceRow(utterance, depth: conversation.utterances.count - 1 - index)
                 }
                 footer
@@ -67,19 +51,7 @@ struct ConversationPageView: View {
     @ViewBuilder
     private func utteranceRow(_ utterance: Utterance, depth: Int) -> some View {
         if streamVM.streamingUtteranceId == utterance.id, streamVM.phase != .idle {
-            // THE CHIPS RIDE ALONG WITH THE STREAM.
-            //
-            // This branch used to replace the whole row, so the badge row did
-            // not exist until the turn went idle — the chips appeared only
-            // once everything they described was already over, and the one
-            // window where "still running" is worth knowing was the one window
-            // with nothing on screen to say it. The receipts are already on
-            // the utterance while the turn runs (`TranscriptOps` writes the
-            // `.unsettled` row at announcement), so this costs no new state.
-            //
-            // Not tappable here on purpose: the inspector is a sheet, and
-            // opening one over a reply still being written puts a modal in
-            // front of the thing the person is reading.
+            // Chips ride with the stream (receipts already on the utterance). Not tappable while writing.
             VStack(alignment: .leading, spacing: .layer3) {
                 StreamingUtteranceView(
                     text: streamVM.streamedText,

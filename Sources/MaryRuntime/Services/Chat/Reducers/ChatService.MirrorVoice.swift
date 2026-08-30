@@ -1,15 +1,12 @@
 //
 //  ChatService.MirrorVoice.swift
-//  Mary
+//  MaryRuntime
 //
-//  THE conversation writer — voice, text, and proactive events all funnel
-//  here (single-writer rule). Granite's streaming reducers snapshot state
-//  once at task start and republish the whole state per emit — two of them
-//  writing this conversation was the rollback bug — so every driver became
-//  a plain loop (VoiceService.Session, TextTurnRunner, ProactiveBridge)
-//  forwarding events into this one sync reducer. `thread = .main` serializes
-//  every commit on the main queue with a fresh state read at commit time.
-//  Mutation bodies live in TranscriptOps (pure, unit-tested).
+//  WHAT: The conversation writer — voice, text, and proactive funnel here.
+//  IN:   VoiceService.Session, TextTurnRunner, ProactiveBridge
+//  OUT:  TranscriptOps.apply (pure mutation bodies)
+//  PIN:  Single writer. thread = .main; fresh state at commit. Streaming
+//        reducers snapshot-and-republish — two of them caused rollback.
 //
 
 import MaryBrain
@@ -25,14 +22,7 @@ extension ChatService {
         package struct Meta: GranitePayload {
             package enum Kind: Codable {
                 case userSpoke(String)
-                // IN-TURN WRITES CARRY THEIR TURN. Without an id these
-                // resolved through "the last unstamped streaming assistant",
-                // which — in the .exchangeSuperseded → .turnBegan window — is
-                // the NEW turn's bubble: a superseded turn's tokens painting
-                // themselves onto the reply that replaced them. The id is
-                // optional only because a producer that never saw .turnBegan
-                // (probes) still has to write; a producer that HAS the id
-                // must pass it. See TranscriptOps.inTurnAssistantIndex.
+                // In-turn writes carry their turn id. See TranscriptOps.inTurnAssistantIndex.
                 case assistantText(accumulated: String, turnID: UUID? = nil)
                 case abilityBadge(AbilitySkillReference, turnID: UUID? = nil)
                 /// One skill CALL began — args in hand, result pending, so
@@ -42,10 +32,7 @@ extension ChatService {
                 /// That call, settled — the SAME id, the whole record.
                 case abilityRunResult(record: BehavioralActionRecord, turnID: UUID? = nil)
                 case contribution(json: String, turnID: UUID? = nil)
-                /// The terminal write is an in-turn mutation just like a
-                /// token or Ability badge. It carries its producer's turn so a
-                /// late completion can be dropped instead of finalizing the
-                /// newest streaming bubble.
+                /// Terminal write is in-turn — late completion drops instead of finalizing the newest.
                 case assistantDone(String, turnID: UUID? = nil)
                 /// Amend flow: the in-flight turn was superseded; the trailing
                 /// assistant bubble goes back to thinking.
@@ -67,18 +54,9 @@ extension ChatService {
                 /// Text supersede: a new typed request replaced the in-flight
                 /// turn — drop its partial exchange (history does the same).
                 case textSuperseded
-                /// Brain-authoritative overlap supersede: the brain removed
-                /// the partial exchange keyed by this user-turn id — drop
-                /// the same bubbles. Removal happens ONLY on this event
-                /// (the UI never guesses), so transcript and history agree
-                /// by construction.
+                /// Brain removed the partial exchange — drop the same bubbles. UI never guesses.
                 case exchangeSuperseded(userTurnID: UUID)
-                /// Proactive channel: a routine began / ended (settled AND
-                /// cancelled both end) — running rows + origin bookkeeping.
-                ///
-                /// The routine's own id and label ride along so the status bar
-                /// can name the work and offer to stop it; the origin alone
-                /// could do neither (several routines can share one origin).
+                /// Routine began/ended — running rows + origin. Id and label name the work.
                 case routineStarted(routineID: UUID, label: String, originTurnID: UUID)
                 case routineEnded(routineID: UUID, originTurnID: UUID)
                 /// A detached routine's progress chip, anchored to its
@@ -112,10 +90,7 @@ extension ChatService {
             }
         }
 
-        /// The serialization guarantee: every commit hops to the main queue
-        /// and reads fresh state there — no interleaved writers, no stale
-        /// snapshots. (Sends become async even from main; no call site reads
-        /// state immediately after send.)
+        /// Every commit hops to main and reads fresh state — no interleaved writers.
         package var thread: DispatchQueue? { .main }
     }
 }

@@ -2,17 +2,10 @@
 //  SeerTTSEngine.swift
 //  MaryVoice
 //
-//  Cloud synthesis through the local Seer server's /v1/speak proxy — the
-//  one hosted voice, and the only one. Seer transcodes
-//  Mistral's SSE server-side, so the reply here is simpler: an 8-byte
-//  little-endian header (sampleRate UInt32, channels UInt16, bits UInt16)
-//  followed by raw float32 mono PCM, streamed as it's generated.
-//
-//  MaryVoice stays domain-free: auth arrives via an injected bearer-token
-//  provider. A missing MISTRAL_API_KEY on the server side kills the whole
-//  Seer process (fatalError in its key getter) — so a dead connection is an
-//  expected failure mode here, handled like any bad status: one retry, then
-//  the injected fallback synthesizer (Kokoro) carries the chunk.
+//  WHAT: Cloud synthesis via local Seer /v1/speak (header + float32 PCM).
+//  IN:   KokoroStreamSpeaker (SpeechSynthesizer)
+//  OUT:  SynthesizedChunk; Kokoro fallback on dead/401/5xx
+//  PIN:  Auth via injected token provider. One emotion + gain per utterance.
 //
 
 import Foundation
@@ -52,14 +45,10 @@ public actor SeerTTSEngine: SpeechSynthesizer {
     /// The emotion the last chunk was spoken with — surfaced for probes/logs.
     public private(set) var lastEmotion: MarieEmotion = .neutral
 
-    /// ONE EMOTION PER UTTERANCE. Classified on the first chunk of a reply
-    /// and held for the rest, because each emotion is a DIFFERENT wire voice
-    /// — per-chunk classification flipped one paragraph between renditions
-    /// mid-passage, which the ear hears as the character changing.
+    /// ONE emotion per utterance — classified on the first chunk, held for the rest.
     private var pinnedEmotion: MarieEmotion?
 
-    /// The loudness twin of the pinned emotion — computed from the first
-    /// chunk, constant for the reply. See `ChunkEdgeDSP.utteranceGain`.
+    /// Loudness twin of pinned emotion — from first chunk. See ChunkEdgeDSP.utteranceGain.
     private var pinnedGain: Float?
 
     public func beginUtterance() {
@@ -98,31 +87,21 @@ public actor SeerTTSEngine: SpeechSynthesizer {
         fallback = synthesizer
     }
 
-    /// Told once per degraded chunk — the host surfaces it (a status note,
-    /// never a spoken interruption). Without it the fallback was total
-    /// silence: settings said Seer, the ear heard Kokoro, and nothing
-    /// anywhere said why.
+    /// Host surfaces a degraded chunk (status note, never spoken).
     private var onDegrade: (@Sendable (String) -> Void)?
 
     public func setOnDegrade(_ callback: (@Sendable (String) -> Void)?) {
         onDegrade = callback
     }
 
-    /// Told when an auth-shaped failure is about to earn its second attempt —
-    /// the host forces a genuine session refresh so the retry carries a NEW
-    /// token. Without it the retry re-read the session's CACHE: a token the
-    /// server had rejected but that looked locally unexpired (server restart,
-    /// new signing key, revoked session) was resent byte-identical, failed
-    /// identically, and every chunk fell to the fallback voice forever.
+    /// Host forces a genuine session refresh before an auth retry.
     private var onReauth: (@Sendable () async -> Void)?
 
     public func setOnReauth(_ callback: (@Sendable () async -> Void)?) {
         onReauth = callback
     }
 
-    /// Fired once when a Seer chunk succeeds after one or more degraded
-    /// chunks — the host re-arms its once-per-episode degradation notice, so
-    /// the SECOND outage is as visible as the first.
+    /// Fired once when Seer succeeds after degradation — re-arm the notice.
     private var onRecover: (@Sendable () -> Void)?
     private var degradedSinceLastSuccess = false
 
@@ -136,9 +115,7 @@ public actor SeerTTSEngine: SpeechSynthesizer {
         return chunk.samples
     }
 
-    /// THE PREFETCH-SAFE ENTRY POINT: the rate rides the return value, so two
-    /// chunks in flight on this reentrant actor cannot read each other's
-    /// rate off shared state. `synthesizeWaveform` is the legacy wrapper.
+    /// Prefetch-safe: rate rides the return value. synthesizeWaveform is the wrapper.
     public func synthesizeChunk(_ text: String) async throws -> SynthesizedChunk {
         try Task.checkCancellation()
         do {
@@ -147,10 +124,7 @@ public actor SeerTTSEngine: SpeechSynthesizer {
             return chunk
         } catch let firstError {
             try Self.propagateCancellation(firstError)
-            // SEER MEANS SEER: an auth-shaped failure gets one full second
-            // attempt — with the session FORCED to refresh first, so the
-            // retry carries a new token rather than the rejected one — before
-            // any fallback is considered.
+            // Auth-shaped failure: refresh session, retry once, then fallback.
             if isAuthShaped(firstError) {
                 await onReauth?()
                 // A refresh hook may ignore cancellation. Do not let it turn a
@@ -182,10 +156,7 @@ public actor SeerTTSEngine: SpeechSynthesizer {
     }
 
     private func degrade(_ text: String, error: Error) async throws -> SynthesizedChunk {
-        // Cancellation is teardown, never backend degradation. In particular,
-        // URLSession reports a cancelled request as `URLError.cancelled`; the
-        // old catch-all path interpreted that as a dead Seer and launched a
-        // fresh Kokoro render while the caller was trying to silence audio.
+        // Cancellation is teardown, never backend degradation.
         try Self.propagateCancellation(error)
         guard let fallback else { throw error }
         onDegrade?(error.localizedDescription)
@@ -199,10 +170,7 @@ public actor SeerTTSEngine: SpeechSynthesizer {
             pronunciation: await fallback.lastPronunciationReport)
     }
 
-    /// Throw cancellation before any retry/reauth/fallback policy sees it.
-    /// Checking both the concrete error and the current task closes the race
-    /// where a collaborator returns its own ordinary error just after the
-    /// parent task was cancelled.
+    /// Throw cancellation before retry/reauth/fallback. Check error and current task.
     private nonisolated static func propagateCancellation(_ error: Error) throws {
         if error is CancellationError { throw error }
         if let urlError = error as? URLError, urlError.code == .cancelled {
@@ -249,17 +217,10 @@ public actor SeerTTSEngine: SpeechSynthesizer {
         }
     }
 
-    /// Internal, not private: the timeout it stamps is a live-incident fix and
-    /// is pinned by tests (see the "Wire header" note below for the same
-    /// reasoning applied to the header parser).
+    /// Internal: timeout it stamps is pinned by tests.
     func makeRequest(text: String, voiceID: String, token: String) throws -> URLRequest {
         var request = URLRequest(url: baseURL.appendingPathComponent("v1/speak"))
         request.httpMethod = "POST"
-        // The IDLE gap between bytes — which for the FIRST byte is exactly the
-        // "is this server alive?" question, and the one that must be answered
-        // inside the caller's speaking budget rather than the 60 s that used to
-        // sit here. It resets on every byte, so a stream genuinely delivering
-        // audio is never cut by it.
         request.timeoutInterval = SpeechStreamingHTTP.firstByteTimeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -273,8 +234,7 @@ public actor SeerTTSEngine: SpeechSynthesizer {
     }
 
     private func performSynthesis(_ request: URLRequest) async throws -> SynthesizedChunk {
-        // Wall-clock-capped session: `URLSession.shared`'s resource ceiling is
-        // seven days, and this is the path EVERY spoken sentence takes.
+        // Wall-clock-capped session (URLSession.shared resource ceiling is seven days).
         let (bytes, response) = try await SpeechStreamingHTTP.session.bytes(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw URLError(.badServerResponse)
@@ -303,20 +263,13 @@ public actor SeerTTSEngine: SpeechSynthesizer {
         return SynthesizedChunk(samples: samples, sampleRate: rate, pronunciation: nil)
     }
 
-    /// Internal and `nonisolated`, not private: it is a PURE predicate over its
-    /// argument — which failures are worth a second attempt — and that policy
-    /// sits in front of a waiting listener, so it is pinned by tests.
+    /// Pure retry predicate — pinned by tests.
     nonisolated func isRetryable(_ error: Error) -> Bool {
         if let urlError = error as? URLError {
             switch urlError.code {
             case .cancelled:
                 return false
-            // A SERVER THAT JUST TIMED OUT WILL TIME OUT AGAIN, and a host that
-            // refused the connection will refuse it again — retrying only
-            // doubles the wait in front of a listener while the on-device
-            // fallback stands ready to speak the same chunk immediately.
-            // Retries are for TRANSIENT faults (a dropped connection, a network
-            // blip), which is what the remaining codes are.
+            // Timeouts/refused hosts retry only doubles wait; Kokoro is ready. Transient faults retry.
             case .timedOut, .cannotConnectToHost, .cannotFindHost:
                 return false
             default:

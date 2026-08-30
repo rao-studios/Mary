@@ -2,19 +2,8 @@
 //  CorpusSchemaView.swift
 //  Mary
 //
-//  The behavioural schema, cut by Ability.
-//
-//  THE CHAIN THIS RENDERS: schema → Ability → application. Your schema attaches
-//  to the design Ability, and that is what makes you use Sketch differently
-//  from anyone else using Sketch. `AbilityParadigm` draws the same line — a
-//  discipline is "portable semantics that outlive any one application", and
-//  application expertise extends it — so the Ability rung is the one that
-//  travels and the application rung is the one that stays.
-//
-//  Two views of the same thing. The visual one groups the rows the Profile tab
-//  already renders; the raw one shows the canonical bytes the export path
-//  produces, digest included. They are the same tenets, and the raw view says
-//  so rather than being a debug dump that merely resembles the artifact.
+//  WHAT: Behavioural schema by Ability (schema → Ability → application).
+//  OUT:  visual grouping + raw export bytes (same tenets).
 //
 
 import AppKit

@@ -1,3 +1,14 @@
+//
+//  ChatService+Center.swift
+//  MaryRuntime
+//
+//  WHAT: Persisted conversation page + transient turn/routine ids.
+//  IN:   Boot / MirrorVoice / SetHistoryLimit / Reset
+//  OUT:  Conversation, RunningRoutineRow
+//  PIN:  In-turn writes resolve by turnID, never position. Persist key
+//        conversation only so Granite cannot re-seed over a decode miss.
+//
+
 import Granite
 import SwiftUI
 
@@ -8,37 +19,20 @@ extension ChatService {
             package var conversation: Conversation = .init()
             package var isGenerating: Bool = false
             package var lastError: String? = nil
-            /// Transient boot status line ("warming Mistral…", nil when ready).
+            /// Transient boot status ("warming Mistral…"); nil when ready.
             package var bootStatus: String? = nil
             package var isReady: Bool = false
-            /// The detached routines (Skill work that outlived its turn)
-            /// still executing — transient, drives the "still working" chip
-            /// and the popover behind it.
-            ///
-            /// A LIST WHERE A COUNT USED TO STAND. `5 running` was true and
-            /// useless: no way to see which five, and no way to stop one of
-            /// them without saying "stop" and losing all five. The brain has
-            /// carried a spoken `label` per routine since routines existed;
-            /// this is what finally shows it.
+            /// Detached routines still executing — status chip + popover.
             package var runningRoutineRows: [RunningRoutineRow] = []
-            /// Kept as the count the status chip already binds to.
+            /// Count the status chip already binds.
             package var runningRoutines: Int { runningRoutineRows.count }
-            /// The in-flight turn's identity (BrainTurn.id of its user turn)
-            /// — stamped by .turnBegan, cleared at turn end. Transient: every
-            /// in-turn transcript write resolves against it, never position.
+            /// In-flight turn id (BrainTurn.id). Stamped .turnBegan; cleared at end.
             package var activeTurnID: UUID? = nil
-            /// Origin turn ids of LIVE routines — the husk-drop guard: an
-            /// empty bubble whose routine still runs is the routine's home
-            /// and must survive turn end. Transient.
+            /// Live routine origin ids — empty bubble that still runs is its home.
             package var activeRoutineOrigins: [UUID] = []
-            /// The trailing standalone-notice bubble (a proactive follow-up
-            /// with no origin, e.g. the coding bridge) currently streaming —
-            /// so its updates target it by id, never position. Transient.
+            /// Streaming standalone-notice bubble (nil-origin proactive follow-up).
             package var standaloneNoticeID: UUID? = nil
-            /// The Settings "Context window" size, governing the PAGE as well
-            /// as the brain. Transient and config-sourced: `setHistoryLimit`
-            /// installs it at boot and on every stepper change, so it must
-            /// never be restored from a stale persisted copy.
+            /// Settings "Context window" for the PAGE. Config-sourced; never persist.
             package var messageLimit: Int = 12
 
             enum CodingKeys: String, CodingKey {
@@ -47,9 +41,7 @@ extension ChatService {
 
             package init() {}
 
-            /// Tolerant decode: a missing key must NEVER fail the restore —
-            /// a thrown decode makes Granite re-seed defaults over the
-            /// user's conversation (Gita's rule).
+            /// Missing key must not fail restore — a thrown decode re-seeds defaults.
             package init(from decoder: Decoder) throws {
                 self.init()
                 let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -72,8 +64,7 @@ extension ChatService {
 }
 
 extension ChatService.Center.State {
-    /// Appends the user's words and the empty assistant utterance the
-    /// streaming reducer fills in.
+    /// Append user text and the empty assistant utterance streaming fills.
     package mutating func appendExchange(userText: String) {
         conversation.utterances.append(
             .init(role: .user, text: userText)
@@ -81,16 +72,13 @@ extension ChatService.Center.State {
         conversation.utterances.append(
             .init(role: .assistant, isThinking: true, isStreaming: true)
         )
-        // AFTER the append, never before: the window has to be measured
-        // against the page the user is about to see. Trimming runs from the
-        // FRONT, and the floor is 4, so the pair just added is never at risk.
+        // After append: window measured against the page about to show. Floor 4.
         conversation.trimToRecentMessages(limit: messageLimit, protecting: protectedTurnIDs)
         isGenerating = true
         lastError = nil
     }
 
-    /// Turn ids the rolling window must not drop: the live turn, and every
-    /// detached routine's origin. Both already tracked for the husk guard.
+    /// Live turn + every detached routine origin — husk-drop / window floor.
     var protectedTurnIDs: Set<UUID> {
         var ids = Set(activeRoutineOrigins)
         if let activeTurnID { ids.insert(activeTurnID) }

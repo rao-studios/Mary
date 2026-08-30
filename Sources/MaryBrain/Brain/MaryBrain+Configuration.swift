@@ -2,16 +2,11 @@
 //  MaryBrain+Configuration.swift
 //  MaryBrain
 //
-//  The brain's wiring surface, moved out of MaryBrain.swift: every public
-//  `set*` configuration method, `warmup`, `clearHistory`, `engineName`, and
-//  `setHistoryLimit`. The designated `init` and the `*ForTesting` setters
-//  stay in the core file with the stored properties they touch.
+//  WHAT: Public `set*` wiring, warmup, clearHistory, engineName, setHistoryLimit.
+//  IN:   MaryBrain.swift stored properties
+//  OUT:  runtime / tests
+//  PIN:  init and *ForTesting stay in the core file.
 //
-//  Moved verbatim; no behavior change. Depends on the internal-for-split
-//  promotions of the stored properties these setters write (see the core
-//  file); treat those as private.
-//
-
 import MaryVoice
 import Foundation
 import os
@@ -71,12 +66,7 @@ extension MaryBrain {
         seerRealtime = provider
     }
 
-    /// The provider runs on every spoken pass — turn AND follow-up — so the
-    /// live focus, the capability line and the injected clock stay fresh for
-    /// both. The grounded-results block is passed IN rather than concatenated
-    /// on top of the provider's output: the two helper personas are mutually
-    /// exclusive ("don't announce it's done" vs "report the outcome"), so
-    /// they must be chosen, never stacked.
+    /// The provider runs on every spoken pass — turn AND follow-up — so the live focus, the capability line and the injected clock stay fresh for both.
     public func setSeerInstructionsProvider(
         _ provider: @escaping @Sendable (SeerPass) -> String
     ) {

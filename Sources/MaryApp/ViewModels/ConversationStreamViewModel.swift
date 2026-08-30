@@ -2,11 +2,9 @@
 //  ConversationStreamViewModel.swift
 //  Mary
 //
-//  Display tempo for the in-flight utterance, ported near-verbatim from
-//  Gita's StoryStreamViewModel. Granite owns durable state; this object owns
-//  how fast the reader sees it: tokens land in a buffer that drains
-//  char-by-char at 15–25 ms, past Granite's 200 ms @Store debounce (the view
-//  feeds it from `relay.objectWillChange` directly).
+//  WHAT: Display tempo for the in-flight utterance (char-by-char 15–25 ms).
+//  IN:   relay.objectWillChange (past Granite 200 ms @Store debounce)
+//  OUT:  StreamingUtteranceView
 //
 
 import SwiftUI
@@ -55,17 +53,7 @@ final class ConversationStreamViewModel: ObservableObject {
                 return
             }
         } else if last.text.count < bufferedCount {
-            // SAME ROW, SHORTER TEXT ⇒ the reply was thrown away and restarted
-            // under the same identity. `.turnSuperseded` and `.userAmended`
-            // both blank the bubble's text in place and re-arm isStreaming
-            // without minting a new id, so the id check above cannot see it.
-            //
-            // Left alone, `bufferedCount` still held the OLD reply's length,
-            // and `bufferNewChars` only ever appends what lies past it — so
-            // the replacement's opening characters were swallowed, and a
-            // replacement shorter than the original never cleared the
-            // watermark at all: `streamedText` stayed empty for the whole
-            // turn and the row rendered as a blank bubble until handoff.
+            // Same row, shorter text: reply restarted in place (supersede/amend). Reset the drain watermark.
             resetStreamingState()
             streamedText = ""
         }

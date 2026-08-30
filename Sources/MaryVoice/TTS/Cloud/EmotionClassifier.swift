@@ -2,10 +2,10 @@
 //  EmotionClassifier.swift
 //  MaryVoice
 //
-//  Picks the emotion a cloud voice should speak a chunk with. Pure and
-//  deterministic so every decision is unit-testable. Keyword and punctuation
-//  rules run before NLTagger sentiment because sentiment scores on one or two
-//  short sentences are noisy — the tagger only breaks ties.
+//  WHAT: Pure emotion pick for a cloud voice chunk.
+//  IN:   SeerTTSEngine (first chunk of an utterance)
+//  OUT:  MarieEmotion (clamped to the character)
+//  PIN:  Keywords/punctuation before NLTagger sentiment (noisy on short text).
 //
 
 import Foundation
@@ -37,8 +37,7 @@ public enum EmotionClassifier {
         "heartbreaking", "grief", "mourning", "lost", "failed", "failure",
     ]
 
-    /// Classify one spoken chunk. `allowed` clamps the result to what the
-    /// active character can render; anything outside falls back to neutral.
+    /// Classify one spoken chunk. `allowed` clamps to the character; else neutral.
     public static func classify(
         _ text: String,
         allowed: Set<MarieEmotion> = Set(MarieEmotion.allCases)
@@ -61,10 +60,7 @@ public enum EmotionClassifier {
             return clamp(.sad, to: allowed)
         }
 
-        // 2. Punctuation shape. Cued questions were caught above. A trailing
-        //    "?" reads curious ONLY when the whole chunk is a question — a
-        //    two-sentence chunk of "It failed twice. Should I retry?" used to
-        //    render the failure sentence in the curious voice too.
+        // 2. Trailing "?" is curious only if every sentence in the chunk is a question.
         if trimmed.hasSuffix("?"), !containsNonQuestionSentence(trimmed) {
             return clamp(.curious, to: allowed)
         }
@@ -72,9 +68,7 @@ public enum EmotionClassifier {
             return clamp(.excited, to: allowed)
         }
 
-        // 3. Sentiment tiebreaker. NLTagger scores mundane short statements
-        //    at -0.4…-0.6 ("The file is in the Documents folder." = -0.4), so
-        //    only ≤ -0.8 counts as genuinely negative; positives are reliable.
+        // 3. Sentiment: only ≤ -0.8 is sad/angry (NLTagger is noisy on short text).
         if sentiment >= 0.6, exclaims { return clamp(.excited, to: allowed) }
         if sentiment >= 0.35 { return clamp(.happy, to: allowed) }
         if sentiment <= -0.8 { return clamp(exclaims ? .angry : .sad, to: allowed) }
@@ -100,13 +94,7 @@ public enum EmotionClassifier {
         return words
     }
 
-    /// SHOUTING, not spelling. ALL-CAPS words are how technical vocabulary
-    /// is written — "API", "JSON", "HTTP", "TTS" — and a single acronym used
-    /// to flip a whole chunk into the excited voice. Shouting is now a claim
-    /// about the SENTENCE, not a word: caps words must be a strict MAJORITY
-    /// of all words (and at least two), or one caps word with a "!" in the
-    /// text. "STOP DOING THAT" (3 of 3) and "WOW!" still read excited; "The
-    /// API returns JSON." (2 of 4) stays neutral.
+    /// Shouting = majority ALL-CAPS words (≥2), or one caps word plus "!". Acronyms stay neutral.
     private static func hasShoutedWord(_ text: String) -> Bool {
         var capsWords = 0
         var totalWords = 0
@@ -125,9 +113,7 @@ public enum EmotionClassifier {
         return capsWords >= 1 && text.contains("!")
     }
 
-    /// True when any COMPLETE sentence in the chunk is not a question — the
-    /// bound that keeps a trailing "?" from repainting the statements before
-    /// it. Sentence terminators before the final "?" are the evidence.
+    /// True when any complete sentence is not a question (trailing "?" must not repaint earlier statements).
     private static func containsNonQuestionSentence(_ text: String) -> Bool {
         let interior = text.dropLast()   // the trailing "?" itself
         return interior.contains(".") || interior.contains("!")

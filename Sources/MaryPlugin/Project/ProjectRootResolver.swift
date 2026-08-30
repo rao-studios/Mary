@@ -2,9 +2,11 @@
 //  ProjectRootResolver.swift
 //  MaryPlugin
 //
-//  THE LIVE PROJECT ROOT, from whichever application package is focused.
-//  Git, build, quirks and the coding agent all key off this — never an
-//  application name.
+//  WHAT: The live project root from whichever package is focused.
+//  IN:   AbilityExecutionContext / ProjectCorpusSupport
+//  OUT:  ProjectGitAdapter / ProjectBuildAdapter / ProjectQuirksAdapter /
+//        CodingAgentAdapter
+//  PIN:  Never an application name.
 //
 
 import Foundation

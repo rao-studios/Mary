@@ -2,33 +2,11 @@
 //  AffordanceRecipes.swift
 //  MaryAdapter
 //
-//  DO THE THING ON SCREEN THAT ACCOMPLISHES THIS.
-//
-//  `click_on_page` presses what the user NAMED. This presses what would do
-//  what they ASKED — and the difference is the whole reason it exists. "Can
-//  you skip the ad" names nothing: the button is labelled "Skip Ads", the
-//  request is a goal, and every lexical ladder in the house misses it. The
-//  resolution rung that closes that gap is `AffordanceResolver`; this is the
-//  hands on the other side of it.
-//
-//  IT IS NOT A BROWSER SKILL, and that is the point the user made when this
-//  was designed: "these intents should be part of the smart ambient system
-//  that helps support all plugins of any family and class." So it is an
-//  APPENDED FACULTY — no application identity, no bundle id, no world, no
-//  Settings toggle — the shape `looking` and the document-corpus adapter
-//  already established. A browser gets a page walk because a browser has the
-//  URL-bar hazard; everything else gets its own window walk; neither had to
-//  declare anything.
-//
-//  IT WAITS, AND THAT IS A FEATURE. A skip button does not exist for the
-//  first five seconds of an ad. A resolver that answered "I can't find that"
-//  at t=0 would be honest and useless, so a miss re-reads on a short cadence
-//  until the budget is spent — and only then refuses. The budget is
-//  `BrowserAXReadiness.defaultSettleTimeout`'s six seconds, which was itself
-//  sized to a measured web-content delay.
-//
-//  AMBIGUITY REFUSES BY NAME, exactly as `PageElementResolver` already does.
-//  Two skip-shaped controls is a question, not a coin toss.
+//  WHAT: Press the control that accomplishes the asked-for goal.
+//  IN:   AffordancePlugin / AffordanceResolver / PageElementReader
+//  OUT:  PageElementActions.press
+//  PIN:  Appended faculty, not a browser skill. Waits up to appearanceBudget.
+//        Ambiguity refuses by name (PageElementResolver).
 //
 
 import AppKit
@@ -38,27 +16,16 @@ import Foundation
 
 enum AffordanceRecipes {
 
-    /// How long a goal may wait for its control to appear. Matches
-    /// `BrowserAXReadiness.defaultSettleTimeout` on purpose: both are answers
-    /// to "how long before absence is real".
+    /// How long a goal may wait for its control. Matches BrowserAXReadiness.defaultSettleTimeout.
     static let appearanceBudget: TimeInterval = 6
-    /// Between re-reads. Long enough that a walk is not the page's main
-    /// visitor, short enough that a five-second ad is caught promptly.
+    /// Between re-reads — catch a five-second ad without walking the page constantly.
     static let retryInterval: UInt64 = 700_000_000
 
     // MARK: - Surfaces
 
-    /// Where the act will happen. Resolved from what is IN FRONT, never from
-    /// the browser ladder alone — that ladder can answer with a background
-    /// browser from ledger evidence, which is right for "read the page" and
-    /// wrong for "press the thing I am looking at".
+    /// Frontmost surface. Not the browser ladder (that can pick a background browser).
     enum Surface {
-        // NO BROWSER ARM. Pressing something on a web page goes through the
-        // page-interaction lane — it scopes to the page's web area, verifies
-        // focus by reading it back, and produces its own receipts. That lane
-        // is deferred with the browser sub-engine, and an arm here that
-        // pretended to press into a page would bypass every one of those
-        // guards.
+        // PIN: no browser arm — page-interaction lane owns web presses (deferred).
         case application(pid: pid_t, name: String, place: AmbientPlace)
         case failure(SkillOutcome)
     }
@@ -134,9 +101,7 @@ enum AffordanceRecipes {
             ok: false, summary: PageElementResolver.missRefusal(phrase: goal))
     }
 
-    /// The same choreography the page lane runs, with the
-    /// one difference an ordinary application forces: its receipt cannot be a
-    /// page title, so the window's own title is the signature.
+    /// Page-lane press, with the window title as receipt (apps have no page title).
     private static func press(
         _ element: PageElement, pid: pid_t, name: String,
         application: AXUIElement
@@ -161,9 +126,7 @@ enum AffordanceRecipes {
         if let refusal = raised.reason(app: name) {
             return SkillOutcome(ok: false, summary: refusal)
         }
-        // RE-READ BEFORE TOUCHING — a frame is a coordinate, and a window
-        // that re-laid out since is a window that would be pressed in the
-        // wrong place.
+        // Re-read before touching — a frame is a coordinate; layout may have moved.
         let fresh = PageElementReader.readWindowControls(in: application)
         guard let current = PageElementResolver.relocate(element, in: fresh) else {
             return SkillOutcome(

@@ -1,41 +1,12 @@
 // swift-tools-version: 6.0
-// Mary — a macOS ambient-intelligence assistant: accessibility-first perception,
-// declarative Plugins carried out by voice, Seer for every hosted call and an
-// on-device MLX engine for the silent skill lane. Standalone SwiftPM executable.
-//
-// ONE PACKAGE, MANY TARGETS. The layering between targets is real and worth
-// keeping; a per-boundary manifest is not. Each layer is a target under
-// Sources/, every dependency edge is a target-name string, and the layering
-// rules are enforced by reading this manifest AS TEXT
-// (Tests/MaryFoundationTests/PackageLayeringTests.swift) — SwiftPM exposes no
-// build-time hook for "this target may not depend on that product."
-//
-// "PLUGIN" NAMES TWO THINGS, DELIBERATELY DISTINGUISHED. A Plugin is a
-// declarative package under Abilities/ (`*.mary`). The compiled providers
-// that satisfy what a Plugin declares are Mary's NATIVE Plugin layer,
-// MaryPlugin — kept apart from the declarative package it fulfills.
-//
-// ACCESSIBILITY IS TIER 0. MaryAmbient's context store takes the AX surface as
-// its foundation — what is actually on screen — with per-application facts and
-// selection layered on top. MaryAmbient depends on MaryFoundation ALONE, so
-// that paradigm can be read, reasoned about and ported without dragging a model
-// runtime or a Mac integration behind it. The layering test is what keeps that
-// claim honest.
-//
-// PLATFORM FLOOR. SwiftPM has no per-target platform, so the whole package sits
-// at macOS 26 — needed for `SpeechAnalyzer`/`SpeechTranscriber`, MaryVoice's
-// only API for long-form continuous on-device transcription. STRING FORM for
-// the version, not `.v26`: that symbol needs swift-tools-version 6.2, and
-// bumping the tools version changes manifest defaults across every target for
-// one number.
-//
-// NO MODULE ALIASES, DELIBERATELY. Bonnie carried a five-target alias map so
-// Frigate's vendored swift-transformers (`Hub`, `Tokenizers`, `Jinja`,
-// `Generation`, `Models`) could coexist with the real swift-transformers that
-// WhisperKit dragged in. Mary transcribes with Apple's SpeechAnalyzer and names
-// WhisperKit nowhere, so the collision cannot arise and the alias wall — the
-// most fragile thing in that manifest — does not exist here. Adding WhisperKit
-// back would mean rebuilding it; the layering test asserts nothing names it.
+// WHAT: One SwiftPM package. Targets under Sources/, layered by name.
+// OUT:  MaryFoundation → MaryAmbient → MaryPlugin
+//            → MaryVoice / MaryBrain → MaryTotem → MaryRuntime → Mary
+// PIN:  Layering is enforced by reading this file as text
+//       (PackageLayeringTests). Plugin = Abilities/*.mary; adapters live in
+//       MaryPlugin. AX is tier 0 (MaryAmbient → MaryFoundation only).
+//       Platform is macOS "26.0" (string, not .v26) for SpeechAnalyzer.
+//       No module aliases. Frigate only through MaryBrain.
 
 import PackageDescription
 
@@ -45,11 +16,7 @@ let package = Package(
         .macOS("26.0")
     ],
     products: [
-        // Friendly CLI names for the probe executables go here as their
-        // targets land (mary-voice-probe with MaryVoice, mary-totem-probe with
-        // MaryTotem). SwiftPM's implicit per-executable-target product would
-        // otherwise name them after the target; `Mary` itself needs no entry,
-        // since its implicit product already carries the target's own name.
+        // Probe CLIs: explicit product names. `Mary` uses the implicit product.
         .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
@@ -60,20 +27,9 @@ let package = Package(
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
     ],
     dependencies: [
-        // FRIGATE IS MARY'S ONLY EXTERNAL INFERENCE DEPENDENCY, and MaryBrain
-        // is its only consumer — enforced by `onlyBrainNamesFrigate`. It
-        // vendors swift-transformers targets (Hub, Tokenizers, Jinja,
-        // Generation, Models) under their original names, which is why a
-        // second consumer of those names would need an alias map. Mary has
-        // none: dropping WhisperKit removed the only other claimant, so the
-        // alias wall that guarded this graph does not exist here.
+        // Frigate: only MaryBrain (onlyBrainNamesFrigate). No alias map.
         .package(path: "../Frigate"),
-        // CONDUIT COMES FROM THE LOCAL CHECKOUT, not a git pin, and this is a
-        // correctness requirement rather than a convenience: Seer and the
-        // Totem node build against that same checkout, so a pin here could
-        // drift from the wire contract the servers actually speak — and a
-        // drifted contract fails at runtime, on a machine, in a way no build
-        // notices.
+        // Conduit: local checkout, same wire as the Seer/Totem node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
         .package(path: "../Fleet"),
@@ -81,33 +37,21 @@ let package = Package(
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
     targets: [
-        // MARK: - MaryFoundation — the schema layer: Plugin package grammar,
-        // codec and integrity digest, value envelopes, and the pure geometry
-        // types (AXFrame, AXElementRecord) the ambient layer speaks in.
-        // Pure data: zero I/O, zero CoreGraphics, depends on nothing. A schema
-        // type placed here reaches every other layer with no manifest edit.
+        // MARK: - MaryFoundation — schema (Plugin grammar, codecs, AXFrame). No I/O.
         .target(
             name: "MaryFoundation",
             path: "Sources/MaryFoundation",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // Fixtures shared by more than one test target. A non-test target
-        // because a testTarget cannot expose its declarations to another one.
+        // Shared fixtures. Library target: testTargets cannot export to each other.
         .target(
             name: "MaryFoundationTestSupport",
             dependencies: ["MaryFoundation"],
             path: "Sources/TestSupport/MaryFoundationTestSupport",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // MARK: - MaryAmbient — THE AMBIENT LAYER: the tiered context store
-        // (tier 0 the accessibility surface, tier 1 per-application facts,
-        // tier 2 selection and attention), realms, passages, containers, and
-        // the behavioural capture built from what a turn actually injected.
-        // Knows nothing about inference, adapters, or any specific
-        // application — depends on MaryFoundation and the system frameworks
-        // alone, deliberately, so the paradigm can be read, reasoned about
-        // and ported without dragging a model runtime behind it. The layering
-        // test enforces that edge; it is the whole portability claim.
+        // MARK: - MaryAmbient — tiers 0/1/2 (surface / facts / selection).
+        // PIN: depends on MaryFoundation only.
         .target(
             name: "MaryAmbient",
             dependencies: ["MaryFoundation"],
@@ -121,13 +65,7 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryPlugin — Mary's Native Plugin layer: the contract a
-        // compiled provider satisfies, the accessibility engine that reads
-        // the screen, and the generic adapters themselves. Distinct from a
-        // Plugin (the declarative package under Abilities/, `*.mary`):
-        // everything in this target is generic by construction — no file
-        // names an application, and what an adapter serves at any moment
-        // comes from a registration rather than from its own source.
+        // MARK: - MaryPlugin — adapters + AX engine. No file names an app.
         .target(
             name: "MaryPlugin",
             dependencies: ["MaryFoundation", "MaryAmbient"],
@@ -137,17 +75,14 @@ let package = Package(
                 .linkedFramework("EventKit")
             ]
         ),
-        // Validates and seals the shipped .mary packages. A package that
-        // fails to decode is a package that quietly is not installed, which
-        // is exactly the failure a tool should catch and a comment cannot.
+        // Seals shipped Abilities/*.mary (decode-or-fail).
         .executableTarget(
             name: "PackageProbe",
             dependencies: ["MaryFoundation"],
             path: "Sources/Probes/PackageProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // The one live check the suite cannot make: what the engine sees when
-        // it looks at a real application, driven through the real path.
+        // Live AX walk against a real app.
         .executableTarget(
             name: "AXProbe",
             dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
@@ -161,17 +96,8 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryVoice — EARS AND MOUTH, and nothing about meaning. The
-        // mic, the VAD that decides where an utterance ends, transcription,
-        // the wake word, the speaker floor, and two synthesis backends
-        // (Kokoro on-device, Seer in the cloud).
-        //
-        // DEPENDS ON MaryFoundation ALONE — not on MaryAmbient, and the
-        // layering test holds it there. A voice layer that could read the
-        // ambient store would start deciding WHAT to say, and the whole point
-        // of the split is that it only decides WHEN to listen and how a
-        // sentence should sound. The one domain type it touches is
-        // `BehavioralActionRecord`, which it relays and never composes.
+        // MARK: - MaryVoice — mic → VAD → STT → TTS. Relays BehavioralActionRecord.
+        // PIN: MaryFoundation only — must not decide what to say.
         .target(
             name: "MaryVoice",
             dependencies: ["MaryFoundation"],
@@ -179,12 +105,10 @@ let package = Package(
             resources: [
                 .copy("Resources/KokoroModels")
             ],
-            // The Kokoro port is a faithful translation of pre-strict-
-            // concurrency CoreML/AVFoundation code.
+            // Kokoro: pre-strict-concurrency CoreML/AVFoundation.
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // Speaks, listens, and prints what the VAD decided — the only way to
-        // check a thing whose whole output is sound.
+        // Live speak/listen — output is sound.
         .executableTarget(
             name: "VoiceProbe",
             dependencies: ["MaryVoice"],
@@ -198,14 +122,7 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryBrain — WHAT TO SAY AND WHAT TO DO. The inference
-        // engines (one local MLX, one hosted through Seer), the prompt
-        // catalog, the turn loop, and the ability pipeline that turns a
-        // model's tool call into an act on the Mac.
-        //
-        // THE ONLY FRIGATE CONSUMER. Everything below it — ambient, adapters,
-        // voice — is testable without a model runtime, and this is the target
-        // where that stops being true.
+        // MARK: - MaryBrain — turn loop, prompts, Skill pipeline. Only Frigate consumer.
         .target(
             name: "MaryBrain",
             dependencies: [
@@ -222,14 +139,8 @@ let package = Package(
             path: "Sources/MaryBrain",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // MARK: - MaryTotem — Mary's direct line to the local Totem node
-        // (gRPC :9090). Wraps the Conduit contract package behind a small
-        // facade so no other target imports generated protos.
-        //
-        // STANDING RULE: only MaryRuntime and the Mary app consume MaryTotem.
-        // MaryBrain and MaryVoice must never depend on it — a brain that
-        // could reach the transport would start deciding what to persist,
-        // which is the runtime's decision to make.
+        // MARK: - MaryTotem — gRPC :9090 facade over Conduit.
+        // PIN: only MaryRuntime and Mary consume this.
         .target(
             name: "MaryTotem",
             dependencies: [
@@ -256,10 +167,7 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryRuntime — the composition root and the non-UI services.
-        // The long-lived actors, the Granite services that own durable state,
-        // and their models. NO SwiftUI here: SwiftUI lives only in the app
-        // target, and the split is what keeps the runtime testable headless.
+        // MARK: - MaryRuntime — composition root + Granite services. No SwiftUI.
         .target(
             name: "MaryRuntime",
             dependencies: [
@@ -274,11 +182,7 @@ let package = Package(
             path: "Sources/MaryRuntime",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // MARK: - Mary — the SwiftUI app: components, view models, the design
-        // primitives, the headless probe entry points, and main.swift. Talks
-        // to MaryRuntime's actors and Granite services through
-        // `package`-level declarations — visible across targets in this one
-        // package without becoming public API.
+        // MARK: - Mary — SwiftUI app. Talks to MaryRuntime via `package`.
         .executableTarget(
             name: "Mary",
             dependencies: [
@@ -293,7 +197,7 @@ let package = Package(
                 .product(name: "GraniteUI", package: "Granite"),
             ],
             path: "Sources/MaryApp",
-            // MLX types are not Sendable; the same precedent the brain uses.
+            // MLX types are not Sendable (same as MaryBrain).
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: [
                 .unsafeFlags([
@@ -311,22 +215,15 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // The one live check the suite cannot make about the codec: whether
-        // its halves MEET — a real accessibility read reaching a value
-        // composed three layers away, with its geometry intact.
+        // Live AX read through the behavioral codec.
         .executableTarget(
             name: "BehaviorProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/BehaviorProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // Whether the on-device engine has a GPU to run on — asked BEFORE a
-        // 4 GB download rather than after it. `swift build` cannot compile
-        // Metal, so this is the one build product that can go missing without
-        // anything failing until first use.
-        // Whether a REAL editor showing a REAL project resolves through the
-        // SHIPPED declaration. The plan assumed AXDocument carried the active
-        // file; it carries the project root, which only a live read found.
+        // Live corpus: shipped declaration vs a real editor project.
+        // GPUProbe (below): Metal GPU check before a 4 GB model download.
         .executableTarget(
             name: "CorpusProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
@@ -339,8 +236,7 @@ let package = Package(
             path: "Sources/Probes/GPUProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // The join no test can make: a package's declared transport labels on
-        // one side, a live player's Accessibility tree on the other.
+        // Live media: package transport labels vs a player's AX tree.
         .executableTarget(
             name: "MediaProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryFoundation"],

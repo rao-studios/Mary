@@ -2,14 +2,8 @@
 //  ProbeServers.swift
 //  Mary
 //
-//  Headless exercise of the local server stack from the terminal:
-//
-//    swift run Mary --probe-servers            spawn → health → stop
-//    swift run Mary --probe-servers --keep     spawn → health → leave running
-//    swift run Mary --probe-servers --stop     stop whatever a --keep left
-//
-//  Uses the same LocalStackManager the app boots with, so adopt/reap/external
-//  behavior is exactly what the app will do.
+//  WHAT: Headless LocalStackManager (same as app boot): spawn / health / stop.
+//  OUT:  CLI: swift run Mary --probe-servers [--keep|--stop]
 //
 
 import Foundation

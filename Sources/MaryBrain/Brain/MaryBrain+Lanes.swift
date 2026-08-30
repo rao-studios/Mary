@@ -2,16 +2,10 @@
 //  MaryBrain+Lanes.swift
 //  MaryBrain
 //
-//  The three lane runners, moved out of MaryBrain.swift: `runSeerLane`
-//  (classic Lane A), `runRealtimeSeerLane` (WebSocket Lane A), and
-//  `runOrchestratorLane` (Lane B, the silent Skill loop), plus
-//  `selectionInvocation`.
+//  WHAT: Three lane runners — classic Seer, realtime Seer, silent orchestrator.
+//  IN:   seerTurn / localTurn
+//  OUT:  LaneOutcome + OrchestratorLaneResult
 //
-//  Moved verbatim; no behavior change. Depends on the internal-for-split
-//  promotions of the core file's stored lane state (engineGate, engine,
-//  dispatcher, maxSkillRounds…); treat all of them as private.
-//
-
 import MaryVoice
 import Foundation
 import os
@@ -65,19 +59,8 @@ extension MaryBrain {
         return result
     }
 
-    /// Lane A over the realtime WebSocket route: tokens become transcript
-    /// events, PCM chunks feed the speaker directly, and `.speechSource`
-    /// markers steer who voices what.
-    ///
-    /// Fallback rules (pinned by DualLaneTests):
-    /// 1. Not ready → caller never invokes this lane.
-    /// 2. Failure BEFORE any forwarded event → `fellBackPreStream` and the
-    ///    caller reruns the classic lane, indistinguishably.
-    /// 3. Failure mid-turn → `.speechSource(.local)` is emitted, received
-    ///    text is kept, and the lane reports `failed` so the standard
-    ///    dropped-connection notice speaks locally.
-    /// 4. After a server-voiced lane, the caller emits `.speechSource(.local)`
-    ///    before any post-lane deterministic prose (CONFIRM, fallbacks).
+    /// Lane A over the realtime WebSocket route: tokens become transcript events, PCM chunks feed the speaker directly
+    /// Fallback rules (pinned by DualLaneTests): 1.
     // internal for file split — treat as private
     func runRealtimeSeerLane(
         realtime: any SeerRealtimeProviding,
@@ -104,11 +87,7 @@ extension MaryBrain {
             let events = realtime.streamTurn(messages: messages, instructions: instructions)
             for try await event in events {
                 if Task.isCancelled { break }
-                // Content-vs-bookkeeping is classified ON THE EVENT
-                // (`SeerChatEvent.forwardsContent`), never per arm here:
-                // `forwardedAny` is rule 2's discriminator, and one future
-                // case left unclassified would silently disable the
-                // invisible classic rerun.
+                // Content-vs-bookkeeping is classified ON THE EVENT (`SeerChatEvent.forwardsContent`), never per arm here: `forwardedAny` is rule 2's discriminator
                 if event.forwardsContent { markForwarding() }
                 switch event {
                 case .token(let token):
@@ -117,10 +96,7 @@ extension MaryBrain {
                 case .audio(let pcm, let sampleRate):
                     continuation.yield(.audioChunk(pcm: pcm, sampleRate: sampleRate))
                 case .scoped(let request):
-                    // MUST NOT count as forwarded content — the client yields
-                    // `.scoped` before it even connects, so counting it would
-                    // make every pre-stream failure look mid-turn. Enforced
-                    // by `SeerChatEvent.forwardsContent`, beside the cases.
+                    // MUST NOT count as forwarded content — the client yields `.scoped` before it even connects, so counting it would make every pre-stream failure look mid-turn.
                     if let exchangeID {
                         wiring.retrieval.noteSeerRequest(
                             request, forExchange: exchangeID)

@@ -2,15 +2,14 @@
 //  KokoroPhonemizer.swift
 //  MaryVoice
 //
-//  Converts English text → Kokoro phoneme token IDs, tracing every word.
+//  WHAT: English text → Kokoro phoneme token IDs, tracing every word.
+//  IN:   KokoroEngine.synthesizeWaveform
+//  OUT:  ids + PronunciationReport
 //
-//  Text level:   SSML strip → text normalization (numbers, times, abbrev.) → word split
-//  Per word:     ssml → custom → exact-case lexicon/cache → acronym gate →
-//                lexicon (lower/capitalized) → G2P cache → hyphen split →
-//                morphology rules → neural G2P → spell-out → salvage → dropped
-//
-//  Nothing is ever silently dropped: every word lands in the
-//  PronunciationReport with the tier that produced (or failed to produce) it.
+//  Text:   SSML strip → normalize → word split
+//  Word:   ssml → custom → exact lexicon/cache → acronym → lexicon →
+//          G2P cache → hyphen → morphology → neural G2P → spell-out →
+//          salvage → dropped
 //
 
 import Foundation

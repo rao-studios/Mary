@@ -65,10 +65,7 @@ extension AbilityStudioView {
             Text(record.package.ability.summary)
                 .foregroundStyle(.secondary)
             HStack(spacing: 12) {
-                // THE ROLE, on every tab. A reader who opens Studio on the
-                // Skills or Schema tab should still know whether they are
-                // looking at a craft, expertise in one application, or
-                // something that drives the computer itself.
+                // Role on every tab (craft / application / computer).
                 Label(
                     Self.paradigmDetail(record.package),
                     systemImage: AbilityParadigmPresentation(record.package.paradigm).symbol)
@@ -298,10 +295,7 @@ extension AbilityStudioView {
                         LabeledContent("Bundle identifiers") {
                             identifierList(application.bundleIdentifiers)
                         }
-                        // PROVENANCE, NOT PERMISSION. These tuples say what the
-                        // author verified against; they no longer decide whether
-                        // anything may run, so the label says "verified" and an
-                        // unrecognised build is noted rather than coloured red.
+                        // Verified-against provenance, not a run gate.
                         LabeledContent("Verified against") {
                             if application.supportedReleases.isEmpty {
                                 Text("Any release")

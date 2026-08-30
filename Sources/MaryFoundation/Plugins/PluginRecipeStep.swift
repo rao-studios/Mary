@@ -2,9 +2,9 @@
 //  PluginRecipeStep.swift
 //  MaryFoundation
 //
-//  ONE STEP OF REMOTE HANDS. The step kinds are finite and each one carries
-//  only typed expressions, so a recipe is a bounded sequence of local acts
-//  rather than an interpreter for package-authored instructions.
+//  WHAT: One closed macUI step. Finite kinds, typed expressions only.
+//  IN:   PluginOperationSchema.recipe.
+//  OUT:  PluginValidator+Steps, interpreter.
 //
 
 import Foundation
@@ -15,23 +15,17 @@ public enum PluginRecipeStepKind: String, Codable, Hashable, Sendable, CaseItera
     case pointerMove
     case pointerClick
     case pointerDrag
-    /// Drag a square in screen points. The recipe must use the same scalar
-    /// expression for width and height; Mary resolves that one normalized
-    /// side against the shorter content-bounds axis so a non-square window
-    /// cannot stretch the result into a rectangle.
+    /// Square drag. Same scalar for both sides; shorter content axis.
     case pointerSquareDrag
     case scroll
-    /// Accept the target application's newly focused window after a declared
-    /// action such as New Document. The process identity never changes.
+    /// Accept the app's newly focused window. Process identity never changes.
     case rebindFocusedWindow
-    /// Capture one exact public-Accessibility element's live screen frame as
-    /// a later coordinate space. This read-only instruction emits no input.
+    /// Capture one AX element's screen frame as a later coordinate space. Read-only.
     case captureAccessibilityAnchor
     case wait
 }
 
-/// One instruction in Mary's closed macUI recipe grammar. Fields not owned
-/// by `kind` must be nil and are rejected by validation.
+/// One closed macUI step. Fields not owned by `kind` must be nil.
 public struct PluginRecipeStepSchema: Codable, Hashable, Sendable, Identifiable {
     public var id: String
     public var kind: PluginRecipeStepKind
@@ -42,12 +36,9 @@ public struct PluginRecipeStepSchema: Codable, Hashable, Sendable, Identifiable 
     public var rect: PluginRectExpression?
     public var deltaX: PluginScalarExpression?
     public var deltaY: PluginScalarExpression?
-    /// Exact public-Accessibility container and optional unique descendant for
-    /// a read-only frame capture. Only `captureAccessibilityAnchor` may carry
-    /// this field.
+    /// AX container for read-only frame capture. captureAccessibilityAnchor only.
     public var accessibilityLocator: PluginAccessibilityAnchorLocatorSchema?
-    /// Coordinates resolve against `content` by default or a rectangle
-    /// captured by an earlier drag in the same foreground transaction.
+    /// Coordinate space: `content` or an earlier captured drag rectangle.
     public var coordinateSpace: String?
     /// Save this drag's resolved screen rectangle as a later coordinate space.
     public var captureAnchor: String?
@@ -56,8 +47,7 @@ public struct PluginRecipeStepSchema: Codable, Hashable, Sendable, Identifiable 
     public var button: PluginPointerButton?
     public var clickCount: Int?
     public var durationSeconds: Double?
-    /// For a declared focused-window rebind, require a genuinely different
-    /// public-AX window identity rather than accepting the previous document.
+    /// Rebind only if public-AX window identity actually changed.
     public var requiresWindowChange: Bool?
 
     public init(

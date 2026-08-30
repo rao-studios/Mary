@@ -2,20 +2,9 @@
 //  AmbientTraceLog.swift
 //  MaryBrain
 //
-//  WHAT THE ENGINE DECIDED, AND WHAT IT COST — one row per turn, newest
-//  first.
-//
-//  Shaped exactly like `AbilityExecutionLog`: an NSLock-guarded ring buffer,
-//  process-wide, in-memory, session-scoped. The totem archive is the durable
-//  record; this is the last few turns, for the pane and for a pasted bug
-//  report.
-//
-//  IT EXISTS BEFORE ANYTHING READS THE ROUTE, and that ordering is the point.
-//  `AmbientRankingMode` carries `transformUnfocused` "so that fallback is
-//  visible and pinnable rather than indistinguishable from the default";
-//  `ReadDeliveryLedger` books nine honest routes for a read. A routing
-//  decision with no ledger row would be the first unfalsifiable mechanism in
-//  this area, and Ability routing is worth nothing without it.
+//  WHAT: What the engine decided, and what it cost — one row per turn, newest first.
+//  OUT:  pane / bug report. Durable record → Totem archive
+//  PIN:  Exists before anything reads the route. Shaped like AbilityExecutionLog.
 //
 
 import Foundation
@@ -25,10 +14,9 @@ import Foundation
 public struct AmbientTraceRecord: Sendable, Equatable, Identifiable {
     public var id: UUID
     public var date: Date
-    /// The user turn (`BrainTurn.id`) this row resolved — the same id the
-    /// transcript stamps onto its bubbles, so a chat row and its route can be
-    /// joined without guessing by position. Optional because the log predates
-    /// the join: rows recorded by older paths simply never surface in it.
+    /// The user turn (`BrainTurn.id`) this row resolved — the same id the transcript stamps
+    /// onto its bubbles, so a chat row and its route can be joined without guessing by
+    /// position.
     public var exchangeID: UUID?
     public var utterance: String
     /// The decision AND the verdicts behind it — `route.verdicts` is the one
@@ -49,10 +37,9 @@ public struct AmbientTraceRecord: Sendable, Equatable, Identifiable {
     public var abilityRoster: AbilityRosterTrace
     /// Structured, privacy-safe receipts in invocation order.
     public var skillRuns: [SkillRunReceipt]
-    /// The responder-layer signal AT EXCHANGE TIME: places with fresh
-    /// evidence beside the lead, and which of them were only glanced.
-    /// Stamped when the row is recorded — the lens must not re-read live
-    /// tracker state onto an old row.
+    /// The responder-layer signal AT EXCHANGE TIME: places with fresh evidence beside the lead,
+    /// and which of them were only glanced. Stamped when the row is recorded — the lens must
+    /// not re-read live tracker state onto an old row.
     public var coActivePlaces: [AmbientPlace]
     public var glancedPlaces: Set<AmbientPlace>
 
@@ -108,15 +95,8 @@ public final class AmbientTraceLog: @unchecked Sendable {
         if records.count > capacity { records.removeLast(records.count - capacity) }
     }
 
-    /// Attach a Skill invocation once the lane asks for it. Raw interaction
-    /// values never enter this ledger; only schema identity and source scope
-    /// travel in the receipt.
-    ///
-    /// A SEPARATE WRITE, because the two facts are known at different times:
-    /// the route is resolved before either lane exists, and what the model
-    /// reached for is only known after. Recording the row late instead would
-    /// mean a turn that never finished — cancelled, superseded, stalled —
-    /// left no trace at all, and those are the turns worth seeing.
+    /// Attach a Skill invocation once the lane asks for it. Raw interaction values never enter
+    /// this ledger.
     public func noteSkillInvocation(
         _ reference: AbilitySkillReference,
         effect: CapabilityEffect,
@@ -155,11 +135,9 @@ public final class AmbientTraceLog: @unchecked Sendable {
         records[recordIndex].skillRuns[runIndex].foundNothing = foundNothing
     }
 
-    /// STAGE-0 COUNTER for the residual false-completion class: a non-action
-    /// turn where the voice spoke and the lane landed nothing that mutates.
-    /// Observation only — the numbers decide whether a fifth mechanism is
-    /// ever built. Enforcing on prose ("Done", tense, negation) was
-    /// considered and rejected as unshippable.
+    /// STAGE-0 COUNTER for the residual false-completion class: a non-action turn where the
+    /// voice spoke and the lane landed nothing that mutates. Observation only — the numbers
+    /// decide whether a fifth mechanism is ever built.
     private var voiceWithoutMutationCount = 0
 
     public func noteVoiceSpokeWithoutMutation() {

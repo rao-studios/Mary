@@ -9,10 +9,7 @@ extension AbilityStudioRecipeStepCard {
 
     var keyChordEditor: some View {
         VStack(alignment: .leading, spacing: 9) {
-            // TWO CONSTRAINED-CHORD BRANCHES STOOD ABOVE THIS ONE — Escape
-            // for a design template's cleanup, Control-Tab for surface
-            // navigation. Both belonged to the design lane, so every chord
-            // here is now authored freely.
+            // Free chord; design-lane Escape / Control-Tab constraints are gone.
             do {
                 HStack {
                     Text(step.chordLabel)

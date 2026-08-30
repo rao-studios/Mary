@@ -1,17 +1,10 @@
 //
 //  KokoroDSP.swift
-//  Sis
+//  MaryVoice
 //
-//  Created by Ritesh Pakala Rao on 12/23/25.
-//
-//  Direct port of FluidAudio's AudioPostProcessor — applies DSP filters
-//  to the raw Float waveform before it becomes an AVAudioPCMBuffer.
-//
-//  Processing chain:
-//    1. removeRumble    — one-pole high-pass @ 80 Hz   (removes low-freq model artifacts)
-//    2. deEss (pass 1) — biquad high-shelf  @ 6 kHz, -4.5 dB, Q=0.707  (sibilant body)
-//    3. deEss (pass 2) — biquad high-shelf  @ 9 kHz, -2.5 dB, Q=0.707  (residual ring)
-//    4. peakNormalize   — vDSP_maxmgv + vDSP_vsdiv, peak → 1.0
+//  WHAT: Post-process raw Float waveform before AVAudioPCMBuffer.
+//  IN:   KokoroEngine.synthesizeWaveform
+//  OUT:  peakNormalize → removeRumble → deEss
 //
 
 import Accelerate
@@ -26,19 +19,14 @@ enum KokoroDSP {
         _ samples: inout [Float],
         sampleRate: Float = 24_000
     ) {
-        // Matches FluidAudio's synthesizeDetailed order exactly:
-        // 1. Peak-normalize to [-1, 1] first
         peakNormalize(&samples)
-        // 2. Strip low-frequency rumble
         removeRumble(&samples, sampleRate: sampleRate, cutoffHz: 80)
-        // 3. De-ess: single pass, -3 dB @ 6 kHz (same as FluidAudio default)
         deEss(&samples, sampleRate: sampleRate, cutoffHz: 6_000, reductionDb: -3.0)
     }
 
     // MARK: - Rumble removal
 
-    /// One-pole high-pass filter: y[n] = α * (y[n-1] + x[n] − x[n-1])
-    /// Removes low-frequency DC/rumble from the model output.
+    /// One-pole high-pass: y[n] = α * (y[n-1] + x[n] − x[n-1]). Removes DC/rumble.
     static func removeRumble(
         _ samples: inout [Float],
         sampleRate: Float = 24_000,
@@ -61,15 +49,7 @@ enum KokoroDSP {
 
     // MARK: - De-esser
 
-    /// Biquad high-shelf filter, Direct Form II Transposed.
-    ///
-    /// Coefficients derived from Audio EQ Cookbook (Robert Bristow-Johnson):
-    ///   A     = pow(10, reductionDb/40)        ← amplitude gain (sqrt of power)
-    ///   omega = 2π * cutoffHz / sampleRate
-    ///   Q     = 0.707                           ← Butterworth (maximally flat)
-    ///   alpha = sin(omega) / (2Q)
-    ///
-    /// This is the exact algorithm FluidAudio uses.
+    /// Biquad high-shelf, Direct Form II Transposed (Audio EQ Cookbook).
     static func deEss(
         _ samples: inout [Float],
         sampleRate: Float = 24_000,
@@ -112,7 +92,7 @@ enum KokoroDSP {
 
     // MARK: - Peak normalization
 
-    /// Normalize peak to 1.0 using vDSP (avoids overlapping-access issues).
+    /// Normalize peak to 1.0 using vDSP.
     static func peakNormalize(_ samples: inout [Float]) {
         guard !samples.isEmpty else { return }
         var peak: Float = 0

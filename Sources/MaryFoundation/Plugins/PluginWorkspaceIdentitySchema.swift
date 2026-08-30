@@ -2,16 +2,9 @@
 //  PluginWorkspaceIdentitySchema.swift
 //  MaryFoundation
 //
-//  HOW THIS APPLICATION NAMES ITS PROJECT ROOT AND FOCUSED FILE — declared,
-//  not measured against one editor.
-//
-//  CorpusObserver first learned these facts against one IDE: `AXDocument`
-//  is sometimes the folder and sometimes the open file, and the focused
-//  file's name rides the window title after an em dash. That is true of
-//  THAT editor. A second code editor — or a manuscript app — may put the
-//  root on a different attribute and split the title differently. Those
-//  differences belong on the application package so a later similar app
-//  is taught by JSON, never by a new `if` in the observer.
+//  WHAT: How this app names project root and focused file (declared, not one-IDE).
+//  IN:   PluginCorpusSchema.workspaceIdentity.
+//  OUT:  CorpusObserver.
 //
 
 import Foundation
@@ -36,8 +29,7 @@ public struct PluginWorkspaceIdentitySchema: Codable, Hashable, Sendable {
     }
 
     public var rootSource: RootSource
-    /// Empty means the title is not used; the focused file is `AXDocument`
-    /// itself when `rootSource` is `.documentFile`.
+    /// Empty = ignore title; focused file is AXDocument when `.documentFile`.
     public var focusedFileTitleSeparator: String
     public var focusedFileTitlePart: TitlePart
 
@@ -87,8 +79,7 @@ public struct PluginWorkspaceIdentitySchema: Codable, Hashable, Sendable {
         }
     }
 
-    /// The focused file's basename from a window title, or nil when this
-    /// identity does not parse titles or the title does not carry a file.
+    /// Focused-file basename from title, or nil.
     public func focusedFileName(inTitle title: String) -> String? {
         let separator = focusedFileTitleSeparator
         guard !separator.isEmpty else { return nil }

@@ -1,7 +1,11 @@
 //
 //  AbilityLibrary+Activation.swift
+//  MaryBrain
 //
-
+//  WHAT: Activate / deactivate admitted packages.
+//  IN:   AbilityLibrary.swift
+//  OUT:  immutable snapshot replacement
+//
 import ApplicationServices
 import MaryFoundation
 import CryptoKit
@@ -11,10 +15,7 @@ import os
 
 extension AbilityLibrary {
 
-    /// Commits a candidate file only if the complete installed package graph
-    /// activates. A package that is valid alone can still conflict with an
-    /// installed invocation or miss a dependency; in that case restore the
-    /// exact previous bytes and reactivate the previous graph.
+    /// Commits a candidate file only if the complete installed package graph activates.
     enum ExpectedFileState {
         case unchecked
         case missing
@@ -88,9 +89,6 @@ extension AbilityLibrary {
     }
 
     /// Validates the graph that would exist after installing `candidate`.
-    /// Replacing by package id mirrors discovery precedence, so Studio can
-    /// report activation failures without touching the last-known-good files
-    /// or runtime snapshot.
     func validateForActivation(
         _ candidate: MaryAbilityPackage
     ) -> AbilityPackageValidation {
@@ -146,10 +144,7 @@ extension AbilityLibrary {
         var sha256: Data
     }
 
-    /// Reads through the package-size boundary, verifies schema identity and
-    /// declared integrity independently, then retains and hashes the same exact
-    /// bytes. Callers that need a draft and a lease cannot observe two
-    /// different versions of the file between separate reads.
+    /// Reads through the package-size boundary, verifies schema identity and declared integrity independently, then retains and hashes the same exact bytes.
     func verifiedFileSnapshot(
         at url: URL,
         packageID: PackageID

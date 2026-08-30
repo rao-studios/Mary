@@ -2,9 +2,10 @@
 //  PluginInputVocabulary.swift
 //  MaryFoundation
 //
-//  The closed vocabulary a recipe step may name: keys, modifiers, pointer
-//  buttons, Accessibility roles, and the anchor locator that finds an element
-//  without letting a package invent its own selector language.
+//  WHAT: Closed keys, modifiers, buttons, AX roles, conjunctive anchor locator.
+//  IN:   PluginRecipeStep.
+//  OUT:  PluginValidator+Steps, macUI interpreter.
+//  PIN:  Packages cannot invent a selector language.
 //
 
 import Foundation
@@ -35,9 +36,7 @@ public enum PluginPointerButton: String, Codable, Hashable, Sendable, CaseIterab
     case right
 }
 
-/// Closed public-Accessibility roles that may identify a read-only geometry
-/// anchor. Declaring one never grants permission to press, set, focus, or
-/// otherwise mutate an Accessibility element.
+/// Read-only geometry-anchor roles. Declaring never grants mutation.
 public enum PluginAccessibilityRole: String, Codable, Hashable, Sendable, CaseIterable {
     /// Public AX exposes custom application canvases with this exact role.
     /// It is still paired with an exact identifier and unique traversal.
@@ -73,23 +72,15 @@ public enum PluginAccessibilityRole: String, Codable, Hashable, Sendable, CaseIt
     case toolbar
 }
 
-/// Conjunctive locator for one exact public-Accessibility container under the
-/// already pinned owning window. When `descendantRole` is present, the frame
-/// belongs to the one unique matching descendant within that exact container;
-/// its identifier may be omitted only because uniqueness is still proved by a
-/// complete bounded traversal. Titles and values are never locator fallbacks.
+/// Exact AX container under the pinned window. Unique descendant if descendantRole set.
 public struct PluginAccessibilityAnchorLocatorSchema: Codable, Hashable, Sendable {
     public var role: PluginAccessibilityRole
     public var identifier: String
     public var descendantRole: PluginAccessibilityRole?
     public var descendantIdentifier: String?
-    /// Exact AXTitle of the descendant — the closed spelling for titled but
-    /// unidentified controls (menu items, type pickers).
+    /// Exact AXTitle of an untitled control (menu item, type picker).
     public var descendantTitle: String?
-    /// Exact static-text value on the descendant's row: resolves the
-    /// TRAILING-MOST descendant of the closed role whose vertical center
-    /// shares a row with the one label bearing this text — the platform's
-    /// row-action convention. A second label or a trailing tie refuses.
+    /// Row label text. Trailing-most matching descendant; tie refuses.
     public var descendantLabelText: String?
 
     public init(

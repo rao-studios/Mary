@@ -2,12 +2,9 @@
 //  CodeSurfaceEdit.swift
 //  MaryPlugin
 //
-//  Pure text-editing math over a live buffer. Every mutation computes the
-//  NEW whole-file text in Swift; the writer then puts that text on disk.
-//  Nothing here names an application — the locator for `notation: swift` is
-//  `SwiftSymbolLocator`; other notations fall through to unique-snippet
-//  replace.
-//
+//  WHAT: Pure buffer math — new whole-file text in Swift.
+//  OUT:  CodeSurfaceWriter (disk)
+//  PIN:  notation:swift → SwiftSymbolLocator; else unique-snippet replace.
 
 import Foundation
 

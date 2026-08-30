@@ -2,44 +2,22 @@
 //  CorpusText.swift
 //  MaryPlugin
 //
-//  SPLITTING A FILE INTO CODE AND COMMENTARY, once, so every rule that runs
-//  over it reads the slice it asked for.
-//
-//  WHY THE SPLIT IS NOT OPTIONAL. A rule counting `throws` must not match the
-//  word inside a comment explaining why something does not throw, and the
-//  comment-posture rules must read ONLY comments or they end up measuring the
-//  code. Both mistakes produce numbers rather than errors, and a number is
-//  believed.
-//
-//  ONCE PER FILE, THREADED THROUGH. The observer this replaces recomputed the
-//  mask inside whichever detector wanted it — roughly four full passes per
-//  file, each allocating a character array the size of the source, for one
-//  file's worth of answers. The slices here are computed together and handed
-//  to every rule.
-//
-//  THE HONEST LIMIT: THIS IS C-FAMILY SYNTAX. `//`, `/* */`, double-quoted
-//  strings with `\(…)` interpolation. That is correct for the one notation
-//  that declares a corpus today and wrong for a notation whose comments look
-//  different — a Markdown corpus has no comments at all, and a chapter's
-//  annotations are not lexical. It is named for what it is rather than called
-//  generic, and the day a second notation needs different rules the answer is
-//  a `commentSyntax` block in `PluginCorpusSchema` beside the ones already
-//  there, not a special case in here.
+//  WHAT: Split a file into code and commentary slices, once.
+//  IN:   CorpusCrawl / CorpusStyleReader
+//  OUT:  code / comments / source
+//  PIN:  C-family syntax (`//`, `/* */`, strings with `\(`). Blank spans, don't
+//        splice. Second notation → PluginCorpusSchema.commentSyntax, not a special case.
 //
 
 import Foundation
 
 /// One file, already split into the slices a corpus rule can ask for.
 public struct CorpusText: Sendable {
-    /// Everything outside comments and string literals, with those spans
-    /// blanked rather than removed — so a pattern cannot accidentally join two
-    /// tokens that had a comment between them.
+    /// Outside comments and strings, those spans blanked (not removed) so tokens stay apart.
     public let code: String
-    /// Only the commentary, same treatment in reverse.
+    /// Only commentary, same treatment in reverse.
     public let comments: String
-    /// The file as it was read.
     public let source: String
-    /// The file's own last path component.
     public let filename: String
     public let byteCount: Int
 
@@ -54,10 +32,7 @@ public struct CorpusText: Sendable {
         codeOnly.reserveCapacity(characters.count)
         commentsOnly.reserveCapacity(characters.count / 4)
         for (index, character) in characters.enumerated() {
-            // NEWLINES SURVIVE INTO BOTH SLICES. A line-anchored pattern —
-            // the comment-density counter is one — needs the line structure
-            // of the file it is measuring, and blanking a newline would join
-            // every commented line into one.
+            // Newlines survive into both slices (line-anchored patterns).
             let isNewline = character == "\n"
             switch regions[index] {
             case .code:
@@ -67,10 +42,7 @@ public struct CorpusText: Sendable {
                 commentsOnly.append(character)
                 if isNewline { codeOnly.append(character) }
             case .string:
-                // A STRING IS NEITHER. Its contents are data the author
-                // happened to type; counting `guard` inside an error message
-                // as a binding style is how a file votes for a habit it does
-                // not have.
+                // A string is neither code nor commentary.
                 if isNewline {
                     codeOnly.append(character)
                     commentsOnly.append(character)
@@ -91,7 +63,7 @@ public struct CorpusText: Sendable {
     }
 }
 
-/// The lexical mask: which characters are code, commentary or string.
+/// Lexical mask: which characters are code, commentary, or string.
 public enum CFamilyRegions {
 
     public enum Region: Sendable {
@@ -101,16 +73,13 @@ public enum CFamilyRegions {
         case string
     }
 
-    /// Nested block comments are counted, not merely matched — the language
-    /// this was written for allows them, and treating `/* /* */ */` as closed
-    /// at the first `*/` would spill a comment's tail into the code slice.
+    /// Nested block comments counted, not merely matched.
     public static func mask(_ source: String) -> [Region] {
         let characters = Array(source)
         var regions = [Region](repeating: .code, count: characters.count)
         var index = 0
         var blockDepth = 0
-        /// Paren depths at which a `\(` interpolation opened: inside one, the
-        /// content is code again until the matching `)`.
+        /// Paren depths at which a `\(` interpolation opened — inside, content is code again.
         var interpolationParens: [Int] = []
         var parenDepth = 0
 
@@ -171,8 +140,7 @@ public enum CFamilyRegions {
         return regions
     }
 
-    /// Consume a string literal, marking its span, resuming code inside
-    /// `\(…)`. Returns the index just past the closing quote.
+    /// Consume a string literal; resume code inside `\(`…`)`. Returns index past the close.
     private static func scanString(
         _ characters: [Character],
         from start: Int,
@@ -191,8 +159,7 @@ public enum CFamilyRegions {
         while index < characters.count {
             let character = characters[index]
 
-            // An escaped character is part of the literal, whatever it is —
-            // including an escaped quote, which must not end the string.
+            // Escaped character is part of the literal, including an escaped quote.
             if character == "\\", index + 1 < characters.count {
                 if characters[index + 1] == "(" {
                     regions[index] = .string
@@ -236,9 +203,7 @@ public enum CFamilyRegions {
                 }
             }
 
-            // AN UNTERMINATED SINGLE-QUOTED STRING ENDS AT THE LINE. Without
-            // this a stray quote in one line swallows the rest of the file
-            // into the string slice, and every rule below it goes quiet.
+            // Unterminated single-quoted string ends at the line.
             if character == "\n", !triple {
                 return index
             }

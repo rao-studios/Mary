@@ -2,8 +2,9 @@
 //  MaryRuntime+Life.swift
 //  MaryRuntime
 //
-//  Threshold training and the idle Life loop: pulse → gated complete →
-//  re-encode → autonomous dispatcher → seal.
+//  WHAT: Threshold training and the idle Life loop.
+//  OUT:  pulse → gated complete → re-encode → autonomous dispatcher → seal
+//        LifeCalibration (sheet). Fleet via FleetDirectClient.
 //
 
 import Foundation

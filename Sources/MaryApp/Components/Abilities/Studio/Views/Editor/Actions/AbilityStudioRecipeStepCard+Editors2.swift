@@ -156,10 +156,7 @@ extension AbilityStudioRecipeStepCard {
 
     var rebindEditor: some View {
         VStack(alignment: .leading, spacing: 9) {
-            // THE CREATION-SURFACE PLACEHOLDER BRANCH WENT WITH THE DESIGN
-            // LANE: it described a boundary where a semantic plan proved a
-            // document discriminator had changed, and no package in this
-            // cut can declare one.
+            // No creation-surface placeholder; design lane is gone.
             do {
                 Label(
                     "After an action opens another window, accept that process's newly focused window as the rest of this ordinary callable recipe's target.",

@@ -1,3 +1,12 @@
+//
+//  ConfigService.Update.swift
+//  MaryRuntime
+//
+//  WHAT: One settings mutation — non-nil fields apply.
+//  IN:   Settings sheet (per control). Engine/voice swaps applied by caller.
+//  OUT:  ConfigService.Center.State
+//
+
 import MaryAmbient
 import MaryBrain
 import MaryPlugin

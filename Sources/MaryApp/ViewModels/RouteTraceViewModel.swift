@@ -2,14 +2,9 @@
 //  RouteTraceViewModel.swift
 //  Mary
 //
-//  The Routes pane's data. `AbilityExecutionLogViewModel`'s shape — a 1 Hz poll of a
-//  lock-boxed store — with `PerceptionSnapshotViewModel`'s discipline: one
-//  impure `gather()`, a PURE `build(_:)` over an `Inputs` value, and an
-//  Equatable diff before republishing so a quiet second repaints nothing.
-//
-//  The pure core is what makes the pane unit-testable from
-//  `Tests/MaryTests` with a frozen clock, exactly like
-//  `PerceptionCardBuilderTests` does for the eyes.
+//  WHAT: Routes pane data — 1 Hz poll, impure gather(), pure build(_:).
+//  OUT:  RouterPaneView
+//  PIN:  Equatable diff before republish; never Granite @Store.
 //
 
 import MaryAmbient
@@ -58,12 +53,7 @@ struct RouteRow: Identifiable, Equatable {
     func age(at now: Date) -> TimeInterval { max(0, now.timeIntervalSince(date)) }
 }
 
-/// ONE DECISION, OF EITHER KIND, in time order.
-///
-/// MERGED RATHER THAN SECTIONED, because the question the pane is actually
-/// asked is "did she volunteer something, and what was going on around it?" —
-/// and that is answered by seeing a remark sitting three seconds under the
-/// turn it followed. A separate section loses exactly that.
+/// One decision of either kind, merged in time order (not sectioned).
 enum RouterEntry: Identifiable, Equatable {
     case turn(RouteRow)
 
@@ -164,11 +154,7 @@ final class RouteTraceViewModel: ObservableObject {
         }
     }
 
-    /// `nonisolated` for the same reason `build` is: pure, and therefore
-    /// table-testable from XCTest without hopping to the main actor.
-    ///
-    /// NEWEST FIRST, matching both ring buffers' own ordering — the pane
-    /// scrolls down into the past.
+    /// Pure/nonisolated; newest first, matching the ring buffers.
     nonisolated static func buildEntries(_ inputs: Inputs) -> [RouterEntry] {
         // ONE KIND OF ENTRY. A second arm carried unprompted remarks, whose
         // lane is not in this cut; the merge and the sort stay because the

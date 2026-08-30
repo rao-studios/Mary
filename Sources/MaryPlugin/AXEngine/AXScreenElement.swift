@@ -2,35 +2,9 @@
 //  AXScreenElement.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  ONE PUBLISHED THING, FROM A SNAPSHOT RATHER THAN A LIVE PAGE. This is the
-//  snapshot lane's answer to `PageElement` — same job (something a person can
-//  point at by name, in reading order, with enough state to resolve a
-//  phrase against), but built from a value-type `AXAppSnapshot` instead of a
-//  live web area, and therefore without a live `AXUIElement`, a URL, or a
-//  numeric range. `AXElementRoster` is what produces these; this file only
-//  says what one of them is.
-//
-//  NO LIVE HANDLE, ON PURPOSE. Every existing AX-facing type in this
-//  directory (`AXNodeSnapshot`, `AXAppSnapshot`) is a plain Sendable value
-//  for the same reason `AXNodeSnapshot`'s own header gives: a wireframe
-//  compares, hashes, and hands snapshots across actor boundaries without
-//  touching AX again. An element resolved against one of these snapshots
-//  inherits that property — it can be resolved on a background actor, kept
-//  around, compared, all without a live process handle. `id` is how it
-//  re-attaches to AX later: `AXHitTest.frame(of:in:)` re-resolves a current
-//  frame from a fresher snapshot, and `AXSnapshotBuilder`'s internal element
-//  table (never published) is how a future actuation engine turns an id back
-//  into an `AXUIElement` — that seam is deliberately not opened here.
-//
-//  `isBackedByLiveAX` EXISTS BECAUSE OF THE SCRIPTING SUB-ENGINE. A
-//  `.scripted` node (`AXEngine/Scripting/ScriptedGraft`) was never walked
-//  from AX — it is a synthesized row with a deterministic id that no
-//  `AXUIElement` has ever backed, published because it is real content a
-//  person can hear about, not because it can be pressed. A resolver or an
-//  actuator built on top of this type must be able to ask the difference.
-//
+//  WHAT: One published thing from a snapshot (PageElement's snapshot twin).
+//  IN:   AXElementRoster  OUT: SpokenReference / AmbientSurfaceBridge
+//  PIN:  No live handle. isBackedByLiveAX is false for ScriptedGraft rows.
 
 import CoreGraphics
 import Foundation
@@ -51,7 +25,7 @@ public struct AXScreenElement: Sendable, Equatable, Identifiable {
     public var appName: String
     public var windowID: AXNodeID
     public var windowTitle: String
-    /// The raw AX role, e.g. `AXButton`, or `"BonnieScripted"` for a graft.
+    /// The raw AX role, e.g. `AXButton`, or `"MaryScripted"` for a graft.
     public var role: String
     public var subrole: String?
     public var category: AXNodeCategory

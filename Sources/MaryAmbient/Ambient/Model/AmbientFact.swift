@@ -2,19 +2,9 @@
 //  AmbientFact.swift
 //  MaryBrain
 //
-//  ONE processed sensory detail of the machine: what it says, where in the
-//  document it sits, how old it is, where it came from, and whether the user
-//  asked for it.
-//
-//  This file holds the fact's STATE and its FRESHNESS rules; the phrasing that
-//  turns it into prompt or pane text lives in `AmbientFact+Rendering.swift`,
-//  because both readers must share exactly one implementation of it.
-//
-//  Freshness is deliberately KEYED TO DOCTRINE ALREADY IN THE TREE rather than
-//  a second rule invented here — `AmbientSamplingCadence.bodyFreshWindow` and
-//  `PerceptionAnchor.isLiveRead` decide what "live" means, and this file just
-//  obeys them. Two staleness rules in one system is how a snapshot ends up
-//  claiming to be live in one place and stale in another.
+//  WHAT: One processed sensory detail — state and freshness rules.
+//  OUT:  AmbientContextStore. Phrasing: AmbientFact+Rendering
+//  PIN:  Freshness keyed to AmbientSamplingCadence.bodyFreshWindow and PerceptionAnchor.isLiveRead.
 //
 
 import Foundation
@@ -67,19 +57,9 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public static let contentCap = 2000
 
     public var world: AmbientWorld
-    /// The registered application this fact belongs to, when its world holds
-    /// more than one — `"sketch"`, the LOGICAL id.
-    ///
-    /// Nil for a built-in world, which is the ordinary case: `.calendar` is the
-    /// calendar and needs no second name. Non-nil is what keeps two registered
-    /// applications sharing `.applications` from superseding each other, because
-    /// this is the field that reaches `AmbientKey`.
-    ///
-    /// NOT the same thing as `applicationID` below. This is the identity Mary
-    /// reasons and remembers with; that is the process it must return to in
-    /// order to act. A fact can honestly have one without the other — a
-    /// generic AX selection knows the bundle and not the package; a Dynamic
-    /// read knows the package and may not have observed a bundle.
+    /// The registered application this fact belongs to, when its world holds more than one —
+    /// `"sketch"`, the LOGICAL id. Nil for a built-in world, which is the ordinary case:
+    /// `.calendar` is the calendar and needs no second name.
     public var application: String?
     public var slot: AmbientSlot
     public var content: String
@@ -88,11 +68,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public var surroundingText: String?
     /// The document or file this is about, for the reader's benefit.
     public var subject: String?
-    /// The concrete application that produced this fact, when the watcher
-    /// knows it. This is intentionally separate from `world`: `.applications`
-    /// is one perception world shared by many applications, while a later
-    /// writing action must return to the exact app that owned the selection.
-    /// It is a bundle identifier, never user-visible prompt text.
+    /// The concrete application that produced this fact, when the watcher knows it.
     public var applicationID: String?
     /// Character bounds inside `subject`, when the fact honestly knows them.
     /// NEVER invented — a fabricated range here is the same species of
@@ -116,20 +92,9 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public var spokenAt: Date?
     /// A clipped note of what she said about it — stops a second recitation.
     public var spokenNote: String?
-    /// `[S1]` — the opaque handle for the passage this fact holds, when a read
-    /// minted one (`PassageRegistry`).
-    ///
-    /// WHY A FACT CARRIES IT AT ALL: the bounds in `boundsPhrase` are for the
-    /// READER, and they are all this fact used to offer. The prompt said "I
-    /// know exactly where each one sits and can pull the text back up" beside
-    /// `characters 68–916 of 916`, and no primitive in the tree accepted an
-    /// end offset — so the model hand-wrote AppleScript against `document 1`
-    /// and got `-1728`. The handle is the part that is actually ACCEPTED
-    /// somewhere; carrying it here is what makes that sentence true.
-    ///
-    /// Nil is the normal case — a viewport, a git line and a calendar digest
-    /// are not passages, and inventing a handle for them would offer the model
-    /// something `PassageRegistry.resolve` would answer `.unknown` about.
+    /// `[S1]` — the opaque handle for the passage this fact holds, when a read minted one
+    /// (`PassageRegistry`). WHY A FACT CARRIES IT AT ALL: the bounds in `boundsPhrase` are for
+    /// the READER, and they are all this fact used to offer.
     public var passageHandle: String?
 
     public init(
@@ -183,11 +148,9 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
 
     // MARK: - Freshness (reusing what already exists)
 
-    /// Keyed to the doctrine already in the tree rather than a second rule
-    /// invented here: an AX-anchored read is live by construction (it was read
-    /// this tick), cached body text is live only inside
-    /// `AmbientSamplingCadence.bodyFreshWindow`, and a binding read is exactly as
-    /// good as the body it came out of.
+    /// Keyed to the doctrine already in the tree rather than a second rule invented here: an
+    /// AX-anchored read is live by construction; cached body text is live only inside
+    /// `AmbientSamplingCadence.bodyFreshWindow`.
     public static func defaultFreshWindow(provenance: AmbientProvenance) -> TimeInterval {
         switch provenance {
         case .liveAX:     return AmbientSamplingCadence.activeInterval * 2
@@ -197,55 +160,21 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
         }
     }
 
-    /// A STANDING DIGEST'S OWN WINDOWS. Both had to be separated from the
-    /// provenance/perceived defaults, and each for a reason that would
-    /// otherwise show up as Mary lying:
-    ///
-    /// - FRESHNESS. A digest is `.derived`, whose window is 60 s, so "3 events
-    ///   today" would start appending "so it may have moved on since" after
-    ///   one minute. Today's event count does not go stale in a minute; the
-    ///   window is keyed to the refresh cadence plus slack instead, exactly as
-    ///   `AmbientSamplingCadence.bodyFreshWindow` is.
-    /// - RETENTION. `isPerceived` is false, which would have handed it the
-    ///   READ retention (20 minutes) — LONGER than a passage the user actually
-    ///   asked for, for a line nobody requested. It only has to outlive a few
-    ///   missed ticks, so it sits below both the read retention and, at the
-    ///   fresh window, well above the refresh floor.
+    /// A STANDING DIGEST'S OWN WINDOWS. Both had to be separated from the provenance/perceived
+    /// defaults.
     public static let digestRefreshFloor: TimeInterval = 180
     public static let digestFreshWindow: TimeInterval = digestRefreshFloor * 3   // 9 min
     public static let digestRetention: TimeInterval = digestRefreshFloor * 5     // 15 min
 
-    /// A CARET'S OWN WINDOWS — the shortest pair in the store, and separated
-    /// from the defaults for the opposite reason a digest's are.
-    ///
-    /// A digest needed LONGER windows because "3 events today" does not go
-    /// stale in a minute. A cursor needs SHORTER ones because it does. The
-    /// standing doctrine is that a stale fact is held knowledge while a stale
-    /// screen is a confidently wrong screen, and a caret sits closer to the
-    /// screen end of that than anything else the store holds: the user moves
-    /// it several times a minute and never announces it.
-    ///
-    /// - FRESHNESS. Twice the observer's own poll interval plus slack, so a
-    ///   reading that survives one missed tick still reads as current and
-    ///   anything older starts saying "so it may have moved on since" — the
-    ///   honest degradation, in the fact's own words, rather than a silent
-    ///   confident claim about a cursor that has since moved.
-    /// - RETENTION. One minute, against the perceived default's five.
-    ///   `isPerceived` is false for `.cursor` (see `AmbientSlot.cursor`), and
-    ///   the `!isPerceived` default is the READ retention — twenty minutes,
-    ///   for a passage the user actually asked for. Carrying an unasked-for
-    ///   caret position that long is exactly the hazard above. A minute is
-    ///   long enough to survive an alt-tab to Slack and back, and short
-    ///   enough that a cursor left behind stops being mentioned at all.
+    /// A CARET'S OWN WINDOWS — the shortest pair in the store, and separated from the defaults
+    /// for the opposite reason a digest's are. A digest needed LONGER windows because "3 events
+    /// today" does not go stale in a minute. A cursor needs SHORTER ones because it does.
     public static let cursorRefreshFloor: TimeInterval = 5
     public static let cursorFreshWindow: TimeInterval = cursorRefreshFloor * 2 + 2  // 12 s
     public static let cursorRetention: TimeInterval = 60
 
-    /// Perceived slots are superseded every poll, so their retention only has
-    /// to outlive a watcher going quiet. A READ is the continuity headline —
-    /// it has to survive several turns of conversation, because "ask for the
-    /// passage, then follow up two turns later" is the user's own acceptance
-    /// test.
+    /// Perceived slots are superseded every poll, so their retention only has to outlive a
+    /// watcher going quiet.
     public static func defaultRetention(slot: AmbientSlot) -> TimeInterval {
         switch slot {
         case .digest: return digestRetention
@@ -255,11 +184,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
         }
     }
 
-    /// The slot-aware window `init` actually uses. The provenance-only form
-    /// above is kept because it is the doctrine bridge to
-    /// `PerceptionAnchor.isLiveRead`, and a digest is the one fact whose
-    /// freshness is a property of its REFRESH CADENCE, not of where its words
-    /// came from.
+    /// The slot-aware window `init` actually uses.
     public static func defaultFreshWindow(
         provenance: AmbientProvenance, slot: AmbientSlot
     ) -> TimeInterval {

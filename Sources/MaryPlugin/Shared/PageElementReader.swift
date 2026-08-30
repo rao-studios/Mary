@@ -2,39 +2,9 @@
 //  PageElementReader.swift
 //  MaryAdapter
 //
-//  WHAT THE PAGE OFFERS — the generic enumerator the browser lane never had.
-//
-//  Every primitive here reads through the shared `AX` helper: the bounded
-//  BFS (`walk`, depth 24 / 4000 nodes), the web-area root (`webArea`), the
-//  attribute reads, the frame read. What did not exist was anything that
-//  COLLECTS. Every shipped walker filters to one predicate and returns the
-//  first match or a homogeneous list; none of them ever answered "what is on
-//  this page". `BrowserTabRule` says so in its own comment, and refuses to
-//  claim a tab is a container for exactly this reason:
-//
-//      "a tab does hold page elements, but nothing in this lane can
-//       enumerate them, and claiming otherwise promises resolution targets
-//       that do not exist."
-//
-//  This file is what makes that claim true. It is MACHINE CAPABILITY, not one
-//  Ability's private code — the same line `SafariWebSurface`'s header draws —
-//  so the same enumerator can later serve any application, not just a browser.
-//
-//  THE WEB AREA IS THE ROOT, NEVER THE WINDOW. `SafariWebSurface` measured the
-//  consequence: a window-wide search finds the browser's own smart search
-//  field, and an action aimed at "the first text field" lands in the URL bar.
-//  Everything below is scoped inside the page.
-//
-//  READING ORDER IS THE ORDINAL. Elements are banded by vertical position and
-//  ordered left-to-right inside a band, which is how a person reads a page and
-//  therefore what "the third video" means. The order is stable for a settled
-//  page and is the ONLY thing that makes an ordinal honest — Mary's own
-//  reference doctrine says a counting ordinal without a live listing must
-//  refuse rather than pick, and this enumeration IS that listing.
-//
-//  NO JAVASCRIPT, and none is needed: this is Accessibility only, which is
-//  also the only page channel Chrome has (its sdef exposes no page text).
-//
+//  WHAT: Walk a web area into PageElements in reading order.
+//  IN:   AXWebArea  OUT: PageElementResolver / PageElementKindDerivation
+//  PIN:  Dedup by label+frame; reading order is vertical band then LTR.
 
 import AppKit
 import ApplicationServices
@@ -48,13 +18,9 @@ public enum PageElementReader {
     /// Candidates examined before publishing. The AX walk's own ceiling
     /// (4000 nodes) still applies above this.
     public static let maximumCandidates = 512
-    /// What one read publishes. Deliberately close to the browser roster's 40:
-    /// an index nobody recites can be generous, but a slate that feeds spoken
-    /// summaries and an embedding index must stay bounded. Sixty covers a
-    /// dense feed's visible cards without flooding the 512-text vector cache.
-    /// The walk's bounds — carried here now that the primitives read straight
-    /// from the shared AX helper rather than through a browser-named facade
-    /// that happened to own them.
+    /// What one read publishes. Deliberately close to the browser roster's 40: an index
+    /// nobody recites can be generous, but a slate that feeds spoken summaries and an
+    /// embedding index must stay bounded.
     static let maxSearchDepth = 24
     static let maxSearchNodes = 4000
 
@@ -79,33 +45,8 @@ public enum PageElementReader {
     // MARK: - The read
 
     /// Enumerate the page's interactive elements, in reading order.
-    ///
-    /// Returns an empty array when the page genuinely offers nothing; the
-    /// CALLER distinguishes that from "no accessibility tree at all", because
-    /// only the caller knows whether `BrowserAXReadiness` already answered
-    /// `.axTreeAbsent`. Conflating them would be the lie this tree refuses:
-    /// "no editor on the page" and "no page exposed to me" are different
-    /// facts.
-    // NO WEB-PAGE READERS. Two entry points here walked a browser's web
-    // area rather than a window: they belong to the browser lane, with the
-    // web sub-engine that finds the area in the first place. What remains —
-    // `readWindowControls` and the candidate machinery under it — walks
-    // native windows and is what the surface tier uses.
 
-    /// The same enumeration, rooted at an application's own WINDOW instead of
-    /// a web area.
-    ///
-    /// WHY THIS IS THE SAME MACHINE and not a second one: every part of the
-    /// walk below the root — the collected roles, the label ladder, the size
-    /// and viewport filters, reading order, deduplication — is a statement
-    /// about public Accessibility, not about browsers. Only the root differed,
-    /// and it differed because the browser has a hazard no other application
-    /// has: a window-wide search finds the URL bar and calls it a field. An
-    /// ordinary application's window has no such trap, so it is the honest
-    /// root there.
-    ///
-    /// This is what lets one goal — "press Export", "dismiss that" — mean the
-    /// same thing in Sketch, Keynote, or a dialog, with nothing declared.
+    /// The same enumeration, rooted at an application's own WINDOW instead of a web area.
     public static func readWindowControls(
         in application: AXUIElement,
         limit: Int = publishedLimit
@@ -130,14 +71,8 @@ public enum PageElementReader {
         return publish(deduplicated(candidates), limit: limit)
     }
 
-    /// Cheap proof that an act did something, for applications that have no
-    /// page title to diff. The focused window's own title, read from public
-    /// Accessibility — the non-browser twin of
-    /// `PageInteractionRecipes.pageSignature`.
-    ///
-    /// It lives here rather than in a recipe so the two AX primitives it
-    /// needs stay internal to the kit: one purpose-named seam is a smaller
-    /// promise than two general ones.
+    /// Cheap proof that an act did something, for applications that have no page title to
+    /// diff.
     public static func windowSignature(in application: AXUIElement) -> String? {
         guard let window = AX.element(
                 application, kAXFocusedWindowAttribute)
@@ -211,11 +146,9 @@ public enum PageElementReader {
                 .flatMap { $0.isEmpty ? nil : $0 })
     }
 
-    /// The geometry an ordinary page gesture may use. Buttons and text fields
-    /// are clipped to the portion actually inside rendered web content, so a
-    /// midpoint can never escape into browser chrome. A range is stricter:
-    /// endpoint geometry is meaningful only while its complete track is
-    /// visible, otherwise it is omitted until the user scrolls it fully in.
+    /// The geometry an ordinary page gesture may use. Buttons and text fields are clipped
+    /// to the portion actually inside rendered web content, so a midpoint can never escape
+    /// into browser chrome.
     static func actionableFrame(
         _ measured: CGRect,
         viewport: CGRect?,
@@ -240,13 +173,6 @@ public enum PageElementReader {
     }
 
     /// Ordinary page controls need a human-sized two-dimensional hit target.
-    /// A range track is different: its long axis carries the selectable value
-    /// while its short axis can legitimately be only a few pixels tall. Live
-    /// Chrome exposes YouTube's Seek slider as 1261×6 points. Rejecting that
-    /// semantic AXSlider as "too small" made the timeline unreachable even
-    /// though it publishes value, bounds, orientation, and increment/decrement.
-    /// Keep a >2 point short axis so the pinned pointer fallback still lands
-    /// strictly inside the track; hidden 0×1 controls remain unaddressable.
     static func hasActionableSize(
         _ frame: CGRect,
         role: String
@@ -366,12 +292,8 @@ public enum PageElementReader {
         }
     }
 
-    /// MEASURED on a live YouTube results page: labels arrive carrying raw
-    /// markup and entities — `we&#39;re`, `<b>swift programming</b>`,
-    /// `&nbsp;`. A search-results page highlights the query term inside the
-    /// snippet, so the tags are not an edge case, they are the common case.
-    /// Left alone they would be spoken aloud and would break every name
-    /// comparison the resolver makes.
+    /// MEASURED on a live YouTube results page: labels arrive carrying raw markup and
+    /// entities — `we&#39;re`, `<b>swift programming</b>`, `&nbsp;`.
     static func cleaned(_ value: String) -> String {
         var text = value
             .replacingOccurrences(
@@ -410,23 +332,8 @@ public enum PageElementReader {
 
     // MARK: - Dedup and ordering
 
-    /// ONE THING, ONE ENTRY.
-    ///
-    /// MEASURED on a live results page: a single video card surfaced as
-    /// THREE elements — the title link, a description-snippet link, and a
-    /// "4K" badge — all carrying the SAME destination. Counting them
-    /// separately is what made "the third video" land on the second card's
-    /// description. Two independent collapses handle it:
-    ///
-    ///   • same destination in the same space ⇒ same thing;
-    ///   • same name in the same space ⇒ same thing (a link stacked on its
-    ///     own image, which exposes no URL).
-    ///
-    /// OVERLAP IS REQUIRED ON BOTH, and that too was measured: collapsing on
-    /// destination alone silently ate half a playlist, because sibling
-    /// lessons share a base URL that differs only in a query the reader
-    /// normalizes away. Two things a person can see in two places are two
-    /// things.
+    /// ONE THING, ONE ENTRY. MEASURED on a live results page: a single video card surfaced
+    /// as THREE elements.
     static func deduplicated(_ candidates: [Candidate]) -> [Candidate] {
         var kept: [Candidate] = []
         for candidate in candidates {
@@ -449,10 +356,7 @@ public enum PageElementReader {
         return kept
     }
 
-    /// Which of several presentations of one destination a person would
-    /// point at. A tooltip that names the thing, a title-shaped (short)
-    /// label, and a pressable surface all say "this is the card"; a long
-    /// snippet says "this is prose about the card".
+    /// Which of several presentations of one destination a person would point at.
     static func rank(_ candidate: Candidate) -> Int {
         var score = 0
         if candidate.actions.contains("AXPress") { score += 4 }

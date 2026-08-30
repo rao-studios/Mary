@@ -1,12 +1,7 @@
 import MaryBrain
 import Foundation
 
-/// A compact, UI-facing interpretation of package-graph validation.
-///
-/// Schema validation deliberately reports an unavailable Plugin provider as a
-/// warning: the portable Skill remains installed, but cannot execute until an
-/// application Ability realizes it. Ability Studio must preserve that truth
-/// without presenting every expected coverage gap as an authoring failure.
+/// UI-facing package-graph validation. Unavailable Plugin is a warning, not an authoring failure.
 struct AbilityStudioValidationPresentation: Hashable {
     let errors: [SchemaIssue]
     let actionableWarnings: [SchemaIssue]

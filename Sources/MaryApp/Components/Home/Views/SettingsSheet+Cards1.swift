@@ -166,13 +166,7 @@ extension SettingsSheet {
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
 
-                // WHOSE GRANT IS THIS, ANYWAY. A development build launched
-                // from a terminal is that terminal's responsibility as far as
-                // TCC is concerned, so Accessibility reads granted, "Grant
-                // everything" skips it as already done, and Mary never
-                // appears in the Accessibility list. Every part of that is
-                // correct and the screen still looked broken, because it
-                // reported the permission without reporting who holds it.
+                // Terminal-launched TCC: grant is the parent's, not Mary's.
                 if let holder = PermissionsCenter.accessibilityGrantHolder {
                     HStack(alignment: .top, spacing: .layer2) {
                         StatusDot(color: .maryGold)
@@ -323,12 +317,7 @@ extension SettingsSheet {
 
 }
 
-/// The Seer sign-in as a status row: the session's answer, three states.
-///
-/// NIL IS A REAL STATE. The read is an actor hop that lands a frame after the
-/// sheet opens; until it does, the row says it is checking rather than
-/// guessing. A dot that guessed red would tell a signed-in user to go fix
-/// something for the length of a frame — and screenshots freeze frames.
+/// Seer sign-in row; nil means still checking (actor hop).
 private struct SeerSignInRow: View {
     let signedIn: Bool?
     let account: String

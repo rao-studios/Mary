@@ -2,12 +2,8 @@
 //  RouteReport.swift
 //  Mary
 //
-//  The Routes pane's Copy serializer: every recorded turn as deterministic
-//  text, so a paste into Claude (or a bug tracker) is a complete routing bug
-//  report. Format doctrine follows PerceptionReport exactly — one
-//  `key: value` per line, fixed field order, ISO-8601 UTC, ages as
-//  `1.2s`/`3m 12s`, newest turn first. Golden-tested; change the tests when
-//  you change a byte here.
+//  WHAT: Routes pane Copy serializer — deterministic key: value lines, newest first.
+//  OUT:  pasteable routing bug report. Golden-tested.
 //
 
 import MaryBrain
@@ -51,10 +47,7 @@ enum RouteReport {
         var lines = ["--- \(row.intent.rawValue) via \(row.decidedBy.rawValue) ---"]
         lines.append("age: \(ageString(row.age(at: now)))")
         lines.append("utterance: \(oneLine(row.utterance))")
-        // The place TOKEN when the route resolved one — native rows stay
-        // byte-identical (token == rawValue) and a dynamic lead finally
-        // renders (`other_apps:sketch`) instead of being dropped; the old
-        // spelling only covers rows recorded before places existed.
+        // Place token when resolved; native token == rawValue.
         lines.append("lead: \(row.leadPlace?.token ?? row.lead?.rawValue ?? "none")")
         lines.append("lead.class: \(row.leadPlace?.worldClass.rawValue ?? "none")")
         lines.append("named: \(list(row.namedPlaces.map(\.token)))")

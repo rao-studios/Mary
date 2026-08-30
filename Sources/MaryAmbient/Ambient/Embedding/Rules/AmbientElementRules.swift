@@ -2,24 +2,14 @@
 //  AmbientElementRules.swift
 //  MaryAmbient
 //
-//  THE SHIPPED RULESETS — how each world's elements serialize into
-//  embeddable records. One pure transform per world, called at that world's
-//  existing write funnel; a future world opts in by adding its own
-//  conformance beside these.
-//
-//  EVERY RULE EMBEDS BOTH THE KIND AND THE NAME. "This screenshot" must
-//  reach an Image layer (kind similarity) AND a Rectangle the user named
-//  "Screen Shot 2026" (name similarity); a rule that serialized only one
-//  of the two would reopen exactly the blind spot the gate closed.
+//  WHAT: Shipped rulesets — how each world's elements serialize into embeddable records.
+//  OUT:  AmbientElementIndexStore.noteElements
+//  PIN:  Every rule embeds both kind and name. No artifact ruleset — design canvas arrives as a package.
 //
 
 import Foundation
 
-// NO ARTIFACT RULESET. Bonnie carried a fourth ruleset here for design-canvas
-// layers, keyed on a per-application artifact lexicon. That whole lane —
-// canvases, artifacts, their lexicons — is deferred, and a ruleset for a kind
-// of element nothing produces would be a claim that Mary can rank something
-// she cannot see.
+// NO ARTIFACT RULESET.
 
 public enum PassageRule: AmbientElementRuleset {
 
@@ -74,25 +64,13 @@ public enum AmbientFactRule: AmbientElementRuleset {
     }
 }
 
-/// Things on screen that can be acted on right now — a page's buttons and
-/// links, an application window's controls.
-///
-/// NO GOAL TABLE, AND THIS IS THE WHOLE POINT. The temptation is a row
-/// saying "skip the ad" means a control labelled "Skip Ads"; the doctrine
-/// that produced `siteWords` and `PageElementKindDerivation` refuses it —
-/// "a phrase that misses is a perception or threshold question, never a new
-/// alias". What is serialized here is only what the control says about
-/// itself, and reaching it from a goal is the embedding's job. Nothing in
-/// this rule names a site, a product, or an intent.
-///
-/// CAPABILITIES ARE DERIVED FROM THE ROLE, never carried by the publisher,
-/// so no perception lane can claim a heading is pressable.
+/// Things on screen that can be acted on right now — a page's buttons and links, an
+/// application window's controls. NO GOAL TABLE, AND THIS IS THE WHOLE POINT.
 public enum AffordanceRule: AmbientElementRuleset {
 
-    /// The role words this rule understands, and what each one may serve.
-    /// Closed and small: these are Mary's own humanized words for public
-    /// Accessibility roles (`PageElementKind`), not anything a page or a
-    /// package supplies.
+    /// The role words this rule understands, and what each one may serve. Closed and small:
+    /// these are Mary's own humanized words for public Accessibility roles (`PageElementKind`),
+    /// not anything a page or a package supplies.
     static func capabilities(
         forRoleWord role: String
     ) -> AmbientElementCapabilities {
@@ -117,10 +95,9 @@ public enum AffordanceRule: AmbientElementRuleset {
         elements.compactMap { affordance in
             let label = affordance.label
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-            // An unlabelled control cannot be MEANT — there are no words to
-            // reach it with, and offering it would let a goal land on a
-            // nameless icon. The reader still counts it; ambient memory
-            // does not hold it.
+            // An unlabelled control cannot be MEANT — there are no words to reach it with, and
+            // offering it would let a goal land on a nameless icon. The reader still counts it;
+            // ambient memory does not hold it.
             guard !label.isEmpty else { return nil }
             let role = affordance.roleWord.lowercased()
             var texts = [label.lowercased(), role]
@@ -130,10 +107,9 @@ public enum AffordanceRule: AmbientElementRuleset {
                !help.isEmpty {
                 texts.append(String(help.prefix(160)).lowercased())
             }
-            // A DISABLED CONTROL IS PERCEIVED BUT NOT OFFERED. It keeps its
-            // record so "why can't I press Continue" has an answer — and
-            // loses every capability, so `requires: .pressable` filters it
-            // out before anything can try.
+            // A DISABLED CONTROL IS PERCEIVED BUT NOT OFFERED. It keeps its record so "why can't I
+            // press Continue" has an answer — and loses every capability, so `requires: .pressable`
+            // filters it out before anything can try.
             let capabilities = affordance.isEnabled
                 ? capabilities(forRoleWord: role)
                 : []

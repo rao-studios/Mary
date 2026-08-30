@@ -2,10 +2,9 @@
 //  VoiceStatusBar.swift
 //  Mary
 //
-//  The floating bar under the page (Fleet chrome on Gita paper): mic toggle,
-//  pipeline state chip, level meter, and the typed composer — the no-voice
-//  test path. The mic side goes live in the voice-loop phase; until then it
-//  reports "voice arrives soon".
+//  WHAT: Floating bar — mic, phase chip, level meter, typed composer.
+//  IN:   VoiceBar (Home+View)
+//  OUT:  ChatService / VoiceService via callbacks
 //
 
 import MaryAmbient
@@ -19,22 +18,11 @@ struct VoiceStatusBar: View {
     let partialTranscript: String
     let isMicEnabled: Bool
     let isSendEnabled: Bool
-    /// The detached routines still executing in the background — one row
-    /// each, so the pill can name them and offer to stop one.
+    /// Detached routines still running — pill names them and can stop one.
     var runningRoutines: [RunningRoutineRow] = []
-    /// Unprompted speech. Lives HERE rather than in the header trio, because
-    /// those three mean "this pane is open" and wearing their tint for "this
-    /// capability is armed" would make the header say two kinds of thing in
-    /// one voice. This bar is where voice STATE is already reported.
-    /// "Hey Mary" standby: no session, but a wake-only microphone is armed.
-    /// Config-derived (wake enabled + app ready + session off) rather than a
-    /// Center.State field — the Start loop's tail resets that state wholesale.
+    /// "Hey Mary" standby (wake enabled + ready + session off). Not a header tint.
     var isStandingBy: Bool = false
-    /// Arm / disarm. Two controls rather than one three-state cycle: cycling
-    /// three states on a single glyph means every change of mind costs two
-    /// taps and a guess about which way round it goes.
-    /// Watching ⇄ speaking. Only shown while armed — there is no mode to
-    /// choose when she is off, and a dead control is worse than no control.
+    /// Arm / disarm. Watching ⇄ speaking while armed.
     let onMicToggle: () -> Void
     let onSend: (String) -> Void
 
@@ -69,11 +57,7 @@ struct VoiceStatusBar: View {
         .padding(.horizontal, .layer5)
         .padding(.bottom, .layer4)
         .background {
-            // The stream scrolls UNDER this bar — safeAreaInset only insets
-            // the page's RESTING position, so a near-transparent backing let
-            // live text run straight through the composer. Opaque paper,
-            // with a short fade at the top edge so a rising line dissolves
-            // into the bar instead of colliding with it.
+            // Opaque paper: stream scrolls under this bar (safeAreaInset only insets rest).
             VStack(spacing: 0) {
                 LinearGradient(
                     colors: [Paper.page.opacity(0), Paper.page],
@@ -89,14 +73,7 @@ struct VoiceStatusBar: View {
 
     // MARK: - Running work
 
-    /// "5 running", and now something happens when you press it.
-    ///
-    /// THE FAILURE THIS FIXES: the count was the ONLY report the app made
-    /// about background work, and it answered none of the three questions a
-    /// person actually has — what are they, how long has that one been going,
-    /// and how do I stop the one that has clearly wedged. The only stop was
-    /// saying "stop", which halts all of them; there was no way to keep four
-    /// and drop the fifth.
+    /// Running-work pill. Popover lists what is running and can stop one (or all).
     private var runningPill: some View {
         Button {
             showingRunning.toggle()
@@ -140,11 +117,7 @@ struct VoiceStatusBar: View {
                             .foregroundStyle(Color.primary.opacity(0.45))
                     }
                     Spacer(minLength: .layer3)
-                    // NOT DESTRUCTIVE-STYLED, and not behind a confirmation.
-                    // Stopping work Mary started on your behalf is an ordinary
-                    // correction, and a confirmation sheet over a two-word
-                    // decision is how a person ends up letting the wedged one
-                    // run because dismissing the dialog was easier.
+                    // Ordinary correction, not a destructive confirm.
                     Button("Stop") { RunControl.stopRoutine(id: row.id) }
                         .buttonStyle(.maryQuiet)
                 }
@@ -239,7 +212,7 @@ struct VoiceStatusBar: View {
     }
 }
 
-/// A 24-bar mini waveform driven by the mic RMS level.
+/// A 24-bar mini waveform driven by mic RMS.
 struct LevelMeter: View {
     let level: Float
     private let barCount = 24
@@ -257,8 +230,7 @@ struct LevelMeter: View {
     }
 
     private func barHeight(_ index: Int) -> CGFloat {
-        // A gentle arch shape scaled by the level, so silence reads as a
-        // hairline and speech breathes.
+        // Arch scaled by level: silence is a hairline, speech breathes.
         let position = Double(index) / Double(barCount - 1)
         let arch = sin(position * .pi)
         let scaled = Double(min(max(level * 14, 0), 1)) * arch

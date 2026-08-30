@@ -1,9 +1,13 @@
-/// Compatibility installation point for the application layer.
-///
-/// Dynamic Abilities no longer execute package operations on an unattended
-/// timer. Generic Accessibility perception is installed independently by the
-/// ambient application roster; a typed, Mary-owned native observation
-/// grammar must exist before Dynamic workspace polling can return.
+//
+//  AmbientApplicationObserverBridge.swift
+//  MaryBrain
+//
+//  WHAT: Compatibility install for the application observation layer.
+//  IN:   ambient application roster
+//  OUT:  (no unattended Dynamic polling)
+//  PIN:  Typed Mary-owned observation grammar must exist first.
+//
+/// Compatibility install. Empty until a typed observation grammar exists.
 public enum AmbientApplicationObserverBridge {
     public static func install() {}
 }

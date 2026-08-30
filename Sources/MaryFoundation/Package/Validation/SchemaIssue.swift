@@ -2,9 +2,9 @@
 //  SchemaIssue.swift
 //  MaryFoundation
 //
-//  What admission reports back: one finding, and the verdict a set of findings
-//  adds up to. An error refuses the package; a warning is a note the installer
-//  or graph validation can still resolve.
+//  WHAT: One admission finding plus the set verdict.
+//  IN:   PackageIssueSink / PluginValidator.
+//  OUT:  AbilityPackageValidation.isValid (error refuses; warning is a note).
 //
 
 import Foundation

@@ -2,23 +2,9 @@
 //  PackageFixtures.swift
 //  MaryFoundationTestSupport
 //
-//  PACKAGES BUILT IN SWIFT, SO TESTS CAN SAY WHAT THEY MEAN.
-//
-//  A `.mary` file is one JSON document with a digest over its canonical bytes,
-//  which makes it exactly the wrong thing to hand-edit in a test: change one
-//  field and the digest is stale, and a test that recomputes the digest is no
-//  longer testing the digest. So fixtures are BUILT — a test names the shape it
-//  needs, the codec computes the bytes, and the two stay honest with each
-//  other.
-//
-//  A NON-TEST TARGET, deliberately. A test target cannot expose declarations to
-//  another test target, and these fixtures are needed by more than one.
-//
-//  WHAT LIVES HERE VERSUS WHAT SHIPS. This file builds the smallest package
-//  that can be valid, plus the knobs a validation test needs to make it
-//  invalid in one specific way. The real shipped packages — writing,
-//  window-management, textedit — are built by their own files alongside this
-//  one, and `Abilities/*.mary` is regenerated from them.
+//  WHAT: MaryAbilityPackage builders. Codec computes digest; tests name the shape.
+//  IN:   AbilityPackageCodec.
+//  OUT:  Tests/ (shared across test targets — this is not a test target).
 //
 
 import Foundation
@@ -26,11 +12,7 @@ import MaryFoundation
 
 public enum PackageFixtures {
 
-    /// The smallest package the validator admits: one discipline Ability, one
-    /// cognitive Skill, no Plugin.
-    ///
-    /// Every test that needs "a valid package" starts here and mutates the one
-    /// field it is about, so a failure names one cause rather than a soup.
+    /// Minimal valid package: one discipline, one cognitive Skill, no Plugin.
     public static var minimalDiscipline: MaryAbilityPackage {
         MaryAbilityPackage(
             package: .init(
@@ -56,13 +38,7 @@ public enum PackageFixtures {
             ])
     }
 
-    /// A package that teaches Mary one application: identity, one chord
-    /// operation realizing one Skill, and a prose surface behind a workspace
-    /// perception claim.
-    ///
-    /// Shaped like `textedit.mary` without being it — a fictional bundle id, so
-    /// a test can break this in ways nobody would want done to a shipped
-    /// package.
+    /// Application-expertise fixture: one chord, prose surface, workspace claim.
     public static var applicationExpertise: MaryAbilityPackage {
         MaryAbilityPackage(
             package: .init(
@@ -137,8 +113,7 @@ public enum PackageFixtures {
                 proseSurface: proseSurface))
     }
 
-    /// A well-formed prose-surface declaration, for tests that break one field
-    /// of it at a time.
+    /// Well-formed prose surface for single-field breakage.
     public static var proseSurface: PluginProseSurfaceSchema {
         PluginProseSurfaceSchema(
             handlePrefix: "W",
@@ -154,8 +129,7 @@ public enum PackageFixtures {
                 ambientExcerptCharacters: 280))
     }
 
-    /// A well-formed code-surface declaration, `proseSurface`'s sibling for
-    /// tests that break one field of it at a time.
+    /// Well-formed code surface for single-field breakage.
     public static var codeSurface: PluginCodeSurfaceSchema {
         PluginCodeSurfaceSchema(
             handlePrefix: "C",

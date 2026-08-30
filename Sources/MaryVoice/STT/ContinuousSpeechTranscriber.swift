@@ -2,27 +2,10 @@
 //  ContinuousSpeechTranscriber.swift
 //  MaryVoice
 //
-//  A TRANSCRIPT THAT SPANS THE WHOLE SESSION, not one utterance.
-//
-//  WHY A SECOND BACKEND RATHER THAN A CHANGE TO THE FIRST. `VoiceTranscriber`'s
-//  contract is `begin → append… → finish`, one recognizer per utterance, and
-//  `AppleSpeechTranscriber` implements it correctly: a fresh
-//  `SFSpeechRecognitionTask` per open utterance, torn down at the endpoint.
-//  Nothing in that shape can answer "what has been said in this room for the
-//  last ten minutes", because by construction it stops listening between
-//  utterances and forgets across them.
-//
-//  `SpeechAnalyzer` (macOS 26) is the API built for the other shape: one
-//  analysis session over an unbounded input sequence, emitting VOLATILE
-//  results that may be revised and FINALIZED ones that will not. That
-//  distinction is the whole reason this file exists — `IntakePlanner` refuses
-//  to act on a volatile span, and a recognizer without that signal cannot tell
-//  a finished thought from a guess in progress.
-//
-//  IT DOES NOT REPLACE THE ACOUSTIC PATH. `VoicePipeline`'s VAD loop remains
-//  the only thing that opens an utterance and submits a turn in the ordinary
-//  case. This runs beside it, and everything it produces is either remembered
-//  or offered — never taken.
+//  WHAT: Session-long SpeechAnalyzer transcript (volatile + finalized spans).
+//  IN:   VoicePipeline+ContinuousHearing
+//  OUT:  TranscriptSegment → IntakePlanner
+//  PIN:  Does not replace the acoustic path; remember or offer, never take.
 //
 
 import AVFoundation
@@ -30,13 +13,12 @@ import Foundation
 import Speech
 import os
 
-/// One span of recognized speech, with the two facts a decision needs.
+/// One span of recognized speech. Consumer: IntakePlanner / live caption.
 public struct TranscriptSegment: Sendable, Equatable {
     public var text: String
-    /// The recognizer will not revise these words.
+    /// Recognizer will not revise these words.
     public var isFinalized: Bool
-    /// When the span was received. The caller measures silence from here —
-    /// the analyzer reports media time, and the pipeline reasons in wall time.
+    /// When the span was received. Caller measures silence from here.
     public var receivedAt: Date
 
     public init(text: String, isFinalized: Bool, receivedAt: Date = Date()) {
@@ -46,13 +28,8 @@ public struct TranscriptSegment: Sendable, Equatable {
     }
 }
 
-/// A backend that recognizes ACROSS utterance boundaries.
-///
-/// A separate protocol rather than a widened `VoiceTranscriber`, because the
-/// per-utterance backends cannot honestly implement it — an utterance-final one
-/// has no partials at all, and Apple's per-utterance recognizer forgets between
-/// them. A defaulted method returning an empty stream would let a caller
-/// believe it was listening continuously when nothing was.
+/// Backend that recognizes across utterance boundaries. Separate from
+/// VoiceTranscriber — per-utterance backends cannot honestly implement this.
 public protocol ContinuousTranscribing: Sendable {
     /// Volatile + finalized spans for the whole session.
     func segments() async -> AsyncStream<TranscriptSegment>
@@ -91,8 +68,7 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
     private var transcriber: SpeechTranscriber?
     private var inputContinuation: AsyncStream<AnalyzerInput>.Continuation?
     private var resultsTask: Task<Void, Never>?
-    /// EVERY BUFFER GOES THROUGH HERE, never straight to the analyzer —
-    /// see `AnalyzerFeed`, which is a crash fix, not an optimization.
+    /// Every buffer goes through AnalyzerFeed — crash fix, not an optimization.
     private var feed: AnalyzerFeed?
     private var segmentContinuations: [UUID: AsyncStream<TranscriptSegment>.Continuation] = [:]
 
@@ -102,11 +78,7 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
 
     // MARK: - Subscription
 
-    /// MULTI-SUBSCRIBER, unlike `AppleSpeechTranscriber.partials()` — that one
-    /// overwrites a single continuation, so a second subscriber silently
-    /// steals the first's stream. Here the pipeline reads segments for intake
-    /// while the UI may want the same spans for a live caption, and neither
-    /// may starve the other.
+    /// Multi-subscriber (unlike AppleSpeechTranscriber.partials). Pipeline + UI caption.
     public func segments() async -> AsyncStream<TranscriptSegment> {
         let id = UUID()
         let (stream, continuation) = AsyncStream<TranscriptSegment>.makeStream(
@@ -134,22 +106,16 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
         }
         await endSession()
 
-        // PROGRESSIVE, not plain transcription: it is the preset that emits
-        // volatile spans as well as finalized ones, and the volatile/finalized
-        // split is the signal `IntakePlanner` refuses to act without.
+        // Progressive preset emits volatile + finalized — IntakePlanner needs that split.
         let transcriber = SpeechTranscriber(
             locale: locale, preset: .progressiveTranscription)
 
-        // THE MODEL HAS TO BE ON THE MACHINE, and `status` is the question
-        // that actually asks that.
+        // Model must be on the machine. `status` is the question that asks that.
         switch await AssetInventory.status(forModules: [transcriber]) {
         case .unsupported:
             throw Failure.localeUnsupported(locale.identifier)
         case .supported:
-            // Supported but absent — fetch it. A nil request means there is
-            // nothing to fetch, which at this status means the OS declined;
-            // re-checking below is what turns that into an honest error
-            // rather than a silent no-op.
+            // Supported but absent — fetch. Nil request at this status is an OS decline.
             if let request = try await AssetInventory.assetInstallationRequest(
                 supporting: [transcriber]) {
                 Self.log.info("continuous STT: downloading the on-device model")
@@ -159,8 +125,7 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
                 throw Failure.modelDownloading(locale.identifier)
             }
         case .downloading:
-            // Someone else already started it. Refusing now is better than
-            // opening a session that will transcribe nothing until it lands.
+            // Someone else already started the download. Refuse rather than hang.
             throw Failure.modelDownloading(locale.identifier)
         case .installed:
             break
@@ -168,28 +133,11 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
             break
         }
 
-        // RESERVING IS BEST-EFFORT, AND `false` IS NOT A FAILURE.
-        //
-        // THE BUG THIS FIXES (seen live, as "the on-device speech model could
-        // not be reserved" on every launch but the first): `reserve` answers
-        // "did THIS CALL take a slot", not "is this locale reserved". The
-        // reservation outlives the process, so the first launch reserves and
-        // returns true and every launch afterwards returns false — with the
-        // model sitting installed and perfectly usable the whole time.
-        // Treating that as fatal disabled continuous hearing permanently
-        // after one successful run, which is the worst possible shape for a
-        // bug: it works once, then never again, and the message blames the
-        // model.
-        //
-        // It is also not released on `endSession`: reservations exist to keep
-        // the model resident, and releasing one every time the mic stops would
-        // thrash the very thing it is for.
+        // Reserve is best-effort. `false` means "this call did not take a slot",
+        // not "unusable" — reservation outlives the process. Do not release on endSession.
         _ = try? await AssetInventory.reserve(locale: locale)
 
-        // THE ANALYZER PICKS THE FORMAT, NOT THE MICROPHONE. Handing it the
-        // mic's format instead is the SIGTRAP documented on `AnalyzerFeed`;
-        // `considering:` asks for the one closest to the mic's, so the
-        // conversion that follows stays as cheap as the hardware allows.
+        // Analyzer picks the format, not the mic. See AnalyzerFeed.
         guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(
             compatibleWith: [transcriber], considering: format) else {
             throw Failure.noCompatibleFormat
@@ -210,8 +158,7 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
         resultsTask = Task { [weak self] in
             do {
                 for try await result in transcriber.results {
-                    // `AttributedString` carries timing and confidence
-                    // attributes; the decision only wants the words.
+                    // AttributedString carries timing; the decision only wants words.
                     let text = String(result.text.characters)
                     await self?.emit(TranscriptSegment(
                         text: text, isFinalized: result.isFinal))
@@ -234,9 +181,7 @@ public actor ContinuousSpeechTranscriber: ContinuousTranscribing {
         resultsTask?.cancel()
         resultsTask = nil
         if let analyzer {
-            // Not `finalizeAndFinishThroughEndOfInput`: a session stop is not
-            // a request to flush a last transcript, and awaiting one would
-            // hold the microphone teardown behind the recognizer.
+            // Not finalizeAndFinishThroughEndOfInput — stop is not a last-flush request.
             await analyzer.cancelAndFinishNow()
         }
         analyzer = nil

@@ -2,10 +2,11 @@
 //  MicFrame.swift
 //  MaryVoice
 //
-//  Split out of MicCapture.swift (docs/DECOMPOSITION.md Wave 2) — pure
-//  relocation, no declaration changed. Analyzer anchors for MicFrame and
-//  MicCaptureLifecycleGate.allows re-pinned to this file in the same
-//  commit.
+//  WHAT: One captured PCM buffer plus RMS.
+//  IN:   MicCapture tap / test frame sources
+//  OUT:  VoicePipeline / WakeWordListener / EnergyVAD
+//
+//  Sibling of MicCapture.swift (lifecycle gate lives here).
 //
 
 import AVFoundation
@@ -16,12 +17,11 @@ import os
 
 public struct MicFrame: @unchecked Sendable {
     public let buffer: AVAudioPCMBuffer
-    /// RMS level of this buffer, 0…1.
+    /// RMS of this buffer, 0…1. Consumer: UI meter / VAD.
     public let rms: Float
     public let duration: TimeInterval
 
-    /// Public so consumers of `WakeWordListener`'s injected frame source can
-    /// synthesize frames (the app's tests drive standby without a mic).
+    /// Public so WakeWordListener's injected source can synthesize frames.
     public init(buffer: AVAudioPCMBuffer, rms: Float, duration: TimeInterval) {
         self.buffer = buffer
         self.rms = rms
@@ -29,16 +29,14 @@ public struct MicFrame: @unchecked Sendable {
     }
 }
 
-/// The render callback cannot synchronize with `MicCapture`'s control queue:
-/// doing so would make a real-time CoreAudio thread wait on graph teardown.
-/// This tiny lock only protects the session generation, so callbacks and a
-/// stop request can reject stale work without touching the audio graph.
+/// Session generation lock. Render callback must not wait on MicCapture's
+/// control queue. OUT: allow/reject stale tap work without touching the graph.
 final class MicCaptureLifecycleGate: @unchecked Sendable {
     private let lock = NSLock()
     private var generation: UInt64 = 0
     private var acceptingWork = false
 
-    /// Starts a new generation. A `MicCapture` owns at most one live stream.
+    /// Starts a new generation. A MicCapture owns at most one live stream.
     func begin() -> UInt64? {
         lock.lock()
         defer { lock.unlock() }
@@ -48,8 +46,7 @@ final class MicCaptureLifecycleGate: @unchecked Sendable {
         return generation
     }
 
-    /// Closes the current generation immediately, before graph teardown gets
-    /// its turn on the serial control queue.
+    /// Close the current generation immediately, before graph teardown.
     func requestStop() {
         lock.lock()
         acceptingWork = false

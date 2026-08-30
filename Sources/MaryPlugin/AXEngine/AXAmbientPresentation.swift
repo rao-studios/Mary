@@ -2,17 +2,9 @@
 //  AXAmbientPresentation.swift
 //  MaryAdapter
 //
-//  THE AX ENGINE — see AXEngine.swift for the directory's doctrine header.
-//
-//  HOW AN AMBIENT CONTEXT READS AS ROWS — pure formatting, no SwiftUI. The
-//  same reason `AXDetailPresentation` lives here rather than in ClydeApp:
-//  Clyde has no test target, so anything decidable belongs on this side of
-//  the seam where `AXAmbientPresentationTests` can pin it, and the HUD
-//  merely lays the answers out.
-//
-//  "—" IS THE MISSING VALUE, never a blank and never a zero pretending to
-//  be an answer — the HUD's own convention (`walkText`, `ageText`).
-//
+//  WHAT: AXAmbientContext as HUD/inspector rows. Pure formatting, no SwiftUI.
+//  OUT:  WireframeHUD | inspector
+//  PIN:  "—" is missing; never a blank or a zero pretending to be an answer.
 
 import CoreGraphics
 import Foundation
@@ -124,8 +116,8 @@ public enum AXAmbientPresentation {
 
     // MARK: - Words
 
-    /// `AXTextField` → "text field", `BonnieScripted` → "scripted" — the raw
-    /// role humanized mechanically, no per-app table.
+    /// `AXTextField` → "text field", `MaryScripted` → "scripted" — the raw role humanized
+    /// mechanically, no per-app table.
     public static func roleWord(_ role: String) -> String {
         if role == "MaryScripted" { return "scripted" }
         var stripped = role

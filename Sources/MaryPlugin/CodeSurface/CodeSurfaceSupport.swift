@@ -2,13 +2,8 @@
 //  CodeSurfaceSupport.swift
 //  MaryPlugin
 //
-//  THE REGISTRY OF DECLARED CODE SURFACES.
-//
-//  A facade over `SurfaceRoster`. There is no backing resolver to install
-//  here: a code surface is read-only. This registry answers which application
-//  owns a place, what its declared code coordinates are, and which process
-//  the pair session is in.
-//
+//  WHAT: Registry of declared code surfaces (SurfaceRoster facade).
+//  PIN:  Read-only roster — no backing writer to install.
 
 import Foundation
 import MaryAmbient

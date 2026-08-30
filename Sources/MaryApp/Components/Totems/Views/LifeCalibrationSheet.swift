@@ -2,8 +2,8 @@
 //  LifeCalibrationSheet.swift
 //  Mary
 //
-//  Tesla-calibration monitor: one bar per installed discipline, filling as
-//  sealed episodes accumulate. Runtime starts the train; this sheet watches.
+//  WHAT: One bar per installed discipline as sealed episodes accumulate.
+//  IN:   Runtime train. OUT: LifeCalibrationViewModel
 //
 
 import SwiftUI

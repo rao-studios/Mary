@@ -2,11 +2,9 @@
 //  CodeSurfaceEditorCache.swift
 //  MaryPlugin
 //
-//  THE ONE EXPENSIVE STEP OF A DECLARED-TEXT READ, PAID ONCE PER WINDOW.
-//
-//  Shared by code and prose pair-caret polls and Skills. Write policy is
-//  not this file: prose still sets AX text; code still writes disk.
-//
+//  WHAT: One expensive locate per window, shared by code and prose polls.
+//  IN:   DeclaredTextAX  OUT: Observer / Adapter Skills
+//  PIN:  Write policy is not this file.
 
 import AppKit
 import ApplicationServices

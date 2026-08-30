@@ -1,3 +1,12 @@
+//
+//  ConfigService+Center.swift
+//  MaryRuntime
+//
+//  WHAT: Persisted Settings — engines, voices, projects, servers, plugins.
+//  OUT:  ConfigService.Update; MaryRuntime appliers on swap
+//  PIN:  On-device voice and hosted character are separate fields.
+//
+
 import MaryAmbient
 import MaryBrain
 import MaryPlugin
@@ -35,48 +44,26 @@ extension ConfigService {
     package struct Center: GraniteCenter {
         package init() {}
         package struct State: GraniteState {
-            /// HOSTED BY DEFAULT, because that is what the build already
-            /// does: `seerEnabled` and `autoStartServers` both default true
-            /// and the turn loop takes the Seer path whenever the server
-            /// answers, so a fresh install that read "Local (on device)" was
-            /// describing a turn that had gone to Seer.
+            /// Hosted by default — matches seerEnabled / autoStartServers and the turn loop.
             package var llmEngine: LLMEngineChoice = .hosted
             /// Lane B: where skill invocations are synthesized. Local by
             /// default — acting stayed on-device even when spoken turns
             /// already went through Seer, and that remains the install.
             package var skillEngine: LLMEngineChoice = .local
-            /// Ambient corpus indexing: when a unit settles in an application
-            /// that declares a corpus, crawl its neighbourhood and remember
-            /// the structure. On by default — it is how Mary learns the shape
-            /// of your work — and nothing but declaration headers and
-            /// generated summaries ever crosses into memory.
+            /// Corpus crawl when a unit settles. On by default. Headers + summaries only.
             package var ambientCorpusIndexing: Bool = true
             package var localModelID: String = MaryLocalEngine.defaultModelID
             package var sttBackend: STTBackend = .apple
             package var ttsBackend: TTSBackend = .seer
-            /// THE ON-DEVICE VOICE, and only that: a Kokoro style-embedding
-            /// name matching a file in the bundle's `voices/`. Never a hosted
-            /// character — see `seerVoice`.
+            /// On-device Kokoro voice (bundle voices/). Never a hosted character — see seerVoice.
             package var voice: String = "af_heart"
-            /// THE HOSTED CHARACTER, and only that: a `VoiceCharacter` slug
-            /// (`fr_marie`) the Seer server renders itself.
-            ///
-            /// SEPARATE FIELDS BECAUSE THEY ARE SEPARATE NAMESPACES. One field
-            /// served both, so choosing the Seer character wrote `fr_marie`
-            /// into the slot boot hands to Kokoro — and the next launch died on
-            /// `'fr_marie.json' not found`, an on-device file that never
-            /// existed for a voice that only ever spoke from the server.
+            /// Hosted VoiceCharacter slug (`fr_marie`). Separate from `voice` — different namespaces.
             package var seerVoice: String = VoiceCharacter.marie.id
             package var speechStyle: SpeechStyleSelection = .auto
             package var vad: VADConfig = .init()
             package var projects: [ProjectRef] = []
             package var customPronunciations: [PronunciationRef] = []
-            /// THE PERSISTED TRUTH: which plugins the user switched OFF. Empty
-            /// — the default, and the state of a fresh install — means every
-            /// plugin the build ships is installed, including ones that ship
-            /// after this file was last written. See
-            /// `MaryAdapterCatalog.normalizedDisabledPluginIDs` for why this is
-            /// a deviation list rather than a roster.
+            /// Plugins the user switched OFF. Empty = all shipped plugins installed.
             package var disabledPlugins: [String] = []
             /// DERIVED from `disabledPlugins`, never written directly: the ids
             /// the brain installs. Kept as the same optional roster every
@@ -88,11 +75,7 @@ extension ConfigService {
             package static let currentCodingAgentMigrationVersion = 20260817
             /// Rolling context window: spoken messages the brain keeps.
             package var historyMessageLimit: Int = 12
-            /// "Hey Mary" standby. ON by default: while no session runs, a
-            /// wake-only microphone listens for her name (everything else is
-            /// discarded on-device), and "stop listening" ends a session by
-            /// voice. The macOS mic indicator stays lit while armed — this
-            /// toggle is the opt-out.
+            /// "Hey Mary" standby. On by default. Mic indicator stays lit while armed.
             package var wakeWordEnabled: Bool = true
 
             // Seer/Totem local stack. Chat runs in seer mode whenever
@@ -167,11 +150,7 @@ extension ConfigService {
                 voice = try c.decodeIfPresent(String.self, forKey: .voice) ?? "af_heart"
                 seerVoice = try c.decodeIfPresent(String.self, forKey: .seerVoice)
                     ?? VoiceCharacter.marie.id
-                // THE MIGRATION off the shared field. Every install written by
-                // a build with one `voice` slot may hold a hosted character
-                // there; left alone it boots Kokoro on a file that cannot
-                // exist. Move it to the side it belongs on and give the
-                // on-device engine its default back.
+                // Migrate hosted character out of the on-device voice slot.
                 if let hosted = VoiceCharacter.all.first(where: { $0.id == voice }) {
                     if !c.contains(.seerVoice) { seerVoice = hosted.id }
                     voice = Self().voice
@@ -181,11 +160,7 @@ extension ConfigService {
                 vad = try c.decodeIfPresent(VADConfig.self, forKey: .vad) ?? .init()
                 projects = try c.decodeIfPresent([ProjectRef].self, forKey: .projects) ?? []
                 customPronunciations = try c.decodeIfPresent([PronunciationRef].self, forKey: .customPronunciations) ?? []
-                // THE DEVIATION LIST, not an enabled roster. A plugin added
-                // since the last write is INSTALLED rather than invisible,
-                // which is the whole reason the stored form is what is turned
-                // OFF: the alternative silently withholds every new capability
-                // from anyone who has ever opened Settings.
+                // Deviation list — a plugin added since last write is installed, not hidden.
                 disabledPlugins = try c.decodeIfPresent(
                     [String].self, forKey: .disabledPlugins) ?? []
                 enabledPlugins = MaryAdapterCatalog.adapters()
@@ -194,13 +169,7 @@ extension ConfigService {
                 historyMessageLimit = try c.decodeIfPresent(
                     Int.self, forKey: .historyMessageLimit) ?? 12
 
-                // THROUGH `String`, NOT THROUGH THE ENUM. `decodeIfPresent`
-                // returns nil only for a MISSING key — a key that is present
-                // with an unrecognized value still THROWS, and a throw here
-                // re-seeds every default in this struct (see the note above).
-                // So a build that once wrote a mode this build does not know
-                // would cost the user their engine, voice, projects and server
-                // paths all at once, on launch, silently.
+                // Decode through String, not the enum — unknown value must not throw (re-seeds all).
 
                 wakeWordEnabled = try c.decodeIfPresent(Bool.self, forKey: .wakeWordEnabled) ?? true
                 seerEnabled = try c.decodeIfPresent(Bool.self, forKey: .seerEnabled) ?? true

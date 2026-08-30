@@ -2,43 +2,10 @@
 //  AmbientRealmResolver.swift
 //  MaryAmbient
 //
-//  WHO COULD SERVE THIS TURN, AND WHICH OF THEM DID — computed once, read by
-//  everyone.
-//
-//  The three steps are the user's own framing of a turn:
-//
-//    1. THE NEED. The query asked for something. `abilities` comes from the
-//       capability index — the words named a capability some package
-//       declares. `discipline` comes from a cue — the turn smells like
-//       writing without naming a verb. Either, both, or neither.
-//    2. THE REALM. Every application that conforms to that need, each
-//       carrying what it conformed BY and what standing it has. An
-//       application answering two needs appears ONCE with both, because it is
-//       one application and splitting it would let a place compete with
-//       itself.
-//    3. THE PLACE. The query and the focus signal decide which candidate the
-//       turn is actually about, and `decidedBy` names the signal that decided.
-//
-//  THE SET SURVIVES THE DECISION, and that is the reason this exists rather
-//  than a function returning a place. An episode recording "she typed into
-//  the editor" teaches a future model an association. The same episode
-//  recording "three applications conformed; this one led by activation four
-//  seconds ago; the others were cold" teaches the JUDGEMENT. The version this
-//  replaces computed the equivalent set inline, for one expression, collapsed
-//  it to a boolean in the same statement, and discarded it — which is exactly
-//  why its dataset could never answer "why there".
-//
-//  ONE SPELLING OF "WHO CONFORMS". `AmbientRanker.namedPlacesForRanking` used
-//  to scan the roster for registrations matching a discipline cue: a realm,
-//  computed inline, over a two-value need. It now reads this. Three consumers
-//  — the ranking, the roster arbiter, the behavioral capture — see the same
-//  answer because there is only one.
-//
-//  IT DECIDES NOTHING THE RANKER ALREADY DECIDED. Absent a name, `place` is
-//  the focus signal's own lead, filtered by conformance; the resolver's job
-//  is to RECORD the reasoning, not to re-run it with a second opinion. A
-//  second opinion here would be a second place-picker, and the whole file
-//  above is about not having two of anything.
+//  WHAT: Who could serve this turn, and which of them did — computed once, read by everyone.
+//  IN:   AbilityCapabilityIndex / cue discipline
+//  OUT:  AmbientRealm → AmbientPlace
+//  PIN:  Need → realm (candidates) → place (decided where).
 //
 
 import Foundation
@@ -104,13 +71,7 @@ public enum AmbientRealmResolver {
 
     // MARK: - 1. The need
 
-    /// What the query asked for.
-    ///
-    /// AN EMPTY NEED IS A REAL ANSWER, not a failed classification. "What's
-    /// that?" names no capability and no craft, and the honest realm for it
-    /// is every eligible place with the decision falling entirely to focus —
-    /// which is correct, because the thing in front of the user IS what
-    /// "that" means.
+    /// What the query asked for. AN EMPTY NEED IS A REAL ANSWER, not a failed classification.
     public static func need(_ inputs: Inputs) -> AmbientNeed {
         let index = inputs.abilities ?? AmbientCapabilityIndexProvider.current
         return AmbientNeed(
@@ -120,12 +81,9 @@ public enum AmbientRealmResolver {
 
     // MARK: - 2. The realm
 
-    /// Every application that conforms, with the evidence for and against it.
-    ///
-    /// SORTED BY PLACE TOKEN, not by score. The candidates are a RECORD, and a
-    /// record whose order depends on a hash seed is a record that differs
-    /// between two runs of the same turn — which makes a dataset row
-    /// impossible to diff against itself.
+    /// Every application that conforms, with the evidence for and against it. SORTED BY PLACE
+    /// TOKEN, not by score. The candidates are a RECORD, and a record whose order depends on a
+    /// hash seed is a record that differs between two runs of the same turn.
     public static func candidates(
         for need: AmbientNeed, _ inputs: Inputs
     ) -> [AmbientCandidate] {
@@ -136,10 +94,9 @@ public enum AmbientRealmResolver {
             let conformsByDiscipline = need.discipline != nil
                 && place.focus == need.discipline
 
-            // AN EMPTY NEED ADMITS EVERYONE WITH EYES. Nothing was asked for,
-            // so nothing can fail to conform — and the alternative, an empty
-            // realm, would say "no application could have served this", which
-            // for "what's on my screen" is simply false.
+            // AN EMPTY NEED ADMITS EVERYONE WITH EYES. Nothing was asked for, so nothing can fail to
+            // conform — and the alternative, an empty realm, would say "no application could have
+            // served this", which for "what's on my screen" is simply false.
             let conforms = need.isEmpty
                 ? registration.hasEyes
                 : (!conformsByAbilities.isEmpty || conformsByDiscipline)
@@ -150,11 +107,9 @@ public enum AmbientRealmResolver {
                 place: place,
                 conformsByAbilities: conformsByAbilities,
                 conformsByDiscipline: conformsByDiscipline,
-                // THE FIELD NOTHING HAS EVER READ. A package declares which
-                // routing classes it accepts and, until this line, no code
-                // anywhere consulted the declaration — so an author could
-                // describe exactly what their application handles and never
-                // be matched on a word of it.
+                // THE FIELD NOTHING HAS EVER READ. A package declares which routing classes it accepts
+                // and, until this line, no code anywhere consulted the declaration — so an author could
+                // describe exactly what their application handles and never be matched on a word of it.
                 targetClasses: registration.profile.targetClasses,
                 hasEyes: registration.hasEyes,
                 evidence: evidence?.kind,
@@ -168,32 +123,10 @@ public enum AmbientRealmResolver {
     // MARK: - 3. The place
 
     /// Which candidate the turn is about.
-    ///
-    /// THE LADDER, in the order the rest of routing already uses:
-    ///
-    ///   1. A NAMED PLACE — conforming or not.
-    ///
-    ///      A NAME IS AN ADDRESS, NOT EVIDENCE, so it outranks every signal,
-    ///      including a place the user is demonstrably looking at: "do it in
-    ///      the other one" has to work. And it outranks CONFORMANCE too,
-    ///      which is the part worth stating out loud — answering somewhere
-    ///      else because the named application lacked a declared ability is
-    ///      the most confusing thing Mary can do, and the realm records the
-    ///      non-conformance, which is the useful half of knowing it.
-    ///
-    ///      Conformance only ORDERS several named places against each other.
-    ///
-    ///   2. THE FOCUS LEAD, if it conforms. The ranker's own answer, READ
-    ///      rather than recomputed: `realm.place == capture.lead` is a pinned
-    ///      invariant, and the way to keep an invariant true is to not have a
-    ///      second opinion about it.
-    ///   3. A CO-ACTIVE PLACE THAT CONFORMS, strongest evidence first — the
-    ///      lead did not conform, so the turn is about something warm beside
-    ///      it. `coActive` arrives already ranked.
-    ///   4. NOTHING. A conforming application with no standing at all is a
-    ///      real candidate and usually the wrong one; picking it because it
-    ///      is the only one left is how a turn lands in an application the
-    ///      user has not touched today.
+    /// STEPS: named place (address, not evidence) → conforming focus lead
+    ///        → strongest conforming co-active → nothing.
+    /// PIN: Name outranks focus and conformance. Don't pick a conforming app
+    ///      the user hasn't touched today.
     public static func place(
         among candidates: [AmbientCandidate], need: AmbientNeed, _ inputs: Inputs
     ) -> AmbientPlace? {

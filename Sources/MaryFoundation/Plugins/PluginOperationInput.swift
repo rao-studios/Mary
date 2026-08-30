@@ -2,8 +2,9 @@
 //  PluginOperationInput.swift
 //  MaryFoundation
 //
-//  The typed, bounded inputs a declarative operation accepts. Inputs are the
-//  only way caller data enters a recipe.
+//  WHAT: Typed bounded inputs. Only way caller data enters a recipe.
+//  IN:   PluginOperationSchema.inputs.
+//  OUT:  PluginValidator+Steps, recipe interpreter.
 //
 
 import Foundation
@@ -24,9 +25,7 @@ public enum PluginOperationInputKind: String, Codable, Hashable, Sendable, CaseI
     }
 }
 
-/// The adapter-side argument contract. Values remain strings at the legacy
-/// provider boundary, but the recipe interpreter validates and converts them
-/// according to this closed declaration before issuing any event.
+/// Adapter argument contract. Interpreter validates before any event.
 public struct PluginOperationInputSchema: Codable, Hashable, Sendable, Identifiable {
     public var name: String
     public var kind: PluginOperationInputKind

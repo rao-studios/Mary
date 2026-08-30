@@ -2,34 +2,22 @@
 //  UtteranceView.swift
 //  Mary
 //
-//  A finalized utterance. Assistant replies carry Gita's PassageView look
-//  verbatim (the plainParagraphs path): serif 18 light italic, primary@0.75,
-//  lineSpacing 7, kerning 0.3, "\n\n" paragraph split, HistoryDepth fade.
-//  User utterances read smaller (note2, upright) behind a 2pt gold rule so
-//  the page reads as a dialogue without breaking the ink-on-paper feel.
+//  WHAT: Finalized utterance. Assistant: serif 18 light italic. User: note2 + gold rule.
+//  OUT:  AbilityBadgeRow / ContributionHighlightText
 //
 
 import MaryBrain
 import SwiftUI
 import MaryRuntime
 
-/// Pure, frozen presentation derived only from the receipt retained by the
-/// conversation. Rendering never consults the active Ability registry, so a
-/// provider rename, package edit, or uninstall cannot rewrite an old chip.
+/// Frozen presentation from the receipt. Never consults the live Ability registry.
 struct AbilityBadgePresentation: Equatable {
     let abilityTitle: String
     let providerTitle: String?
     let invocationName: String
     let showsAbilityProviderIndicator: Bool
-    /// HOW this Skill was implemented, or nil when the frozen receipt cannot
-    /// say (a legacy transcript, a cognitive Skill, the runtime fallback).
-    ///
-    /// REALIZATION, NOT PARADIGM, and deliberately: a chip is rendered from
-    /// the retained receipt and must never consult the live registry, so the
-    /// Ability's ROLE — discipline, application expertise — is not available
-    /// here and is shown in Ability Studio and the run inspector instead. The
-    /// chip already carries the composition in its own way: "Design · Sketch"
-    /// says the craft and the tool that performed it.
+    /// Realization (not paradigm), or nil when the frozen receipt cannot say.
+    /// Chip never consults the live registry.
     let realization: AbilityRealizationPresentation?
 
     init(reference: AbilitySkillReference) {
@@ -76,10 +64,7 @@ struct UtteranceView: View {
     /// Focus fade — 1.0 for the focal (latest) utterance, lower for history.
     let inkOpacity: Double
     let blurRadius: CGFloat
-    /// The place that led this exchange, resolved LIVE by `RealmLensProvider`
-    /// from the trace log — never persisted with the transcript. Nil for
-    /// restored conversations and rows older than the trace ring; the badge
-    /// row then renders exactly as before.
+    /// Lead place from RealmLensProvider (live trace). Nil for restored/old rows.
     var realmLensEntry: RealmLensEntry? = nil
     /// Tap-through to the Routes pane (Home's existing header toggle). Nil
     /// renders the capsule non-interactive.
@@ -88,9 +73,7 @@ struct UtteranceView: View {
     /// A tapped brushstroke's owner — presents the totem inspector.
     @State private var inspectedOwner: SeerContribution.Owner?
 
-    /// A tapped ability chip — presents that Skill's run log for this reply
-    /// (arguments, receipt summaries, status), the silo the machine
-    /// summaries moved into.
+    /// Tapped chip → AbilityRunInspectorSheet for this reply.
     @State private var inspectedRuns: InspectedAbilityRuns?
 
     var body: some View {
@@ -142,10 +125,7 @@ struct UtteranceView: View {
                     onTapOwner: { owner in inspectedOwner = owner }
                 )
             }
-            // Detached-routine narration merged into this bubble — always
-            // the plain italic-serif look (even when the main body is
-            // contribution-highlighted); slightly lighter ink marks it as
-            // later narration. Spans keep indexing `text` only — no drift.
+            // Detached-routine narration: plain italic-serif, lighter ink. Spans index `text` only.
             if let followUp = utterance.followUpText, !followUp.isEmpty {
                 ForEach(
                     Array(followUp.components(separatedBy: "\n\n").enumerated()),
@@ -200,25 +180,7 @@ struct UtteranceView: View {
 
 }
 
-/// The fade/blur of older utterances. The padding pair keeps the Gaussian's
-/// bleed from hard-clipping at the row's edge.
-///
-/// ONE UNCONDITIONAL TREE, and that is load-bearing. This was
-/// `if blurRadius > 0 { …drawingGroup() } else { … }`, which SwiftUI compiles
-/// to `_ConditionalContent` — so crossing the blur threshold is a BRANCH
-/// CHANGE, not a value change, and SwiftUI answers it by tearing the row's
-/// whole subtree down and rebuilding it inside a brand-new `.drawingGroup()`
-/// Metal layer. A layer that has not rasterized yet draws NOTHING, which is
-/// why the wall went blank until a scroll forced it to redraw. And it fired
-/// on every new message: `appendExchange` adds two rows at once, so every
-/// existing row's distance-from-focus jumps by 2 and clears the `>= 2`
-/// threshold in a single step.
-///
-/// `.drawingGroup()` is gone with it. It was a scroll-perf hedge against a
-/// long lazy list — a live `.blur` is a per-frame offscreen Gaussian — but
-/// the page is bounded to the Settings context window now, so there is no
-/// long list left to amortize, and rasterizing was the thing that blanked.
-/// A blur radius of 0 is already a no-op on the focal rows.
+/// History fade/blur. Unconditional tree (not if/else `.drawingGroup()` — that blanked on branch change).
 struct HistoryDepth: ViewModifier {
     let inkOpacity: Double
     let blurRadius: CGFloat

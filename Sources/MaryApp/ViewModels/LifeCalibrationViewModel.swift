@@ -2,9 +2,8 @@
 //  LifeCalibrationViewModel.swift
 //  Mary
 //
-//  1 Hz poll of the Life snapshot while the calibration sheet is open.
-//  One listAdapters refresh and one Totem episode export on start — the
-//  poll itself never dials Fleet or Totem.
+//  WHAT: 1 Hz Life snapshot while calibration sheet is open.
+//  PIN:  One listAdapters + one Totem export on start; poll never dials Fleet/Totem.
 //
 
 import Foundation

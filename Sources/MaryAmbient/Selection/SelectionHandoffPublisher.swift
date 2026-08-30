@@ -2,21 +2,16 @@
 //  SelectionHandoffPublisher.swift
 //  MaryBrain
 //
-//  One adapter from an application's AX selection state to Mary's
-//  source-owned selection contract.  Plugins supply their application and
-//  optional document context; this type owns the state semantics shared by
-//  Pages, TextEdit, Scrivener, and arbitrary text surfaces.
+//  WHAT: Adapter from an application's AX selection state to Mary's source-owned contract.
+//  IN:   AXSelectionReader.FocusedSelectionSample
+//  OUT:  AmbientContextStore.recordSelection / clearSelection
+//  PIN:  Plugins supply application and optional document context; this type owns state semantics.
 //
-
 import Foundation
 
 public enum SelectionHandoffPublisher {
 
-    /// Classify and, where possible, publish source evidence. The outcome is
-    /// intentionally richer than the ambient mutation result: a specialist
-    /// that sees a real nonempty range must still claim its source when that
-    /// text cannot be published, otherwise the generic fallback is free to
-    /// read a different AX leaf from the same app.
+    /// Classify and, where possible, publish source evidence.
     @discardableResult
     public static func captureOutcome(
         _ sample: AXSelectionReader.FocusedSelectionSample,
@@ -25,10 +20,9 @@ public enum SelectionHandoffPublisher {
         applicationID: String,
         subject: String? = nil,
         channel: AmbientSelectionCaptureChannel,
-        /// A source losing focus can report an empty transient value, whereas
-        /// a source that is still frontmost at hands-free speech start has
-        /// authoritatively told us there is only a caret.  The coordinator
-        /// supplies this distinction; no document/focus routing is involved.
+        /// A source losing focus can report an empty transient value, whereas a source that is
+        /// still frontmost at hands-free speech start has authoritatively told us there is only a
+        /// caret. The coordinator supplies this distinction; no document/focus routing is involved.
         clearCaret: Bool = false,
         receivedAt now: Date = Date()
     ) -> SelectionHandoffCoordinator.CaptureOutcome {
@@ -55,11 +49,9 @@ public enum SelectionHandoffPublisher {
             // evidence and therefore must suppress a generic reread.
             return recorded ? .published : .handledButUnpublishable
         case .caret:
-            // A handoff happens at a focus boundary, where the focused AX
-            // element can vanish or change before the callback reads it. It
-            // may publish positive evidence, but an empty value there is not
-            // reliable enough to erase a source packet. A live observer or
-            // source-owned poll is still an explicit caret clear.
+            // A handoff happens at a focus boundary, where the focused AX element can vanish or change
+            // before the callback reads it. It may publish positive evidence, but an empty value there
+            // is not reliable enough to erase a source packet.
             guard channel != .applicationHandoff || clearCaret else {
                 return .noEvidence
             }
@@ -77,16 +69,9 @@ public enum SelectionHandoffPublisher {
         }
     }
 
-    /// Compatibility adapter for pollers and tests that only need to know
-    /// whether an ambient mutation was applied. Handoff callbacks use
-    /// `captureOutcome` so they retain unreadable/ambiguous source evidence.
-    ///
-    /// Publish only evidence that has an unambiguous meaning:
-    ///
-    /// - selected text becomes the canonical handoff;
-    /// - a zero-length range is an explicit clear from that exact source;
-    /// - unreadable or ambiguous positive evidence and unavailable AX data
-    ///   leave a current handoff alone rather than inventing a deselection.
+    /// Compatibility adapter for pollers and tests that only need to know whether an ambient
+    /// mutation was applied. Handoff callbacks use `captureOutcome` so they retain
+    /// unreadable/ambiguous source evidence. Publish only evidence that has an unambiguous.
     @discardableResult
     public static func publish(
         _ sample: AXSelectionReader.FocusedSelectionSample,
@@ -95,10 +80,9 @@ public enum SelectionHandoffPublisher {
         applicationID: String,
         subject: String? = nil,
         channel: AmbientSelectionCaptureChannel,
-        /// A source losing focus can report an empty transient value, whereas
-        /// a source that is still frontmost at hands-free speech start has
-        /// authoritatively told us there is only a caret.  The coordinator
-        /// supplies this distinction; no document/focus routing is involved.
+        /// A source losing focus can report an empty transient value, whereas a source that is
+        /// still frontmost at hands-free speech start has authoritatively told us there is only a
+        /// caret. The coordinator supplies this distinction; no document/focus routing is involved.
         clearCaret: Bool = false,
         receivedAt now: Date = Date()
     ) -> Bool {

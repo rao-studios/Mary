@@ -2,15 +2,10 @@
 //  AmbientAge.swift
 //  MaryBrain
 //
-//  Coarse ages — "seconds vs minutes vs hours", the vocabulary
-//  `PagesContextWatcher.livenessLine` already speaks, in ONE place so the
-//  prompt and the pane can never phrase the same age two ways.
+//  WHAT: Coarse ages ("seconds vs minutes vs hours") in one phrasing.
+//  OUT:  prompt and pane. Caller: PagesContextWatcher.livenessLine
+//  PIN:  An age formatted three ways reads as three facts.
 //
-//  Tiny on purpose and public on purpose: the report, the inspector and the
-//  prompt all stamp ages, and an age formatted three ways reads as three
-//  different facts.
-//
-
 import Foundation
 
 public enum AmbientAge {

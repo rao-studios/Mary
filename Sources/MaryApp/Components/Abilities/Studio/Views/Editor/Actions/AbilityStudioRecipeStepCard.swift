@@ -66,12 +66,7 @@ struct AbilityStudioRecipeStepCard: View {
                 Picker("", selection: Binding(
                     get: { step.kind },
                     set: { kind in
-                        // THE THREE SEEDED DEFAULTS WERE ALL DESIGN-LANE:
-                        // ⌃⇥ for a navigation template's chord, a centred
-                        // pointer step against the last captured anchor, and
-                        // Escape for a template's cleanup. None can arise in
-                        // this cut, so every kind now takes the editor's own
-                        // default — one branch instead of four.
+                        // Editor default per kind; design-lane seeded chords are gone.
                         mutateStep { target in
                             target = .editorDefault(kind: kind, id: target.id)
                         }
@@ -123,15 +118,7 @@ struct AbilityStudioRecipeStepCard: View {
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(step.kind.editorColor.opacity(0.2)))
     }
 
-    /// A step this build can hold but not run.
-    ///
-    /// THE SWITCH STAYS EXHAUSTIVE, and that is the point of showing this at
-    /// all. `PluginRecipeStepKind` still carries the pointer kinds so a
-    /// package authored against a build with hands round-trips through Mary
-    /// without silently losing steps — which means a package on this machine
-    /// CAN contain one, and an editor that crashed or rendered blank on it
-    /// would be lying about what the file holds. It is shown, named, and not
-    /// offered: `authorableCases` will not add another.
+    /// Unperformable step kept as authored (exhaustive switch). Shown, named, not offered.
     private var unperformableNotice: some View {
         Label(
             "\(step.kind.editorTitle) needs a pointer. Mary's hands post key chords, text, waits and window rebinds — this block is kept as authored and refused before the stage is taken.",

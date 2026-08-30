@@ -2,32 +2,10 @@
 //  AmbientSurface.swift
 //  MaryBrain
 //
-//  THE TIER-0 RECORD: what is actually on screen for one application family,
-//  as the accessibility engine saw it — the FOUNDATION the store's fact tier
-//  supports with details. `AmbientFact` is one processed sensory detail;
-//  this is the ground those details stand on: the app, its active window,
-//  the nameable things it offers in reading order, and where focus sits.
-//
-//  IT ARRIVES FROM OUTSIDE. MaryAmbient never names the engine that
-//  produced it (the layering rule `PackageLayeringTests` pins); the plugin
-//  layer's `AmbientBridge.surface(from:place:)` renders the engine's
-//  artifact into this vocabulary, exactly as each watcher world renders its
-//  own snapshot into facts.
-//
-//  PROVENANCE IS IMPLICITLY LIVE-AX — the tier exists BECAUSE it is the
-//  live accessibility read. That is also why a surface DROPS at expiry
-//  rather than degrading with an age the way facts do: a stale fact is
-//  held knowledge, a stale screen is a confidently wrong screen.
-//
-//  GEOMETRY IS `AXFrame`, NOT `CGRect` — precise, self-describing screen
-//  position (`MaryFoundation/Core/AXFrame.swift`), the core precision
-//  element in how Mary knows WHERE something is. `AXFrame` carries no
-//  CoreGraphics itself; the plugin layer's `AXFrameProjection` is where a
-//  live `CGRect` becomes one, exactly as `AmbientBridge.surface(from:place:)`
-//  is where the engine's artifact becomes this vocabulary. A frame is
-//  evidence of a moment (it is capture-stamped), never a target to press
-//  blind — every actuation path still re-reads and re-locates by identity
-//  before touching anything.
+//  WHAT: TIER 0 — what is actually on screen for one application family, as AX saw it.
+//  IN:   AmbientBridge.surface(from:place:) (plugin layer; this package never names the engine)
+//  OUT:  AmbientContextStore+Surface → prompt (surfaceLine)
+//  PIN:  Drops at expiry, never degrades. Provenance is live AX.
 //
 
 import Foundation
@@ -62,15 +40,8 @@ public struct AmbientSurface: Sendable, Equatable {
 
     /// One nameable thing the screen offers, in reading order.
     public struct Element: Sendable, Equatable {
-        /// THE RE-FINDING KEY — `role.lowercased() + "|" + normalized(label)`,
-        /// the same spelling the affordance lane and `AXElementRecord` use.
-        ///
-        /// The ordinal below is a POSITION and re-flows the moment a window
-        /// re-lays out; this survives it. Bonnie computed this identity in the
-        /// bridge and threw it away on the surface side, so a captured element
-        /// and a live re-read had no common key — which is precisely what the
-        /// behavioural capture needs to line up an element it recorded with the
-        /// one an action later touched.
+        /// THE RE-FINDING KEY — `role.lowercased() + "|" + normalized(label)`, the same spelling
+        /// the affordance lane and `AXElementRecord` use.
         public var identity: String
         public var ordinal: Int
         /// The raw AX role (`AXButton`) — kept for identity parity with the
@@ -164,8 +135,7 @@ public struct AmbientSurface: Sendable, Equatable {
         max(0, now.timeIntervalSince(capturedAt))
     }
 
-    /// May this surface still claim to be the screen as it stands? Past
-    /// this it is DROPPED, not degraded — see the header.
+    /// May this surface still claim to be the screen as it stands? Past this it is DROPPED, not degraded.
     public func isFresh(at now: Date = Date()) -> Bool {
         let age = now.timeIntervalSince(capturedAt)
         return age >= 0 && age <= freshFor

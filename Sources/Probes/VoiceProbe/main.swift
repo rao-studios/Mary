@@ -1,10 +1,10 @@
-// mary-voice-probe — exercise each stage of the MaryVoice pipeline in
-// isolation from the terminal. Commands land alongside their stages:
-//   speak      Kokoro synthesis + playback         (Phase 1)
-//   mic-levels live RMS from the microphone        (Phase 3)
-//   vad        endpointing events against live mic (Phase 3)
-//   stt        one utterance -> transcript         (Phase 3)
-//   loop       echo mode: VAD -> STT -> TTS, no LLM (Phase 3)
+//
+//  main.swift
+//  mary-voice-probe
+//
+//  WHAT: Exercise each MaryVoice stage from the terminal.
+//  OUT:  speak / mic-levels / vad / stt / loop
+//
 
 import MaryVoice
 import Foundation
@@ -178,17 +178,11 @@ do {
             guard let baseURL = URL(string: base) else { fail("Bad --url: \(base)") }
 
             let character = VoiceCharacter.named(voiceID)
-            // THE TOKEN IS READ FRESH PER REQUEST, not captured once — the
-            // engine takes a provider rather than a string for exactly the
-            // reason a probe makes visible: a session can be signed in
-            // between two sentences of the same reply.
+            // Token read fresh per request (sign-in can land mid-reply).
             let seer = SeerTTSEngine(baseURL: baseURL, character: character) {
                 ProcessInfo.processInfo.environment["SEER_TOKEN"]
             }
-            // WITHOUT A FALLBACK ON PURPOSE. In the app Kokoro carries a
-            // chunk Seer drops; here a drop must be AUDIBLE as a thrown
-            // error, or the probe reports success for a sentence the cloud
-            // never spoke.
+            // No Kokoro fallback; a Seer drop must throw.
             await seer.beginUtterance()
             let speaker = KokoroStreamSpeaker(synthesizer: seer)
             let events = await speaker.events()

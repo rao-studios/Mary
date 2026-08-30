@@ -1,5 +1,10 @@
 //
 //  TotemContextStore+AbilityProjection.swift
+//  MaryRuntime
+//
+//  WHAT: Ability projection deposits on TotemContextStore.
+//  IN:   AbilityTotemProjectionPlan
+//  OUT:  TotemDirectClient
 //
 
 import MaryBrain

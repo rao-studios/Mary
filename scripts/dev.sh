@@ -1,13 +1,10 @@
 #!/bin/bash
-# Build + STABLE-sign + run — the dev launch that keeps TCC grants alive
-# across rebuilds. Use this, not `swift run`.
+# WHAT: Build + stable-sign + run.
+# PIN:  Not `swift run`. SwiftPM ad-hoc-signs; the identity is the cdhash,
+#       which changes every build and Accessibility stops matching.
+# OUT:  build-metallib.sh, then sign-binary.sh, then exec .build/$CONFIG/Mary
 #
-# Why: SwiftPM signs the built binary AD-HOC, and an ad-hoc identity is the
-# cdhash — it changes on every build, so macOS treats each rebuild as a new
-# app and the Accessibility grant silently stops matching. sign-binary.sh
-# re-signs with a stable certificate; see its header.
-#
-#   ./scripts/dev.sh              → debug build, signed, run
+#   ./scripts/dev.sh
 #   CONFIG=release ./scripts/dev.sh
 #
 set -e
@@ -23,16 +20,13 @@ else
     swift build
 fi
 
-# THE SHADERS, WHICH `swift build` DOES NOT BUILD. Cheap after the first run
-# — the script skips itself when no shader is newer than the library.
+# OUT: mlx.metallib next to the binary. Skips when shaders are current.
 echo "▸ mlx.metallib"
 "$REPO_ROOT/scripts/build-metallib.sh" "$CONFIG"
 
 BIN="$REPO_ROOT/.build/$CONFIG/Mary"
 
-# Identity detection + codesign live in sign-binary.sh — shared with the
-# Xcode scheme's launch pre-action, so terminal and Xcode builds carry the
-# SAME designated requirement and match the same TCC grant.
+# Same designated requirement as the Xcode launch pre-action.
 "$REPO_ROOT/scripts/sign-binary.sh" "$BIN"
 
 exec "$BIN" "$@"

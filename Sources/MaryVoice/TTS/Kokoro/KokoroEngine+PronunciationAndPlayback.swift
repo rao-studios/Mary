@@ -1,5 +1,10 @@
 //
 //  KokoroEngine+PronunciationAndPlayback.swift
+//  MaryVoice
+//
+//  WHAT: Pronunciation traces + simple/styled playback.
+//  IN:   KokoroEngine.swift (same actor)
+//  OUT:  PronunciationReport / AVAudioEngine
 //
 
 import Foundation

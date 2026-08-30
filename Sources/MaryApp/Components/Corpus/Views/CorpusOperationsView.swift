@@ -2,11 +2,7 @@
 //  CorpusOperationsView.swift
 //  Mary
 //
-//  What indexing actually did, newest first.
-//
-//  A skipped row earns its place here: "this file was unchanged, so nothing
-//  was read, summarised, or deposited" is the efficiency claim made visible,
-//  and without it a quiet pane and a broken pane look identical.
+//  WHAT: Indexing actions, newest first. Skipped rows are visible (quiet ≠ broken).
 //
 
 import MaryAmbient

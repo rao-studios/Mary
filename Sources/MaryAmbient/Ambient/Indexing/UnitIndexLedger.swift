@@ -2,37 +2,15 @@
 //  UnitIndexLedger.swift
 //  MaryAmbient
 //
-//  THE MIRROR, BECAUSE THE PIPELINE IS WRITE-ONLY BY CONSTRUCTION.
-//
-//  An `IndexedUnit` is destroyed the moment it reaches the sink. The
-//  coordinator keeps a manifest row of three fields. And Totem cannot give the
-//  rest back: `documents(ids:)` returns id, name, owner, group, createdAt,
-//  texts and media type — so tags, metadata, entities and relationships are
-//  all write-only, and a partition hit carries no timestamp at all. Nothing
-//  downstream can be asked "what did you ingest, and when, and why".
-//
-//  So this holds the answer locally. It is the same conclusion `AmbientTraceLog`
-//  reached for routes, and this file is shaped after it deliberately —
-//  including the LATE-ATTACH mutators, for the same stated reason: the facts
-//  are known at different times. A crawl produces a unit; the annotation
-//  outcome arrives seconds later at the end of a serialized chain; the deposit
-//  result later still. Recording the row only at the end would mean a unit
-//  that was skipped, refused, or failed to deposit left no trace — and those
-//  are exactly the ones worth seeing.
-//
-//  Two shapes in one place, because they answer two different questions:
-//    · `units` — what is CURRENTLY known about each indexed file, keyed and
-//      replaced in place. This is the browsable inventory.
-//    · `operations` — what HAPPENED, newest first, bounded. This is the
-//      history, and a skipped-by-hash row is as informative as an indexed one.
+//  WHAT: Local mirror of what was ingested — the pipeline is write-only by construction.
+//  IN:   UnitIndex
+//  OUT:  debugger. Sibling shape: AmbientTraceLog
+//  PIN:  Totem documents(ids:) cannot give tags/metadata/relationships back.
 //
 
 import Foundation
 
-/// What became of a unit's annotation. Three of these were previously
-/// indistinguishable: the manifest row is written BEFORE annotating and labels
-/// are backfilled only when non-empty, so "not yet", "no annotator installed"
-/// and "the annotator refused" all looked like an empty label list.
+/// What became of a unit's annotation.
 public enum UnitAnnotationOutcome: String, Sendable, Equatable, Codable {
     /// Queued behind the annotation chain, or annotating right now.
     case pending
@@ -59,18 +37,7 @@ public enum UnitAnnotationOutcome: String, Sendable, Equatable, Codable {
     /// NEWER build wrote.
     case unknown
 
-    /// UNKNOWN VALUES DECAY, THEY NEVER THROW — the rule `StyleDimension`'s
-    /// header states and `docs/TOTEM-MERGE.md` paid for: `Access` was a plain
-    /// Codable string enum, a rollback binary met a value it did not know,
-    /// `restore()` threw, and the throw re-seeded the registry empty and
-    /// orphan-swept documents.
-    ///
-    /// This enum sits inside a PERSISTED `UnitIndexManifest.Entry` and had
-    /// exactly that shape. The manifest's format version was masking it —
-    /// refusing the whole file kept an unknown value from ever being decoded —
-    /// but a version gate is a blunt instrument for one unrecognised row, and
-    /// with one format there is nothing left to bump. Decaying costs one row's
-    /// annotation state; throwing costs the project's whole index.
+    /// UNKNOWN VALUES DECAY, THEY NEVER THROW.
     public init(from decoder: Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
         self = UnitAnnotationOutcome(rawValue: raw) ?? .unknown
@@ -100,9 +67,6 @@ public struct UnitIndexRecord: Sendable, Equatable, Identifiable {
     public var projectID: String
     public var projectName: String
     /// Which application indexed this — the plugin owner, e.g. `"xcode"`.
-    /// Carried because a project alone does not say which craft was practised
-    /// in it, and the moment a second producer exists that stops being merely
-    /// unstated and becomes ambiguous.
     public var applicationID: String
     public var relativePath: String
     public var contentHash: String
@@ -283,9 +247,6 @@ public final class UnitIndexLedger: @unchecked Sendable {
     }
 
     /// Every project the ledger has seen a unit for, with its display name.
-    /// The coordinator cannot answer this — its manifest map is private and
-    /// keyed only by id — and the runtime's configured-roots box holds what
-    /// was configured rather than what was actually indexed.
     public func projects() -> [(id: String, name: String, unitCount: Int)] {
         let all = allUnits()
         var seen: [String: (name: String, count: Int)] = [:]

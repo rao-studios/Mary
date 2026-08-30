@@ -2,9 +2,9 @@
 //  AppleSpeechTranscriber.swift
 //  MaryVoice
 //
-//  Live on-device STT via SFSpeechAudioBufferRecognitionRequest — partial
-//  results as you speak, final on endpoint. Pattern informed by FleetAudio's
-//  file-based SpeechTranscriber (on-device forced, authorization first).
+//  WHAT: Live on-device STT via SFSpeechAudioBufferRecognitionRequest.
+//  IN:   VoicePipeline / WakeWordListener (VoiceTranscriber)
+//  OUT:  partials stream + finish() transcript
 //
 
 import AVFoundation
@@ -67,8 +67,7 @@ public actor AppleSpeechTranscriber: VoiceTranscriber {
         return stream
     }
 
-    /// End audio and wait briefly for the recognizer's final result; the last
-    /// partial is a perfectly good transcript if the final never lands.
+    /// End audio and wait briefly for the final; last partial is fallback.
     public func finish() async throws -> String {
         request?.endAudio()
 
@@ -85,7 +84,7 @@ public actor AppleSpeechTranscriber: VoiceTranscriber {
                 c.resume(returning: value)
             }
             self.finishResume = resumeOnce
-            // ~2 s grace for the final result, then fall back to the partial.
+            // ~2 s grace for the final, then fall back to the partial.
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 guard let self else { return }
@@ -123,8 +122,7 @@ public actor AppleSpeechTranscriber: VoiceTranscriber {
             }
         }
         if error != nil {
-            // Recognition errors after endAudio are routine (e.g. "no speech");
-            // resolve with whatever we heard.
+            // Recognition errors after endAudio are routine; resolve with what we heard.
             finishResume?(finalText ?? lastPartial)
             finishResume = nil
         }

@@ -170,12 +170,7 @@ extension AbilityStudioAuthoringDocument {
             required: input.required && input.defaultValue == nil)
     }
 
-    /// Remote-hand input blocks in either the action or cleanup lane
-    /// monotonically strengthen a locally-owned read contract into a mutation
-    /// contract. This is deliberately scoped to a Capability defined by the
-    /// edited package: portable/external Skill contracts remain immutable and
-    /// a missing compatible contract still fails the transaction. Removing
-    /// input blocks never auto-demotes policy.
+    /// Remote-hand inputs promote a local read Capability to mutation; never auto-demote.
     static func ensureLocalMutationCapability(
         forOperation operation: String,
         contextCapabilities: [CapabilityID: CapabilitySchema],
