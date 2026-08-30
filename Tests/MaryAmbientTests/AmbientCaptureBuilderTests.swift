@@ -50,7 +50,7 @@ import Testing
         slot: AmbientSlot = .file, content: String, ageSeconds: Double = 3
     ) -> AmbientFact {
         AmbientFact(
-            world: .applications, application: "textedit", slot: slot,
+            attention: .applications, application: "textedit", slot: slot,
             content: content, provenance: .cachedBody,
             capturedAt: now.addingTimeInterval(-ageSeconds))
     }

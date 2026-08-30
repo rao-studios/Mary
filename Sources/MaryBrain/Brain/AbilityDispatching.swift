@@ -23,7 +23,7 @@ public protocol AbilityDispatching: Sendable {
     /// The installed application capability catalog.
     var applicationProfiles: [ApplicationProfile] { get }
     /// Exact logical identity for the currently frontmost admitted
-    /// application, including Dynamic providers that have no AmbientWorld
+    /// application, including Dynamic providers that have no AmbientAttention
     /// enum case. Nil when no profile owns the frontmost bundle identity.
     var focusedApplicationID: String? { get }
     /// How many skills THIS turn would expose, WITHOUT building them.
@@ -75,21 +75,23 @@ public protocol AbilityDispatching: Sendable {
     func place(ofSkill skillName: String) -> AmbientPlace?
     /// The lane a Skill's place sits in, for the few readers that genuinely
     /// want the lane rather than the where.
-    func world(ofSkill skillName: String) -> AmbientWorld?
+    func attention(ofSkill skillName: String) -> AmbientAttention?
     /// FETCH-FIRST: read the named part of whatever the user is looking at, synchronously, before the speaking lane spawns
     func readNamedPart(_ phrase: String) async -> String?
     /// THE PRE-LANE LOOK — `readNamedPart`'s sibling for sight: run the screen look synchronously before either lane spawns
     func lookAtScreen(_ query: String?) async -> String?
-    /// Whether a pre-lane look WOULD run right now (no eyed world leads, the
-    /// binding installed) — asked before promising one. Default false.
+    /// Whether a pre-lane look WOULD run right now (look_at_screen is
+    /// installed). Targeted reads are not eyes. Default false.
     func wouldServeLook() -> Bool
+    /// Fetch-first: selection read, document inspect, then look — before either lane speaks.
+    func fetchDeclaredEditorSight(query: String?) async -> String?
     /// LOCATE-FIRST: find the passage a REVISION is about, before either lane exists, and hand back a handle plus the verb that changes it.
     /// `readNamedPart`'s sibling and its opposite.
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage?
     /// The same locate with a WORLD HINT for the one turn shape that has no live focus to lean on: an accepted offer
-    func locatePassage(_ intent: EditIntent, worldHint: AmbientWorld?) async -> LocatedPassage?
+    func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage?
     // THE ARTIFACT LANE IS NOT IN THIS CUT. Five members used to sit here
-    func targetedReadInvocation(forWorld world: AmbientWorld) -> (binding: String, parameter: String)?
+    func targetedReadInvocation(forAttention attention: AmbientAttention) -> (binding: String, parameter: String)?
 }
 
 public extension AbilityDispatching {
@@ -153,15 +155,16 @@ public extension AbilityDispatching {
     func isNonEffectful(_ skillName: String) -> Bool { false }
     func preparesSurface(_ skillName: String) -> Bool { false }
     func place(ofSkill skillName: String) -> AmbientPlace? { nil }
-    func world(ofSkill skillName: String) -> AmbientWorld? { place(ofSkill: skillName)?.world }
+    func attention(ofSkill skillName: String) -> AmbientAttention? { place(ofSkill: skillName)?.attention }
     func readNamedPart(_ phrase: String) async -> String? { nil }
     func lookAtScreen(_ query: String?) async -> String? { nil }
     func wouldServeLook() -> Bool { false }
+    func fetchDeclaredEditorSight(query: String?) async -> String? { nil }
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage? { nil }
-    func locatePassage(_ intent: EditIntent, worldHint: AmbientWorld?) async -> LocatedPassage? {
+    func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage? {
         await locatePassage(intent)
     }
-    func targetedReadInvocation(forWorld world: AmbientWorld) -> (binding: String, parameter: String)? {
+    func targetedReadInvocation(forAttention attention: AmbientAttention) -> (binding: String, parameter: String)? {
         nil
     }
 }
@@ -188,6 +191,9 @@ public struct SeerPass: Sendable {
     /// A LOOK FIRED FOR THIS VERY TURN and nothing is in hand yet (the pre-lane look missed its budget; Lane B carries it).
     public var lookUnderway: Bool
 
+    /// The turn World already holds a highlight this question is about — a look/read is incoming even before lookUnderway.
+    public var inspiredSight: Bool
+
     /// Which `RetrievalTraceLedger` row this pass's prompt build books to — observation only.
     public var exchangeID: UUID?
 
@@ -199,6 +205,7 @@ public struct SeerPass: Sendable {
         assertedFocus: WorkspaceFocus? = nil,
         runningActionLabels: [String] = [],
         lookUnderway: Bool = false,
+        inspiredSight: Bool = false,
         exchangeID: UUID? = nil
     ) {
         self.groundedResults = groundedResults
@@ -208,6 +215,7 @@ public struct SeerPass: Sendable {
         self.assertedFocus = assertedFocus
         self.runningActionLabels = runningActionLabels
         self.lookUnderway = lookUnderway
+        self.inspiredSight = inspiredSight
         self.exchangeID = exchangeID
     }
 }

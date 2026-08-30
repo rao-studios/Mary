@@ -33,7 +33,7 @@ public final class WorkspaceFocusTracker: Sendable {
     /// hold is open, signals are ignored regardless of the deadline above.
     let holdsBox = OSAllocatedUnfairLock<Set<UUID>>(initialState: [])
     /// WHICH REALM last asserted the lead — ONE box for both cases of the identity. The native
-    /// arms of `record(bundleID:)` and the watchers' real-work signals stamp `.lane(world)`; a
+    /// arms of `record(bundleID:)` and the watchers' real-work signals stamp `.lane(attention)`; a
     /// registered dynamic application's activation/activity stamps its registration's place.
     let leadBox =
         OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
@@ -46,6 +46,8 @@ public final class WorkspaceFocusTracker: Sendable {
     /// authoritative for the lead; `signal()` projects this into the co-active set.
     let ledgerBox =
         OSAllocatedUnfairLock<[AmbientPlace: FocusEvidence]>(initialState: [:])
+    /// Declared editor pane for look_at_screen — identity + frame, not a lead.
+    let paneBox = OSAllocatedUnfairLock<FocusPaneTarget?>(initialState: nil)
 
     public init() {}
 
@@ -102,13 +104,13 @@ public final class WorkspaceFocusTracker: Sendable {
             stampEvidence(
                 place: AmbientPlaceResolver.browserPlace, kind: .activation,
                 processBundleID: bundleID)
-            AmbientContextStore.shared.noteAttention(.init(
-                tier: .activation, world: .applications,
+            AmbientContextStore.shared.noteWorld(.init(
+                tier: .activation, attention: .applications,
                 subject: AmbientPlaceResolver.browserApplicationID,
                 applicationID: AmbientPlaceResolver.browserApplicationID))
         } else if let registration = AmbientApplicationIndexProvider.current
                       .registration(bundleID: bundleID),
-                  registration.legacyWorld == nil {
+                  registration.legacyAttention == nil {
             // A registered DYNAMIC application (Sketch) is a workspace the user can evidently be in,
             // exactly like the four native arms above. A TAUGHT APPLICATION WITH EYES IS A WRITING
             // WORKSPACE, not just an activation: an activation stamps the lead and stops.

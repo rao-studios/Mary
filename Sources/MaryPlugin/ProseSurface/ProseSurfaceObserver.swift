@@ -27,6 +27,7 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
     private let publishedBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
     private let lineBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let liveBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+    private let handoffTokens = OSAllocatedUnfairLock<[UUID]>(initialState: [])
 
     public init(
         store: AmbientContextStore = .shared,
@@ -68,10 +69,12 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
             }
         }
         pollOnce()
+        registerHandoffs()
     }
 
     public func deactivate() async {
         poller.release()
+        unregisterHandoffs()
         retract()
     }
 
@@ -104,10 +107,29 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         guard let window = AX.element(application, kAXFocusedWindowAttribute),
               let editor = CodeSurfaceEditorCache.editor(
-                pid: pid, window: window, registration: registration),
-              let fact = read(
-                editor: editor, window: window, registration: registration,
-                place: place, bundleID: bundleID, at: now)
+                pid: pid, window: window, registration: registration)
+        else {
+            if hit.isFrontmost { retract() }
+            return
+        }
+
+        DeclaredTextSightPublisher.publish(
+            place: place, editor: editor, window: window, registration: registration)
+        let document = CodeSurfaceObserver.subject(of: window) ?? registration.displayName
+        let selection = DeclaredTextAX.selectedRange(of: editor)
+
+        if let selection, !selection.isEmpty {
+            store.forget(key: AmbientKey(place: place, slot: .cursor))
+            standFileIdentity(
+                place: place, file: document, editorName: registration.displayName,
+                bundleID: bundleID, at: now)
+            WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
+            return
+        }
+
+        guard let fact = read(
+            editor: editor, window: window, registration: registration,
+            place: place, bundleID: bundleID, at: now)
         else {
             if hit.isFrontmost { retract() }
             return
@@ -115,14 +137,14 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         store.register(fact, at: now)
         publishedBox.withLock { $0 = place }
-        let document = fact.subject ?? registration.displayName
+        let caretDocument = fact.subject ?? registration.displayName
         lineBox.withLock {
-            $0 = "In \(registration.displayName): \(document)"
+            $0 = "In \(registration.displayName): \(caretDocument)"
         }
         liveBox.withLock {
             $0 = Self.liveWork(
                 editorName: registration.displayName,
-                documentName: document,
+                documentName: caretDocument,
                 excerpt: fact.content)
         }
         WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
@@ -132,6 +154,12 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
         publishedBox.withLock { $0 = place }
         lineBox.withLock { $0 = line }
         liveBox.withLock { $0 = live }
+    }
+
+    func adoptStandingFileForTests(place: AmbientPlace, file: String, editorName: String) {
+        publishedBox.withLock { $0 = place }
+        lineBox.withLock { $0 = "In \(editorName): \(file)" }
+        liveBox.withLock { $0 = "Looking at \(file) in \(editorName)." }
     }
 
     private func read(
@@ -161,7 +189,7 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
         guard !excerpt.isEmpty else { return nil }
 
         return AmbientFact(
-            world: place.world,
+            attention: place.attention,
             application: place.application,
             slot: .cursor,
             content: excerpt,
@@ -205,6 +233,47 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
         lineBox.withLock { $0 = nil }
         liveBox.withLock { $0 = nil }
         store.forget(key: AmbientKey(place: place, slot: .cursor))
+        store.forget(key: AmbientKey(place: place, slot: .file))
+        DeclaredTextSightStore.shared.clear(place: place)
+        if WorkspaceFocusTracker.shared.signal().lookTarget?.place == place {
+            WorkspaceFocusTracker.shared.notePaneTarget(nil)
+        }
+    }
+
+    private func standFileIdentity(
+        place: AmbientPlace, file: String, editorName: String,
+        bundleID: String, at now: Date
+    ) {
+        store.register(AmbientFact(
+            attention: place.attention,
+            application: place.application,
+            slot: .file,
+            content: file,
+            subject: file,
+            applicationID: bundleID,
+            provenance: .liveAX,
+            registration: .perceived,
+            capturedAt: now), at: now)
+        publishedBox.withLock { $0 = place }
+        lineBox.withLock { $0 = "In \(editorName): \(file)" }
+        liveBox.withLock { $0 = "Looking at \(file) in \(editorName)." }
+    }
+
+    private func registerHandoffs() {
+        unregisterHandoffs()
+        let tokens = DeclaredTextHandoff.register(
+            support.all(),
+            bundleIdentifiers: { $0.bundleIdentifiers },
+            ambient: store)
+        handoffTokens.withLock { $0 = tokens }
+    }
+
+    private func unregisterHandoffs() {
+        let tokens = handoffTokens.withLock { current -> [UUID] in
+            defer { current = [] }
+            return current
+        }
+        DeclaredTextHandoff.unregister(tokens)
     }
 }
 

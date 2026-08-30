@@ -8,6 +8,7 @@
 //  PIN:  leadBox stays last-writer-wins and authoritative; ledger keeps one stamp per place.
 //
 
+import CoreGraphics
 import Foundation
 
 /// The kind of evidence a place holds in the ledger, in responder-precedence order (highest
@@ -48,6 +49,21 @@ public struct FocusEvidence: Sendable, Equatable {
     }
 }
 
+/// Pane-level look target: declared editor identity + screen frame.
+public struct FocusPaneTarget: Sendable, Equatable {
+    public var place: AmbientPlace
+    /// `role|label` — same identity the published AX tree uses.
+    public var identity: String
+    /// Global top-left AX screen coordinates.
+    public var frame: CGRect
+
+    public init(place: AmbientPlace, identity: String, frame: CGRect) {
+        self.place = place
+        self.identity = identity
+        self.frame = frame
+    }
+}
+
 /// The projected signal: one lead (today's answer, byte-identical), the
 /// places with fresh evidence beside it, and which of those are only glanced.
 public struct FocusSignal: Sendable, Equatable {
@@ -56,15 +72,19 @@ public struct FocusSignal: Sendable, Equatable {
     public var coActive: [AmbientPlace]
     /// The subset of `coActive` whose freshest evidence is a glance.
     public var glanced: Set<AmbientPlace>
+    /// Declared editor pane whose bbox justifies look_at_screen.
+    public var lookTarget: FocusPaneTarget?
 
     public init(
         lead: AmbientPlace? = nil,
         coActive: [AmbientPlace] = [],
-        glanced: Set<AmbientPlace> = []
+        glanced: Set<AmbientPlace> = [],
+        lookTarget: FocusPaneTarget? = nil
     ) {
         self.lead = lead
         self.coActive = coActive
         self.glanced = glanced
+        self.lookTarget = lookTarget
     }
 
     /// How long non-lead activity/activation evidence keeps a place co-active. Deliberately
@@ -91,7 +111,7 @@ public enum AmbientPlaceResolver {
     /// The browser workspace place — Safari, Chrome, and any Chromium
     /// variant sharing their prefixes all resolve to this one workspace.
     public static var browserPlace: AmbientPlace {
-        AmbientPlace(world: .applications, application: browserApplicationID)
+        AmbientPlace(attention: .applications, application: browserApplicationID)
     }
 
     /// Browser bundle prefixes. Prefix-matched so Chrome Beta/Canary and Safari Technology
@@ -152,7 +172,7 @@ public enum AmbientPlaceResolver {
         if isBrowser(bundleID: bundleID) { return browserPlace }
         if let registration = AmbientApplicationIndexProvider.current
             .registration(bundleID: bundleID),
-           registration.legacyWorld == nil {
+           registration.legacyAttention == nil {
             return registration.place
         }
         return .lane(.applications)
@@ -164,7 +184,7 @@ public enum AmbientPlaceResolver {
     public static func applicationPlace(forBundleID bundleID: String) -> AmbientPlace {
         let shared = factPlace(forBundleID: bundleID)
         if shared == .lane(.applications) {
-            return AmbientPlace(world: .applications, application: bundleID)
+            return AmbientPlace(attention: .applications, application: bundleID)
         }
         return shared
     }

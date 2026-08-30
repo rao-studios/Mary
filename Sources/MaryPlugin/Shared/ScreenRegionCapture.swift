@@ -21,6 +21,7 @@ public enum ScreenRegionCapture {
     /// spoken back to the user so a whole-window fallback is never disguised
     /// as precision.
     public enum RegionProvenance: String, Sendable {
+        case declaredEditor
         case elementUnderCursor
         case webContent
         case windowContent
@@ -28,6 +29,7 @@ public enum ScreenRegionCapture {
 
         public var spokenLabel: String {
             switch self {
+            case .declaredEditor: return "the editor in front of you"
             case .elementUnderCursor: return "the region under your cursor"
             case .webContent: return "the page content"
             case .windowContent: return "the window's content"
@@ -91,6 +93,26 @@ public enum ScreenRegionCapture {
             throw Failure.windowUnavailable
         }
         let windowTitle = string(window, kAXTitleAttribute as String)
+
+        // Declared editor pane outranks cursor/split/window when a tag is standing.
+        if let pane = WorkspaceFocusTracker.shared.signal().lookTarget,
+           pane.frame.width > 0, pane.frame.height > 0,
+           pane.frame.intersects(windowRect) {
+            let region = pane.frame.intersection(windowRect)
+            let imageData = try await captureCompressed(
+                windowID: windowID(of: window),
+                processIdentifier: frontmost.processIdentifier,
+                windowRect: windowRect,
+                contentRect: region)
+            return View(
+                appTitle: appTitle,
+                bundleID: frontmost.bundleIdentifier,
+                windowTitle: windowTitle,
+                contentRect: region,
+                provenance: .declaredEditor,
+                imageData: imageData,
+                mediaType: "image/jpeg")
+        }
 
         // Region estimation is best-effort on top of an honest floor: any
         // AX hiccup below degrades toward the whole window, never a throw.
@@ -182,8 +204,13 @@ public enum ScreenRegionCapture {
         ancestors: [Candidate],
         webArea: CGRect?,
         contentChildren: [Candidate],
-        hint: RegionHint?
+        hint: RegionHint?,
+        declaredEditor: CGRect? = nil
     ) -> (rect: CGRect, provenance: RegionProvenance) {
+        if let declaredEditor, declaredEditor.width > 0, declaredEditor.height > 0,
+           declaredEditor.intersects(window) {
+            return (declaredEditor.intersection(window), .declaredEditor)
+        }
         let windowArea = window.width * window.height
         let qualifying = ancestors.filter { candidate in
             let area = candidate.frame.width * candidate.frame.height

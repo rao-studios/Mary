@@ -49,13 +49,13 @@ enum RouteReport {
         lines.append("utterance: \(oneLine(row.utterance))")
         // Place token when resolved; native token == rawValue.
         lines.append("lead: \(row.leadPlace?.token ?? row.lead?.rawValue ?? "none")")
-        lines.append("lead.class: \(row.leadPlace?.worldClass.rawValue ?? "none")")
+        lines.append("lead.class: \(row.leadPlace?.placeClass.rawValue ?? "none")")
         lines.append("named: \(list(row.namedPlaces.map(\.token)))")
-        lines.append("world.candidates: \(list(row.candidateWorlds.map(\.rawValue)))")
+        lines.append("world.candidates: \(list(row.candidateAttentions.map(\.rawValue)))")
         lines.append("ranking: \(row.rankingMode.rawValue)")
-        if let attention = row.attention {
+        if let attention = row.world {
             let subject = attention.subject.map { "#\($0)" } ?? ""
-            lines.append("attention: \(attention.tier.rawValue)@\(attention.world.rawValue)\(subject)")
+            lines.append("attention: \(attention.tier.rawValue)@\(attention.attention.rawValue)\(subject)")
         }
         lines.append("writing.target: \(row.writingTarget?.rawValue ?? "none")")
         lines.append("writing.context: \(row.supportingContext.map(oneLine) ?? "none")")

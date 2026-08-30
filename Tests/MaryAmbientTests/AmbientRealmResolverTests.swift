@@ -31,7 +31,7 @@ import MaryFoundation
                 abilities: abilities,
                 targetClasses: targetClasses),
             bundleIdentifiers: ["com.example.\(id)"],
-            worldClass: .workspace,
+            placeClass: .workspace,
             displayName: id.capitalized,
             perception: eyes
                 ? ApplicationPerception(
@@ -66,7 +66,7 @@ import MaryFoundation
         lead: AmbientPlace? = nil,
         coActive: [AmbientPlace] = [],
         evidence: [AmbientPlace: FocusEvidence] = [:],
-        decidedBy: AmbientSignal? = .attention
+        decidedBy: AmbientSignal? = .world
     ) -> AmbientRealmResolver.Inputs {
         AmbientRealmResolver.Inputs(
             utterance: utterance,
@@ -122,7 +122,7 @@ import MaryFoundation
             inputs("revise it", registrations: [quill, studio],
                    need: [.writing], lead: .application("studio")))
         #expect(realm.place == .application("studio"))
-        #expect(realm.decidedBy == .attention)
+        #expect(realm.decidedBy == .world)
     }
 
     /// A NAME IS AN ADDRESS, NOT A SIGNAL. It outranks a place the user is

@@ -63,7 +63,7 @@ public struct ContainerRoster: Sendable {
     /// `ContainerRegistry` has been place-keyed all along.
     public var place: AmbientPlace
 
-    public var world: AmbientWorld { place.world }
+    public var attention: AmbientAttention { place.attention }
 
     /// The `HandleMap` prefix this world's containers are addressed by —
     /// `W` for TextEdit windows, `D` for Scrivener binder items. Registered in
@@ -92,13 +92,13 @@ public struct ContainerRoster: Sendable {
 
     /// The native spelling, so every built-in world's construction is unedited.
     public init(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         handlePrefix: String,
         cached: @escaping @Sendable () -> [ContainerRow],
         list: (@Sendable () async -> [ContainerRow])? = nil
     ) {
         self.init(
-            place: .lane(world),
+            place: .lane(attention),
             handlePrefix: handlePrefix,
             cached: cached,
             list: list)

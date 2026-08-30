@@ -43,7 +43,7 @@ extension MaryBrain {
         referent: DiscussedPassageReferent?,
         precedingUserTurnID: UUID?,
         lastAssistantText: String?,
-        persistentLead: AmbientWorld?,
+        persistentLead: AmbientAttention?,
         now: Date
     ) -> AcceptedOffer? {
         // 1. A whole-utterance affirmative — the same closed set a CONFIRM
@@ -71,7 +71,7 @@ extension MaryBrain {
         else { return nil }
         // 7. WORLD CONFLICT CANCELS: the user who moved to another workspace
         //    and said "yes please" is answering something else.
-        if let persistentLead, persistentLead != referent.world { return nil }
+        if let persistentLead, persistentLead != referent.attention { return nil }
         return AcceptedOffer(referent: referent)
     }
 

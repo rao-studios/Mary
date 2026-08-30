@@ -14,7 +14,7 @@ import Testing
 
     private let epoch = Date(timeIntervalSince1970: 1_700_000_000)
     private let pages = AmbientPlace.application("pages")
-    private let sketch = AmbientPlace(world: .applications, application: "com.example.sketch")
+    private let sketch = AmbientPlace(attention: .applications, application: "com.example.sketch")
 
     private func surface(
         place: AmbientPlace? = nil, name: String = "Pages",
@@ -33,7 +33,7 @@ import Testing
 
     private func fact(_ content: String) -> AmbientFact {
         AmbientFact(
-            world: .applications, application: "pages", slot: .file, content: content,
+            attention: .applications, application: "pages", slot: .file, content: content,
             subject: "Essay", provenance: .derived, capturedAt: epoch)
     }
 

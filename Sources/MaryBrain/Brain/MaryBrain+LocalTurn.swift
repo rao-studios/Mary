@@ -235,7 +235,7 @@ extension MaryBrain {
                     // The world veto crosses too.
                     if let redirect = worldVeto.redirect(
                         for: call.name,
-                        world: dispatcher.world(ofSkill: call.name)) {
+                        attention: dispatcher.attention(ofSkill: call.name)) {
                         let reference = dispatcher.skillReference(for: call.name)
                         continuation.yield(.skillResult(record: .refused(
                             id: call.id,

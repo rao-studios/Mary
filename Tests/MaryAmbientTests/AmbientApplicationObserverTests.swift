@@ -27,7 +27,7 @@ import Testing
             id: id,
             profile: ApplicationProfile(id: id, title: id.capitalized, summary: "Test."),
             bundleIdentifiers: ["com.example.\(id)"],
-            worldClass: .workspace,
+            placeClass: .workspace,
             perception: .init(
                 kind: .workspace, documentOperation: "\(id)_read", pollSeconds: seconds))
     }
@@ -41,7 +41,7 @@ import Testing
             id: "blind",
             profile: ApplicationProfile(id: "blind", title: "Blind", summary: "Test."),
             bundleIdentifiers: ["com.example.blind"],
-            worldClass: .dataSource)
+            placeClass: .dataSource)
         withRoster([sighted("sketch"), blind]) { observer.activate() }
         #expect(observer.laneIDsForTesting == ["sketch"])
         observer.deactivate()
@@ -56,7 +56,7 @@ import Testing
         observer.installReader { id, operation in
             #expect(operation == "sketch_read")
             return [AmbientFact(
-                world: .applications, application: id,
+                attention: .applications, application: id,
                 slot: .file, content: "Canvas: 3 layers",
                 subject: "Sketch", provenance: .recipeRead,
                 registration: .perceived)]
@@ -66,7 +66,7 @@ import Testing
         try? await Task.sleep(nanoseconds: 100_000_000)
 
         let facts = store.facts(
-            place: AmbientPlace(world: .applications, application: "sketch"))
+            place: AmbientPlace(attention: .applications, application: "sketch"))
         #expect(facts.count == 1)
         #expect(facts.first?.content == "Canvas: 3 layers")
         // freshFor is stamped from the cadence: 30s × 1.5.
@@ -84,7 +84,7 @@ import Testing
         observer.installReader { id, _ in
             succeed.withLock { $0 }
                 ? [AmbientFact(
-                    world: .applications, application: id,
+                    attention: .applications, application: id,
                     slot: .file, content: "live",
                     subject: "Sketch", provenance: .recipeRead,
                     registration: .perceived)]
@@ -94,7 +94,7 @@ import Testing
 
         observer.requestPoll(registrationID: "sketch")
         try? await Task.sleep(nanoseconds: 80_000_000)
-        #expect(!store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty)
+        #expect(!store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty)
 
         succeed.withLock { $0 = false }
         for _ in 0..<AmbientApplicationObserver.missBudget {
@@ -102,7 +102,7 @@ import Testing
             try? await Task.sleep(nanoseconds: 80_000_000)
         }
         #expect(observer.missesForTesting("sketch") == AmbientApplicationObserver.missBudget)
-        #expect(store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty,
+        #expect(store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty,
                 "three misses must retract the lane's perceived facts")
 
         // The comeback: one success resets the counter and restores sight.
@@ -110,7 +110,7 @@ import Testing
         observer.requestPoll(registrationID: "sketch")
         try? await Task.sleep(nanoseconds: 80_000_000)
         #expect(observer.missesForTesting("sketch") == 0)
-        #expect(!store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty)
+        #expect(!store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty)
         observer.deactivate()
     }
 
@@ -121,18 +121,18 @@ import Testing
         let observer = AmbientApplicationObserver(store: store)
         observer.installReader { id, _ in
             [AmbientFact(
-                world: .applications, application: id,
+                attention: .applications, application: id,
                 slot: .file, content: "live", subject: id,
                 provenance: .recipeRead, registration: .perceived)]
         }
         withRoster([sighted("sketch")]) { observer.activate() }
         observer.requestPoll(registrationID: "sketch")
         try? await Task.sleep(nanoseconds: 80_000_000)
-        #expect(!store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty)
+        #expect(!store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty)
 
         withRoster([]) { observer.activate() }
         #expect(observer.laneIDsForTesting.isEmpty)
-        #expect(store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty)
+        #expect(store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty)
     }
 
     /// No reader installed → silent timers, no claims, no crash.
@@ -142,7 +142,7 @@ import Testing
         withRoster([sighted("sketch")]) { observer.activate() }
         observer.requestPoll(registrationID: "sketch")
         try? await Task.sleep(nanoseconds: 50_000_000)
-        #expect(store.facts(place: AmbientPlace(world: .applications, application: "sketch")).isEmpty)
+        #expect(store.facts(place: AmbientPlace(attention: .applications, application: "sketch")).isEmpty)
         observer.deactivate()
     }
 }

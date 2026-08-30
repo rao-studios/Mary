@@ -114,13 +114,13 @@ public struct AmbientKey: Sendable, Equatable, Hashable {
 
     /// The closed world half. Kept as the primary spelling because almost every reader asks
     /// exactly this and does not care about the discriminator.
-    public var world: AmbientWorld { place.world }
+    public var attention: AmbientAttention { place.attention }
 
     /// The registered application's LOGICAL id — `"sketch"`, never a bundle identifier.
     public var application: String? { place.application }
 
-    public init(world: AmbientWorld, application: String? = nil, slot: AmbientSlot) {
-        self.init(place: AmbientPlace(world: world, application: application), slot: slot)
+    public init(attention: AmbientAttention, application: String? = nil, slot: AmbientSlot) {
+        self.init(place: AmbientPlace(attention: attention, application: application), slot: slot)
     }
 
     public init(place: AmbientPlace, slot: AmbientSlot) {

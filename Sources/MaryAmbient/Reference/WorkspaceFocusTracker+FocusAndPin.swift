@@ -14,8 +14,8 @@ import os
 extension WorkspaceFocusTracker {
 
 
-    func noteActivation(_ world: AmbientWorld) {
-        AmbientContextStore.shared.noteAttention(.init(tier: .activation, world: world))
+    func noteActivation(_ attention: AmbientAttention) {
+        AmbientContextStore.shared.noteWorld(.init(tier: .activation, attention: attention))
     }
 
     /// Suppress ambient signals while Mary is driving an app — those activations are ceremony, not intent.

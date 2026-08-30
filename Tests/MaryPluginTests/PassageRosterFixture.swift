@@ -32,7 +32,7 @@ enum PassageRosterFixture {
                 abilities: [ability],
                 documentNoun: noun),
             bundleIdentifiers: ["com.example.\(id)"],
-            worldClass: .workspace,
+            placeClass: .workspace,
             displayName: id.capitalized,
             perception: ApplicationPerception(
                 kind: .workspace, documentOperation: "read_document", pollSeconds: 3))

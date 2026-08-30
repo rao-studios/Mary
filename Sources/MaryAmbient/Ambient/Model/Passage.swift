@@ -25,7 +25,7 @@ public struct Passage: Sendable, Equatable, Identifiable {
     /// The opaque handle the model holds and passes back — `[S1]`.
     public var handle: String
     /// WHICH PLACE the document lives in. Eyes-bearing only (see `init?`). A REALM AND NOT A
-    /// WORLD, since 2026-08-15. It was an `AmbientWorld` while every document Mary could cut a
+    /// WORLD, since 2026-08-15. It was an `AmbientAttention` while every document Mary could cut a
     /// passage from belonged to a compiled plugin.
     public var place: AmbientPlace
     /// The document's stable identity in its own world's terms — Pages'
@@ -101,8 +101,8 @@ public struct Passage: Sendable, Equatable, Identifiable {
 
     /// The built-in spelling, kept so every existing caller and pinned test
     /// reads exactly as it did.
-    public static func canHold(_ world: AmbientWorld) -> Bool {
-        canHold(AmbientPlace.lane(world))
+    public static func canHold(_ attention: AmbientAttention) -> Bool {
+        canHold(AmbientPlace.lane(attention))
     }
 
     /// THE IDENTITY KEY minting is idempotent on: `place|documentKey|hash(text)`. Deliberately
@@ -117,9 +117,9 @@ public struct Passage: Sendable, Equatable, Identifiable {
     /// The built-in spelling, unchanged byte for byte — `token` IS `rawValue`
     /// for a native place, so no previously minted handle moves.
     public static func identity(
-        world: AmbientWorld, documentKey: String, text: String
+        attention: AmbientAttention, documentKey: String, text: String
     ) -> String {
-        identity(place: .lane(world), documentKey: documentKey, text: text)
+        identity(place: .lane(attention), documentKey: documentKey, text: text)
     }
 
     public var identity: String {

@@ -134,6 +134,8 @@ public struct PromptInputs: Sendable {
     public var runningActions: [String] = []
     /// A screen look fired for this very turn with nothing in hand yet.
     public var lookUnderway: Bool = false
+    /// Turn World holds a highlight this question is about — inspire a look/read, don't offer to open a file.
+    public var inspiredSight: Bool = false
 
     public init(
         plugins: [any MaryAdapter] = [],
@@ -156,11 +158,13 @@ public struct PromptInputs: Sendable {
         readReport: Bool = false,
         conversational: Bool = false,
         runningActions: [String] = [],
-        lookUnderway: Bool = false
+        lookUnderway: Bool = false,
+        inspiredSight: Bool = false
     ) {
         self.conversational = conversational
         self.runningActions = runningActions
         self.lookUnderway = lookUnderway
+        self.inspiredSight = inspiredSight
         self.capability = capability
         self.groundedResults = groundedResults
         self.liveWork = liveWork

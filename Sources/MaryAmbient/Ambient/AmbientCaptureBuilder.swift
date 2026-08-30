@@ -115,7 +115,7 @@ public enum AmbientCaptureBuilder {
 
     static func selectionCapture(_ handoff: AmbientSelectionHandoff) -> SelectionCapture {
         SelectionCapture(
-            place: token(for: AmbientPlace(world: handoff.world, application: handoff.application)),
+            place: token(for: AmbientPlace(attention: handoff.attention, application: handoff.application)),
             application: CapturedApplication(
                 name: handoff.applicationID, bundleID: handoff.applicationID),
             text: handoff.text,

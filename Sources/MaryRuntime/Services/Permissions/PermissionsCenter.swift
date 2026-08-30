@@ -294,7 +294,7 @@ package enum PermissionsCenter {
                 .registration(bundleID: bundleID)?.displayName
             ?? "the browser"
         AmbientContextStore.shared.register(AmbientFact(
-            world: .applications,
+            attention: .applications,
             application: AmbientPlaceResolver.browserApplicationID,
             slot: .file,
             content: "I can't see \(name)'s tabs — its Automation permission for me is off. It lives in System Settings, Privacy & Security, Automation, under Mary.",

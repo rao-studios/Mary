@@ -27,7 +27,7 @@ public enum AmbientBridge {
     /// continued the conversation and mary has lost the context of the page and the paragraph
     /// it found earlier." `phrase` is what the read was targeted at.
     public static func readFact(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String? = nil,
         phrase: String,
         summary: String,
@@ -40,7 +40,7 @@ public enum AmbientBridge {
         guard !text.isEmpty, !wanted.isEmpty else { return nil }
         let parsed = parseBounds(in: text)
         return AmbientFact(
-            world: world, application: application,
+            attention: attention, application: application,
             slot: .read(wanted, in: document),
             content: text,
             subject: parsed.subject,

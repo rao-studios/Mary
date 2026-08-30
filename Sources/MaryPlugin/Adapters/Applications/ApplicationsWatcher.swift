@@ -61,8 +61,8 @@ public final class ApplicationsWatcher: MaryObserver, @unchecked Sendable {
     }
 
     /// Preserve a known app's world so its representation can enrich when it wakes.
-    static func selectionWorld(for bundleID: String) -> AmbientWorld {
-        selectionPlace(for: bundleID).world
+    static func selectionAttention(for bundleID: String) -> AmbientAttention {
+        selectionPlace(for: bundleID).attention
     }
 
     /// Place so a registered app keeps its own lane. Unregistered → `.applications`.

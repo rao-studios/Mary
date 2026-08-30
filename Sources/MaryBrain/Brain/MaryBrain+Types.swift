@@ -35,10 +35,10 @@ extension MaryBrain {
     struct WorldVeto {
         struct Arming: Sendable {
             /// The leading writing world this turn belongs to.
-            var lead: AmbientWorld
+            var lead: AmbientAttention
             /// Worlds this turn's words re-admitted — named, referent, or
             /// mentioned. A call into any of these is the user's own ask.
-            var admitted: Set<AmbientWorld>
+            var admitted: Set<AmbientAttention>
             /// The lead's targeted read, for the redirect sentence.
             var read: (binding: String, parameter: String)
         }
@@ -51,12 +51,12 @@ extension MaryBrain {
         }
 
         /// The synthetic Skill result to answer this call with INSTEAD of dispatching it, or nil to dispatch normally.
-        mutating func redirect(for skillName: String, world: AmbientWorld?) -> String? {
-            guard let arming, !spent, let world, world.hasEyes,
-                  world != arming.lead,
-                  !arming.admitted.contains(world) else { return nil }
+        mutating func redirect(for skillName: String, attention: AmbientAttention?) -> String? {
+            guard let arming, !spent, let attention, attention.hasEyes,
+                  attention != arming.lead,
+                  !arming.admitted.contains(attention) else { return nil }
             spent = true
-            return "Nothing ran in \(world.displayName) — the user's work this turn is "
+            return "Nothing ran in \(attention.displayName) — the user's work this turn is "
                 + "the \(arming.lead.displayName) document in front of them. Look there "
                 + "instead: call \(arming.read.binding) with \(arming.read.parameter) set "
                 + "to the words they used, or without it for the whole document."

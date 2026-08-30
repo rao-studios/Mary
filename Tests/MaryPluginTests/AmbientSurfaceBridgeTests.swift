@@ -14,7 +14,7 @@ import XCTest
 
 final class AmbientSurfaceBridgeTests: XCTestCase {
 
-    private let place = AmbientPlace(world: .applications, application: "com.example.app")
+    private let place = AmbientPlace(attention: .applications, application: "com.example.app")
 
     private func context(
         roles: [(role: String, label: String, category: AXNodeCategory)] =

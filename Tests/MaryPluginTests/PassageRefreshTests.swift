@@ -361,7 +361,7 @@ private func following(_ handle: String, in registry: PassageRegistry) -> Passag
             let held = hold(
                 "This document sets out what we are for, before the next review.", in: registry)
             ambient.register(AmbientFact(
-                world: .applications, application: "quill", slot: .read("Purpose"),
+                attention: .applications, application: "quill", slot: .read("Purpose"),
                 content: "[\(held.handle)] Brief — characters 0–0 of 0:\n" + held.text,
                 subject: "Brief", provenance: .recipeRead, registration: .askedFor,
                 capturedAt: now, spokenAt: now, spokenNote: "told them about it",

@@ -172,7 +172,7 @@ import Testing
     /// a manuscript is not a reading of the sentence; it is where the user is.
     /// THIS TEST HAND-BUILT A VALUE NO TAUGHT TURN COULD PRODUCE, and for a
     /// while that made it a promise rather than a proof: `workspaceFamily` was
-    /// `route.lead?.ability`, and `AmbientWorld.ability` answers only for the
+    /// `route.lead?.ability`, and `AmbientAttention.ability` answers only for the
     /// compiled worlds — so the guarantee "being in a writing workspace is
     /// enough" held in Pages and nowhere else. It is real now because the
     /// value comes off `route.leadPlace`, and

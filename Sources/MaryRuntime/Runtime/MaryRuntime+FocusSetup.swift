@@ -36,7 +36,7 @@ extension MaryRuntime {
     /// Skill binding name → owning world. Built from the installed roster, not a second table.
     // internal for file split — treat as private
     static let skillWorldBox =
-        OSAllocatedUnfairLock<[String: AmbientWorld]>(initialState: [:])
+        OSAllocatedUnfairLock<[String: AmbientAttention]>(initialState: [:])
     static let applicationProfilesBox =
         OSAllocatedUnfairLock<[ApplicationProfile]>(initialState: [])
     static let nativeApplicationProfilesBox =
@@ -68,7 +68,7 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<Bool>(initialState: true)
 
     /// Debugger snapshot. Empty until first installBrainConfiguration.
-    static func skillWorldIndex() -> [String: AmbientWorld] {
+    static func skillWorldIndex() -> [String: AmbientAttention] {
         skillWorldBox.withLock { $0 }
     }
 

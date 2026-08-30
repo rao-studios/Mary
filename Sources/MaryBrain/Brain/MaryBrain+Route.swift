@@ -19,11 +19,11 @@ extension MaryBrain {
     /// LOCATE-FIRST, factored — the one place a revision's target is found.
     // internal for file split — treat as private
     func locateTarget(
-        for intent: EditIntent?, worldHint: AmbientWorld? = nil
+        for intent: EditIntent?, attentionHint: AmbientAttention? = nil
     ) async -> LocatedPassage? {
         guard let intent, let dispatcher else { return nil }
         return await withNanosecondBudget(Self.preReadBudgetNanoseconds) {
-            await dispatcher.locatePassage(intent, worldHint: worldHint)
+            await dispatcher.locatePassage(intent, attentionHint: attentionHint)
         }
     }
 

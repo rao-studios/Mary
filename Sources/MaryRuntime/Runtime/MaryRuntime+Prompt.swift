@@ -35,9 +35,9 @@ extension MaryRuntime {
             let store = AmbientContextStore.shared
             let routed = routedHeldAmbient(
                 facts: store.facts(),
-                attention: store.attention(),
+                world: store.world(),
                 route: store.route())
-            let attention = routed.attention
+            let attention = routed.world
             var alreadyRendered: Set<AmbientKey> = alsoRendered
             // Skip facts the live block already said (one comparison: lead place).
             if let lead = resolved.leadPlace {
@@ -56,7 +56,7 @@ extension MaryRuntime {
                 facts: routed.facts,
                 utterance: store.utterance(),
                 focusedPlace: resolved.leadPlace,
-                attention: attention,
+                world: attention,
                 alreadyRendered: alreadyRendered,
                 suppressingContentIn: suppressing,
                 surfaces: surfaces,
@@ -211,7 +211,9 @@ extension MaryRuntime {
                 groundedResults: pass.groundedResults,
                 liveWork: liveWork,
                 // Stated by the arbiter, not re-derived here.
-                liveWorkWorld: sections.liveWorld,
+                liveWorkWorld: LiveWorkWorld.claim(
+                    arbiter: sections.liveWorld,
+                    machine: AmbientContextStore.shared.world()),
                 // TIER 0 LEADS — see the Skill lane's note above; both lanes
                 // present the surface before the details it supports.
                 heldFacts: held.surfaceLines + held.blocks,
@@ -220,7 +222,8 @@ extension MaryRuntime {
                 readReport: pass.readReport,
                 conversational: pass.conversational,
                 runningActions: pass.runningActionLabels,
-                lookUnderway: pass.lookUnderway)
+                lookUnderway: pass.lookUnderway,
+                inspiredSight: pass.inspiredSight)
             let assembled = promptWithTails(
                 render: render, lane: .seerInstructions, held: held,
                 budget: AmbientRanker.voiceBudget,

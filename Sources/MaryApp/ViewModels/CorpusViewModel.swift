@@ -295,7 +295,7 @@ final class CorpusViewModel: ObservableObject {
 
     // MARK: - The Ability cut
 
-    /// One card per Ability from registered producers. Ability→application from AmbientWorld.ability.
+    /// One card per Ability from registered producers. Ability→application from AmbientAttention.ability.
     nonisolated static func abilities(_ inputs: Inputs) -> [CorpusAbilitySection] {
         let allTiers = tiers(inputs)
         let producers = inputs.producers

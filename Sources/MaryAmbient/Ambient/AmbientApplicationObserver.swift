@@ -182,7 +182,7 @@ public final class AmbientApplicationObserver: @unchecked Sendable {
             // other lanes are untouched — `replacePerceived` is lane-scoped
             // by construction.
             store.replacePerceived(
-                world: place.world,
+                attention: place.attention,
                 application: place.application,
                 with: (facts ?? []).map { fact in
                     var stamped = fact

@@ -58,7 +58,8 @@ public enum AXElementRoster {
         in snapshot: AXAppSnapshot,
         scope: Scope = .actionable,
         windows windowScope: WindowScope = .front,
-        limit: Int = publishedLimit
+        limit: Int = publishedLimit,
+        declaredEditorRoles: Set<String> = []
     ) -> [AXScreenElement] {
         let visible = snapshot.windows.filter { !$0.isMinimized }
         let selected: [AXWindowSnapshot]
@@ -73,17 +74,30 @@ public enum AXElementRoster {
             var candidates: [Candidate] = []
             root.forEachNode(withAncestors: { node, ancestors in
                 guard included(category: node.category, scope: scope) else { return }
-                guard let label = node.label, !label.isEmpty else { return }
-                guard let frame = publishableFrame(
-                    measured: node.frame, window: window.frame,
-                    role: node.role, category: node.category
-                ) else { return }
                 let trail = ancestors
                     .filter {
                         $0.category == .container || $0.category == .scrollArea
                             || $0.category == .webArea
                     }
                     .compactMap(\.label)
+                let isDeclaredEditor = declaredEditorRoles.contains(node.role)
+                let rawLabel = node.label.flatMap { $0.isEmpty ? nil : $0 }
+                let label: String
+                if let rawLabel {
+                    label = rawLabel
+                } else if isDeclaredEditor {
+                    label = fallbackEditorLabel(
+                        role: node.role,
+                        windowTitle: window.title,
+                        containerTrail: trail,
+                        isFocused: node.isFocused)
+                } else {
+                    return
+                }
+                guard let frame = publishableFrame(
+                    measured: node.frame, window: window.frame,
+                    role: node.role, category: node.category
+                ) else { return }
                 candidates.append(Candidate(
                     id: node.id, role: node.role, subrole: node.subrole,
                     category: node.category, label: label, frame: frame,
@@ -232,5 +246,32 @@ public enum AXElementRoster {
         if lhsBand != rhsBand { return lhsBand < rhsBand }
         if lhs.frame.minX != rhs.frame.minX { return lhs.frame.minX < rhs.frame.minX }
         return lhs.label < rhs.label
+    }
+
+    /// Fallback name for an unlabeled declared editor. Extends `role|label`, does not invent a second key.
+    public static func fallbackEditorLabel(
+        role: String,
+        windowTitle: String,
+        containerTrail: [String],
+        isFocused: Bool
+    ) -> String {
+        let title = windowTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !title.isEmpty { return title }
+        if let last = containerTrail.last, !last.isEmpty { return last }
+        if isFocused { return "focused editor" }
+        if role == "AXTextArea" { return "source editor" }
+        return "text editor"
+    }
+
+    /// Focused declared editor among split siblings; else the largest matching pane.
+    public static func preferredDeclaredEditor(
+        in elements: [AXScreenElement],
+        roles: Set<String>
+    ) -> AXScreenElement? {
+        let editors = elements.filter { roles.contains($0.role) }
+        if let focused = editors.first(where: \.isFocused) { return focused }
+        return editors.max {
+            ($0.frame.width * $0.frame.height) < ($1.frame.width * $1.frame.height)
+        }
     }
 }

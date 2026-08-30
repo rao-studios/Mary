@@ -69,7 +69,7 @@ import Testing
     ///
     /// A `.dynamic` place and not a compiled world, deliberately — this is the
     /// rung a package brings, and it has to work for a place with no
-    /// `AmbientWorld` behind it.
+    /// `AmbientAttention` behind it.
 
     // MARK: - Content
 

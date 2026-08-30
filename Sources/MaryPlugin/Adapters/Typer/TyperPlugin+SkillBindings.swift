@@ -34,7 +34,7 @@ extension TyperPlugin {
                     guard let target = TypingSurface.resolve(
                         requested: args["app"],
                         preferredApplicationID: AmbientContextStore.shared
-                            .route()?.routedAttention?.applicationID) else {
+                            .route()?.routedWorld?.applicationID) else {
                         // Browser pages are unresolvable here (SelectionSurfacePolicy) — web writer owns them.
                         if let front = NSWorkspace.shared.frontmostApplication?
                             .bundleIdentifier,

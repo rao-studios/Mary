@@ -197,7 +197,7 @@ public protocol MaryAdapter: Sendable {
 
     /// Ambient world this provider serves. Default: plugin id.
     /// PIN: observation adapters whose identity lives on a package must declare this.
-    var servedWorld: AmbientWorld? { get }
+    var servedAttention: AmbientAttention? { get }
 }
 
 public extension MaryAdapter {
@@ -225,7 +225,7 @@ public extension MaryAdapter {
     var refusals: [String] { [] }
 
     /// Plugin id is its world, for every plugin that is one.
-    var servedWorld: AmbientWorld? { AmbientWorld.from(pluginOwner: name) }
+    var servedAttention: AmbientAttention? { AmbientAttention.from(pluginOwner: name) }
 
     /// Nil until passage machinery lands; then derived from passageBacking.
     var targetedEdit: (binding: String, parameter: String)? { nil }
@@ -234,7 +234,7 @@ public extension MaryAdapter {
         ApplicationProfile(
             id: name,
             // Display name: user-facing. Worldless natives keep the id via `title ?? id`.
-            title: AmbientWorld.from(pluginOwner: name)?.displayName,
+            title: AmbientAttention.from(pluginOwner: name)?.displayName,
             summary: summary,
             abilities: abilities,
             aliases: applicationAliases,

@@ -107,17 +107,13 @@ extension MaryBrain {
             }
         }
 
-        // Pre-lane look — fetch-first for sight.
+        // Fetch-first: highlight read / document inspect / look, then speak.
         var lookUnderway = false
         var lookServed = false
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
-           // Perceive (routing's deixis) OR the conservative LookClassifier
-           // (the "that"-shapes routing keeps as `.converse`). The
-           // dispatcher declines cheaply when a world with its own eyes leads.
-           routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil,
-           dispatcher.wouldServeLook() {
+           routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil {
             let description = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
-                await dispatcher.lookAtScreen(userText)
+                await dispatcher.fetchDeclaredEditorSight(query: userText)
             }
             if Task.isCancelled {
                 appendCancelledEpilogue(
@@ -129,9 +125,8 @@ extension MaryBrain {
                 readPassages = [description]
                 lookServed = true
                 readLedger.record(ReadDelivery(
-                    route: .prefetched, detail: "look_at_screen",
+                    route: .prefetched, detail: "declared-editor-sight",
                     characters: description.count))
-                // Arm referent from the look — next turn's "here"/"it".
                 if let glanced = focusTracker.latestGlancePlace(),
                    let application = glanced.application,
                    let routable = Self.routableApplicationID(
@@ -140,10 +135,7 @@ extension MaryBrain {
                        focusTracker: focusTracker) {
                     recentApplicationReferent = (routable, Date())
                 }
-            } else {
-                // The look fired and nothing came back in budget — the voice
-                // must promise the look, never deny sight; Lane B carries it
-                // and the spoken follow-up delivers the description.
+            } else if dispatcher.wouldServeLook() {
                 lookUnderway = true
             }
         }
@@ -155,12 +147,16 @@ extension MaryBrain {
         // Stale-grounding windows (accepted): - W1 — routine settles mid-Lane-A: this snapshot predates a doneMarker/follow-up…
         let messages = spokenMessages()
         // In-turn: resolve LIVE. The utterance override is still installed here (it is cleared by runTurn's defer, which has not run yet)
+        let inspiredSight = ambient.route()?.inspiresSight == true
+            && (routeIntent == .perceive
+                || LookClassifier.lookQuery(in: userText) != nil)
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
             // THE ROUTER'S OWN VERDICT, carried rather than re-derived.
             conversational: routeIntent == .converse,
             runningActionLabels: activeRoutines.values.map(\.label),
             lookUnderway: lookUnderway,
+            inspiredSight: inspiredSight,
             exchangeID: originUserTurnID))
         let laneSeed = history
 

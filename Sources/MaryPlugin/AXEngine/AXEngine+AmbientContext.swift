@@ -17,7 +17,8 @@ extension AXEngine {
     public static func ambientContext(
         pid: pid_t,
         options: AXSnapshotBuilder.Options = .init(),
-        scope: AXElementRoster.Scope = AXAmbientContext.ambientScope
+        scope: AXElementRoster.Scope = AXAmbientContext.ambientScope,
+        declaredEditorRoles: Set<String> = []
     ) -> AXAmbientContext? {
         guard let built = AXSnapshotBuilder.build(pid: pid, options: options)
         else { return nil }
@@ -25,6 +26,7 @@ extension AXEngine {
             snapshot: built.snapshot,
             scope: scope,
             limit: AXElementRoster.publishedLimit,
+            declaredEditorRoles: declaredEditorRoles,
             // Hosts web content? Unwoken Chromium/Electron: native chrome only.
             webContentHost: WebContentHost.classify(
                 pid: pid, bundleID: built.snapshot.bundleID) != .none,

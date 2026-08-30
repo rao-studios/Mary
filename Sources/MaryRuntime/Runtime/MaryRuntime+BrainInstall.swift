@@ -63,7 +63,7 @@ extension MaryRuntime {
                     let spoken = sight.windowTitle.map { "\(sight.appTitle) — \($0)" }
                         ?? sight.appTitle
                     guard let fact = AmbientBridge.readFact(
-                        world: .applications,
+                        attention: .applications,
                         application: place.application,
                         phrase: sight.windowTitle ?? sight.appTitle,
                         summary: "Looked at \(spoken) (\(sight.provenanceLabel)): \(description)",

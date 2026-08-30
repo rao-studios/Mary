@@ -199,9 +199,9 @@ struct RouterPaneView: View {
             Divider().opacity(0.4)
             leadField(row)
             field("named", row.namedPlaces.map(\.displayName).joined(separator: ", "))
-            field("worlds", row.candidateWorlds.map(\.rawValue).joined(separator: ", "))
+            field("worlds", row.candidateAttentions.map(\.rawValue).joined(separator: ", "))
             field("ranking", row.rankingMode.rawValue)
-            if let attention = row.attention {
+            if let attention = row.world {
                 field("attention", attentionDescription(attention))
             }
             if let writingTarget = row.writingTarget {
@@ -297,7 +297,7 @@ struct RouterPaneView: View {
                     Text(place.displayName)
                         .font(.maryMono(9))
                         .foregroundStyle(place.isApplication ? accent : Paper.ink.opacity(0.75))
-                    Text(place.worldClass.rawValue)
+                    Text(place.placeClass.rawValue)
                         .font(.system(size: 7, weight: .bold, design: .rounded))
                         .foregroundStyle(accent)
                         .padding(.horizontal, 3)
@@ -350,8 +350,8 @@ struct RouterPaneView: View {
         }
     }
 
-    private func attentionDescription(_ attention: AmbientAttention) -> String {
-        [attention.tier.displayName, attention.world.displayName, attention.subject]
+    private func attentionDescription(_ attention: AmbientWorld) -> String {
+        [attention.tier.displayName, attention.attention.displayName, attention.subject]
             .compactMap { $0 }
             .joined(separator: " · ")
     }

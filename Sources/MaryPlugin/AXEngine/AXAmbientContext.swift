@@ -128,6 +128,7 @@ public struct AXAmbientContext: Sendable, Equatable {
         snapshot: AXAppSnapshot,
         scope: AXElementRoster.Scope = AXAmbientContext.ambientScope,
         limit: Int = AXElementRoster.publishedLimit,
+        declaredEditorRoles: Set<String> = [],
         webContentHost: Bool = false,
         observersCovered: Int? = nil,
         observersTotal: Int? = nil
@@ -144,7 +145,8 @@ public struct AXAmbientContext: Sendable, Equatable {
         self.windowCount = snapshot.windows.count
         self.minimizedCount = snapshot.windows.filter(\.isMinimized).count
         self.elements = AXElementRoster.elements(
-            in: snapshot, scope: scope, windows: .front, limit: limit)
+            in: snapshot, scope: scope, windows: .front, limit: limit,
+            declaredEditorRoles: declaredEditorRoles)
         self.scope = scope
         self.focused = Self.focusedElement(in: snapshot)
         self.capture = Capture(

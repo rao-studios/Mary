@@ -57,7 +57,7 @@ import Testing
                 ApplicationRegistration(
                     id: applicationID, profile: profile,
                     bundleIdentifiers: bundleIdentifiers,
-                    worldClass: .workspace, displayName: profile.title,
+                    placeClass: .workspace, displayName: profile.title,
                     perception: perception),
             ])
         ) {

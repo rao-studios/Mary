@@ -120,7 +120,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     public static let handoffFreshFor: TimeInterval = 30
 
     public var id: UUID
-    public var world: AmbientWorld
+    public var attention: AmbientAttention
     /// The registered application whose lane this selection belongs to, when its world holds
     /// more than one.
     public var application: String?
@@ -132,7 +132,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
     /// WHERE this selection came from, as ONE value. `world` and `application` are two fields
     /// answering one question.
     public var place: AmbientPlace {
-        application.map(AmbientPlace.application) ?? .lane(world)
+        application.map(AmbientPlace.application) ?? .lane(attention)
     }
     /// Best-effort fingerprint of the live AX object that supplied the interaction. It is not a
     /// durable document id; it only distinguishes simultaneous title/comment/document surfaces
@@ -177,7 +177,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
 
     public init(
         id: UUID = UUID(),
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String? = nil,
         applicationID: String,
         processID: Int32,
@@ -200,7 +200,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
         payloadRecovery: AmbientSelectionPayloadRecovery? = nil
     ) {
         self.id = id
-        self.world = world
+        self.attention = attention
         self.application = application
         var resolvedScope = scope ?? SourceScope()
         // The long-standing initializer arguments remain the transport
@@ -260,7 +260,7 @@ public struct AmbientSelectionHandoff: Sendable, Equatable, Identifiable {
         InteractionInstanceReference(
             id: id,
             // A CODING PLACE'S SELECTION IS A DIFFERENT KIND OF THING.
-            schemaID: AmbientPlace(world: world, application: application).focus == .coding
+            schemaID: AmbientPlace(attention: attention, application: application).focus == .coding
                 ? .codeSelection : .textSelection,
             scope: scope,
             capturedAt: capturedAt,

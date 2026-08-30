@@ -27,7 +27,7 @@ extension CodeSurfaceAdapter {
 
     /// Each package that declares a `codeSurface` is a place whose lead owner
     /// is the application id (`"xcode"`), not `"code-surface"`. Fetch-first
-    /// and `wouldServeLook` look the targeted-read table up by that owner.
+    /// looks the targeted-read table up by that owner; look_at_screen does not.
     public var targetedReadAliases: [String] {
         support.all().map(\.applicationID)
     }

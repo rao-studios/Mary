@@ -62,13 +62,13 @@ public struct ResolvedReferent: Sendable, Equatable {
 
     /// The built-in spelling.
     public init(
-        world: AmbientWorld, key: String, title: String,
+        attention: AmbientAttention, key: String, title: String,
         rung: ReferenceResolver.Rung,
         confidence: ReferenceResolver.Confidence = .exact,
         alternative: ReferenceResolver.Rival? = nil
     ) {
         self.init(
-            place: .lane(world), key: key, title: title, rung: rung,
+            place: .lane(attention), key: key, title: title, rung: rung,
             confidence: confidence, alternative: alternative)
     }
 }

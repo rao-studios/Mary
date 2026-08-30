@@ -17,7 +17,7 @@ public enum WorkspaceApplicationIdentity {
     public static let keynote = "com.apple.iWork.Keynote"
 
     /// THE ONE COMPILED BROWSER, and the only browser bundle this layer knows by heart.
-    /// `AmbientWorld` carries a closed `.safari` case for it, so it is vocabulary in exactly
+    /// `AmbientAttention` carries a closed `.safari` case for it, so it is vocabulary in exactly
     /// the way the other four above are. EVERY OTHER BROWSER IS DISCOVERED, not listed.
     public static let safari = "com.apple.Safari"
 }

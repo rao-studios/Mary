@@ -29,8 +29,7 @@ public struct AXScreenElement: Sendable, Equatable, Identifiable {
     public var role: String
     public var subrole: String?
     public var category: AXNodeCategory
-    /// Never empty — `AXElementRoster` drops unlabeled nodes rather than
-    /// publish an ordinal or a refusal rival with nothing to say.
+    /// Never empty — unlabeled nodes drop unless they match a declared editor role.
     public var label: String
     /// Global, top-left-origin AX screen coordinates, already clipped to the
     /// window it came from — the snapshot-lane analogue of the page lane's

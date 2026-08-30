@@ -117,7 +117,7 @@ final class AmbientSurfaceObserverTests: XCTestCase {
                 id: "xcode", title: "Xcode", summary: "One code editor.",
                 abilities: ["coding"]),
             bundleIdentifiers: ["com.apple.dt.Xcode"],
-            worldClass: .workspace)
+            placeClass: .workspace)
         let observer = AmbientSurfaceObserver(
             store: AmbientContextStore(),
             elementIndex: AmbientElementIndexStore(),
@@ -162,7 +162,7 @@ final class AmbientSurfaceObserverTests: XCTestCase {
                 abilities: [.browsing],
                 applicationIdentifiers: [browserBundleID]),
             bundleIdentifiers: [browserBundleID],
-            worldClass: .perceptionOnly,
+            placeClass: .perceptionOnly,
             displayName: "Browser")
         AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([registration]), operation: body)

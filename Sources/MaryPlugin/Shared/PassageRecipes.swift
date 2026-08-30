@@ -34,8 +34,8 @@ public enum PassageRecipes {
     }
 
     /// The built-in spelling.
-    public static func backing(for world: AmbientWorld) -> PassageBacking? {
-        backing(for: AmbientPlace.lane(world))
+    public static func backing(for attention: AmbientAttention) -> PassageBacking? {
+        backing(for: AmbientPlace.lane(attention))
     }
 
     /// Whether ANYONE has installed the resolver — the wiring fact `route`'s

@@ -72,7 +72,7 @@ public struct AmbientRoute: Sendable, Equatable {
     /// The question form, requested ability, and durable-memory lanes for this turn.
     public var gate: AmbientIntentGate
     /// The freshest behavioral signal available when this turn was routed.
-    public var attention: AmbientAttention?
+    public var world: AmbientWorld?
     /// Whether that attention is the semantic referent/target of this turn. `attention` remains
     /// available when false for diagnostics and ordering, but prompt construction must not
     /// present it as what deictic words mean.
@@ -97,7 +97,7 @@ public struct AmbientRoute: Sendable, Equatable {
     /// Worlds that supplied routing evidence for this turn. Ability packages may constrain
     /// individual Skills with typed predicates; this diagnostic set is never itself an
     /// execution allowlist. STAYS A WORLD SET, and now for a better reason than the old one.
-    public var candidateWorlds: Set<AmbientWorld>
+    public var candidateAttentions: Set<AmbientAttention>
 
     // MARK: - Needs
 
@@ -124,13 +124,13 @@ public struct AmbientRoute: Sendable, Equatable {
         decidedBy: AmbientSignal,
         verdicts: AmbientVerdicts = AmbientVerdicts(),
         gate: AmbientIntentGate = AmbientIntentGate(),
-        attention: AmbientAttention? = nil,
+        world: AmbientWorld? = nil,
         selectionDefinesTurn: Bool = false,
         leadApplicationID: String? = nil,
         leadPlace: AmbientPlace? = nil,
         namedPlaces: Set<AmbientPlace>? = nil,
         realm: AmbientRealm? = nil,
-        candidateWorlds: Set<AmbientWorld> = [],
+        candidateAttentions: Set<AmbientAttention> = [],
         writingTarget: AmbientWritingTarget? = nil,
         supportingContext: String? = nil,
         needsLocate: Bool = false,
@@ -142,14 +142,14 @@ public struct AmbientRoute: Sendable, Equatable {
         self.decidedBy = decidedBy
         self.verdicts = verdicts
         self.gate = gate
-        self.attention = attention
+        self.world = world
         self.selectionDefinesTurn = selectionDefinesTurn
         self.leadApplicationID = leadApplicationID
         self.leadPlace = leadPlace
             ?? Self.leadPlace(leadApplicationID: leadApplicationID)
         self.namedPlaces = namedPlaces ?? Self.namedPlaces(gate: gate)
         self.realm = realm
-        self.candidateWorlds = candidateWorlds
+        self.candidateAttentions = candidateAttentions
         self.writingTarget = writingTarget
         self.supportingContext = supportingContext
         self.needsLocate = needsLocate
@@ -194,14 +194,14 @@ public extension AmbientRoute {
     func admitsHeldFact(_ fact: AmbientFact) -> Bool {
         guard fact.slot == .selection else { return true }
         guard selectionDefinesTurn,
-              let attention,
-              attention.isDirectReference,
-              let selectedText = attention.selectedText,
-              attention.matches(fact),
-              fact.world == attention.world,
-              fact.applicationID == attention.applicationID,
-              fact.subject == attention.subject,
-              fact.capturedAt == attention.capturedAt
+              let world,
+              world.isDirectReference,
+              let selectedText = world.selectedText,
+              world.matches(fact),
+              fact.attention == world.attention,
+              fact.applicationID == world.applicationID,
+              fact.subject == world.subject,
+              fact.capturedAt == world.capturedAt
         else { return false }
 
         // AmbientKey identifies a superseding slot, not one capture. Source,
@@ -212,33 +212,36 @@ public extension AmbientRoute {
 
     /// The direct attention this route actually accepted as its referent.
     /// Diagnostic attention remains on the route when this is nil.
-    var routedSelectionAttention: AmbientAttention? {
-        selectionDefinesTurn && attention?.isDirectReference == true
-            ? attention
+    var routedSelectionWorld: AmbientWorld? {
+        selectionDefinesTurn && world?.isDirectReference == true
+            ? world
             : nil
     }
+
+    /// Deictic question about a standing editor highlight — Lane A should inspire a look/read.
+    var inspiresSight: Bool { routedSelectionWorld != nil }
 
     /// Attention after semantic containment. `attention` itself deliberately
     /// retains a rejected source packet for diagnostics; consumers that can
     /// influence prompts, routing, or execution use this projection instead.
-    var routedAttention: AmbientAttention? {
-        guard attention?.isDirectReference == true else { return attention }
-        return routedSelectionAttention
+    var routedWorld: AmbientWorld? {
+        guard world?.isDirectReference == true else { return world }
+        return routedSelectionWorld
     }
 
     /// Exact identity check between the source-owned packet frozen for this turn and the
-    /// selection the route accepted. `AmbientAttention` has no packet UUID, so all immutable
+    /// selection the route accepted. `AmbientWorld` has no packet UUID, so all immutable
     /// source/value fields participate.
     func admitsSelectionHandoff(_ handoff: AmbientSelectionHandoff) -> Bool {
-        guard let attention = routedSelectionAttention,
-              handoff.world == attention.world,
-              handoff.applicationID == attention.applicationID,
-              handoff.subject == attention.subject,
-              handoff.text == attention.selectedText,
-              handoff.capturedAt == attention.capturedAt,
-              handoff.editability == attention.selectionEditability,
-              handoff.sourceEvidence == attention.selectionSourceEvidence,
-              handoff.payloadRecovery == attention.selectionPayloadRecovery
+        guard let world = routedSelectionWorld,
+              handoff.attention == world.attention,
+              handoff.applicationID == world.applicationID,
+              handoff.subject == world.subject,
+              handoff.text == world.selectedText,
+              handoff.capturedAt == world.capturedAt,
+              handoff.editability == world.selectionEditability,
+              handoff.sourceEvidence == world.selectionSourceEvidence,
+              handoff.payloadRecovery == world.selectionPayloadRecovery
         else { return false }
         return true
     }

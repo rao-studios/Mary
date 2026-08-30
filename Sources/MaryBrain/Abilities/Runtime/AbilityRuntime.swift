@@ -128,7 +128,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private let passageBackings: [String: PassageBacking]
 
     /// World each binding owner serves when the owner's id does not spell it.
-    private let servedWorlds: [String: AmbientWorld]
+    private let servedAttentions: [String: AmbientAttention]
     private let contextProvider: @Sendable () -> AbilityExecutionContext
     /// Plugin whose Skills hoist to the front of the roster. Nil keeps natural order.
     private let focusProvider: (@Sendable () -> String?)?
@@ -188,15 +188,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         var reads: [String: (binding: String, parameter: String)] = [:]
         var edits: [String: (binding: String, parameter: String)] = [:]
         var backings: [String: PassageBacking] = [:]
-        var worlds: [String: AmbientWorld] = [:]
+        var attentions: [String: AmbientAttention] = [:]
         for plugin in plugins {
             // Observation adapter serving a differently-named world: register under both keys.
-            if let served = plugin.servedWorld, served.pluginOwner != plugin.name {
-                worlds[plugin.name] = served
+            if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
+                attentions[plugin.name] = served
             }
             if let targeted = plugin.targetedRead {
                 reads[plugin.name] = targeted
-                if let served = plugin.servedWorld, served.pluginOwner != plugin.name {
+                if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
                     reads[served.pluginOwner] = targeted
                 }
                 for alias in plugin.targetedReadAliases where alias != plugin.name {
@@ -211,7 +211,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         self.targetedReads = reads
         self.targetedEdits = edits
         self.passageBackings = backings
-        self.servedWorlds = worlds
+        self.servedAttentions = attentions
         self.contextProvider = contextProvider
         self.focusProvider = focusProvider
         self.executionLog = executionLog
@@ -744,12 +744,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private func routedSignalSnapshot() -> SchemaSignalTurnSnapshot {
         let snapshot = SchemaSignalTurnContext.snapshot ?? .empty
         let route = ambient.route()
-        guard let rejectedAttention = route?.attention,
+        guard let rejectedAttention = route?.world,
               rejectedAttention.tier == .selection,
               route?.selectionDefinesTurn != true
         else { return snapshot }
         let rejectedHandoffID = ambient.selectionHandoff(
-            world: rejectedAttention.world)?.id
+            attention: rejectedAttention.attention)?.id
         // Code or prose — asked of the registration, not a name.
         let rejectedSchema: InteractionID =
             rejectedAttention.place.focus == .coding
@@ -770,14 +770,14 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     func abilityRoutingContext() -> AbilityRoutingContext {
         let route = ambient.route()
         let windowIntent = windowManagementTurnIntent(route: route)
-        let diagnosticAttention = route?.attention
+        let diagnosticAttention = route?.world
         // Keep the source packet on AmbientRoute for diagnostics and event ordering
         let excludesDiagnosticSelection = diagnosticAttention?.tier == .selection
             && route?.selectionDefinesTurn != true
         let attention = excludesDiagnosticSelection ? nil : diagnosticAttention
         let facts = ambient.facts()
         let handoff = attention.flatMap {
-            ambient.routedSelectionHandoff(world: $0.world)
+            ambient.routedSelectionHandoff(attention: $0.attention)
         }
         var interactions: Set<InteractionID> = []
         let signalSnapshot = routedSignalSnapshot()
@@ -794,7 +794,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         var perceptions = signalSnapshot.perceptionIDs
         if let lead = route?.leadPlace {
             // Native lead earns focus perception for leading — same as before.
-            if lead.worldClass == .workspace {
+            if lead.placeClass == .workspace {
                 perceptions.insert(.workspaceFocus)
                 perceptions.insert(.projectFocus)
             }
@@ -836,7 +836,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         for perception in signalSnapshot.perceptions {
             promote(perception.reference.scope.resolution)
         }
-        if let lead = route?.leadPlace, lead.worldClass == .workspace {
+        if let lead = route?.leadPlace, lead.placeClass == .workspace {
             promote(.workspace)
             // `$0.place == lead`, NOT `$0.world == lead`.
             let leadFacts = facts.filter { $0.place == lead }
@@ -863,7 +863,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         targets.formUnion(windowIntent.targetClasses)
         if let lead = route?.leadPlace {
             targets.insert(lead.token)
-            targets.insert(lead.worldClass.rawValue)
+            targets.insert(lead.placeClass.rawValue)
             // Lead's target classes come from its package.
             // PIN: Used to be a switch over compiled worlds.
             if let registration = AmbientApplicationIndexProvider.current
@@ -886,7 +886,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         }
         // World class from the lead place. The block above stays keyed on `route.lead`.
         if let leadPlace = route?.leadPlace {
-            targets.insert(leadPlace.worldClass.rawValue)
+            targets.insert(leadPlace.placeClass.rawValue)
         }
         var namedApplications = Set(route?.gate.applications ?? [])
         if let id = route?.leadPlace?.application { namedApplications.insert(id) }
@@ -1028,7 +1028,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             named.insert(leadApplicationID)
         }
         let interaction = route?.selectionDefinesTurn == true
-            ? route?.attention?.applicationID : nil
+            ? route?.world?.applicationID : nil
         let signals = ApplicationProviderSignals(
             namedApplicationIDs: named,
             interactionApplicationID: interaction,
@@ -1137,7 +1137,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// Owner's place: roster first, then the served-world map a package installed.
     private func place(ofOwner owner: String) -> AmbientPlace? {
         applications.registration(id: owner)?.place
-            ?? servedWorlds[owner].map(AmbientPlace.lane)
+            ?? servedAttentions[owner].map(AmbientPlace.lane)
     }
 
     private func scopedPlace(owner: String) -> AmbientPlace? {
@@ -1152,7 +1152,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             admits(owner: attributed[index].owner, scope: scope)
         }
         // Leading place first among what remains.
-        let owner = scope.lead.application ?? scope.lead.world.pluginOwner
+        let owner = scope.lead.application ?? scope.lead.attention.pluginOwner
         return eligible.filter { attributed[$0].owner == owner }
             + eligible.filter { attributed[$0].owner != owner }
     }
@@ -1199,23 +1199,23 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         }
     }
 
-    public func world(ofSkill skillName: String) -> AmbientWorld? {
+    public func attention(ofSkill skillName: String) -> AmbientAttention? {
         let operation = abilitySnapshot.bindingOperation(forInvocation: skillName)
         switch operation {
         case Self.confirmSkillName, Self.cancelSkillName:
             return nil
         default:
             guard let owner = resolve(skillName: operation)?.owner, !owner.isEmpty else { return nil }
-            return place(ofOwner: owner)?.world
+            return place(ofOwner: owner)?.attention
         }
     }
 
     /// World's declared targeted read — what a `WorldVeto` redirect names.
     /// PIN: Same table as fetch-first, so the redirect cannot invent a binding.
     public func targetedReadInvocation(
-        forWorld world: AmbientWorld
+        forAttention attention: AmbientAttention
     ) -> (binding: String, parameter: String)? {
-        targetedReads[world.pluginOwner]
+        targetedReads[attention.pluginOwner]
     }
 
     /// Fetch-first: leading world's targeted read for `phrase`, same summary the model would see.
@@ -1238,9 +1238,25 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     }
 
     /// Pre-lane look — `readNamedPart`'s sibling for sight.
+    /// PIN: a targeted read is not eyes; look_at_screen stays available when an editor leads.
     public func wouldServeLook() -> Bool {
-        if let owner = focusProvider?(), targetedReads[owner] != nil { return false }
-        return skillBindings.contains { $0.name == Self.lookSkillName }
+        skillBindings.contains { $0.name == Self.lookSkillName }
+    }
+
+    /// Fetch-first: highlight → selection read, document → inspect, else look.
+    public func fetchDeclaredEditorSight(query: String?) async -> String? {
+        let world = ambient.world()
+        let highlight = world?.selectedText?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if world?.isDirectReference == true, !highlight.isEmpty {
+            if let passage = await dispatchSummary("read_selection") { return passage }
+            return highlight
+        }
+        if world?.place.isApplication == true {
+            if let passage = await dispatchSummary("current_file") { return passage }
+            if let passage = await dispatchSummary("read_document") { return passage }
+        }
+        return await lookAtScreen(query)
     }
 
     public func lookAtScreen(_ query: String?) async -> String? {
@@ -1257,6 +1273,14 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return summary.isEmpty ? nil : summary
     }
 
+    private func dispatchSummary(_ name: String) async -> String? {
+        guard skillBindings.contains(where: { $0.name == name }) else { return nil }
+        let outcome = await dispatch(name: name, argumentsJSON: "{}")
+        guard outcome.ok, !outcome.foundNothing else { return nil }
+        let summary = outcome.summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        return summary.isEmpty ? nil : summary
+    }
+
     // MARK: - Locating what a revision is about
 
     /// Locate, not read — resolve the named part against the leading world's open body.
@@ -1266,21 +1290,21 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     }
 
     public func locatePassage(
-        _ intent: EditIntent, worldHint: AmbientWorld?
+        _ intent: EditIntent, attentionHint: AmbientAttention?
     ) async -> LocatedPassage? {
         await locatePassage(
             targets: intent.target, anaphoric: intent.isAnaphoric,
-            worldHint: worldHint)
+            attentionHint: attentionHint)
     }
 
     /// Locate ladder — stop at the first rung that yields; only the last gives up.
     func locatePassage(
         targets: [String], anaphoric: Bool = false,
-        worldHint: AmbientWorld? = nil, now: Date = Date()
+        attentionHint: AmbientAttention? = nil, now: Date = Date()
     ) async -> LocatedPassage? {
         // Same focus decision the prompt, roster hoist, deposit subject, and pre-read use.
         let recentAnaphoricPassage = anaphoric ? passages.live(at: now).first : nil
-        let owner = focusProvider?() ?? worldHint?.pluginOwner
+        let owner = focusProvider?() ?? attentionHint?.pluginOwner
             ?? recentAnaphoricPassage?.place.memoryToken
         guard let owner,
               let verb = targetedEdits[owner],
@@ -1298,7 +1322,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
         // `routedSelectionHandoff`: turn-local snapshot plus the route's own gate.
         if anaphoric,
-           let handoff = ambient.routedSelectionHandoff(world: backing.place.world) {
+           let handoff = ambient.routedSelectionHandoff(attention: backing.place.attention) {
             let selected = handoff.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !selected.isEmpty { wanted.append(selected) }
         }
@@ -1347,7 +1371,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Source-owned handoff keeps the full AX text.
         // PIN: Not `requiringWritingTarget: true` — that flag killed this rung in production.
         let selected = (ambient.routedSelectionHandoff(
-            world: backing.place.world)?.text ?? "")
+            attention: backing.place.attention)?.text ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if !selected.isEmpty,
            // First occurrence — same as `PassageAttention`'s `range(of:)` anchor.
@@ -2092,7 +2116,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return selected.map { fact in
             let subject = fact.subject.map { " · \($0)" } ?? ""
             let content = String(fact.content.prefix(700))
-            return "\(fact.world.rawValue)/\(fact.slot.token)\(subject): \(content)"
+            return "\(fact.attention.rawValue)/\(fact.slot.token)\(subject): \(content)"
         }.joined(separator: "\n")
     }
 
@@ -2572,7 +2596,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
               !outcome.ambientDeposited,
               let place = placeOfRead(outcome: outcome, owner: owner),
               let fact = AmbientBridge.readFact(
-                world: place.world,
+                attention: place.attention,
                 application: place.application,
                 phrase: readPhrase(binding: binding, owner: owner, arguments: arguments),
                 summary: outcome.summary,

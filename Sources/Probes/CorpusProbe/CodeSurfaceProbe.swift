@@ -404,7 +404,7 @@ enum CodeSurfaceProbe {
         print(String(format: "      one poll: %.2f ms",
                      Date().timeIntervalSince(pollStarted) * 1000))
         let cursor = AmbientContextStore.shared.fact(
-            world: cursorPlace.world, application: cursorPlace.application, slot: .cursor)
+            attention: cursorPlace.attention, application: cursorPlace.application, slot: .cursor)
         if let cursor {
             check(true, "a standing cursor fact is held", cursor.subject ?? "—")
             check(cursor.anchor == .caret, "and it is anchored on the caret",

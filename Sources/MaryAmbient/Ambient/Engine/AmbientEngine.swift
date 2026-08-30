@@ -5,7 +5,7 @@
 //  WHAT: Resolves a turn once, before prompts or executable Skills are assembled.
 //  IN:   classifiers / attention / lead / profiles
 //  OUT:  AmbientRoute → prompt and memory
-//  PIN:  Worlds vs realms vs places: engine picks a place; AmbientWorld is standing lanes.
+//  PIN:  Worlds vs realms vs places: engine picks a place; AmbientAttention is standing lanes.
 //
 
 import Foundation
@@ -20,7 +20,7 @@ public enum AmbientEngine {
         public var bareDecision: Bool?
         public var hasPendingSkillConfirmation: Bool
         public var activeRoutineCount: Int
-        public var attention: AmbientAttention?
+        public var world: AmbientWorld?
         public var leadApplicationID: String?
         public var profiles: [ApplicationProfile]
         /// Applications whose LIVE CONTENTS the utterance may be addressing: where each one's
@@ -42,7 +42,7 @@ public enum AmbientEngine {
             bareDecision: Bool? = nil,
             hasPendingSkillConfirmation: Bool = false,
             activeRoutineCount: Int = 0,
-            attention: AmbientAttention? = nil,
+            world: AmbientWorld? = nil,
             leadApplicationID: String? = nil,
             profiles: [ApplicationProfile] = [],
             addressCandidates: [AmbientAddressProbe.Candidate] = [],
@@ -57,7 +57,7 @@ public enum AmbientEngine {
             self.bareDecision = bareDecision
             self.hasPendingSkillConfirmation = hasPendingSkillConfirmation
             self.activeRoutineCount = activeRoutineCount
-            self.attention = attention
+            self.world = world
             self.leadApplicationID = leadApplicationID
             self.profiles = profiles
             self.addressCandidates = addressCandidates
@@ -69,7 +69,7 @@ public enum AmbientEngine {
     }
 
     public static func resolve(_ inputs: Inputs) -> AmbientRoute {
-        let attention = inputs.attention?.isFresh(at: inputs.now) == true ? inputs.attention : nil
+        let attention = inputs.world?.isFresh(at: inputs.now) == true ? inputs.world : nil
         let explicitlyNamedPlaces = AmbientRanker.explicitlyNamedPlaces(
             in: inputs.utterance)
         let namedApplicationProfiles = inputs.profiles
@@ -110,7 +110,7 @@ public enum AmbientEngine {
         // Keep the raw packet on AmbientRoute for diagnostics, but classifiers
         // and downstream schema routing may only see a direct selection after
         // the conflict decision above accepted it as this turn's referent.
-        let routedAttention = attention?.isDirectReference == true
+        let routedWorld = attention?.isDirectReference == true
             ? (selectionDefinesTurn ? attention : nil)
             : attention
         // TRUE NAMES ONLY.
@@ -133,7 +133,7 @@ public enum AmbientEngine {
                 ?? explicitlyNamedLead?.application
                 ?? inputs.leadApplicationID)
         var routedInputs = inputs
-        routedInputs.attention = routedAttention
+        routedInputs.world = routedWorld
         routedInputs.leadApplicationID = leadApplicationID
         let abilitySnapshot = inputs.abilitySnapshot ?? AmbientCapabilityIndexProvider.current
         // ADDRESSED, NOT NAMED — and the separation above is the point.
@@ -163,7 +163,7 @@ public enum AmbientEngine {
             namedPlaces: namedPlaces,
             gate: gate,
             leadApplicationID: leadApplicationID,
-            attention: routedAttention)
+            world: routedWorld)
         let writingTarget: AmbientWritingTarget?
         if inputs.editIntent == nil {
             writingTarget = nil
@@ -187,7 +187,7 @@ public enum AmbientEngine {
             decidedBy: signal,
             verdicts: verdicts,
             gate: gate,
-            attention: attention,
+            world: attention,
             selectionDefinesTurn: selectionDefinesTurn,
             leadApplicationID: leadApplicationID,
             // The addressed places ride EXPLICITLY: an address is evidence from a different ladder
@@ -208,7 +208,7 @@ public enum AmbientEngine {
                     ? nil : AmbientApplicationIndexProvider.current.all,
                 abilities: abilitySnapshot,
                 now: inputs.now)),
-            candidateWorlds: candidateWorlds(
+            candidateAttentions: candidateAttentions(
                 intent: intent, lead: AmbientRoute.leadPlace(
                     leadApplicationID: leadApplicationID),
                 named: namedPlaces),
@@ -226,18 +226,21 @@ public enum AmbientEngine {
                     leadApplicationID: leadApplicationID)))
     }
 
-    /// Application profiles use logical identities while source-owned Interactions carry
-    /// PROCESS identities (a bundle id). Compare their canonical Ambient world first, then
-    /// exact normalized aliases/ids.
+    /// Application profiles use logical identities while source-owned packets carry
+    /// process identities (a bundle id). Compare place / bundle / logical id.
+    /// PIN: the applications host adapter is transport, never a selection's identity.
     private static func applicationProfile(
         _ profile: ApplicationProfile,
-        represents attention: AmbientAttention
+        represents world: AmbientWorld
     ) -> Bool {
-        // DELIBERATELY NOT a place comparison, permanently.
-        if AmbientWorld.from(pluginOwner: profile.id) == attention.world {
+        if AmbientAttention.from(pluginOwner: profile.id) == .applications {
+            return false
+        }
+        if let placeID = world.place.application,
+           placeID.caseInsensitiveCompare(profile.id) == .orderedSame {
             return true
         }
-        guard let applicationID = attention.applicationID else { return false }
+        guard let applicationID = world.applicationID else { return false }
         let normalizedApplicationID = applicationID.lowercased()
         if profile.applicationIdentifiers.contains(where: {
             $0.lowercased() == normalizedApplicationID
@@ -250,10 +253,9 @@ public enum AmbientEngine {
         }) {
             return true
         }
-        // Generic Accessibility selections intentionally retain the real app name as their subject
-        // while sharing `.otherApps` as a world.
-        return attention.world == .applications
-            && attention.subject.map(profile.isMentioned(in:)) == true
+        // Generic Accessibility selections keep the real app name as subject.
+        return world.attention == .applications
+            && world.subject.map(profile.isMentioned(in:)) == true
     }
 
     private static func classify(
@@ -262,7 +264,7 @@ public enum AmbientEngine {
         namedPlaces: Set<AmbientPlace>,
         gate: AmbientIntentGate,
         leadApplicationID: String?,
-        attention: AmbientAttention?
+        world: AmbientWorld?
     ) -> (AmbientIntent, AmbientSignal) {
         if inputs.hasPendingSkillConfirmation, inputs.bareDecision != nil {
             return (.decide, .pendingDecision)
@@ -288,15 +290,15 @@ public enum AmbientEngine {
             }
             return (.operate, .actionCommand)
         }
-        if attention?.isDirectReference == true, verdicts.isDeictic {
-            return (.perceive, .attention)
+        if world?.isDirectReference == true, verdicts.isDeictic {
+            return (.perceive, .world)
         }
         if verdicts.isDeictic {
             return (.perceive, .deixis)
         }
         if let id = inputs.leadApplicationID,
            namedPlaces.contains(where: { $0.application == id }) {
-            return (.perceive, .namedLeadWorld)
+            return (.perceive, .namedLeadAttention)
         }
         if verdicts.namesAmbientSource {
             return (.ask, .ambientSource)
@@ -319,32 +321,32 @@ public enum AmbientEngine {
     /// A selection is always a valid conversational referent. It becomes a mutation target only
     /// when its exact source surface is allowed to receive prose.
     private static func directSelectionCanReceiveRevision(
-        _ attention: AmbientAttention
+        _ world: AmbientWorld
     ) -> Bool {
         // Payload recovery is a useful source of *reading* context, but its characters did not
         // come from the live source element. Likewise, a canvas descendant does not identify the
         // focused AX element the typer must revalidate.
-        guard attention.selectionPayloadRecovery == nil,
-              attention.selectionSourceEvidence?.isExact == true
+        guard world.selectionPayloadRecovery == nil,
+              world.selectionSourceEvidence?.isExact == true
         else {
             return false
         }
-        guard let applicationID = attention.applicationID else { return false }
+        guard let applicationID = world.applicationID else { return false }
         return SelectionSurfacePolicy.isWritableProseSurface(
             applicationID: applicationID,
-            editability: attention.selectionEditability ?? .unknown)
+            editability: world.selectionEditability ?? .unknown)
     }
 
     /// WHICH OF MARY'S OWN LANES supplied routing evidence — a diagnostic,
     /// never an execution allowlist. Dispatch still resolves against every
     /// installed package.
-    public static func candidateWorlds(
+    public static func candidateAttentions(
         intent: AmbientIntent, lead: AmbientPlace?, named: Set<AmbientPlace>
-    ) -> Set<AmbientWorld> {
-        var candidates = Set(AmbientWorld.allCases.filter { !$0.hasEyes })
-        candidates.formUnion(named.compactMap { $0.hasEyes ? $0.world : nil })
+    ) -> Set<AmbientAttention> {
+        var candidates = Set(AmbientAttention.allCases.filter { !$0.hasEyes })
+        candidates.formUnion(named.compactMap { $0.hasEyes ? $0.attention : nil })
         guard intent != .converse else { return candidates }
-        if let lead, lead.hasEyes { candidates.insert(lead.world) }
+        if let lead, lead.hasEyes { candidates.insert(lead.attention) }
         return candidates
     }
 }

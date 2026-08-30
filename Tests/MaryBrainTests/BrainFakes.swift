@@ -134,7 +134,7 @@ enum BrainFakes {
         /// focused document as it now stands.
         var stateSnapshotTools: Set<String> = []
         /// The plugin owner for Skills that need archive attribution.
-        var toolWorlds: [String: AmbientWorld] = [:]
+        var toolWorlds: [String: AmbientAttention] = [:]
         /// Tools whose dispatch reports ok=false (the spoken-failure rhythm).
         var failingTools: Set<String> = []
         /// Tools whose dispatch reports `foundNothing: true` — `ok: true` by
@@ -195,7 +195,7 @@ enum BrainFakes {
             return readOnlyTools.contains(skillName)
         }
 
-        func world(ofSkill skillName: String) -> AmbientWorld? {
+        func attention(ofSkill skillName: String) -> AmbientAttention? {
             lock.lock(); defer { lock.unlock() }
             return toolWorlds[skillName]
         }

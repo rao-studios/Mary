@@ -3,7 +3,7 @@
 //  MaryAmbient
 //
 //  WHAT: Where a fact lives — native lane or registered application.
-//  IN:   AmbientWorld (closed) / ApplicationRegistration (open)
+//  IN:   AmbientAttention (closed) / ApplicationRegistration (open)
 //  OUT:  store keys, ranking, prompt
 //  PIN:  Native place IS its world. Dynamic is the open identity. World ≠ place ≠ realm.
 //
@@ -13,7 +13,7 @@ import Foundation
 public enum AmbientPlace: Sendable, Equatable, Hashable {
 
     /// A built-in world answering for itself.
-    case lane(AmbientWorld)
+    case lane(AmbientAttention)
 
     /// Registered application's logical id (`"sketch"`), riding the `.applications` host lane.
     /// PIN: Registered places never carry a bundle identifier.
@@ -22,9 +22,9 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     // MARK: - The (world, application) projection
 
     /// Closed world. Dynamic places ride the `.applications` host lane, never a case of their own.
-    public var world: AmbientWorld {
+    public var attention: AmbientAttention {
         switch self {
-        case .lane(let world): return world
+        case .lane(let attention): return attention
         case .application: return .applications
         }
     }
@@ -38,11 +38,11 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     }
 
     /// The pair spelling, kept as a factory so every existing call site compiles unchanged.
-    public init(world: AmbientWorld, application: String? = nil) {
+    public init(attention: AmbientAttention, application: String? = nil) {
         if let application, !application.isEmpty {
             self = .application(application)
         } else {
-            self = .lane(world)
+            self = .lane(attention)
         }
     }
 
@@ -69,10 +69,10 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     /// PIN: Colon, not a second slash — keys split on the first `/`.
     public var token: String {
         switch self {
-        case .lane(let world):
-            return world.rawValue
+        case .lane(let attention):
+            return attention.rawValue
         case .application(let id):
-            return "\(AmbientWorld.applications.rawValue):\(id)"
+            return "\(AmbientAttention.applications.rawValue):\(id)"
         }
     }
 
@@ -80,7 +80,7 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     /// PIN: Distinct from `token`; a prefix would orphan deposited rows.
     public var memoryToken: String {
         switch self {
-        case .lane(let world): return world.rawValue
+        case .lane(let attention): return attention.rawValue
         case .application(let id): return id
         }
     }
@@ -88,24 +88,24 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     /// Inverse of `token`. Splits on the first colon; only `.applications` spells dynamics.
     public static func from(token: String) -> AmbientPlace? {
         if let colon = token.firstIndex(of: ":") {
-            guard String(token[..<colon]) == AmbientWorld.applications.rawValue else {
+            guard String(token[..<colon]) == AmbientAttention.applications.rawValue else {
                 return nil
             }
             let id = String(token[token.index(after: colon)...])
             return id.isEmpty ? nil : .application(id)
         }
-        return AmbientWorld.from(pluginOwner: token).map { .lane($0) }
+        return AmbientAttention.from(pluginOwner: token).map { .lane($0) }
     }
 
     /// Lead place: dynamic id outranks the world; resolve through registration when installed.
     public static func lead(
-        world: AmbientWorld?, applicationID: String?
+        attention: AmbientAttention?, applicationID: String?
     ) -> AmbientPlace? {
         if let applicationID, !applicationID.isEmpty {
             return AmbientApplicationIndexProvider.current
                 .registration(id: applicationID)?.place ?? .application(applicationID)
         }
-        return world.map { .lane($0) }
+        return attention.map { .lane($0) }
     }
 
     // MARK: - The taxonomy
@@ -117,20 +117,20 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     }
 
     /// Taxonomy class. Registration's answer when one owns this lane — host class describes the host.
-    public var worldClass: AmbientWorldClass {
-        registration?.worldClass ?? world.worldClass
+    public var placeClass: AmbientPlaceClass {
+        registration?.placeClass ?? attention.placeClass
     }
 
     /// Whether anything is looking at this place.
-    /// PIN: Not simply `worldClass == .workspace` — a package may declare no observation.
+    /// PIN: Not simply `placeClass == .workspace` — a package may declare no observation.
     public var hasEyes: Bool {
         if let registration { return registration.hasEyes }
-        return world.hasEyes
+        return attention.hasEyes
     }
 
     /// Coding or writing, or neither.
     public var focus: WorkspaceFocus? {
-        guard let registration else { return world.focus }
+        guard let registration else { return attention.focus }
         switch ability {
         case .some(.coding):  return .coding
         case .some(.writing): return .writing
@@ -140,7 +140,7 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
 
     /// Craft this place is for. `focus` above is the two-value projection.
     public var ability: AbilityID? {
-        guard let registration else { return world.ability }
+        guard let registration else { return attention.ability }
         let declared = registration.profile.abilities
         return WorkspaceFocus.abilityOrder.first(where: declared.contains)
             ?? declared.sorted { $0.rawValue < $1.rawValue }.first
@@ -161,14 +161,14 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
                 return String(tail).capitalized
             }
         }
-        return world.displayName
+        return attention.displayName
     }
 
     /// Stable render order. Built-ins keep their positions; registrations sort after, in roster order.
     public var order: Int {
         switch self {
-        case .lane(let world):
-            return world.order
+        case .lane(let attention):
+            return attention.order
         case .application(let id):
             let roster = AmbientApplicationIndexProvider.current.all
             let position = roster.firstIndex { $0.id == id } ?? roster.count

@@ -25,7 +25,7 @@ extension PassageRecipes {
         if let handlePlace, handlePlace.hasEyes { return handlePlace }
         if let requested {
             let asked = requested.trimmingCharacters(in: .whitespacesAndNewlines)
-            if let named = AmbientWorld.from(pluginOwner: asked), named.hasEyes {
+            if let named = AmbientAttention.from(pluginOwner: asked), named.hasEyes {
                 return .lane(named)
             }
             // Roster: below native names, above frontmost. Naming an app is an instruction.
@@ -77,7 +77,7 @@ extension PassageRecipes {
 
     /// A registered application's passage backing. Asked through the SAME installed
     /// resolver the natives go through, and that is the whole repair: this was a hardcoded
-    /// `nil` for as long as `PassageBacking` was keyed on `AmbientWorld`, so a taught
+    /// `nil` for as long as `PassageBacking` was keyed on `AmbientAttention`, so a taught
     static func backing(forRegistered id: String) -> PassageBacking? {
         guard let registration = AmbientApplicationIndexProvider.current
             .registration(id: id) else { return nil }
@@ -91,7 +91,7 @@ extension PassageRecipes {
         // point, and it is what stops this sentence telling a Sketch.
         let names = passageAppEnumValues
             .compactMap { owner -> (rank: Int, name: String)? in
-                if let world = AmbientWorld.from(pluginOwner: owner) {
+                if let world = AmbientAttention.from(pluginOwner: owner) {
                     return (world.focus == .coding ? 0 : 1, world.displayName)
                 }
                 guard let registered = AmbientApplicationIndexProvider.current

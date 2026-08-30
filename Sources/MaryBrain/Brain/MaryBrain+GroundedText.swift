@@ -97,7 +97,7 @@ extension MaryBrain {
         groundedBlock: String,
         outcomes: [LaneOutcome],
         profiles: [ApplicationProfile],
-        owner: (String) -> AmbientWorld?
+        owner: (String) -> AmbientAttention?
     ) -> String? {
         for profile in profiles {
             guard profile.isMentioned(in: composed) else { continue }

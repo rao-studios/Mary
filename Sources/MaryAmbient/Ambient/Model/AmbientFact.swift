@@ -56,7 +56,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     /// document cache (the watchers already hold those, capped separately).
     public static let contentCap = 2000
 
-    public var world: AmbientWorld
+    public var attention: AmbientAttention
     /// The registered application this fact belongs to, when its world holds more than one —
     /// `"sketch"`, the LOGICAL id. Nil for a built-in world, which is the ordinary case:
     /// `.calendar` is the calendar and needs no second name.
@@ -98,7 +98,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     public var passageHandle: String?
 
     public init(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String? = nil,
         slot: AmbientSlot,
         content: String,
@@ -117,7 +117,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
         spokenNote: String? = nil,
         passageHandle: String? = nil
     ) {
-        self.world = world
+        self.attention = attention
         self.application = application
         self.slot = slot
         self.content = String(content.prefix(Self.contentCap))
@@ -140,7 +140,7 @@ public struct AmbientFact: Sendable, Equatable, Identifiable {
     /// WHERE this fact lives — the world it rides and, when its world holds
     /// more than one application, which lane inside it.
     public var place: AmbientPlace {
-        AmbientPlace(world: world, application: application)
+        AmbientPlace(attention: attention, application: application)
     }
 
     public var key: AmbientKey { AmbientKey(place: place, slot: slot) }

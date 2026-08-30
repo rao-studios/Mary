@@ -73,11 +73,11 @@ public enum AmbientSignal: String, Sendable, Equatable, CaseIterable, Codable {
     /// An action verb in the writing register with no edit intent.
     case writingRegister
     /// A fresh direct-reference signal, such as the user's current selection.
-    case attention
+    case world = "attention"
     /// `AmbientRanker.isDeictic` — "this paragraph", "on my screen".
     case deixis
-    /// The utterance named the world that leads.
-    case namedLeadWorld
+    /// The utterance named the faculty/place that leads.
+    case namedLeadAttention = "namedLeadWorld"
     /// `NamedPartClassifier.namedPart` found something to read.
     case namedPart
     /// The utterance names an eyeless source — calendar, reminders, mail.

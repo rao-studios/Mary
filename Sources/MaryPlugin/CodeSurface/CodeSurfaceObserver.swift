@@ -4,7 +4,7 @@
 //
 //  WHAT: Standing caret grounding for a declared code editor.
 //  OUT:  leadContext liveWork  IN: CodeSurfaceEditorCache
-//  PIN:  Retracts when a selection is live (selection handoff owns that).
+//  PIN:  Retracts the caret excerpt when a selection is live; file identity stays.
 
 import AppKit
 import ApplicationServices
@@ -42,6 +42,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     private let publishedBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
     private let lineBox = OSAllocatedUnfairLock<String?>(initialState: nil)
     private let liveBox = OSAllocatedUnfairLock<String?>(initialState: nil)
+    private let handoffTokens = OSAllocatedUnfairLock<[UUID]>(initialState: [])
 
     public init(
         store: AmbientContextStore = .shared,
@@ -103,10 +104,12 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             }
         }
         pollOnce()
+        registerHandoffs()
     }
 
     public func deactivate() async {
         poller.release()
+        unregisterHandoffs()
         retract()
         // A CACHE MUST NOT OUTLIVE THE POLL THAT MAINTAINS IT. Nothing else re-proves this
         // entry, so leaving it primed across a deactivation would hand the next activation
@@ -152,10 +155,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         guard let window = AX.element(application, kAXFocusedWindowAttribute),
               let editor = CodeSurfaceEditorCache.editor(
-                pid: pid, window: window, registration: registration),
-              let fact = read(
-                editor: editor, window: window, registration: registration,
-                place: place, bundleID: bundleID, at: now)
+                pid: pid, window: window, registration: registration)
         else {
             // A FRONTMOST EDITOR WITH NO CARET TO REPORT — no source file open, an
             // unreadable buffer, or a live highlight that owns this ground instead. A
@@ -168,20 +168,49 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             return
         }
 
+        DeclaredTextSightPublisher.publish(
+            place: place, editor: editor, window: window, registration: registration)
+        let file = Self.subject(of: window) ?? registration.displayName
+        let selection = CodeSurfaceAX.selectedRange(of: editor)
+
+        if let selection, !selection.isEmpty {
+            // Caret excerpt yields; document identity stays while the highlight is live.
+            store.forget(key: AmbientKey(place: place, slot: .cursor))
+            standFileIdentity(
+                place: place, file: file, editorName: registration.displayName,
+                bundleID: bundleID, at: now)
+            WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
+            let published = "observer — looking at \(file) in \(registration.displayName) (highlight)"
+            TurnLog.logger.info("\(published, privacy: .public)")
+            return
+        }
+
+        guard let fact = read(
+            editor: editor, window: window, registration: registration,
+            place: place, bundleID: bundleID, at: now)
+        else {
+            if hit.isFrontmost {
+                let line = "observer — \(registration.displayName) frontmost but no source file (retracted)"
+                TurnLog.logger.info("\(line, privacy: .public)")
+                retract()
+            }
+            return
+        }
+
         store.register(fact, at: now)
         publishedBox.withLock { $0 = place }
-        let file = fact.subject ?? registration.displayName
+        let caretFile = fact.subject ?? registration.displayName
         lineBox.withLock {
-            $0 = "In \(registration.displayName): \(file)"
+            $0 = "In \(registration.displayName): \(caretFile)"
         }
         liveBox.withLock {
             $0 = CodeCursorScope.liveWork(
                 editorName: registration.displayName,
-                fileName: file,
+                fileName: caretFile,
                 content: fact.content)
         }
         WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
-        let published = "observer — looking at \(file) in \(registration.displayName)"
+        let published = "observer — looking at \(caretFile) in \(registration.displayName)"
         TurnLog.logger.info("\(published, privacy: .public)")
     }
 
@@ -191,6 +220,13 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         publishedBox.withLock { $0 = place }
         lineBox.withLock { $0 = line }
         liveBox.withLock { $0 = live }
+    }
+
+    /// Test seam: file identity standing while a highlight owns the caret slot.
+    func adoptStandingFileForTests(place: AmbientPlace, file: String, editorName: String) {
+        publishedBox.withLock { $0 = place }
+        lineBox.withLock { $0 = "In \(editorName): \(file)" }
+        liveBox.withLock { $0 = "Looking at \(file) in \(editorName)." }
     }
 
     /// The fact, or nil when this editor has nothing honest to say about a
@@ -238,7 +274,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         guard !content.isEmpty else { return nil }
 
         return AmbientFact(
-            world: place.world,
+            attention: place.attention,
             application: place.application,
             slot: .cursor,
             content: content,
@@ -273,7 +309,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         return title?.isEmpty == false ? title : nil
     }
 
-    /// Forget the standing caret, if one is standing.
+    /// Forget the standing caret and file identity.
     private func retract() {
         let place = publishedBox.withLock { place -> AmbientPlace? in
             defer { place = nil }
@@ -283,6 +319,48 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         lineBox.withLock { $0 = nil }
         liveBox.withLock { $0 = nil }
         store.forget(key: AmbientKey(place: place, slot: .cursor))
+        store.forget(key: AmbientKey(place: place, slot: .file))
+        DeclaredTextSightStore.shared.clear(place: place)
+        if WorkspaceFocusTracker.shared.signal().lookTarget?.place == place {
+            WorkspaceFocusTracker.shared.notePaneTarget(nil)
+        }
+    }
+
+    private func standFileIdentity(
+        place: AmbientPlace, file: String, editorName: String,
+        bundleID: String, at now: Date
+    ) {
+        store.register(AmbientFact(
+            attention: place.attention,
+            application: place.application,
+            slot: .file,
+            content: file,
+            subject: file,
+            applicationID: bundleID,
+            provenance: .liveAX,
+            registration: .perceived,
+            capturedAt: now), at: now)
+        publishedBox.withLock { $0 = place }
+        lineBox.withLock { $0 = "In \(editorName): \(file)" }
+        liveBox.withLock { $0 = "Looking at \(file) in \(editorName)." }
+    }
+
+    private func registerHandoffs() {
+        unregisterHandoffs()
+        let tokens = DeclaredTextHandoff.register(
+            support.all(),
+            bundleIdentifiers: { $0.bundleIdentifiers },
+            familyPrefix: { $0.bundleIdentifierPrefix },
+            ambient: store)
+        handoffTokens.withLock { $0 = tokens }
+    }
+
+    private func unregisterHandoffs() {
+        let tokens = handoffTokens.withLock { current -> [UUID] in
+            defer { current = [] }
+            return current
+        }
+        DeclaredTextHandoff.unregister(tokens)
     }
 }
 

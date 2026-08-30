@@ -109,7 +109,7 @@ extension MaryBrain {
                            groundedBlock: block,
                            outcomes: grounded,
                            profiles: dispatcher?.applicationProfiles ?? [],
-                           owner: { dispatcher?.world(ofSkill: $0) }) {
+                           owner: { dispatcher?.attention(ofSkill: $0) }) {
                         Self.laneLog.error(
                             "follow-up compose rejected — named \(foreign, privacy: .public) with no such outcome")
                         // Fall through as if the model never spoke: the

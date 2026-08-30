@@ -22,8 +22,8 @@ extension WorkspaceFocusTracker {
         let place = AmbientPlaceResolver.applicationPlace(forBundleID: bundleID)
         leadBox.withLock { $0 = (place, Date()) }
         stampEvidence(place: place, kind: .activation, processBundleID: bundleID)
-        AmbientContextStore.shared.noteAttention(.init(
-            tier: .activation, world: .applications,
+        AmbientContextStore.shared.noteWorld(.init(
+            tier: .activation, attention: .applications,
             subject: localizedName ?? bundleID,
             applicationID: bundleID))
     }
@@ -132,7 +132,13 @@ extension WorkspaceFocusTracker {
         return FocusSignal(
             lead: lead,
             coActive: ranked.map(\.place),
-            glanced: Set(ranked.filter { $0.kind == .glance }.map(\.place)))
+            glanced: Set(ranked.filter { $0.kind == .glance }.map(\.place)),
+            lookTarget: paneBox.withLock { $0 })
+    }
+
+    /// Stamp the tagged editor pane whose bbox look_at_screen should use first.
+    public func notePaneTarget(_ target: FocusPaneTarget?) {
+        paneBox.withLock { $0 = target }
     }
 
     /// A registered dynamic application became the user's evident workspace. Same gating as
@@ -141,13 +147,13 @@ extension WorkspaceFocusTracker {
         guard signalsAllowed() else { return }
         let place = AmbientApplicationIndexProvider.current
             .registration(id: id)?.place
-            ?? AmbientPlace(world: .applications, application: id)
+            ?? AmbientPlace(attention: .applications, application: id)
         leadBox.withLock { $0 = (place, Date()) }
         stampEvidence(place: place, kind: .activation)
         // The activation-tier attention the native arms mint, in the lane
         // vocabulary dynamic facts already use (.applications + application id).
-        AmbientContextStore.shared.noteAttention(
-            .init(tier: .activation, world: .applications, subject: id, applicationID: id))
+        AmbientContextStore.shared.noteWorld(
+            .init(tier: .activation, attention: .applications, subject: id, applicationID: id))
     }
 
     /// A CHANGED canvas selection is evidence of the user working in the app — the dynamic
@@ -162,7 +168,7 @@ extension WorkspaceFocusTracker {
         guard changed,
               let registration = AmbientApplicationIndexProvider.current
                   .registration(id: id),
-              registration.legacyWorld == nil
+              registration.legacyAttention == nil
         else { return }
         leadBox.withLock { $0 = (registration.place, Date()) }
         stampEvidence(place: registration.place, kind: .activity)
@@ -192,18 +198,19 @@ extension WorkspaceFocusTracker {
                 ledger[place] = nil
             }
         }
+        paneBox.withLock { if $0?.place.application == id { $0 = nil } }
     }
 
     /// Lifecycle stand-down for a NATIVE workspace app: the process quit, so its ambient claims
     /// — the lead, its ledger evidence, and the coding/writing focus signal it stamped — must
     /// not outlive it.
-    public func clearNative(world: AmbientWorld) {
-        leadBox.withLock { if $0?.place == AmbientPlace.lane(world) { $0 = nil } }
-        ledgerBox.withLock { $0[AmbientPlace.lane(world)] = nil }
+    public func clearNative(attention: AmbientAttention) {
+        leadBox.withLock { if $0?.place == AmbientPlace.lane(attention) { $0 = nil } }
+        ledgerBox.withLock { $0[AmbientPlace.lane(attention)] = nil }
         // The held discipline belongs to a PLACE, and a lane is not a place.
         box.withLock { held in
             guard held?.focus == .writing else { return }
-            if writingPlaceBox.withLock({ $0 }) == AmbientPlace.lane(world) {
+            if writingPlaceBox.withLock({ $0 }) == AmbientPlace.lane(attention) {
                 held = nil
             }
         }

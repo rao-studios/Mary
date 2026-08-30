@@ -234,7 +234,7 @@ extension MaryBrain {
                 referent: discussedPassageReferent,
                 precedingUserTurnID: precedingUserTurnID,
                 lastAssistantText: lastSpokenAssistantText(),
-                persistentLead: ambient.leadPlace()?.world,
+                persistentLead: ambient.leadPlace()?.attention,
                 now: Date())
             : nil
         let editIntent = classifiedIntent ?? acceptedOffer.map {
@@ -322,7 +322,7 @@ extension MaryBrain {
             userText, applicationAliases: applicationAddressAliases) || editIntent != nil
 
         // Route resolved here (shape now known). Recorded only; nothing below reads it.
-        let attention = ambient.attention()
+        let ambientWorld = ambient.world()
         let focusedApplicationID = dispatcher?.focusedApplicationID
         let now = Date()
         let namedApplicationIDs = Set(applicationProfiles.lazy
@@ -345,7 +345,7 @@ extension MaryBrain {
             bareDecision: bareDecision,
             hasPendingSkillConfirmation: hadPendingAction,
             activeRoutineCount: routinesAtEntry,
-            attention: attention,
+            world: ambientWorld,
             // A pronoun continues the named conversational subject even when another recognized app remains frontmost behind Mary.
             leadApplicationID: inheritedApplicationID
                 ?? focusedApplicationID
@@ -483,22 +483,22 @@ extension MaryBrain {
         }
         if route.selectionDefinesTurn,
            route.writingTarget == .selection,
-           let attention = route.attention {
+           let attention = route.world {
             systemPrompt += "\n\n" + MaryPrompts.selectionRevisionBrief(attention)
         } else if route.selectionDefinesTurn,
                   route.verdicts.isDeictic,
-                  route.attention?.isDirectReference == true,
-                  let attention = route.attention {
+                  route.world?.isDirectReference == true,
+                  let attention = route.world {
             systemPrompt += "\n\n" + MaryPrompts.selectionReferenceBrief(attention)
         }
         // Arm discussed-passage referent so a later "yes please" can spend it.
-        if route.selectionDefinesTurn, let attention = route.attention,
-           let discussed = ambient.selectionHandoff(world: attention.world)?.text
+        if route.selectionDefinesTurn, let attention = route.world,
+           let discussed = ambient.selectionHandoff(attention: attention.attention)?.text
                 ?? attention.selectedText,
            !discussed.isEmpty {
             discussedPassageReferent = DiscussedPassageReferent(
                 text: discussed,
-                world: attention.world,
+                attention: attention.attention,
                 applicationID: attention.applicationID,
                 subject: attention.subject,
                 armedAt: Date(),
@@ -564,7 +564,7 @@ extension MaryBrain {
 
         let located = route.needsLocate
             ? await locateTarget(
-                for: editIntent, worldHint: acceptedOffer?.referent.world)
+                for: editIntent, attentionHint: acceptedOffer?.referent.attention)
             : nil
         if Task.isCancelled {
             logTurnExit("cancelled during locate")

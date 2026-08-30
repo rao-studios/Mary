@@ -21,7 +21,7 @@ public struct ContainerListing: Sendable, Equatable {
 
     /// The closed world half — for a registered application, the host lane it
     /// rides. Kept because most readers only ask "which built-in".
-    public var world: AmbientWorld { place.world }
+    public var attention: AmbientAttention { place.attention }
 
     public init(place: AmbientPlace, keys: [String], at: Date) {
         self.place = place
@@ -30,8 +30,8 @@ public struct ContainerListing: Sendable, Equatable {
     }
 
     /// The native spelling, unchanged for every built-in caller.
-    public init(world: AmbientWorld, keys: [String], at: Date) {
-        self.init(place: .lane(world), keys: keys, at: at)
+    public init(attention: AmbientAttention, keys: [String], at: Date) {
+        self.init(place: .lane(attention), keys: keys, at: at)
     }
 }
 
@@ -118,8 +118,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     /// The native projection — a built-in world mints exactly the bytes it
     /// always did (`place.token == rawValue` for every native case).
     @discardableResult
-    public func handle(world: AmbientWorld, prefix: String, key: String) -> String {
-        handle(place: .lane(world), prefix: prefix, key: key)
+    public func handle(attention: AmbientAttention, prefix: String, key: String) -> String {
+        handle(place: .lane(attention), prefix: prefix, key: key)
     }
 
     /// Record a handle a place minted ITSELF, so `[D3]` from Scrivener's own `HandleMap`
@@ -129,8 +129,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     }
 
     /// The native projection of `adopt(handle:place:key:)`.
-    public func adopt(handle: String, world: AmbientWorld, key: String) {
-        adopt(handle: handle, place: .lane(world), key: key)
+    public func adopt(handle: String, attention: AmbientAttention, key: String) {
+        adopt(handle: handle, place: .lane(attention), key: key)
     }
 
     /// The container a handle names, or nil. Tolerant of `[W1]`, `w1`, ` W1 `
@@ -144,8 +144,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     /// The world projection of `resolvePlace(_:)` — a registered application's
     /// container answers with its host lane here, which is what a caller
     /// asking "is this one of TextEdit's?" needs and nothing more.
-    public func resolve(_ raw: String) -> (world: AmbientWorld, key: String)? {
-        resolvePlace(raw).map { ($0.place.world, $0.key) }
+    public func resolve(_ raw: String) -> (attention: AmbientAttention, key: String)? {
+        resolvePlace(raw).map { ($0.place.attention, $0.key) }
     }
 
     // MARK: - Salience
@@ -161,10 +161,10 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `noteEvidence(place:key:_:at:)`.
     public func noteEvidence(
-        world: AmbientWorld, key: String, _ kind: ContainerEvidence,
+        attention: AmbientAttention, key: String, _ kind: ContainerEvidence,
         at now: Date = Date()
     ) {
-        noteEvidence(place: .lane(world), key: key, kind, at: now)
+        noteEvidence(place: .lane(attention), key: key, kind, at: now)
     }
 
     /// The strongest live claim on a container, and when it was made. Nil when
@@ -186,9 +186,9 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `evidence(place:key:at:)`.
     public func evidence(
-        world: AmbientWorld, key: String, at now: Date = Date()
+        attention: AmbientAttention, key: String, at now: Date = Date()
     ) -> (kind: ContainerEvidence, at: Date)? {
-        evidence(place: .lane(world), key: key, at: now)
+        evidence(place: .lane(attention), key: key, at: now)
     }
 
     /// Whether any selected conversation event happened after a boundary. This deliberately
@@ -212,14 +212,14 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `hasEvidence(place:key:kinds:newerThan:at:)`.
     public func hasEvidence(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         key: String,
         kinds: Set<ContainerEvidence>,
         newerThan boundary: Date,
         at now: Date = Date()
     ) -> Bool {
         hasEvidence(
-            place: .lane(world), key: key, kinds: kinds,
+            place: .lane(attention), key: key, kinds: kinds,
             newerThan: boundary, at: now)
     }
 
@@ -250,9 +250,9 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `salienceRanks(place:keys:at:)`.
     public func salienceRanks(
-        world: AmbientWorld, keys: [String], at now: Date = Date()
+        attention: AmbientAttention, keys: [String], at now: Date = Date()
     ) -> [String: Int] {
-        salienceRanks(place: .lane(world), keys: keys, at: now)
+        salienceRanks(place: .lane(attention), keys: keys, at: now)
     }
 
     /// A CORRECTION, RECORDED BOTH WAYS. Promoting the intended container is half the job. The
@@ -273,10 +273,10 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `noteCorrection(place:rejected:intended:at:)`.
     public func noteCorrection(
-        world: AmbientWorld, rejected: String?, intended: String,
+        attention: AmbientAttention, rejected: String?, intended: String,
         at now: Date = Date()
     ) {
-        noteCorrection(place: .lane(world), rejected: rejected, intended: intended, at: now)
+        noteCorrection(place: .lane(attention), rejected: rejected, intended: intended, at: now)
     }
 
     /// `textedit|/tmp/todo.txt` / `other_apps:sketch|canvas-1`. The place
@@ -287,8 +287,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     }
 
     /// The native projection of `evidenceKey(place:key:)`.
-    public static func evidenceKey(world: AmbientWorld, key: String) -> String {
-        evidenceKey(place: .lane(world), key: key)
+    public static func evidenceKey(attention: AmbientAttention, key: String) -> String {
+        evidenceKey(place: .lane(attention), key: key)
     }
 
     // MARK: - Listings
@@ -307,8 +307,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     }
 
     /// The native projection of `noteListing(place:keys:at:)`.
-    public func noteListing(world: AmbientWorld, keys: [String], at now: Date = Date()) {
-        noteListing(place: .lane(world), keys: keys, at: now)
+    public func noteListing(attention: AmbientAttention, keys: [String], at now: Date = Date()) {
+        noteListing(place: .lane(attention), keys: keys, at: now)
     }
 
     /// The last listing for a place, IF IT IS STILL TRUE. A listing goes stale the moment the
@@ -323,9 +323,9 @@ public final class ContainerRegistry: @unchecked Sendable {
 
     /// The native projection of `listing(for:against:)`.
     public func listing(
-        for world: AmbientWorld, against live: [String]
+        for attention: AmbientAttention, against live: [String]
     ) -> ContainerListing? {
-        listing(for: .lane(world), against: live)
+        listing(for: .lane(attention), against: live)
     }
 
     /// The raw remembered listing, staleness unchecked — for the debugger pane
@@ -335,8 +335,8 @@ public final class ContainerRegistry: @unchecked Sendable {
     }
 
     /// The native projection of `lastListing(for:)`.
-    public func lastListing(for world: AmbientWorld) -> ContainerListing? {
-        lastListing(for: .lane(world))
+    public func lastListing(for attention: AmbientAttention) -> ContainerListing? {
+        lastListing(for: .lane(attention))
     }
 
     /// Test isolation, and the shape `PassageRegistry.clear()` set.

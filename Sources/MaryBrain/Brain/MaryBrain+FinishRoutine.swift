@@ -71,7 +71,7 @@ extension MaryBrain {
             && !concrete.isEmpty
             && concrete.allSatisfy { outcome in
                 dispatcher?.isReadOnly(outcome.skillName) == true
-                    && (dispatcher?.world(ofSkill: outcome.skillName)?.hasEyes == true
+                    && (dispatcher?.attention(ofSkill: outcome.skillName)?.hasEyes == true
                         || dispatcher?.isLookSkill(outcome.skillName) == true)
             }
 

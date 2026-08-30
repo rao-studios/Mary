@@ -161,9 +161,9 @@ extension PassageEditRunner {
         for place: AmbientPlace, ambient: AmbientContextStore
     ) -> PassageAttention? {
         // Viewport fact is per application, not just world.
-        let words = ambient.routedSelectionHandoff(world: place.world)?.text
+        let words = ambient.routedSelectionHandoff(attention: place.attention)?.text
             ?? ambient.fact(
-                world: place.world, application: place.application,
+                attention: place.attention, application: place.application,
                 slot: .viewport)?.content
         guard let words, !words.isEmpty else { return nil }
         return PassageAttention(text: words)

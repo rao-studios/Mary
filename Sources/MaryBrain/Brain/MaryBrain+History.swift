@@ -136,9 +136,9 @@ extension MaryBrain {
     }
 
     /// TEST SEAM: model "a selection brief armed the referent on the last completed turn" without driving the live attention machinery.
-    func seedDiscussedPassageReferent(text: String, world: AmbientWorld) {
+    func seedDiscussedPassageReferent(text: String, attention: AmbientAttention) {
         discussedPassageReferent = DiscussedPassageReferent(
-            text: text, world: world, applicationID: nil, subject: nil,
+            text: text, attention: attention, applicationID: nil, subject: nil,
             armedAt: Date(), armedByExchange: lastUserTurnID ?? UUID())
     }
 

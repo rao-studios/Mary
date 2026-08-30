@@ -4,7 +4,7 @@
 //
 //  WHAT: Re-export schema and ambient vocabulary.
 //  OUT:  MaryAmbient / MaryFoundation
-//  PIN:  A consumer naming ValueEnvelope or AmbientWorld need not know which
+//  PIN:  A consumer naming ValueEnvelope or AmbientAttention need not know which
 //        package declared it.
 //
 @_exported import MaryAmbient

@@ -258,7 +258,7 @@ extension MaryBrain {
                     // World veto — rival watched world on a writing-led turn that named none.
                     if let redirect = worldVeto.redirect(
                         for: call.name,
-                        world: dispatcher.world(ofSkill: call.name)) {
+                        attention: dispatcher.attention(ofSkill: call.name)) {
                         let reference = dispatcher.skillReference(for: call.name)
                         emitter.emitSkillResult(.refused(
                             id: call.id,

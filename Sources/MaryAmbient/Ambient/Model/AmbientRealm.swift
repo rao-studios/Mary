@@ -102,7 +102,7 @@ public struct AmbientRealm: Sendable, Equatable {
     public var place: AmbientPlace?
 
     /// WHICH SIGNAL CHOSE. The vocabulary already exists (`AmbientSignal`, a dozen cases from
-    /// `namedLeadWorld` through `deixis` to `ambientSource`) and has never had a consumer; this
+    /// `namedLeadAttention` through `deixis` to `ambientSource`) and has never had a consumer; this
     /// is it.
     public var decidedBy: AmbientSignal?
 

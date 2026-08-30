@@ -20,6 +20,30 @@ public enum LiveWorkWorld: Sendable, Equatable {
     /// NOTHING LEADS. No place contributed live work this turn — Mary may still hold facts and read passages, but she has no place to claim and must claim none.
     case unled
 
+    /// Prompt claim from the turn's machine state. Empty snapshot → unled.
+    public init(machine world: AmbientWorld?) {
+        guard let world else {
+            self = .unled
+            return
+        }
+        let name = world.place.displayName
+        if world.isDirectReference {
+            self = .document(name: name, whole: false)
+        } else if world.place.isApplication {
+            self = .application(name)
+        } else {
+            self = .unled
+        }
+    }
+
+    /// Arbiter claim, unless it is unled while the turn World already names a place.
+    public static func claim(arbiter: LiveWorkWorld, machine: AmbientWorld?) -> LiveWorkWorld {
+        if case .unled = arbiter {
+            return LiveWorkWorld(machine: machine)
+        }
+        return arbiter
+    }
+
     /// Bridge from the pin vocabulary.
     public init(_ pinned: PinnedWorld) {
         self = .application(

@@ -25,14 +25,14 @@ import Testing
     }
 
     private func sketch(
-        worldClass: AmbientWorldClass = .dataSource,
+        placeClass: AmbientPlaceClass = .dataSource,
         perception: ApplicationPerception? = nil
     ) -> ApplicationRegistration {
         ApplicationRegistration(
             id: "sketch",
             profile: ApplicationProfile(id: "sketch", title: "Sketch", summary: "Design."),
             bundleIdentifiers: ["com.bohemiancoding.sketch3"],
-            worldClass: worldClass,
+            placeClass: placeClass,
             perception: perception)
     }
 
@@ -41,10 +41,10 @@ import Testing
     /// existed before it.
     @Test func aBuiltInPlaceAnswersExactlyAsItsWorld() {
         withRoster([]) {
-            for world in AmbientWorld.allCases {
+            for world in AmbientAttention.allCases {
                 let place = AmbientPlace.lane(world)
                 #expect(place.token == world.rawValue)
-                #expect(place.worldClass == world.worldClass)
+                #expect(place.placeClass == world.placeClass)
                 #expect(place.hasEyes == world.hasEyes)
                 #expect(place.displayName == world.displayName)
                 #expect(place.order == world.order)
@@ -57,15 +57,15 @@ import Testing
     /// off the host is what would deny a registration its own identity.
     @Test func aRegisteredPlaceAnswersForItselfNotItsHost() {
         let registration = sketch(
-            worldClass: .workspace,
+            placeClass: .workspace,
             perception: .init(documentOperation: "read_canvas", pollSeconds: 30))
         withRoster([registration]) {
-            let place = AmbientPlace(world: .applications, application: "sketch")
+            let place = AmbientPlace(attention: .applications, application: "sketch")
             #expect(place.token == "applications:sketch")
             #expect(place.displayName == "Sketch", "not \"Other apps\"")
-            #expect(place.worldClass == .workspace, "not the host's .perceptionOnly")
+            #expect(place.placeClass == .workspace, "not the host's .perceptionOnly")
             #expect(place.hasEyes)
-            #expect(AmbientWorld.applications.hasEyes == false, "the host is unchanged")
+            #expect(AmbientAttention.applications.hasEyes == false, "the host is unchanged")
         }
     }
 
@@ -74,9 +74,9 @@ import Testing
     /// watched", because a card claiming live sight of a document nothing polls
     /// is the confident lie this layer refuses.
     @Test func aWorkspaceClassRegistrationWithNoContractHasNoEyes() {
-        withRoster([sketch(worldClass: .workspace, perception: nil)]) {
-            let place = AmbientPlace(world: .applications, application: "sketch")
-            #expect(place.worldClass == .workspace)
+        withRoster([sketch(placeClass: .workspace, perception: nil)]) {
+            let place = AmbientPlace(attention: .applications, application: "sketch")
+            #expect(place.placeClass == .workspace)
             #expect(!place.hasEyes, "declared workspace, declared no observation")
             #expect(!Passage.canHold(place), "and therefore holds no passages")
         }
@@ -86,8 +86,8 @@ import Testing
     /// reorder the worlds the golden prompt diff compares byte for byte.
     @Test func registrationsSortAfterEveryBuiltInWorld() {
         withRoster([sketch()]) {
-            let registered = AmbientPlace(world: .applications, application: "sketch")
-            for world in AmbientWorld.allCases {
+            let registered = AmbientPlace(attention: .applications, application: "sketch")
+            for world in AmbientAttention.allCases {
                 #expect(AmbientPlace.lane(world).order < registered.order)
             }
         }
@@ -98,10 +98,10 @@ import Testing
     /// a package is removed, and it must degrade rather than crash.
     @Test func anUnknownApplicationFallsBackToItsHostWorld() {
         withRoster([]) {
-            let place = AmbientPlace(world: .applications, application: "ghost")
+            let place = AmbientPlace(attention: .applications, application: "ghost")
             #expect(place.registration == nil)
-            #expect(place.worldClass == AmbientWorld.applications.worldClass)
-            #expect(place.displayName == AmbientWorld.applications.displayName)
+            #expect(place.placeClass == AmbientAttention.applications.placeClass)
+            #expect(place.displayName == AmbientAttention.applications.displayName)
             #expect(!place.hasEyes)
             // The key still discriminates, so its facts do not collide with
             // another application's even though nothing knows what it is.
@@ -121,8 +121,8 @@ import Testing
     }
 
     @Test func nativeAndDynamicTokensAreStructurallyDisjoint() {
-        let nativeTokens = Set(AmbientWorld.allCases.map { AmbientPlace.lane($0).token })
-        for world in AmbientWorld.allCases {
+        let nativeTokens = Set(AmbientAttention.allCases.map { AmbientPlace.lane($0).token })
+        for world in AmbientAttention.allCases {
             #expect(!world.rawValue.contains(":"))
             let dynamicTwin = AmbientPlace.application(world.rawValue)
             #expect(!nativeTokens.contains(dynamicTwin.token))
@@ -138,7 +138,7 @@ import Testing
                 id: "chrome", title: "Google Chrome", summary: "Browser.",
                 abilities: [.browsing]),
             bundleIdentifiers: ["com.google.Chrome"],
-            worldClass: .workspace,
+            placeClass: .workspace,
             displayName: "Chrome")
         withRoster([chrome]) {
             #expect(AmbientPlaceResolver.factPlace(forBundleID: "com.google.Chrome")

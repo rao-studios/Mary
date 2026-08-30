@@ -28,7 +28,7 @@ public struct LookingPlugin: MaryAdapter {
     public var applicationAliases: Set<String> { ["looking", "screen", "sight"] }
     public var applicationIdentifiers: Set<String> { [] }
     public var targetedRead: (binding: String, parameter: String)? { nil }
-    public var servedWorld: AmbientWorld? { nil }
+    public var servedAttention: AmbientAttention? { nil }
 
     public var adapterManifest: InstalledAdapterManifest {
         let adapterID = AdapterID("looking")

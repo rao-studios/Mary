@@ -246,7 +246,7 @@ public struct PassageBacking: Sendable {
     /// The built-in spelling, so the three native worlds construct exactly as
     /// they did.
     public init(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         units: @escaping @Sendable (String) -> [PassageUnit],
         body: @escaping @Sendable () async -> BodySnapshot?,
         bodyForDocument: (@Sendable (String) async -> BodySnapshot?)? = nil,
@@ -255,7 +255,7 @@ public struct PassageBacking: Sendable {
         cannotWriteBecause: String? = nil
     ) {
         self.init(
-            place: .lane(world),
+            place: .lane(attention),
             units: units,
             body: body,
             bodyForDocument: bodyForDocument,

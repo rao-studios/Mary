@@ -62,7 +62,13 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         self.init(
             store: .shared,
             elementIndex: .shared,
-            capture: { AXEngine.ambientContext(pid: $0) },
+            capture: { pid in
+                let bundleID = NSRunningApplication(processIdentifier: pid)?
+                    .bundleIdentifier
+                return AXEngine.ambientContext(
+                    pid: pid,
+                    declaredEditorRoles: DeclaredEditorRoles.names(bundleID: bundleID))
+            },
             frontmost: {
                 guard let front = NSWorkspace.shared.frontmostApplication,
                       let bundleID = front.bundleIdentifier else { return nil }
@@ -215,6 +221,7 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         store.noteSurface(
             AmbientBridge.surface(from: context, place: target.place), at: now)
         lastPlaceBox.withLock { $0 = target.place }
+        stampLookTarget(from: context, target: target)
 
         // 2 — affordance slate, unless the browser watcher owns it.
         guard !AmbientPlaceResolver.isBrowser(bundleID: target.bundleID) else {
@@ -250,6 +257,18 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         }
         guard let previous else { return }
         elementIndex.noteElements([], scope: previous)
+    }
+
+    /// Tag the focused declared editor pane so look_at_screen has an honest bbox.
+    private func stampLookTarget(from context: AXAmbientContext, target: Target) {
+        let roles = DeclaredEditorRoles.names(bundleID: target.bundleID)
+        guard let editor = AXElementRoster.preferredDeclaredEditor(
+            in: context.elements, roles: roles)
+        else { return }
+        WorkspaceFocusTracker.shared.notePaneTarget(FocusPaneTarget(
+            place: target.place,
+            identity: AmbientBridge.identity(of: editor),
+            frame: editor.frame))
     }
 }
 

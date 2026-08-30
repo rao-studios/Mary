@@ -41,7 +41,8 @@ extension MaryPrompts {
         readReport: Bool = false,
         conversational: Bool = false,
         runningActions: [String] = [],
-        lookUnderway: Bool = false
+        lookUnderway: Bool = false,
+        inspiredSight: Bool = false
     ) -> String {
         seerRender(
             now: now, timeZone: timeZone, calendar: calendar,
@@ -51,7 +52,8 @@ extension MaryPrompts {
             readPassages: readPassages, readReport: readReport,
             conversational: conversational,
             runningActions: runningActions,
-            lookUnderway: lookUnderway
+            lookUnderway: lookUnderway,
+            inspiredSight: inspiredSight
         ).text
     }
 
@@ -71,6 +73,7 @@ extension MaryPrompts {
         conversational: Bool = false,
         runningActions: [String] = [],
         lookUnderway: Bool = false,
+        inspiredSight: Bool = false,
         plan: PromptPlan = .voice
     ) -> PromptRender {
         plan.render(PromptInputs(
@@ -81,7 +84,8 @@ extension MaryPrompts {
             readPassages: readPassages, readReport: readReport,
             conversational: conversational,
             runningActions: runningActions,
-            lookUnderway: lookUnderway))
+            lookUnderway: lookUnderway,
+            inspiredSight: inspiredSight))
     }
 
     /// While background routines run: don't double-promise. New requests still act.

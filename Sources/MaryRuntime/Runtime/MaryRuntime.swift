@@ -85,18 +85,18 @@ package enum MaryRuntime {
     /// current direct attention.
     package static func routedHeldAmbient(
         facts: [AmbientFact],
-        attention: AmbientAttention?,
+        world: AmbientWorld?,
         route: AmbientRoute?
-    ) -> (facts: [AmbientFact], attention: AmbientAttention?) {
+    ) -> (facts: [AmbientFact], world: AmbientWorld?) {
         guard let route else {
             return (
                 facts,
-                attention?.isDirectReference == true ? attention : nil)
+                world?.isDirectReference == true ? world : nil)
         }
 
         return (
             facts.filter(route.admitsHeldFact),
-            route.routedSelectionAttention)
+            route.routedSelectionWorld)
     }
 
     static let kokoro = KokoroEngine()

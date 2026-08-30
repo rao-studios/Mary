@@ -10,7 +10,7 @@
 //  Tiers:
 //    0 SURFACE   AmbientSurface / noteSurface → AmbientContextStore+Surface
 //    1 FACTS     register / replacePerceived
-//    2 SELECTION recordSelection / noteAttention (source-owned, never inferred)
+//    2 SELECTION recordSelection / noteWorld (source-owned, never inferred)
 //
 
 import CryptoKit
@@ -42,7 +42,7 @@ public enum AmbientSense: String, CaseIterable, Hashable, Sendable, Codable {
     case hover
 }
 
-public enum AmbientAttentionTier: Int, Sendable, Equatable, CaseIterable, Codable {
+public enum AmbientWorldTier: Int, Sendable, Equatable, CaseIterable, Codable {
     case hover = 1
     case activation = 2
     case selection = 3
@@ -64,9 +64,11 @@ public enum AmbientAttentionTier: Int, Sendable, Equatable, CaseIterable, Codabl
     }
 }
 
-public struct AmbientAttention: Sendable, Equatable {
-    public var tier: AmbientAttentionTier
-    public var world: AmbientWorld
+/// This turn's machine state — what is actually in front of the user.
+/// Faculty/channel is `attention`; taught place is `place`.
+public struct AmbientWorld: Sendable, Equatable {
+    public var tier: AmbientWorldTier
+    public var attention: AmbientAttention
     public var subject: String?
     /// Source app for a direct selection. Workspace worlds already name the plugin;
     /// `.applications` needs this to type back into the same frontmost surface.
@@ -78,10 +80,19 @@ public struct AmbientAttention: Sendable, Equatable {
     /// Source mutation capability. Nil for hover/activation (no text surface).
     public var selectionEditability: AmbientSelectionEditability?
 
-    /// Where attention is, as one place. OUT: AmbientPlace.
-    /// PIN: world alone is the lane; applicationID names the taught app.
+    /// Where this turn's machine state lives. Bundle ids resolve to the taught
+    /// registration; the applications host lane is never the identity.
+    /// PIN: faculty `attention` remains the channel; place names the app.
     public var place: AmbientPlace {
-        applicationID.map(AmbientPlace.application) ?? .lane(world)
+        if let applicationID, !applicationID.isEmpty {
+            let index = AmbientApplicationIndexProvider.current
+            if let registration = index.registration(bundleID: applicationID)
+                ?? index.registration(id: applicationID) {
+                return registration.place
+            }
+            return .application(applicationID)
+        }
+        return .lane(attention)
     }
     /// How AX identified the text element. Canvas-descendant is enough to
     /// discuss the words, not to promise in-place replace (focus may be the canvas).
@@ -93,8 +104,8 @@ public struct AmbientAttention: Sendable, Equatable {
     public var freshFor: TimeInterval
 
     public init(
-        tier: AmbientAttentionTier,
-        world: AmbientWorld,
+        tier: AmbientWorldTier,
+        attention: AmbientAttention,
         subject: String? = nil,
         applicationID: String? = nil,
         key: AmbientKey? = nil,
@@ -107,7 +118,7 @@ public struct AmbientAttention: Sendable, Equatable {
         freshFor: TimeInterval? = nil
     ) {
         self.tier = tier
-        self.world = world
+        self.attention = attention
         self.subject = subject
         self.applicationID = applicationID
         self.key = key
@@ -123,7 +134,7 @@ public struct AmbientAttention: Sendable, Equatable {
     public init(selection fact: AmbientFact) {
         self.init(
             tier: .selection,
-            world: fact.world,
+            attention: fact.attention,
             subject: fact.subject,
             applicationID: fact.applicationID,
             key: fact.key,
@@ -143,7 +154,7 @@ public struct AmbientAttention: Sendable, Equatable {
 
     public func matches(_ fact: AmbientFact) -> Bool {
         if let key { return fact.key == key }
-        guard fact.world == world else { return false }
+        guard fact.attention == attention else { return false }
         return subject == nil || fact.subject == subject
     }
 
@@ -165,7 +176,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     let surfaceBox =
         OSAllocatedUnfairLock<[AmbientPlace: AmbientSurface]>(initialState: [:])
     /// Focus-arbiter lead as a place (a world cannot name which app on `.applications`).
-    /// World callers read `place.world`.
+    /// World callers read `place.attention`.
     private let leadBox =
         OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
     private let utteranceBox = OSAllocatedUnfairLock<String>(initialState: "")
@@ -173,7 +184,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     private let referenceBox = OSAllocatedUnfairLock<ReferenceDecision>(initialState: .none)
     /// Route for retrieval and prompt assembly.
     private let routeBox = OSAllocatedUnfairLock<AmbientRoute?>(initialState: nil)
-    private let attentionBox = OSAllocatedUnfairLock<AmbientAttention?>(initialState: nil)
+    private let worldBox = OSAllocatedUnfairLock<AmbientWorld?>(initialState: nil)
     /// Canonical source-owned highlight. Fact/attention project at read time.
     /// PIN: watermarks outlive a clear so a delayed AX read cannot resurrect.
     private struct SelectionState {
@@ -207,28 +218,28 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     /// The gate's partition for one world's facts.
-    public static func scope(world: AmbientWorld) -> AmbientElementScope {
-        AmbientElementScope(place: .lane(world), key: world.rawValue)
+    public static func scope(attention: AmbientAttention) -> AmbientElementScope {
+        AmbientElementScope(place: .lane(attention), key: attention.rawValue)
     }
 
     /// Republish one world's facts. Outside the fact lock; the store vectorizes.
-    private func publishElements(worlds: Set<AmbientWorld>, at now: Date) {
-        for world in worlds {
+    private func publishElements(attentions: Set<AmbientAttention>, at now: Date) {
+        for attention in attentions {
             elementIndexStore.noteElements(
                 AmbientFactRule.records(
-                    for: facts(world: world, at: now),
-                    scope: Self.scope(world: world)),
-                scope: Self.scope(world: world))
+                    for: facts(attention: attention, at: now),
+                    scope: Self.scope(attention: attention)),
+                scope: Self.scope(attention: attention))
         }
     }
 
     /// Held facts ranked to a spoken phrase. OUT: AmbientReferenceGate.
     public func rankedFacts(
-        matching phrase: String, world: AmbientWorld
+        matching phrase: String, attention: AmbientAttention
     ) -> [RankedAmbientElement] {
         AmbientReferenceGate.rank(
             phrase: phrase,
-            scope: Self.scope(world: world),
+            scope: Self.scope(attention: attention),
             store: elementIndexStore)
     }
 
@@ -241,9 +252,9 @@ public final class AmbientContextStore: @unchecked Sendable {
         box.withLock { facts in
             Self.prune(&facts, at: now)
             facts[fact.key] = fact
-            Self.capNamedReads(&facts, world: fact.world, application: fact.application)
+            Self.capNamedReads(&facts, attention: fact.attention, application: fact.application)
         }
-        publishElements(worlds: [fact.world], at: now)
+        publishElements(attentions: [fact.attention], at: now)
     }
 
     public func register(_ facts: [AmbientFact], at now: Date = Date()) {
@@ -257,17 +268,17 @@ public final class AmbientContextStore: @unchecked Sendable {
             var lanes: Set<AmbientPlace> = []
             for fact in nonSelectionFacts { lanes.insert(fact.place) }
             for lane in lanes {
-                Self.capNamedReads(&stored, world: lane.world, application: lane.application)
+                Self.capNamedReads(&stored, attention: lane.attention, application: lane.application)
             }
         }
-        publishElements(worlds: Set(nonSelectionFacts.map(\.world)), at: now)
+        publishElements(attentions: Set(nonSelectionFacts.map(\.attention)), at: now)
     }
 
     /// Replace document/perception slots for one poll. Named reads untouched.
     /// PIN: `application` scopes the wipe to one lane; nil = the world's own lane.
     /// Selections do not travel here — source-owned packet, not inferred evidence.
     public func replacePerceived(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String? = nil,
         with facts: [AmbientFact],
         at now: Date = Date()
@@ -277,7 +288,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         box.withLock { stored in
             Self.prune(&stored, at: now)
             // Snapshot keys before mutate; live `keys` view aliases.
-            for key in Array(stored.keys) where key.world == world
+            for key in Array(stored.keys) where key.attention == attention
                 && key.application == application
                 && key.slot.isPerceived {
                 stored[key] = nil
@@ -287,12 +298,12 @@ public final class AmbientContextStore: @unchecked Sendable {
             }
         }
         emit(nonSelectionFacts)
-        publishElements(worlds: [world], at: now)
+        publishElements(attentions: [attention], at: now)
     }
 
     /// Representation went dark. Perceived facts go; a read survives.
     /// PIN: selection is not this teardown (source-app input). Lane-scoped: place is the lane.
-    /// OUT: forget(world:) / explicit deselection / expiry for selection.
+    /// OUT: forget(attention:) / explicit deselection / expiry for selection.
     public func forgetPerceived(place: AmbientPlace) {
         box.withLock { stored in
             for key in Array(stored.keys)
@@ -300,32 +311,32 @@ public final class AmbientContextStore: @unchecked Sendable {
                 stored[key] = nil
             }
         }
-        attentionBox.withLock { attention in
-            guard attention?.world == place.world,
-                  attention?.tier != .selection
+        worldBox.withLock { snapshot in
+            guard snapshot?.attention == place.attention,
+                  snapshot?.tier != .selection
             else { return }
-            attention = nil
+            snapshot = nil
         }
     }
 
     /// World-wide teardown — every lane, including every app riding the world.
     /// PIN: world-typed on purpose; a place names one lane. Callers: disable/quit, tests.
-    public func forget(world: AmbientWorld) {
+    public func forget(attention: AmbientAttention) {
         box.withLock { stored in
-            for key in Array(stored.keys) where key.world == world { stored[key] = nil }
+            for key in Array(stored.keys) where key.attention == attention { stored[key] = nil }
         }
-        attentionBox.withLock { attention in
-            guard attention?.world == world else { return }
-            attention = nil
+        worldBox.withLock { snapshot in
+            guard snapshot?.attention == attention else { return }
+            snapshot = nil
         }
-        discardSelection(world: world)
+        discardSelection(attention: attention)
     }
 
     public func forget(key: AmbientKey) {
         box.withLock { $0[key] = nil }
-        attentionBox.withLock { attention in
-            guard attention?.key == key else { return }
-            attention = nil
+        worldBox.withLock { snapshot in
+            guard snapshot?.key == key else { return }
+            snapshot = nil
         }
     }
 
@@ -453,7 +464,7 @@ public final class AmbientContextStore: @unchecked Sendable {
                     return false
                 }
                 // Same interaction does not renew the lease. Duplicate events are idempotent.
-                if current.world == handoff.world,
+                if current.attention == handoff.attention,
                    current.applicationID == handoff.applicationID,
                    current.processID == handoff.processID,
                    current.sourceSurfaceID == handoff.sourceSurfaceID,
@@ -509,9 +520,9 @@ public final class AmbientContextStore: @unchecked Sendable {
                 stored[key] = nil
             }
         }
-        attentionBox.withLock { attention in
-            guard attention?.tier == .selection else { return }
-            attention = nil
+        worldBox.withLock { snapshot in
+            guard snapshot?.tier == .selection else { return }
+            snapshot = nil
         }
         emit([Self.selectionFact(from: handoff)])
         return true
@@ -594,11 +605,11 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
         guard result.invalidated else { return }
         guard result.removed != nil else { return }
-        attentionBox.withLock { attention in
-            guard attention?.applicationID == applicationID,
-                  attention?.tier == .selection
+        worldBox.withLock { snapshot in
+            guard snapshot?.applicationID == applicationID,
+                  snapshot?.tier == .selection
             else { return }
-            attention = nil
+            snapshot = nil
         }
     }
 
@@ -640,39 +651,39 @@ public final class AmbientContextStore: @unchecked Sendable {
             return current
         }
         guard let removed else { return false }
-        attentionBox.withLock { attention in
-            guard attention?.tier == .selection,
-                  attention?.applicationID == removed.applicationID
+        worldBox.withLock { snapshot in
+            guard snapshot?.tier == .selection,
+                  snapshot?.applicationID == removed.applicationID
             else { return }
-            attention = nil
+            snapshot = nil
         }
         return true
     }
 
     /// Raw handoff, exact and never prompt-clipped. Plugin enrich only when source matches.
     public func selectionHandoff(
-        world: AmbientWorld? = nil,
+        attention: AmbientAttention? = nil,
         at now: Date = Date()
     ) -> AmbientSelectionHandoff? {
         if let snapshot = AmbientSelectionTurnContext.snapshot {
             guard let handoff = snapshot.handoff,
-                  world == nil || handoff.world == world
+                  attention == nil || handoff.attention == attention
             else { return nil }
             return handoff
         }
-        return currentSelectionHandoff(world: world, at: now)
+        return currentSelectionHandoff(attention: attention, at: now)
     }
 
     /// Selection prompt/execution may consume. Applies the immutable route first.
     /// PIN: raw handoff can remain for diagnostics even if the request named a conflicting app.
     public func routedSelectionHandoff(
-        world: AmbientWorld? = nil,
+        attention: AmbientAttention? = nil,
         requiringWritingTarget: Bool = false,
         at now: Date = Date()
     ) -> AmbientSelectionHandoff? {
         guard let route = route(),
               !requiringWritingTarget || route.writingTarget == .selection,
-              let handoff = selectionHandoff(world: world, at: now),
+              let handoff = selectionHandoff(attention: attention, at: now),
               route.admitsSelectionHandoff(handoff)
         else { return nil }
         return handoff
@@ -681,14 +692,14 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// Latest unclaimed process-wide packet; ignores turn-local snapshot.
     /// PIN: claimed packets stay unavailable so a slow poll cannot republish.
     public func liveSelectionHandoff(
-        world: AmbientWorld? = nil,
+        attention: AmbientAttention? = nil,
         at now: Date = Date()
     ) -> AmbientSelectionHandoff? {
-        currentSelectionHandoff(world: world, at: now)
+        currentSelectionHandoff(attention: attention, at: now)
     }
 
     private func currentSelectionHandoff(
-        world: AmbientWorld? = nil,
+        attention: AmbientAttention? = nil,
         application: String? = nil,
         at now: Date
     ) -> AmbientSelectionHandoff? {
@@ -698,7 +709,7 @@ public final class AmbientContextStore: @unchecked Sendable {
                 state.handoff = nil
                 return nil
             }
-            guard world == nil || handoff.world == world else { return nil }
+            guard attention == nil || handoff.attention == attention else { return nil }
             // Lane asked for is a lane required. Nil = the world's own, not any.
             guard application == nil || handoff.application == application else { return nil }
             return handoff
@@ -779,11 +790,11 @@ public final class AmbientContextStore: @unchecked Sendable {
         return true
     }
 
-    public func noteAttention(_ incoming: AmbientAttention, at now: Date = Date()) {
+    public func noteWorld(_ incoming: AmbientWorld, at now: Date = Date()) {
         // Selection attention is `recordSelection` only; reject standalone here.
         guard incoming.tier != .selection else { return }
         guard incoming.isFresh(at: now) else { return }
-        attentionBox.withLock { current in
+        worldBox.withLock { current in
             guard let existing = current, existing.isFresh(at: now) else {
                 current = incoming
                 return
@@ -792,19 +803,19 @@ public final class AmbientContextStore: @unchecked Sendable {
                 current = incoming
             }
         }
-        emit(facts(world: incoming.world, at: now))
+        emit(facts(attention: incoming.attention, at: now))
     }
 
-    public func attention(at now: Date = Date()) -> AmbientAttention? {
+    public func world(at now: Date = Date()) -> AmbientWorld? {
         if let snapshot = AmbientSelectionTurnContext.snapshot {
             // Task-local freezes selection only. Hover/activation still apply.
             if let handoff = snapshot.handoff {
-                return Self.selectionAttention(from: handoff)
+                return Self.selectionWorld(from: handoff)
             }
         } else if let handoff = currentSelectionHandoff(at: now) {
-            return Self.selectionAttention(from: handoff)
+            return Self.selectionWorld(from: handoff)
         }
-        return attentionBox.withLock { value -> AmbientAttention? in
+        return worldBox.withLock { value -> AmbientWorld? in
             guard let value, value.isFresh(at: now) else {
                 value = nil
                 return nil
@@ -835,19 +846,19 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     /// Every lane in a world (`.applications` = every registered app).
-    /// PIN: not `facts(place: .lane(world))` — that is the world's own lane only.
-    public func facts(world: AmbientWorld, at now: Date = Date()) -> [AmbientFact] {
-        facts(at: now).filter { $0.world == world }
+    /// PIN: not `facts(place: .lane(attention))` — that is the world's own lane only.
+    public func facts(attention: AmbientAttention, at now: Date = Date()) -> [AmbientFact] {
+        facts(at: now).filter { $0.attention == attention }
     }
 
-    /// One lane's facts. `facts(world:)` is the roster (every app on `.applications`).
+    /// One lane's facts. `facts(attention:)` is the roster (every app on `.applications`).
     public func facts(place: AmbientPlace, at now: Date = Date()) -> [AmbientFact] {
         facts(at: now).filter { $0.place == place }
     }
 
     /// One slot. `application` narrows to one lane; nil = the world's own lane.
     public func fact(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String? = nil,
         slot: AmbientSlot,
         at now: Date = Date()
@@ -855,19 +866,19 @@ public final class AmbientContextStore: @unchecked Sendable {
         if slot == .selection {
             if let snapshot = AmbientSelectionTurnContext.snapshot {
                 guard let handoff = snapshot.handoff,
-                      handoff.world == world,
+                      handoff.attention == attention,
                       handoff.application == application
                 else { return nil }
                 return Self.selectionFact(from: handoff)
             }
             if let handoff = currentSelectionHandoff(
-                world: world, application: application, at: now) {
+                attention: attention, application: application, at: now) {
                 return Self.selectionFact(from: handoff)
             }
             return nil
         }
         return box.withLock { stored -> AmbientFact? in
-            let fact = stored[AmbientKey(world: world, application: application, slot: slot)]
+            let fact = stored[AmbientKey(attention: attention, application: application, slot: slot)]
             guard let fact, !fact.isExpired(at: now) else { return nil }
             return fact
         }
@@ -897,7 +908,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         leadBox.withLock { $0 = nil }
         utteranceBox.withLock { $0 = "" }
         routeBox.withLock { $0 = nil }
-        attentionBox.withLock { $0 = nil }
+        worldBox.withLock { $0 = nil }
         selectionStateBox.withLock { $0 = .init() }
         // Observer stays. Reset empties belief; it does not detach listeners.
     }
@@ -944,7 +955,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// PIN: id/capture time absent from identity. Text is SHA-256 only; collision fails closed.
     private struct DeliveredSelection {
         let source: SelectionSource
-        let world: AmbientWorld
+        let attention: AmbientAttention
         let provenScope: ProvenSelectionScope
         let textIdentity: SelectionTextIdentity
         let range: Range<Int>?
@@ -958,7 +969,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             claimedAt: Date
         ) {
             self.source = source
-            world = handoff.world
+            attention = handoff.attention
             provenScope = ProvenSelectionScope(handoff.scope)
             textIdentity = SelectionTextIdentity(handoff.text)
             range = handoff.range
@@ -966,7 +977,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
 
         func matches(_ handoff: AmbientSelectionHandoff) -> Bool {
-            guard world == handoff.world,
+            guard attention == handoff.attention,
                   !provenScope.isDistinct(from: handoff.scope),
                   textIdentity.matches(handoff.text)
             else { return false }
@@ -1123,7 +1134,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// Prompt/debugger projection of the raw packet. Polls cannot compete here.
     private static func selectionFact(from handoff: AmbientSelectionHandoff) -> AmbientFact {
         AmbientFact(
-            world: handoff.world,
+            attention: handoff.attention,
             // Lane travels with the fact. Without it the highlight keys as the shared `.applications` lane.
             application: handoff.application,
             slot: .selection,
@@ -1141,15 +1152,15 @@ public final class AmbientContextStore: @unchecked Sendable {
             freshFor: AmbientSelectionHandoff.handoffFreshFor)
     }
 
-    private static func selectionAttention(
+    private static func selectionWorld(
         from handoff: AmbientSelectionHandoff
-    ) -> AmbientAttention {
-        AmbientAttention(
+    ) -> AmbientWorld {
+        AmbientWorld(
             tier: .selection,
-            world: handoff.world,
+            attention: handoff.attention,
             subject: handoff.subject,
             applicationID: handoff.applicationID,
-            key: AmbientKey(world: handoff.world, application: handoff.application, slot: .selection),
+            key: AmbientKey(attention: handoff.attention, application: handoff.application, slot: .selection),
             selectedText: handoff.text,
             surroundingText: handoff.surroundingText,
             selectionEditability: handoff.editability,
@@ -1160,27 +1171,27 @@ public final class AmbientContextStore: @unchecked Sendable {
     }
 
     /// Disable/quit teardown invalidates the source packet. Document refresh never calls this.
-    private func discardSelection(world: AmbientWorld, at now: Date = Date()) {
+    private func discardSelection(attention: AmbientAttention, at now: Date = Date()) {
         let removed = selectionStateBox.withLock { state -> AmbientSelectionHandoff? in
             Self.pruneSelectionMutations(&state, at: now)
             state.deliveredSelections = state.deliveredSelections.compactMapValues { tombstones in
-                let retained = tombstones.filter { $0.world != world }
+                let retained = tombstones.filter { $0.attention != attention }
                 return retained.isEmpty ? nil : retained
             }
-            if state.recentClaimedHandoff?.world == world {
+            if state.recentClaimedHandoff?.attention == attention {
                 state.recentClaimedHandoff = nil
             }
-            guard let handoff = state.handoff, handoff.world == world else { return nil }
+            guard let handoff = state.handoff, handoff.attention == attention else { return nil }
             state.sourceMutationAt[SelectionSource(handoff)] = now
             state.handoff = nil
             return handoff
         }
         guard let removed else { return }
-        attentionBox.withLock { attention in
-            guard attention?.tier == .selection,
-                  attention?.applicationID == removed.applicationID
+        worldBox.withLock { snapshot in
+            guard snapshot?.tier == .selection,
+                  snapshot?.applicationID == removed.applicationID
             else { return }
-            attention = nil
+            snapshot = nil
         }
     }
 
@@ -1199,11 +1210,11 @@ public final class AmbientContextStore: @unchecked Sendable {
     /// PIN: lane, not world — apps sharing `.applications` must not share one budget.
     private static func capNamedReads(
         _ facts: inout [AmbientKey: AmbientFact],
-        world: AmbientWorld,
+        attention: AmbientAttention,
         application: String?
     ) {
         let reads = facts.values
-            .filter { $0.world == world && $0.application == application && $0.slot.isRead }
+            .filter { $0.attention == attention && $0.application == application && $0.slot.isRead }
             .sorted { $0.capturedAt > $1.capturedAt }
         guard reads.count > namedReadCap else { return }
         for fact in reads.dropFirst(namedReadCap) { facts[fact.key] = nil }

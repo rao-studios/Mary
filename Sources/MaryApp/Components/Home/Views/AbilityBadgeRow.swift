@@ -156,7 +156,7 @@ struct AbilityBadgeRow: View {
     @ViewBuilder
     private func realmCapsule(_ place: AmbientPlace) -> some View {
         let accent: Color = place.isApplication ? .maryGreen : .maryGold
-        let classWord = place.isApplication ? "dynamic" : place.worldClass.rawValue
+        let classWord = place.isApplication ? "dynamic" : place.placeClass.rawValue
         let capsule = HStack(spacing: 5) {
             Text("led:")
                 .foregroundStyle(Color.primary.opacity(0.45))

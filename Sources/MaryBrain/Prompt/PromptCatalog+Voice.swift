@@ -194,17 +194,26 @@ extension PromptCatalog {
         """
     }
 
-    /// Pre-lane look still in flight. Empty on every other pass (golden-byte identical).
+    /// Look in flight, or World already holds a highlight this question is about.
+    /// Empty when neither is true (golden-byte identical).
     static let seerSightPending = PromptSection(
         id: .seerSightPending,
-        rationale: "Look in flight this turn — promise it, never deny sight."
+        rationale: "Look in flight or World-inspired — promise it, never deny sight."
     ) { inputs in
-        guard inputs.lookUnderway else { return "" }
+        if inputs.lookUnderway {
+            return "\n\n" + """
+            A look at their screen is being taken RIGHT NOW for this very \
+            question. Never say you cannot see it — tell them you're taking a \
+            look, and the description will follow in a moment. Do not guess at \
+            what the screen shows.
+            """
+        }
+        guard inputs.inspiredSight else { return "" }
         return "\n\n" + """
-        A look at their screen is being taken RIGHT NOW for this very \
-        question. Never say you cannot see it — tell them you're taking a \
-        look, and the description will follow in a moment. Do not guess at \
-        what the screen shows.
+        They are asking about work they have selected on screen. A look at \
+        that selection is incoming this turn — tell them you're taking a \
+        look. Do not offer to open a file, and do not guess at what the \
+        highlight says.
         """
     }
 
@@ -273,17 +282,22 @@ extension PromptCatalog {
             """
 
         case .unled:
-            // Nothing leads. Name what is in hand, not a place.
-            place = "work they have in front of them"
-            sight = """
-            You are NOT looking at their screen right now. Everything below \
-            is something you read earlier or just now, and it says so \
-            itself — so speak from it as something you read, never as \
-            something you can currently see. Do not name an app or a \
-            document as the thing in front of them: you do not know that \
-            here, and guessing it is how a question about one app gets \
-            answered about another.
-            """
+            if inputs.inspiredSight {
+                place = "work they have selected on screen"
+                sight = windowSight
+            } else {
+                // Nothing leads. Name what is in hand, not a place.
+                place = "work they have in front of them"
+                sight = """
+                You are NOT looking at their screen right now. Everything below \
+                is something you read earlier or just now, and it says so \
+                itself — so speak from it as something you read, never as \
+                something you can currently see. Do not name an app or a \
+                document as the thing in front of them: you do not know that \
+                here, and guessing it is how a question about one app gets \
+                answered about another.
+                """
+            }
         }
 
         var body = inputs.liveWork.joined(separator: "\n\n")

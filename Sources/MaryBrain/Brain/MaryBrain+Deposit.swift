@@ -37,12 +37,12 @@ extension MaryBrain {
         var subject = depositSubjectProvider()
         // Data-source actions belong to their source, not the open document.
         let skillPlace = dispatcher?.place(ofSkill: skillName)
-        if skillPlace?.worldClass == .dataSource {
+        if skillPlace?.placeClass == .dataSource {
             subject = .unfocused
         }
-        // Dynamic applications deliberately do not become closed `AmbientWorld` enum cases.
+        // Dynamic applications deliberately do not become closed `AmbientAttention` enum cases.
         let applicationID = reference.provider?.applicationID
-            ?? (skillPlace?.worldClass == .dataSource
+            ?? (skillPlace?.placeClass == .dataSource
                 ? skillPlace?.application
                 : subject.app)
         let route = ambient.route()

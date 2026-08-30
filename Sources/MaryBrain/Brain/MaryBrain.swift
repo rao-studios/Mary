@@ -76,7 +76,9 @@ public actor MaryBrain: LanguageResponder {
             readReport: pass.readReport,
             conversational: pass.conversational,
             // Running-actions is a catalog section; every provider must pass it through.
-            runningActions: pass.runningActionLabels)
+            runningActions: pass.runningActionLabels,
+            lookUnderway: pass.lookUnderway,
+            inspiredSight: pass.inspiredSight)
     }
     /// Fire-and-forget Skill-result archive into Totem.
     // internal for file split — treat as private
@@ -118,7 +120,7 @@ public actor MaryBrain: LanguageResponder {
     struct DiscussedPassageReferent: Sendable, Equatable {
         /// Exact handoff text — never the prompt-clipped fact.
         var text: String
-        var world: AmbientWorld
+        var attention: AmbientAttention
         var applicationID: String?
         /// Document title for the honest-miss sentence.
         var subject: String?

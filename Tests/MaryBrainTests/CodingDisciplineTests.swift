@@ -92,7 +92,7 @@ import Testing
                     id: "xcode",
                     profile: profile,
                     bundleIdentifiers: ["com.apple.dt.Xcode"],
-                    worldClass: .workspace,
+                    placeClass: .workspace,
                     displayName: "Xcode",
                     perception: perception),
             ])
@@ -278,7 +278,7 @@ import Testing
                 ApplicationRegistration(
                     id: "xcode", profile: xcodeProfile,
                     bundleIdentifiers: ["com.apple.dt.Xcode"],
-                    worldClass: .workspace, displayName: "Xcode",
+                    placeClass: .workspace, displayName: "Xcode",
                     perception: perception),
             ])
         ) {
@@ -395,7 +395,7 @@ import Testing
                 ApplicationRegistration(
                     id: "xcode", profile: xcodeProfile,
                     bundleIdentifiers: ["com.apple.dt.Xcode"],
-                    worldClass: .workspace, displayName: "Xcode",
+                    placeClass: .workspace, displayName: "Xcode",
                     perception: perception),
             ])
         ) {

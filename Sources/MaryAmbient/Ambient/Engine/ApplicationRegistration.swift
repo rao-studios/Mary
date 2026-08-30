@@ -4,13 +4,13 @@
 //
 //  WHAT: Which applications exist on this machine — not which worlds Mary ships.
 //  IN:   packages / AmbientApplicationIndexProvider
-//  OUT:  AmbientPlace.application / AmbientWorld.applications (host lane)
-//  PIN:  AmbientWorld stays closed over compiled plugin owners; taught apps are registrations.
+//  OUT:  AmbientPlace.application / AmbientAttention.applications (host lane)
+//  PIN:  AmbientAttention stays closed over compiled plugin owners; taught apps are registrations.
 //
 
 import Foundation
 
-/// One application Mary can recognise, with or without its own `AmbientWorld`.
+/// One application Mary can recognise, with or without its own `AmbientAttention`.
 /// PIN: Recognition ≠ execution availability — a blocked provider still registers.
 public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
 
@@ -27,8 +27,8 @@ public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
     /// Process family, when declared. Same as `ApplicationProfile.applicationBundlePrefix`.
     public var bundleIdentifierPrefix: String?
 
-    /// Ambient taxonomy class. From the registration, not `legacyWorld` (that's a rendering detail).
-    public var worldClass: AmbientWorldClass
+    /// Ambient taxonomy class. From the registration, not `legacyAttention` (that's a rendering detail).
+    public var placeClass: AmbientPlaceClass
 
     /// Spoken name. Dynamic packages derive from logical id — package title is inspector-only.
     public var displayName: String
@@ -37,26 +37,26 @@ public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
     public var perception: ApplicationPerception?
 
     /// Closed world this projects onto. Non-nil only for a genuine built-in; Dynamic stays nil.
-    public var legacyWorld: AmbientWorld?
+    public var legacyAttention: AmbientAttention?
 
     public init(
         id: String,
         profile: ApplicationProfile,
         bundleIdentifiers: Set<String> = [],
         bundleIdentifierPrefix: String? = nil,
-        worldClass: AmbientWorldClass,
+        placeClass: AmbientPlaceClass,
         displayName: String? = nil,
         perception: ApplicationPerception? = nil,
-        legacyWorld: AmbientWorld? = nil
+        legacyAttention: AmbientAttention? = nil
     ) {
         self.id = id
         self.profile = profile
         self.bundleIdentifiers = bundleIdentifiers
         self.bundleIdentifierPrefix = bundleIdentifierPrefix
-        self.worldClass = worldClass
-        self.displayName = displayName ?? legacyWorld?.displayName ?? profile.title
+        self.placeClass = placeClass
+        self.displayName = displayName ?? legacyAttention?.displayName ?? profile.title
         self.perception = perception
-        self.legacyWorld = legacyWorld
+        self.legacyAttention = legacyAttention
     }
 
     /// `SurfaceClaim` identity — the logical id, never a bundle identifier.
@@ -91,18 +91,18 @@ public struct ApplicationRegistration: Sendable, Equatable, SurfaceClaim {
     }
 
     public var hasEyes: Bool {
-        worldClass == .workspace && perception?.observesDocuments == true
+        placeClass == .workspace && perception?.observesDocuments == true
     }
 
     /// Place this application's facts key under.
     /// PIN: All-browser process identities share the browser workspace, not a private place.
     public var place: AmbientPlace {
-        if legacyWorld == nil, !bundleIdentifiers.isEmpty,
+        if legacyAttention == nil, !bundleIdentifiers.isEmpty,
            bundleIdentifiers.allSatisfy({ AmbientPlaceResolver.isBrowser(bundleID: $0) }) {
             return AmbientPlaceResolver.browserPlace
         }
-        return AmbientPlace(world: legacyWorld ?? .applications,
-                            application: legacyWorld == nil ? id : nil)
+        return AmbientPlace(attention: legacyAttention ?? .applications,
+                            application: legacyAttention == nil ? id : nil)
     }
 }
 
@@ -132,7 +132,7 @@ public struct ApplicationPerception: Sendable, Equatable {
     public static let pollBounds = 15...300
 
     /// Ambient class this declaration implies. Derived — two stored fields that must agree eventually disagree.
-    public var worldClass: AmbientWorldClass {
+    public var placeClass: AmbientPlaceClass {
         switch kind {
         case .workspace:      return .workspace
         case .perceptionOnly: return .perceptionOnly

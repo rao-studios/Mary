@@ -29,7 +29,7 @@ public enum SelectionHandoffPublisher {
         switch sample.state {
         case .selected(let reading):
             let recorded = ambient.recordSelection(.init(
-                world: place.world,
+                attention: place.attention,
                 application: place.application,
                 applicationID: applicationID,
                 processID: Int32(sample.processID),

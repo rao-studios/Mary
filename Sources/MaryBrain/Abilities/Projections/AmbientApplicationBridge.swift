@@ -4,7 +4,7 @@
 //
 //  WHAT: Application roster handed down to MaryAmbient.
 //  IN:   compiled plugin roster + AbilityLibrary graph
-//  OUT:  AmbientApplicationRegistration (legacyWorld non-nil for world apps)
+//  OUT:  AmbientApplicationRegistration (legacyAttention non-nil for world apps)
 //  PIN:  One roster; never a second partial inventory.
 //
 import Foundation
@@ -31,17 +31,17 @@ public enum AmbientApplicationBridge {
     /// One profile's registration.
     /// PIN: A package that declared nothing is `.dataSource`: queried on demand, with nothing to look at.
     static func registration(for profile: ApplicationProfile) -> ApplicationRegistration {
-        let builtIn = AmbientWorld.from(pluginOwner: profile.id)
+        let builtIn = AmbientAttention.from(pluginOwner: profile.id)
         return ApplicationRegistration(
             id: profile.id,
             profile: profile,
             bundleIdentifiers: profile.applicationIdentifiers,
             bundleIdentifierPrefix: profile.applicationBundlePrefix,
-            worldClass: builtIn?.worldClass
-                ?? profile.perception?.worldClass
+            placeClass: builtIn?.placeClass
+                ?? profile.perception?.placeClass
                 ?? .dataSource,
             displayName: builtIn?.displayName ?? profile.title,
             perception: profile.perception,
-            legacyWorld: builtIn)
+            legacyAttention: builtIn)
     }
 }

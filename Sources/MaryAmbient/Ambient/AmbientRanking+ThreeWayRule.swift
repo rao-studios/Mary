@@ -72,7 +72,7 @@ extension AmbientRanker {
                 places.insert(candidate.place)
             }
         }
-        // NO `legacyWorld == nil` FILTER. It read as "a native place never discriminates a lane
+        // NO `legacyAttention == nil` FILTER. It read as "a native place never discriminates a lane
         // inside its own world", which was true while every projecting registration WAS the
         // compiled world it projected onto.
         for registration in AmbientApplicationIndexProvider.current.all

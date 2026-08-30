@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Roster slot for the generic app representation. Zero Skills.
-//  IN:   MaryAdapterCatalog (bijection with AmbientWorld.allCases)
+//  IN:   MaryAdapterCatalog (bijection with AmbientAttention.allCases)
 //  OUT:  ApplicationsWatcher (the actual selection transport)
 //  PIN:  Registration only — Settings/catalog does not gate selection.
 //

@@ -46,12 +46,12 @@ public enum ReferenceResolver {
 
         /// The built-in spelling.
         public init(
-            world: AmbientWorld, key: String, handle: String? = nil,
+            attention: AmbientAttention, key: String, handle: String? = nil,
             title: String, subtitle: String? = nil, body: String? = nil,
             listIndex: Int, isFront: Bool = false, salience: Int? = nil
         ) {
             self.init(
-                place: .lane(world), key: key, handle: handle, title: title,
+                place: .lane(attention), key: key, handle: handle, title: title,
                 subtitle: subtitle, body: body, listIndex: listIndex,
                 isFront: isFront, salience: salience)
         }
@@ -88,8 +88,8 @@ public enum ReferenceResolver {
         }
 
         /// The built-in spelling.
-        public init(world: AmbientWorld, key: String, title: String) {
-            self.init(place: .lane(world), key: key, title: title)
+        public init(attention: AmbientAttention, key: String, title: String) {
+            self.init(place: .lane(attention), key: key, title: title)
         }
     }
 
@@ -114,11 +114,11 @@ public enum ReferenceResolver {
 
         /// The built-in spelling.
         public init(
-            world: AmbientWorld, key: String, rung: Rung,
+            attention: AmbientAttention, key: String, rung: Rung,
             confidence: Confidence = .exact, alternative: Rival? = nil
         ) {
             self.init(
-                place: .lane(world), key: key, rung: rung,
+                place: .lane(attention), key: key, rung: rung,
                 confidence: confidence, alternative: alternative)
         }
     }

@@ -23,11 +23,11 @@ public enum MaryPrompts {
             The selection captured from its source app is the exact text to change, even while Mary is frontmost. Draft the revision, then call `type_at_cursor` once with `mode: "replace_selection"`. Do not locate a passage, ask which application is active, or ask the user to repeat the selected text.
             """)
         } else if route.selectionDefinesTurn,
-                  route.attention?.isDirectReference == true {
+                  route.world?.isDirectReference == true {
             guidance.append("""
 
             === Direct reference ===
-            The user has text selected in \(route.attention?.world.displayName ?? "the active application"). Treat that exact selection as what “this”, “this line”, and “it” refer to. Use it directly; never ask the user to repeat selected text.
+            The user has text selected in \(route.world?.attention.displayName ?? "the active application"). Treat that exact selection as what “this”, “this line”, and “it” refer to. Use it directly; never ask the user to repeat selected text.
             """)
         }
         if route.intent == .architect {
@@ -98,9 +98,9 @@ public enum MaryPrompts {
             now: now, timeZone: timeZone, calendar: calendar))
     }
 
-    /// Eyeless data sources, named for the voice. Generated from `AmbientWorld`.
+    /// Eyeless data sources, named for the voice. Generated from `AmbientAttention`.
     static var ambientReachList: String {
-        let names = AmbientWorld.dataSources.map(\.displayName)
+        let names = AmbientAttention.dataSources.map(\.displayName)
         guard let last = names.last else { return "their apps and data" }
         guard names.count > 1 else { return "their \(last)" }
         return "their " + names.dropLast().joined(separator: ", ") + " and \(last)"

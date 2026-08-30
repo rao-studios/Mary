@@ -48,7 +48,7 @@ extension PassageRecipes {
     /// mint exactly as they did.
     @discardableResult
     public static func mintRead(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         documentKey: String,
         documentTitle: String,
         body: String,
@@ -59,7 +59,7 @@ extension PassageRecipes {
         at now: Date = Date()
     ) -> Passage? {
         mintRead(
-            place: .lane(world),
+            place: .lane(attention),
             documentKey: documentKey,
             documentTitle: documentTitle,
             body: body,

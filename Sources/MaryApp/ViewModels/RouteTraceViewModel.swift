@@ -21,11 +21,11 @@ struct RouteRow: Identifiable, Equatable {
     var decidedBy: AmbientSignal
     var rankingMode: AmbientRankingMode
     var gate: AmbientIntentGate
-    var attention: AmbientAttention?
+    var world: AmbientWorld?
     var writingTarget: AmbientWritingTarget?
     var supportingContext: String?
 
-    var lead: AmbientWorld?
+    var lead: AmbientAttention?
     /// WHERE the turn led, as one value — the native world or the Dynamic
     /// application. `lead` stays alongside it for the report's fallback
     /// spelling on rows recorded before places existed.
@@ -34,7 +34,7 @@ struct RouteRow: Identifiable, Equatable {
     var exchangeID: UUID?
     var namedPlaces: [AmbientPlace]
     /// Sorted for stable display — `Set` iteration order is not.
-    var candidateWorlds: [AmbientWorld]
+    var candidateAttentions: [AmbientAttention]
 
     var needsLocate: Bool
     var needsPreRead: Bool
@@ -134,13 +134,13 @@ final class RouteTraceViewModel: ObservableObject {
                 decidedBy: route.decidedBy,
                 rankingMode: route.rankingMode,
                 gate: route.gate,
-                attention: route.attention,
+                world: route.world,
                 writingTarget: route.writingTarget,
                 supportingContext: route.supportingContext,
                 leadPlace: route.leadPlace,
                 exchangeID: record.exchangeID,
                 namedPlaces: route.namedPlaces.sorted { $0.token < $1.token },
-                candidateWorlds: route.candidateWorlds.sorted { $0.rawValue < $1.rawValue },
+                candidateAttentions: route.candidateAttentions.sorted { $0.rawValue < $1.rawValue },
                 needsLocate: route.needsLocate,
                 needsPreRead: route.needsPreRead,
                 needsExecution: route.needsExecution,

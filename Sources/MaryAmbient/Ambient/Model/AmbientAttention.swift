@@ -1,18 +1,18 @@
 //
-//  AmbientWorld.swift
+//  AmbientAttention.swift
 //  MaryAmbient
 //
-//  WHAT: Mary's standing lanes (what she is now). Not a place, not an app.
-//  OUT:  AmbientRealm (candidates) → AmbientPlace (decided where)
-//  PIN:  Store keys (world, application). Apps are Plugin packages on
-//        .applications — no per-app enum cases.
+//  WHAT: Mary's standing faculties (lanes). Not a place, not this turn's machine state.
+//  OUT:  AmbientPlace.lane / store keys
+//  PIN:  Raw values stay (applications, mac, …). Taught apps are registrations.
+//        AmbientWorld (the snapshot) is the turn's machine state.
 //
 
 import Foundation
 
 /// Kind of place a registration answers with. Ranking reads this.
 /// `perceptionOnly` = seen, not watched (no declared observation channel).
-public enum AmbientWorldClass: String, Sendable, Equatable, CaseIterable {
+public enum AmbientPlaceClass: String, Sendable, Equatable, CaseIterable {
     /// Place with contents; document focus matters. Not proof of live sight
     /// (`hasEyes` is that).
     case workspace
@@ -25,8 +25,8 @@ public enum AmbientWorldClass: String, Sendable, Equatable, CaseIterable {
     case perceptionOnly
 }
 
-/// One of Mary's own lanes.
-public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
+/// One of Mary's own faculties — the channel a place rides, not the turn's World.
+public enum AmbientAttention: String, Sendable, Equatable, Hashable, CaseIterable {
 
     /// Host lane every taught application rides. Channel, not an app.
     /// Facts: AmbientPlace.application("textedit") → this world.
@@ -54,16 +54,16 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     }
 
     /// The faculties, in `order` — what Mary can reach for right now.
-    public static var invocable: [AmbientWorld] { allCases.filter(\.isInvocable) }
+    public static var invocable: [AmbientAttention] { allCases.filter(\.isInvocable) }
 
     /// The adapter owner id the roster and the dispatcher use.
     public var pluginOwner: String { rawValue }
 
-    public static func from(pluginOwner: String) -> AmbientWorld? {
-        AmbientWorld(rawValue: pluginOwner.lowercased())
+    public static func from(pluginOwner: String) -> AmbientAttention? {
+        AmbientAttention(rawValue: pluginOwner.lowercased())
     }
 
-    public var worldClass: AmbientWorldClass {
+    public var placeClass: AmbientPlaceClass {
         switch self {
         case .applications: return .perceptionOnly
         case .mac, .system, .windowManagement, .typer: return .service
@@ -74,12 +74,12 @@ public enum AmbientWorld: String, Sendable, Equatable, Hashable, CaseIterable {
     public var hasEyes: Bool { false }
 
     /// The lanes with live watchers of their own. Empty, by the above.
-    public static var watched: [AmbientWorld] { allCases.filter(\.hasEyes) }
+    public static var watched: [AmbientAttention] { allCases.filter(\.hasEyes) }
 
     /// Places queried without anything being open. None of Mary's own lanes
     /// is one; a data source would arrive as a package.
-    public static var dataSources: [AmbientWorld] {
-        allCases.filter { $0.worldClass == .dataSource }
+    public static var dataSources: [AmbientAttention] {
+        allCases.filter { $0.placeClass == .dataSource }
     }
 
     /// Craft belongs to registrations. AmbientPlace.ability reads the package.

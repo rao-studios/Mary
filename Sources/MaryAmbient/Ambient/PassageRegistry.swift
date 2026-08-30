@@ -77,8 +77,8 @@ public final class PassageRegistry: @unchecked Sendable {
     }
 
     /// The built-in spelling, byte-identical for a native place.
-    public static func scope(world: AmbientWorld, documentKey: String) -> AmbientElementScope {
-        scope(place: .lane(world), documentKey: documentKey)
+    public static func scope(attention: AmbientAttention, documentKey: String) -> AmbientElementScope {
+        scope(place: .lane(attention), documentKey: documentKey)
     }
 
     /// Republish one document's live passages. Outside the state lock, like
@@ -106,9 +106,9 @@ public final class PassageRegistry: @unchecked Sendable {
 
     /// The built-in spelling.
     public func rankedPassages(
-        matching phrase: String, world: AmbientWorld, documentKey: String
+        matching phrase: String, attention: AmbientAttention, documentKey: String
     ) -> [RankedAmbientElement] {
-        rankedPassages(matching: phrase, place: .lane(world), documentKey: documentKey)
+        rankedPassages(matching: phrase, place: .lane(attention), documentKey: documentKey)
     }
 
     // MARK: - Minting
@@ -165,7 +165,7 @@ public final class PassageRegistry: @unchecked Sendable {
     /// The built-in spelling, so every native read site mints exactly as it did.
     @discardableResult
     public func mint(
-        world: AmbientWorld,
+        attention: AmbientAttention,
         documentKey: String,
         documentTitle: String,
         text: String,
@@ -178,7 +178,7 @@ public final class PassageRegistry: @unchecked Sendable {
         at now: Date = Date()
     ) -> Passage? {
         mint(
-            place: .lane(world),
+            place: .lane(attention),
             documentKey: documentKey,
             documentTitle: documentTitle,
             text: text,

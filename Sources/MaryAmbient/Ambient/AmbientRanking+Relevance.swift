@@ -85,11 +85,11 @@ extension AmbientRanker {
         facts: [AmbientFact],
         utterance: String,
         focusedPlace: AmbientPlace?,
-        attention: AmbientAttention? = nil,
+        world: AmbientWorld? = nil,
         at now: Date = Date()
     ) -> (mode: AmbientRankingMode, facts: [AmbientFact]) {
-        let attention = attention?.isFresh(at: now) == true && attention?.isDirectReference == true
-            ? attention : nil
+        let attention = world?.isFresh(at: now) == true && world?.isDirectReference == true
+            ? world : nil
         let mode = mode(utterance: utterance, focusedPlace: focusedPlace)
         let scored = facts.map { (fact: $0, score: relevance(of: $0, to: utterance, at: now)) }
         let sorted = scored.sorted { lhs, rhs in
@@ -117,7 +117,7 @@ extension AmbientRanker {
         facts: [AmbientFact],
         utterance: String,
         focusedPlace: AmbientPlace?,
-        attention: AmbientAttention? = nil,
+        world: AmbientWorld? = nil,
         alreadyRendered: Set<AmbientKey> = [],
         suppressingContentIn suppressed: [String] = [],
         surfaces: [AmbientSurface] = [],
@@ -125,8 +125,8 @@ extension AmbientRanker {
         maxBlocks: Int = maxBlocks,
         at now: Date = Date()
     ) -> AmbientRendering {
-        let attention = attention?.isFresh(at: now) == true && attention?.isDirectReference == true
-            ? attention : nil
+        let attention = world?.isFresh(at: now) == true && world?.isDirectReference == true
+            ? world : nil
         let candidates = facts.filter { fact in
             let attended = attention?.matches(fact) == true
             guard attended || !alreadyRendered.contains(fact.key) else { return false }
@@ -140,7 +140,7 @@ extension AmbientRanker {
             facts: candidates,
             utterance: utterance,
             focusedPlace: focusedPlace,
-            attention: attention,
+            world: attention,
             at: now)
         var rendering = AmbientRendering(mode: ranked.mode)
         var spent = 0
