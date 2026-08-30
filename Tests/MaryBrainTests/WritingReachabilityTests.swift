@@ -2,26 +2,9 @@
 //  WritingReachabilityTests.swift
 //  MaryBrainTests
 //
-//  THE REPORTED INCIDENT, pinned end to end:
-//
-//    writing | type_at_cursor is unavailable: does not match its
-//    Ability-level routing policy.
-//
-//  Every attempt to write into a Scrivener manuscript died on that sentence.
-//  Three separate defects had to line up for it, and each gets its own test
-//  here so a regression names which one came back:
-//
-//    1. The Scrivener ApplicationProfile lost `.writing` when the Ability moved
-//       from a native plugin to a Dynamic package. `PluginCompiler`
-//       builds a profile's abilities from the package's own ability id plus its
-//       realization owners — all `scrivener` — and nothing read
-//       `writing.mary`'s declared affinity for the app.
-//    2. `AmbientEngine.classify` reads exactly that field to choose between
-//       `.compose` and `.operate`, so every action turn in a manuscript
-//       classified as `.operate`.
-//    3. `writing.mary`'s Ability-level routing admitted only
-//       `compose`/`revise`/a live selection, and that predicate was enforced at
-//       DISPATCH — so a correct, already-chosen `type_at_cursor` was refused.
+//  WHAT: Shipped writing.mary is reachable from a manuscript workspace.
+//  OUT:  PluginCompiler profile join + AmbientEngine + AbilityRoutingEvaluator
+//  PIN:  Realization joins the discipline; a coding workspace does not admit writing
 //
 
 import Foundation
@@ -279,13 +262,58 @@ import Testing
         #expect(!AbilityRoutingEvaluator.isEligible(writing.routing, in: inXcodeWithNoCorpus))
     }
 
-    /// THE SHIPPED PACKAGES, not fixtures. What broke here was the real
-    /// `writing.mary` meeting the real `scrivener.mary`, and a fixture pair
-    /// would have agreed with itself while the installed pair did not.
-    /// Loads one shipped package by name, skipping the whole test while
-    /// `Abilities/` is still empty — see `InstalledPackagesGate`. The
-    /// reachability property is about the SHIPPED set, so a fixture package
-    /// would answer a different question than the one asked.
+    /// Exact-match lookup is the security boundary: writing's revision
+    /// primitive cannot be reached by borrowing another Ability's identity.
+    @Test func reviseSelectionIsWritingsRevisionPrimitive() {
+        #expect(CognitivePrimitiveCatalog.contract(
+            for: Self.runtimeSkill(
+                ability: .writing,
+                skillID: "writing.revise-selection",
+                invocationName: "revise_selection"))?.primitive
+            == .reviseSelection)
+        #expect(CognitivePrimitiveCatalog.contract(
+            for: Self.runtimeSkill(
+                ability: .coding,
+                skillID: "writing.revise-selection",
+                invocationName: "revise_selection")) == nil)
+    }
+
+    private static func runtimeSkill(
+        ability: AbilityID,
+        skillID: SkillID,
+        invocationName: String
+    ) -> AbilityRuntimeSkill {
+        let skill = SkillSchema(
+            id: skillID,
+            title: "Revise",
+            summary: "Revise the verified selection.",
+            kind: .cognitive,
+            execution: .init(kind: .cognitive),
+            modelExposure: .init(invocationName: invocationName))
+        let package = MaryAbilityPackage(
+            package: .init(
+                id: "tests.writing-revision",
+                version: "1.0.0",
+                publisher: "tests",
+                summary: "revise_selection identity fixture."),
+            ability: .init(
+                id: ability,
+                title: "Fixture",
+                summary: "Fixture ability.",
+                tint: "#112233",
+                skills: [skill.id]),
+            skills: [skill])
+        let record = AbilityPackageRecord(
+            package: package,
+            source: .sourceTree,
+            sourceURL: URL(fileURLWithPath: "/tmp/writing-revision.mary"),
+            validation: .init(),
+            rawData: Data())
+        let snapshot = AbilityRuntimeSnapshot(
+            records: [record], validation: .init(), adapterManifests: [])
+        return snapshot.skills.first { $0.skill.id == skill.id }!
+    }
+
     private func loadRootPackage(_ name: String) throws -> MaryAbilityPackage {
         guard let abilities = InstalledPackages.installed() else {
             throw CocoaError(.fileNoSuchFile)

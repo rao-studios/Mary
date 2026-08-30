@@ -208,13 +208,6 @@ let package = Package(
                 ]),
             ]
         ),
-        .testTarget(
-            name: "MaryTests",
-            dependencies: ["Mary", "MaryRuntime"],
-            path: "Tests/MaryTests",
-            swiftSettings: [.swiftLanguageMode(.v5)]
-        ),
-
         // Live AX read through the behavioral codec.
         .executableTarget(
             name: "BehaviorProbe",

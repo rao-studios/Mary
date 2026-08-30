@@ -1,3 +1,11 @@
+//
+//  CodingAgentDelegationTests.swift
+//  MaryPluginTests
+//
+//  WHAT: Delegation brief never names a compiled product.
+//  OUT:  CodingAgentDelegation
+//
+
 import Foundation
 import XCTest
 @testable import MaryPlugin

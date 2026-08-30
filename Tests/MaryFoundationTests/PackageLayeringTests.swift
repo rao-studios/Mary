@@ -2,30 +2,9 @@
 //  PackageLayeringTests.swift
 //  MaryFoundationTests
 //
-//  THE STANDING RULES, ENFORCED RATHER THAN ASSERTED.
-//
-//  These are the rules about which GRAPHS a target may join: MaryAmbient
-//  stands on MaryFoundation alone, neither it nor MaryPlugin touches
-//  inference or transport, only MaryBrain names Frigate and Fleet, only MaryRuntime and
-//  the app consume MaryTotem, and nothing anywhere names WhisperKit.
-//
-//  WHY THE COMPILER DOES NOT CATCH IT. It is tempting to assume a violation
-//  shows up as a circular dependency. It does not. A target gaining an edge it
-//  should not have forms no cycle — it compiles, it links, it ships, and the
-//  boundary is gone with no diagnostic anywhere.
-//
-//  So the manifest is read as text. That is cruder than a compiler check and
-//  it is the strongest check available: SwiftPM exposes no build-time hook for
-//  "this target may not depend on that target".
-//
-//  THIS TEST EXISTS BEFORE THE TARGETS DO. Mary is built in stages, so most
-//  rules below name a target that is not in the manifest yet. A rule whose
-//  subject is absent is recorded as PENDING rather than passing silently —
-//  `everyRuleHasASubjectOrIsPending` prints the roster each run, so a target
-//  arriving without its rule is visible instead of quietly unpoliced.
-//
-//  WHY A TEST TARGET MAY SEE BOTH SIDES. Test targets are integration suites
-//  that assert ACROSS a seam; these rules constrain the library targets only.
+//  WHAT: Standing graph rules — which library targets may join which graphs.
+//  OUT:  Package.swift as text
+//  PIN:  A forbidden edge forms no cycle; the compiler will not catch it
 //
 
 import Foundation

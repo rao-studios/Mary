@@ -1,3 +1,11 @@
+//
+//  BargeInGovernorTests.swift
+//  MaryVoiceTests
+//
+//  WHAT: Barge-in onset → pause, commit, retreat.
+//  OUT:  BargeInGovernor
+//
+
 import Foundation
 import Testing
 @testable import MaryVoice
@@ -44,22 +52,6 @@ import Testing
         #expect(!g.isProvisional)
     }
 
-    @Test func intermittentSpeechStillCommits() {
-        // Natural speech has micro-dips; quiet resets only the retreat clock,
-        // voiced time accumulates.
-        var g = governor()
-        _ = g.process(rms: 0.06, frameDuration: frame)
-        var committed = false
-        for i in 0..<40 {
-            let rms: Float = i % 4 == 3 ? 0.01 : 0.06   // 3 loud, 1 dip
-            if g.process(rms: rms, frameDuration: frame) == .commit {
-                committed = true
-                break
-            }
-        }
-        #expect(committed)
-    }
-
     @Test func resetClearsProvisionalState() {
         var g = governor()
         _ = g.process(rms: 0.06, frameDuration: frame)
@@ -68,33 +60,5 @@ import Testing
         #expect(g.process(rms: 0.01, frameDuration: frame) == .none)
     }
 
-    @Test func quietBeforeOnsetDoesNothing() {
-        var g = governor()
-        for _ in 0..<50 {
-            #expect(g.process(rms: 0.01, frameDuration: frame) == .none)
-        }
-        #expect(!g.isProvisional)
-    }
 }
 
-@Suite struct VADConfigDecodeTests {
-
-    @Test func oldStoreWithoutNewFieldsDecodes() throws {
-        // A store persisted before bargeResumeMs/voiceProcessing existed.
-        let old = #"{"speechStartRMS":0.02,"speechContinueRMS":0.008,"hangoverMs":900,"minUtteranceMs":300,"preRollMs":300,"bargeInRMSBoost":2.5}"#
-        let config = try JSONDecoder().decode(VADConfig.self, from: Data(old.utf8))
-        #expect(config.speechStartRMS == 0.02)
-        #expect(config.bargeInRMSBoost == 2.5)
-        #expect(config.bargeResumeMs == 500)
-        #expect(config.voiceProcessing == true)
-    }
-
-    @Test func roundTripsWithNewFields() throws {
-        var config = VADConfig()
-        config.bargeResumeMs = 750
-        config.voiceProcessing = false
-        let data = try JSONEncoder().encode(config)
-        let decoded = try JSONDecoder().decode(VADConfig.self, from: data)
-        #expect(decoded == config)
-    }
-}

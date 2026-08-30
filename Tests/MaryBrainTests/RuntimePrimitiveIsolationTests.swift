@@ -1,3 +1,12 @@
+//
+//  RuntimePrimitiveIsolationTests.swift
+//  MaryBrainTests
+//
+//  WHAT: Evaluator refuses host primitives even if a manifest publishes them.
+//  OUT:  AbilityAdapterCompatibilityEvaluator
+//  PIN:  Companion to Foundation RuntimePrimitiveIsolationTests (validator)
+//
+
 import MaryFoundation
 import Testing
 @testable import MaryBrain

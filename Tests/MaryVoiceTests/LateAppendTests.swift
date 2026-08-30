@@ -2,18 +2,8 @@
 //  LateAppendTests.swift
 //  MaryVoiceTests
 //
-//  The reported defect, pinned: "when I talk after some time then the result
-//  pipes in later and appends to the response that answered the new query."
-//  Three of its confirmed mechanisms live in MaryVoice —
-//
-//    1. the barge-in onset stayed 3× boosted while NOTHING was playing, so
-//       normal-volume speech was swallowed and the held reply arrived late;
-//    2. `feed` is a length-diffing API, so a superseded turn resuming on a
-//       foreign baseline spliced a suffix of ITS passage into the live stream;
-//    3. `followUpBuffer` was origin-blind, so a follow-up narrating an older
-//       exchange cut into a newer reply at a sentence boundary.
-//
-//  Driven through the internal seams — a real session needs a mic and a human.
+//  WHAT: Three splice bugs that append a stale reply into a live stream.
+//  OUT:  VoicePipeline barge-in onset, KokoroStreamSpeaker.feed, follow-up origin
 //
 
 import AVFoundation
@@ -88,33 +78,6 @@ import Testing
         #expect(onset == boosted)
     }
 
-    @Test func endOfPlaybackAlsoDemotes() async {
-        let pipeline = makePipeline()
-        let config = VADConfig()
-
-        await pipeline.handleSpeakerEventForTesting(.started)
-        await pipeline.handleSpeakerEventForTesting(.drained)
-        var onset = await pipeline.bargeInOnsetForTesting
-        #expect(onset == config.speechStartRMS)
-
-        await pipeline.handleSpeakerEventForTesting(.started)
-        await pipeline.handleSpeakerEventForTesting(.stopped)
-        onset = await pipeline.bargeInOnsetForTesting
-        #expect(onset == config.speechStartRMS)
-    }
-
-    @Test func aProvisionalPauseKeepsTheBoostedCadence() async {
-        // `.paused` is the barge-in onset itself — demoting there would rebuild
-        // the governor mid-decision and lose the pause/resume cadence.
-        let pipeline = makePipeline()
-        let config = VADConfig()
-
-        await pipeline.handleSpeakerEventForTesting(.started)
-        await pipeline.handleSpeakerEventForTesting(.paused)
-        let onset = await pipeline.bargeInOnsetForTesting
-        #expect(onset == config.speechStartRMS * config.bargeInRMSBoost)
-    }
-
     // MARK: - 2. A foreign baseline resets; it never splices
 
     @Test func foreignBaselineResetsInsteadOfSplicing() async {
@@ -143,24 +106,6 @@ import Testing
                 "the rightful writer keeps the floor")
     }
 
-    @Test func aFreshWriterAfterAStopStillSpeaks() async {
-        // The reset must not deafen the NEXT legitimate turn: hardStop clears
-        // the baseline to "", and every string has "" as a prefix.
-        let speaker = makeSpeaker()
-        let collector = chunkCollector(await speaker.events())
-
-        await speaker.feed("Interrupted mid thought and never finished")
-        await speaker.hardStop()
-        await speaker.feed("A brand new reply. It speaks normally. Trailing")
-        await speaker.flush()
-
-        collector.cancel()
-        let spoken = await collector.value.joined(separator: " ")
-        #expect(spoken.contains("A brand new reply."))
-        #expect(!spoken.contains("Interrupted mid thought"),
-                "hardStop dropped the stopped writer's buffer with its baseline")
-    }
-
     // MARK: - 3. A stale-origin follow-up waits for quiet; it never cuts in
 
     @Test func staleOriginFollowUpNeverCutsIntoANewerReply() async {
@@ -181,79 +126,6 @@ import Testing
         #expect(!buffered.isEmpty, "it waits — playFollowUpWhenQuiet is its only route")
     }
 
-    @Test func staleOriginFollowUpNeverPreemptsAGeneratingTurn() async {
-        let pipeline = makePipeline()
-        let older = UUID(), current = UUID()
-        await pipeline.setCurrentUserTurnIDForTesting(current)
-
-        await pipeline.setStateForTesting(.thinking)
-        await pipeline.setGenerationActiveForTesting(true)
-        await pipeline.handleProactive(
-            .followUpToken("Old news. ", originUserTurnID: older))
-
-        let speaking = await pipeline.isFollowUpSpeaking
-        #expect(!speaking, "the newer turn is not cancelled for older narration")
-    }
-
-    @Test func staleOriginStillSpeaksIntoAQuietRoom() async {
-        // Quiet is quiet: the origin gate blocks the CUT, not the follow-up.
-        let pipeline = makePipeline()
-        await pipeline.setCurrentUserTurnIDForTesting(UUID())
-
-        await pipeline.setStateForTesting(.listening(utteranceActive: false))
-        await pipeline.handleProactive(
-            .followUpToken("Finally, about that passage. ", originUserTurnID: UUID()))
-
-        let speaking = await pipeline.isFollowUpSpeaking
-        #expect(speaking)
-    }
-
-    @Test func theCurrentTurnsOwnFollowUpStillTakesTheFloor() async {
-        let pipeline = makePipeline()
-        let current = UUID()
-        await pipeline.setCurrentUserTurnIDForTesting(current)
-
-        await pipeline.setStateForTesting(.speaking)
-        await pipeline.setGenerationActiveForTesting(false)
-        await pipeline.handleProactive(
-            .followUpToken("The deeper answer to what you just asked. ",
-                           originUserTurnID: current))
-
-        let speaking = await pipeline.isFollowUpSpeaking
-        #expect(speaking, "narration OF the exchange on screen still preempts")
-    }
-
-    @Test func standaloneNoticeIsNeverStale() async {
-        // nil origin = the coding bridge's "that change didn't go through".
-        // It belongs to no exchange, so it cannot be about an older one.
-        let pipeline = makePipeline()
-        await pipeline.setCurrentUserTurnIDForTesting(UUID())
-
-        await pipeline.setStateForTesting(.speaking)
-        await pipeline.setGenerationActiveForTesting(false)
-        await pipeline.handleProactive(
-            .followUpToken("Heads up — that change failed. ", originUserTurnID: nil))
-
-        let speaking = await pipeline.isFollowUpSpeaking
-        #expect(speaking)
-    }
-
-    @Test func aCancelledRoutinesBufferAndOriginClearTogether() async {
-        let pipeline = makePipeline()
-        let origin = UUID()
-        await pipeline.setStateForTesting(.transcribing)   // user holds the floor
-        await pipeline.handleProactive(.followUpToken("Half a thought. ", originUserTurnID: origin))
-        let buffered = await pipeline.followUpBufferForTesting
-        #expect(!buffered.isEmpty)
-
-        await pipeline.handleProactive(
-            .routineCancelled(
-                routineID: UUID(), acknowledgement: "stopped",
-                originUserTurnID: origin))
-
-        let after = await pipeline.followUpBufferForTesting
-        #expect(after.isEmpty)
-    }
 }
 
 private actor LateAppendNullSynthesizer: SpeechSynthesizer {

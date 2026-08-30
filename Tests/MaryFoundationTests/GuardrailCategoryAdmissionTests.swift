@@ -2,20 +2,9 @@
 //  GuardrailCategoryAdmissionTests.swift
 //  MaryFoundationTests
 //
-//  THE CLOSURE PROOF for `GuardrailCategory` — the shared, Mary-owned closed
-//  vocabulary behind `AbilityOperatingPolicy.guardrailCategories` (Part A)
-//  and `PluginOperationSchema.caution` (Part B). Modeled on
-//  `PluginOperationSemantics.role`'s precedent: a package selects only which
-//  closed case applies, never any wording.
-//
-//  `operatingPolicy.guardrails` (free text, ability level) and
-//  `title`/`summary` (free text, operation level) stay permanently UI-only —
-//  guarded elsewhere, untouched here. These two new fields are the bounded
-//  companions, and the property under test is that neither can carry
-//  arbitrary package-authored text: a raw-value enum with a String rawValue
-//  still fails to DECODE for any string outside its closed case list, so an
-//  attempted injection is rejected before a validator, a renderer, or a model
-//  prompt ever sees it — not merely discouraged by convention.
+//  WHAT: GuardrailCategory is a closed vocabulary — unknown strings refuse to decode.
+//  OUT:  AbilityOperatingPolicy.guardrailCategories + PluginOperationSchema.caution
+//  PIN:  Free-text title/summary stay UI-only; these fields cannot carry package prose
 //
 
 import Foundation

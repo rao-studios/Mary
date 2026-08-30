@@ -2,17 +2,9 @@
 //  GuardrailCategoryProjectionSecurityTests.swift
 //  MaryBrainTests
 //
-//  THE RENDER-SIDE HALF of the `GuardrailCategory` closure proof. The
-//  companion suite, `GuardrailCategoryAdmissionTests` (MaryFoundationTests),
-//  proves an attempted payload cannot even decode. This suite proves the
-//  other requirement: every closed case, wherever it is consumed, expands to
-//  exactly one of a fixed, small allowlist of Mary-owned sentences — never
-//  raw package text — and that this actually happens for the real shipped
-//  `xcode.mary`/`coding.mary` packages this session migrated, not just a
-//  synthetic fixture.
-//
-//  Same discipline as `AbilityPromptProjectionSecurityTests.swift`: real
-//  bytes, real render, forbidden strings asserted absent by name.
+//  WHAT: Closed guardrail cases expand to Mary-owned sentences, never package prose.
+//  OUT:  Prompt projection of GuardrailCategory
+//  PIN:  Companion to GuardrailCategoryAdmissionTests
 //
 
 import Foundation

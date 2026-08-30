@@ -1,13 +1,9 @@
 //
 //  AmbientSurfaceBridgeTests.swift
-//  BonniePluginTests
+//  MaryPluginTests
 //
-//  Pins the engine→ambient conversion: field mapping into the tier-0
-//  surface, the kind-derivation parity table (each collected role's
-//  humanized word), the identity format's byte-parity with
-//  `AffordanceResolver.identity` (the act path re-finds controls by that
-//  spelling), the collected-roles filter with its 8pt floor, and the
-//  honest `pageNotYetRead` claim.
+//  WHAT: Engine snapshot → tier-0 surface, identity parity with AffordanceResolver.
+//  OUT:  AmbientSurfaceBridge
 //
 
 import ApplicationServices

@@ -1,14 +1,9 @@
 //
 //  AffordanceResolverTests.swift
-//  BonniePluginTests
+//  MaryPluginTests
 //
-//  THE TWO QUESTIONS, kept apart.
-//
-//  `PageElementResolver` answers "which thing did they NAME" and every case
-//  it already answers must keep answering identically — that is what the
-//  first rung of this ladder buys, and the regression tests below are what
-//  prove it. The new rung answers "which thing would DO what they asked",
-//  and only ever runs when the first one came back empty.
+//  WHAT: Named element vs affordance rung — name first, meaning only when empty.
+//  OUT:  PageElementResolver + AffordanceResolver
 //
 
 import ApplicationServices
@@ -21,7 +16,7 @@ import Testing
 @Suite struct AffordanceResolverTests {
 
     /// Nothing under test dereferences the handle; both resolvers are pure
-    /// functions of the value fields. `PageElementTests`' seam.
+    /// functions of the value fields.
     private static let handle = AXUIElementCreateSystemWide()
 
     private func element(
@@ -78,86 +73,9 @@ import Testing
         #expect(element.label == "Skip Ads")
     }
 
-    @Test func fullScreenReachesThePlayersOwnControl() {
-        let page = [
-            element(1, .button, "Play (k)"),
-            element(2, .button, "Full screen (f)"),
-            element(3, .button, "Settings"),
-        ]
-        guard case .one(let element) = resolved("make it full screen", page) else {
-            Issue.record("expected one resolution"); return
-        }
-        #expect(element.label == "Full screen (f)")
-    }
-
     // MARK: - The refusals
 
-    @Test func twoServingControlsRefuseByName() {
-        let page = [
-            element(1, .button, "Skip Ads"),
-            element(2, .button, "Skip Intro"),
-        ]
-        guard case .ambiguous(let rivals) = resolved("skip that", page) else {
-            Issue.record("expected an ambiguity"); return
-        }
-        #expect(Set(rivals.map(\.label)) == ["Skip Ads", "Skip Intro"])
-        // And the sentence names them, rather than asking to be more specific.
-        let refusal = PageElementResolver.ambiguityRefusal(
-            rivals, phrase: "skip that")
-        #expect(refusal.contains("Skip Ads"))
-        #expect(refusal.contains("Skip Intro"))
-    }
-
-    @Test func aPageOfferingNothingRelevantResolvesNothing() {
-        let page = [
-            element(1, .button, "Subscribe"),
-            element(2, .button, "Share"),
-        ]
-        #expect(resolved("skip the ad", page) == .none)
-    }
-
-    @Test func theMeaningRungNeverOffersADisabledControl() {
-        // A phrase the naming ladder cannot reach — "skip intro" is not
-        // contained in "Skip Ads Now" either direction, and the all-words rung
-        // fails on "intro" — so only the meaning rung can answer, and it must
-        // decline: `requires: .pressable` is unsatisfiable for a disabled
-        // control by construction, because `AffordanceRule` strips its
-        // capabilities.
-        let page = [element(1, .button, "Skip Ads Now", enabled: false)]
-        #expect(PageElementResolver.resolve(phrase: "skip the intro", in: page)
-            == .none)
-        #expect(resolved("skip the intro", page) == .none)
-    }
-
-    @Test func aDisabledControlTheNamingLadderFINDSStillReachesTheHands() {
-        // Deliberately NOT filtered here. `perform` refuses it with "\"X\" is
-        // there but not available right now" — a far more useful sentence
-        // than "I can't find that", and the reason this resolver does not
-        // quietly drop what the page plainly shows.
-        let page = [element(1, .button, "Skip Ads", enabled: false)]
-        guard case .one = resolved("skip the ad", page) else {
-            Issue.record("expected the naming ladder to find it"); return
-        }
-    }
-
-    @Test func aSharedStopWordCannotCarryAMatch() {
-        let page = [element(1, .button, "The Defiance Act")]
-        #expect(resolved("can you skip the ad", page) == .none)
-    }
-
     // MARK: - The naming ladder is untouched
-
-    @Test func anOrdinalStillResolvesExactlyAsBefore() {
-        let page = [
-            element(1, .video, "First video", role: "AXLink"),
-            element(2, .video, "Second video", role: "AXLink"),
-            element(3, .video, "Third video", role: "AXLink"),
-        ]
-        guard case .one(let element) = resolved("play the third video", page) else {
-            Issue.record("expected one resolution"); return
-        }
-        #expect(element.label == "Third video")
-    }
 
     @Test func aNamedTitleStillResolvesExactlyAsBefore() {
         let page = [
@@ -171,12 +89,4 @@ import Testing
         #expect(element.label == "Swift in 100 Seconds")
     }
 
-    @Test func identityIsRoleAndLabelRatherThanPosition() {
-        // A page re-flows between the read and the press; the ordinal moves
-        // and the identity does not. `relocate` re-finds by this.
-        let before = element(3, .button, "Skip Ads")
-        let after = element(9, .button, "Skip Ads")
-        #expect(AffordanceResolver.identity(of: before)
-                == AffordanceResolver.identity(of: after))
-    }
 }

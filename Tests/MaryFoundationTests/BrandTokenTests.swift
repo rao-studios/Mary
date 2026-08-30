@@ -2,24 +2,9 @@
 //  BrandTokenTests.swift
 //  MaryFoundationTests
 //
-//  MARY IS NOT BONNIE WEARING A NEW LABEL.
-//
-//  Most of this package is ported from Bonnie, and a rename sweep across
-//  ~58,000 lines does not fail loudly — it fails in the places a compiler
-//  never looks. A missed type name breaks the build and is fixed in seconds.
-//  A missed STRING LITERAL does not: a persistence key still reading
-//  `bonnie.persistence.chat.0001`, a pid directory under Application Support/
-//  Bonnie, a resource bundle named Bonnie_BonnieVoice.bundle, a UTI of
-//  nyc.rao.bonnie.ability-package. Each of those compiles, ships, and then
-//  quietly collides with the other app on the same machine — reading its
-//  conversation store, adopting its server processes, or claiming its
-//  documents.
-//
-//  So the gate is: no `bonnie` token in CODE anywhere under Sources/, in the
-//  manifest, in the bundle plist, or in a shipped Plugin package. Comments are
-//  exempt and deliberately so — porting notes that say where a file came from
-//  and which Bonnie bug shaped it are worth keeping, and they are the only
-//  honest place for that provenance to live.
+//  WHAT: No `bonnie` token in Sources, the manifest, the bundle plist, or shipped `.mary`.
+//  OUT:  BrandToken scan of the tree
+//  PIN:  Comments are exempt; string literals are not
 //
 
 import Foundation

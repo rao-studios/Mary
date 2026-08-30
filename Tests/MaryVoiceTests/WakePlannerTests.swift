@@ -2,10 +2,8 @@
 //  WakePlannerTests.swift
 //  MaryVoiceTests
 //
-//  The wake and stop-listening matchers as row tables — `IntakePlannerTests`'
-//  shape. The rows that matter most are the ones that DON'T wake: a false
-//  positive here opens the microphone and ACTS, so the positional gate is the
-//  behavior under test.
+//  WHAT: Wake and stop-listening matchers — positional gate; false positives act.
+//  OUT:  WakePlanner
 //
 
 import Foundation

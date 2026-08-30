@@ -2,29 +2,9 @@
 //  PluginCompilerPerceptionChannelsTests.swift
 //  MaryBrainTests
 //
-//  THE FOUR-CHANNEL POLICY, PINNED AT THE COMPILER — the fix behind
-//  "why-does-mary-keep-mutable-rabbit.md"'s Bug 1. `PluginValidator
-//  +Validate.swift` (search that file for "A CODE SURFACE IS THE FOURTH")
-//  has admitted FOUR channels that earn a `workspace` perception claim since
-//  `corpus` landed in `6234bfe`: `proseSurface`, `codeSurface`,
-//  `mediaSurface`, `corpus`. `PluginCompiler.perception(from:proseSurface:
-//  codeSurface:mediaSurface:corpus:)` only ever checked the first two — it
-//  was extended for `codeSurface` in `[Corpus H]` and never updated when the
-//  other two joined the validator's policy — so a package backed ONLY by a
-//  `corpus` or a `mediaSurface` (`scrivener.mary`, `apple-music.mary`)
-//  passed package validation cleanly and then silently downgraded to
-//  `.perceptionOnly` at compilation: `hasEyes` false, and every gate that
-//  reads it (`SelectionSurfacePolicy.isKnownProseEditor`'s
-//  `registration.hasEyes` half, most visibly) refusing for a package that
-//  had genuinely earned eyes.
-//
-//  ALL FOUR CHANNELS, EACH PROVEN AGAINST THE SHIPPED PACKAGE THAT ACTUALLY
-//  DEPENDS ON IT — not a synthetic fixture standing in for the real
-//  declaration, the same choice `CodingDisciplineTests
-//  .theEditorsPlaceReadsAsCoding` already made for the code-surface channel.
-//  `textedit.mary` and `xcode.mary` were never broken (the first two
-//  channels the compiler always checked); `scrivener.mary` and
-//  `apple-music.mary` are the two this fix repairs.
+//  WHAT: All four observation channels earn a workspace perception claim.
+//  OUT:  PluginCompiler.perception
+//  PIN:  corpus and mediaSurface must not silently downgrade to perceptionOnly
 //
 
 import Foundation

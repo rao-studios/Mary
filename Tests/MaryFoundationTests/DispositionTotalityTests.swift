@@ -2,20 +2,9 @@
 //  DispositionTotalityTests.swift
 //  MaryFoundationTests
 //
-//  THE MAP BETWEEN THE RUNTIME'S VOCABULARY AND THE DATASET'S MUST BE TOTAL.
-//
-//  `SkillRunStatus` is what the runtime says about a run right now.
-//  `BehavioralDisposition` is what a written episode will still mean in a
-//  year. They are deliberately separate types, and the whole value of that
-//  separation depends on the translation between them being complete and
-//  deliberate — a status that fell through to a default would land in the
-//  dataset as a guess nobody made on purpose.
-//
-//  The compiler enforces most of this: `init(_ status:)` switches
-//  exhaustively, so a new `SkillRunStatus` case breaks the build until
-//  somebody decides what it means. These tests cover what the compiler
-//  cannot — that every status actually produces a written case rather than
-//  the decode-only `.unknown`, and that the round trip is stable.
+//  WHAT: SkillRunStatus → BehavioralDisposition is total and stable.
+//  OUT:  BehavioralDisposition.init(_ status:)
+//  PIN:  No status may decode-only as `.unknown`
 //
 
 import Foundation

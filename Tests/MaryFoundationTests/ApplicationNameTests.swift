@@ -2,30 +2,9 @@
 //  ApplicationNameTests.swift
 //  MaryFoundationTests
 //
-//  NO APPLICATION IS NAMED IN MARY'S CODE. Not in a switch, not in a string
-//  table, not in a Skill description the model reads.
-//
-//  THIS IS THE LOCKED DECISION MADE MECHANICAL. Every application Mary can
-//  reach arrives as a declaration — a `.mary` package saying what it is
-//  called, what its documents are called, which roles hold its text, which
-//  chord makes a new one. The moment a product name appears in Swift, one
-//  application is special: it works without a package, it survives a package
-//  being uninstalled, and the next application gets whatever behaviour the
-//  first one's name happened to be wired to.
-//
-//  THE FAILURES THIS CATCHES ARE REAL AND WERE FOUND BY HAND. A window
-//  classifier took two booleans named after one editor, so "the note" was a
-//  phrase compiled into Mary and a place calling its documents chapters got
-//  nothing. A Skill description told the model to pass "pages, textedit, or
-//  scrivener" — a capability claim about three applications that may not be
-//  installed. A cue-word list carried product names, so naming your editor
-//  worked only if it was one of five.
-//
-//  COMMENTS ARE EXEMT, and deliberately: a comment naming the application a
-//  bug was observed in is the most useful sentence in the file. What is banned
-//  is a name the code READS.
-//
-//  THE ALLOWLIST IS SHORT AND EACH ENTRY EARNS ITS PLACE — see `allowed`.
+//  WHAT: No application product name in Swift that the code reads.
+//  OUT:  Scan of Sources/ for banned tokens
+//  PIN:  Comments are exempt; each allowlist entry earns its place
 //
 
 import Foundation

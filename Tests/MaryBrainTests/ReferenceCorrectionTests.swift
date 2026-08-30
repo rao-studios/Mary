@@ -2,16 +2,8 @@
 //  ReferenceCorrectionTests.swift
 //  MaryBrainTests
 //
-//  THE THIRD CLAUSE OF THE DOCTRINE, tested.
-//
-//  The shipped voice prompt has always said: "take the reading they most likely
-//  meant and say plainly which one you took, **so they can correct you in one
-//  word**." Acting was built. Announcing was half-built. Correcting was prose —
-//  "say undo", "say the word and I'll put it back" — with nothing behind it,
-//  while a yes/no on a parked write bypasses the model entirely.
-//
-//  These are the tests for the mechanism that closes it. Re-aim only: what
-//  already landed stays.
+//  WHAT: One-word correction re-aims; what already landed stays.
+//  OUT:  Reference correction
 //
 
 import Foundation

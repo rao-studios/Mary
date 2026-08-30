@@ -2,12 +2,8 @@
 //  HistoryIntegrityTests.swift
 //  MaryBrainTests
 //
-//  The alternation invariant: whatever storm hits the history — overlap
-//  supersedes, detached-routine merges, the rolling window trimming a live
-//  routine's origin, a supersede racing a settle — the Seer wire must never
-//  see two consecutive same-role messages. Broken alternation is the
-//  stale-grounding bug's signature (H-A: an overlapping plain respond left
-//  [user, user] behind).
+//  WHAT: Seer wire never sees two consecutive same-role messages.
+//  OUT:  History alternation under supersede / merge / trim
 //
 
 import MaryVoice

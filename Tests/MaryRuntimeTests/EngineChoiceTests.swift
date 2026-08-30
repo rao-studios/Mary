@@ -2,22 +2,8 @@
 //  EngineChoiceTests.swift
 //  MaryRuntimeTests
 //
-//  WHERE THE WORDS GO — the one setting a person opens Settings to answer,
-//  and the one that used to answer wrongly.
-//
-//  WHAT THIS IS THE REGRESSION FOR. `LLMEngineChoice` was inert. Both arms of
-//  `applyEngine` built the same `MaryLocalEngine`, the Seer chat lane was
-//  wired on `seerEnabled` alone, and so selecting "Local (on device)" left
-//  every turn going to the server. The only observable difference in the whole
-//  build was a warming message. Nothing failed; the switch simply did not do
-//  the thing it named, which is the worst shape for a setting whose subject is
-//  where a person's words are sent.
-//
-//  THE TRUTH TABLE IS THE TEST. Two independent conditions — the server is the
-//  user's to use, and the user wants the words to go there — and the only
-//  combination that carries a turn to Seer is both. Stated here rather than
-//  inferred from four call sites, because the four call sites are exactly what
-//  drifted.
+//  WHAT: Hosted engine only when the server is allowed AND the user chose it.
+//  OUT:  LLMEngineChoice / applyEngine
 //
 
 import Foundation

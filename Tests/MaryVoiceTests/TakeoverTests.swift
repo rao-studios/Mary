@@ -2,22 +2,8 @@
 //  TakeoverTests.swift
 //  MaryVoiceTests
 //
-//  THE BUG THESE PIN, in the user's own words: "it correctly opened Apple Music
-//  and played a song, and then followed up after completing the task as if it
-//  was doing it at the moment." And, on a passage that had already been
-//  replaced: "I'm on it, but I need a quick clarification — do you mean the
-//  whole document, or the Background section?"
-//
-//  The voice lane cannot know a result — it is spawned with no dispatcher and
-//  no outcome channel — so everything it says about work in flight is a
-//  PROMISE. `.retractSpeech` is the arm that replaces that promise once the
-//  Skill execution lane joins holding the finished outcome, instead of appending a
-//  correction behind it.
-//
-//  Observed through `.chunkQueued` (pre-engine, headless-safe — the same
-//  posture as SentenceSpeakerTests and SpeechRouterTests), because the claim
-//  under test is "the stale text NEVER REACHES SYNTHESIS", and `.chunkQueued`
-//  is the exact moment text is handed to a synthesizer.
+//  WHAT: Stale Lane-A speech never reaches synthesis — retract replaces, not appends.
+//  OUT:  VoicePipeline .retractSpeech via .chunkQueued
 //
 
 import Foundation

@@ -1,14 +1,16 @@
+//
+//  DeterministicWindowVerbTests.swift
+//  MaryBrainTests
+//
+//  WHAT: When a window turn may skip the model — the gate is deliberately narrow.
+//  OUT:  Deterministic window verb
+//  PIN:  A false positive silently drops the rest of a compound request
+//
+
 import Foundation
 import Testing
 @testable import MaryBrain
 
-/// WHEN A WINDOW TURN MAY SKIP THE MODEL ENTIRELY.
-///
-/// The gate is deliberately narrow, and both halves of the narrowness matter.
-/// A false NEGATIVE costs a person a second; a false POSITIVE answers half of
-/// a compound request and returns, silently dropping the rest — or raises
-/// windows in an application nobody named. Every test below is about the
-/// second kind.
 @Suite struct DeterministicWindowVerbTests {
 
     // MARK: - What it takes

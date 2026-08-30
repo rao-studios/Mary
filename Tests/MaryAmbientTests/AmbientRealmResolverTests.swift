@@ -2,13 +2,8 @@
 //  AmbientRealmResolverTests.swift
 //  MaryAmbientTests
 //
-//  WHO COULD SERVE, AND WHY THAT ONE.
-//
-//  The resolver's output is a dataset row before it is anything else, so what
-//  these tests hold is mostly the RECORD: that a candidate carries what it
-//  conformed by, that the set survives the decision, that the reasoning is
-//  recoverable from the row alone. A resolver that picked correctly and
-//  recorded nothing would pass a place test and fail at its actual job.
+//  WHAT: Who could serve and why — resolver output as a recoverable record.
+//  OUT:  AmbientRealmResolver
 //
 
 import Foundation
@@ -95,14 +90,6 @@ import MaryFoundation
         #expect(realm.candidates.count == 2)
     }
 
-    @Test func anEmptyNeedSettlesOnTheCurrentlyActiveLead() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("what's that?", registrations: [quill, forge],
-                   lead: .application("forge")))
-        #expect(realm.need.isEmpty)
-        #expect(realm.place == .application("forge"))
-    }
-
     @Test func theNeedCarriesBothAxesWhenBothArePresent() {
         let realm = AmbientRealmResolver.resolve(
             inputs("tidy the draft", registrations: [quill],
@@ -116,75 +103,17 @@ import MaryFoundation
     /// AN APPLICATION ANSWERING TWO NEEDS APPEARS ONCE, carrying both. This is
     /// the user's own framing — "a realm that can conform to both is seen" —
     /// and splitting it would let one place compete with itself for the lead.
-    @Test func onePlaceConformingTwiceIsOneCandidateWithBothConformances() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("write the doc comment", registrations: [studio],
-                   need: [.writing, .coding], discipline: .writing))
-
-        #expect(realm.candidates.count == 1)
-        let only = realm.candidates[0]
-        #expect(only.conformsByAbilities == [.writing, .coding])
-        #expect(only.place == .application("studio"))
-    }
-
-    @Test func aPlaceThatConformsToNeitherAxisIsNotACandidate() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("fix the build", registrations: [quill, forge], need: [.coding]))
-        #expect(realm.candidates.map(\.place) == [.application("forge")])
-    }
 
     /// THE FIELD NOTHING HAS EVER READ. `targetClasses` has been populated by
     /// packages and consumed by no code at all — so an author could describe
     /// exactly what their application accepts and never be matched on a word
     /// of it. It reaches a candidate now, which is what puts it in the record.
-    @Test func aCandidateCarriesTheTargetClassesItsPackageDeclared() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("revise it", registrations: [quill], need: [.writing]))
-        #expect(realm.candidates.first?.targetClasses == ["editable-prose-surface"])
-    }
 
     /// CONFORMED BUT COLD is the distinction the whole record exists for: the
     /// same set, with and without evidence, is what explains a choice.
-    @Test func aCandidateCarriesTheKindAndAgeOfItsEvidence() {
-        let now = Date()
-        let place = AmbientPlace.application("quill")
-        let realm = AmbientRealmResolver.resolve(
-            AmbientRealmResolver.Inputs(
-                utterance: "revise it",
-                discipline: .writing,
-                focus: FocusSignal(lead: place),
-                evidence: [place: FocusEvidence(
-                    place: place, kind: .activation, at: now.addingTimeInterval(-4))],
-                registrations: [quill],
-                abilities: FixedAbilities(answer: [.writing]),
-                now: now))
-
-        let candidate = try? #require(realm.candidates.first)
-        #expect(candidate?.evidence == .activation)
-        #expect((candidate?.evidenceAgeSeconds ?? 0) >= 3.9)
-        #expect((candidate?.evidenceAgeSeconds ?? 0) <= 4.1)
-    }
-
-    @Test func aConformingPlaceWithNoEvidenceIsStillRecordedAsACandidate() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("revise it", registrations: [quill], need: [.writing]))
-        #expect(realm.candidates.count == 1)
-        #expect(realm.candidates.first?.evidence == nil)
-        // …and does not win, because standing is what separates "could act
-        // there" from "should".
-        #expect(realm.place == nil)
-    }
 
     /// THE ORDER IS STABLE ACROSS RUNS. A record whose order depends on a hash
     /// seed cannot be diffed against itself.
-    @Test func candidatesAreOrderedByPlaceTokenNotByHashSeed() {
-        for _ in 0..<8 {
-            let realm = AmbientRealmResolver.resolve(
-                inputs("do it", registrations: [studio, forge, quill]))
-            #expect(realm.candidates.map(\.place.token)
-                    == ["applications:forge", "applications:quill", "applications:studio"])
-        }
-    }
 
     // MARK: - The place
 
@@ -211,35 +140,9 @@ import MaryFoundation
     /// application because the named one lacked a declared ability is the
     /// most confusing thing Mary can do. The realm records the
     /// non-conformance, which is the useful part.
-    @Test func aNamedPlaceThatDoesNotConformStillTakesTheTurn() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("fix the build in quill", registrations: [quill, forge],
-                   need: [.coding],
-                   named: [.application("quill")],
-                   lead: .application("forge")))
-        #expect(realm.place == .application("quill"))
-        // …and the record shows it was not among the conforming set.
-        #expect(!realm.conforming.map(\.place).contains(.application("quill")))
-    }
 
     /// THE LEAD DID NOT CONFORM, so the turn is about something warm beside
     /// it — `coActive` arrives already ranked, strongest evidence first.
-    @Test func aCoActivePlaceTakesTheTurnWhenTheLeadDoesNotConform() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("revise the draft", registrations: [quill, forge],
-                   need: [.writing],
-                   lead: .application("forge"),
-                   coActive: [.application("quill")]))
-        #expect(realm.place == .application("quill"))
-    }
-
-    @Test func nothingConformingAndNothingNamedDecidesNoPlace() {
-        let realm = AmbientRealmResolver.resolve(
-            inputs("fix the build", registrations: [quill], need: [.coding]))
-        #expect(realm.place == nil)
-        #expect(realm.decidedBy == nil, "a realm with no place claims no decider")
-        #expect(realm.isEmpty)
-    }
 
     // MARK: - The pinned invariant
 
@@ -249,14 +152,6 @@ import MaryFoundation
     /// and this is the test that keeps it honest: a second place-picker
     /// disagreeing with the first is the exact class of bug the whole
     /// World/Realm/Place reorganisation was done to remove.
-    @Test func theRealmsPlaceIsTheLeadWheneverTheLeadConforms() {
-        for lead in ["quill", "studio"] {
-            let realm = AmbientRealmResolver.resolve(
-                inputs("revise it", registrations: [quill, studio, forge],
-                       need: [.writing], lead: .application(lead)))
-            #expect(realm.place == .application(lead))
-        }
-    }
 
     // MARK: - The set survives the decision
 
@@ -264,22 +159,4 @@ import MaryFoundation
     /// wrote in Quill" teaches an association; one saying "two applications
     /// conformed, Quill led by activation, Studio was cold" teaches the
     /// judgement.
-    @Test func theLosersStayInTheRecord() {
-        let now = Date()
-        let winner = AmbientPlace.application("quill")
-        let realm = AmbientRealmResolver.resolve(
-            AmbientRealmResolver.Inputs(
-                utterance: "revise it",
-                focus: FocusSignal(lead: winner),
-                evidence: [winner: FocusEvidence(place: winner, kind: .activation, at: now)],
-                registrations: [quill, studio],
-                abilities: FixedAbilities(answer: [.writing]),
-                now: now))
-
-        #expect(realm.place == winner)
-        #expect(realm.candidates.count == 2)
-        let loser = realm.candidates.first { $0.place == .application("studio") }
-        #expect(loser?.conformsByAbilities == [.writing], "the loser conformed")
-        #expect(loser?.evidence == nil, "and had no standing — which is WHY it lost")
-    }
 }

@@ -1,11 +1,17 @@
+//
+//  ConfirmationFlowTests.swift
+//  MaryBrainTests
+//
+//  WHAT: Destructive actions stay pending until spoken go-ahead.
+//  OUT:  Confirmation hold / go-ahead
+//
+
 import Foundation
 import Testing
 @testable import MaryBrain
 @testable import MaryPlugin
 @testable import MaryAmbient
 
-/// The generic destructive-confirmation flow: pending actions are held, not
-/// executed, until the user's spoken go-ahead.
 @Suite struct ConfirmationFlowTests {
 
     final class Recorder: @unchecked Sendable {

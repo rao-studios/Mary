@@ -30,6 +30,12 @@ Under construction, in stages. Stage 0 (scaffold, doctrine tests, signing) is
 in. See `~/.claude/plans/we-have-implemented-all-atomic-sutton.md` for the
 staged plan.
 
+Test plans name the destination, not the incident pile:
+
+- `TestPlans/Mary-Doctrine.xctestplan` — standing rules (layering, admission, purity). Always expected green.
+- `TestPlans/Mary.xctestplan` — Doctrine plus perceive / speak-listen / teach-act / turn. Daily run.
+- Live AX, voice, corpus, and media stay in the `mary-*-probe` tools.
+
 ## Building
 
 Requires macOS 26 (the floor is `SpeechAnalyzer`, the only API for long-form

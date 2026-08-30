@@ -2,30 +2,9 @@
 //  CodingDisciplineTests.swift
 //  MaryBrainTests
 //
-//  THE CODING DISCIPLINE, AS SHIPPED — the road `coding.mary` and
-//  `xcode.mary` have to travel before Mary can be asked to build anything.
-//
-//  WHAT MAKES THIS WORTH ITS OWN SUITE. `WritingReachabilityTests` pins the
-//  same road for writing, and it exists because three separate defects had to
-//  line up before a manuscript could be typed into. Coding is the second
-//  discipline to travel that road, and for its build/run/test/save/stop
-//  Skills alone it is still the one with no compiled provider anywhere
-//  behind it — writing has the prose-surface adapter, coding has only
-//  declarations there. `read_buffer`/`read_selection` broke that (the
-//  code-surface adapter), and the road they travel is exactly this suite's
-//  own — including a real ability-conflict regression the live probe found
-//  and this file now pins (see `codingStaysActiveAlongsideWritingWhenXcode
-//  HasAProjectCorpus`). Every rung here is therefore load-bearing in a way
-//  the writing equivalents are not, because nothing else would catch a
-//  break.
-//
-//  AND ONE RUNG IS NEWLY REPAIRED. `AmbientPlace.ability` used to break ties
-//  with `AmbientWorld.realizedAbilities`, which the world shrink left
-//  permanently empty — so a taught application's craft came back as whichever
-//  of its ability ids sorted first alphabetically. For an editor that is its
-//  OWN id ("xcode" before "coding"), which would leave `focus` nil and the
-//  `workspaceFamily == "coding"` predicate unreachable. The order now comes
-//  from `WorkspaceFocus`. These tests are what stop that from rotting back.
+//  WHAT: Shipped coding.mary × xcode.mary — join, focus, conflict, read-only gates.
+//  OUT:  PluginCompiler + AbilityRosterArbitrator + CognitivePrimitiveCatalog
+//  PIN:  Place focus is WorkspaceFocus, not alphabetical ability ids
 //
 
 import Foundation
@@ -573,6 +552,63 @@ import Testing
         #expect(
             !AbilityRoutingEvaluator.isEligible(reviseSelection.routing, in: context),
             "revise_selection must stay excluded from a coding workspace even with a live selection")
+    }
+
+    /// Exact-match lookup is the security boundary: coding's revision
+    /// primitive cannot be reached by borrowing writing's invocation.
+    @Test func codeRevisionIsScopedToCodingsOwnSkillIdentity() {
+        #expect(CognitivePrimitiveCatalog.contract(
+            for: Self.runtimeSkill(
+                ability: .coding,
+                skillID: "coding.revise-selection",
+                invocationName: "revise_code_selection"))?.primitive
+            == .reviseCodeSelection)
+        #expect(CognitivePrimitiveCatalog.contract(
+            for: Self.runtimeSkill(
+                ability: .writing,
+                skillID: "coding.revise-selection",
+                invocationName: "revise_code_selection")) == nil)
+        #expect(CognitivePrimitiveCatalog.contract(
+            for: Self.runtimeSkill(
+                ability: .coding,
+                skillID: "coding.revise-selection",
+                invocationName: "revise_selection")) == nil)
+    }
+
+    private static func runtimeSkill(
+        ability: AbilityID,
+        skillID: SkillID,
+        invocationName: String
+    ) -> AbilityRuntimeSkill {
+        let skill = SkillSchema(
+            id: skillID,
+            title: "Revise",
+            summary: "Revise the verified selection.",
+            kind: .cognitive,
+            execution: .init(kind: .cognitive),
+            modelExposure: .init(invocationName: invocationName))
+        let package = MaryAbilityPackage(
+            package: .init(
+                id: "tests.code-revision",
+                version: "1.0.0",
+                publisher: "tests",
+                summary: "revise_code_selection identity fixture."),
+            ability: .init(
+                id: ability,
+                title: "Fixture",
+                summary: "Fixture ability.",
+                tint: "#112233",
+                skills: [skill.id]),
+            skills: [skill])
+        let record = AbilityPackageRecord(
+            package: package,
+            source: .sourceTree,
+            sourceURL: URL(fileURLWithPath: "/tmp/code-revision.mary"),
+            validation: .init(),
+            rawData: Data())
+        let snapshot = AbilityRuntimeSnapshot(
+            records: [record], validation: .init(), adapterManifests: [])
+        return snapshot.skills.first { $0.skill.id == skill.id }!
     }
 
     private func loadRootPackage(_ name: String) throws -> MaryAbilityPackage {

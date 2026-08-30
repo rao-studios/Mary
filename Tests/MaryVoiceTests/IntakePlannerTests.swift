@@ -2,11 +2,8 @@
 //  IntakePlannerTests.swift
 //  MaryVoiceTests
 //
-//  The intake ladder as a row table — `ActionRhythmTests`' shape.
-//
-//  The rows that matter most are the ones that DON'T admit. Always-on
-//  listening is tolerable only because the addressivity gate is conservative:
-//  a false negative costs a remembered line, a false positive ACTS.
+//  WHAT: Intake ladder — false negative costs a line, false positive acts.
+//  OUT:  IntakePlanner
 //
 
 import Foundation

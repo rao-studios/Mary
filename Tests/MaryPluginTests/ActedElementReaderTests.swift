@@ -2,19 +2,9 @@
 //  ActedElementReaderTests.swift
 //  MaryPluginTests
 //
-//  THE JOIN THE DATASET IS BUILT ON.
-//
-//  An action's target and a captured surface element have to line up. They are
-//  produced by two different paths — one walks a whole application, the other
-//  reads a single focused element an adapter already holds — and they meet
-//  only if both spell identity the same way. Nothing about that is enforced by
-//  the compiler, so it is enforced here.
-//
-//  Everything below is pure: identity spelling, the ancestor-climb bounds, the
-//  label ladder. The AX reads themselves need a live process with a grant and
-//  are exercised by the probe, not by a unit test that would either be a mock
-//  of the framework or a test that passes on a machine with no accessibility
-//  permission and fails on one with it.
+//  WHAT: Action target and captured surface spell identity the same way.
+//  OUT:  ActedElementReader
+//  PIN:  Live AX reads stay in the probe
 //
 
 import CoreGraphics

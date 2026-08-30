@@ -2,37 +2,9 @@
 //  CompiledAdapterHandshakeTests.swift
 //  MaryBrainTests
 //
-//  THE HANDSHAKE BETWEEN A SHIPPED PACKAGE AND A SHIPPED ADAPTER, checked
-//  against the real ones rather than a fixture.
-//
-//  Readiness is a JOIN: a Skill names the Capabilities it needs, each
-//  Capability constrains how it may execute, and the adapter's manifest says
-//  what its operations actually claim. Every one of those three can be
-//  individually valid while the join produces nothing — which is why schema
-//  tests, routing tests and package validation all passed while four of
-//  `multimedia.mary`'s Skills were installed and unavailable:
-//
-//      control_playback is unavailable: Operation control_playback does not
-//      implement an allowed target class: media-player.
-//
-//  `MediaSurfaceAdapter` had taken the protocol's DEFAULT manifest, which
-//  publishes an operation's name and nothing else — no capabilities, no target
-//  classes, no observed Perceptions. The Capabilities it was meant to satisfy
-//  constrain themselves to `allowedTargetClass: media-player`, and an operation
-//  that claims no class implements none of them.
-//
-//  IT PRESENTED AS SELECTIVE, which is what cost the time: `search_music` and
-//  `play_music` stayed ready throughout, because their Capabilities constrain
-//  no target class and the check never ran. A whole adapter silently
-//  half-working looks like a bug in the two Skills that fail rather than a
-//  missing declaration behind all six.
-//
-//  SCOPED TO COMPILED ADAPTERS ON PURPOSE. A Skill bound to a package-declared
-//  plugin (`xcode.managed-ui`) or to an adapter this build does not ship
-//  (`mac/open_app`) is allowed to be blocked — that is a missing lane, not a
-//  broken handshake, and the packages say so themselves. What must never be
-//  blocked is a Skill bound to an adapter Mary compiles in: both halves of that
-//  join ship in this repository, so a mismatch between them is always a bug.
+//  WHAT: Shipped package × compiled adapter join — blocked Skills are a missing declaration.
+//  OUT:  AbilityAdapterCompatibilityEvaluator against MaryAdapterCatalog
+//  PIN:  Package-declared plugins may be blocked; compiled adapters must not
 //
 
 import Foundation

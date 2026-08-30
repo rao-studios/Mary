@@ -2,11 +2,8 @@
 //  SupersedeTests.swift
 //  MaryBrainTests
 //
-//  The amend flow's brain half: respondSuperseding cancels the in-flight
-//  turn, removes its exchange wholesale (user turn + tool pairs + partials),
-//  and runs the amended query on a clean slate — while the epoch guard drops
-//  any late writes from the superseded turn. Subprocess kill-on-cancel is
-//  covered here too.
+//  WHAT: respondSuperseding cancels the in-flight turn and drops late writes.
+//  OUT:  MaryBrain respondSuperseding + epoch guard
 //
 
 import MaryVoice

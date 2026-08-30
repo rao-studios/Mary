@@ -1,17 +1,10 @@
 //
 //  AXSnapshotTestSupport.swift
-//  BonniePluginTests
+//  MaryPluginTests
 //
-//  Shared fixture builders for tests that construct synthetic
-//  `AXNodeSnapshot`/`AXAppSnapshot` trees without live AX. Pulled out of the
-//  per-file private helpers `AXHitTestTests`/`AXSnapshotModelTests` each
-//  already wrote, because `AXElementRosterTests` and
-//  `ScreenElementResolverTests` both need multi-node, multi-window trees
-//  neither of those smaller helpers builds.
-//
-//  NOT a singleton: each test owns its own `AXIDVendor` instance so tests
-//  running in parallel never share mutable state — the same reason
-//  `AXHitTestTests.nextRaw` was a private INSTANCE property, not a static.
+//  WHAT: Synthetic AXNodeSnapshot / AXAppSnapshot trees without live AX.
+//  OUT:  AXSnapshotBuildCoreTests + AmbientSurfaceBridgeTests
+//  PIN:  Each test owns its AXIDVendor — no shared mutable ids
 //
 
 import CoreGraphics

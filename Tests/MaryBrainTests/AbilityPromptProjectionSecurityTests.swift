@@ -1,3 +1,11 @@
+//
+//  AbilityPromptProjectionSecurityTests.swift
+//  MaryBrainTests
+//
+//  WHAT: Unsigned imported package text cannot become system instructions.
+//  OUT:  Prompt projection of Ability packages
+//
+
 import Foundation
 import Testing
 @testable import MaryBrain

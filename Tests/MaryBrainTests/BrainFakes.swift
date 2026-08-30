@@ -2,15 +2,16 @@
 //  BrainFakes.swift
 //  MaryBrainTests
 //
-//  THE SCRIPTED HALVES OF A TURN — an engine that replays a fixed sequence of
-//  rounds, a Seer that replays a fixed script, and a dispatcher that answers
-//  from a table.
+//  WHAT: Scripted engine / Seer / dispatcher shared by turn-loop suites.
+//  OUT:  ScriptedEngine, ScriptedSeer, table dispatcher
 //
-//  THEY LIVE IN THEIR OWN FILE because more than one suite needs them, and
-//  the suite they used to be nested inside is gone. A test harness parked
-//  inside one suite's namespace is a harness the next suite imports by
-//  reaching through a type it has nothing to do with — which is exactly how
-//  deleting one suite broke another.
+
+//
+//  BrainFakes.swift
+//  MaryBrainTests
+//
+//  WHAT: Scripted engine / Seer / dispatcher shared by turn-loop suites.
+//  OUT:  ScriptedEngine, ScriptedSeer, table dispatcher
 //
 
 import Foundation

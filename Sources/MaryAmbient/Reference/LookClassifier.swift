@@ -35,7 +35,7 @@ public enum LookClassifier {
     /// `ActionClassifier`/`EditIntentClassifier` peel, respelled minimally
     /// here to keep this classifier dependency-light and pure.
     static let leadingNoise: Set<String> = [
-        "hey", "mary", "bonnie", "ok", "okay", "oh", "so", "well", "um", "uh",
+        "hey", "mary", "ok", "okay", "oh", "so", "well", "um", "uh",
         "yeah", "now", "also", "and", "but", "wait",
     ]
 

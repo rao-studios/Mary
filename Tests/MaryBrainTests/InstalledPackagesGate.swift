@@ -2,18 +2,8 @@
 //  InstalledPackagesGate.swift
 //  MaryBrainTests
 //
-//  THE SUITES THAT NEED REAL PACKAGES ON DISK, and how they behave before any
-//  are shipped.
-//
-//  Ability packages are DATA, and three suites here test the machinery that
-//  finds, validates and routes them — which means they need real `.mary`
-//  files in `Abilities/`, not fixtures. Until those ship, the honest state is
-//  "not exercised yet", and this is how a suite says so.
-//
-//  A SKIP, NOT A DELETION, and not a fixture stand-in either. Deleting them
-//  loses the coverage silently; faking the packages would test the fake. A
-//  skip that names what is missing is the only one of the three that stays
-//  true when the packages arrive.
+//  WHAT: Path to checkout Abilities/, or skip honestly when none are shipped.
+//  OUT:  InstalledPackages.installed()
 //
 
 import Foundation

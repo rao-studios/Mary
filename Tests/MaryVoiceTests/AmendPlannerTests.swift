@@ -2,8 +2,8 @@
 //  AmendPlannerTests.swift
 //  MaryVoiceTests
 //
-//  The thinking-phase interrupt decision table: capture-first, cancel-late,
-//  defer during transcribing, discard on noise, never disturb on silence.
+//  WHAT: Thinking-phase interrupt — capture-first, cancel-late, never on silence.
+//  OUT:  AmendPlanner
 //
 
 import Testing

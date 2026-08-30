@@ -1,0 +1,66 @@
+{
+  "configurations" : [
+    {
+      "id" : "67F1497A-C496-477F-9C35-1344BE28FC50",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:",
+      "identifier" : "Mary",
+      "name" : "Mary"
+    }
+  },
+  "testTargets" : [
+    {
+      "selectedTests" : [
+        "PackageLayeringTests",
+        "PackageAdmissionTests",
+        "ValidatorLivenessTests",
+        "DeclarationAdmissionTests",
+        "ApplicationNameTests",
+        "BrandTokenTests",
+        "DispositionTotalityTests",
+        "RuntimePrimitiveIsolationTests",
+        "AbilityTotemLaneTests",
+        "GuardrailCategoryAdmissionTests",
+        "BehaviorCodecTests"
+      ],
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryFoundationTests",
+        "name" : "MaryFoundationTests"
+      }
+    },
+    {
+      "selectedTests" : [
+        "NoAppleEventsTests"
+      ],
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryPluginTests",
+        "name" : "MaryPluginTests"
+      }
+    },
+    {
+      "selectedTests" : [
+        "PluginRuntimePurityTests",
+        "AbilityPromptProjectionSecurityTests",
+        "GuardrailCategoryProjectionSecurityTests",
+        "PluginCompilerPerceptionChannelsTests",
+        "RuntimePrimitiveIsolationTests"
+      ],
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryBrainTests",
+        "name" : "MaryBrainTests"
+      }
+    }
+  ],
+  "version" : 1
+}

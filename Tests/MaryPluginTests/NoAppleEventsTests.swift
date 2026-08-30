@@ -2,32 +2,10 @@
 //  NoAppleEventsTests.swift
 //  MaryPluginTests
 //
-//  MARY SENDS NO APPLE EVENTS. A source-text test, because the property is
-//  about what the code is ALLOWED to reach rather than about what any run of
-//  it does — and because the whole value of the rule is that there is no
-//  second place to look.
-//
-//  WHY IT MATTERS MORE AFTER A PORT THAN BEFORE ONE. Everything this lane
-//  descends from drove applications by scripting them: the predecessor's menu
-//  driver clicked through System Events, its media lane was thousands of lines
-//  of AppleScript including the reads. Porting those means meeting a scripted
-//  answer at every step and re-founding it on Accessibility, and the failure
-//  mode is not a compile error — it is one convenient `NSAppleScript` in an
-//  error path, which WORKS, and quietly reintroduces a consent Mary does not
-//  otherwise need.
-//
-//  `VerifiedActivation`'s "NO SECOND ROAD" comment is the doctrine; this is
-//  the enforcement, and it arrives with the menu driver because that is the
-//  component whose predecessor was scripted.
-//
-//  ⚠️ WHAT THIS DOES NOT COVER, said plainly rather than left to be
-//  discovered: `PermissionsCenter` still asks for Automation CONSENT for every
-//  application in the roster, using `AEDeterminePermissionToAutomateTarget` —
-//  which is a permission QUERY and sends no event, so it is not a violation of
-//  this rule. But it means the user is asked to grant a capability this build
-//  cannot exercise, which Mary's own doctrine calls a consent request with
-//  nothing behind it. Left alone here because what consent an application
-//  requests is a product decision rather than a cleanup.
+//  WHAT: MaryPlugin sources must not send Apple Events.
+//  OUT:  Source-text scan of Sources/MaryPlugin
+//  PIN:  AEDeterminePermissionToAutomateTarget is a query, not a send.
+//        Subprocess is open / git / declared-build only.
 //
 
 import Foundation
@@ -109,23 +87,40 @@ final class NoAppleEventsTests: XCTestCase {
         }
     }
 
-    /// SUBPROCESS HAS EXACTLY ONE PRODUCTION ERRAND: window management opens
-    /// files with `/usr/bin/open`, which talks to Launch Services rather than
-    /// to an application. A general shell would be the escape hatch the
+    /// SUBPROCESS HAS THREE PRODUCTION ERRANDS, all Mary-owned:
+    /// `/usr/bin/open` (Launch Services), `/usr/bin/git`, and a project's
+    /// declared build command. A general shell is the escape hatch the
     /// runtime primitives were deleted to close.
-    func testSubprocessOnlyRunsTheOpenTool() throws {
+    func testSubprocessOnlyRunsMaryOwnedTools() throws {
+        let allowedByFile: [String: String] = [
+            "Subprocess.swift": "",
+            "WindowManagement.swift": "\"/usr/bin/open\"",
+            "ProjectGitAdapter.swift": "\"/usr/bin/git\"",
+            "ProjectBuildAdapter.swift": "Subprocess.run(",
+        ]
+        let forbiddenShells = ["/bin/sh", "/bin/zsh", "/bin/bash", "/usr/bin/env"]
         for (text, name) in try Self.sources() {
             let source = code(text)
             guard source.contains("Subprocess.run(") else { continue }
-            // The declaration itself, and the one caller.
-            guard name != "Subprocess.swift" else { continue }
-            XCTAssertTrue(
-                source.contains("\"/usr/bin/open\""),
-                """
-                \(name) runs a subprocess that is not /usr/bin/open. A general \
-                shell is the escape hatch this build deleted its runtime \
-                primitives to close.
-                """)
+            guard let required = allowedByFile[name] else {
+                XCTFail("""
+                    \(name) runs a subprocess. Only WindowManagement (/usr/bin/open), \
+                    ProjectGitAdapter (/usr/bin/git), and ProjectBuildAdapter (declared \
+                    build command) may. A general shell is the escape hatch this build \
+                    deleted its runtime primitives to close.
+                    """)
+                continue
+            }
+            if !required.isEmpty {
+                XCTAssertTrue(
+                    source.contains(required),
+                    "\(name) no longer names the tool this gate allows")
+            }
+            for shell in forbiddenShells {
+                XCTAssertFalse(
+                    source.contains(shell),
+                    "\(name) reaches for \(shell)")
+            }
         }
     }
 

@@ -2,9 +2,8 @@
 //  AbilityTotemLaneTests.swift
 //  MaryFoundationTests
 //
-//  Application Totem is gone. Ability is the only craft lane. Projection
-//  schemas do not name lanes — filing is derived from paradigm and required
-//  discipline dependencies.
+//  WHAT: Ability is the only craft Totem lane; filing is derived, not declared.
+//  OUT:  TotemLane + projection filing
 //
 
 import Foundation

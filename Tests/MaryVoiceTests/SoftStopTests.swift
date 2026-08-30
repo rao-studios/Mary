@@ -2,10 +2,8 @@
 //  SoftStopTests.swift
 //  MaryVoiceTests
 //
-//  The sentence-boundary stop: must always RETURN (never wedge), reset text
-//  ingest, and leave the speaker usable for the next utterance. Playback
-//  assertions stay tolerant — headless runners may lack a startable
-//  AVAudioEngine (same posture as RemoteAudioTests).
+//  WHAT: Sentence-boundary stop always returns and leaves the speaker usable.
+//  OUT:  SoftStop
 //
 
 import Foundation

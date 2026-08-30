@@ -2,26 +2,9 @@
 //  MultimediaReachabilityTests.swift
 //  MaryBrainTests
 //
-//  THE RISK THIS FILE EXISTS TO PIN. `multimedia.mary`'s media Skills carried
-//  NO routing eligibility, and `AbilityRoutingEvaluator.isEligible` reads a nil
-//  eligibility as "eligible" — so authoring one is a NARROWING change, not the
-//  purely additive one it reads as. Every utterance arm added to make "put on
-//  my running mix" score higher is also an arm that a turn saying none of those
-//  words now has to clear.
-//
-//  THE SHAPE THAT MAKES IT SAFE is an `any` tree whose FIRST arm reproduces the
-//  admission the Skill already had — `targetClass == "media-player"`, which
-//  every one of these Skills already required through its binding — with the
-//  utterance arms appended only to widen and to score. The positive tests below
-//  prove the widening; the negative tests prove the first arm still carries a
-//  turn that matches no words at all, which is the half that would silently rot
-//  if someone later "tidied" the tree by dropping it.
-//
-//  `play-music` AND `search-music` ARE DELIBERATELY ABSENT from all of this.
-//  They reach the iTunes endpoint with no player at all and their bindings
-//  claim no target class, so there is no arm that reproduces their admission
-//  and any eligibility here would take reach away from them. Their last test
-//  is that they still have none.
+//  WHAT: Media Skills keep a targetClass arm so utterance widening is not a narrowing.
+//  OUT:  AbilityRoutingEvaluator on multimedia.mary
+//  PIN:  play-music / search-music stay un-gated — they have no player class
 //
 
 import Foundation

@@ -2,20 +2,8 @@
 //  DerivedPerceptionTests.swift
 //  MaryBrainTests
 //
-//  A PERCEPTION MARY CONCLUDES must not read as a missing lane. The inventory
-//  installs from static manifest claims, but `code-workspace-focus` and
-//  `project-focus` are never claimed — `AbilityRuntime` concludes them from
-//  `workspace-focus` on every turn. Before `DerivedPerceptions`, every Skill
-//  requiring one installed `.blocked` and the whole coding lane vanished from
-//  the model's roster in silence.
-//
-//  Two halves are pinned here. The MECHANISM: `publishes(_:)` answers for a
-//  derived Perception exactly when it answers for its base, and for nothing
-//  else. The TABLE'S HONESTY, against the real roster: each row's base is a
-//  claim some compiled adapter actually makes (the row is reachable), and no
-//  compiled adapter claims a derived Perception statically (the derivation is
-//  the only source — a manifest that claimed one would be sensing a
-//  conclusion).
+//  WHAT: Concluded perceptions (code-workspace-focus, project-focus) are not missing lanes.
+//  OUT:  DerivedPerceptions + inventory publishes(_:)
 //
 
 import Foundation

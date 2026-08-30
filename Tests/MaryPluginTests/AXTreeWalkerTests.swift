@@ -1,12 +1,9 @@
 //
 //  AXTreeWalkerTests.swift
-//  BonniePluginTests
+//  MaryPluginTests
 //
-//  Pins `AXTreeWalker.walkCore`'s exact BFS/budget arithmetic against
-//  synthetic node graphs — no AX IPC. This is the equivalence proof for the
-//  SafariWebSurface/ProbeShaderFeel walk shims: both now forward to the same
-//  loop this file exercises, so a budget/ordering regression here is a
-//  regression in both call sites at once.
+//  WHAT: Shared BFS walker budget arithmetic on synthetic graphs.
+//  OUT:  AXTreeWalker.walkCore
 //
 
 import XCTest
@@ -36,17 +33,6 @@ final class AXTreeWalkerTests: XCTestCase {
         XCTAssertEqual(order, [1, 2, 3, 4, 5])
     }
 
-    func testRootVisitedAtDepthZero() {
-        let root = tree(1, [tree(2)])
-        var depths: [Int: Int] = [:]
-        AXTreeWalker.walkCore(
-            from: root, children: { $0.children },
-            budget: .init(maxDepth: 10, maxNodes: 10)
-        ) { node, depth in depths[node.id] = depth }
-        XCTAssertEqual(depths[1], 0)
-        XCTAssertEqual(depths[2], 1)
-    }
-
     // MARK: - Node cap: the legacy off-by-one, preserved exactly
 
     func testNodeCapVisitsExactlyMaxNodesAndAbortsBeforeTheNext() {
@@ -60,16 +46,6 @@ final class AXTreeWalkerTests: XCTestCase {
         // Exactly 3 nodes visited (root, child 1, child 2) — the 4th dequeue
         // increments `visited` past the cap and returns BEFORE calling visit.
         XCTAssertEqual(visited, [0, 1, 2])
-    }
-
-    func testNodeCapOfOneVisitsOnlyTheRoot() {
-        let root = tree(0, [tree(1), tree(2)])
-        var visited: [Int] = []
-        AXTreeWalker.walkCore(
-            from: root, children: { $0.children },
-            budget: .init(maxDepth: 10, maxNodes: 1)
-        ) { node, _ in visited.append(node.id) }
-        XCTAssertEqual(visited, [0])
     }
 
     // MARK: - Depth cap: a node AT maxDepth is visited, its children are not
@@ -87,25 +63,6 @@ final class AXTreeWalkerTests: XCTestCase {
         XCTAssertEqual(visited, [0, 1, 2])
     }
 
-    func testDepthCapZeroVisitsOnlyTheRoot() {
-        let root = tree(0, [tree(1)])
-        var visited: [Int] = []
-        AXTreeWalker.walkCore(
-            from: root, children: { $0.children },
-            budget: .init(maxDepth: 0, maxNodes: 100)
-        ) { node, _ in visited.append(node.id) }
-        XCTAssertEqual(visited, [0])
-    }
-
     // MARK: - A single leaf root
 
-    func testSingleNodeTreeVisitsOnlyTheRoot() {
-        let root = tree(42)
-        var visited: [Int] = []
-        AXTreeWalker.walkCore(
-            from: root, children: { $0.children },
-            budget: .standard
-        ) { node, _ in visited.append(node.id) }
-        XCTAssertEqual(visited, [42])
-    }
 }

@@ -29,11 +29,11 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:TestPlans/Mary-Fast.xctestplan"
+            reference = "container:TestPlans/Mary.xctestplan"
             default = "YES">
          </TestPlanReference>
          <TestPlanReference
-            reference = "container:TestPlans/Mary-All.xctestplan">
+            reference = "container:TestPlans/Mary-Doctrine.xctestplan">
          </TestPlanReference>
       </TestPlans>
       <Testables>

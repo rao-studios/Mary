@@ -2,16 +2,9 @@
 //  BrainTestSupport.swift
 //  MaryBrainTests
 //
-//  Target-wide test primitives for the brain suites. The scripted stubs
-//  (ScriptedSeer / ScriptedEngine / SlowDispatcher) deliberately stay
-//  per-file — their script shapes are pinned behavior — but the
-//  synchronisation they share lives here.
-//
-//  CALL-SITE RULE: a test that constructs a brain whose dispatcher parks or
-//  delays ends with `await brain.awaitQuiescenceForTesting()` (after
-//  releasing its holds) or `await brain.cancelRoutinesForTesting()` — so no
-//  detached routine outlives its test and appends into a stub another test
-//  is reading.
+//  WHAT: Shared arrival signal and quiescence helpers for turn-loop suites.
+//  OUT:  ArrivalSignal
+//  PIN:  A parked dispatcher test ends with awaitQuiescenceForTesting
 //
 
 import Foundation

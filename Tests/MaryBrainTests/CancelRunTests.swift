@@ -2,13 +2,8 @@
 //  CancelRunTests.swift
 //  MaryBrainTests
 //
-//  STOPPING ONE CALL.
-//
-//  Before this existed the only user-facing cancel was the spoken bare "stop",
-//  which halts every detached routine at once. There was no handle on a single
-//  call at all: the one cancellable Task in the execution path was a local
-//  inside `performExecute` that nothing outside could name, so a chip reading
-//  "running" was a status word with nothing behind it.
+//  WHAT: One named call can be cancelled without stopping every detached routine.
+//  OUT:  AbilityRuntime cancel handle
 //
 
 import Foundation

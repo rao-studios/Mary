@@ -2,29 +2,9 @@
 //  ProseWriteLocatorTests.swift
 //  MaryPluginTests
 //
-//  WHICH ELEMENT, AND WHERE IN IT — the only decisions on the write path, and
-//  the only ones a test can reach.
-//
-//  Accessibility cannot be exercised in a test process, so the write itself
-//  (select, set, read back) is verified live by `mary-prose-probe`. Everything
-//  that DECIDES is here: the locator is pure, takes strings, and answers with
-//  a range or a refusal. That split is deliberate — a decision that could
-//  reach an `AXUIElement` is a decision no test can run, and every decision on
-//  this path is one a test must be able to run.
-//
-//  THE RULE, in the order it applies, each clause load-bearing:
-//    1. The first candidate containing the passage EXACTLY ONCE wins
-//       outright — checked across ALL candidates before any ambiguous one, so
-//       a header that repeats the words can never outrank the body that has
-//       them once.
-//    2. Only then, several occurrences, decided by the hint — and refused if
-//       the hint cannot separate them by a clear margin.
-//    3. Otherwise the passage is not in anything the application is showing.
-//
-//  WHAT A REFUSAL PROTECTS. The thing being refused in clause 2 is
-//  overwriting the wrong paragraph. A coin toss there does not produce a
-//  wrong answer the user can see and correct; it produces a correct-looking
-//  edit in the wrong place.
+//  WHAT: Which element, and where in it — first unique match wins.
+//  OUT:  ProseWriteLocator
+//  PIN:  Live AX write is mary-prose-probe; this file is the decision table
 //
 
 import Foundation

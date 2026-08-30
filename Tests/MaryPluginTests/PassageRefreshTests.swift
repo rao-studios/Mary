@@ -1,30 +1,14 @@
 //
 //  PassageRefreshTests.swift
-//  BonnieBrainTests
+//  MaryPluginTests
 //
-//  THE THIRD LIVE FAILURE, PINNED. Mary typed at the cursor; the very next
-//  request — a whole-passage replace against a handle she was still holding —
-//  answered "it isn't in the document any more." It was. Her keystrokes had
-//  landed BETWEEN the stored words, so `PassageResolver.anchor` searched for
-//  them, found nothing, and `[S1]` named something that had ceased to exist one
-//  action after she was told about it.
-//
-//  WHAT THIS FILE OWNS is the arithmetic — what the before/after pair MEANS.
-//  `TyperTests.UnroutedWriteBracketTests` owns the gate that produces the pair
-//  and what it costs. The split matters: the gate can be right about when to
-//  bracket and still shift every handle to the wrong place, and only one of the
-//  two suites would notice.
-//
-//  Every test here is headless. `PassageRefresh` takes two strings, a registry,
-//  an ambient store and a clock, so the rules below are decided here rather
-//  than against a live Pages — which is the only way the boundary cases (a
-//  caret exactly at a passage's first character, and exactly at its last) can be
-//  decided at all.
+//  WHAT: After a write, stored passage anchors re-find the same span.
+//  OUT:  PassageRefresh
+//  PIN:  Headless arithmetic; live typing is mary-prose-probe
 //
 
 import Foundation
 import Testing
-@testable import MaryPlugin
 @testable import MaryPlugin
 @testable import MaryAmbient
 

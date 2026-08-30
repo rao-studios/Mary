@@ -1,7 +1,7 @@
 {
   "configurations" : [
     {
-      "id" : "5291AFA0-CEF6-4ED2-9979-08B6C58EE5D6",
+      "id" : "064CDC03-2DC8-4165-A48D-46DDCB280BED",
       "name" : "Test Scheme Action",
       "options" : {
 
@@ -17,6 +17,13 @@
     }
   },
   "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "MaryPluginTests",
+        "name" : "MaryPluginTests"
+      }
+    },
     {
       "target" : {
         "containerPath" : "container:",
@@ -36,13 +43,6 @@
         "containerPath" : "container:",
         "identifier" : "MaryFoundationTests",
         "name" : "MaryFoundationTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "MaryPluginTests",
-        "name" : "MaryPluginTests"
       }
     },
     {

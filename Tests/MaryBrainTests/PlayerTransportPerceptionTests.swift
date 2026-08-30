@@ -2,24 +2,8 @@
 //  PlayerTransportPerceptionTests.swift
 //  MaryBrainTests
 //
-//  THE PUBLISH PATH FOR A PACKAGE-DECLARED PERCEPTION, exercised end to end
-//  against the shipped packages and the real adapter manifests.
-//
-//  `SchemaSignalRuntime.publishPerception` shipped with no callers at all. It
-//  validated, it was covered by its own unit tests, and nothing in Mary ever
-//  reached it — so `perception.player-transport`, which `multimedia.mary`
-//  declares and which every one of its Skills named as a requirement, could
-//  not be satisfied by any code path that existed. The Skills passed every
-//  readiness check and then refused at the last gate:
-//
-//      requires current Perception perception.player-transport
-//
-//  FOUR THINGS HAVE TO AGREE for a publish to land, and each of them lives in
-//  a different file: the package's Perception schema, the Value type it names,
-//  the privacy floor it sets, and the adapter manifest that has to declare the
-//  Perception before its adapter may publish one. A test that built its own
-//  fixtures would prove those four agree in the fixture. These are the shipped
-//  ones.
+//  WHAT: Package-declared perception publish path against shipped packages.
+//  OUT:  SchemaSignalRuntime.publishPerception
 //
 
 import Foundation

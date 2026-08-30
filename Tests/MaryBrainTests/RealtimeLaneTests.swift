@@ -2,9 +2,9 @@
 //  RealtimeLaneTests.swift
 //  MaryBrainTests
 //
-//  Lane-A selection and the four realtime fallback rules, pinned against
-//  scripted providers. The classic DualLane pins stay untouched — realtime
-//  is additive and classic remains the wired fallback underneath.
+//  WHAT: Lane-A selection and realtime fallback rules against scripted providers.
+//  OUT:  Dual-lane realtime path
+//  PIN:  Classic DualLane remains the wired fallback
 //
 
 import MaryVoice

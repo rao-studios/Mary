@@ -2,11 +2,8 @@
 //  WakeWordListenerTests.swift
 //  MaryVoiceTests
 //
-//  The standby ear, driven through the injected frame source — a real
-//  listener needs a microphone, TCC grants, and a human. What is pinned here:
-//  a wake phrase emits, everything else emits NOTHING, the early abort
-//  cancels transcription, self-speech never opens an utterance, and a dead
-//  permission declares itself exactly once.
+//  WHAT: Standby ear — wake emits, everything else is silent, self-speech never opens.
+//  OUT:  WakeWordListener via injected frame source
 //
 
 import AVFoundation

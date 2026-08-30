@@ -2,10 +2,8 @@
 //  SpeechRouterTests.swift
 //  MaryVoiceTests
 //
-//  The shared speech-routing state machine: server tokens stay transcript-
-//  only, the baseline advances only when server audio actually played, and
-//  finish() never runs a spurious empty flush. Observed via .chunkQueued
-//  (pre-engine, headless-safe — same posture as SentenceSpeakerTests).
+//  WHAT: Server tokens stay transcript-only; baseline advances only on played audio.
+//  OUT:  SpeechRouter via .chunkQueued
 //
 
 import Foundation

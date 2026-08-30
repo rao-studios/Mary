@@ -2,27 +2,9 @@
 //  PackageAdmissionTests.swift
 //  MaryFoundationTests
 //
-//  THE WHOLE GRAMMAR, EXERCISED END TO END ON A TEXTEDIT-SHAPED PACKAGE.
-//
-//  Everything in Mary's plugin story rests on one claim: an application can be
-//  taught entirely by declaration. This file is where that claim is checked
-//  rather than assumed — a package that names a bundle identifier, presses one
-//  chord, and declares where the text lives must pass every validator, survive
-//  the codec byte-for-byte, and carry a digest that notices tampering.
-//
-//  Two refusals matter as much as the acceptance, and both concern EYES:
-//
-//  A workspace perception claim says "point the document channel at me". The
-//  only channel a package can be given is one of Mary's own observation
-//  adapters, configured by a declaration. A claim with nothing behind it would
-//  be a perception card asserting live knowledge of a document nobody is
-//  reading — so the claim and the channel are one fact, checked together.
-//
-//  A recipe cannot return a value. The managed-UI engine presses keys and
-//  reports whether the press landed; there is no channel for handing data
-//  back. A package that realizes a Skill WITH outputs through a recipe is
-//  claiming a read it structurally cannot perform, and the graph validator
-//  says so by name.
+//  WHAT: An application can be taught entirely by declaration.
+//  OUT:  AbilityPackageValidator + PluginGraphValidator + AbilityPackageCodec
+//  PIN:  Workspace claim needs a prose surface; a recipe cannot return a value
 //
 
 import Foundation

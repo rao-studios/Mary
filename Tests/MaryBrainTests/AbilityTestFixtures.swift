@@ -2,13 +2,8 @@
 //  AbilityTestFixtures.swift
 //  MaryBrainTests
 //
-//  DOCUMENTED DUPLICATION ([Reorg] test phase 4): this file has twins at
-//  Tests/BonnieTests/AbilityTestFixtures.swift and
-//  Tests/BonnieRuntimeTests/AbilityTestFixtures.swift. SwiftPM test targets
-//  cannot import other test targets, and no new targets are allowed
-//  (PackageLayeringTests reads the manifests), so the fixtures exist three
-//  times by design. EDIT IN LOCKSTEP: any change here must land in both
-//  twins too.
+//  WHAT: Shared AbilitySkillReference for Brain tests.
+//  OUT:  fixtureAbilityReference
 //
 
 import MaryBrain

@@ -2,20 +2,9 @@
 //  ChokepointTests.swift
 //  MaryBrainTests
 //
-//  ONE DISPATCH, ONE RECORD — for every shape an outcome can take.
-//
-//  The chokepoint's value is entirely in its completeness. A recording site
-//  that catches the acts that RAN and misses the refusals produces a dataset
-//  in which every request was granted, which is a false picture of the system
-//  and a worse one to learn from. So the cases here are deliberately the
-//  boring ones: a read, a miss, a failure, a refusal, a park.
-//
-//  AND THE DIVERGENCE, PINNED DEAD. The ledger this replaces took its
-//  reference from the STATIC snapshot while the transcript chip took the
-//  TURN-PATCHED one, so the log and the chip printed different providers for
-//  the same act. `theRecordedReferenceIsTheTurnAccurateOne` is the regression
-//  test for a bug that can only come back by someone reintroducing a second
-//  composition site.
+//  WHAT: One dispatch, one record — act, miss, failure, refusal, park.
+//  OUT:  AbilityRuntime recording
+//  PIN:  Recorded reference is the turn-patched one, not the static snapshot
 //
 
 import Foundation
@@ -48,6 +37,27 @@ import MaryFoundation
         let summary = "A fixture."
         let bindings: [SkillBinding]
         var skillBindings: [SkillBinding] { bindings }
+    }
+
+    /// Collects sealed episodes in seal order. Lives here because the
+    /// assembler combinatorics suite was folded into this chokepoint.
+    final class Recorder: BehavioralRecording, @unchecked Sendable {
+        private let lock = NSLock()
+        private var _episodes: [BehavioralEpisode] = []
+        var episodes: [BehavioralEpisode] {
+            lock.lock(); defer { lock.unlock() }
+            return _episodes
+        }
+        func append(_ episode: BehavioralEpisode) async { store(episode) }
+        private func store(_ episode: BehavioralEpisode) {
+            lock.lock(); _episodes.append(episode); lock.unlock()
+        }
+        func settle(expecting count: Int, within seconds: TimeInterval = 10) async {
+            let deadline = Date().addingTimeInterval(seconds)
+            while episodes.count < count, Date() < deadline {
+                try? await Task.sleep(nanoseconds: 2_000_000)
+            }
+        }
     }
 
     private func runtime(
@@ -186,7 +196,7 @@ import MaryFoundation
 
     @Test func theTurnsEpisodeReceivesEveryRecordTheLedgerDoes() async {
         let log = AbilityExecutionLog()
-        let recorder = BehavioralAssemblerTests.Recorder()
+        let recorder = Recorder()
         let assembler = BehavioralAssembler(recorder: recorder)
         let turn = UUID()
         assembler.openEpisode(
@@ -231,7 +241,7 @@ import MaryFoundation
     /// standing between it and a silent rot.
     @Test func aConfirmedActLinksItsTwoEpisodesByOneConfirmationID() async {
         let log = AbilityExecutionLog()
-        let recorder = BehavioralAssemblerTests.Recorder()
+        let recorder = Recorder()
         let assembler = BehavioralAssembler(recorder: recorder)
         let provenance = EpisodeProvenance(
             engine: "local", lane: "dual", appVersion: "test")

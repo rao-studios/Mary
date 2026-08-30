@@ -1,3 +1,11 @@
+//
+//  PluginRuntimePurityTests.swift
+//  MaryBrainTests
+//
+//  WHAT: Brain sources contain no dynamic script runtime and no Apple Events.
+//  OUT:  Source-text scan of Sources/MaryBrain
+//
+
 import Foundation
 import XCTest
 

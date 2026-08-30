@@ -1,12 +1,9 @@
 //
 //  AmbientSurfaceObserverTests.swift
-//  BonniePluginTests
+//  MaryPluginTests
 //
-//  Pins the tier-0 wiring against injected stores: the target ladder
-//  (browsers IN for the surface, Mary and system chrome out), the two
-//  publications from one walk, the browser carve-out that keeps
-//  `BrowserContextWatcher` the only writer of a browser's affordance scope,
-//  one-slate-at-a-time retraction, and the skip-when-unchanged rule.
+//  WHAT: Tier-0 observer wiring — target ladder, one-slate retraction, skip-when-unchanged.
+//  OUT:  AmbientSurfaceObserver
 //
 
 import CoreGraphics
@@ -92,7 +89,7 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         XCTAssertNil(observer.target())
     }
 
-    func testBonnieItselfIsNeverTheTarget() throws {
+    func testHostProcessIsNeverTheTarget() throws {
         let own = try XCTUnwrap(
             Bundle.main.bundleIdentifier, "no host bundle id in this test runner")
         let observer = observer(

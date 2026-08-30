@@ -1,14 +1,10 @@
 //
 //  AmbientPlaceTests.swift
-//  BonnieAmbientTests
+//  MaryAmbientTests
 //
-//  THE REALM'S SEMANTICS SPEC — five properties, one per test: a native place
-//  answers exactly as its world always did; a dynamic place answers for
-//  itself, not the host lane it rides; registrations sort after every native;
-//  an unknown application falls back to its host world rather than inventing
-//  a taxonomy; and a workspace-class registration with no perception contract
-//  has no eyes. (Plus the poll-cadence clamp the perception contract rides
-//  in on.)
+//  WHAT: Realm semantics + token ABI + browser carve-out + container keying.
+//  OUT:  AmbientPlace / AmbientPlaceResolver / ContainerRegistry
+//  PIN:  native tokens = world raw values; browsing registration joins the browser workspace
 //
 
 import Foundation
@@ -122,5 +118,50 @@ import Testing
         #expect(ApplicationPerception(documentOperation: "r", pollSeconds: 9_000).pollSeconds
                 == ApplicationPerception.pollBounds.upperBound)
         #expect(ApplicationPerception(documentOperation: "r", pollSeconds: 30).pollSeconds == 30)
+    }
+
+    @Test func nativeAndDynamicTokensAreStructurallyDisjoint() {
+        let nativeTokens = Set(AmbientWorld.allCases.map { AmbientPlace.lane($0).token })
+        for world in AmbientWorld.allCases {
+            #expect(!world.rawValue.contains(":"))
+            let dynamicTwin = AmbientPlace.application(world.rawValue)
+            #expect(!nativeTokens.contains(dynamicTwin.token))
+            #expect(AmbientPlace.from(token: world.rawValue) == .lane(world))
+            #expect(AmbientPlace.from(token: dynamicTwin.token) == dynamicTwin)
+        }
+    }
+
+    @Test func registeredChromeStaysInTheBrowserRealm() {
+        let chrome = ApplicationRegistration(
+            id: "chrome",
+            profile: ApplicationProfile(
+                id: "chrome", title: "Google Chrome", summary: "Browser.",
+                abilities: [.browsing]),
+            bundleIdentifiers: ["com.google.Chrome"],
+            worldClass: .workspace,
+            displayName: "Chrome")
+        withRoster([chrome]) {
+            #expect(AmbientPlaceResolver.factPlace(forBundleID: "com.google.Chrome")
+                == AmbientPlaceResolver.browserPlace)
+        }
+    }
+
+    @Test func aRegisteredApplicationMintsItsOwnHandles() {
+        let registry = ContainerRegistry()
+        let handle = registry.handle(
+            place: .application("sketch"), prefix: "A", key: "canvas-1")
+        #expect(!handle.isEmpty)
+        #expect(registry.resolvePlace(handle)?.place == .application("sketch"))
+        #expect(registry.handle(
+            place: .application("sketch"), prefix: "A", key: "canvas-1") == handle)
+    }
+
+    @Test func aGlanceNeverTouchesTheLead() {
+        let tracker = WorkspaceFocusTracker()
+        tracker.record(bundleID: WorkspaceApplicationIdentity.xcode)
+        tracker.noteGlance(place: AmbientPlaceResolver.browserPlace)
+        let signal = tracker.signal()
+        #expect(signal.lead == .application(WorkspaceApplicationIdentity.xcode))
+        #expect(signal.coActive.contains(AmbientPlaceResolver.browserPlace))
     }
 }

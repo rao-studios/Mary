@@ -2,23 +2,9 @@
 //  TakeoverTests.swift
 //  MaryBrainTests
 //
-//  THE BUG THESE PIN, in the user's own words: "it correctly opened Apple Music
-//  and played a song, and then followed up after completing the task as if it
-//  was doing it at the moment. We need to maintain the speed of the actions,
-//  but have the dialogue stay in sync." And, spoken while REPLACE_PASSAGE had
-//  already landed correctly: "I'm on it, but I need a quick clarification — do
-//  you mean the whole document, or the Background section?"
-//
-//  It is structural, not a prompting miss. Lane A is spawned with no dispatcher
-//  and no outcome channel, and Lane B is spawned BEFORE it starts — so
-//  everything Lane A says about work in flight is a PROMISE, and the moment the
-//  lane joins holding finished outcomes that promise is stale by construction.
-//  The brain already reached around Lane A's prose three times and every one of
-//  them APPENDED. `.retractSpeech` is the replace arm.
-//
-//  What is pinned here is the PREDICATE and its five bounds — the mechanism
-//  itself (softStop, the flush guard, the hold) is pinned in MaryVoice's
-//  TakeoverTests, where the speaker is.
+//  WHAT: Lane-A speech is a promise; retract once Lane B joins with outcomes.
+//  OUT:  Takeover predicate and bounds
+//  PIN:  Speaker mechanism lives in MaryVoice TakeoverTests
 //
 
 import MaryVoice

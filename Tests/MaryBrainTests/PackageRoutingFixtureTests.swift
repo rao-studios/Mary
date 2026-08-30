@@ -2,31 +2,9 @@
 //  PackageRoutingFixtureTests.swift
 //  MaryBrainTests
 //
-//  A PREDICATE THAT CAN NEVER FIRE IS INVISIBLE UNTIL SOMEONE ASKS. Nothing in
-//  `AbilityPackageValidator` catches it: an `intent` predicate value that
-//  matches no `AmbientIntent` case decodes fine, validates fine, seals fine —
-//  it's a plain string sitting in a plain string field. The gap is layering:
-//  `AmbientIntent` lives in MaryAmbient, and MaryFoundation's validator (where
-//  packages are actually checked) cannot see it. This suite lives in
-//  MaryBrainTests because MaryBrain sees both.
-//
-//  THE FAILURE THIS CATCHES, because it shipped: `multimedia.mary`'s ability
-//  eligibility was `any(intent=="play", intent=="pause",
-//  workspaceFamily=="multimedia")`. `AmbientIntent` has no `play` or `pause`
-//  case, and `workspaceFamily` resolves through `WorkspaceFocus.abilityOrder`
-//  (only coding/writing) with an alphabetical fallback that put Apple Music at
-//  "apple-music", never "multimedia". All three arms were dead — the entire
-//  discipline was unreachable on every turn, and "Can you play the RAO
-//  playlist" answered "I couldn't work out how to do that" though the skill
-//  was installed and ready. `coding.mary` had the same bug half-way (dead
-//  `build`/`run` intents, one live `workspaceFamily` arm).
-//
-//  THE SECOND TEST IS THE ONE THE PACKAGES ALREADY WROTE. Every package with a
-//  `route`-disposition fixture is ASSERTING "this utterance reaches this
-//  Skill" — and nothing before this suite ever ran that assertion.
-//  `multimedia.mary`'s own fixtures named `play-a-playlist` and
-//  `list-the-playlists`, asserting exactly the routing that was broken, and
-//  shipped anyway because `grep expectedDisposition Tests/` found nothing.
+//  WHAT: Package route fixtures actually fire; dead intent predicates are visible.
+//  OUT:  AmbientIntent × package eligibility
+//  PIN:  Validator cannot see AmbientIntent — this suite lives in Brain
 //
 
 import Foundation

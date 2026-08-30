@@ -1,3 +1,11 @@
+//
+//  CodingAgentWorkspaceTests.swift
+//  MaryPluginTests
+//
+//  WHAT: Coding-agent paths stay inside the project root.
+//  OUT:  CodingAgentWorkspace
+//
+
 import Foundation
 import XCTest
 @testable import MaryPlugin

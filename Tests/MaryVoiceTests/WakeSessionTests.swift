@@ -2,11 +2,9 @@
 //  WakeSessionTests.swift
 //  MaryVoiceTests
 //
-//  The pipeline's wake-word seams, driven through the internal test seams —
-//  a real session needs a mic and a human. Pinned: `primeTurn` runs a normal
-//  first turn (user bubble included) only from quiet listening; the canned
-//  greeting speaks only into a quiet room; "stop listening" never reaches the
-//  responder and the ack drains BEFORE the event that ends the session.
+//  WHAT: Wake-word seams — primeTurn, greeting, stop-listening ack-before-end.
+//  OUT:  VoicePipeline wake session
+//  PIN:  A real session needs a mic; these drive internal test seams
 //
 
 import AVFoundation

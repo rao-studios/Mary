@@ -2,23 +2,9 @@
 //  VoiceNamespaceTests.swift
 //  MaryRuntimeTests
 //
-//  TWO NAMESPACES, TWO FIELDS — and the launch that proved they were one.
-//
-//  WHAT THIS IS THE REGRESSION FOR. Config carried a single `voice`. The Seer
-//  Character picker wrote `fr_marie` into it, and boot handed that same field
-//  to Kokoro, which looked for a style embedding named `fr_marie.json` in the
-//  bundle. There is none and there never was: Marie is rendered by the SERVER.
-//  So the next launch died at "waking the voice…" with
-//
-//      Kokoro failed to load: Invalid voice file: 'fr_marie.json' not found
-//
-//  and — because that boot step returned before the engine, the Seer stack and
-//  readiness — took the whole session with it, over an on-device voice a
-//  Seer-mode session only ever uses as a per-chunk cover.
-//
-//  Three separate things had to be true for that, so three things are pinned:
-//  the fields are separate, an old store migrates off the shared one, and the
-//  on-device resolver survives a hosted slug arriving by any route at all.
+//  WHAT: Hosted character slug and on-device Kokoro voice are separate fields.
+//  OUT:  Config voice namespaces
+//  PIN:  A hosted slug must never be handed to Kokoro as a style file
 //
 
 import Foundation

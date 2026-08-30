@@ -2,9 +2,8 @@
 //  VoiceFloorOwnerTests.swift
 //  MaryVoiceTests
 //
-//  Who owns the shared speaker's voice floor, exercised directly rather than
-//  through a full VoicePipeline session — the ownership-fence/claim/replace
-//  logic this type extracted was previously only reachable that way.
+//  WHAT: Shared speaker voice-floor fence / claim / replace.
+//  OUT:  VoiceFloorOwner
 //
 
 import Foundation

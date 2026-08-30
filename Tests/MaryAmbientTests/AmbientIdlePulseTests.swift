@@ -2,8 +2,8 @@
 //  AmbientIdlePulseTests.swift
 //  MaryAmbientTests
 //
-//  Life pulses only when the world is quiet: no open turn, no running skill,
-//  indexing settled, and enough time since the last user episode.
+//  WHAT: Life pulses only when the world is quiet.
+//  OUT:  AmbientIdlePulse
 //
 
 import Foundation

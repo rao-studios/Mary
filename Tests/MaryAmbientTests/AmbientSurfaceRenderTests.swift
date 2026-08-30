@@ -1,11 +1,9 @@
 //
 //  AmbientSurfaceRenderTests.swift
-//  BonnieAmbientTests
+//  MaryAmbientTests
 //
-//  Pins the tier in the render: the surface leads, it is charged to the
-//  budget BEFORE any detail, it never becomes a block or a mention (the
-//  `keys` contract describes blocks + mentions only), a stale surface is
-//  refused, and one that does not fit is dropped rather than degraded.
+//  WHAT: Surface leads the render, is charged first, never degrades when stale.
+//  OUT:  AmbientSurface rendering
 //
 
 import Foundation

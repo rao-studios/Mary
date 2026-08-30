@@ -2,9 +2,9 @@
 //  SpeakerFloorLeaseTests.swift
 //  MaryVoiceTests
 //
-//  The shared TTS actor is the authority for writer ownership. These tests
-//  deliberately call stale operations *after* a newer claim, which is the
-//  inter-actor window caller-side cancellation can never close.
+//  WHAT: Shared TTS actor is the writer-ownership authority.
+//  OUT:  SpeakerFloorLease
+//  PIN:  Stale ops after a newer claim — the window caller-side cancel cannot close
 //
 
 import Foundation

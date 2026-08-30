@@ -1,12 +1,9 @@
 //
 //  AmbientSurfaceStoreTests.swift
-//  BonnieAmbientTests
+//  MaryAmbientTests
 //
-//  Pins the store's tier-0 box: latest-wins by CAPTURE time (a slow walk
-//  landing late cannot overwrite a newer capture), drop-at-expiry (a stale
-//  screen is a confidently wrong screen, never a degraded fact), lane
-//  isolation, and the one shared phrasing `surfaceLine` gives the prompt
-//  and the pane.
+//  WHAT: Tier-0 store — latest-wins by capture time, drop-at-expiry, lane isolation.
+//  OUT:  AmbientContextStore surface box + surfaceLine
 //
 
 import Foundation

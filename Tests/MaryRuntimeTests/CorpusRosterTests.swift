@@ -2,8 +2,8 @@
 //  CorpusRosterTests.swift
 //  MaryRuntimeTests
 //
-//  The crawl roster is the activated ability graph: expertise binds a live
-//  app, a discipline may own the grammar, and neither half crawls alone.
+//  WHAT: Crawl roster is the activated ability graph — expertise plus discipline.
+//  OUT:  CorpusRoster
 //
 
 import Foundation

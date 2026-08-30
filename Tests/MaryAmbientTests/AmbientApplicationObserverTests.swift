@@ -1,11 +1,9 @@
 //
 //  AmbientApplicationObserverTests.swift
-//  BonnieAmbientTests
+//  MaryAmbientTests
 //
-//  THE DRIVER'S CONTRACT, pinned without timers or subprocesses: lanes derive
-//  from the sighted roster, polls coalesce, a success replaces the lane's
-//  perceived facts, three misses retract them, and a vanished registration
-//  takes its facts with it.
+//  WHAT: Observer contract without timers — coalesce, replace, retract, vanish.
+//  OUT:  AmbientApplicationObserver
 //
 
 import Foundation

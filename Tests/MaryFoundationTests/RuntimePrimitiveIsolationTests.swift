@@ -1,7 +1,15 @@
-import XCTest
+//
+//  RuntimePrimitiveIsolationTests.swift
+//  MaryFoundationTests
+//
+//  WHAT: Packages cannot bind, workflow, or invoke host-owned runtime primitives.
+//  OUT:  AbilityPackageValidator reserved-runtime-operation / reserved-runtime-invocation
+//
+
+import Testing
 @testable import MaryFoundation
 
-final class RuntimePrimitiveIsolationTests: XCTestCase {
+@Suite struct RuntimePrimitiveIsolationTests {
     private func package(with skill: SkillSchema) -> MaryAbilityPackage {
         MaryAbilityPackage(
             package: .init(
@@ -18,7 +26,7 @@ final class RuntimePrimitiveIsolationTests: XCTestCase {
             skills: [skill])
     }
 
-    func testPackageBindingsCannotClaimBonnieRuntimePrimitives() {
+    @Test func packageBindingsCannotClaimHostRuntimePrimitives() {
         for operation in RuntimePrimitiveOperations.names {
             let skill = SkillSchema(
                 id: "tests.runtime-primitive-isolation.binding",
@@ -31,15 +39,16 @@ final class RuntimePrimitiveIsolationTests: XCTestCase {
                 modelExposure: .init(enabled: false))
 
             let validation = AbilityPackageValidator.validate(package(with: skill))
-
-            XCTAssertTrue(validation.issues.contains {
-                $0.code == "reserved-runtime-operation"
-                    && $0.path.hasSuffix("execution.bindings[0].operation")
-            }, "\(operation) must remain host-owned: \(validation.issues)")
+            #expect(
+                validation.issues.contains {
+                    $0.code == "reserved-runtime-operation"
+                        && $0.path.hasSuffix("execution.bindings[0].operation")
+                },
+                "\(operation) must remain host-owned: \(validation.issues)")
         }
     }
 
-    func testPackageWorkflowsAndInvocationNamesCannotClaimRuntimePrimitives() {
+    @Test func packageWorkflowsAndInvocationNamesCannotClaimRuntimePrimitives() {
         let workflow = SkillSchema(
             id: "tests.runtime-primitive-isolation.workflow",
             title: "Reserved workflow",
@@ -51,12 +60,11 @@ final class RuntimePrimitiveIsolationTests: XCTestCase {
             modelExposure: .init(invocationName: "confirm_pending_skill"))
 
         let validation = AbilityPackageValidator.validate(package(with: workflow))
-
-        XCTAssertTrue(validation.issues.contains {
+        #expect(validation.issues.contains {
             $0.code == "reserved-runtime-operation"
                 && $0.path.hasSuffix("execution.steps[0].operation")
         })
-        XCTAssertTrue(validation.issues.contains {
+        #expect(validation.issues.contains {
             $0.code == "reserved-runtime-invocation"
                 && $0.path.hasSuffix("modelExposure.invocationName")
         })

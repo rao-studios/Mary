@@ -1,3 +1,11 @@
+//
+//  WorkflowRuntimeTests.swift
+//  MaryBrainTests
+//
+//  WHAT: State-machine workflow miss / failure / typed output.
+//  OUT:  AbilityRuntime workflow execution
+//
+
 import Foundation
 import Testing
 @testable import MaryBrain
