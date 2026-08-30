@@ -35,6 +35,9 @@ extension MaryRuntime {
     /// Called after a sealed episode is handed to Totem. User turns stamp the
     /// quiet clock; every completed discipline episode may trip a train.
     static func noteSealedEpisode(_ episode: BehavioralEpisode) {
+        let id = BehavioralAssembler.shortID(episode.id)
+        let line = "life noted \(id)"
+        BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
         if episode.provenance.lane != "proactive" {
             lastUserEpisodeAtBox.withLock { $0 = Date() }
         }
@@ -126,29 +129,56 @@ extension MaryRuntime {
     }
 
     static func considerTrain(_ episode: BehavioralEpisode) async {
+        let id = BehavioralAssembler.shortID(episode.id)
         let disciplines = Set(
             episode.abilityTargets.filter { $0.paradigm == .discipline }.map(\.abilityID))
-        guard !disciplines.isEmpty else { return }
-        guard let owner = await seerSession.userID else { return }
+        guard !disciplines.isEmpty else {
+            let line = "train skipped \(id) — no discipline"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+            return
+        }
+        guard let owner = await seerSession.userID else {
+            let line = "train skipped \(id) — unsigned in"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+            return
+        }
         await refreshReadyLoRAs()
         await refreshBehaviorEpisodesFromTotem()
         let episodes = behaviorEpisodesBox.withLock { $0 }
         let totemID = totemNodeIDBox.withLock { $0 }
-        guard !totemID.isEmpty else { return }
+        guard !totemID.isEmpty else {
+            let line = "train skipped \(id) — no totem id"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+            return
+        }
         let fleet = makeFleetClient()
         for abilityID in disciplines {
             let completed = LifeTrainPolicy.completedCount(
                 in: episodes, abilityID: abilityID)
             let slot = lifeSlotsBox.withLock { $0[abilityID] }
             let trained = slot.map(\.pairCount)
+            let goal = trained.map { $0 + LifeTrainPolicy.retrainDelta }
+                ?? LifeTrainPolicy.firstTrainCount
             guard LifeTrainPolicy.shouldTrain(
                 completedCount: completed, trainedPairCount: trained)
-            else { continue }
-            guard slot?.training != true else { continue }
+            else {
+                let line = "train skipped \(abilityID.rawValue) — \(completed)/\(goal) completed"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+                continue
+            }
+            guard slot?.training != true else {
+                let line = "train skipped \(abilityID.rawValue) — already training"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+                continue
+            }
             let claimed = trainingDisciplinesBox.withLock {
                 $0.insert(abilityID.rawValue).inserted
             }
-            guard claimed else { continue }
+            guard claimed else {
+                let line = "train skipped \(abilityID.rawValue) — already claimed"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+                continue
+            }
             let groupIDs = Array(Set(
                 episode.abilityTargets
                     .filter { $0.abilityID == abilityID && $0.paradigm == .discipline }
@@ -156,8 +186,12 @@ extension MaryRuntime {
             ))
             guard !groupIDs.isEmpty else {
                 trainingDisciplinesBox.withLock { _ = $0.remove(abilityID.rawValue) }
+                let line = "train skipped \(abilityID.rawValue) — no group"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
                 continue
             }
+            let started = "train \(abilityID.rawValue) — groups \(groupIDs.count)"
+            BehavioralAssembler.behavioralLog.info("\(started, privacy: .public)")
             Task {
                 defer {
                     trainingDisciplinesBox.withLock { _ = $0.remove(abilityID.rawValue) }

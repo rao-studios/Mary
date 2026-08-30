@@ -10,13 +10,18 @@ import MaryTotem
 import MaryFoundation
 import MaryAmbient
 import Foundation
-import os
 
 struct TotemBehavioralRecording: BehavioralRecording {
     func append(_ episode: BehavioralEpisode) async {
+        let id = BehavioralAssembler.shortID(episode.id)
         let deposited = await MaryRuntime.totemContext.depositBehavioralEpisode(episode)
         if deposited {
             await MaryRuntime.refreshBehaviorEpisodesFromTotem()
+            let line = "handoff deposited \(id)"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+        } else {
+            let line = "handoff dropped \(id)"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
         }
         MaryRuntime.noteSealedEpisode(episode)
     }
@@ -24,22 +29,27 @@ struct TotemBehavioralRecording: BehavioralRecording {
 
 extension TotemContextStore {
 
-    private static let log = Logger(subsystem: "nyc.rao.mary", category: "totem-behavior")
-
     @discardableResult
     func depositBehavioralEpisode(_ episode: BehavioralEpisode) async -> Bool {
+        let id = BehavioralAssembler.shortID(episode.id)
         guard let owner = await session.userID else {
-            Self.log.debug("Ability Totem skipped: not signed in")
+            let line = "deposit skipped \(id) — not signed in"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
             MaryRuntime.abilityDepositNoticeBox.withLock {
                 $0 = "Sign in to Seer first — Totem holds Ability turns per owner."
             }
             return false
         }
-        guard !episode.abilityTargets.isEmpty else { return false }
+        guard !episode.abilityTargets.isEmpty else {
+            let line = "deposit skipped \(id) — no ability targets"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
+            return false
+        }
         guard let body = try? String(
             data: BehavioralCodec.line(episode), encoding: .utf8)
         else {
-            Self.log.error("Ability Totem skipped: episode would not encode")
+            let line = "deposit skipped \(id) — encode failed"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
             return false
         }
 
@@ -62,9 +72,11 @@ extension TotemContextStore {
                     scope: TotemLane.ability.rawValue)
                 deposited = true
                 MaryRuntime.abilityDepositNoticeBox.withLock { $0 = nil }
+                let line = "deposited \(id) → \(target.abilityID.rawValue)/\(target.paradigm.rawValue)"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
             } catch {
-                Self.log.error(
-                    "Ability Totem deposit failed: \(error.localizedDescription, privacy: .public)")
+                let line = "deposit failed \(id) → \(target.abilityID.rawValue)/\(target.paradigm.rawValue) — \(error.localizedDescription)"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
                 MaryRuntime.abilityDepositNoticeBox.withLock {
                     $0 = "Couldn't deposit Ability turns: \(error.localizedDescription)"
                 }
@@ -75,7 +87,8 @@ extension TotemContextStore {
                 from: episode, ownerID: owner),
               let stubJSON = try? BehavioralTotemInspect.stubJSON(stub)
         else {
-            Self.log.error("Personal interaction stub skipped — Ability deposit still ran")
+            let line = "personal stub skipped \(id)"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
             return deposited
         }
         let interactions = TotemMemoryTopology.interactionGroup(ownerID: owner)
@@ -98,9 +111,11 @@ extension TotemContextStore {
                 [pointer], ownerID: owner,
                 groupID: interactions.id, groupLabel: interactions.label,
                 scope: TotemLane.personal.rawValue)
+            let line = "personal stub deposited \(id)"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
         } catch {
-            Self.log.error(
-                "Personal interaction deposit failed: \(error.localizedDescription, privacy: .public)")
+            let line = "personal stub failed \(id) — \(error.localizedDescription)"
+            BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
         }
         return deposited
     }
@@ -205,8 +220,8 @@ extension TotemContextStore {
                     afterID: after,
                     limit: 200)
             } catch {
-                Self.log.error(
-                    "Ability Totem export failed: \(error.localizedDescription, privacy: .public)")
+                let line = "export failed — \(error.localizedDescription)"
+                BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
                 return nil
             }
             for document in page.documents {
