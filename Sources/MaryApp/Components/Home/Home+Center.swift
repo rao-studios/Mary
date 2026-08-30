@@ -8,11 +8,12 @@ extension Home {
             var showSettings: Bool = false
             /// The totems split (the knowledge-graph store, and what
             /// retrieval did with it). Transient and separate like the three
-            /// panes below. The servers control room this flag used to
-            /// present now opens from inside the pane's header — server.rack
-            /// keeps one meaning, and it moved with the sheet.
+            /// panes below.
             var showTotems: Bool = false
-            var showAbilityRuns: Bool = false
+            /// Servers control room. A sheet, not a pane — same shape as
+            /// Settings. The Totems header keeps a second door so the
+            /// control room still opens without hunting the nav bar.
+            var showServers: Bool = false
             /// The debugger split (Mary's eyes). Transient by design — a
             /// debugging affordance the user opens deliberately, not worth
             /// ConfigService's 5-point persistence ceremony.

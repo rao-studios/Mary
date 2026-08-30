@@ -10,8 +10,8 @@ extension Home: View {
             onShowSettings: {
                 _state.showSettings.wrappedValue = true
             },
-            onShowAbilityRuns: {
-                _state.showAbilityRuns.wrappedValue = true
+            onShowServers: {
+                _state.showServers.wrappedValue = true
             },
             showDebugger: state.showDebugger,
             onToggleDebugger: {
@@ -33,8 +33,8 @@ extension Home: View {
         .sheet(isPresented: _state.showSettings) {
             SettingsSheet()
         }
-        .sheet(isPresented: _state.showAbilityRuns) {
-            AbilityExecutionLogSheet()
+        .sheet(isPresented: _state.showServers) {
+            ServersSheet()
         }
         // Palette is light-only (Fleet's rule); lock it so default
         // text/controls stay readable.
@@ -49,7 +49,7 @@ extension Home: View {
 struct HomeSessionView: View {
     @Environment(\.openWindow) private var openWindow
     let onShowSettings: () -> Void
-    let onShowAbilityRuns: () -> Void
+    let onShowServers: () -> Void
     let showDebugger: Bool
     let onToggleDebugger: () -> Void
     let showRouter: Bool
@@ -211,26 +211,24 @@ struct HomeSessionView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Ability Studio")
             Button {
-                onShowAbilityRuns()
-            } label: {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 14))
-                    .foregroundStyle(Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Ability runs")
-            Button {
                 onToggleTotems()
             } label: {
                 Image(systemName: "point.3.connected.trianglepath.dotted")
                     .font(.system(size: 14))
                     // A toggle like the three before it, tinted the same way.
-                    // The server rack this glyph replaced now opens from
-                    // inside the pane's header.
                     .foregroundStyle(showTotems ? Paper.ink : Paper.ink.opacity(0.7))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Totems")
+            Button {
+                onShowServers()
+            } label: {
+                Image(systemName: "server.rack")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Paper.ink.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Servers")
             Button {
                 onToggleCorpus()
             } label: {

@@ -19,6 +19,10 @@ struct RouterPaneView: View {
     @Binding var intentFilter: String?
 
     @StateObject private var vm = RouteTraceViewModel()
+    /// View-local (Totems pane's Servers/Life precedent): held in the Center
+    /// this flag would re-present the sheet on every panel rebuild. Closing
+    /// the pane mid-sheet dismisses the sheet with it.
+    @State private var showsAbilityRuns = false
 
     /// The filter token for unprompted remarks. Not an `AmbientIntent` —
     /// a remark answers no utterance and so has no intent to classify.
@@ -65,6 +69,7 @@ struct RouterPaneView: View {
         // Its own backing, or it blends into the conversation column.
         .background(Paper.page)
         .safeAreaInset(edge: .top) { filterBar }
+        .sheet(isPresented: $showsAbilityRuns) { AbilityExecutionLogSheet() }
         .onAppear { vm.start() }
         .onDisappear { vm.stop() }
     }
@@ -77,6 +82,15 @@ struct RouterPaneView: View {
                 Text("Routes")
                     .font(.marySerif(15, weight: .light, italic: true))
                     .foregroundStyle(Paper.ink.opacity(0.85))
+                Button {
+                    showsAbilityRuns = true
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Paper.ink.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Ability runs")
                 Spacer()
                 Button {
                     copyReport()
