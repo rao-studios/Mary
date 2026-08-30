@@ -48,10 +48,10 @@ public struct CodingAgentCompletion: Sendable, Equatable {
     }
 }
 
-/// On-device coding-agent runner. Injected by Runtime; nil means Settings
-/// has not selected a downloaded model yet.
+/// Coding-agent runner. Injected by Runtime; nil means the faculty is off.
 public protocol CodingAgentBackend: Sendable {
     func isPrepared() async -> Bool
+    func unpreparedSummary() async -> String
     func prepare(modelID: String) async throws
     func downloadProgress() async -> Double
     func run(
@@ -67,6 +67,12 @@ public protocol CodingAgentBackend: Sendable {
     func cancel(sessionID: String) async
 }
 
+public extension CodingAgentBackend {
+    func unpreparedSummary() async -> String {
+        "The coding agent has no model yet. Open Settings, download the coding model, and select it."
+    }
+}
+
 public enum CodingAgentBackendError: Error, LocalizedError, Sendable {
     case notPrepared
     case cancelled
@@ -75,7 +81,7 @@ public enum CodingAgentBackendError: Error, LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .notPrepared:
-            return "The coding agent is not ready. Download a model in Settings."
+            return "The coding agent is not ready."
         case .cancelled:
             return "The coding-agent session was stopped."
         case .failed(let reason):

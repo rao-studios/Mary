@@ -164,7 +164,8 @@ final class ServersViewModel: ObservableObject {
                 // in only makes the server available to be chosen.
                 await MaryRuntime.connectSeerToBrain(
                     chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
-                    archiving: true)
+                    archiving: true,
+                    stackEnabled: true)
                 // Seer means Seer: a session that booted unauthenticated
                 // parked speech elsewhere — a successful sign-in is the
                 // moment the configured backend can finally hold.

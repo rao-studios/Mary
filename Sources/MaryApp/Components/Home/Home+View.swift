@@ -293,20 +293,21 @@ struct HomeSessionView: View {
     private func bootRuntimeAfterVoice() async {
 
         let engine = config.state.llmEngine
+        let skillEngine = config.state.skillEngine
         let warmingStatus: String
-        switch engine {
-        // THE ON-DEVICE MODEL WARMS IN BOTH MODES, so both messages say so.
-        // Hosted moves the SPOKEN pass to the server; the acting pass and the
-        // unreachable-server fallback are still the local engine, and a
-        // "checking the Seer server…" that quietly downloaded 4 GB was a
-        // status line describing the smaller half of what was happening.
-        case .local: warmingStatus = "warming the on-device model (first run downloads ~4 GB)…"
-        case .hosted: warmingStatus =
-            "checking the Seer server, warming the on-device model for acting (first run downloads ~4 GB)…"
+        switch (engine, skillEngine) {
+        case (.local, .local):
+            warmingStatus = "warming the on-device model (first run downloads ~4 GB)…"
+        case (.hosted, .local):
+            warmingStatus =
+                "checking the Seer server, warming the on-device model for skills (first run downloads ~4 GB)…"
+        case (_, .hosted):
+            warmingStatus = "checking the Seer server for voice and skill synthesis…"
         }
         setReadiness(warmingStatus, ready: false)
         if let error = await MaryRuntime.applyEngine(
             engine,
+            skillEngine: skillEngine,
             localModelID: config.state.localModelID,
             seerEnabled: config.state.seerEnabled
         ) {
@@ -316,14 +317,20 @@ struct HomeSessionView: View {
         if config.state.codingAgentEnabled {
             setReadiness("warming the on-device coding model…", ready: false)
             if let error = await MaryRuntime.applyCodingAgent(
-                enabled: true, modelID: config.state.codingAgentModelID)
+                enabled: true,
+                engine: config.state.codingEngine,
+                modelID: config.state.codingAgentModelID,
+                seerEnabled: config.state.seerEnabled)
             {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
                     kind: .error("Coding agent: \(error)")))
             }
         } else {
             _ = await MaryRuntime.applyCodingAgent(
-                enabled: false, modelID: config.state.codingAgentModelID)
+                enabled: false,
+                engine: config.state.codingEngine,
+                modelID: config.state.codingAgentModelID,
+                seerEnabled: config.state.seerEnabled)
         }
 
         // Instant coding/writing focus transitions — app boot only, never
@@ -403,7 +410,8 @@ struct HomeSessionView: View {
         await MaryRuntime.applyServers(config: config.state, nodeID: nodeID)
 
         guard config.state.seerEnabled else {
-            await MaryRuntime.connectSeerToBrain(chat: false, archiving: false)
+            await MaryRuntime.connectSeerToBrain(
+                chat: false, archiving: false, stackEnabled: false)
             return
         }
 
@@ -426,15 +434,17 @@ struct HomeSessionView: View {
             seerPort: config.state.seerPort) {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
                 kind: .error("\(error) Chat continues without Seer.")))
-            await MaryRuntime.connectSeerToBrain(chat: false, archiving: false)
+            await MaryRuntime.connectSeerToBrain(
+                chat: false, archiving: false, stackEnabled: false)
             return
         }
-        // ARCHIVING IS NOT THE BRAIN'S CHOICE. Sign-in succeeded, so Totem
-        // takes deposits either way; only the chat lane answers to the Brain
-        // card, so choosing "on device" keeps memory working.
+        // ARCHIVING IS NOT LANE A'S CHOICE. Sign-in succeeded, so Totem
+        // takes deposits either way; only the spoken lane answers to Voice
+        // (Lane A), so choosing "on device" keeps memory working.
         await MaryRuntime.connectSeerToBrain(
             chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
-            archiving: true)
+            archiving: true,
+            stackEnabled: true)
         // Transport rides the signed-in session, so it applies last.
         await MaryRuntime.applySeerTransport(config.state.seerTransport)
     }

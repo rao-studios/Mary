@@ -2,9 +2,9 @@
 //  SettingsSheet.swift
 //  Mary
 //
-//  Everything tunable, on MaryCards: which brain answers, which voice
-//  speaks, how listening endpoints, and which projects voice commands can
-//  open. Every control writes through ConfigService.Update; runtime side
+//  Everything tunable, on MaryCards: which voice speaks (Lane A), where
+//  skills are synthesized (Lane B), how listening endpoints, and which
+//  projects voice commands can open. Every control writes through ConfigService.Update; runtime side
 //  effects (engine swap, voice reload, prompt/dispatcher rebuild) apply
 //  immediately.
 //
@@ -51,7 +51,7 @@ struct SettingsSheet: View {
 
                 permissionsCard
 
-                brainCard
+                skillsCard
 
                 codingAgentCard
 
@@ -205,9 +205,38 @@ struct SettingsSheet: View {
                 // the config update above has not landed yet, so reading
                 // `llmEngine` back inside the task would apply the OLD value.
                 let seerEnabled = config.state.seerEnabled
+                let skillEngine = config.state.skillEngine
                 Task {
                     let error = await MaryRuntime.applyEngine(
-                        choice, localModelID: modelID, seerEnabled: seerEnabled)
+                        choice,
+                        skillEngine: skillEngine,
+                        localModelID: modelID,
+                        seerEnabled: seerEnabled)
+                    chat.center.setReadiness.send(
+                        ChatService.SetReadiness.Meta(status: error, ready: error == nil)
+                    )
+                }
+            }
+        )
+    }
+
+    var skillEngineBinding: Binding<LLMEngineChoice> {
+        Binding(
+            get: { config.state.skillEngine },
+            set: { choice in
+                config.center.update.send(ConfigService.Update.Meta(skillEngine: choice))
+                chat.center.setReadiness.send(
+                    ChatService.SetReadiness.Meta(status: "switching skill engine…", ready: false)
+                )
+                let modelID = config.state.localModelID
+                let seerEnabled = config.state.seerEnabled
+                let spoken = config.state.llmEngine
+                Task {
+                    let error = await MaryRuntime.applyEngine(
+                        spoken,
+                        skillEngine: choice,
+                        localModelID: modelID,
+                        seerEnabled: seerEnabled)
                     chat.center.setReadiness.send(
                         ChatService.SetReadiness.Meta(status: error, ready: error == nil)
                     )
@@ -230,22 +259,49 @@ struct SettingsSheet: View {
                 config.center.update.send(
                     ConfigService.Update.Meta(codingAgentEnabled: enabled))
                 let modelID = config.state.codingAgentModelID
+                let engine = config.state.codingEngine
+                let seerEnabled = config.state.seerEnabled
                 Task {
-                    if enabled {
-                        codingDownloading = true
-                        let error = await MaryRuntime.applyCodingAgent(
-                            enabled: true, modelID: modelID)
-                        codingDownloading = false
-                        codingStatus = error
-                        codingPrepared = error == nil
-                        if error != nil {
-                            config.center.update.send(
-                                ConfigService.Update.Meta(codingAgentEnabled: false))
-                        }
-                    } else {
-                        _ = await MaryRuntime.applyCodingAgent(
-                            enabled: false, modelID: modelID)
-                        codingPrepared = false
+                    let hosted = engine == .hosted
+                    if enabled, !hosted { codingDownloading = true }
+                    let error = await MaryRuntime.applyCodingAgent(
+                        enabled: enabled,
+                        engine: engine,
+                        modelID: modelID,
+                        seerEnabled: seerEnabled)
+                    if enabled, !hosted { codingDownloading = false }
+                    codingStatus = error
+                    codingPrepared = error == nil && enabled
+                    if enabled, error != nil {
+                        config.center.update.send(
+                            ConfigService.Update.Meta(codingAgentEnabled: false))
+                    }
+                }
+            }
+        )
+    }
+
+    var codingEngineBinding: Binding<LLMEngineChoice> {
+        Binding(
+            get: { config.state.codingEngine },
+            set: { choice in
+                config.center.update.send(ConfigService.Update.Meta(codingEngine: choice))
+                guard config.state.codingAgentEnabled else { return }
+                let modelID = config.state.codingAgentModelID
+                let seerEnabled = config.state.seerEnabled
+                Task {
+                    if choice == .local { codingDownloading = true }
+                    let error = await MaryRuntime.applyCodingAgent(
+                        enabled: true,
+                        engine: choice,
+                        modelID: modelID,
+                        seerEnabled: seerEnabled)
+                    codingDownloading = false
+                    codingStatus = error
+                    codingPrepared = error == nil
+                    if error != nil {
+                        config.center.update.send(
+                            ConfigService.Update.Meta(codingAgentEnabled: false))
                     }
                 }
             }
@@ -273,7 +329,10 @@ struct SettingsSheet: View {
         codingStatus = nil
         Task {
             let error = await MaryRuntime.applyCodingAgent(
-                enabled: true, modelID: resolved)
+                enabled: true,
+                engine: .local,
+                modelID: resolved,
+                seerEnabled: config.state.seerEnabled)
             codingDownloading = false
             codingStatus = error
             if error == nil {

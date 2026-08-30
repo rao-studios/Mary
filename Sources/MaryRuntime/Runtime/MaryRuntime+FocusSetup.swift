@@ -82,6 +82,18 @@ extension MaryRuntime {
     /// `applyEngine` the honest assumption is the one a fresh install makes.
     static let engineChoiceBox =
         OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .hosted)
+    /// Lane B's choice. `.local` initially, matching the config default:
+    /// acting stayed on-device even when spoken turns already went to Seer.
+    static let skillEngineChoiceBox =
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .local)
+    static let localModelIDBox =
+        OSAllocatedUnfairLock<String>(initialState: MaryLocalEngine.defaultModelID)
+    static let codingEngineChoiceBox =
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .local)
+    static let codingEnabledBox =
+        OSAllocatedUnfairLock<Bool>(initialState: false)
+    static let seerStackEnabledBox =
+        OSAllocatedUnfairLock<Bool>(initialState: true)
 
     /// Read-only snapshot for the debugger. Empty until the first
     /// `installBrainConfiguration`, which is honest: before that there is no

@@ -75,6 +75,37 @@ import MaryBrain
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self, from: Data("{}".utf8))
         #expect(restored.llmEngine == ConfigService.Center.State().llmEngine)
+        #expect(restored.skillEngine == ConfigService.Center.State().skillEngine)
+    }
+
+    @Test func aFreshInstallKeepsSkillsOnDevice() {
+        #expect(ConfigService.Center.State().skillEngine == .local)
+        #expect(
+            MaryRuntime.seerCarriesSkills(
+                engine: ConfigService.Center.State().skillEngine,
+                seerEnabled: ConfigService.Center.State().seerEnabled) == false)
+    }
+
+    @Test(arguments: [
+        (LLMEngineChoice.hosted, true, true),
+        (LLMEngineChoice.hosted, false, false),
+        (LLMEngineChoice.local, true, false),
+        (LLMEngineChoice.local, false, false),
+    ])
+    func onlyHostedAndEnabledSendsSkillsToSeer(
+        _ engine: LLMEngineChoice, _ seerEnabled: Bool, _ expected: Bool
+    ) {
+        #expect(
+            MaryRuntime.seerCarriesSkills(engine: engine, seerEnabled: seerEnabled)
+                == expected)
+    }
+
+    @Test func anExplicitHostedSkillChoiceSurvivesRestore() throws {
+        let restored = try JSONDecoder().decode(
+            ConfigService.Center.State.self,
+            from: Data(#"{"skillEngine":"hosted"}"#.utf8))
+        #expect(restored.skillEngine == .hosted)
+        #expect(restored.llmEngine == .hosted)
     }
 
     /// AND AN EXPLICIT CHOICE SURVIVES THE ROUND TRIP — the default must not
@@ -84,5 +115,23 @@ import MaryBrain
             ConfigService.Center.State.self,
             from: Data(#"{"llmEngine":"local"}"#.utf8))
         #expect(restored.llmEngine == .local)
+        #expect(restored.skillEngine == .local)
+    }
+
+    @Test func aFreshInstallKeepsCodingOnDeviceAndOff() {
+        #expect(ConfigService.Center.State().codingEngine == .local)
+        #expect(ConfigService.Center.State().codingAgentEnabled == false)
+        #expect(
+            MaryRuntime.seerCarriesCoding(
+                engine: ConfigService.Center.State().codingEngine,
+                seerEnabled: true) == false)
+    }
+
+    @Test func anExplicitHostedCodingChoiceSurvivesRestore() throws {
+        let restored = try JSONDecoder().decode(
+            ConfigService.Center.State.self,
+            from: Data(#"{"codingEngine":"hosted"}"#.utf8))
+        #expect(restored.codingEngine == .hosted)
+        #expect(restored.codingAgentEnabled == false)
     }
 }

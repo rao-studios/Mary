@@ -3,8 +3,8 @@
 //  MaryBrain
 //
 //  On-device coding delegate. Hub-downloads the selected MLX id (default:
-//  the Gemma 4 12B coder 4-bit snapshot) and runs a workdir-jailed tool
-//  loop. Frigate only supplies the architecture; Mary Settings owns download.
+//  the Gemma 4 12B coder 4-bit snapshot) and synthesizes rounds for the
+//  shared jailed loop. Frigate only supplies the architecture.
 //
 
 import Foundation
@@ -27,6 +27,10 @@ public actor MaryCodingEngine: CodingAgentBackend {
 
     public func isPrepared() async -> Bool {
         context != nil
+    }
+
+    public func unpreparedSummary() async -> String {
+        "The coding agent has no model yet. Open Settings, download the coding model, and select it."
     }
 
     public func downloadProgress() async -> Double {
@@ -80,81 +84,26 @@ public actor MaryCodingEngine: CodingAgentBackend {
 
     private func loop(sessionID: String, workdir: String) async throws -> CodingAgentRun {
         guard context != nil else { throw CodingAgentBackendError.notPrepared }
-        let skills = CodingAgentWorkspace.toolSchemas
-        let known = Set(skills.map(\.name))
-        var lastSpeech = ""
-        var turns = 0
-        let maxTurns = 40
-
-        while turns < maxTurns {
-            if cancelled.contains(sessionID) {
-                throw CodingAgentBackendError.cancelled
-            }
-            turns += 1
-            let (speech, invocations) = try await generateRound(
-                sessionID: sessionID, skills: skills, known: known)
-            if !speech.isEmpty { lastSpeech = speech }
-
-            var calls = invocations
-            if calls.isEmpty, let fence = CodingAgentWorkspace.extractPatchFence(from: speech) {
-                let json = (try? JSONSerialization.data(
-                    withJSONObject: ["path": fence.path, "patch": fence.patch]))
-                    .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-                calls = [ModelSkillInvocation(
-                    id: "patch-\(turns)", name: "apply_patch", argumentsJSON: json)]
-            }
-            if calls.isEmpty {
-                let run = CodingAgentRun(
-                    sessionID: sessionID, summary: lastSpeech.isEmpty ? "done" : lastSpeech,
-                    ok: true)
-                return run
-            }
-            var results: [String] = []
-            for call in calls {
-                if cancelled.contains(sessionID) {
-                    throw CodingAgentBackendError.cancelled
-                }
-                let args = Self.stringArgs(call.argumentsJSON)
-                do {
-                    let result = try CodingAgentWorkspace.perform(
-                        name: call.name, arguments: args, workdir: workdir)
-                    results.append("\(call.name): \(result)")
-                } catch {
-                    results.append("\(call.name) failed: \(error.localizedDescription)")
-                }
-            }
-            var history = histories[sessionID] ?? []
-            if !speech.isEmpty { history.append(("assistant", speech)) }
-            history.append(("user", "Tool results:\n" + results.joined(separator: "\n")))
-            histories[sessionID] = history
-        }
-        return CodingAgentRun(
+        var history = histories[sessionID] ?? []
+        let run = try await CodingAgentTurnLoop.run(
             sessionID: sessionID,
-            summary: lastSpeech.isEmpty
-                ? "Stopped after \(maxTurns) tool rounds." : lastSpeech,
-            ok: false)
+            workdir: workdir,
+            history: &history,
+            isCancelled: { await self.cancelled.contains(sessionID) },
+            generate: { hist in
+                try await self.generateRound(history: hist)
+            })
+        histories[sessionID] = history
+        return run
     }
 
     private func generateRound(
-        sessionID: String,
-        skills: [ModelSkillSchema],
-        known: Set<String>
+        history: [(role: String, text: String)]
     ) async throws -> (String, [ModelSkillInvocation]) {
         let ctx = try await loadedContext()
-        let history = histories[sessionID] ?? []
-        var system = Self.systemPrompt
-        let roster = skills.map { "\($0.name) — \($0.description)" }.joined(separator: "\n")
-        system += """
-
-
-        Tools, by exact name:
-        \(roster)
-
-        To use a tool, respond with ONLY this format:
-        <tool_call>{"name": "tool_name", "arguments": {"param": "value"}}</tool_call>
-        You may also emit a *** Begin Patch / *** End Patch block for apply_patch.
-        When the change is done, reply with a short summary and no tool call.
-        """
+        let skills = CodingAgentWorkspace.toolSchemas
+        let known = Set(skills.map(\.name))
+        let system = CodingAgentTurnLoop.instructions(skills: skills)
 
         var messages: [Chat.Message] = [.system(system)]
         for entry in history {
@@ -231,22 +180,4 @@ public actor MaryCodingEngine: CodingAgentBackend {
     private func setDownloadProgress(_ value: Double) {
         downloadProgress = value
     }
-
-    private static func stringArgs(_ json: String) -> [String: String] {
-        guard let data = json.data(using: .utf8),
-              let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else { return [:] }
-        var result: [String: String] = [:]
-        for (key, value) in object {
-            result[key] = "\(value)"
-        }
-        return result
-    }
-
-    private static let systemPrompt = """
-    You are Mary's on-device coding agent. You edit files on disk inside the \
-    authorized project root from a live voice pair-coding conversation. \
-    Stay inside that root. Prefer the smallest compilable change. Match the \
-    surrounding style. After edits, summarize what changed in one short clause.
-    """
 }

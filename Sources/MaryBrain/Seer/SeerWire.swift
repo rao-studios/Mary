@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import MaryPlugin
 
 enum SeerWire {
 
@@ -319,6 +320,155 @@ enum SeerWire {
                 if !value.isEmpty { return value }
             }
             return nil
+        }
+    }
+
+    // MARK: - Skills complete
+
+    /// Mirrors Seer's `SkillsCompleteRequest` — one bounded generation with
+    /// a tool roster, no `seer` scope, no streaming, roles preserved.
+    struct SkillsCompleteRequest: Encodable {
+        var instructions: String?
+        var messages: [SeerChatMessage]
+        var tools: [SkillTool]?
+        var maxTokens: Int?
+        var temperature: Float?
+
+        enum CodingKeys: String, CodingKey {
+            case instructions, messages, tools, temperature
+            case maxTokens = "max_tokens"
+        }
+    }
+
+    struct SkillTool: Encodable {
+        var type = "function"
+        var function: SkillFunction
+
+        static func from(_ schema: ModelSkillSchema) -> SkillTool {
+            var properties: [String: SkillProperty] = [:]
+            var required: [String] = []
+            for parameter in schema.parameters {
+                properties[parameter.name] = SkillProperty(
+                    type: parameter.type,
+                    description: parameter.description,
+                    enumValues: parameter.enumValues,
+                    minimum: parameter.minimum,
+                    maximum: parameter.maximum)
+                if parameter.required { required.append(parameter.name) }
+            }
+            return SkillTool(function: SkillFunction(
+                name: schema.name,
+                description: schema.description,
+                parameters: SkillParameters(properties: properties, required: required)))
+        }
+    }
+
+    struct SkillFunction: Encodable {
+        var name: String
+        var description: String
+        var parameters: SkillParameters
+    }
+
+    struct SkillParameters: Encodable {
+        var type = "object"
+        var properties: [String: SkillProperty]
+        var required: [String]
+    }
+
+    struct SkillProperty: Encodable {
+        var type: String
+        var description: String
+        var enumValues: [String]?
+        var minimum: Double?
+        var maximum: Double?
+
+        enum CodingKeys: String, CodingKey {
+            case type, description, minimum, maximum
+            case enumValues = "enum"
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
+            try container.encode(description, forKey: .description)
+            if let enumValues { try container.encode(enumValues, forKey: .enumValues) }
+            if let minimum { try container.encode(minimum, forKey: .minimum) }
+            if let maximum { try container.encode(maximum, forKey: .maximum) }
+        }
+    }
+
+    struct SkillsCompleteResponse: Decodable {
+        var text: String
+        var toolCalls: [SkillToolCall]
+
+        enum CodingKeys: String, CodingKey {
+            case text, toolCalls = "tool_calls"
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            text = try values.decodeIfPresent(String.self, forKey: .text) ?? ""
+            toolCalls = try values.decodeIfPresent([SkillToolCall].self, forKey: .toolCalls) ?? []
+        }
+    }
+
+    struct SkillToolCall: Decodable {
+        var name: String
+        var arguments: String
+
+        enum CodingKeys: String, CodingKey {
+            case name, arguments
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            name = try values.decode(String.self, forKey: .name)
+            if let text = try? values.decode(String.self, forKey: .arguments) {
+                arguments = text
+            } else if let object = try? values.decode([String: SeerJSONValue].self, forKey: .arguments),
+                      let data = try? JSONEncoder().encode(object),
+                      let text = String(data: data, encoding: .utf8) {
+                arguments = text
+            } else {
+                arguments = "{}"
+            }
+        }
+    }
+
+    /// Tiny JSON tree so tool-call `arguments` may arrive as an object.
+    enum SeerJSONValue: Codable {
+        case string(String)
+        case number(Double)
+        case bool(Bool)
+        case object([String: SeerJSONValue])
+        case array([SeerJSONValue])
+        case null
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            if c.decodeNil() { self = .null }
+            else if let b = try? c.decode(Bool.self) { self = .bool(b) }
+            else if let n = try? c.decode(Double.self) { self = .number(n) }
+            else if let s = try? c.decode(String.self) { self = .string(s) }
+            else if let a = try? c.decode([SeerJSONValue].self) { self = .array(a) }
+            else if let o = try? c.decode([String: SeerJSONValue].self) { self = .object(o) }
+            else {
+                throw DecodingError.typeMismatch(
+                    SeerJSONValue.self,
+                    .init(codingPath: decoder.codingPath, debugDescription: "Unsupported JSON"))
+            }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.singleValueContainer()
+            switch self {
+            case .string(let s): try c.encode(s)
+            case .number(let n): try c.encode(n)
+            case .bool(let b): try c.encode(b)
+            case .object(let o): try c.encode(o)
+            case .array(let a): try c.encode(a)
+            case .null: try c.encodeNil()
+            }
         }
     }
 }

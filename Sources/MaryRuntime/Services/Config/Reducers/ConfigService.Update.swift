@@ -16,6 +16,7 @@ extension ConfigService {
         package struct Meta: GranitePayload {
         package init(
             llmEngine: LLMEngineChoice? = nil,
+            skillEngine: LLMEngineChoice? = nil,
             localModelID: String? = nil,
             sttBackend: STTBackend? = nil,
             ttsBackend: TTSBackend? = nil,
@@ -50,9 +51,11 @@ extension ConfigService {
             seerTransport: SeerTransportChoice? = nil,
             codingAgentEnabled: Bool? = nil,
             codingAgentModelID: String? = nil,
+            codingEngine: LLMEngineChoice? = nil,
             skillRunTimeoutSeconds: Double? = nil
         ) {
             self.llmEngine = llmEngine
+            self.skillEngine = skillEngine
             self.localModelID = localModelID
             self.sttBackend = sttBackend
             self.ttsBackend = ttsBackend
@@ -87,9 +90,11 @@ extension ConfigService {
             self.seerTransport = seerTransport
             self.codingAgentEnabled = codingAgentEnabled
             self.codingAgentModelID = codingAgentModelID
+            self.codingEngine = codingEngine
             self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
         }
             package var llmEngine: LLMEngineChoice? = nil
+            package var skillEngine: LLMEngineChoice? = nil
             package var localModelID: String? = nil
             package var sttBackend: STTBackend? = nil
             package var ttsBackend: TTSBackend? = nil
@@ -126,6 +131,7 @@ extension ConfigService {
             package var seerTransport: SeerTransportChoice? = nil
             package var codingAgentEnabled: Bool? = nil
             package var codingAgentModelID: String? = nil
+            package var codingEngine: LLMEngineChoice? = nil
             package var skillRunTimeoutSeconds: Double? = nil
         }
 
@@ -134,6 +140,7 @@ extension ConfigService {
         package func reduce(state: inout Center.State) {
             guard let meta else { return }
             if let value = meta.llmEngine { state.llmEngine = value }
+            if let value = meta.skillEngine { state.skillEngine = value }
             if let value = meta.localModelID, !value.isEmpty { state.localModelID = value }
             if let value = meta.sttBackend { state.sttBackend = value }
             if let value = meta.ttsBackend { state.ttsBackend = value }
@@ -178,6 +185,7 @@ extension ConfigService {
             if let value = meta.codingAgentModelID, !value.isEmpty {
                 state.codingAgentModelID = value
             }
+            if let value = meta.codingEngine { state.codingEngine = value }
             if let value = meta.skillRunTimeoutSeconds {
                 state.skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(value)
             }

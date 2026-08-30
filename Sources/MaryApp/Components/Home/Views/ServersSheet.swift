@@ -85,7 +85,7 @@ struct ServersSheet: View {
                 }
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                Text("On: replies come from Seer with your totem's context; the engine runs commands quietly alongside. Off: the engine answers alone, as before.")
+                Text("On: the local Seer stack is available for Voice (Lane A) and Skills (Lane B), each chosen in Settings. Off: both stay on-device.")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
                 Toggle(isOn: autoStartBinding) {
@@ -438,7 +438,8 @@ struct ServersSheet: View {
                 Task {
                     await MaryRuntime.connectSeerToBrain(
                         chat: MaryRuntime.seerCarriesTurns(seerEnabled: enabled),
-                        archiving: enabled)
+                        archiving: enabled,
+                        stackEnabled: enabled)
                 }
             }
         )

@@ -12,17 +12,13 @@ import MaryRuntime
 
 extension SettingsSheet {
 
-    /// WHERE THE WORDS GO — on device, or through the local Seer server.
-    ///
-    /// The engine picker used to carry a per-vendor branch each, with an
-    /// API-key status dot and a model-id field apiece. `LLMEngineChoice` says
-    /// WHERE rather than WHO now, so this is two cases and the difference
-    /// between them is the only one a person is actually choosing.
-    var brainCard: some View {
+    /// LANE B — where skill invocations are synthesized. Spoken replies are
+    /// Voice (Lane A); tools still run on this Mac either way.
+    var skillsCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
-                SectionLabel("Brain")
-                Picker("Engine", selection: engineBinding) {
+                SectionLabel("Skills (Lane B)")
+                Picker("Skill engine", selection: skillEngineBinding) {
                     ForEach(LLMEngineChoice.allCases, id: \.self) { choice in
                         Text(choice.displayName).tag(choice)
                     }
@@ -30,74 +26,89 @@ extension SettingsSheet {
                 .pickerStyle(.radioGroup)
                 .labelsHidden()
 
-                switch config.state.llmEngine {
+                switch config.state.skillEngine {
                 case .local:
                     TextField("MLX model id", text: localModelBinding)
                         .textFieldStyle(.roundedBorder)
                         .font(.maryMono(11))
-                    // NARROWLY WHAT IS TRUE. A first draft of this line
-                    // promised "nothing reaches the Seer server", which this
-                    // switch does not deliver on its own: the voice backend
-                    // defaults to Seer and archiving keeps depositing. A
-                    // privacy sentence that is wrong about the two other
-                    // settings on the same screen is worse than none.
-                    Text("The turn is answered on this machine. Voice and memory keep their own settings — this one is the brain.")
+                    Text("Skill invocations are decided on this machine (on-device MLX). The skills themselves still run here. Spoken replies are Voice (Lane A).")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                 case .hosted:
-                    // THE SESSION, NOT AN ENVIRONMENT VARIABLE. This row used
-                    // to demand a SEER_TOKEN in Mary's .env — a credential the
-                    // app consumes NOWHERE. Every Seer request rides a Bearer
-                    // token minted by SeerSession's account sign-in, which
-                    // happens by itself at boot with the admin account; the
-                    // only reader of SEER_TOKEN is the standalone voice probe,
-                    // which has no session to mint from. So the old row sent
-                    // people to edit a dotfile that would change nothing,
-                    // while the actual requirement — being signed in — went
-                    // unreported.
                     SeerSignInRow(
                         signedIn: seerSignedIn,
                         account: config.state.seerEmail,
                         whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
-                    Text("Your words reach the cloud through the Seer server on this machine. Acting still runs on device.")
+                    Text("Skill invocations are synthesized through the Seer server on this machine (not the spoken chat lane, not corpus annotation). The skills still run on this Mac. Needs Chat through Seer in the Servers panel.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
+                    if config.state.llmEngine == .local {
+                        Text("Voice is on-device, so this loop also supplies any spoken wrap-up — Seer persona and retrieval stay off.")
+                            .font(.marySans(10))
+                            .foregroundStyle(Color.maryInk.opacity(0.45))
+                    }
                 }
             }
         }
         .task { await refreshSeerSignIn() }
     }
 
-    /// ON-DEVICE CODING DELEGATE. Weights come from Hugging Face at runtime
-    /// when the user downloads them here. Frigate only loads the architecture.
+    /// Pair-coding faculty. On/off is separate from WHERE synthesis runs —
+    /// on-device MLX or Seer's `/v1/code/complete`. Edits stay on this Mac.
     var codingAgentCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
                 SectionLabel("Coding Agent")
-                Toggle("Use the on-device coding model", isOn: codingAgentEnabledBinding)
+                Toggle("Use the coding agent", isOn: codingAgentEnabledBinding)
                     .disabled(codingDownloading)
-                Text("Pair-coding edits run on this Mac. Download a model, then switch it on — selecting a downloaded snapshot is what turns the faculty on.")
+                Text("Pair-coding edits files in the focused project. Switch the faculty on, then choose where invocations are synthesized.")
                     .font(.marySans(10))
                     .foregroundStyle(Color.maryInk.opacity(0.45))
-                TextField("MLX Hub id", text: codingAgentModelBinding)
-                    .textFieldStyle(.roundedBorder)
-                    .font(.maryMono(11))
-                    .disabled(codingDownloading)
-                HStack(spacing: .layer3) {
-                    Button("Download") { downloadCodingModel() }
-                        .buttonStyle(.mary)
-                        .disabled(codingDownloading)
-                    Button("Default model") { restoreDefaultCodingModel() }
-                        .buttonStyle(.maryQuiet)
-                        .disabled(codingDownloading)
-                    Spacer()
+
+                Picker("Coding engine", selection: codingEngineBinding) {
+                    ForEach(LLMEngineChoice.allCases, id: \.self) { choice in
+                        Text(choice.displayName).tag(choice)
+                    }
                 }
-                if codingDownloading {
-                    ProgressView(value: codingDownloadProgress, total: 1)
-                    Text("Downloading \(Int(codingDownloadProgress * 100))% — about 6.7 GB the first time.")
+                .pickerStyle(.radioGroup)
+                .labelsHidden()
+                .disabled(codingDownloading)
+
+                switch config.state.codingEngine {
+                case .local:
+                    Text("Invocations are decided on this Mac. Download a model, then switch the faculty on — selecting a downloaded snapshot is what turns local coding on.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
-                } else if codingPrepared || config.state.codingAgentEnabled {
+                    TextField("MLX Hub id", text: codingAgentModelBinding)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.maryMono(11))
+                        .disabled(codingDownloading)
+                    HStack(spacing: .layer3) {
+                        Button("Download") { downloadCodingModel() }
+                            .buttonStyle(.mary)
+                            .disabled(codingDownloading)
+                        Button("Default model") { restoreDefaultCodingModel() }
+                            .buttonStyle(.maryQuiet)
+                            .disabled(codingDownloading)
+                        Spacer()
+                    }
+                    if codingDownloading {
+                        ProgressView(value: codingDownloadProgress, total: 1)
+                        Text("Downloading \(Int(codingDownloadProgress * 100))% — about 6.7 GB the first time.")
+                            .font(.marySans(10))
+                            .foregroundStyle(Color.maryInk.opacity(0.45))
+                    }
+                case .hosted:
+                    SeerSignInRow(
+                        signedIn: seerSignedIn,
+                        account: config.state.seerEmail,
+                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
+                    Text("Invocations are synthesized through Seer (model chosen on the server, not here). File tools still run on this Mac, jailed to the project. Needs Chat through Seer in the Servers panel.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                }
+
+                if codingPrepared || config.state.codingAgentEnabled {
                     Text("Ready. The coding agent will edit the focused project on disk.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
@@ -254,15 +265,40 @@ extension SettingsSheet {
     var voiceCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
-                SectionLabel("Voice")
+                SectionLabel("Voice (Lane A)")
+                Picker("Spoken replies", selection: engineBinding) {
+                    ForEach(LLMEngineChoice.allCases, id: \.self) { choice in
+                        Text(choice.displayName).tag(choice)
+                    }
+                }
+                .pickerStyle(.radioGroup)
+                .labelsHidden()
+
+                switch config.state.llmEngine {
+                case .local:
+                    Text("Spoken replies are produced on this machine. Skill invocations have their own control under Skills (Lane B).")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                case .hosted:
+                    SeerSignInRow(
+                        signedIn: seerSignedIn,
+                        account: config.state.seerEmail,
+                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
+                    Text("Spoken replies stream from Seer (SSE or realtime below). Skills are separate — Lane B.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                }
+
                 Picker("Chat transport", selection: seerTransportBinding) {
                     ForEach(SeerTransportChoice.allCases, id: \.self) { choice in
                         Text(choice.displayName).tag(choice)
                     }
                 }
-                Text(config.state.seerTransport == .realtime
-                     ? "Realtime streams Seer's own voice over one socket — speech starts in about a second while retrieval catches up. Falls back to Classic if the route can't connect."
-                     : "Classic streams text and synthesizes speech with the backend below.")
+                Text(config.state.llmEngine == .local
+                     ? "Transport applies when spoken replies are hosted. On-device Voice does not use this socket."
+                     : (config.state.seerTransport == .realtime
+                        ? "Realtime streams Seer's own voice over one socket — speech starts in about a second while retrieval catches up. Falls back to Classic if the route can't connect."
+                        : "Classic streams text and synthesizes speech with the backend below."))
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.7))
 

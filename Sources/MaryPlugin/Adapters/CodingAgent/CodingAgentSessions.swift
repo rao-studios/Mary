@@ -60,12 +60,12 @@ public actor CodingAgentSessions {
         guard let backend else {
             return SkillOutcome(
                 ok: false,
-                summary: "The coding agent is off. Download a model in Settings, under Coding Agent, then switch it on.")
+                summary: "The coding agent is off. Switch it on in Settings, under Coding Agent.")
         }
         guard await backend.isPrepared() else {
             return SkillOutcome(
                 ok: false,
-                summary: "The coding agent has no model yet. Open Settings, download the coding model, and select it.")
+                summary: await backend.unpreparedSummary())
         }
         let handle = "C\(next)"
         next += 1

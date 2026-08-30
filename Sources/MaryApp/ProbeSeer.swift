@@ -118,7 +118,8 @@ enum ProbeSeer {
         // THE PROBE ALWAYS WIRES SEER, whatever the Brain card says — it
         // exists to exercise the server, so honouring a stored "on device"
         // would make it probe nothing.
-        await MaryRuntime.connectSeerToBrain(chat: true, archiving: true)
+        await MaryRuntime.connectSeerToBrain(
+            chat: true, archiving: true, stackEnabled: true)
         await MaryRuntime.applySeerTransport(transport)
         print("[transport] \(transport.rawValue)")
 

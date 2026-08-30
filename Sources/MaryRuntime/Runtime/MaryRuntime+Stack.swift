@@ -113,6 +113,10 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerComplete.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerSkill.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerCode.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
     }
@@ -185,10 +189,17 @@ extension MaryRuntime {
     /// TWO PARAMETERS AND NOT ONE, for the same reason the two functions are
     /// separate: a caller that had to pass a single `enabled` could not say
     /// "keep archiving, but this person wants their words to stay on the
-    /// device", which is exactly the combination the Brain card now offers.
-    package static func connectSeerToBrain(chat: Bool, archiving: Bool) async {
+    /// device", which is exactly the combination Voice (Lane A) now offers.
+    /// `stackEnabled` is the Servers toggle itself — Lane B hosted needs the
+    /// stack even when Lane A is on-device.
+    package static func connectSeerToBrain(
+        chat: Bool, archiving: Bool, stackEnabled: Bool
+    ) async {
         await connectSeerVoice(enabled: chat)
         await connectTotemDepositor(enabled: archiving)
+        seerStackEnabledBox.withLock { $0 = stackEnabled }
+        await rewireSkillEngine(seerEnabled: stackEnabled)
+        await rewireCodingAgent(seerEnabled: stackEnabled)
     }
 
     /// WHETHER THE SEER CHAT LANE CARRIES TURNS — the one spelling of a
@@ -217,53 +228,76 @@ extension MaryRuntime {
         engine == .hosted && seerEnabled
     }
 
-    /// Apply the Brain card's choice: wire or unwire the Seer chat lane, then
-    /// warm the on-device engine. Returns user-facing error text, or nil.
+    /// Lane B: skill-invocation synthesis through Seer, same two gates as
+    /// spoken turns — the stack is the user's to use, and they asked for it.
+    package static func seerCarriesSkills(seerEnabled: Bool) -> Bool {
+        seerCarriesSkills(
+            engine: skillEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+    }
+
+    package static func seerCarriesSkills(
+        engine: LLMEngineChoice, seerEnabled: Bool
+    ) -> Bool {
+        engine == .hosted && seerEnabled
+    }
+
+    /// Swap Lane B onto Seer or local without a full warmup — used when the
+    /// Servers toggle flips after `applyEngine` already warmed the model.
+    static func rewireSkillEngine(seerEnabled: Bool) async {
+        let skillChoice = skillEngineChoiceBox.withLock { $0 }
+        let modelID = localModelIDBox.withLock { $0 }
+        await installSkillEngine(
+            skillChoice: skillChoice, localModelID: modelID, seerEnabled: seerEnabled)
+    }
+
+    static func installSkillEngine(
+        skillChoice: LLMEngineChoice, localModelID: String, seerEnabled: Bool
+    ) async {
+        let local = MaryLocalEngine(modelID: localModelID)
+        let gpuOK = MaryGPU.report().isSatisfied
+        if seerCarriesSkills(engine: skillChoice, seerEnabled: seerEnabled) {
+            await brain.setEngine(MarySeerSkillEngine(
+                client: seerSkill, fallback: gpuOK ? local : nil))
+        } else {
+            await brain.setEngine(local)
+        }
+    }
+
+    /// Apply Lane A (spoken) and Lane B (skills): wire or unwire the Seer
+    /// chat lane, then install the skill engine. Returns user-facing error
+    /// text, or nil.
     ///
-    /// THE ENGINE IS ALWAYS THE LOCAL ONE, and that is not the bug it looks
-    /// like. Seer's chat has no tool support — verified, and the reason Lane B
-    /// stays on the device — so hosted mode moves the SPOKEN pass to the
-    /// server while the ACTING pass still runs here, and the local engine is
-    /// also what carries the whole turn when the server is unreachable. There
-    /// is no second engine type to construct.
-    ///
-    /// WHAT THE CHOICE ACTUALLY CHANGES IS THE WIRING, and until now it changed
-    /// nothing at all: both arms of a `switch` built the same engine, the Seer
-    /// lane was gated on `seerEnabled` alone, and so selecting "Local (on
-    /// device)" left every word going to the server anyway. The only
-    /// observable difference was a warming message. For a setting whose own
-    /// title is "where the words go", that was the wrong way round to be
-    /// broken.
+    /// Lane A hosted still uses `seerChat` — Seer chat has no tools. Lane B
+    /// hosted uses `/v1/skills/complete`. The on-device engine remains the
+    /// fallback when Seer is unreachable, and the whole turn when Lane B is
+    /// local. The annotator still follows Lane A (`/v1/complete`).
     package static func applyEngine(
-        _ choice: LLMEngineChoice, localModelID: String, seerEnabled: Bool
+        _ choice: LLMEngineChoice,
+        skillEngine skillChoice: LLMEngineChoice = .local,
+        localModelID: String,
+        seerEnabled: Bool
     ) async -> String? {
         engineChoiceBox.withLock { $0 = choice }
+        skillEngineChoiceBox.withLock { $0 = skillChoice }
+        localModelIDBox.withLock { $0 = localModelID }
         await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
-        let engine = MaryLocalEngine(modelID: localModelID)
-        await brain.setEngine(engine)
-        // CHECKED BEFORE WARMING, because the failure it prevents is not
-        // catchable. A missing Metal library surfaces as a C++
-        // `std::runtime_error` thrown out of MLX, which does not arrive as a
-        // Swift error — the `catch` below never sees it and the process dies.
-        // Reading the search path costs four `fileExists` calls and turns an
-        // unrecoverable crash into a sentence naming the script to run.
-        // THE ANNOTATOR FOLLOWS THE CHOICE, and it is the one job the hosted
-        // lane is strictly better at. Summarising a unit needs no tools —
-        // which is why it uses `/v1/complete` rather than the persona chat
-        // lane — while the on-device engine requires exclusive generation
-        // and would make a background summary queue behind the user's own
-        // turn. On device, units keep their structure and go without a
-        // précis, and the ledger says why.
-        let hosted = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
+
+        let local = MaryLocalEngine(modelID: localModelID)
+        await installSkillEngine(
+            skillChoice: skillChoice, localModelID: localModelID, seerEnabled: seerEnabled)
+
+        let hostedVoice = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
         await unitIndexer.setAnnotator(
-            hosted ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: engine))
-        // A relaunch resumes from the durable manifest instead of treating
-        // every file in the project as a first sighting.
+            hostedVoice ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: local))
         await unitIndexer.setManifestLoader { projectID in
             await totemContext.loadUnitManifest(projectID: projectID)
         }
 
-        guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
+        let skillsHosted = seerCarriesSkills(engine: skillChoice, seerEnabled: seerEnabled)
+        let gpuOK = MaryGPU.report().isSatisfied
+        if !gpuOK {
+            guard skillsHosted else { return MaryGPU.remedy() }
+        }
         do {
             try await brain.warmup()
             return nil
@@ -272,13 +306,47 @@ extension MaryRuntime {
         }
     }
 
-    /// Install or tear down the on-device coding engine. Selecting a
-    /// downloaded Hub snapshot in Settings is what turns the faculty on;
-    /// Frigate only supplies the architecture.
-    package static func applyCodingAgent(enabled: Bool, modelID: String) async -> String? {
+    /// Install or tear down the coding engine. Local still needs a Hub
+    /// snapshot and Metal; hosted uses `/v1/code/complete` and skips both.
+    package static func applyCodingAgent(
+        enabled: Bool,
+        engine: LLMEngineChoice = .local,
+        modelID: String,
+        seerEnabled: Bool = true
+    ) async -> String? {
         startCodingFollowUpBridge()
+        codingEnabledBox.withLock { $0 = enabled }
+        codingEngineChoiceBox.withLock { $0 = engine }
+        seerStackEnabledBox.withLock { $0 = seerEnabled }
         guard enabled else {
             await CodingAgentSessions.shared.install(backend: nil)
+            return nil
+        }
+        return await installCodingBackend(engine: engine, modelID: modelID)
+    }
+
+    package static func seerCarriesCoding(
+        engine: LLMEngineChoice, seerEnabled: Bool
+    ) -> Bool {
+        engine == .hosted && seerEnabled
+    }
+
+    static func rewireCodingAgent(seerEnabled: Bool) async {
+        seerStackEnabledBox.withLock { $0 = seerEnabled }
+        guard codingEnabledBox.withLock({ $0 }) else { return }
+        let engine = codingEngineChoiceBox.withLock { $0 }
+        guard engine == .hosted else { return }
+        _ = await installCodingBackend(engine: engine, modelID: "")
+    }
+
+    static func installCodingBackend(
+        engine: LLMEngineChoice, modelID: String
+    ) async -> String? {
+        if engine == .hosted {
+            await CodingAgentSessions.shared.install(
+                backend: MarySeerCodingEngine(
+                    client: seerCode,
+                    stackEnabled: { seerStackEnabledBox.withLock { $0 } }))
             return nil
         }
         await CodingAgentSessions.shared.install(backend: MaryCodingEngine.shared)

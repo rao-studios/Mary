@@ -41,6 +41,10 @@ extension ConfigService {
             /// answers, so a fresh install that read "Local (on device)" was
             /// describing a turn that had gone to Seer.
             package var llmEngine: LLMEngineChoice = .hosted
+            /// Lane B: where skill invocations are synthesized. Local by
+            /// default — acting stayed on-device even when spoken turns
+            /// already went through Seer, and that remains the install.
+            package var skillEngine: LLMEngineChoice = .local
             /// Ambient corpus indexing: when a unit settles in an application
             /// that declares a corpus, crawl its neighbourhood and remember
             /// the structure. On by default — it is how Mary learns the shape
@@ -130,17 +134,20 @@ extension ConfigService {
             /// and selects it — Hub fetch, never vendored weights.
             package var codingAgentEnabled: Bool = false
             package var codingAgentModelID: String = MaryCodingEngine.defaultModelID
+            /// Lane-style choice for pair-coding synthesis. Local by default;
+            /// hosted uses Seer's `/v1/code/complete` and never a Hub id.
+            package var codingEngine: LLMEngineChoice = .local
             /// How long an ordinary Skill may stay running (1…10 s). Named
             /// build/test bindings keep their own ceilings.
             package var skillRunTimeoutSeconds: Double = 2
 
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
-                case llmEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
+                case llmEngine, skillEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
-                case codingAgentEnabled, codingAgentModelID
+                case codingAgentEnabled, codingAgentModelID, codingEngine
                 case skillRunTimeoutSeconds
             }
 
@@ -152,6 +159,7 @@ extension ConfigService {
                 self.init()
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 llmEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .llmEngine) ?? .hosted
+                skillEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .skillEngine) ?? .local
                 ambientCorpusIndexing = try c.decodeIfPresent(
                     Bool.self, forKey: .ambientCorpusIndexing) ?? true
                 localModelID = try c.decodeIfPresent(String.self, forKey: .localModelID) ?? MaryLocalEngine.defaultModelID
@@ -226,6 +234,7 @@ extension ConfigService {
                 codingAgentEnabled = try c.decodeIfPresent(Bool.self, forKey: .codingAgentEnabled) ?? false
                 codingAgentModelID = try c.decodeIfPresent(String.self, forKey: .codingAgentModelID)
                     ?? MaryCodingEngine.defaultModelID
+                codingEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .codingEngine) ?? .local
                 skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(
                     try c.decodeIfPresent(Double.self, forKey: .skillRunTimeoutSeconds) ?? 2)
             }
