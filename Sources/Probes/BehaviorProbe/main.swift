@@ -7,13 +7,13 @@
 //  actually filled?
 //
 //  Every part of the codec is unit-tested — the assembler's lifecycle, the
-//  chokepoint's completeness, the store's durability, the resolver's ladder.
-//  What no test can check is whether the pieces meet: whether the element a
-//  skill touched has a real frame in it, whether the capture holds the
-//  surfaces the prompt was actually given, whether the realm names the place
-//  the turn went to. Each of those is a JOIN between a live accessibility
-//  read and a value composed three layers away, and a join is exactly what a
-//  test with fixtures on both ends cannot exercise.
+//  chokepoint's completeness, the resolver's ladder. What no test can check
+//  is whether the pieces meet: whether the element a skill touched has a real
+//  frame in it, whether the capture holds the surfaces the prompt was actually
+//  given, whether the realm names the place the turn went to. Each of those is
+//  a JOIN between a live accessibility read and a value composed three layers
+//  away, and a join is exactly what a test with fixtures on both ends cannot
+//  exercise.
 //
 //    mary-behavior-probe                 # read: the last sealed episode
 //    mary-behavior-probe --live          # drive a real turn, then read it back
@@ -45,13 +45,22 @@ func check(_ passed: Bool, _ claim: String, _ detail: String = "") {
 
 var failures = 0
 
-/// A store in a temporary directory: the probe must never write into the
-/// user's own record, and must never purge it either.
-let directory = URL(fileURLWithPath: NSTemporaryDirectory())
-    .appendingPathComponent("mary-behavior-probe", isDirectory: true)
-try? FileManager.default.removeItem(at: directory)
-let store = BehavioralStore(directory: directory)
-let assembler = BehavioralAssembler(recorder: store)
+/// In-memory collector: the probe must never write the user's Ability Totem.
+final class ProbeRecorder: BehavioralRecording, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _episodes: [BehavioralEpisode] = []
+    var episodes: [BehavioralEpisode] {
+        lock.lock(); defer { lock.unlock() }
+        return _episodes
+    }
+    func append(_ episode: BehavioralEpisode) async { store(episode) }
+    private func store(_ episode: BehavioralEpisode) {
+        lock.lock(); _episodes.append(episode); lock.unlock()
+    }
+}
+
+let recorder = ProbeRecorder()
+let assembler = BehavioralAssembler(recorder: recorder)
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 let isLive = arguments.contains("--live")
@@ -247,18 +256,16 @@ if isLive {
 assembler.seal(turn, reason: .completed)
 
 // The hand-off is detached; give it a moment to land.
-for _ in 0..<200 where await store.allEpisodes().episodes.isEmpty {
+for _ in 0..<200 where recorder.episodes.isEmpty {
     try? await Task.sleep(nanoseconds: 2_000_000)
 }
 
 // MARK: - Reading it back
 
-heading("the episode, off disk")
+heading("the episode")
 
-let read = await store.allEpisodes()
-check(read.skipped == 0, "no lines were skipped")
-guard let episode = read.episodes.first else {
-    print("  ✗  nothing was written")
+guard let episode = recorder.episodes.first else {
+    print("  ✗  nothing was sealed")
     exit(1)
 }
 
@@ -335,19 +342,6 @@ if isLive {
           "\(created?.windowTitle ?? "—") vs \(typed?.action.target?.windowTitle ?? "—")")
 }
 
-// MARK: - The switch
-
-heading("the switch")
-
-let offDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
-    .appendingPathComponent("mary-behavior-probe-off", isDirectory: true)
-try? FileManager.default.removeItem(at: offDirectory)
-let silent = BehavioralStore(directory: offDirectory, isEnabled: { false })
-await silent.append(episode)
-check(await silent.files().isEmpty, "recording off writes no file")
-check(!FileManager.default.fileExists(atPath: offDirectory.path),
-      "and does not even create the directory")
-
 // MARK: - Verdict
 
 heading("── THE VERDICT ──")
@@ -361,6 +355,4 @@ if failures == 0 {
 } else {
     print("  \(failures) check(s) failed. The episode above is what was written.")
 }
-try? FileManager.default.removeItem(at: directory)
-try? FileManager.default.removeItem(at: offDirectory)
 exit(failures == 0 ? 0 : 1)

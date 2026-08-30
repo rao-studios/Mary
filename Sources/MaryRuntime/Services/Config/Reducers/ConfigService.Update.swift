@@ -28,7 +28,6 @@ extension ConfigService {
             customPronunciations: [PronunciationRef]? = nil,
             disabledPlugins: [String]? = nil,
             historyMessageLimit: Int? = nil,
-            behavioralRecording: Bool? = nil,
             ambientCorpusIndexing: Bool? = nil,
             wakeWordEnabled: Bool? = nil,
             seerEnabled: Bool? = nil,
@@ -67,7 +66,6 @@ extension ConfigService {
             self.customPronunciations = customPronunciations
             self.disabledPlugins = disabledPlugins
             self.historyMessageLimit = historyMessageLimit
-            self.behavioralRecording = behavioralRecording
             self.ambientCorpusIndexing = ambientCorpusIndexing
             self.wakeWordEnabled = wakeWordEnabled
             self.seerEnabled = seerEnabled
@@ -108,7 +106,6 @@ extension ConfigService {
             /// derived from this, never sent.
             package var disabledPlugins: [String]? = nil
             package var historyMessageLimit: Int?
-        package var behavioralRecording: Bool? = nil
         package var ambientCorpusIndexing: Bool? = nil
             package var wakeWordEnabled: Bool? = nil
             package var seerEnabled: Bool? = nil
@@ -158,7 +155,6 @@ extension ConfigService {
             // Empty is meaningful here (clears the custom id), unlike localModelID.
             // Empty is meaningful here too: custom with no alias follows config.
             if let value = meta.historyMessageLimit, value >= 4 { state.historyMessageLimit = value }
-            if let value = meta.behavioralRecording { state.behavioralRecording = value }
             if let value = meta.ambientCorpusIndexing { state.ambientCorpusIndexing = value }
             if let value = meta.wakeWordEnabled { state.wakeWordEnabled = value }
             if let value = meta.seerEnabled { state.seerEnabled = value }

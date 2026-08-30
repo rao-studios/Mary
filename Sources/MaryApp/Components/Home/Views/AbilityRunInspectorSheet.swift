@@ -89,22 +89,13 @@ struct AbilityRunInspectorSheet: View {
 
     /// THE WHOLE TURN, not just this Skill's part of it.
     ///
-    /// `BehavioralEpisode` has been sealed to disk for every turn since the
-    /// recorder existed, and nothing has ever displayed one — the only surface
-    /// was a Settings toggle and a Delete button for a body of data no one
-    /// could look at. A chip is the natural door to it: a person tapping one
-    /// is already asking "what happened here", and the honest answer usually
-    /// involves the calls that ran either side of the one they tapped.
+    /// A chip is the door to the sealed Ability episode in Totem: a person
+    /// tapping one is already asking "what happened here", and the honest
+    /// answer usually involves the calls that ran either side of the one
+    /// they tapped.
     @ViewBuilder
     private var episodeSection: some View {
-        if !MaryRuntime.behavioralRecordingEnabledBox.withLock({ $0 }) {
-            // AN HONEST EMPTY, not a blank pane. This is off by the person's
-            // own choice in Settings, and a sheet that simply shows nothing
-            // reads as a bug rather than as a setting.
-            emptyNote(
-                "Recording what she does is turned off, so this turn was never"
-                + " written down. Settings → What she remembers doing.")
-        } else if let episode {
+        if let episode {
             ScrollView {
                 VStack(alignment: .leading, spacing: .layer3) {
                     episodeHeader(episode)
@@ -133,7 +124,9 @@ struct AbilityRunInspectorSheet: View {
                 }
             }
         } else {
-            emptyNote("No episode was recorded for this turn.")
+            emptyNote(
+                "This turn is not in Ability Totem. Sign in to Seer first, "
+                + "or the turn had no Ability target — those are not kept.")
         }
     }
 
@@ -188,19 +181,14 @@ struct AbilityRunInspectorSheet: View {
             .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Off the main actor: a miss scans every day file in the store, and the
-    /// sheet must open at once whether or not the read has landed.
-    /// `episode(id:)` is nonisolated file reading, so the detached hop is what
-    /// keeps that scan off the main thread.
+    /// Off the main actor: Totem `documents` is a gRPC hop, and the sheet
+    /// must open at once whether or not the read has landed.
     private func loadEpisode() async {
         guard let turnID = inspected.turnID else {
             episodeLoaded = true
             return
         }
-        let found = await Task.detached(priority: .userInitiated) {
-            MaryRuntime.behavioralStore.episode(id: turnID)
-        }.value
-        episode = found
+        episode = await MaryRuntime.behaviorEpisode(id: turnID)
         episodeLoaded = true
     }
 

@@ -173,11 +173,20 @@ extension MaryRuntime {
     /// schema flush. Durable Totem documents are cleared by the caller first.
     package static func resetAmbientMemory() async {
         AmbientContextStore.shared.clear()
-        // AND THE BEHAVIORAL RECORD, which is the part a person actually
-        // means. Ambient facts expire on their own; episodes are the durable
-        // thing, in plaintext, and "reset my memory" that left them on disk
-        // would be the one place this promise was not kept.
-        await behavioralStore.purge()
+        clearBehaviorEpisodeCache()
+    }
+
+    /// One-shot: previous builds wrote plaintext JSONL under this directory.
+    /// Ability turns live in Totem now; leftover files must not linger.
+    package static func removeLegacyBehaviorDirectory() {
+        let support = FileManager.default.urls(
+            for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? URL(fileURLWithPath: NSHomeDirectory())
+                .appendingPathComponent("Library/Application Support")
+        let directory = support
+            .appendingPathComponent("Mary", isDirectory: true)
+            .appendingPathComponent("behavior", isDirectory: true)
+        try? FileManager.default.removeItem(at: directory)
     }
 
     /// Wire (or unwire) both. Split above because they were welded: you could

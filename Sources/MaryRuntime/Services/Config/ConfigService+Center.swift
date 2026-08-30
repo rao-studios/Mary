@@ -51,8 +51,6 @@ extension ConfigService {
             /// of your work — and nothing but declaration headers and
             /// generated summaries ever crosses into memory.
             package var ambientCorpusIndexing: Bool = true
-            /// Whether sealed episodes reach disk. See `BehavioralStore`.
-            package var behavioralRecording: Bool = true
             package var localModelID: String = MaryLocalEngine.defaultModelID
             package var sttBackend: STTBackend = .apple
             package var ttsBackend: TTSBackend = .seer
@@ -145,7 +143,7 @@ extension ConfigService {
                 case ambientCorpusIndexing
                 case llmEngine, skillEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
-                     historyMessageLimit, wakeWordEnabled, behavioralRecording
+                     historyMessageLimit, wakeWordEnabled
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
                 case codingAgentEnabled, codingAgentModelID, codingEngine
                 case skillRunTimeoutSeconds
@@ -195,10 +193,6 @@ extension ConfigService {
                     .filter { !disabledPlugins.contains($0) }
                 historyMessageLimit = try c.decodeIfPresent(
                     Int.self, forKey: .historyMessageLimit) ?? 12
-                // RECORDING IS ON BY DEFAULT AND OFF BY ONE SWITCH. See
-                // `BehavioralStore` on what it writes and what off means.
-                behavioralRecording = try c.decodeIfPresent(
-                    Bool.self, forKey: .behavioralRecording) ?? true
 
                 // THROUGH `String`, NOT THROUGH THE ENUM. `decodeIfPresent`
                 // returns nil only for a MISSING key — a key that is present

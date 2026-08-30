@@ -26,7 +26,7 @@
 //  `BehavioralAction.target` is the element that was ACTUALLY touched, with
 //  its frame, read at the moment of the act.
 //
-//  In-memory and session-scoped by design; the JSONL episode store is the
+//  In-memory and session-scoped by design; Ability-lane Totem is the
 //  durable record.
 //
 

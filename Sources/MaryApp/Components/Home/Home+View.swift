@@ -337,13 +337,9 @@ struct HomeSessionView: View {
         // installBrainConfiguration (probes call that; headless stays
         // poll-fed and deterministic).
         WorkspaceFocusObserver.installOnce()
+        MaryRuntime.removeLegacyBehaviorDirectory()
         await MaryRuntime.installBrainConfiguration(
             projects: config.state.projectsByName)
-        // THE RECORDING SWITCH, applied at boot so the first turn of the
-        // session obeys the setting rather than the default.
-        MaryRuntime.behavioralRecordingEnabledBox.withLock {
-            $0 = config.state.behavioralRecording
-        }
         MaryRuntime.applySkillRunTimeout(config.state.skillRunTimeoutSeconds)
         await MaryRuntime.brain.setHistoryLimit(config.state.historyMessageLimit)
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)

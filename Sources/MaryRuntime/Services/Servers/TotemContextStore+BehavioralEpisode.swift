@@ -14,7 +14,11 @@ import os
 
 struct TotemBehavioralRecording: BehavioralRecording {
     func append(_ episode: BehavioralEpisode) async {
-        await MaryRuntime.totemContext.depositBehavioralEpisode(episode)
+        let deposited = await MaryRuntime.totemContext.depositBehavioralEpisode(episode)
+        if deposited {
+            await MaryRuntime.refreshBehaviorEpisodesFromTotem()
+        }
+        MaryRuntime.noteSealedEpisode(episode)
     }
 }
 
@@ -22,23 +26,25 @@ extension TotemContextStore {
 
     private static let log = Logger(subsystem: "nyc.rao.mary", category: "totem-behavior")
 
-    func depositBehavioralEpisode(_ episode: BehavioralEpisode) async {
+    @discardableResult
+    func depositBehavioralEpisode(_ episode: BehavioralEpisode) async -> Bool {
         guard let owner = await session.userID else {
             Self.log.debug("Ability Totem skipped: not signed in")
             MaryRuntime.abilityDepositNoticeBox.withLock {
                 $0 = "Sign in to Seer first — Totem holds Ability turns per owner."
             }
-            return
+            return false
         }
-        guard !episode.abilityTargets.isEmpty else { return }
+        guard !episode.abilityTargets.isEmpty else { return false }
         guard let body = try? String(
             data: BehavioralCodec.line(episode), encoding: .utf8)
         else {
             Self.log.error("Ability Totem skipped: episode would not encode")
-            return
+            return false
         }
 
         let documentID = TotemMemoryTopology.behaviorDocumentID(episodeID: episode.id)
+        var deposited = false
         for target in episode.abilityTargets {
             let group = TotemMemoryTopology.abilityGroup(target: target, ownerID: owner)
             let item = DepositItem(
@@ -54,6 +60,7 @@ extension TotemContextStore {
                     [item], ownerID: owner,
                     groupID: group.id, groupLabel: group.label,
                     scope: TotemLane.ability.rawValue)
+                deposited = true
                 MaryRuntime.abilityDepositNoticeBox.withLock { $0 = nil }
             } catch {
                 Self.log.error(
@@ -69,7 +76,7 @@ extension TotemContextStore {
               let stubJSON = try? BehavioralTotemInspect.stubJSON(stub)
         else {
             Self.log.error("Personal interaction stub skipped — Ability deposit still ran")
-            return
+            return deposited
         }
         let interactions = TotemMemoryTopology.interactionGroup(ownerID: owner)
         let pointer = DepositItem(
@@ -95,6 +102,7 @@ extension TotemContextStore {
             Self.log.error(
                 "Personal interaction deposit failed: \(error.localizedDescription, privacy: .public)")
         }
+        return deposited
     }
 
     private static func behaviorMetadata(
@@ -169,5 +177,51 @@ extension TotemContextStore {
                 object: target.abilityID.rawValue))
         }
         return relations
+    }
+
+    /// One sealed episode by the turn UUID Totem files it under.
+    func episode(id: UUID) async -> BehavioralEpisode? {
+        guard let owner = await session.userID else { return nil }
+        let documentID = TotemMemoryTopology.behaviorDocumentID(episodeID: id)
+        guard let documents = try? await client.documents(ids: [documentID], ownerID: owner),
+              let body = documents.first?.content
+        else { return nil }
+        return Self.decodeEpisode(body)
+    }
+
+    /// Every Ability-lane behavior document, paged. Nil means the owner is
+    /// missing or Totem refused the export — leave the caller's cache alone.
+    func exportBehaviorEpisodes(groupIDs: [String] = []) async -> [BehavioralEpisode]? {
+        guard let owner = await session.userID else { return nil }
+        var all: [BehavioralEpisode] = []
+        var after = ""
+        for _ in 0..<50 {
+            let page: (documents: [DocumentContent], hasMore: Bool)
+            do {
+                page = try await client.exportCorpus(
+                    ownerID: owner,
+                    groupIDs: groupIDs,
+                    documentIDPrefix: "mary-behavior-",
+                    afterID: after,
+                    limit: 200)
+            } catch {
+                Self.log.error(
+                    "Ability Totem export failed: \(error.localizedDescription, privacy: .public)")
+                return nil
+            }
+            for document in page.documents {
+                if let episode = Self.decodeEpisode(document.content) {
+                    all.append(episode)
+                }
+            }
+            guard page.hasMore, let last = page.documents.last else { break }
+            after = last.id
+        }
+        return all
+    }
+
+    private static func decodeEpisode(_ body: String) -> BehavioralEpisode? {
+        guard let data = body.data(using: .utf8) else { return nil }
+        return try? BehavioralCodec.episode(from: data)
     }
 }

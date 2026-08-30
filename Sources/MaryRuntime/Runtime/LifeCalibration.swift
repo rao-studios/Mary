@@ -4,7 +4,9 @@
 //
 //  The snapshot the Life sheet polls: one row per installed discipline,
 //  episode fill toward 24 / +12, and the latest Fleet train tick if any.
-//  Built from in-memory boxes so a 1 Hz poll does not dial Fleet.
+//  Built from in-memory boxes so a 1 Hz poll does not dial Fleet or Totem.
+//  Episode counts come from a cache refreshed on Life-loop start, after
+//  an Ability deposit, and when this sheet opens.
 //
 
 import Foundation

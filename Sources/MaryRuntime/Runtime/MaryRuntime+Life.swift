@@ -28,9 +28,11 @@ extension MaryRuntime {
     private static let lifeTrainTailBox =
         OSAllocatedUnfairLock<[AbilityID: [String]]>(initialState: [:])
     private static let fleetReachableBox = OSAllocatedUnfairLock<Bool>(initialState: true)
+    private static let behaviorEpisodesBox =
+        OSAllocatedUnfairLock<[BehavioralEpisode]>(initialState: [])
     private static let lifeLog = Logger(subsystem: "nyc.rao.mary", category: "life")
 
-    /// Called from `BehavioralStore.append` after a seal. User turns stamp the
+    /// Called after a sealed episode is handed to Totem. User turns stamp the
     /// quiet clock; every completed discipline episode may trip a train.
     static func noteSealedEpisode(_ episode: BehavioralEpisode) {
         if episode.provenance.lane != "proactive" {
@@ -88,12 +90,13 @@ extension MaryRuntime {
         return lifeSlotsBox.withLock { $0.values.contains(where: \.training) }
     }
 
-    /// Join installed disciplines, JSONL counts, and in-memory Fleet slots.
-    /// Does not dial Fleet — call `refreshReadyLoRAs` once when the sheet opens.
+    /// Join installed disciplines, Totem episode counts, and in-memory Fleet
+    /// slots. Does not dial Fleet or Totem — call `refreshReadyLoRAs` and
+    /// `refreshBehaviorEpisodesFromTotem` when the sheet opens.
     package static func lifeCalibration() async -> LifeCalibrationSnapshot {
         let disciplines = LifeCalibration.disciplines(
             in: AbilityLibrary.shared.snapshot().records.map(\.package))
-        let episodes = await behavioralStore.allEpisodes().episodes
+        let episodes = behaviorEpisodesBox.withLock { $0 }
         let slots = lifeSlotsBox.withLock { $0 }
         let ticks = lifeTrainProgressBox.withLock { $0 }
         let tails = lifeTrainTailBox.withLock { $0 }
@@ -107,12 +110,29 @@ extension MaryRuntime {
             fleetReachable: reachable)
     }
 
+    /// Pull Ability-lane behavior documents into the calibration cache.
+    /// A failed export leaves the previous cache in place.
+    package static func refreshBehaviorEpisodesFromTotem() async {
+        guard let episodes = await totemContext.exportBehaviorEpisodes() else { return }
+        behaviorEpisodesBox.withLock { $0 = episodes }
+    }
+
+    package static func behaviorEpisode(id: UUID) async -> BehavioralEpisode? {
+        await totemContext.episode(id: id)
+    }
+
+    static func clearBehaviorEpisodeCache() {
+        behaviorEpisodesBox.withLock { $0 = [] }
+    }
+
     static func considerTrain(_ episode: BehavioralEpisode) async {
         let disciplines = Set(
             episode.abilityTargets.filter { $0.paradigm == .discipline }.map(\.abilityID))
         guard !disciplines.isEmpty else { return }
+        guard let owner = await seerSession.userID else { return }
         await refreshReadyLoRAs()
-        let episodes = await behavioralStore.allEpisodes().episodes
+        await refreshBehaviorEpisodesFromTotem()
+        let episodes = behaviorEpisodesBox.withLock { $0 }
         let totemID = totemNodeIDBox.withLock { $0 }
         guard !totemID.isEmpty else { return }
         let fleet = makeFleetClient()
@@ -129,16 +149,12 @@ extension MaryRuntime {
                 $0.insert(abilityID.rawValue).inserted
             }
             guard claimed else { continue }
-            let rows = LifeTrainPolicy.trainingEpisodes(
-                from: episodes, abilityID: abilityID)
-            let pairs: [(String, String)] = rows.compactMap { row in
-                let pair = BehavioralTrainingPair(episode: row)
-                guard let input = try? String(data: pair.encodedInput(), encoding: .utf8),
-                      let output = try? String(data: pair.encodedOutput(), encoding: .utf8)
-                else { return nil }
-                return (input, output)
-            }
-            guard !pairs.isEmpty else {
+            let groupIDs = Array(Set(
+                episode.abilityTargets
+                    .filter { $0.abilityID == abilityID && $0.paradigm == .discipline }
+                    .map { TotemMemoryTopology.abilityGroup(target: $0, ownerID: owner).id }
+            ))
+            guard !groupIDs.isEmpty else {
                 trainingDisciplinesBox.withLock { _ = $0.remove(abilityID.rawValue) }
                 continue
             }
@@ -151,7 +167,8 @@ extension MaryRuntime {
                         totemID: totemID,
                         abilityID: abilityID.rawValue,
                         modelID: MaryLocalEngine.defaultModelID,
-                        pairs: pairs)
+                        ownerID: owner,
+                        groupIDs: groupIDs)
                     for try await progress in stream {
                         noteTrainProgress(abilityID, progress)
                         if progress.stage == "finished" {
@@ -177,6 +194,7 @@ extension MaryRuntime {
     private static func runLifeLoop() async {
         let source = AmbientIdlePulseSource()
         await installLifeLoRALookup()
+        await refreshBehaviorEpisodesFromTotem()
         while !Task.isCancelled {
             await refreshReadyLoRAs()
             let ready = lifeSlotsBox.withLock {

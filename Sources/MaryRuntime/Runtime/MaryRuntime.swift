@@ -149,7 +149,7 @@ package enum MaryRuntime {
         readLedger: .shared,
         ambient: .shared,
         elementIndex: elementIndex,
-        behavior: BehavioralAssembler(recorder: behavioralStore))
+        behavior: BehavioralAssembler(recorder: TotemBehavioralRecording()))
 
     /// THE PROCESS-WIDE ELEMENT INDEX, WITH ITS VECTORIZER ACTUALLY INSTALLED.
     ///
@@ -177,17 +177,6 @@ package enum MaryRuntime {
         return store
     }()
 
-    /// WHERE SEALED EPISODES GO, and the setting that governs whether any do.
-    ///
-    /// The flag is read PER APPEND rather than captured here, so switching
-    /// recording off takes effect on the next turn instead of the next launch
-    /// — which is what a person expects of a switch.
-    package static let behavioralStore = BehavioralStore(
-        isEnabled: { behavioralRecordingEnabledBox.withLock { $0 } },
-        companion: TotemBehavioralRecording())
-
-    package static let behavioralRecordingEnabledBox =
-        OSAllocatedUnfairLock<Bool>(initialState: true)
     package static let skillRunTimeoutBox = OSAllocatedUnfairLock<TimeInterval>(
         initialState: AbilityRuntime.ordinarySkillTimeoutDefault)
     package static let abilityDepositNoticeBox =

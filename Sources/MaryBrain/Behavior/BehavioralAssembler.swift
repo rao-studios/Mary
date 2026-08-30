@@ -87,7 +87,7 @@ public final class BehavioralAssembler: @unchecked Sendable {
     }
 
     /// Stamp Ability Totem targets once the turn's route exists. Empty
-    /// targets mean JSONL only — Totem Ability is skipped.
+    /// targets skip Totem Ability — the episode is not kept.
     public func noteAbilityTargets(
         _ targets: [AbilityTotemTarget], forEpisode id: UUID
     ) {

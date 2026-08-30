@@ -3,7 +3,8 @@
 //  Mary
 //
 //  1 Hz poll of the Life snapshot while the calibration sheet is open.
-//  One listAdapters refresh on start — the poll itself never dials Fleet.
+//  One listAdapters refresh and one Totem episode export on start — the
+//  poll itself never dials Fleet or Totem.
 //
 
 import Foundation
@@ -21,6 +22,7 @@ final class LifeCalibrationViewModel: ObservableObject {
     func start() {
         guard pollTask == nil else { return }
         Task { await MaryRuntime.refreshReadyLoRAs() }
+        Task { await MaryRuntime.refreshBehaviorEpisodesFromTotem() }
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }

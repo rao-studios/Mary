@@ -95,13 +95,15 @@ public actor FleetDirectClient {
         }
     }
 
+    /// Empty `pairs` is the production path: Fleet ExportCorpus from Totem
+    /// using `ownerID`, `groupIDs`, and `documentIDPrefix`.
     public func train(
         totemID: String,
         abilityID: String,
         modelID: String,
-        pairs: [(inputJSON: String, outputJSON: String)],
-        ownerID: String = "",
-        groupIDs: [String] = [],
+        pairs: [(inputJSON: String, outputJSON: String)] = [],
+        ownerID: String,
+        groupIDs: [String],
         documentIDPrefix: String = "mary-behavior-"
     ) -> AsyncThrowingStream<FleetTrainProgress, Error> {
         let host = self.host

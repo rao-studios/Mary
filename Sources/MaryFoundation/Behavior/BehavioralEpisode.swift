@@ -173,8 +173,8 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     public var input: BehavioralInput
     public var output: BehavioralOutput
     public var provenance: EpisodeProvenance
-    /// Ability Totem groups this episode files into. Empty means JSONL only —
-    /// no Totem Ability write, and no Personal interaction stub.
+    /// Ability Totem groups this episode files into. Empty means no Totem
+    /// Ability write, and no Personal interaction stub.
     public var abilityTargets: [AbilityTotemTarget]
 
     public init(

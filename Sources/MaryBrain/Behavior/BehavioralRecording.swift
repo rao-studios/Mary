@@ -5,10 +5,10 @@
 //  WHERE A SEALED EPISODE GOES. One method, because the brain has exactly one
 //  thing to say to a store: here is a finished turn.
 //
-//  AN ABSTRACTION AND NOT A CLASS, so the brain never learns about files. The
-//  runtime injects a JSONL store; a test injects an array; a build with
-//  recording switched off injects nothing at all and the assembler seals into
-//  the void without a single `if` at the call sites.
+//  AN ABSTRACTION AND NOT A CLASS, so the brain never learns about Totem. The
+//  runtime injects Ability-lane deposit; a test injects an array; a probe
+//  injects an in-memory collector. The assembler seals without a single `if`
+//  at the call sites.
 //
 
 import Foundation

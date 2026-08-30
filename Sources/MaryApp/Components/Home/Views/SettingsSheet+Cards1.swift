@@ -131,16 +131,8 @@ extension SettingsSheet {
         .task { await refreshCodingAgentStatus() }
     }
 
-    /// WHAT MARY REMEMBERS DOING.
-    ///
-    /// Recording is on by default, which is only defensible next to a switch
-    /// that is easy to find and a delete that really deletes — see
-    /// `BehavioralStore`. The size is shown because "delete my recordings"
-    /// should be a decision rather than a leap.
-    /// WHAT SHE LEARNS FROM YOUR WORK — the other half of memory, and a
-    /// separate switch from the one below on purpose: recording what she DID
-    /// and learning how you WRITE are different promises, and somebody may
-    /// want one without the other.
+    /// WHAT SHE LEARNS FROM YOUR WORK — corpus indexing of project shape
+    /// and writing style. Ability turns live in Totem, not here.
     var corpusCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
@@ -154,33 +146,6 @@ extension SettingsSheet {
                     .foregroundStyle(Color.maryInk.opacity(0.45))
             }
         }
-    }
-
-    var behaviorCard: some View {
-        MaryCard {
-            VStack(alignment: .leading, spacing: .layer3) {
-                SectionLabel("What she remembers doing")
-                Toggle("Record what I ask for and what she does",
-                       isOn: behavioralRecordingBinding)
-                Text("One file per day, on this Mac only, readable by you. It holds your words and the text she wrote — that is what makes it worth keeping, and why it never leaves the machine.")
-                    .font(.marySans(10))
-                    .foregroundStyle(Color.maryInk.opacity(0.45))
-                HStack(spacing: .layer3) {
-                    Text(behaviorSizeCaption)
-                        .font(.maryMono(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.6))
-                    Spacer()
-                    Button("Delete all", role: .destructive) {
-                        Task {
-                            await MaryRuntime.behavioralStore.purge()
-                            await refreshBehaviorSize()
-                        }
-                    }
-                    .buttonStyle(.mary)
-                }
-            }
-        }
-        .task { await refreshBehaviorSize() }
     }
 
     var permissionsCard: some View {

@@ -27,8 +27,6 @@ struct SettingsSheet: View {
     @State var permissions: [PermissionItem] = []
     @State var newPronunciationWord: String = ""
     @State var newPronunciationIPA: String = ""
-    /// Bytes the behavioral record occupies, refreshed when its card appears.
-    @State var behaviorSizeOnDisk: Int = 0
     /// Whether the Seer session is signed in. Nil until the first read
     /// answers — a dot that defaulted to red would flash "not signed in" at
     /// every open of the sheet, on a machine where boot signed in seconds ago.
@@ -67,13 +65,7 @@ struct SettingsSheet: View {
 
                 conversationCard
 
-                // WHAT MARY REMEMBERS DOING — the one card for the behavioral
-                // record. It is here rather than buried in a debug pane
-                // because the data is the user's words and Mary's edits in
-                // plaintext, and a recording somebody has to go looking for
-                // the switch to is a recording they did not really consent to.
                 corpusCard
-                behaviorCard
             }
             .padding(.layer5)
         }
@@ -136,31 +128,6 @@ struct SettingsSheet: View {
                 MaryRuntime.applyCorpusIndexing(enabled: enabled)
             }
         )
-    }
-
-    var behavioralRecordingBinding: Binding<Bool> {
-        Binding(
-            get: { config.state.behavioralRecording },
-            set: { enabled in
-                config.center.update.send(
-                    ConfigService.Update.Meta(behavioralRecording: enabled))
-                // THE LIVE FLAG TOO, not only the persisted one. The store
-                // reads it per append, so a switch flipped mid-session takes
-                // effect on the next turn — which is what a person expects of
-                // a switch, and the only version of "off" worth having.
-                MaryRuntime.behavioralRecordingEnabledBox.withLock { $0 = enabled }
-            }
-        )
-    }
-
-    var behaviorSizeCaption: String {
-        guard behaviorSizeOnDisk > 0 else { return "Nothing recorded yet" }
-        return ByteCountFormatter.string(
-            fromByteCount: Int64(behaviorSizeOnDisk), countStyle: .file) + " on disk"
-    }
-
-    func refreshBehaviorSize() async {
-        behaviorSizeOnDisk = await MaryRuntime.behavioralStore.sizeOnDisk()
     }
 
     /// The sign-in state the status rows render — the SESSION's own answer,

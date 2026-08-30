@@ -303,17 +303,7 @@ final class TotemExplorerViewModel: ObservableObject {
             abilityDepositHint = nil
             return
         }
-        let episodes = await MaryRuntime.behavioralStore.allEpisodes().episodes
-        let hasDiscipline = episodes.contains { episode in
-            episode.sealedReason == .completed
-                && episode.abilityTargets.contains { $0.paradigm == .discipline }
-        }
-        guard hasDiscipline else {
-            abilityDepositHint = nil
-            return
-        }
         abilityDepositHint = MaryRuntime.abilityDepositNoticeBox.withLock { $0 }
-            ?? "Turns are on disk; Ability Totem did not accept deposits — sign in and start Totem."
     }
 
     // MARK: - Document drill (two-tier, ContributionInspector's fallback)
