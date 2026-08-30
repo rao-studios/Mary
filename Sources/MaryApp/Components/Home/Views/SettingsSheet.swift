@@ -33,6 +33,10 @@ struct SettingsSheet: View {
     /// answers — a dot that defaulted to red would flash "not signed in" at
     /// every open of the sheet, on a machine where boot signed in seconds ago.
     @State var seerSignedIn: Bool? = nil
+    @State var codingDownloading = false
+    @State var codingDownloadProgress: Double = 1
+    @State var codingPrepared = false
+    @State var codingStatus: String?
 
     var voices: [String] {
         guard let dir = KokoroAssets.modelsDirectory() else { return ["af_heart"] }
@@ -48,6 +52,8 @@ struct SettingsSheet: View {
                 permissionsCard
 
                 brainCard
+
+                codingAgentCard
 
                 voiceCard
 
@@ -76,6 +82,7 @@ struct SettingsSheet: View {
         .preferredColorScheme(.light)
         .onAppear {
             refreshPermissionStatus()
+            Task { await refreshCodingAgentStatus() }
         }
         // The user grants in System Settings, then cmd-tabs back — recompute
         // on every app activation so the card reflects the grant instantly
@@ -214,6 +221,72 @@ struct SettingsSheet: View {
             get: { config.state.localModelID },
             set: { config.center.update.send(ConfigService.Update.Meta(localModelID: $0)) }
         )
+    }
+
+    var codingAgentEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { config.state.codingAgentEnabled },
+            set: { enabled in
+                config.center.update.send(
+                    ConfigService.Update.Meta(codingAgentEnabled: enabled))
+                let modelID = config.state.codingAgentModelID
+                Task {
+                    if enabled {
+                        codingDownloading = true
+                        let error = await MaryRuntime.applyCodingAgent(
+                            enabled: true, modelID: modelID)
+                        codingDownloading = false
+                        codingStatus = error
+                        codingPrepared = error == nil
+                        if error != nil {
+                            config.center.update.send(
+                                ConfigService.Update.Meta(codingAgentEnabled: false))
+                        }
+                    } else {
+                        _ = await MaryRuntime.applyCodingAgent(
+                            enabled: false, modelID: modelID)
+                        codingPrepared = false
+                    }
+                }
+            }
+        )
+    }
+
+    var codingAgentModelBinding: Binding<String> {
+        Binding(
+            get: { config.state.codingAgentModelID },
+            set: { config.center.update.send(ConfigService.Update.Meta(codingAgentModelID: $0)) }
+        )
+    }
+
+    func refreshCodingAgentStatus() async {
+        codingPrepared = await CodingAgentSessions.shared.isPrepared()
+        codingDownloadProgress = await CodingAgentSessions.shared.downloadProgress()
+    }
+
+    func downloadCodingModel() {
+        let modelID = config.state.codingAgentModelID.trimmingCharacters(in: .whitespaces)
+        let resolved = modelID.isEmpty ? MaryCodingEngine.defaultModelID : modelID
+        config.center.update.send(ConfigService.Update.Meta(
+            codingAgentModelID: resolved))
+        codingDownloading = true
+        codingStatus = nil
+        Task {
+            let error = await MaryRuntime.applyCodingAgent(
+                enabled: true, modelID: resolved)
+            codingDownloading = false
+            codingStatus = error
+            if error == nil {
+                config.center.update.send(
+                    ConfigService.Update.Meta(codingAgentEnabled: true))
+                codingPrepared = true
+            }
+        }
+    }
+
+    func restoreDefaultCodingModel() {
+        config.center.update.send(ConfigService.Update.Meta(
+            codingAgentModelID: MaryCodingEngine.defaultModelID))
     }
 
 

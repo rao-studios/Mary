@@ -313,6 +313,18 @@ struct HomeSessionView: View {
             setReadiness(error, ready: false)
             return
         }
+        if config.state.codingAgentEnabled {
+            setReadiness("warming the on-device coding model…", ready: false)
+            if let error = await MaryRuntime.applyCodingAgent(
+                enabled: true, modelID: config.state.codingAgentModelID)
+            {
+                chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
+                    kind: .error("Coding agent: \(error)")))
+            }
+        } else {
+            _ = await MaryRuntime.applyCodingAgent(
+                enabled: false, modelID: config.state.codingAgentModelID)
+        }
 
         // Instant coding/writing focus transitions — app boot only, never
         // installBrainConfiguration (probes call that; headless stays

@@ -47,7 +47,9 @@ extension ConfigService {
             fleetGRPCPort: Int? = nil,
             totemGraphPolicyManaged: Bool? = nil,
             seerChatModel: String? = nil,
-            seerTransport: SeerTransportChoice? = nil
+            seerTransport: SeerTransportChoice? = nil,
+            codingAgentEnabled: Bool? = nil,
+            codingAgentModelID: String? = nil
         ) {
             self.llmEngine = llmEngine
             self.localModelID = localModelID
@@ -82,6 +84,8 @@ extension ConfigService {
             self.totemGraphPolicyManaged = totemGraphPolicyManaged
             self.seerChatModel = seerChatModel
             self.seerTransport = seerTransport
+            self.codingAgentEnabled = codingAgentEnabled
+            self.codingAgentModelID = codingAgentModelID
         }
             package var llmEngine: LLMEngineChoice? = nil
             package var localModelID: String? = nil
@@ -118,6 +122,8 @@ extension ConfigService {
             package var totemGraphPolicyManaged: Bool? = nil
             package var seerChatModel: String? = nil
             package var seerTransport: SeerTransportChoice? = nil
+            package var codingAgentEnabled: Bool? = nil
+            package var codingAgentModelID: String? = nil
         }
 
         @Payload package var meta: Meta?
@@ -134,12 +140,10 @@ extension ConfigService {
             if let value = meta.vad { state.vad = value }
             if let value = meta.projects { state.projects = value }
             if let value = meta.customPronunciations { state.customPronunciations = value }
-            if let value = meta.disabledPlugins {
+                if let value = meta.disabledPlugins {
                 state.disabledPlugins = value
                 state.enabledPlugins = MaryAdapterCatalog.adapters().map(\.name)
                     .filter { !state.disabledPlugins.contains($0) }
-                if state.disabledPlugins.contains("coding_agent") {
-                }
             }
             // Empty is meaningful here (clears the custom id), unlike localModelID.
             // Empty is meaningful here too: custom with no alias follows config.
@@ -167,6 +171,10 @@ extension ConfigService {
             // Empty is meaningful (reverts to Seer's default model).
             if let value = meta.seerChatModel { state.seerChatModel = value }
             if let value = meta.seerTransport { state.seerTransport = value }
+            if let value = meta.codingAgentEnabled { state.codingAgentEnabled = value }
+            if let value = meta.codingAgentModelID, !value.isEmpty {
+                state.codingAgentModelID = value
+            }
         }
     }
 }

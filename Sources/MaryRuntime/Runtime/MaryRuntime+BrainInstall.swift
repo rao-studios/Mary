@@ -160,6 +160,7 @@ extension MaryRuntime {
         // applications have one, so the project lane filters this roster on
         // `structure` rather than keeping a second copy of it.
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
+        registerCodingStyleProducer(profiles: profiles, snapshot: load.snapshot)
         installCorpusPipeline()
         // AND THE TRANSPORTS, on the same activation and for the same reason:
         // a package that stops declaring a player must stop having one.
@@ -217,7 +218,33 @@ extension MaryRuntime {
         for observer in observers { await observer.activate() }
 
         brainConfigurationInstalledBox.withLock { $0 = true }
+        startCodingFollowUpBridge()
         startLifeLoopIfNeeded()
+    }
+
+    /// Ability-keyed style learning for every taught application that realizes
+    /// coding. Application ids come from the loaded packages, never a compiled
+    /// product name.
+    private static func registerCodingStyleProducer(
+        profiles: [ApplicationProfile],
+        snapshot: AbilityRuntimeSnapshot
+    ) {
+        let applications = profiles
+            .filter { $0.abilities.contains(.coding) }
+            .map(\.id)
+            .sorted()
+        guard !applications.isEmpty else { return }
+        let languages = Set(
+            corpusRegistrations(from: snapshot)
+                .filter { applications.contains($0.applicationID) }
+                .map(\.schema.notation)
+                .filter { !$0.isEmpty }
+        ).sorted()
+        StyleProducerRegistry.shared.register(StyleProducer(
+            ability: .coding,
+            applications: applications,
+            languages: languages,
+            heading: "How this person writes code"))
     }
 
     /// Every prose surface the admitted packages declare.

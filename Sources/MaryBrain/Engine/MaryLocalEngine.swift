@@ -186,17 +186,25 @@ public actor MaryLocalEngine: InferenceEngine {
             FileHandle.standardError.write("===== MARY_DUMP_PROMPT: round end =====\n\n".data(using: .utf8)!)
         }
 
-        let input = try await ctx.processor.prepare(
-            input: UserInput(
-                chat: messages,
-                tools: skills.isEmpty ? nil : skills.map(Self.toolSpec(from:))
+        await MLXGPUGate.shared.acquire()
+        let input: LMInput
+        let stream: AsyncStream<Generation>
+        do {
+            input = try await ctx.processor.prepare(
+                input: UserInput(
+                    chat: messages,
+                    tools: skills.isEmpty ? nil : skills.map(Self.toolSpec(from:))
+                )
             )
-        )
-        let stream = try MLXLMCommon.generate(
-            input: input,
-            parameters: GenerateParameters(maxTokens: 800),
-            context: ctx
-        )
+            stream = try MLXLMCommon.generate(
+                input: input,
+                parameters: GenerateParameters(maxTokens: 800),
+                context: ctx
+            )
+        } catch {
+            await MLXGPUGate.shared.release()
+            throw error
+        }
 
         // Mistral models rarely use the <tool_call> tags Frigate's processor
         // parses. They emit either the native `[TOOL_CALLS] [{...}]` wire
@@ -260,6 +268,7 @@ public actor MaryLocalEngine: InferenceEngine {
             break
         }
         continuation.yield(.done)
+        await MLXGPUGate.shared.release()
     }
 
     // MARK: - Interception shims

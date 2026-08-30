@@ -122,7 +122,7 @@ enum CognitivePrimitiveCatalog {
         .init(
             primitive: .planMinimalCodeChange,
             allowedAbility: .coding,
-            directSkillID: nil,
+            directSkillID: "coding.plan-minimal-code-change",
             invocationName: nil,
             workflowOperation: "plan_minimal_code_change",
             description: "Form a minimal implementation plan from the typed request and grounded source evidence.",
@@ -130,7 +130,7 @@ enum CognitivePrimitiveCatalog {
         .init(
             primitive: .explainCodeChange,
             allowedAbility: .coding,
-            directSkillID: nil,
+            directSkillID: "coding.explain-code-change",
             invocationName: nil,
             workflowOperation: "explain_code_change",
             description: "Summarize the concrete change result and verification result without overstating either.",
@@ -219,10 +219,19 @@ enum CognitivePrimitiveCatalog {
 
     static func contract(for runtime: AbilityRuntimeSkill) -> CognitivePrimitiveContract? {
         guard runtime.skill.execution.kind == .cognitive else { return nil }
-        return contracts.first {
+        if let match = contracts.first(where: {
             $0.allowedAbility == runtime.ability.id
                 && $0.directSkillID == runtime.skill.id
                 && $0.invocationName == runtime.reference.invocationName
+        }) {
+            return match
+        }
+        // Workflow-only primitives: the package Skill is not model-exposed, so
+        // the reference identity is the Skill id rather than an invocation.
+        return contracts.first {
+            $0.allowedAbility == runtime.ability.id
+                && $0.directSkillID == runtime.skill.id
+                && $0.invocationName == nil
         }
     }
 

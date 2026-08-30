@@ -272,4 +272,23 @@ extension MaryRuntime {
         }
     }
 
+    /// Install or tear down the on-device coding engine. Selecting a
+    /// downloaded Hub snapshot in Settings is what turns the faculty on;
+    /// Frigate only supplies the architecture.
+    package static func applyCodingAgent(enabled: Bool, modelID: String) async -> String? {
+        startCodingFollowUpBridge()
+        guard enabled else {
+            await CodingAgentSessions.shared.install(backend: nil)
+            return nil
+        }
+        await CodingAgentSessions.shared.install(backend: MaryCodingEngine.shared)
+        guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
+        do {
+            try await CodingAgentSessions.shared.prepare(modelID: modelID)
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
+    }
+
 }

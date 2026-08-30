@@ -126,6 +126,10 @@ extension ConfigService {
             /// Which route carries Seer-mode turns: classic SSE + /v1/speak,
             /// or the realtime WebSocket with server-side interleaved audio.
             package var seerTransport: SeerTransportChoice = .classic
+            /// On-device coding agent. Off until Settings downloads a model
+            /// and selects it — Hub fetch, never vendored weights.
+            package var codingAgentEnabled: Bool = false
+            package var codingAgentModelID: String = MaryCodingEngine.defaultModelID
 
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
@@ -133,6 +137,7 @@ extension ConfigService {
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled, behavioralRecording
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
+                case codingAgentEnabled, codingAgentModelID
             }
 
             package init() {}
@@ -214,6 +219,9 @@ extension ConfigService {
                 totemGraphPolicyManaged = try c.decodeIfPresent(Bool.self, forKey: .totemGraphPolicyManaged) ?? true
                 seerChatModel = try c.decodeIfPresent(String.self, forKey: .seerChatModel) ?? ""
                 seerTransport = try c.decodeIfPresent(SeerTransportChoice.self, forKey: .seerTransport) ?? .classic
+                codingAgentEnabled = try c.decodeIfPresent(Bool.self, forKey: .codingAgentEnabled) ?? false
+                codingAgentModelID = try c.decodeIfPresent(String.self, forKey: .codingAgentModelID)
+                    ?? MaryCodingEngine.defaultModelID
             }
 
             /// name → path for prompt building and activity dispatch.

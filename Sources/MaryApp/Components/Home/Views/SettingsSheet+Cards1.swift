@@ -68,6 +68,58 @@ extension SettingsSheet {
         .task { await refreshSeerSignIn() }
     }
 
+    /// ON-DEVICE CODING DELEGATE. Weights come from Hugging Face at runtime
+    /// when the user downloads them here. Frigate only loads the architecture.
+    var codingAgentCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                SectionLabel("Coding Agent")
+                Toggle("Use the on-device coding model", isOn: codingAgentEnabledBinding)
+                    .disabled(codingDownloading)
+                Text("Pair-coding edits run on this Mac. Download a model, then switch it on — selecting a downloaded snapshot is what turns the faculty on.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+                TextField("MLX Hub id", text: codingAgentModelBinding)
+                    .textFieldStyle(.roundedBorder)
+                    .font(.maryMono(11))
+                    .disabled(codingDownloading)
+                HStack(spacing: .layer3) {
+                    Button("Download") { downloadCodingModel() }
+                        .buttonStyle(.mary)
+                        .disabled(codingDownloading)
+                    Button("Default model") { restoreDefaultCodingModel() }
+                        .buttonStyle(.maryQuiet)
+                        .disabled(codingDownloading)
+                    Spacer()
+                }
+                if codingDownloading {
+                    ProgressView(value: codingDownloadProgress, total: 1)
+                    Text("Downloading \(Int(codingDownloadProgress * 100))% — about 6.7 GB the first time.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                } else if codingPrepared || config.state.codingAgentEnabled {
+                    Text("Ready. The coding agent will edit the focused project on disk.")
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                }
+                if let codingStatus {
+                    Text(codingStatus)
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryError)
+                }
+            }
+        }
+        .task(id: codingDownloading) {
+            guard codingDownloading else { return }
+            while !Task.isCancelled, codingDownloading {
+                codingDownloadProgress = await CodingAgentSessions.shared.downloadProgress()
+                try? await Task.sleep(nanoseconds: 250_000_000)
+            }
+            await refreshCodingAgentStatus()
+        }
+        .task { await refreshCodingAgentStatus() }
+    }
+
     /// WHAT MARY REMEMBERS DOING.
     ///
     /// Recording is on by default, which is only defensible next to a switch

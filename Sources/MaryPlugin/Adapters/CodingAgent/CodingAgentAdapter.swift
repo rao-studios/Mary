@@ -2,21 +2,39 @@
 //  CodingAgentAdapter.swift
 //  MaryPlugin
 //
-//  DELEGATE A CODING TASK TO A BACKGROUND CLI, at the live project root.
-//  APPENDED, NOT CATALOGUED — this is a faculty, not an application's
+//  DELEGATE A CODING TASK TO THE ON-DEVICE CODING ENGINE, at the live
+//  project root. APPENDED, NOT CATALOGUED — a faculty, not an application's
 //  property. The workdir is whoever's project is focused, never a named IDE.
 //
 
 import Foundation
 import MaryFoundation
-import os
 
 public struct CodingAgentAdapter: MaryAdapter {
 
     public let name = "coding-agent"
-    public let summary = "Delegate multi-file coding work to a background session at the live project root"
+    public let summary = "Delegate multi-file coding work to a background on-device session at the live project root"
 
     public init() {}
+
+    public var promptFragment: String? {
+        """
+        coding_agent: you pair-code on the project the user has open. \
+        read_symbol/current_file to look. To CHANGE code call \
+        delegate_coding with a clear, self-contained task — the file, \
+        line, and symbol context attach automatically and the coding agent \
+        edits the project on disk. New code is composition: describe what \
+        to add. Changing code that already exists is a revision — \
+        read_symbol it FIRST so the task names the real code; it lands on \
+        that symbol, never at a cursor. Say the session number; \
+        coding_status checks progress; build_check confirms. \
+        coding_start begins a background session and returns a handle \
+        like C1 — say it aloud as "session one". Sessions keep working \
+        while you talk about other things; coding_send gives a finished \
+        session follow-up instructions; coding_stop ends one. Delegate \
+        multi-file coding work instead of typing edits yourself.
+        """
+    }
 
     public var skillBindings: [SkillBinding] {
         [delegateCoding, completeChange, codingStart, codingStatus, codingList,
@@ -25,10 +43,15 @@ public struct CodingAgentAdapter: MaryAdapter {
 
     public var adapterManifest: InstalledAdapterManifest {
         let adapterID = AdapterID.normalized(name)
-        func operation(_ name: String, capability: CapabilityID) -> InstalledAdapterBinding {
+        func operation(
+            _ name: String,
+            capability: CapabilityID,
+            inputTypes: [ValueTypeID] = []
+        ) -> InstalledAdapterBinding {
             InstalledAdapterBinding(
                 adapterID: adapterID, operation: name,
                 capabilities: [capability],
+                inputTypes: inputTypes,
                 outputTypes: ["coding.operation-result"],
                 targetClasses: ["code-workspace"])
         }
@@ -38,38 +61,55 @@ public struct CodingAgentAdapter: MaryAdapter {
             transport: .native,
             operations: [
                 operation("delegate_coding", capability: "code.agent.delegate"),
-                operation("complete_coding_change", capability: "code.agent.complete"),
+                operation(
+                    "complete_coding_change",
+                    capability: "code.agent.complete",
+                    inputTypes: ["coding.change-request"]),
                 operation("coding_start", capability: "code.agent.start"),
                 operation("coding_status", capability: "code.agent.status"),
                 operation("coding_list", capability: "code.agent.list"),
                 operation("coding_send", capability: "code.agent.send"),
                 operation("coding_stop", capability: "code.agent.stop"),
             ],
-            supportedValueTypes: ["coding.operation-result"],
+            supportedValueTypes: ["coding.operation-result", "coding.change-request"],
             grantedPermissions: [.files])
     }
 
     private var delegateCoding: SkillBinding {
         SkillBinding(
             name: "delegate_coding",
-            description: "Hand a coding task to a background agent working in the live project. Ask first.",
+            description: "Make a code change via a background coding-agent session — the current file, line, and symbol context attach automatically. Say the session number.",
             parameters: [
                 .init(name: "task", type: "string",
-                      description: "What the agent should do.", required: true),
+                      description: "A clear, self-contained description of the change the user wants.",
+                      required: true),
             ],
-            access: .write,
+            access: .tweak,
             backing: .native { arguments, context in
-                await start(arguments, context: context)
+                await spawn(arguments, context: context, delivery: .background)
             })
     }
 
     private var completeChange: SkillBinding {
         SkillBinding(
             name: "complete_coding_change",
-            description: "Wait for the latest coding-agent session to finish and report what it did.",
-            access: .read,
-            backing: .native { _, _ in
-                await CodingAgentSessions.shared.latestSummary()
+            description: "Complete one project-scoped code change and return its settled result before verification continues.",
+            parameters: [
+                .init(name: "task", type: "string",
+                      description: "A clear, self-contained description of the planned change.",
+                      required: false),
+                .init(name: "plan", type: "string",
+                      description: "Workflow plan port; used when task is empty.",
+                      required: false),
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                if (arguments["task"] ?? arguments["plan"] ?? arguments["request"] ?? "")
+                    .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                    return await CodingAgentSessions.shared.latestSummary()
+                }
+                return await spawn(arguments, context: context, delivery: .awaited)
             })
     }
 
@@ -83,7 +123,7 @@ public struct CodingAgentAdapter: MaryAdapter {
             ],
             access: .write,
             backing: .native { arguments, context in
-                await start(arguments, context: context)
+                await spawn(arguments, context: context, delivery: .background)
             })
     }
 
@@ -141,137 +181,30 @@ public struct CodingAgentAdapter: MaryAdapter {
             })
     }
 
-    private func start(
-        _ arguments: [String: String], context: AbilityExecutionContext
+    private func spawn(
+        _ arguments: [String: String],
+        context: AbilityExecutionContext,
+        delivery: CodingAgentDelivery
     ) async -> SkillOutcome {
-        guard let task = arguments["task"], !task.isEmpty else {
-            return SkillOutcome(ok: false, summary: "What should the coding agent do?")
+        switch CodingAgentDelegation.target(arguments: arguments, context: context) {
+        case .failure(let refusal):
+            return SkillOutcome(ok: false, summary: refusal.spoken)
+        case .success(let target):
+            let style = CodingAgentDelegation.styleBlock(for: target.workdir)
+            let brief = CodingAgentDelegation.delegationBrief(
+                task: target.task,
+                context: target.context,
+                workdir: target.workdir,
+                style: style)
+            var outcome = await CodingAgentSessions.shared.start(
+                task: target.task,
+                workdir: target.workdir,
+                brief: brief,
+                delivery: delivery)
+            if outcome.ok, target.usesRememberedRoot {
+                outcome.summary += " In \(target.projectName) — the project you were last in."
+            }
+            return outcome
         }
-        switch ProjectRootResolver.live(named: arguments["project"], context: context) {
-        case .failure(let refusal): return SkillOutcome(ok: false, summary: refusal.spoken)
-        case .success(let focus):
-            return await CodingAgentSessions.shared.start(task: task, workdir: focus.root)
-        }
-    }
-}
-
-actor CodingAgentSessions {
-    static let shared = CodingAgentSessions()
-
-    struct Session: Sendable {
-        var handle: String
-        var task: String
-        var workdir: String
-        var output: String
-        var running: Bool
-        var processIdentifier: pid_t?
-    }
-
-    private var sessions: [Session] = []
-    private var next = 1
-
-    func start(task: String, workdir: String) async -> SkillOutcome {
-        let handle = "C\(next)"
-        next += 1
-        var session = Session(
-            handle: handle, task: task, workdir: workdir,
-            output: "", running: true, processIdentifier: nil)
-        sessions.append(session)
-
-        let binary = ProcessInfo.processInfo.environment["MARY_CODING_AGENT"]
-            ?? which("claude")
-            ?? which("vibe")
-        guard let binary else {
-            session.running = false
-            session.output = "No coding-agent CLI is installed."
-            replace(session)
-            return SkillOutcome(
-                ok: false,
-                summary: "I don't have a coding agent CLI on this Mac. Set MARY_CODING_AGENT to the binary.")
-        }
-        let capturedTask = task
-        let capturedDir = workdir
-        let capturedBinary = binary
-        let capturedHandle = handle
-        Task {
-            await self.run(
-                handle: capturedHandle, binary: capturedBinary,
-                task: capturedTask, workdir: capturedDir)
-        }
-        return SkillOutcome(
-            ok: true,
-            summary: "Started session \(handle) on \(task).")
-    }
-
-    private func run(handle: String, binary: String, task: String, workdir: String) async {
-        guard var session = find(handle) else { return }
-        do {
-            let result = try await Subprocess.run(
-                binary, ["-p", task], timeout: 600, currentDirectory: workdir)
-            session.running = false
-            session.output = result.output
-            replace(session)
-        } catch {
-            session.running = false
-            session.output = error.localizedDescription
-            replace(session)
-        }
-    }
-
-    func status(handle: String?) -> SkillOutcome {
-        guard let session = find(handle) else {
-            return SkillOutcome(ok: true, summary: "No coding-agent sessions.", foundNothing: true)
-        }
-        let state = session.running ? "still working" : "finished"
-        return SkillOutcome(
-            ok: true,
-            summary: "Session \(session.handle) is \(state) on \(session.task).\n"
-                + TextBudget.truncate(session.output, limit: 800))
-    }
-
-    func list() -> SkillOutcome {
-        guard !sessions.isEmpty else {
-            return SkillOutcome(ok: true, summary: "No coding-agent sessions.", foundNothing: true)
-        }
-        let lines = sessions.map {
-            "\($0.handle): \($0.running ? "running" : "done") — \($0.task)"
-        }
-        return SkillOutcome(ok: true, summary: lines.joined(separator: "\n"))
-    }
-
-    func send(handle: String, message: String) async -> SkillOutcome {
-        await start(task: message, workdir: find(handle)?.workdir ?? NSHomeDirectory())
-    }
-
-    func stop(handle: String?) -> SkillOutcome {
-        guard var session = find(handle) else {
-            return SkillOutcome(ok: true, summary: "No session to stop.", foundNothing: true)
-        }
-        if let pid = session.processIdentifier { kill(pid, SIGTERM) }
-        session.running = false
-        replace(session)
-        return SkillOutcome(ok: true, summary: "Stopped \(session.handle).")
-    }
-
-    func latestSummary() -> SkillOutcome {
-        status(handle: sessions.last?.handle)
-    }
-
-    private func find(_ handle: String?) -> Session? {
-        if let handle, !handle.isEmpty {
-            return sessions.first { $0.handle.lowercased() == handle.lowercased() }
-        }
-        return sessions.last
-    }
-
-    private func replace(_ session: Session) {
-        if let index = sessions.firstIndex(where: { $0.handle == session.handle }) {
-            sessions[index] = session
-        }
-    }
-
-    private func which(_ name: String) -> String? {
-        let paths = ["/opt/homebrew/bin/\(name)", "/usr/local/bin/\(name)"]
-        return paths.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 }

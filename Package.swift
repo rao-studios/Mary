@@ -367,6 +367,7 @@ let package = Package(
             dependencies: [
                 "MaryBrain",
                 "MaryPlugin",
+                "MaryFoundation",
                 "MaryFoundationTestSupport",
             ],
             path: "Tests/MaryBrainTests",

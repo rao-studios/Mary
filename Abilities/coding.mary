@@ -861,16 +861,16 @@
           "value" : "code-workspace"
         }
       ],
-      "effect" : "read",
+      "effect" : "mutation",
       "id" : "code.agent.complete",
-      "outputType" : "coding.code-text",
+      "outputType" : "coding.operation-result",
       "permissions" : [
         {
           "kind" : "files",
-          "reason" : "Report the latest agent session."
+          "reason" : "Apply the planned code change inside the authorized project root."
         }
       ],
-      "summary" : "Report the latest agent session.",
+      "summary" : "Complete one project-scoped code change and return its settled result.",
       "title" : "Complete Coding Change",
       "version" : "1.0.0"
     },
@@ -1038,7 +1038,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "0f52fc9c046b2b775ed42a86fedf56de909f2a1fc6c762302737133d9640def9"
+    "digest" : "45e5c43b4f3ca3e27125636dcce1003c18269db46f4472bda349382d6a51c6d2"
   },
   "interactions" : [
     {
@@ -3683,7 +3683,18 @@
       },
       "id" : "coding.complete-change",
       "inputs" : [
-
+        {
+          "name" : "task",
+          "required" : false,
+          "summary" : "A clear, self-contained description of the planned change.",
+          "valueType" : "coding.change-request"
+        },
+        {
+          "name" : "plan",
+          "required" : false,
+          "summary" : "Workflow plan port; used when task is empty.",
+          "valueType" : "coding.change-request"
+        }
       ],
       "kind" : "effectful",
       "modelExposure" : {
@@ -3691,11 +3702,33 @@
         "inheritsBindingContract" : true,
         "invocationName" : "complete_coding_change",
         "parameters" : [
+          {
+            "enumValues" : [
 
+            ],
+            "name" : "task",
+            "required" : false,
+            "summary" : "A clear, self-contained description of the planned change.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "plan",
+            "required" : false,
+            "summary" : "Workflow plan port; used when task is empty.",
+            "type" : "string"
+          }
         ]
       },
       "outputs" : [
-
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "What the coding agent reported after the change settled.",
+          "valueType" : "coding.operation-result"
+        }
       ],
       "requirements" : {
         "capabilities" : [
@@ -3727,7 +3760,8 @@
         ],
         "preference" : 200
       },
-      "summary" : "Report the latest coding-agent session.",
+      "summary" : "Complete one project-scoped code change and return its settled result before verification continues.",
+      "timeoutSeconds" : 600,
       "title" : "Complete Coding Change",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -3736,47 +3770,134 @@
       "access" : "seamless",
       "execution" : {
         "bindings" : [
+
+        ],
+        "kind" : "stateMachine",
+        "steps" : [
           {
-            "adapterID" : "code-surface",
-            "operation" : "read_selection",
-            "preference" : 100,
-            "targetClasses" : [
-              "code-workspace"
+            "consumes" : [
+              "request"
+            ],
+            "id" : "inspect",
+            "onSuccess" : "read-target",
+            "operation" : "current_file",
+            "produces" : [
+              "workspace"
+            ]
+          },
+          {
+            "consumes" : [
+              "request",
+              "workspace"
+            ],
+            "id" : "read-target",
+            "onFailure" : "outline",
+            "onSuccess" : "plan",
+            "operation" : "read_symbol",
+            "produces" : [
+              "sourceContext"
+            ]
+          },
+          {
+            "consumes" : [
+              "request",
+              "workspace"
+            ],
+            "id" : "outline",
+            "onSuccess" : "plan",
+            "operation" : "project_outline",
+            "produces" : [
+              "sourceContext"
+            ]
+          },
+          {
+            "consumes" : [
+              "request",
+              "workspace",
+              "sourceContext"
+            ],
+            "id" : "plan",
+            "onSuccess" : "implement",
+            "operation" : "plan_minimal_code_change",
+            "produces" : [
+              "plan"
+            ]
+          },
+          {
+            "consumes" : [
+              "request",
+              "plan",
+              "workspace"
+            ],
+            "id" : "implement",
+            "onSuccess" : "verify",
+            "operation" : "complete_coding_change",
+            "produces" : [
+              "change"
+            ]
+          },
+          {
+            "consumes" : [
+              "change",
+              "workspace"
+            ],
+            "id" : "verify",
+            "onSuccess" : "report",
+            "operation" : "build_check",
+            "produces" : [
+              "verification"
+            ]
+          },
+          {
+            "consumes" : [
+              "change",
+              "verification"
+            ],
+            "id" : "report",
+            "operation" : "explain_code_change",
+            "produces" : [
+              "result"
             ]
           }
-        ],
-        "kind" : "binding",
-        "steps" : [
-
         ]
       },
       "id" : "coding.pair-program",
       "inputs" : [
-
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "Complete coding outcome the user wants.",
+          "valueType" : "coding.change-request"
+        }
       ],
-      "kind" : "effectful",
+      "kind" : "workflow",
       "modelExposure" : {
         "enabled" : true,
-        "inheritsBindingContract" : true,
+        "inheritsBindingContract" : false,
         "invocationName" : "pair_program",
         "parameters" : [
           {
             "enumValues" : [
 
             ],
-            "name" : "app",
-            "required" : false,
-            "summary" : "Which editor.",
+            "name" : "task",
+            "required" : true,
+            "summary" : "Complete coding outcome the user wants.",
             "type" : "string"
           }
         ]
       },
       "outputs" : [
-
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "Settled change, verification, and explanation.",
+          "valueType" : "coding.operation-result"
+        }
       ],
       "requirements" : {
         "capabilities" : [
-          "code.read-selection"
+
         ],
         "interactions" : [
 
@@ -3795,6 +3916,7 @@
         ]
       },
       "routing" : {
+        "conflictGroup" : "coding-workflow",
         "conflictPolicy" : "preferFocusedWorkspace",
         "excludes" : [
 
@@ -3802,9 +3924,10 @@
         "fallbacks" : [
 
         ],
-        "preference" : 200
+        "preference" : 230
       },
-      "summary" : "Read the live selection so a pairing turn starts from real code.",
+      "summary" : "Ground in live code, plan the smallest change, implement it on device, verify, and explain.",
+      "timeoutSeconds" : 600,
       "title" : "Pair Program",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -3813,47 +3936,41 @@
       "access" : "seamless",
       "execution" : {
         "bindings" : [
-          {
-            "adapterID" : "code-surface",
-            "operation" : "read_selection",
-            "preference" : 100,
-            "targetClasses" : [
-              "code-workspace"
-            ]
-          }
+
         ],
-        "kind" : "binding",
+        "kind" : "cognitive",
         "steps" : [
 
         ]
       },
       "id" : "coding.plan-minimal-code-change",
       "inputs" : [
-
+        {
+          "name" : "request",
+          "required" : true,
+          "summary" : "The change to plan.",
+          "valueType" : "coding.change-request"
+        }
       ],
-      "kind" : "effectful",
+      "kind" : "cognitive",
       "modelExposure" : {
-        "enabled" : true,
-        "inheritsBindingContract" : true,
-        "invocationName" : "plan_minimal_code_change",
+        "enabled" : false,
+        "inheritsBindingContract" : false,
         "parameters" : [
-          {
-            "enumValues" : [
 
-            ],
-            "name" : "app",
-            "required" : false,
-            "summary" : "Which editor.",
-            "type" : "string"
-          }
         ]
       },
       "outputs" : [
-
+        {
+          "name" : "plan",
+          "required" : true,
+          "summary" : "The smallest implementation plan.",
+          "valueType" : "coding.change-request"
+        }
       ],
       "requirements" : {
         "capabilities" : [
-          "code.read-selection"
+
         ],
         "interactions" : [
 
@@ -3879,9 +3996,9 @@
         "fallbacks" : [
 
         ],
-        "preference" : 200
+        "preference" : 0
       },
-      "summary" : "Read the live selection before planning an edit.",
+      "summary" : "Form a minimal implementation plan from the typed request and grounded source evidence. Workflow-only.",
       "title" : "Plan a Minimal Change",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -3890,47 +4007,47 @@
       "access" : "seamless",
       "execution" : {
         "bindings" : [
-          {
-            "adapterID" : "code-surface",
-            "operation" : "read_buffer",
-            "preference" : 100,
-            "targetClasses" : [
-              "code-workspace"
-            ]
-          }
+
         ],
-        "kind" : "binding",
+        "kind" : "cognitive",
         "steps" : [
 
         ]
       },
       "id" : "coding.explain-code-change",
       "inputs" : [
-
+        {
+          "name" : "change",
+          "required" : true,
+          "summary" : "What the coding agent changed.",
+          "valueType" : "coding.operation-result"
+        },
+        {
+          "name" : "verification",
+          "required" : false,
+          "summary" : "What the build check reported.",
+          "valueType" : "coding.operation-result"
+        }
       ],
-      "kind" : "effectful",
+      "kind" : "cognitive",
       "modelExposure" : {
-        "enabled" : true,
-        "inheritsBindingContract" : true,
-        "invocationName" : "explain_code_change",
+        "enabled" : false,
+        "inheritsBindingContract" : false,
         "parameters" : [
-          {
-            "enumValues" : [
 
-            ],
-            "name" : "app",
-            "required" : false,
-            "summary" : "Which editor.",
-            "type" : "string"
-          }
         ]
       },
       "outputs" : [
-
+        {
+          "name" : "result",
+          "required" : true,
+          "summary" : "A bounded explanation of the change.",
+          "valueType" : "coding.operation-result"
+        }
       ],
       "requirements" : {
         "capabilities" : [
-          "code.read-buffer"
+
         ],
         "interactions" : [
 
@@ -3956,9 +4073,9 @@
         "fallbacks" : [
 
         ],
-        "preference" : 200
+        "preference" : 0
       },
-      "summary" : "Read the live buffer before explaining what changed.",
+      "summary" : "Summarize the concrete change result and verification result without overstating either. Workflow-only.",
       "title" : "Explain a Code Change",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -4374,6 +4491,19 @@
       "shape" : "string",
       "summary" : "Which editor the code came from.",
       "title" : "Editor Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "coding.change-request",
+      "shape" : "string",
+      "summary" : "A self-contained description of a code change the user wants.",
+      "title" : "Change Request",
       "version" : "1.0.0"
     },
     {
