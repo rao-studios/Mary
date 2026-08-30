@@ -63,6 +63,7 @@ extension MaryBrain {
         epoch: UInt64,
         superseding: Bool
     ) async {
+        logTurnEntry(userText: userText)
         defer { turnBox.retire(epoch) }
         if superseding {
             // The superseded turn's exchange — its user turn, any Skill pairs, any partial reply that landed before the epoch bump
@@ -81,12 +82,14 @@ extension MaryBrain {
             if DictationSession.shared.isHeld() {
                 if await runHeldDictationTurn(
                     userText: userText, continuation: continuation, epoch: epoch) {
+                    logTurnExit("held dictation")
                     continuation.finish()
                     return
                 }
             } else if Self.dictationOpener(in: userText) {
                 await openDictationSession(
                     userText: userText, continuation: continuation, epoch: epoch)
+                logTurnExit("dictation opener")
                 continuation.finish()
                 return
             }
@@ -109,6 +112,7 @@ extension MaryBrain {
                 return Optional(())
             }
             if Task.isCancelled {
+                logTurnExit("cancelled during observer refresh")
                 continuation.finish()
                 return
             }
@@ -198,6 +202,7 @@ extension MaryBrain {
             continuation.yield(.token(ack))
             appendHistory(BrainTurn(role: .assistant, text: ack), epoch: epoch)
             continuation.yield(.completed(fullText: ack))
+            logTurnExit("bare stop while routines ran")
             continuation.finish()
             return
         }
@@ -306,6 +311,7 @@ extension MaryBrain {
             appendHistory(
                 BrainTurn(role: .assistant, text: spoken), epoch: epoch)
             continuation.yield(.completed(fullText: spoken))
+            logTurnExit("accepted prose offer")
             continuation.finish()
             return
         }
@@ -357,6 +363,11 @@ extension MaryBrain {
             focus: focusTracker.signal(),
             evidence: focusTracker.freshEvidence()))
         ambient.noteRoute(route)
+        logCodingCircuit(
+            route: route,
+            focusedApplicationID: focusedApplicationID,
+            actionTurn: actionTurn,
+            editIntent: editIntent)
         wiring.behavior.noteAbilityTargets(
             route.gate.memory.abilityTargets, forEpisode: userTurn.id)
         // Explicit language outranks a live but unrelated window. Otherwise a
@@ -385,6 +396,7 @@ extension MaryBrain {
             continuation.yield(.token(ack))
             appendHistory(BrainTurn(role: .assistant, text: ack), epoch: epoch)
             continuation.yield(.completed(fullText: ack))
+            logTurnExit("reference correction")
             continuation.finish()
             return
         }
@@ -438,6 +450,7 @@ extension MaryBrain {
                     BrainTurn(role: .assistant, text: spoken), epoch: epoch)
             }
             continuation.yield(.completed(fullText: spoken))
+            logTurnExit("window verb \(verb)")
             continuation.finish()
             return
         }
@@ -455,6 +468,7 @@ extension MaryBrain {
                 await dispatcher.readNamedPart(phrase)
             }
             if Task.isCancelled {
+                logTurnExit("cancelled during supporting-context pre-read")
                 appendCancelledEpilogue(
                     spokenText: "", actionTurn: actionTurn, outcomes: [], epoch: epoch)
                 continuation.finish()
@@ -542,6 +556,7 @@ extension MaryBrain {
                     BrainTurn(role: .assistant, text: sanitizedSpoken(line)),
                     epoch: epoch)
                 continuation.yield(.completed(fullText: line))
+                logTurnExit("provider unavailable for \(applicationID)")
                 continuation.finish()
                 return
             }
@@ -552,6 +567,7 @@ extension MaryBrain {
                 for: editIntent, worldHint: acceptedOffer?.referent.world)
             : nil
         if Task.isCancelled {
+            logTurnExit("cancelled during locate")
             appendCancelledEpilogue(
                 spokenText: "", actionTurn: actionTurn, outcomes: [], epoch: epoch)
             continuation.finish()
@@ -585,6 +601,7 @@ extension MaryBrain {
             continuation.yield(.token(spoken))
             appendHistory(BrainTurn(role: .assistant, text: spoken), epoch: epoch)
             continuation.yield(.completed(fullText: spoken))
+            logTurnExit("pending skill decision")
             continuation.finish()
             return
         }

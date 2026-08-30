@@ -14,6 +14,7 @@
 //    MaryBrain+Configuration.swift  set* wiring
 //    MaryBrain+History.swift          epoch-guarded history
 //    MaryBrain+TurnLoop.swift         runTurn / runTurnBody
+//    MaryBrain+TurnLog.swift          turnLog circuit (Xcode / pair-coding)
 //    MaryBrain+Route.swift            revision spine
 //    MaryBrain+SeerTurn.swift         seerTurn
 //    MaryBrain+Lanes.swift           Seer / realtime / orchestrator lanes
@@ -100,6 +101,9 @@ public actor MaryBrain: LanguageResponder {
     /// Lane join/detach log — catches fast actions detaching from queueing, not work.
     // internal for file split — treat as private
     static let laneLog = Logger(subsystem: "nyc.rao.mary", category: "lanes")
+    /// Full-turn circuit — Xcode awareness through pair-coding dispatch, including misses.
+    // public because it is accessible via MaryRuntime.
+    public static let turnLog = Logger(subsystem: "nyc.rao.mary", category: "turns")
 
     // internal for file split — treat as private
     var history: [BrainTurn] = []

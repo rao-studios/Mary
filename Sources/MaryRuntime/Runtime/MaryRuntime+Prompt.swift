@@ -189,6 +189,13 @@ extension MaryRuntime {
                             applicationID: $0, focus: place.focus ?? .writing))
                 }
             }
+            if let place = sections.leadPlace, let app = place.application {
+                let kind = place.focus == .coding ? "pair-coding" : "co-writing"
+                let line = "persona — \(kind) in \(app)"
+                MaryBrain.turnLog.info("\(line, privacy: .public)")
+            } else {
+                MaryBrain.turnLog.info("persona — none (no lead place with an application)")
+            }
             // Live work itself — arbiter grants exactly one place a full section.
             let liveWork = sections.leadContext
             // readPassages rides separately (end of live block). suppressing: this

@@ -13,6 +13,7 @@ import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
+import os
 
 enum CodingAgentDelegation {
 
@@ -82,20 +83,28 @@ enum CodingAgentDelegation {
     ) -> Result<Target, ProjectRootResolver.Refusal> {
         let task = arguments["task"] ?? arguments["plan"] ?? arguments["request"] ?? ""
         guard !task.isEmpty else {
+            TurnLog.logger.info("pair-coding — target refused: no task")
             return .failure(ProjectRootResolver.Refusal(
                 spoken: "What should the coding agent do?"))
         }
         switch ProjectRootResolver.live(named: arguments["project"], context: context) {
         case .failure(let refusal):
+            let line = "pair-coding — target refused: \(refusal.spoken)"
+            TurnLog.logger.info("\(line, privacy: .public)")
             return .failure(refusal)
         case .success(let focus):
             if let dirty = dirtyBufferRefusal(workdir: focus.root) {
+                let line = "pair-coding — target refused: \(dirty)"
+                TurnLog.logger.info("\(line, privacy: .public)")
                 return .failure(ProjectRootResolver.Refusal(spoken: dirty))
             }
             let live = liveContext(workdir: focus.root)
             let remembered = context.codingProjectRoot == focus.root
                 && (arguments["project"] ?? "").isEmpty
                 && ProjectCorpusSupport.resolve(nil).isFailure
+            let file = live?.filePath ?? "none"
+            let line = "pair-coding — target workdir=\(focus.root) file=\(file)"
+            TurnLog.logger.info("\(line, privacy: .public)")
             return .success(Target(
                 task: task,
                 workdir: focus.root,

@@ -146,6 +146,10 @@ extension MaryBrain {
                 }
 
                 guard let dispatcher, !skillInvocations.isEmpty else {
+                    if skillInvocations.isEmpty {
+                        TurnCircuitLog.laneNOOP(
+                            offeredNames: dispatcher?.schemas.map(\.name) ?? [])
+                    }
                     // Plain reply (or nothing left to execute) — the turn is done.
                     if actionTurn {
                         var reply = ""

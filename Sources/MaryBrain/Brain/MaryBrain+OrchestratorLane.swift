@@ -216,6 +216,7 @@ extension MaryBrain {
                         continue
                     }
                     // Nothing to execute — keep prose as offline fallback for `seerTurn`.
+                    TurnCircuitLog.laneNOOP(offeredNames: dispatcher.schemas.map(\.name))
                     result.text = sanitizedSpoken(roundText)
                     return result
                 }

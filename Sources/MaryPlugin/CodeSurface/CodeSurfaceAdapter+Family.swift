@@ -9,6 +9,7 @@ import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
+import os
 
 extension CodeSurfaceAdapter {
 
@@ -88,6 +89,8 @@ extension CodeSurfaceAdapter {
                 guard let surface = CodeSurfaceEditorCache.frontSurface(
                     pid: pid, registration: registration)
                 else {
+                    let line = "current_file — \(registration.displayName) pid=\(pid) has no source file open"
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: true,
                         summary: "\(registration.displayName) has no source file open.",
@@ -99,6 +102,8 @@ extension CodeSurfaceAdapter {
                    let focus = CorpusObserver.focus(pid: pid, registration: corpus) {
                     brief = "Looking at \(focus.relativePath) in \(focus.projectName)."
                 }
+                let line = "current_file — pid=\(pid) \(brief)"
+                TurnLog.logger.info("\(line, privacy: .public)")
                 return SkillOutcome(
                     ok: true, summary: brief, archivePolicy: .stateSnapshot,
                     adapterTrail: [AdapterID.normalized(name)])

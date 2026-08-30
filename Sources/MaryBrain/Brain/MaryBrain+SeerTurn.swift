@@ -147,6 +147,9 @@ extension MaryBrain {
                 lookUnderway = true
             }
         }
+        let lookWould = dispatcher?.wouldServeLook() ?? false
+        let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) underway=\(lookUnderway)"
+        Self.turnLog.info("\(lookLine, privacy: .public)")
 
         // Snapshot Seer's messages BEFORE the orchestrator starts mutating history with Skill turns.
         // Stale-grounding windows (accepted): - W1 — routine settles mid-Lane-A: this snapshot predates a doneMarker/follow-up…
@@ -200,8 +203,10 @@ extension MaryBrain {
         var serverVoiced = false
         if actionTurn {
             // Action-first rhythm: no Lane A at all — no Seer stream, no "I'm on it", no TTS. The command dispatches at full speed and the Skill chips are the reply.
+            Self.turnLog.info("laneA — skipped; actionTurn so chips would be the reply")
             seerLane = SeerLaneResult()
         } else if let realtime = seerRealtime, await realtime.isReady() {
+            Self.turnLog.info("laneA — speaking")
             let outcome = await runRealtimeSeerLane(
                 realtime: realtime, messages: messages,
                 instructions: instructions,
@@ -216,6 +221,7 @@ extension MaryBrain {
                 serverVoiced = outcome.serverVoiced
             }
         } else {
+            Self.turnLog.info("laneA — speaking")
             seerLane = await runSeerLane(
                 seerChat: seerChat, messages: messages,
                 instructions: instructions,
@@ -268,6 +274,13 @@ extension MaryBrain {
         let laneElapsedMs = (DispatchTime.now().uptimeNanoseconds - laneSpawn.uptimeNanoseconds) / 1_000_000
         if let lane = orchestratorLane {
             Self.laneLog.info("lane joined in \(laneElapsedMs)ms")
+            let names = lane.outcomes.map(\.skillName)
+            if names.isEmpty {
+                Self.turnLog.info("laneB — joined with no skill outcomes")
+            } else {
+                let line = "laneB — ran \(names.joined(separator: ", "))"
+                Self.turnLog.info("\(line, privacy: .public)")
+            }
             appendHistory(contentsOf: lane.laneTurns, epoch: epoch)
         } else if let laneTask, !laneStalled {
             // …and a STALLED lane never gets here: it already blew the cap a

@@ -77,6 +77,10 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     public var holdsWholeDocument: Bool { false }
 
     public func refreshAmbientContext() async {
+        let alreadyWalking = inFlight.withLock({ $0 })
+        if alreadyWalking {
+            TurnLog.logger.info("observer — turn refresh waited on an in-flight caret walk")
+        }
         pollOnce()
         // WAIT FOR AN IN-FLIGHT WALK. The poll loop and the turn preparer share `inFlight`;
         // a turn that arrived mid-walk used to return immediately with an empty `liveBox`,
@@ -121,7 +125,10 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
         guard entered else { return }
         defer { inFlight.withLock { $0 = false } }
 
-        guard AXIsProcessTrusted() else { return }
+        guard AXIsProcessTrusted() else {
+            TurnLog.logger.info("observer — Accessibility not trusted; cannot sample the code editor")
+            return
+        }
 
         let standingID = publishedBox.withLock { $0 }?.application
         guard let hit = SurfacePollTarget.pairHit(
@@ -131,6 +138,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 applicationID: hit.applicationID)
         else {
             // NOT AN EDITOR TO SAMPLE — and deliberately NOT a retraction.
+            TurnLog.logger.info("observer — no code editor to sample")
             return
         }
 
@@ -152,7 +160,11 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             // A FRONTMOST EDITOR WITH NO CARET TO REPORT — no source file open, an
             // unreadable buffer, or a live highlight that owns this ground instead. A
             // BACKGROUND editor that will not read must not retract: the user is speaking
-            if hit.isFrontmost { retract() }
+            if hit.isFrontmost {
+                let line = "observer — \(registration.displayName) frontmost but no source file (retracted)"
+                TurnLog.logger.info("\(line, privacy: .public)")
+                retract()
+            }
             return
         }
 
@@ -169,6 +181,8 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
                 content: fact.content)
         }
         WorkspaceFocusTracker.shared.noteWork(place: place, processBundleID: bundleID)
+        let published = "observer — looking at \(file) in \(registration.displayName)"
+        TurnLog.logger.info("\(published, privacy: .public)")
     }
 
     /// Test seam: the arbiter contract after a caret is standing, without

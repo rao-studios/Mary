@@ -45,6 +45,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     }
     private let offerLedger = OSAllocatedUnfairLock<TurnOfferLedger>(
         initialState: .init())
+    /// turnLog roster line once per beginTurn — schemas is read every round.
+    private let codingRosterLogged = OSAllocatedUnfairLock<Bool>(initialState: false)
 
     /// Call identity for the in-flight dispatch, carried to `performExecute`.
     /// PIN: Task-local rather than four extra parameters down the chain.
@@ -360,6 +362,18 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 description: "Discard the Skill invocation waiting for confirmation. Call when the user declines or changes the subject.",
                 parameters: []
             ))
+        }
+        let shouldLog = codingRosterLogged.withLock { logged -> Bool in
+            if logged { return false }
+            logged = true
+            return true
+        }
+        if shouldLog {
+            TurnCircuitLog.rosterExposed(
+                snapshot: snapshot,
+                roster: roster,
+                scope: scope,
+                exposed: Set(result.map(\.name)))
         }
         return result
     }
@@ -987,6 +1001,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             $0.current = []
             $0.projected = !$0.previous.isEmpty
         }
+        codingRosterLogged.withLock { $0 = false }
     }
 
 
@@ -1421,6 +1436,11 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         let line = "dispatch \(name) — total \(totalMs)ms,"
             + " status=\(record.disposition)"
         Self.timingLog.info("\(line, privacy: .public)")
+        TurnCircuitLog.dispatch(
+            name: name,
+            ok: outcome.ok,
+            foundNothing: outcome.foundNothing,
+            disposition: record.disposition.rawValue)
         return outcome
     }
 

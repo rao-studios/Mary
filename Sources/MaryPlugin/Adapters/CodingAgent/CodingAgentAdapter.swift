@@ -11,6 +11,7 @@
 
 import Foundation
 import MaryFoundation
+import os
 
 public struct CodingAgentAdapter: MaryAdapter {
 
@@ -190,8 +191,15 @@ public struct CodingAgentAdapter: MaryAdapter {
     ) async -> SkillOutcome {
         switch CodingAgentDelegation.target(arguments: arguments, context: context) {
         case .failure(let refusal):
+            let line = "pair-coding — spawn refused: \(refusal.spoken)"
+            TurnLog.logger.info("\(line, privacy: .public)")
             return SkillOutcome(ok: false, summary: refusal.spoken)
         case .success(let target):
+            let deliveryName = delivery == .background ? "background" : "awaited"
+            let file = target.context?.filePath ?? "none"
+            let line = "pair-coding — spawn delivery=\(deliveryName)"
+                + " project=\(target.projectName) file=\(file)"
+            TurnLog.logger.info("\(line, privacy: .public)")
             let style = CodingAgentDelegation.styleBlock(for: target.workdir)
             let brief = CodingAgentDelegation.delegationBrief(
                 task: target.task,

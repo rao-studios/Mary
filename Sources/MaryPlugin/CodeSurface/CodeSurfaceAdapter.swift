@@ -10,6 +10,7 @@ import AppKit
 import Foundation
 import MaryAmbient
 import MaryFoundation
+import os
 
 public struct CodeSurfaceAdapter: MaryAdapter {
 
@@ -114,17 +115,23 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let surface = CodeSurfaceEditorCache.frontSurface(
                     pid: pid, registration: registration)
                 else {
+                    let line = "read_buffer — \(registration.displayName) has no source file open"
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: true,
                         summary: "\(registration.displayName) has no source file open.",
                         foundNothing: true)
                 }
                 guard let text = CodeSurfaceAX.fullString(of: surface.editor) else {
+                    let line = "read_buffer — could not read \"\(surface.title)\""
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: false,
                         summary: "I couldn't read \"\(surface.title)\" just now.")
                 }
                 let body = Self.excerpt(text, around: arguments["find"], budgets: registration.budgets)
+                let line = "read_buffer — \(surface.title) chars=\(body.count) empty=\(body.isEmpty)"
+                TurnLog.logger.info("\(line, privacy: .public)")
                 return SkillOutcome(
                     ok: true,
                     summary: body.isEmpty
@@ -164,6 +171,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let surface = CodeSurfaceEditorCache.frontSurface(
                     pid: pid, registration: registration)
                 else {
+                    let line = "read_selection — \(registration.displayName) has no source file open"
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: true,
                         summary: "\(registration.displayName) has no source file open.",
@@ -172,6 +181,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 guard let selection = CodeSurfaceAX.selectedRange(of: surface.editor),
                       !selection.isEmpty
                 else {
+                    let line = "read_selection — nothing selected in \"\(surface.title)\""
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: true,
                         summary: "Nothing is selected in \"\(surface.title)\".",
@@ -179,6 +190,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                 }
                 guard let selected = CodeSurfaceAX.substring(of: surface.editor, range: selection)
                 else {
+                    let line = "read_selection — could not read selection in \"\(surface.title)\""
+                    TurnLog.logger.info("\(line, privacy: .public)")
                     return SkillOutcome(
                         ok: false,
                         summary: "I couldn't read the selection in \"\(surface.title)\" just now.")
@@ -199,6 +212,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                         of: surface.editor, range: selection.upperBound..<contextEnd) ?? "")
                     : ""
 
+                let line = "read_selection — \(surface.title) chars=\(selected.count)"
+                TurnLog.logger.info("\(line, privacy: .public)")
                 return SkillOutcome(
                     ok: true,
                     summary: "\(surface.title):\n\(before)[[\(selected)]]\(after)",
@@ -413,6 +428,8 @@ public struct CodeSurfaceAdapter: MaryAdapter {
     }
 
     func notRunning(_ requested: String?) -> SkillOutcome {
+        let asked = requested?.isEmpty == false ? requested! : "front"
+        TurnLog.logger.info("code-surface — not running requested=\(asked, privacy: .public)")
         guard let requested, !requested.isEmpty else {
             return SkillOutcome(
                 ok: true,
