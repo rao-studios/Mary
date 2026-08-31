@@ -180,6 +180,8 @@ public final class AmbientContextStore: @unchecked Sendable {
     private let leadBox =
         OSAllocatedUnfairLock<(place: AmbientPlace, at: Date)?>(initialState: nil)
     private let utteranceBox = OSAllocatedUnfairLock<String>(initialState: "")
+    /// Embedding search string this turn (utterance + world + history).
+    private let routingQueryBox = OSAllocatedUnfairLock<String>(initialState: "")
     /// Turn container. OUT: ReferenceDecision.
     private let referenceBox = OSAllocatedUnfairLock<ReferenceDecision>(initialState: .none)
     /// Route for retrieval and prompt assembly.
@@ -388,6 +390,16 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     public func utterance() -> String {
         utteranceBox.withLock { $0 }
+    }
+
+    /// The embedding query. Falls back to the raw utterance when unset.
+    public func noteRoutingQuery(_ text: String) {
+        routingQueryBox.withLock { $0 = text }
+    }
+
+    public func routingQuery() -> String {
+        let query = routingQueryBox.withLock { $0 }
+        return query.isEmpty ? utterance() : query
     }
 
     /// Container this turn means. Written once by the turn loop; read everywhere.
@@ -907,6 +919,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         surfaceBox.withLock { $0 = [:] }
         leadBox.withLock { $0 = nil }
         utteranceBox.withLock { $0 = "" }
+        routingQueryBox.withLock { $0 = "" }
         routeBox.withLock { $0 = nil }
         worldBox.withLock { $0 = nil }
         selectionStateBox.withLock { $0 = .init() }

@@ -83,6 +83,9 @@ public enum MediaSurfaceLibrary {
 
     public enum Outcome: Sendable, Equatable {
         case played(String)
+        /// Played under `SpokenTitleCommitContext` — the best guess, not an
+        /// exact spoken match. The caller must say so, not just "Playing X".
+        case playedAsGuess(String)
         case noSuchPlaylist([String])
         /// Two playlists answered to the same spoken name. NAMED, NEVER
         /// GUESSED: starting one of two is a coin flip the user did not ask
@@ -103,8 +106,10 @@ public enum MediaSurfaceLibrary {
         guard !offered.isEmpty else { return .noLibrary }
 
         let resolved: String
+        var wasGuess = false
         switch SpokenTitleMatcher.resolve(name, in: offered) {
         case .match(let title): resolved = title
+        case .guessed(let title): resolved = title; wasGuess = true
         case .ambiguous(let titles): return .ambiguous(titles)
         case .none(let closest): return .noSuchPlaylist(closest)
         }
@@ -119,7 +124,7 @@ public enum MediaSurfaceLibrary {
         guard await pressPagePlay(pid: pid, registration: registration) else {
             return .couldNotPress
         }
-        return .played(row.name)
+        return wasGuess ? .playedAsGuess(row.name) : .played(row.name)
     }
 
     /// Press the control that starts what the player is currently showing.

@@ -103,19 +103,43 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
     public var summary: String
     public var required: Bool
     public var enumValues: [String]
+    /// Package-authored escape hatch: this required string cannot be a spoken
+    /// span even when it is the skill's ONLY required parameter — a commit
+    /// message, replacement prose, a computed line number. Confidence-dispatch
+    /// skips extraction eligibility for it and falls through to the model.
+    public var requiresComposition: Bool
 
     public init(
         name: String,
         type: String,
         summary: String,
         required: Bool,
-        enumValues: [String] = []
+        enumValues: [String] = [],
+        requiresComposition: Bool = false
     ) {
         self.name = name
         self.type = type
         self.summary = summary
         self.required = required
         self.enumValues = enumValues
+        self.requiresComposition = requiresComposition
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name, type, summary, required, enumValues, requiresComposition
+    }
+
+    /// Tolerant decode — a package sealed before this field existed must
+    /// still load. Every field decodes with a default, not only the new one.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        type = try container.decode(String.self, forKey: .type)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary) ?? ""
+        required = try container.decodeIfPresent(Bool.self, forKey: .required) ?? false
+        enumValues = try container.decodeIfPresent([String].self, forKey: .enumValues) ?? []
+        requiresComposition = try container.decodeIfPresent(
+            Bool.self, forKey: .requiresComposition) ?? false
     }
 }
 

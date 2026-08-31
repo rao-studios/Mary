@@ -101,6 +101,7 @@ public struct AmbientIntentGate: Sendable, Equatable {
 
     public static func resolve(
         utterance: String,
+        routingQuery: String? = nil,
         leadApplicationID: String?,
         profiles: [ApplicationProfile],
         abilities: any AbilityCapabilityIndex = AmbientCapabilityIndexProvider.current,
@@ -111,7 +112,8 @@ public struct AmbientIntentGate: Sendable, Equatable {
     ) -> AmbientIntentGate {
         let questions = questionForms(in: utterance)
         let signature = questionSignature(utterance: utterance, questions: questions)
-        let requestedAbilities = abilities.requestedAbilities(in: utterance)
+        let requestedAbilities = abilities.requestedAbilities(
+            in: routingQuery ?? utterance)
         let named = profiles.filter { $0.isMentioned(in: utterance) }
         let addressedIDs = Set(addressed.map(\.applicationID))
             .filter { id in profiles.contains { $0.id == id } }

@@ -62,8 +62,19 @@ extension AbilityRosterArbitrator {
             policy: policy,
             requirements: requirements,
             context: context)
-        // ADDITIVE, BOUNDED, AND LAST. A Skill the index has no opinion about contributes zero and scores exactly what it scored before this seam existed
-        let semanticEvidence = skillID
+        // Affinity is the score when embeddings pick the roster.
+        let semanticEvidence: Int
+        if context.usesEmbeddingRoster,
+           let skillID,
+           let affinity = context.semanticSkillAffinity[skillID] {
+            semanticEvidence = Int((affinity * 1000).rounded())
+            return AbilityRoutingEvidenceScore(
+                total: semanticEvidence,
+                directInteraction: direct,
+                focusedWorkspace: focused,
+                preference: policy.preference)
+        }
+        semanticEvidence = skillID
             .flatMap { context.semanticSkillAffinity[$0] }
             .map { SemanticSkillRequestIndex.bonus(for: $0) } ?? 0
         return AbilityRoutingEvidenceScore(

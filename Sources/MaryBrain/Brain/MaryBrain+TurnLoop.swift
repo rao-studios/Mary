@@ -2,11 +2,12 @@
 //  MaryBrain+TurnLoop.swift
 //  MaryBrain
 //
-//  WHAT: runTurn / runTurnBody — supersede, route, pre-reads, gates, handoff.
+//  WHAT: runTurn / runTurnBody — supersede, route, embedding dispatch, gates.
 //  IN:   LanguageResponder.startTurn
 //  OUT:  seerTurn or localTurn
 //  PIN:  Both functions moved whole; never split a function.
 //
+import MaryPlugin
 import MaryVoice
 import Foundation
 import os
@@ -318,10 +319,6 @@ extension MaryBrain {
 
         // A REVISION IS AN ACTION, and saying so here is the other half of "commit to it right away".
         // PIN: `EditIntentClassifier` is the stricter, more conservative of the two
-        let actionTurn = ActionClassifier.isActionCommand(
-            userText, applicationAliases: applicationAddressAliases) || editIntent != nil
-
-        // Route resolved here (shape now known). Recorded only; nothing below reads it.
         let ambientWorld = ambient.world()
         let focusedApplicationID = dispatcher?.focusedApplicationID
         let now = Date()
@@ -338,23 +335,81 @@ extension MaryBrain {
         } else {
             inheritedApplicationID = nil
         }
+        let leadApplicationID = inheritedApplicationID
+            ?? focusedApplicationID
+            ?? Self.routableApplicationID(
+                focusTracker.leadPlace()?.application,
+                profiles: applicationProfiles,
+                requireEvidence: true,
+                focusTracker: focusTracker)
+        let playerHit = MediaSurfaceSupport.shared.resolve(nil)
+        let leadPlace = AmbientRoute.leadPlace(leadApplicationID: leadApplicationID)
+        let leadFact = leadPlace.flatMap { place in
+            ambient.facts(place: place).first { !$0.content.isEmpty }?.content
+        }
+        let recentUserTurns = Array(
+            history.dropLast()
+                .filter { $0.role == .user }
+                .map(\.text)
+                .suffix(RoutingQuery.historyCap))
+        // TODO: Why did we create a new World object? This is what creates confusion
+        // coding agents tend to duplicate logics like this. We should reuse
+        // ambient world.
+        let routingWorld = RoutingQuery.World(
+            leadApplicationID: leadApplicationID,
+            leadTitle: applicationProfiles.first { $0.id == leadApplicationID }?.title,
+            frontmostApplicationID: focusedApplicationID,
+            playerRunning: playerHit != nil,
+            playerName: playerHit.map { $0.0.displayName },
+            selectionSubject: ambientWorld?.subject,
+            leadFact: leadFact)
+        // The routing query that composes a routine.
+        let routingQuery = RoutingQuery.compose(
+            utterance: userText,
+            world: routingWorld,
+            recentUserTurns: recentUserTurns)
+        ambient.noteRoutingQuery(routingQuery)
+        let worldBit = routingWorld.isEmpty ? "world=no" : "world=yes"
+        let historyBit = recentUserTurns.isEmpty ? "history=no" : "history=yes"
+        Self.turnLog.info(
+            "embed query — chars=\(userText.count, privacy: .public) \(worldBit, privacy: .public) \(historyBit, privacy: .public)")
+        // Hoisted above the classify: the intent index rides the frozen
+        // registry (package-authored `intentExemplars`), not a process-wide
+        // static — a fake dispatcher's `.empty` snapshot degrades cleanly to
+        // the lexical ladder, in tests and in a headless probe alike.
+        let turnRegistryForEmbed = dispatcher?.abilitySnapshot
+            ?? AbilityRuntimeSnapshot.empty
+        let intentIndex = turnRegistryForEmbed.semanticIntentIndex
+        let intentVerdict = intentIndex?.classify(routingQuery)
+        let embeddingIntent: AmbientIntent?
+        if intentIndex == nil {
+            embeddingIntent = nil
+        } else {
+            embeddingIntent = intentVerdict?.intent ?? .converse
+        }
+        var actionTurn = editIntent != nil
+        if let embeddingIntent {
+            actionTurn = actionTurn
+                || embeddingIntent == .operate
+                || embeddingIntent == .compose
+        } else {
+            actionTurn = actionTurn || ActionClassifier.isActionCommand(
+                userText, applicationAliases: applicationAddressAliases)
+        }
+
+        // Route resolved here (shape now known). Recorded only; nothing below reads it.
         let route = AmbientEngine.resolve(AmbientEngine.Inputs(
             utterance: userText,
+            routingQuery: routingQuery,
             actionTurn: actionTurn,
+            embeddingIntent: embeddingIntent,
             editIntent: editIntent,
             bareDecision: bareDecision,
             hasPendingSkillConfirmation: hadPendingAction,
             activeRoutineCount: routinesAtEntry,
             world: ambientWorld,
             // A pronoun continues the named conversational subject even when another recognized app remains frontmost behind Mary.
-            leadApplicationID: inheritedApplicationID
-                ?? focusedApplicationID
-                ?? Self.routableApplicationID(
-                    focusTracker.leadPlace()?.application,
-                    profiles: applicationProfiles,
-                    // Lead asserts; a candidate only offers.
-                    requireEvidence: true,
-                    focusTracker: focusTracker),
+            leadApplicationID: leadApplicationID,
             profiles: applicationProfiles,
             addressCandidates: Self.addressCandidates(
                 profiles: applicationProfiles,
@@ -363,6 +418,46 @@ extension MaryBrain {
             focus: focusTracker.signal(),
             evidence: focusTracker.freshEvidence()))
         ambient.noteRoute(route)
+        actionTurn = route.intent == .operate
+            || route.intent == .compose
+            || editIntent != nil
+        let skillAffinities = turnRegistryForEmbed.semanticSkillIndex?
+            .affinities(in: routingQuery) ?? [:]
+        let offeredNames = Set((dispatcher?.schemas ?? []).map(\.name))
+        let offeredAffinities = skillAffinities.filter { id, _ in
+            guard let skill = turnRegistryForEmbed.skill(id: id) else { return false }
+            return offeredNames.contains(skill.reference.invocationName)
+        }
+        let uniqueSkill = EmbeddingRouting.uniqueWinner(
+            affinities: offeredAffinities, snapshot: turnRegistryForEmbed)
+        let abilityList = route.gate.requestedAbilities
+            .map(\.rawValue).sorted().joined(separator: ",")
+        let topSkills = offeredAffinities
+            .sorted { $0.value > $1.value }
+            .prefix(4)
+            .map { "\($0.key.rawValue)=\(String(format: "%.2f", $0.value))" }
+            .joined(separator: ",")
+        let pick: String
+        if uniqueSkill != nil {
+            pick = "unique-win"
+        } else if skillAffinities.count > 1 {
+            pick = "tie"
+        } else {
+            pick = "below-floor"
+        }
+        let intentBit: String
+        if let intentVerdict {
+            let runner = intentVerdict.runnerUp?.rawValue ?? "none"
+            intentBit = "intent=\(intentVerdict.intent.rawValue) score=\(String(format: "%.2f", intentVerdict.score)) runner=\(runner)"
+        } else if embeddingIntent != nil {
+            intentBit = "intent=converse score=0 runner=none"
+        } else {
+            intentBit = "intent=lexical"
+        }
+        let abilitiesBit = abilityList.isEmpty ? "none" : abilityList
+        let skillsBit = topSkills.isEmpty ? "none" : topSkills
+        Self.turnLog.info(
+            "embed search — \(intentBit, privacy: .public) abilities=\(abilitiesBit, privacy: .public) skills=\(skillsBit, privacy: .public) pick=\(pick, privacy: .public)")
         logCodingCircuit(
             route: route,
             focusedApplicationID: focusedApplicationID,
@@ -455,6 +550,70 @@ extension MaryBrain {
             return
         }
 
+        if let dispatcher,
+           decisionOutcome == nil, editIntent == nil, !hadPendingAction,
+           route.intent == .operate,
+           let skill = uniqueSkill,
+           EmbeddingRouting.isEligibleForArgumentExtraction(skill) {
+            let name = skill.reference.invocationName
+            let applicationID = route.gate.applications.count == 1
+                ? route.gate.applications.first : nil
+            let argumentsJSON = EmbeddingRouting.argumentsJSON(
+                for: skill, utterance: userText, applicationID: applicationID,
+                applicationProfiles: applicationProfiles)
+            let invocation = ModelSkillInvocation(
+                id: "embed-\(UUID().uuidString)", name: name,
+                argumentsJSON: argumentsJSON)
+            let invocationReference = dispatcher.skillReference(for: name)
+            continuation.yield(.skillInvocation(
+                reference: invocationReference, argumentsJSON: argumentsJSON,
+                runID: invocation.id))
+            let startedAt = Date()
+            // Armed only for this one shortcut dispatch — a title match with
+            // no exact candidate may commit to its best guess rather than
+            // refuse. Lane B/model-driven dispatches of the same skill never
+            // set this and keep today's honest refusal.
+            let outcome = await SpokenTitleCommitContext.$allowed.withValue(true) {
+                await dispatcher.dispatch(
+                    name: name, argumentsJSON: argumentsJSON, runID: invocation.id)
+            }
+            continuation.yield(.skillResult(record: BehavioralActionRecord(
+                outcome: outcome,
+                intention: name,
+                argumentsJSON: argumentsJSON,
+                reference: invocationReference,
+                runID: invocation.id,
+                startedAt: startedAt)))
+            appendHistory(contentsOf: [
+                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
+                BrainTurn(
+                    role: .skillResult,
+                    text: outcome.summary,
+                    skillInvocationID: invocation.id,
+                    skillName: name
+                ),
+            ], epoch: epoch)
+            Self.turnLog.info(
+                "embed dispatch — invoke \(name, privacy: .public)")
+            // A committed guess must speak — silence here would start
+            // playing the wrong thing with no way to catch it.
+            let spoken = (outcome.ok && !outcome.foundNothing && !outcome.committedGuess)
+                ? "" : outcome.summary
+            if !spoken.isEmpty {
+                continuation.yield(.token(spoken))
+                appendHistory(
+                    BrainTurn(role: .assistant, text: spoken), epoch: epoch)
+            }
+            continuation.yield(.completed(fullText: spoken))
+            logTurnExit("embedding dispatch \(name)")
+            continuation.finish()
+            return
+        }
+        if route.intent == .operate {
+            Self.turnLog.info(
+                "embed dispatch — laneB roster=\(skillsBit, privacy: .public)")
+        }
+
         // editIntent.shape → referentResolver.
         ambient.noteReference(
             referentResolver?(ReferenceAct.from(editIntent?.shape)) ?? .none)
@@ -507,7 +666,7 @@ extension MaryBrain {
 
         let traceID = UUID()
         let turnRegistry = dispatcher?.abilitySnapshot
-            ?? AbilityLibrary.shared.snapshot()
+            ?? AbilityRuntimeSnapshot.empty
         // The responder-layer signal stamped at exchange time, so the lens
         // shows what was co-active WHEN the turn ran, never live state
         // projected onto an old row.

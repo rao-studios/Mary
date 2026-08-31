@@ -2,10 +2,10 @@
 //  SemanticSkillRequestIndex.swift
 //  MaryBrain
 //
-//  WHAT: Embedding recall one tier down — which Skill the utterance is about.
-//  IN:   Skill trigger corpus
+//  WHAT: Embedding recall one tier down — which Skill the query is about.
+//  IN:   Skill trigger corpus + settled exemplars
 //  OUT:  affinities for the arbitrator
-//  PIN:  Same four constraints as SemanticAbilityRequestIndex; additive only.
+//  PIN:  Tokens seed the corpus; they are not a second matcher.
 //
 import MaryAmbient
 import MaryFoundation
@@ -30,6 +30,8 @@ public struct SemanticSkillRequestIndex: Sendable {
     private let vectorizer: any UtteranceVectorizer
     private let threshold: Float
 
+    public var entryCount: Int { entries.count }
+
     /// Nil when nothing vectorized — an index that can only say "no" is dead
     /// weight, and nil is the value every caller already degrades on.
     public static func build(
@@ -38,6 +40,7 @@ public struct SemanticSkillRequestIndex: Sendable {
         threshold: Float = defaultThreshold
     ) -> SemanticSkillRequestIndex? {
         var entries: [Entry] = []
+        var skipped = 0
         for record in records {
             let fixtures = record.package.fixtures
                 .filter { $0.expectedDisposition == "route" }
@@ -63,11 +66,17 @@ public struct SemanticSkillRequestIndex: Sendable {
                 let positives = terms
                     .filter { !$0.isEmpty }
                     .compactMap { vectorizer.vector(for: $0).map(Self.normalized) }
-                guard !positives.isEmpty else { continue }
+                guard !positives.isEmpty else {
+                    skipped += 1
+                    continue
+                }
                 entries.append(Entry(skillID: skill.id, positives: positives))
             }
         }
         guard !entries.isEmpty else { return nil }
+        let dim = entries.first?.positives.first?.count ?? 0
+        MaryBrain.turnLog.info(
+            "embed generate — skills=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) exemplars=\(RoutingExemplarStore.shared.count, privacy: .public)")
         return SemanticSkillRequestIndex(
             entries: entries, vectorizer: vectorizer, threshold: threshold)
     }
@@ -81,13 +90,25 @@ public struct SemanticSkillRequestIndex: Sendable {
     }
 
     /// Best similarity per Skill, for every Skill that clears the floor.
-    /// A SCORE RATHER THAN A SET, which is the whole difference from the Ability seam.
-    public func affinities(in utterance: String) -> [SkillID: Float] {
-        guard let raw = vectorizer.vector(for: utterance) else { return [:] }
+    /// Exemplars join the authored positives (ok) or suppress (not ok).
+    public func affinities(
+        in utterance: String,
+        exemplars: RoutingExemplarStore = .shared
+    ) -> [SkillID: Float] {
+        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
         let query = Self.normalized(raw)
         var affinities: [SkillID: Float] = [:]
         for entry in entries {
-            let best = entry.positives.map { Self.dot($0, query) }.max() ?? -1
+            let positives = entry.positives
+                + exemplars.vectors(skillID: entry.skillID.rawValue, ok: true, vectorizer: vectorizer)
+            let best = positives.map { Self.dot($0, query) }.max() ?? -1
+            let negatives = exemplars.vectors(
+                skillID: entry.skillID.rawValue, ok: false, vectorizer: vectorizer)
+            let bestNegative = negatives.map { Self.dot($0, query) }.max() ?? -1
+            if bestNegative >= 0,
+               best - bestNegative < SemanticAbilityRequestIndex.defaultNegativeMargin {
+                continue
+            }
             guard best >= threshold else { continue }
             affinities[entry.skillID] = best
         }

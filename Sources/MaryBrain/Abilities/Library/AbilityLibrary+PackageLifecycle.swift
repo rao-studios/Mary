@@ -281,6 +281,12 @@ extension AbilityLibrary {
             semanticSkillIndex: NLUtteranceVectorizer.shared.flatMap {
                 SemanticSkillRequestIndex.build(
                     records: discovery.records, vectorizer: $0)
+            },
+            // The intent tier reads every installed package's own
+            // `intentExemplars` — a third corpus, same one model load.
+            semanticIntentIndex: NLUtteranceVectorizer.shared.flatMap {
+                SemanticIntentIndex.build(
+                    records: discovery.records, vectorizer: $0)
             })
         lock.lock()
         state.snapshot = next

@@ -15,7 +15,11 @@ public enum AmbientEngine {
 
     public struct Inputs: Sendable {
         public var utterance: String
+        /// Embedding query. Nil — ability nomination still uses `utterance`.
+        public var routingQuery: String?
         public var actionTurn: Bool
+        /// Embedding operate / perceive / converse. Nil keeps the lexical ladder.
+        public var embeddingIntent: AmbientIntent?
         public var editIntent: EditIntent?
         public var bareDecision: Bool?
         public var hasPendingSkillConfirmation: Bool
@@ -37,7 +41,9 @@ public enum AmbientEngine {
 
         public init(
             utterance: String,
+            routingQuery: String? = nil,
             actionTurn: Bool = false,
+            embeddingIntent: AmbientIntent? = nil,
             editIntent: EditIntent? = nil,
             bareDecision: Bool? = nil,
             hasPendingSkillConfirmation: Bool = false,
@@ -52,7 +58,9 @@ public enum AmbientEngine {
             now: Date = Date()
         ) {
             self.utterance = utterance
+            self.routingQuery = routingQuery
             self.actionTurn = actionTurn
+            self.embeddingIntent = embeddingIntent
             self.editIntent = editIntent
             self.bareDecision = bareDecision
             self.hasPendingSkillConfirmation = hasPendingSkillConfirmation
@@ -143,6 +151,7 @@ public enum AmbientEngine {
             excluding: namedApplications)
         let gate = AmbientIntentGate.resolve(
             utterance: inputs.utterance,
+            routingQuery: inputs.routingQuery,
             leadApplicationID: leadApplicationID,
             profiles: inputs.profiles,
             abilities: abilitySnapshot,
@@ -199,6 +208,7 @@ public enum AmbientEngine {
             // construction wherever both exist — see `AmbientRealmResolver`.
             realm: AmbientRealmResolver.resolve(.init(
                 utterance: inputs.utterance,
+                abilityQuery: inputs.routingQuery,
                 namedPlaces: allNamedPlaces,
                 discipline: verdicts.focusOverride,
                 decidedBy: signal,
@@ -277,6 +287,9 @@ public enum AmbientEngine {
         }
         if gate.requestedAbilities.contains(.architect) {
             return (.architect, .architectAbility)
+        }
+        if let embeddingIntent = inputs.embeddingIntent {
+            return (embeddingIntent, .embedding)
         }
         if inputs.actionTurn {
             let leadAbilities = inputs.profiles.first(where: { $0.id == leadApplicationID })?.abilities ?? []

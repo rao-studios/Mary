@@ -235,6 +235,23 @@
       "intentAliases" : [
 
       ],
+      "intentExemplars" : {
+        "operate" : [
+          "fix the build",
+          "run the probe",
+          "run this command",
+          "build the project",
+          "run the tests",
+          "stop the build"
+        ],
+        "perceive" : [
+          "look at this code",
+          "what does this function do",
+          "can you look at my code",
+          "let's take a look at this",
+          "what am i looking at"
+        ]
+      },
       "negativeTokens" : [
 
       ],
@@ -1038,7 +1055,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "45e5c43b4f3ca3e27125636dcce1003c18269db46f4472bda349382d6a51c6d2"
+    "digest" : "edef7205b4b556a0bd1ec1f48fa1e1a64b3d46bfcc81e16a62312577c5d74164"
   },
   "interactions" : [
     {
@@ -1217,6 +1234,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           },
@@ -1226,6 +1244,7 @@
             ],
             "name" : "find",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Return only the part around this phrase.",
             "type" : "string"
           }
@@ -1303,6 +1322,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1380,6 +1400,7 @@
             ],
             "name" : "text",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "The replacement code, exactly as it should read — including any revision you were asked to make.",
             "type" : "string"
           },
@@ -1389,6 +1410,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1718,6 +1740,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1798,6 +1821,7 @@
             ],
             "name" : "instruction",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "How the highlighted code should change.",
             "type" : "string"
           }
@@ -1894,6 +1918,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -1971,6 +1996,7 @@
             ],
             "name" : "symbol",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The name to read.",
             "type" : "string"
           },
@@ -1980,6 +2006,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -2057,6 +2084,7 @@
             ],
             "name" : "start",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "First line number.",
             "type" : "string"
           },
@@ -2066,6 +2094,7 @@
             ],
             "name" : "end",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Last line number.",
             "type" : "string"
           },
@@ -2075,6 +2104,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -2152,6 +2182,7 @@
             ],
             "name" : "symbol",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The name to replace.",
             "type" : "string"
           },
@@ -2161,6 +2192,7 @@
             ],
             "name" : "new_source",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The complete new declaration.",
             "type" : "string"
           }
@@ -2238,6 +2270,7 @@
             ],
             "name" : "source",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The code to add.",
             "type" : "string"
           },
@@ -2247,6 +2280,7 @@
             ],
             "name" : "after_symbol",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Insert after this name.",
             "type" : "string"
           }
@@ -2324,6 +2358,7 @@
             ],
             "name" : "find",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Exact text to find.",
             "type" : "string"
           },
@@ -2333,6 +2368,7 @@
             ],
             "name" : "replace",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Replacement text.",
             "type" : "string"
           }
@@ -2410,6 +2446,7 @@
             ],
             "name" : "path",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Project-relative path.",
             "type" : "string"
           },
@@ -2419,6 +2456,7 @@
             ],
             "name" : "contents",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "File contents.",
             "type" : "string"
           }
@@ -2496,6 +2534,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project.",
             "type" : "string"
           }
@@ -2573,6 +2612,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The word or phrase.",
             "type" : "string"
           },
@@ -2582,6 +2622,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project.",
             "type" : "string"
           }
@@ -2659,6 +2700,7 @@
             ],
             "name" : "symbol",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The name to locate.",
             "type" : "string"
           }
@@ -2736,6 +2778,7 @@
             ],
             "name" : "symbol",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The name to search for.",
             "type" : "string"
           }
@@ -2882,6 +2925,7 @@
             ],
             "name" : "file",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "File, or all.",
             "type" : "string"
           }
@@ -2959,6 +3003,7 @@
             ],
             "name" : "count",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "How many.",
             "type" : "string"
           }
@@ -3036,6 +3081,7 @@
             ],
             "name" : "file",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "File, or all.",
             "type" : "string"
           }
@@ -3182,6 +3228,7 @@
             ],
             "name" : "message",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "Commit message.",
             "type" : "string"
           }
@@ -3397,6 +3444,7 @@
             ],
             "name" : "filter",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Optional test name.",
             "type" : "string"
           }
@@ -3543,6 +3591,7 @@
             ],
             "name" : "note",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What to remember.",
             "type" : "string"
           }
@@ -3620,6 +3669,7 @@
             ],
             "name" : "task",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What the agent should do.",
             "type" : "string"
           }
@@ -3708,6 +3758,7 @@
             ],
             "name" : "task",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "A clear, self-contained description of the planned change.",
             "type" : "string"
           },
@@ -3717,6 +3768,7 @@
             ],
             "name" : "plan",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Workflow plan port; used when task is empty.",
             "type" : "string"
           }
@@ -3882,6 +3934,7 @@
             ],
             "name" : "task",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Complete coding outcome the user wants.",
             "type" : "string"
           }
@@ -4114,6 +4167,7 @@
             ],
             "name" : "task",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What to do.",
             "type" : "string"
           },
@@ -4123,6 +4177,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Project name.",
             "type" : "string"
           }
@@ -4200,6 +4255,7 @@
             ],
             "name" : "session",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Handle like C1.",
             "type" : "string"
           }
@@ -4346,6 +4402,7 @@
             ],
             "name" : "session",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Handle like C1.",
             "type" : "string"
           },
@@ -4355,6 +4412,7 @@
             ],
             "name" : "message",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Follow-up.",
             "type" : "string"
           }
@@ -4432,6 +4490,7 @@
             ],
             "name" : "session",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Handle like C1.",
             "type" : "string"
           }

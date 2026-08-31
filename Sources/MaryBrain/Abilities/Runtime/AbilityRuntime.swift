@@ -158,6 +158,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private let semanticSkillAffinityCache = OSAllocatedUnfairLock<
         (utterance: String, affinities: [SkillID: Float])?
     >(initialState: nil)
+    /// Where settled outcomes are recorded. `.shared` (persist: true) in
+    /// production; a unit test that dispatches must not write to
+    /// `~/Library/Application Support/Mary/routing-exemplars.json`.
+    private let exemplarStore = OSAllocatedUnfairLock<RoutingExemplarStore>(
+        initialState: .shared)
+
+    func setExemplarStoreForTesting(_ store: RoutingExemplarStore) {
+        exemplarStore.withLock { $0 = store }
+    }
 
     public init(
         plugins: [any MaryAdapter],
@@ -590,12 +599,18 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return nil
     }
 
-    /// Advisory routing predicates over this turn's keyword reading.
-    /// PIN: These decide what Mary offers, not what may execute.
+    /// What may be offered — executable set, narrowed by relevance.
+    /// PIN: Pre-arbitration gate; input diet unchanged by later filters.
     private func routingEligibilityFailure(
         for runtime: AbilityRuntimeSkill,
         in context: AbilityRoutingContext
     ) -> String? {
+        if context.usesEmbeddingRoster {
+            guard context.semanticSkillAffinity[runtime.skill.id] != nil else {
+                return "does not match this turn's embedding roster"
+            }
+            return nil
+        }
         if !AbilityRoutingEvaluator.isEligible(runtime.ability.routing, in: context) {
             return "does not match its Ability-level routing policy"
         }
@@ -904,9 +919,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             targets.formUnion(profile.targetClasses)
         }
         // One vectorization for the whole turn — scorer is called per Skill across passes.
-        let utterance = ambient.utterance()
+        let query = ambient.routingQuery()
         return AbilityRoutingContext(
-            utterance: utterance,
+            utterance: query,
             intent: route?.intent.rawValue,
             namedApplications: namedApplications,
             targetClasses: targets,
@@ -917,7 +932,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             grantedPermissions: grantedPermissions,
             sourceResolution: sourceResolution,
             workspaceFamily: workspaceFamily,
-            semanticSkillAffinity: semanticSkillAffinities(for: utterance))
+            semanticSkillAffinity: semanticSkillAffinities(for: query),
+            usesEmbeddingRoster: abilitySnapshot.semanticSkillIndex != nil)
     }
 
     /// See `semanticSkillAffinityCache`. One vectorization and one library scan per turn.
@@ -1465,6 +1481,16 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             ok: outcome.ok,
             foundNothing: outcome.foundNothing,
             disposition: record.disposition.rawValue)
+        if name != Self.confirmSkillName, name != Self.cancelSkillName,
+           let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id {
+            EmbeddingRouting.recordExemplars(
+                query: ambient.routingQuery(),
+                intent: ambient.route()?.intent ?? .operate,
+                outcomes: [(
+                    skillID.rawValue,
+                    outcome.ok && !outcome.foundNothing)],
+                store: exemplarStore.withLock { $0 })
+        }
         return outcome
     }
 

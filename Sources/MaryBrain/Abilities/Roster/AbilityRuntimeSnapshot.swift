@@ -36,14 +36,16 @@ public struct AbilityRuntimeSnapshot: Sendable {
     private let fallbackReferences: [String: AbilitySkillReference]
     /// EVERY binding the compatibility evaluator admitted per Skill, preference-ordered — `selectedBinding` is always the first.
     private let compatibleBySkill: [SkillID: [InstalledAdapterBinding]]
-    /// Optional embedding recall for `requestedAbilities(in:)`. Nil — every
-    /// direct construction and every test that does not opt in — means
-    /// exact-only matching, today's behavior byte for byte.
+    /// Optional embedding recall for `requestedAbilities(in:)`. Nil — lexical
+    /// fallback for tests and hosts with no OS embedding asset.
     private let semanticIndex: SemanticAbilityRequestIndex?
-    /// Optional embedding recall one tier down, consulted ONLY as additive
-    /// evidence when the arbitrator scores a Skill. Nil is exact-only, and a
-    /// Skill it has no opinion about scores exactly what it scores today.
+    /// Optional embedding recall one tier down. When present, affinity is the
+    /// Skill offer gate; nil keeps lexical eligibility.
     public let semanticSkillIndex: SemanticSkillRequestIndex?
+    /// Optional embedding operate/perceive/compose/ask/converse classifier,
+    /// built from every installed package's own `intentExemplars`. Nil keeps
+    /// the lexical ladder in `AmbientEngine.classify`.
+    public let semanticIntentIndex: SemanticIntentIndex?
 
     public init(
         revision: UUID = UUID(),
@@ -54,10 +56,12 @@ public struct AbilityRuntimeSnapshot: Sendable {
         primitiveBindings: [LocalSkillBinding] = [],
         plugins: PluginCompilation = .init(),
         semanticIndex: SemanticAbilityRequestIndex? = nil,
-        semanticSkillIndex: SemanticSkillRequestIndex? = nil
+        semanticSkillIndex: SemanticSkillRequestIndex? = nil,
+        semanticIntentIndex: SemanticIntentIndex? = nil
     ) {
         self.semanticIndex = semanticIndex
         self.semanticSkillIndex = semanticSkillIndex
+        self.semanticIntentIndex = semanticIntentIndex
         let inventory = InstalledAdapterInventory(
             manifests: adapterManifests + plugins.adapterManifests,
             primitiveBindings: primitiveBindings)
@@ -353,6 +357,9 @@ public struct AbilityRuntimeSnapshot: Sendable {
     }
 
     public func requestedAbilities(in utterance: String) -> Set<AbilityID> {
+        if let semanticIndex {
+            return semanticIndex.requestedAbilities(in: utterance)
+        }
         let words = Self.searchWords(in: utterance)
         let wordSet = Set(words)
         var requested: Set<AbilityID> = []
@@ -374,9 +381,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
             }
             if tokenMatch || phraseMatch || aliasMatch { requested.insert(ability.id) }
         }
-        // ADDITIVE RECALL, never veto: the semantic index widens what the words request — "draw a circle" reaches Design without the literal ability name
-        return requested.union(
-            semanticIndex?.requestedAbilities(in: utterance) ?? [])
+        return requested
     }
 
     private static func searchWords(in value: String) -> [String] {

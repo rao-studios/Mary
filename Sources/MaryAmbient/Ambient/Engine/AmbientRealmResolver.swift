@@ -18,6 +18,8 @@ public enum AmbientRealmResolver {
     /// lets a test state a turn instead of arranging a world.
     public struct Inputs: Sendable {
         public var utterance: String
+        /// Ability nomination query. Nil — `utterance`. Names still use `utterance`.
+        public var abilityQuery: String?
         /// Places the user NAMED. A name is an address, not a signal: it
         /// stands the cue's guess down and decides the place outright.
         public var namedPlaces: Set<AmbientPlace>
@@ -34,6 +36,7 @@ public enum AmbientRealmResolver {
 
         public init(
             utterance: String,
+            abilityQuery: String? = nil,
             namedPlaces: Set<AmbientPlace> = [],
             discipline: WorkspaceFocus? = nil,
             decidedBy: AmbientSignal? = nil,
@@ -44,6 +47,7 @@ public enum AmbientRealmResolver {
             now: Date = Date()
         ) {
             self.utterance = utterance
+            self.abilityQuery = abilityQuery
             self.namedPlaces = namedPlaces
             self.discipline = discipline
             self.decidedBy = decidedBy
@@ -75,7 +79,8 @@ public enum AmbientRealmResolver {
     public static func need(_ inputs: Inputs) -> AmbientNeed {
         let index = inputs.abilities ?? AmbientCapabilityIndexProvider.current
         return AmbientNeed(
-            abilities: index.requestedAbilities(in: inputs.utterance),
+            abilities: index.requestedAbilities(
+                in: inputs.abilityQuery ?? inputs.utterance),
             discipline: inputs.discipline)
     }
 

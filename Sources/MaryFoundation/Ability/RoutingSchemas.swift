@@ -81,16 +81,40 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
     public var phrases: [String]
     public var negativeTokens: [String]
     public var intentAliases: [String]
+    /// Authored sentences for `SemanticIntentIndex`, keyed by `AmbientIntent.rawValue`
+    /// ("operate", "perceive", "compose", "ask", "converse"). MaryFoundation cannot
+    /// see `AmbientIntent` — the key is validated where it is consumed.
+    public var intentExemplars: [String: [String]]
 
     public init(
         tokens: [String] = [],
         phrases: [String] = [],
         negativeTokens: [String] = [],
-        intentAliases: [String] = []
+        intentAliases: [String] = [],
+        intentExemplars: [String: [String]] = [:]
     ) {
         self.tokens = tokens
         self.phrases = phrases
         self.negativeTokens = negativeTokens
         self.intentAliases = intentAliases
+        self.intentExemplars = intentExemplars
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case tokens, phrases, negativeTokens, intentAliases, intentExemplars
+    }
+
+    /// Tolerant decode — a package sealed before this field existed must
+    /// still load. Every field decodes with a default, not only the new one.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tokens = try container.decodeIfPresent([String].self, forKey: .tokens) ?? []
+        phrases = try container.decodeIfPresent([String].self, forKey: .phrases) ?? []
+        negativeTokens = try container.decodeIfPresent(
+            [String].self, forKey: .negativeTokens) ?? []
+        intentAliases = try container.decodeIfPresent(
+            [String].self, forKey: .intentAliases) ?? []
+        intentExemplars = try container.decodeIfPresent(
+            [String: [String]].self, forKey: .intentExemplars) ?? [:]
     }
 }

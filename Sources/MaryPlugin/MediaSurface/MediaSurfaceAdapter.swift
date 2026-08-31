@@ -463,6 +463,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         summary: "Yes — you have \"\(title)\".",
                         archivePolicy: .stateSnapshot,
                         adapterTrail: ["media-surface"])
+                case .guessed(let title):
+                    // Committed under SpokenTitleCommitContext — an
+                    // interpretation, not a flat yes.
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "Probably \"\(title)\" — that's the closest match I've got.",
+                        archivePolicy: .stateSnapshot,
+                        adapterTrail: ["media-surface"],
+                        committedGuess: true)
                 case .ambiguous(let titles):
                     return SkillOutcome(
                         ok: true,
@@ -501,7 +510,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 guard let wanted = arguments["playlist"], !wanted.isEmpty else {
                     return SkillOutcome(ok: false, summary: "Tell me which playlist.")
                 }
-                guard let (registration, pid) = support.resolve(arguments["app"]) else {
+                guard let (registration, pid) = await MediaSurfaceLaunch.resolveOrLaunch(
+                    named: arguments["app"], support: support)
+                else {
                     return notRunning(arguments["app"])
                 }
                 switch await MediaSurfaceLibrary.play(
@@ -516,6 +527,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         archivePolicy: .stateSnapshot,
                         target: reading?.element,
                         adapterTrail: ["media-surface"])
+                case .playedAsGuess(let name):
+                    // Committed under SpokenTitleCommitContext — state it as
+                    // an interpretation, correctable in one word.
+                    return SkillOutcome(
+                        ok: true,
+                        summary: "Playing \(name) — closest match to what you asked for.",
+                        archivePolicy: .stateSnapshot,
+                        adapterTrail: ["media-surface"],
+                        committedGuess: true)
                 case .ambiguous(let titles):
                     // NAMED, NEVER GUESSED — starting one of two is a coin
                     // flip, and the wrong one is audible immediately.
@@ -565,7 +585,9 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 guard let wanted = arguments["playlist"], !wanted.isEmpty else {
                     return SkillOutcome(ok: false, summary: "Tell me which playlist.")
                 }
-                guard let (registration, pid) = support.resolve(arguments["app"]) else {
+                guard let (registration, pid) = await MediaSurfaceLaunch.resolveOrLaunch(
+                    named: arguments["app"], support: support)
+                else {
                     return notRunning(arguments["app"])
                 }
                 let shuffled = await MediaSurfaceLibrary.pressShuffle(
@@ -584,6 +606,17 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         archivePolicy: .stateSnapshot,
                         target: reading?.element,
                         adapterTrail: ["media-surface"])
+                case .playedAsGuess(let name):
+                    let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+                    let track = reading?.title.map { " — \"\($0)\"" } ?? ""
+                    return SkillOutcome(
+                        ok: true,
+                        summary: shuffled
+                            ? "Shuffling \(name)\(track) — closest match to what you asked for."
+                            : "Playing \(name)\(track) — closest match, and I couldn't reach the shuffle control.",
+                        archivePolicy: .stateSnapshot,
+                        adapterTrail: ["media-surface"],
+                        committedGuess: true)
                 case .ambiguous(let titles):
                     return SkillOutcome(
                         ok: true,

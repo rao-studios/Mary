@@ -305,6 +305,27 @@
         "control-playback",
         "now-playing"
       ],
+      "intentExemplars" : {
+        "operate" : [
+          "play the playlist",
+          "play my workout playlist",
+          "open apple music and play a playlist",
+          "can you play the playlist in apple music",
+          "can you open apple music and play the rao playlist",
+          "can you play the rao playlist in apple music",
+          "pause the music",
+          "skip this song",
+          "shuffle my playlist",
+          "put on my running mix",
+          "play this song",
+          "play that track",
+          "make a playlist",
+          "set the volume",
+          "turn the volume up",
+          "what playlists do i have",
+          "find my playlist"
+        ]
+      },
       "negativeTokens" : [
         "sheet music"
       ],
@@ -564,6 +585,26 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "can-you-play-a-named-playlist-in-the-app",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Can you play the RAO playlist in Apple Music?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "can-you-open-the-app-and-play-a-named-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Can you open Apple Music and play the RAO playlist?"
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.list-playlists",
       "id" : "list-the-playlists",
       "interactions" : [
@@ -647,7 +688,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "5bf5fc9813d55d06822e8c0d1ed26028f8ef40d480c0d1db0b00be0cef5356c3"
+    "digest" : "d29a736cb1e6b7f65feab1ef8a4c8b415178bc7049913734a590303298e55fd2"
   },
   "interactions" : [
 
@@ -706,6 +747,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -822,6 +864,7 @@
             ],
             "name" : "action",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What to do.",
             "type" : "string"
           }
@@ -953,6 +996,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What to look for.",
             "type" : "string"
           },
@@ -962,6 +1006,7 @@
             ],
             "name" : "artist",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Artist hint.",
             "type" : "string"
           }
@@ -1039,6 +1084,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What to play.",
             "type" : "string"
           },
@@ -1048,6 +1094,7 @@
             ],
             "name" : "artist",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Artist hint.",
             "type" : "string"
           }
@@ -1188,6 +1235,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1298,6 +1346,7 @@
             ],
             "name" : "playlist",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Which playlist.",
             "type" : "string"
           },
@@ -1307,6 +1356,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1431,6 +1481,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The playlist name to look for.",
             "type" : "string"
           },
@@ -1440,6 +1491,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1557,6 +1609,7 @@
             ],
             "name" : "playlist",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Which playlist.",
             "type" : "string"
           },
@@ -1566,6 +1619,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }

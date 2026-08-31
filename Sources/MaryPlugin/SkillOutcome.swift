@@ -74,6 +74,13 @@ public struct SkillOutcome: Sendable {
     /// PIN: set only on proven effect. `false` when merely dispatched.
     public var landed: Bool
 
+    /// A deterministic resolver committed to its best guess rather than
+    /// refuse (`SpokenTitleCommitContext` only). `summary` MUST state the
+    /// interpretation, never claim certainty — the "correctable in one
+    /// word" contract this field exists to preserve. The confidence-dispatch
+    /// epilogue reads this to force the summary to speak even when `ok`.
+    public var committedGuess: Bool
+
     /// Element (with frame) as it was at the moment of acting.
     /// PIN: evidence, not an address — actuation re-reads by identity.
     public var target: AXElementRecord?
@@ -96,7 +103,8 @@ public struct SkillOutcome: Sendable {
         typingDisposition: TypingDisposition? = nil,
         landed: Bool = false,
         target: AXElementRecord? = nil,
-        adapterTrail: [AdapterID] = []
+        adapterTrail: [AdapterID] = [],
+        committedGuess: Bool = false
     ) {
         self.ok = ok
         self.summary = summary
@@ -113,5 +121,6 @@ public struct SkillOutcome: Sendable {
         self.landed = landed
         self.target = target
         self.adapterTrail = adapterTrail
+        self.committedGuess = committedGuess
     }
 }

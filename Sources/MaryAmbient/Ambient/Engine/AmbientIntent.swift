@@ -68,7 +68,9 @@ public enum AmbientSignal: String, Sendable, Equatable, CaseIterable, Codable {
     case routineStop
     /// `EditIntentClassifier.intent(in:)` returned a shape.
     case editIntent
-    /// `ActionClassifier.isActionCommand` said command.
+    /// Embedding intent index picked operate / perceive / converse.
+    case embedding
+    /// `ActionClassifier.isActionCommand` said command (no embedding index).
     case actionCommand
     /// An action verb in the writing register with no edit intent.
     case writingRegister

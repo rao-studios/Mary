@@ -26,8 +26,10 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     public var grantedPermissions: Set<PermissionKind>
     public var sourceResolution: SourceResolution
     public var workspaceFamily: String?
-    /// Embedding similarity between this turn's utterance and each Skill's authored corpus.
+    /// Embedding similarity between this turn's query and each Skill's authored corpus.
     public var semanticSkillAffinity: [SkillID: Float]
+    /// When true, utterance tokens/phrases and targetClass do not gate offer.
+    public var usesEmbeddingRoster: Bool
 
     public init(
         utterance: String = "",
@@ -41,7 +43,8 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         grantedPermissions: Set<PermissionKind> = [],
         sourceResolution: SourceResolution = .unresolved,
         workspaceFamily: String? = nil,
-        semanticSkillAffinity: [SkillID: Float] = [:]
+        semanticSkillAffinity: [SkillID: Float] = [:],
+        usesEmbeddingRoster: Bool = false
     ) {
         self.utterance = utterance
         self.intent = intent
@@ -55,6 +58,7 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         self.sourceResolution = sourceResolution
         self.workspaceFamily = workspaceFamily
         self.semanticSkillAffinity = semanticSkillAffinity
+        self.usesEmbeddingRoster = usesEmbeddingRoster
     }
 }
 

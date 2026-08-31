@@ -20,7 +20,7 @@ public enum AmbientWritingTarget: String, Sendable, Equatable, Codable {
 
 /// Raw classifier verdicts, evaluated once per route.
 public struct AmbientVerdicts: Sendable, Equatable {
-    /// `ActionClassifier.isActionCommand` — passed in, not re-run.
+    /// Operate/compose this turn — embeddings, or ActionClassifier when none.
     public var actionTurn: Bool
     /// `EditIntentClassifier`'s shape, when it found one.
     public var editShape: EditIntent.Shape?

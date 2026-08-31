@@ -219,6 +219,8 @@ if let index = CommandLine.arguments.firstIndex(of: "--find"),
     heading("finding \"\(wanted)\"")
     switch SpokenTitleMatcher.resolve(wanted, in: playlists) {
     case .match(let title): check(true, "resolved", title)
+    case .guessed(let title):
+        check(true, "guessed (commit context off by default here)", title)
     case .ambiguous(let titles):
         check(true, "more than one answered to it", titles.joined(separator: ", "))
     case .none(let closest):
@@ -251,6 +253,8 @@ if let index = CommandLine.arguments.firstIndex(of: "--play"),
         } else {
             print("      · track name not exposed in this view — cannot compare")
         }
+    case .playedAsGuess(let name):
+        check(true, "played as a guess (commit context off by default here)", name)
     case .ambiguous(let titles):
         check(false, "ambiguous", titles.joined(separator: ", "))
     case .noSuchPlaylist(let closest):

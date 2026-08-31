@@ -135,7 +135,9 @@ public extension AbilityDispatching {
     var abilityRosterTrace: AbilityRosterTrace { .empty }
     var applicationProfiles: [ApplicationProfile] { [] }
     var focusedApplicationID: String? { nil }
-    var abilitySnapshot: AbilityRuntimeSnapshot { AbilityLibrary.shared.snapshot() }
+    /// Empty unless the dispatcher freezes a registry. Loading the live
+    /// library here would vectorize every package as a side effect of routing.
+    var abilitySnapshot: AbilityRuntimeSnapshot { .empty }
     func skillReference(for invocationName: String) -> AbilitySkillReference {
         abilitySnapshot.reference(forInvocation: invocationName)
     }

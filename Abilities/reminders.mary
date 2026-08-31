@@ -66,15 +66,31 @@
       "intentAliases" : [
 
       ],
+      "intentExemplars" : {
+        "ask" : [
+          "do i have reminders today",
+          "what are my reminders",
+          "what do i need to do"
+        ],
+        "operate" : [
+          "add a reminder",
+          "remind me to call mom",
+          "set a reminder for tomorrow"
+        ]
+      },
       "negativeTokens" : [
 
       ],
       "phrases" : [
         "in reminders",
-        "my reminders"
+        "my reminders",
+        "remind me to",
+        "add a reminder"
       ],
       "tokens" : [
-        "reminders"
+        "reminders",
+        "remind",
+        "reminder"
       ]
     },
     "version" : "1.0.0"
@@ -158,7 +174,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "a2e6128674cf2228d71bb656f3b1ad14d7a223560b554647fe2204265d8fe70b"
+    "digest" : "8da4e17a8c81425a3384c82eeab2e2792de1fae14e02fd9f23e0dbf2d2b4c656"
   },
   "interactions" : [
 
@@ -354,6 +370,7 @@
             ],
             "name" : "title",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The reminder.",
             "type" : "string"
           }
@@ -431,6 +448,7 @@
             ],
             "name" : "title",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Which reminder.",
             "type" : "string"
           }

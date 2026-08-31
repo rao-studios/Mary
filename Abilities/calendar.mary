@@ -67,15 +67,30 @@
       "intentAliases" : [
 
       ],
+      "intentExemplars" : {
+        "ask" : [
+          "what's on my calendar",
+          "what do i have today",
+          "when is my next meeting",
+          "am i free tomorrow"
+        ],
+        "operate" : [
+          "add an event to my calendar",
+          "schedule a meeting"
+        ]
+      },
       "negativeTokens" : [
 
       ],
       "phrases" : [
         "in calendar",
-        "my calendar"
+        "my calendar",
+        "search for",
+        "look for"
       ],
       "tokens" : [
-        "calendar"
+        "calendar",
+        "search"
       ]
     },
     "version" : "1.0.0"
@@ -159,7 +174,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "10436fd503b19310800ffb3e95591b19904933d42768cf7b72d150d7195b7516"
+    "digest" : "57f5ae09d5b6bcbac78b953eaf164b34587bbb339af24c10618a621bb9c825f7"
   },
   "interactions" : [
 
@@ -355,6 +370,7 @@
             ],
             "name" : "start_date",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "YYYY-MM-DD",
             "type" : "string"
           },
@@ -364,6 +380,7 @@
             ],
             "name" : "end_date",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "YYYY-MM-DD",
             "type" : "string"
           }
@@ -441,6 +458,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Title text.",
             "type" : "string"
           }
@@ -518,6 +536,7 @@
             ],
             "name" : "title",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Event title.",
             "type" : "string"
           },
@@ -527,6 +546,7 @@
             ],
             "name" : "start_date",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Start.",
             "type" : "string"
           },
@@ -536,6 +556,7 @@
             ],
             "name" : "end_date",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "End.",
             "type" : "string"
           }

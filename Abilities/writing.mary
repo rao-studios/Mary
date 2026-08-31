@@ -153,6 +153,16 @@
         "insert",
         "undo-writing"
       ],
+      "intentExemplars" : {
+        "compose" : [
+          "type this sentence",
+          "write a paragraph",
+          "insert a line",
+          "add a scene",
+          "add the hookup",
+          "create a new document"
+        ]
+      },
       "negativeTokens" : [
         "code",
         "swift",
@@ -629,7 +639,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8af0aa2cf5dc0b926d029b215c7e608fd381b5543a6019cec1511f961ae2ed84"
+    "digest" : "98f66d69e4416ecf25607e95c7f73d389fbf7540062809bca3fa1c9b1a58510d"
   },
   "interactions" : [
     {
@@ -760,6 +770,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -849,6 +860,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -936,6 +948,7 @@
             ],
             "name" : "request",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "What the draft should accomplish.",
             "type" : "string"
           },
@@ -945,6 +958,7 @@
             ],
             "name" : "audience",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Intended reader.",
             "type" : "string"
           },
@@ -954,6 +968,7 @@
             ],
             "name" : "tone",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Desired tone or register.",
             "type" : "string"
           }
@@ -1044,6 +1059,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -1126,6 +1142,7 @@
             ],
             "name" : "passage",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The [S1] handle from an earlier read.",
             "type" : "string"
           },
@@ -1135,6 +1152,7 @@
             ],
             "name" : "target",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Heading, phrase, or words naming the passage.",
             "type" : "string"
           },
@@ -1144,6 +1162,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The application's name. Omit for the routed workspace.",
             "type" : "string"
           }
@@ -1256,6 +1275,7 @@
             ],
             "name" : "target",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Heading, phrase, or words naming the passage.",
             "type" : "string"
           },
@@ -1265,6 +1285,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The application's name. Omit for the routed workspace.",
             "type" : "string"
           }
@@ -1378,6 +1399,7 @@
             ],
             "name" : "passage",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The [S1] handle from an earlier read.",
             "type" : "string"
           },
@@ -1387,6 +1409,7 @@
             ],
             "name" : "target",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Heading, phrase, or words naming the passage.",
             "type" : "string"
           },
@@ -1396,6 +1419,7 @@
             ],
             "name" : "text",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "Complete wording to insert.",
             "type" : "string"
           },
@@ -1406,6 +1430,7 @@
             ],
             "name" : "position",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Insert before or after the passage.",
             "type" : "string"
           },
@@ -1415,6 +1440,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The application's name. Omit for the routed workspace.",
             "type" : "string"
           }
@@ -1522,6 +1548,7 @@
             ],
             "name" : "destination",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The folder to move it into, as the outline names it.",
             "type" : "string"
           },
@@ -1531,6 +1558,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -1620,6 +1648,7 @@
             ],
             "name" : "document",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The document's title, as the outline shows it.",
             "type" : "string"
           },
@@ -1629,6 +1658,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -1706,6 +1736,7 @@
             ],
             "name" : "under",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Only the part under this folder. Omit for the whole project.",
             "type" : "string"
           },
@@ -1715,6 +1746,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -1797,6 +1829,7 @@
             ],
             "name" : "passage",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The [S1] handle from an earlier read.",
             "type" : "string"
           },
@@ -1806,6 +1839,7 @@
             ],
             "name" : "target",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Heading, phrase, or words naming the passage.",
             "type" : "string"
           },
@@ -1815,6 +1849,7 @@
             ],
             "name" : "text",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "New wording exactly as it should read.",
             "type" : "string"
           },
@@ -1824,6 +1859,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The application's name. Omit for the routed workspace.",
             "type" : "string"
           }
@@ -2018,6 +2054,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "The application's name. Omit for the routed workspace.",
             "type" : "string"
           }
@@ -2110,6 +2147,7 @@
             ],
             "name" : "instruction",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "How the highlighted text should change.",
             "type" : "string"
           }
@@ -2281,6 +2319,7 @@
             ],
             "name" : "query",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The word or phrase to look for.",
             "type" : "string"
           },
@@ -2290,6 +2329,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -2556,6 +2596,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Application to dictate into.",
             "type" : "string"
           }
@@ -2737,6 +2778,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project. Omit when only one is open.",
             "type" : "string"
           }
@@ -2831,6 +2873,7 @@
             ],
             "name" : "text",
             "required" : true,
+            "requiresComposition" : true,
             "summary" : "Prose to type exactly as it should appear.",
             "type" : "string"
           },
@@ -2840,6 +2883,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Optional application name or bundle identifier.",
             "type" : "string"
           },
@@ -2850,6 +2894,7 @@
             ],
             "name" : "mode",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Composition or replacement of a freshly highlighted selection.",
             "type" : "string"
           }
@@ -3008,6 +3053,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -3097,6 +3143,7 @@
             ],
             "name" : "document",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Handle or title.",
             "type" : "string"
           },
@@ -3106,6 +3153,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -3195,6 +3243,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -3284,6 +3333,7 @@
             ],
             "name" : "document",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Title or path.",
             "type" : "string"
           },
@@ -3293,6 +3343,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project.",
             "type" : "string"
           }
@@ -3370,6 +3421,7 @@
             ],
             "name" : "document",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Title or path.",
             "type" : "string"
           },
@@ -3379,6 +3431,7 @@
             ],
             "name" : "info",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "The note.",
             "type" : "string"
           },
@@ -3388,6 +3441,7 @@
             ],
             "name" : "project",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Which project.",
             "type" : "string"
           }

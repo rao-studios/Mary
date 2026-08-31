@@ -66,6 +66,9 @@
       "intentAliases" : [
 
       ],
+      "intentExemplars" : {
+
+      },
       "negativeTokens" : [
 
       ],
@@ -105,7 +108,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4626bbcc97e9e9caee69205c14cf74de50b20be20c34be89cb4acd7a3a4a269d"
+    "digest" : "3eaac2546e4c4e81caf4bfcb862ce9cbe4483090cd099c98a73c0ea0bb07d812"
   },
   "interactions" : [
 

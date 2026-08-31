@@ -78,6 +78,15 @@
         "make-window-full-screen",
         "exit-full-screen"
       ],
+      "intentExemplars" : {
+        "operate" : [
+          "close the window",
+          "bring the window forward",
+          "minimize this window",
+          "make this window full screen",
+          "show me all my windows"
+        ]
+      },
       "negativeTokens" : [
 
       ],
@@ -365,7 +374,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "36483d981df1b51735a4af46adc698437cc7fc6fec4c0ac9c23bc72bd9ecd3b9"
+    "digest" : "acb1fff514ac76d3bc825d71c50d049abcb6acc3d5b263de06caafa1467e76fd"
   },
   "interactions" : [
     {
@@ -486,6 +495,7 @@
             ],
             "name" : "app_name",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Application name only. Never use this parameter to satisfy a named, titled, or referred window request.",
             "type" : "string"
           }
@@ -609,6 +619,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Application name or bundle identifier; omit for frontmost.",
             "type" : "string"
           }
@@ -712,6 +723,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Owning application; omit when the window reference proves it.",
             "type" : "string"
           },
@@ -721,6 +733,7 @@
             ],
             "name" : "window",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Stable handle, exact unambiguous title, or conversation-established anaphoric window reference.",
             "type" : "string"
           }
@@ -826,6 +839,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Application name or bundle identifier; omit for frontmost.",
             "type" : "string"
           }
@@ -929,6 +943,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Owning application; omit when the window reference proves it.",
             "type" : "string"
           },
@@ -938,6 +953,7 @@
             ],
             "name" : "window",
             "required" : true,
+            "requiresComposition" : false,
             "summary" : "Stable window handle or exact unambiguous title.",
             "type" : "string"
           }
@@ -1034,6 +1050,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Owning application; omit for the frontmost one.",
             "type" : "string"
           },
@@ -1043,6 +1060,7 @@
             ],
             "name" : "window",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Stable window handle or exact title; omit for the window in front.",
             "type" : "string"
           }
@@ -1140,6 +1158,7 @@
             ],
             "name" : "app",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Owning application; omit for the frontmost one.",
             "type" : "string"
           },
@@ -1149,6 +1168,7 @@
             ],
             "name" : "window",
             "required" : false,
+            "requiresComposition" : false,
             "summary" : "Stable window handle or exact title; omit for the window in front.",
             "type" : "string"
           }

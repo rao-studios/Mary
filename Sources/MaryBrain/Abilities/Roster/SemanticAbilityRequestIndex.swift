@@ -4,8 +4,8 @@
 //
 //  WHAT: Embedding recall for the Ability-request seam.
 //  IN:   AbilityTriggerSchema corpus (authored package data)
-//  OUT:  union with exact `requestedAbilities(in:)`
-//  PIN:  Additive only; fails closed; never identifies a Skill.
+//  OUT:  requestedAbilities when the index exists
+//  PIN:  Tokens seed the corpus; they are not a second matcher.
 //
 import MaryAmbient
 import Foundation
@@ -37,6 +37,8 @@ public struct SemanticAbilityRequestIndex: Sendable {
     private let vectorizer: any UtteranceVectorizer
     private let positiveThreshold: Float
     private let negativeMargin: Float
+
+    public var entryCount: Int { entries.count }
 
     /// Nil when nothing in the corpus vectorized — an index that can only
     /// say "no" is dead weight.
@@ -75,6 +77,10 @@ public struct SemanticAbilityRequestIndex: Sendable {
                 negatives: negatives))
         }
         guard !entries.isEmpty else { return nil }
+        let dim = entries.first?.positives.first?.count ?? 0
+        let skipped = records.count - entries.count
+        MaryBrain.turnLog.info(
+            "embed generate — abilities=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public)")
         return SemanticAbilityRequestIndex(
             entries: entries,
             vectorizer: vectorizer,
@@ -94,10 +100,9 @@ public struct SemanticAbilityRequestIndex: Sendable {
         self.negativeMargin = negativeMargin
     }
 
-    /// Embedding-only recall. Callers UNION this with the exact matches —
-    /// it must never be consulted to veto them.
+    /// Embedding-only recall. Tokens and phrases seeded the corpus at build.
     public func requestedAbilities(in utterance: String) -> Set<AbilityID> {
-        guard let raw = vectorizer.vector(for: utterance) else { return [] }
+        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [] }
         let query = Self.normalized(raw)
         var requested: Set<AbilityID> = []
         for entry in entries {
