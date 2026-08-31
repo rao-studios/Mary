@@ -118,7 +118,7 @@ extension ConfigService {
             /// Lane-style choice for pair-coding synthesis. Local by default;
             /// hosted uses Seer's `/v1/code/complete` and never a Hub id.
             package var codingEngine: LLMEngineChoice = .local
-            /// How long an ordinary Skill may stay running (1…10 s). Named
+            /// How long an ordinary Skill may stay running (1…20 s). Named
             /// build/test bindings keep their own ceilings.
             package var skillRunTimeoutSeconds: Double = 2
 

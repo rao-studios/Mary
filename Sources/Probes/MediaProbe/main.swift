@@ -3,11 +3,12 @@
 //  MediaProbe — `mary-media-probe`
 //
 //  WHAT: Declared mediaSurface vs a running player's Accessibility tree.
-//  OUT:  CLI: mary-media-probe [--drive|--play|--shuffle|--find]
+//  OUT:  CLI: mary-media-probe [--drive|--play|--shuffle|--find|--folders]
 //  PIN:  --drive puts playback back.
 //
 
 import AppKit
+import ApplicationServices
 import Foundation
 import MaryPlugin
 import MaryBrain
@@ -263,6 +264,109 @@ if let index = CommandLine.arguments.firstIndex(of: "--play"),
         check(false, "no library was visible")
     case .couldNotPress:
         check(false, "found it but could not start it")
+    }
+}
+
+// MARK: - Sidebar disclosure diagnostic — measure before writing
+
+// Raw AX, not `AXSnapshotBuilder` (its element table is internal to
+// MaryPlugin, unreachable from this probe) — deliberately self-contained so
+// this stays a pure measurement pass, nothing it discovers here is assumed
+// by production code yet.
+if CommandLine.arguments.dropFirst().contains("--folders") {
+    heading("sidebar disclosure state")
+
+    func rawValue(_ element: AXUIElement, _ attr: String) -> CFTypeRef? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attr as CFString, &value) == .success
+        else { return nil }
+        return value
+    }
+    func rawString(_ element: AXUIElement, _ attr: String) -> String? {
+        rawValue(element, attr) as? String
+    }
+    func rawBool(_ element: AXUIElement, _ attr: String) -> Bool? {
+        rawValue(element, attr) as? Bool
+    }
+    func rawSettable(_ element: AXUIElement, _ attr: String) -> Bool {
+        var settable: DarwinBoolean = false
+        return AXUIElementIsAttributeSettable(element, attr as CFString, &settable) == .success
+            && settable.boolValue
+    }
+    func rawChildren(_ element: AXUIElement) -> [AXUIElement] {
+        (rawValue(element, kAXChildrenAttribute as String) as? [AXUIElement]) ?? []
+    }
+    func rawWindows(_ app: AXUIElement) -> [AXUIElement] {
+        (rawValue(app, kAXWindowsAttribute as String) as? [AXUIElement]) ?? []
+    }
+    func rawLabel(_ element: AXUIElement) -> String? {
+        rawString(element, kAXTitleAttribute as String)
+            ?? rawString(element, kAXDescriptionAttribute as String)
+    }
+    func folded(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    if let wantedLabel = registration.schema.libraryLabel {
+        let app = AXUIElementCreateApplication(pid)
+        var outline: AXUIElement?
+        func find(_ element: AXUIElement, depth: Int) {
+            guard outline == nil, depth < 40 else { return }
+            if let label = rawLabel(element), folded(label) == folded(wantedLabel) {
+                outline = element
+                return
+            }
+            for child in rawChildren(element) { find(child, depth: depth + 1) }
+        }
+        for window in rawWindows(app) { find(window, depth: 0) }
+
+        guard let outline else {
+            print("  ✗  no element titled/described \"\(wantedLabel)\" was found.")
+            exit(1)
+        }
+        check(true, "found the outline", wantedLabel)
+
+        var rowCount = 0
+        var collapsedCount = 0
+        func walk(_ element: AXUIElement, depth: Int) {
+            guard depth < 12 else { return }
+            let role = rawString(element, kAXRoleAttribute as String) ?? "?"
+            let children = rawChildren(element)
+            if role == "AXRow" {
+                rowCount += 1
+                let label = rawLabel(element) ?? "(no label)"
+                let disclosing = rawBool(element, kAXDisclosingAttribute as String)
+                let settable = rawSettable(element, kAXDisclosingAttribute as String)
+                let disclosedRows = rawValue(element, kAXDisclosedRowsAttribute as String)
+                    as? [AXUIElement]
+                let indent = String(repeating: "  ", count: depth)
+                var line = "\(indent)· \(label) — children=\(children.count)"
+                if let disclosing {
+                    line += " disclosing=\(disclosing) settable=\(settable)"
+                    if !disclosing { collapsedCount += 1 }
+                }
+                if let disclosedRows {
+                    line += " disclosedRows=\(disclosedRows.count)"
+                }
+                print(line)
+            }
+            for child in children { walk(child, depth: depth + 1) }
+        }
+        walk(outline, depth: 0)
+
+        print("\n      rows seen: \(rowCount), collapsed (disclosing=false): \(collapsedCount)")
+        if collapsedCount > 0 {
+            print("""
+                  · at least one row is collapsed — its children, if any, are not
+                    in this tree at all. Expanding (kAXDisclosingAttribute=true, or
+                    pressing the disclosure control if the attribute is not
+                    settable) before collecting rows is the fix `sidebarRows` needs.
+                """)
+        } else {
+            print("      · no collapsed rows found — collapse a playlist folder and re-run to measure this case.")
+        }
+    } else {
+        print("  ✗  this package declares no libraryLabel — nothing to search for.")
     }
 }
 

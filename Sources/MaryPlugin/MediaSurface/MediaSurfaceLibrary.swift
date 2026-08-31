@@ -29,14 +29,14 @@ public enum MediaSurfaceLibrary {
     private static func revealedRows(
         pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> [Row]? {
-        if let rows = sidebarRows(pid: pid, registration: registration), !rows.isEmpty {
+        if let rows = await sidebarRows(pid: pid, registration: registration), !rows.isEmpty {
             return rows
         }
         guard let reveal = registration.schema.libraryRevealLabel,
               await pressButton(labelled: reveal, pid: pid, registration: registration)
-        else { return sidebarRows(pid: pid, registration: registration) }
+        else { return await sidebarRows(pid: pid, registration: registration) }
         try? await Task.sleep(nanoseconds: 700_000_000)
-        return sidebarRows(pid: pid, registration: registration)
+        return await sidebarRows(pid: pid, registration: registration)
     }
 
     /// Press the first button anywhere in the player wearing this label.
@@ -203,10 +203,18 @@ public enum MediaSurfaceLibrary {
         let element: AXUIElement
     }
 
-    /// Every row of the declared library outline, with its live element.
-    private static func sidebarRows(
+    private struct RowsSnapshot {
+        let outline: AXNodeSnapshot
+        let elements: AXSnapshotBuilder.ElementTable
+        let detail: AXSubtreeDetail
+    }
+
+    /// Locate the declared library outline and read its subtree once. Split
+    /// out of `sidebarRows` so a re-walk after expanding folders is a second
+    /// call to this, not a duplicated copy of the same search.
+    private static func rowsSnapshot(
         pid: pid_t, registration: MediaSurfaceRegistration
-    ) -> [Row]? {
+    ) -> RowsSnapshot? {
         guard AXIsProcessTrusted(),
               let wanted = registration.schema.libraryLabel?.nilWhenEmpty,
               let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
@@ -230,7 +238,42 @@ public enum MediaSurfaceLibrary {
               let detail = AXDetailReader.read(
                 subtree: outline, table: built.elements, budget: .probe)
         else { return nil }
+        return RowsSnapshot(outline: outline, elements: built.elements, detail: detail)
+    }
 
+    /// A collapsed outline row's children are not materialized in the
+    /// accessibility tree AT ALL until `kAXDisclosingAttribute` reads true —
+    /// a playlist inside a collapsed folder is structurally invisible here,
+    /// not merely filtered out by the section rule. A LEAF row (an ordinary
+    /// playlist) also reads `disclosing == false` — it has nothing to
+    /// disclose — but setting the attribute on it is a harmless no-op
+    /// (`AXUIElementSetAttributeValue` fails silently when unsupported), so
+    /// this attempts every row reading false rather than pre-filtering by
+    /// settability, which costs the same one IPC round trip either way.
+    /// Bounded — a sidebar's real folder count is small; this is not a
+    /// license to expand an unbounded outline.
+    private static let maxFoldersToExpand = 20
+
+    @discardableResult
+    private static func expandCollapsedRows(_ snapshot: RowsSnapshot) -> Bool {
+        var expanded = 0
+        func walk(_ node: AXNodeSnapshot) {
+            guard expanded < maxFoldersToExpand else { return }
+            if node.role == "AXRow", let element = snapshot.elements[node.id] {
+                let disclosing = AX.attribute(element, kAXDisclosingAttribute as String) as? Bool
+                if disclosing == false {
+                    let result = AXUIElementSetAttributeValue(
+                        element, kAXDisclosingAttribute as CFString, true as CFTypeRef)
+                    if result == .success { expanded += 1 }
+                }
+            }
+            for child in node.children { walk(child) }
+        }
+        walk(snapshot.outline)
+        return expanded > 0
+    }
+
+    private static func collectRows(_ snapshot: RowsSnapshot) -> [Row] {
         var rows: [Row] = []
         func collect(_ node: AXNodeSnapshot) {
             if node.role == "AXRow" {
@@ -241,7 +284,7 @@ public enum MediaSurfaceLibrary {
                 func firstText(_ inner: AXNodeSnapshot) {
                     guard name == nil else { return }
                     if inner.role.contains("StaticText"),
-                       let value = detail.nodes[inner.id]?.textValue?
+                       let value = snapshot.detail.nodes[inner.id]?.textValue?
                         .trimmingCharacters(in: .whitespacesAndNewlines),
                        !value.isEmpty {
                         name = value
@@ -250,14 +293,28 @@ public enum MediaSurfaceLibrary {
                     for child in inner.children { firstText(child) }
                 }
                 firstText(node)
-                if let name, let element = built.elements[node.id] {
+                if let name, let element = snapshot.elements[node.id] {
                     rows.append(Row(name: name, element: element))
                 }
             }
             for child in node.children { collect(child) }
         }
-        collect(outline)
+        collect(snapshot.outline)
         return rows
+    }
+
+    /// Every row of the declared library outline, with its live element.
+    private static func sidebarRows(
+        pid: pid_t, registration: MediaSurfaceRegistration
+    ) async -> [Row]? {
+        guard let first = rowsSnapshot(pid: pid, registration: registration) else { return nil }
+        guard expandCollapsedRows(first) else { return collectRows(first) }
+        // Something was expanded — its children only exist in a fresh walk.
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        guard let second = rowsSnapshot(pid: pid, registration: registration) else {
+            return collectRows(first)
+        }
+        return collectRows(second)
     }
 
     private static func transportIDs(

@@ -2715,7 +2715,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     ]
 
     public static let ordinarySkillTimeoutMinimum: TimeInterval = 1
-    public static let ordinarySkillTimeoutMaximum: TimeInterval = 10
+    public static let ordinarySkillTimeoutMaximum: TimeInterval = 20
     public static let ordinarySkillTimeoutDefault: TimeInterval = 2
 
     public static func clampedOrdinarySkillTimeout(_ seconds: TimeInterval) -> TimeInterval {
