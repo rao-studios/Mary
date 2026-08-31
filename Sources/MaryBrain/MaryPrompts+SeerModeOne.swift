@@ -50,6 +50,17 @@ extension MaryPrompts {
     looking at, reply NOOP.
     """
 
+    /// Pre-lane READ already served this turn — the voice holds a real passage
+    /// (a selection, a buffer, a document), not a glance. Lane B's job
+    /// narrows to what that passage does NOT contain.
+    public static let servedByReadNote = """
+    Note: the voice already holds the part of their open work they are \
+    looking at — do not re-read it. Call something only for what is NOT in \
+    that passage (a symbol elsewhere, a windowed find, an outline, another \
+    file) or for an ACTION they asked for. If the question is fully answered \
+    by what the voice already has, reply NOOP.
+    """
+
     /// Lane wanted something DONE, ran nothing, and the screen already offers it.
     /// PIN: Names observed control labels, not intent. One re-roll.
     public static func affordanceNudge(labels: [String]) -> String {

@@ -38,6 +38,9 @@ extension MaryRuntime {
         let tracker = WorkspaceFocusTracker.shared
         let index = AmbientApplicationIndexProvider.current
         let signal = tracker.signal()
+        let store = AmbientContextStore.shared
+        let utterance = store.utterance()
+        let named = AmbientRanker.explicitlyNamedPlaces(in: utterance)
 
         // Observer contributes because it had something to say, not because the app is running.
         let contributions: [WorkspaceFocusArbiter.Contribution] = deps.observers
@@ -54,11 +57,19 @@ extension MaryRuntime {
                     // Whole document vs window — asked of the declaration.
                     liveDocumentIsWhole: registration?.observesDocuments == true
                         ? observer.holdsWholeDocument : nil,
-                    wasNamed: false)
+                    wasNamed: named.contains(place))
             }
 
+        // The ADHD case: real work in a place keeps it live though another
+        // window now leads on-screen. Tried before the frontmost signal, so
+        // naming a rival or a rival's own fresher work still wins normally.
+        let sticky = WorkspaceFocusArbiter.stickyLead(
+            evidence: tracker.freshEvidence(),
+            contributions: contributions,
+            referent: store.referent(),
+            world: store.world())
         let sections = WorkspaceFocusArbiter.sections(
-            focus: assertedFocus ?? signal.lead?.focus,
+            focus: assertedFocus ?? sticky ?? signal.lead?.focus,
             contributions: contributions)
 
         let lead = sections.leadPlace ?? signal.lead
@@ -74,6 +85,20 @@ extension MaryRuntime {
         for place: AmbientPlace?, index: any AmbientApplicationIndex
     ) -> DepositSubject {
         guard let place, let id = place.application else { return .unfocused }
+        // A coding lead whose corpus observer is standing on this SAME place
+        // gets its real project identity — without it `projectIdentity` is
+        // always nil, so every coding deposit files under no group at all
+        // and retrieval can never search the indexed corpus back.
+        if place.focus == .coding,
+           CorpusObserver.shared.observedPlace == place,
+           let standing = CorpusObserver.shared.standingFocus {
+            return DepositSubject(
+                app: id,
+                documentIdentity: standing.relativePath,
+                projectIdentity: standing.projectRoot,
+                contentKind: .file,
+                capturedAt: Date())
+        }
         return DepositSubject(
             app: id,
             documentIdentity: nil,

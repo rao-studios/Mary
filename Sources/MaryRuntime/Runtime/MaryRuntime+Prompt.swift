@@ -223,7 +223,8 @@ extension MaryRuntime {
                 conversational: pass.conversational,
                 runningActions: pass.runningActionLabels,
                 lookUnderway: pass.lookUnderway,
-                inspiredSight: pass.inspiredSight)
+                inspiredSight: pass.inspiredSight,
+                perceiving: pass.perceiving)
             let assembled = promptWithTails(
                 render: render, lane: .seerInstructions, held: held,
                 budget: AmbientRanker.voiceBudget,

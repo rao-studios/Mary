@@ -129,14 +129,28 @@ public struct CodeSurfaceAdapter: MaryAdapter {
                         ok: false,
                         summary: "I couldn't read \"\(surface.title)\" just now.")
                 }
-                let body = Self.excerpt(text, around: arguments["find"], budgets: registration.budgets)
+                // No `find`: "what does this do" means the part they're
+                // looking at, not the file's first N characters — window on
+                // the caret. Falls back to the old file-start excerpt when
+                // the caret can't be read (e.g. no selection info).
+                let find = arguments["find"]
+                var body: String
+                var headerSuffix = ""
+                if let windowed = (find?.isEmpty ?? true)
+                    ? Self.caretWindow(editor: surface.editor, budgets: registration.budgets)
+                    : nil {
+                    body = windowed.body
+                    headerSuffix = windowed.headerSuffix
+                } else {
+                    body = Self.excerpt(text, around: find, budgets: registration.budgets)
+                }
                 let line = "read_buffer — \(surface.title) chars=\(body.count) empty=\(body.isEmpty)"
                 TurnLog.logger.info("\(line, privacy: .public)")
                 return SkillOutcome(
                     ok: true,
                     summary: body.isEmpty
                         ? "\"\(surface.title)\" is empty."
-                        : "\(surface.title):\n\(body)",
+                        : "\(surface.title)\(headerSuffix):\n\(body)",
                     archivePolicy: .stateSnapshot,
                     foundNothing: body.isEmpty,
                     // WHAT WAS READ, as a record — a read acts on nothing, so this is not
@@ -454,5 +468,28 @@ public struct CodeSurfaceAdapter: MaryAdapter {
         let end = text.index(
             range.upperBound, offsetBy: window, limitedBy: text.endIndex) ?? text.endIndex
         return String(text[start..<end])
+    }
+
+    /// The buffer windowed on the caret — `CodeCursorScope`'s own AX-range
+    /// math (the same one `CodeSurfaceObserver` uses for the ambient live-work
+    /// fact), reused here rather than a second file-start excerpt. Nil when
+    /// the caret can't be read; the caller falls back to `excerpt`.
+    static func caretWindow(
+        editor: AXUIElement, budgets: PluginProseBudgetSchema
+    ) -> (body: String, headerSuffix: String)? {
+        guard let selection = CodeSurfaceAX.selectedRange(of: editor),
+              let total = CodeSurfaceAX.characterCount(of: editor), total > 0
+        else { return nil }
+        let caret = max(0, min(selection.lowerBound, total))
+        let bounds = CodeCursorScope.window(
+            around: caret, total: total, budget: budgets.wholeDocumentCharacters)
+        guard !bounds.isEmpty,
+              let raw = CodeSurfaceAX.substring(of: editor, range: bounds)
+        else { return nil }
+        let body = CodeCursorScope.snapped(
+            raw, cutAtStart: bounds.lowerBound > 0, cutAtEnd: bounds.upperBound < total)
+        guard bounds.count < total else { return (body, "") }
+        let suffix = " — around the cursor (characters \(bounds.lowerBound)–\(bounds.upperBound) of \(total))"
+        return (body, suffix)
     }
 }

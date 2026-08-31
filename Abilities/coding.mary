@@ -249,7 +249,12 @@
           "what does this function do",
           "can you look at my code",
           "let's take a look at this",
-          "what am i looking at"
+          "what am i looking at",
+          "what do you think about this code",
+          "what do you think of this function",
+          "thoughts on this implementation",
+          "how does this code look to you",
+          "review this code with me"
         ]
       },
       "negativeTokens" : [
@@ -1055,7 +1060,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "edef7205b4b556a0bd1ec1f48fa1e1a64b3d46bfcc81e16a62312577c5d74164"
+    "digest" : "6cd66404fcc4003d8cd61157da7ad904a518b737474a370f383b58c81e59aa4a"
   },
   "interactions" : [
     {

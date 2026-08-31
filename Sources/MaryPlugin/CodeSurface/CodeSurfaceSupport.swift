@@ -35,8 +35,16 @@ public final class CodeSurfaceSupport: @unchecked Sendable {
         SurfaceRoster.pid(of: registration)
     }
 
-    /// Named editor if running; else the standing pair-session hit.
+    /// Named editor if running; else the standing pair-session hit; else the
+    /// editor `CodeSurfaceObserver` already holds a claim on, whoever is
+    /// frontmost — an explicit "read my code" answers the surface Mary is
+    /// already watching, not whichever window happens to be in front while
+    /// the user is talking to her. Falls back to any running editor last.
     public func resolve(_ named: String?) -> (CodeSurfaceRegistration, pid_t)? {
-        roster.resolve(named: named)
+        roster.resolve(
+            named: named,
+            standingApplicationID: CodeSurfaceObserver.shared.observedPlace?.application,
+            unpreferredFallback: true,
+            anyRunningFallback: true)
     }
 }

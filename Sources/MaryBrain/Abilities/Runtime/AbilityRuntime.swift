@@ -1254,25 +1254,57 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     }
 
     /// Pre-lane look — `readNamedPart`'s sibling for sight.
-    /// PIN: a targeted read is not eyes; look_at_screen stays available when an editor leads.
+    /// PIN: an eyed world with a targeted read in hand declines look —
+    /// a screenshot of a surface Mary can already read exactly (source,
+    /// symbol, buffer) is a picture of text, not new sight.
     public func wouldServeLook() -> Bool {
-        skillBindings.contains { $0.name == Self.lookSkillName }
+        guard skillBindings.contains(where: { $0.name == Self.lookSkillName }) else {
+            return false
+        }
+        if let owner = focusProvider?(), targetedReads[owner] != nil { return false }
+        return true
     }
 
-    /// Fetch-first: highlight → selection read, document → inspect, else look.
-    public func fetchDeclaredEditorSight(query: String?) async -> String? {
+    /// A one-line summary this short is a RECEIPT ("Looking at Foo.swift in
+    /// Proj.") — an acknowledgment that something was found, never the thing
+    /// itself. Fetch-first must not serve a receipt as sight: the user asked
+    /// about their work, not confirmation a file exists.
+    static func isReceipt(_ summary: String) -> Bool {
+        !summary.contains("\n") && summary.count < 80
+    }
+
+    /// Fetch-first: highlight → selection read, then the leading place's OWN
+    /// declared discipline — a coding surface holds a live BUFFER
+    /// (read_buffer), a writing surface holds the DOCUMENT (read_document) —
+    /// else look. `current_file` is deliberately absent from this ladder:
+    /// its summary is a receipt, not code or prose, and serving it as sight
+    /// used to answer a work question having read no work.
+    /// Returns whether the passage came from a genuine read (vs. a look),
+    /// so the caller can tell Lane B what is already in hand.
+    public func fetchDeclaredEditorSight(
+        query: String?
+    ) async -> (passage: String, isRead: Bool)? {
         let snapshot = world.snapshot()
         let highlight = snapshot?.selectedText?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if snapshot?.isDirectReference == true, !highlight.isEmpty {
-            if let passage = await dispatchSummary("read_selection") { return passage }
-            return highlight
+            // A short highlight genuinely IS the passage — receipts allowed.
+            if let passage = await dispatchSummary("read_selection", rejectingReceipts: false) {
+                return (passage, true)
+            }
+            return (highlight, true)
         }
         if snapshot?.place.isApplication == true {
-            if let passage = await dispatchSummary("current_file") { return passage }
-            if let passage = await dispatchSummary("read_document") { return passage }
+            if snapshot?.place.focus != .writing,
+               let passage = await dispatchSummary("read_buffer") {
+                return (passage, true)
+            }
+            if let passage = await dispatchSummary("read_document") {
+                return (passage, true)
+            }
         }
-        return await lookAtScreen(query)
+        guard let passage = await lookAtScreen(query) else { return nil }
+        return (passage, false)
     }
 
     public func lookAtScreen(_ query: String?) async -> String? {
@@ -1289,12 +1321,14 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return summary.isEmpty ? nil : summary
     }
 
-    private func dispatchSummary(_ name: String) async -> String? {
+    private func dispatchSummary(_ name: String, rejectingReceipts: Bool = true) async -> String? {
         guard skillBindings.contains(where: { $0.name == name }) else { return nil }
         let outcome = await dispatch(name: name, argumentsJSON: "{}")
         guard outcome.ok, !outcome.foundNothing else { return nil }
         let summary = outcome.summary.trimmingCharacters(in: .whitespacesAndNewlines)
-        return summary.isEmpty ? nil : summary
+        guard !summary.isEmpty else { return nil }
+        guard !rejectingReceipts || !Self.isReceipt(summary) else { return nil }
+        return summary
     }
 
     // MARK: - Locating what a revision is about

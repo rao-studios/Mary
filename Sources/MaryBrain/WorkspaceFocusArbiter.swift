@@ -114,6 +114,45 @@ public enum WorkspaceFocusArbiter {
         return eligible.first(where: { !$0.full.isEmpty }) ?? eligible.first
     }
 
+    // MARK: - The ADHD case: a place still holds the lead though it is not frontmost
+
+    /// The discipline the user was just doing REAL WORK in, kept live though
+    /// another window now leads on-screen — the multitasking-agent feel:
+    /// switching windows mid-request does not mean switching attention.
+    /// Warranted by the ambient world, not a fixed clock: fresh `.activity`
+    /// ledger evidence (a real read, not a mere activation/click-through),
+    /// the conversational referent still pointing at that place, or this
+    /// turn's own world snapshot naming it. The freshest warrant wins;
+    /// naming a RIVAL place this turn beats stickiness outright, and an
+    /// exact tie defers to ordinary frontmost arbitration rather than
+    /// picking arbitrarily.
+    public static func stickyLead(
+        evidence: [AmbientPlace: FocusEvidence],
+        contributions: [Contribution],
+        referent: ResolvedReferent? = nil,
+        world: AmbientWorld.Snapshot? = nil,
+        now: Date = Date()
+    ) -> WorkspaceFocus? {
+        func warrant(_ place: AmbientPlace) -> Date? {
+            if referent?.place == place { return now }
+            if let id = place.application, world?.applicationID == id { return now }
+            guard let stamp = evidence[place], stamp.kind == .activity else { return nil }
+            return stamp.at
+        }
+        let warranted = contributions
+            .filter(\.isLive)
+            .compactMap { contribution -> (Contribution, Date)? in
+                warrant(contribution.place).map { (contribution, $0) }
+            }
+            .sorted { $0.1 > $1.1 }
+        guard let sticky = warranted.first,
+              warranted.dropFirst().first?.1 != sticky.1
+        else { return nil }
+        guard !contributions.contains(where: { $0.wasNamed && $0.place != sticky.0.place })
+        else { return nil }
+        return sticky.0.discipline
+    }
+
     // MARK: - The whole arbitration
 
     /// - Parameters: - contributions: every live place, in a stable caller-chosen order. - suppressFullSections: a place outside this arbitration owns the turn.

@@ -35,9 +35,16 @@ public final class ProseSurfaceSupport: @unchecked Sendable {
         roster.registration(bundleID: bundleID)
     }
 
-    /// Named editor if running; else the standing pair-session hit.
+    /// Named editor if running; else the standing pair-session hit; else the
+    /// document `ProseSurfaceObserver` already holds a claim on, whoever is
+    /// frontmost — see `CodeSurfaceSupport.resolve`, the same reasoning for
+    /// the writing family.
     public func resolve(_ named: String?) -> (ProseSurfaceRegistration, pid_t)? {
-        roster.resolve(named: named)
+        roster.resolve(
+            named: named,
+            standingApplicationID: ProseSurfaceObserver.shared.observedPlace?.application,
+            unpreferredFallback: true,
+            anyRunningFallback: true)
     }
 
     /// The registration behind a place, when that place is a declared prose

@@ -85,12 +85,13 @@ extension AmbientRanker {
     /// Places this turn's words re-admit. Shared by AbilityRuntime roster
     /// scoping and prompt fragment suppression.
     /// STEPS: route.namedPlaces → referent's world → watched display-name hit
-    ///        → Xcode if the words carry a coding cue.
+    ///        → Xcode if the words carry a coding cue → real-work evidence.
     public static func admittedPlaceMentions(
         route: AmbientRoute?,
         referent: ResolvedReferent?,
         utterance: String,
-        glanced: Set<AmbientPlace> = WorkspaceFocusTracker.shared.signal().glanced
+        glanced: Set<AmbientPlace> = WorkspaceFocusTracker.shared.signal().glanced,
+        evidence: [AmbientPlace: FocusEvidence] = WorkspaceFocusTracker.shared.freshEvidence()
     ) -> Set<AmbientPlace> {
         var admitted: Set<AmbientPlace> = []
         if let route {
@@ -106,6 +107,10 @@ extension AmbientRanker {
         admitted.formUnion(namedPlaces(in: utterance))
         // Rung 5 — GLANCED places (a fresh look_at_screen at that app).
         admitted.formUnion(glanced)
+        // Rung 6 — REAL-WORK places: the user was just there, whether or not
+        // it is frontmost now. The same warrant `stickyLead` reads for the
+        // prompt, applied here to the roster.
+        admitted.formUnion(evidence.values.filter { $0.kind == .activity }.map(\.place))
         return admitted
     }
 

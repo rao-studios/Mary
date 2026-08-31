@@ -31,7 +31,8 @@ public enum PromptSectionID: String, Sendable, Hashable, CaseIterable, Codable {
     // Nine of `seerInstructions`' pieces are CHILDREN composed inside another piece's template
     case seerPreamble
     case seerCompany, seerHeading
-    case seerPersonaRead, seerPersonaGrounded, seerPersonaConverse, seerPersonaInTurn
+    case seerPersonaRead, seerPersonaGrounded, seerPersonaConverse
+    case seerPersonaInsight, seerPersonaInTurn
     case seerCapability, seerRetrieval, seerRunningActions, seerLiveWork
     // A look fired for THIS turn and nothing is in hand yet — the voice
     // promises the look instead of denying sight. Renders only when the
@@ -137,6 +138,9 @@ public struct PromptInputs: Sendable {
     public var lookUnderway: Bool = false
     /// Turn World holds a highlight this question is about — inspire a look/read, don't offer to open a file.
     public var inspiredSight: Bool = false
+    /// THE ROUTER'S OWN VERDICT was perceive — a judgment question about
+    /// work in hand, not a plain recitation and not small talk.
+    public var perceiving: Bool = false
 
     public init(
         plugins: [any MaryAdapter] = [],
@@ -160,12 +164,14 @@ public struct PromptInputs: Sendable {
         conversational: Bool = false,
         runningActions: [String] = [],
         lookUnderway: Bool = false,
-        inspiredSight: Bool = false
+        inspiredSight: Bool = false,
+        perceiving: Bool = false
     ) {
         self.conversational = conversational
         self.runningActions = runningActions
         self.lookUnderway = lookUnderway
         self.inspiredSight = inspiredSight
+        self.perceiving = perceiving
         self.capability = capability
         self.groundedResults = groundedResults
         self.liveWork = liveWork

@@ -33,6 +33,10 @@ extension MaryBrain {
         lookUnderway: Bool = false,
         /// Pre-lane look already answered this turn. Look-first nudge must not fire.
         servedByPreLook: Bool = false,
+        /// Pre-lane READ already answered this turn (a buffer, a document, a
+        /// selection — not a look). Voice already holds their work; this
+        /// lane's job is only what is NOT in that passage.
+        servedByRead: Bool = false,
         /// Whether the turn is still waiting on this lane. Nil for probes and the legacy path.
         attachment: LaneAttachment? = nil
     ) async -> OrchestratorLaneResult {
@@ -47,7 +51,10 @@ extension MaryBrain {
             orchestratorPrompt += "\n\n" + MaryPrompts.targetBrief(target)
         }
         // Pre-look already served — note rides the same prompt seam as the passage.
-        if servedByPreLook {
+        // A read outranks a look: the voice holds actual content, not a glance.
+        if servedByRead {
+            orchestratorPrompt += "\n\n" + MaryPrompts.servedByReadNote
+        } else if servedByPreLook {
             orchestratorPrompt += "\n\n" + MaryPrompts.servedByLookNote
         }
         var laneHistory = seed
@@ -191,9 +198,9 @@ extension MaryBrain {
                         Self.laneLog.info("lane only read/prepared on an acting turn — continuing once")
                         continue
                     }
-                    // Never looked, on a question about their work — look once.
+                    // Never looked or read, on a question about their work — look once.
                     if !usedContinuation, result.outcomes.isEmpty,
-                       !servedByPreLook,
+                       !servedByPreLook, !servedByRead,
                        routeIntent == .perceive || lookUnderway {
                         usedContinuation = true
                         laneHistory.append(BrainTurn(

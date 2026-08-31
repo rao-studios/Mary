@@ -161,6 +161,11 @@
           "add a scene",
           "add the hookup",
           "create a new document"
+        ],
+        "perceive" : [
+          "what do you think about this paragraph",
+          "how does this draft read",
+          "thoughts on this section"
         ]
       },
       "negativeTokens" : [
@@ -639,7 +644,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "98f66d69e4416ecf25607e95c7f73d389fbf7540062809bca3fa1c9b1a58510d"
+    "digest" : "6c8eefd7e103e75d2875514f6f218cae820f8078444cb738f3930bad446715e8"
   },
   "interactions" : [
     {

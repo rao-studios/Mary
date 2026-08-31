@@ -79,6 +79,18 @@ public final class CorpusObserver: MaryObserver, @unchecked Sendable {
         return "Working in \(settled.projectName) — \(settled.relativePath)"
     }
 
+    /// What the last completed poll settled on, for a caller that needs the
+    /// project identity itself rather than a rendered line — the deposit
+    /// subject, so retrieval can actually group by project rather than
+    /// filing every coding turn under a nil group it can never search back.
+    public var standingFocus: (
+        applicationID: String, projectRoot: String, projectName: String, relativePath: String
+    )? {
+        settledBox.withLock { $0 }.map {
+            ($0.applicationID, $0.projectRoot, $0.projectName, $0.relativePath)
+        }
+    }
+
     /// Neighbourhood digest after a crawl. Identity stays on `ambientLine`.
     public func promptContribution() -> String? {
         digestBox.withLock { $0 }

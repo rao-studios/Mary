@@ -111,7 +111,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "c9f46bf36168816889a1c0c42b9cced467840a101a3cb2cdad181d27eb2b2c3d"
+    "digest" : "339738abd7b83efa648fb7a26e7a953680a1ee7775f73d1ac84d578a603dd874"
   },
   "interactions" : [
 
@@ -167,7 +167,7 @@
     },
     "codeSurface" : {
       "budgets" : {
-        "ambientExcerptCharacters" : 500,
+        "ambientExcerptCharacters" : 1500,
         "regionCharacters" : 4000,
         "wholeDocumentCharacters" : 20000
       },

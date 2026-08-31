@@ -94,12 +94,20 @@ public enum TotemMemoryTopology {
             aggregate: false)
     }
 
-    /// Same as `seerPersonalScope(ownerID:)` — subject no longer steers Seer.
+    /// The same interactions + memory scope, with the subject's OWN project
+    /// group prepended when one is focused — without this, `projectIdentity`
+    /// never reaches retrieval and a coding/writing turn can search only
+    /// Interactions and Memory, never the corpus indexed under its project.
     public static func seerPersonalScope(
         subject: DepositSubject,
         ownerID: String
     ) -> RetrievalScope {
-        seerPersonalScope(ownerID: ownerID)
+        let base = seerPersonalScope(ownerID: ownerID)
+        guard let groupID = subject.groupID(ownerID: ownerID) else { return base }
+        return RetrievalScope(
+            groups: [.init(id: groupID, label: subject.groupLabel)] + base.groups,
+            aggregate: base.aggregate,
+            relationshipHints: base.relationshipHints)
     }
 
     public static func interactionGroup(ownerID: String) -> RetrievalScope.Group {

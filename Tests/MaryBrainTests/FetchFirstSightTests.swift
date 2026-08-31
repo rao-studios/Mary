@@ -2,7 +2,9 @@
 //  FetchFirstSightTests.swift
 //  MaryBrainTests
 //
-//  WHAT: wouldServeLook is not vetoed by targetedRead; fetch-first prefers selection.
+//  WHAT: A targeted read VETOES look; fetch-first prefers selection, then
+//        the lead's OWN declared discipline (read_buffer / read_document),
+//        never a receipt, never current_file.
 //  OUT:  AbilityRuntime
 //
 
@@ -21,6 +23,7 @@ import MaryFoundation
         var targetedRead: (binding: String, parameter: String)? { ("read_symbol", "symbol") }
         var targetedReadAliases: [String] { ["xcode"] }
         let dispatched: Dispatched
+        var extraBindings: [SkillBinding] = []
         var skillBindings: [SkillBinding] {
             let dispatched = dispatched
             return [
@@ -53,7 +56,7 @@ import MaryFoundation
                         dispatched.note("read_symbol")
                         return SkillOutcome(ok: true, summary: "symbol body")
                     }),
-            ]
+            ] + extraBindings
         }
     }
 
@@ -69,15 +72,63 @@ import MaryFoundation
         }
     }
 
-    @Test func targetedReadDoesNotVetoLook() {
+    /// A read-skill fixture that answers with a fixed summary — a receipt
+    /// when short, a real passage when it isn't.
+    private static func summaryBinding(
+        _ name: String, summary: String, dispatched: Dispatched
+    ) -> SkillBinding {
+        SkillBinding(
+            name: name,
+            description: "Fixture.",
+            parameters: [],
+            access: .read,
+            backing: .native { _, _ in
+                dispatched.note(name)
+                return SkillOutcome(ok: true, summary: summary)
+            })
+    }
+
+    private static func codingIndex() -> AmbientApplicationRoster {
+        AmbientApplicationRoster([
+            ApplicationRegistration(
+                id: "xcode",
+                profile: ApplicationProfile(
+                    id: "xcode", title: "Xcode", summary: "IDE.", abilities: [.coding]),
+                bundleIdentifiers: ["com.apple.dt.Xcode"],
+                placeClass: .workspace,
+                displayName: "Xcode"),
+        ])
+    }
+
+    private static func writingIndex() -> AmbientApplicationRoster {
+        AmbientApplicationRoster([
+            ApplicationRegistration(
+                id: "notes",
+                profile: ApplicationProfile(
+                    id: "notes", title: "Notes", summary: "Notes app.", abilities: [.writing]),
+                bundleIdentifiers: ["com.apple.Notes"],
+                placeClass: .workspace,
+                displayName: "Notes"),
+        ])
+    }
+
+    // MARK: - wouldServeLook
+
+    /// An eyed world with a targeted read in hand declines the look — a
+    /// screenshot of a surface Mary can already read exactly is a picture of
+    /// text, not new sight. (Flipped from the prior doctrine, which vetoed
+    /// nothing — see AbilityRuntime.wouldServeLook.)
+    @Test func targetedReadVetoesLook() {
         let ambient = AmbientContextStore()
         let runtime = AbilityRuntime(
             plugins: [SightAdapter(dispatched: Dispatched())],
             focusProvider: { "xcode" },
             world: AmbientWorld(store: ambient),
             contextProvider: { AbilityExecutionContext(projects: [:]) })
-        #expect(runtime.wouldServeLook())
+        #expect(!runtime.wouldServeLook())
     }
+
+    // MARK: - The ladder
 
     @Test func fetchFirstPrefersSelectionReadOverLook() async {
         let ambient = AmbientContextStore()
@@ -97,11 +148,106 @@ import MaryFoundation
             focusProvider: { "xcode" },
             world: AmbientWorld(store: ambient),
             contextProvider: { AbilityExecutionContext(projects: [:]) })
-        let passage = await runtime.fetchDeclaredEditorSight(query: "Let's take a look at this code")
-        #expect(passage == "func parameters() {}")
+        let sight = await runtime.fetchDeclaredEditorSight(query: "Let's take a look at this code")
+        #expect(sight?.passage == "func parameters() {}")
+        #expect(sight?.isRead == true)
         #expect(dispatched.snapshot() == ["read_selection"])
         #expect(!dispatched.snapshot().contains("look_at_screen"))
         #expect(!dispatched.snapshot().contains("read_symbol"))
+    }
+
+    /// `current_file`'s summary is a RECEIPT ("Looking at Foo.swift in
+    /// Proj.") — fetch-first must not serve it as sight. A coding lead's
+    /// `read_buffer` answering the same one-line shape falls through to the
+    /// next rung exactly as if it had said nothing.
+    @Test func receiptSummaryFallsThroughToNextRung() async {
+        let ambient = AmbientContextStore()
+        ambient.noteWorld(AmbientWorld.Snapshot(
+            tier: .activation, attention: .applications,
+            applicationID: "com.apple.dt.Xcode"))
+        let dispatched = Dispatched()
+        let adapter = SightAdapter(
+            dispatched: dispatched,
+            extraBindings: [
+                Self.summaryBinding(
+                    "read_buffer", summary: "Looking at Foo.swift in Proj.", dispatched: dispatched),
+                Self.summaryBinding(
+                    "read_document",
+                    summary: "func parameters() {\n    // real body\n}", dispatched: dispatched),
+            ])
+        await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+            let runtime = AbilityRuntime(
+                plugins: [adapter],
+                focusProvider: { "xcode" },
+                world: AmbientWorld(store: ambient),
+                contextProvider: { AbilityExecutionContext(projects: [:]) })
+            let sight = await runtime.fetchDeclaredEditorSight(query: nil)
+            #expect(sight?.passage == "func parameters() {\n    // real body\n}")
+            #expect(sight?.isRead == true)
+            #expect(dispatched.snapshot() == ["read_buffer", "read_document"])
+        }
+    }
+
+    /// A `.coding` lead reads its live BUFFER — never the dropped
+    /// `current_file` receipt, and never a look when a read served.
+    @Test func codingLeadReadsBufferNeverCurrentFileOrLook() async {
+        let ambient = AmbientContextStore()
+        ambient.noteWorld(AmbientWorld.Snapshot(
+            tier: .activation, attention: .applications,
+            applicationID: "com.apple.dt.Xcode"))
+        let dispatched = Dispatched()
+        let adapter = SightAdapter(
+            dispatched: dispatched,
+            extraBindings: [
+                Self.summaryBinding(
+                    "read_buffer", summary: "func foo() {\n    bar()\n}", dispatched: dispatched),
+                Self.summaryBinding(
+                    "current_file", summary: "Looking at Foo.swift in Proj.", dispatched: dispatched),
+                Self.summaryBinding(
+                    "read_document", summary: "should not be reached", dispatched: dispatched),
+            ])
+        await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+            let runtime = AbilityRuntime(
+                plugins: [adapter],
+                focusProvider: { "xcode" },
+                world: AmbientWorld(store: ambient),
+                contextProvider: { AbilityExecutionContext(projects: [:]) })
+            let sight = await runtime.fetchDeclaredEditorSight(query: nil)
+            #expect(sight?.passage == "func foo() {\n    bar()\n}")
+            #expect(sight?.isRead == true)
+            #expect(dispatched.snapshot() == ["read_buffer"])
+            #expect(!dispatched.snapshot().contains("current_file"))
+            #expect(!dispatched.snapshot().contains("look_at_screen"))
+        }
+    }
+
+    /// A `.writing` lead reads its DOCUMENT, never the coding family's buffer.
+    @Test func writingLeadReadsDocumentNeverBuffer() async {
+        let ambient = AmbientContextStore()
+        ambient.noteWorld(AmbientWorld.Snapshot(
+            tier: .activation, attention: .applications,
+            applicationID: "com.apple.Notes"))
+        let dispatched = Dispatched()
+        let adapter = SightAdapter(
+            dispatched: dispatched,
+            extraBindings: [
+                Self.summaryBinding(
+                    "read_buffer", summary: "should not be reached", dispatched: dispatched),
+                Self.summaryBinding(
+                    "read_document",
+                    summary: "Once upon a time,\nthere was a paragraph.", dispatched: dispatched),
+            ])
+        await AmbientApplicationIndexProvider.$scoped.withValue(Self.writingIndex()) {
+            let runtime = AbilityRuntime(
+                plugins: [adapter],
+                focusProvider: { "notes" },
+                world: AmbientWorld(store: ambient),
+                contextProvider: { AbilityExecutionContext(projects: [:]) })
+            let sight = await runtime.fetchDeclaredEditorSight(query: nil)
+            #expect(sight?.passage == "Once upon a time,\nthere was a paragraph.")
+            #expect(sight?.isRead == true)
+            #expect(dispatched.snapshot() == ["read_document"])
+        }
     }
 
     @Test func lookFirstNudgeNamesEditorReads() {

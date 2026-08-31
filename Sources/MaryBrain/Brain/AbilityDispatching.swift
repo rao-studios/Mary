@@ -83,8 +83,10 @@ public protocol AbilityDispatching: Sendable {
     /// Whether a pre-lane look WOULD run right now (look_at_screen is
     /// installed). Targeted reads are not eyes. Default false.
     func wouldServeLook() -> Bool
-    /// Fetch-first: selection read, document inspect, then look — before either lane speaks.
-    func fetchDeclaredEditorSight(query: String?) async -> String?
+    /// Fetch-first: selection read, buffer/document inspect, then look —
+    /// before either lane speaks. `isRead` tells the caller whether the
+    /// passage came from a genuine read (Lane B already holds it) or a look.
+    func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)?
     /// LOCATE-FIRST: find the passage a REVISION is about, before either lane exists, and hand back a handle plus the verb that changes it.
     /// `readNamedPart`'s sibling and its opposite.
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage?
@@ -161,7 +163,7 @@ public extension AbilityDispatching {
     func readNamedPart(_ phrase: String) async -> String? { nil }
     func lookAtScreen(_ query: String?) async -> String? { nil }
     func wouldServeLook() -> Bool { false }
-    func fetchDeclaredEditorSight(query: String?) async -> String? { nil }
+    func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)? { nil }
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage? { nil }
     func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage? {
         await locatePassage(intent)
@@ -196,6 +198,11 @@ public struct SeerPass: Sendable {
     /// The turn World already holds a highlight this question is about — a look/read is incoming even before lookUnderway.
     public var inspiredSight: Bool
 
+    /// THE ROUTER'S OWN VERDICT was perceive — a judgment question about
+    /// work in hand ("what do you think of this"), not small talk and not a
+    /// plain recitation request.
+    public var perceiving: Bool
+
     /// Which `RetrievalTraceLedger` row this pass's prompt build books to — observation only.
     public var exchangeID: UUID?
 
@@ -208,6 +215,7 @@ public struct SeerPass: Sendable {
         runningActionLabels: [String] = [],
         lookUnderway: Bool = false,
         inspiredSight: Bool = false,
+        perceiving: Bool = false,
         exchangeID: UUID? = nil
     ) {
         self.groundedResults = groundedResults
@@ -218,6 +226,7 @@ public struct SeerPass: Sendable {
         self.runningActionLabels = runningActionLabels
         self.lookUnderway = lookUnderway
         self.inspiredSight = inspiredSight
+        self.perceiving = perceiving
         self.exchangeID = exchangeID
     }
 }

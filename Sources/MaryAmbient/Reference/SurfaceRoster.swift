@@ -42,7 +42,8 @@ public final class SurfaceRoster<C: SurfaceClaim>: @unchecked Sendable {
     }
 
     /// Named first if that process is running; else the pair-session hit;
-    /// else, when `anyRunningFallback`, the first running member.
+    /// else a standing claim answers regardless of who is frontmost; else,
+    /// when `anyRunningFallback`, the first running member.
     public func resolve(
         named: String?,
         standingApplicationID: String? = nil,
@@ -66,6 +67,16 @@ public final class SurfaceRoster<C: SurfaceClaim>: @unchecked Sendable {
             unpreferredFallback: unpreferredFallback),
            let claim = registration(applicationID: hit.applicationID) {
             return (claim, hit.pid)
+        }
+        // `pairHit`'s frontmost-transparency guard is ambient-poll discipline
+        // — it must not sample a random running app while some other
+        // workspace is in front. It is not a veto on the user's own request:
+        // a standing claim (a surface this family is already watching) still
+        // answers an explicit call regardless of who is frontmost.
+        if let standingApplicationID,
+           let claim = registration(applicationID: standingApplicationID),
+           let pid = Self.pid(of: claim) {
+            return (claim, pid)
         }
         guard anyRunningFallback else { return nil }
         for claim in all() {

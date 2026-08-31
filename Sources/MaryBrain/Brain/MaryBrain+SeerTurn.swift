@@ -107,12 +107,13 @@ extension MaryBrain {
             }
         }
 
-        // Fetch-first: highlight read / document inspect / look, then speak.
+        // Fetch-first: highlight read / buffer / document inspect / look, then speak.
         var lookUnderway = false
         var lookServed = false
+        var readServed = false
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
            routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil {
-            let description = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
+            let sight = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
                 await dispatcher.fetchDeclaredEditorSight(query: userText)
             }
             if Task.isCancelled {
@@ -121,12 +122,13 @@ extension MaryBrain {
                 continuation.finish()
                 return
             }
-            if let description {
-                readPassages = [description]
+            if let sight {
+                readPassages = [sight.passage]
                 lookServed = true
+                readServed = sight.isRead
                 readLedger.record(ReadDelivery(
                     route: .prefetched, detail: "declared-editor-sight",
-                    characters: description.count))
+                    characters: sight.passage.count))
                 if let glanced = focusTracker.latestGlancePlace(),
                    let application = glanced.application,
                    let routable = Self.routableApplicationID(
@@ -140,7 +142,7 @@ extension MaryBrain {
             }
         }
         let lookWould = dispatcher?.wouldServeLook() ?? false
-        let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) underway=\(lookUnderway)"
+        let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) read=\(readServed) underway=\(lookUnderway)"
         Self.turnLog.info("\(lookLine, privacy: .public)")
 
         // Snapshot Seer's messages BEFORE the orchestrator starts mutating history with Skill turns.
@@ -157,6 +159,7 @@ extension MaryBrain {
             runningActionLabels: activeRoutines.values.map(\.label),
             lookUnderway: lookUnderway,
             inspiredSight: inspiredSight,
+            perceiving: routeIntent == .perceive,
             exchangeID: originUserTurnID))
         let laneSeed = history
 
@@ -187,6 +190,7 @@ extension MaryBrain {
                     writingTarget: writingTarget,
                     lookUnderway: lookUnderway,
                     servedByPreLook: lookServed,
+                    servedByRead: readServed,
                     attachment: laneAttachment) ?? OrchestratorLaneResult()
                 signalContinuation.finish()
                 return result

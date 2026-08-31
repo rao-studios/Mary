@@ -102,8 +102,9 @@ extension MaryRuntime {
         }
     }
 
-    /// What Seer may retrieve now — Personal + memory/resonance. Ability codec stays off.
+    /// What Seer may retrieve now — Personal + memory/resonance, plus the
+    /// focused project's own group when one is in view. Ability codec stays off.
     static func retrievalScope(ownerID: String) -> RetrievalScope {
-        TotemMemoryTopology.seerPersonalScope(ownerID: ownerID)
+        TotemMemoryTopology.seerPersonalScope(subject: focusSubject(), ownerID: ownerID)
     }
 }

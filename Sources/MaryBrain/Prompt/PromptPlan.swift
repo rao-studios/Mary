@@ -131,7 +131,7 @@ public extension PromptPlan {
             .seerPreamble,
             .seerCompany, .seerHeading,
             .seerPersonaRead, .seerPersonaGrounded, .seerPersonaConverse,
-            .seerPersonaInTurn,
+            .seerPersonaInsight, .seerPersonaInTurn,
             .seerCapability, .seerRetrieval,
             .seerSightPending,
             // BEFORE the live work, not after it. The turn loop used to append this to the finished string

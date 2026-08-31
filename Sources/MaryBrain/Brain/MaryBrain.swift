@@ -78,7 +78,8 @@ public actor MaryBrain: LanguageResponder {
             // Running-actions is a catalog section; every provider must pass it through.
             runningActions: pass.runningActionLabels,
             lookUnderway: pass.lookUnderway,
-            inspiredSight: pass.inspiredSight)
+            inspiredSight: pass.inspiredSight,
+            perceiving: pass.perceiving)
     }
     /// Fire-and-forget Skill-result archive into Totem.
     // internal for file split — treat as private
