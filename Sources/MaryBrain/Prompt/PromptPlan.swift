@@ -129,6 +129,7 @@ public extension PromptPlan {
         name: "voice",
         order: [
             .seerPreamble,
+            .seerCompany, .seerHeading,
             .seerPersonaRead, .seerPersonaGrounded, .seerPersonaConverse,
             .seerPersonaInTurn,
             .seerCapability, .seerRetrieval,

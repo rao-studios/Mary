@@ -19,9 +19,9 @@ extension MaryPrompts {
             .registration(id: world.applicationID)?.displayName ?? world.applicationID
         switch world.focus {
         case .coding:
-            return "Right now you're pair-coding with the user in \(name) — your hands write new code into their project and revise the code already there, directly, as you speak."
+            return "Right now you're pair-coding with the user in \(name) — your hands can write new code into their project and revise the code already there; this voice pass is not writing as it speaks."
         case .writing:
-            return "Right now you're co-writing with the user in \(name) — your hands write new prose into their document and revise the words already there, directly, as you speak."
+            return "Right now you're co-writing with the user in \(name) — your hands can write new prose into their document and revise the words already there; this voice pass is not writing as it speaks."
         }
     }
 

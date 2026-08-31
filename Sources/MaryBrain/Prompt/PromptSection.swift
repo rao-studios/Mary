@@ -30,6 +30,7 @@ public enum PromptSectionID: String, Sendable, Hashable, CaseIterable, Codable {
     // The VOICE lane, at coarser grain than `system()` and deliberately so.
     // Nine of `seerInstructions`' pieces are CHILDREN composed inside another piece's template
     case seerPreamble
+    case seerCompany, seerHeading
     case seerPersonaRead, seerPersonaGrounded, seerPersonaConverse, seerPersonaInTurn
     case seerCapability, seerRetrieval, seerRunningActions, seerLiveWork
     // A look fired for THIS turn and nothing is in hand yet — the voice
