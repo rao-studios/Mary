@@ -117,7 +117,9 @@ public enum MediaSurfaceLibrary {
             return .noSuchPlaylist(offered)
         }
 
-        guard await press(row.element, pid: pid) else { return .couldNotPress }
+        var selected = await selectRow(row.element)
+        if !selected { selected = await press(row.element, pid: pid) }
+        guard selected else { return .couldNotPress }
         // Selecting a row navigates, and the play control is part of what navigation draws
         // — searching for it in the same runloop turn finds the previous page's.
         try? await Task.sleep(nanoseconds: 900_000_000)
@@ -332,6 +334,24 @@ public enum MediaSurfaceLibrary {
             if let root = window.root { collect(root, inside: false) }
         }
         return found
+    }
+
+    /// Select a sidebar row without needing it on screen. A library of 80+
+    /// playlists overflows the visible viewport — most rows sit scrolled
+    /// well outside the window's frame, so a coordinate click (`press`,
+    /// below) lands on nothing and its fallback returns `true` unconditionally
+    /// regardless: that mismatch is why `play()` used to report success while
+    /// silently resuming whatever was already loaded. `AXSelected` is a pure
+    /// state write over the AX channel, immune to scroll position — measured
+    /// live against Apple Music's Sidebar: `AXUIElementSetAttributeValue`
+    /// itself reports failure here even though the write visibly takes
+    /// effect, so this verifies by reading the attribute back rather than
+    /// trusting the call's own return code.
+    private static func selectRow(_ element: AXUIElement) async -> Bool {
+        _ = AXUIElementSetAttributeValue(
+            element, kAXSelectedAttribute as CFString, true as CFTypeRef)
+        try? await Task.sleep(nanoseconds: 500_000_000)
+        return AX.attribute(element, kAXSelectedAttribute) as? Bool == true
     }
 
     /// AXPress first, then a real click at the midpoint — `PageElementActions`' proven

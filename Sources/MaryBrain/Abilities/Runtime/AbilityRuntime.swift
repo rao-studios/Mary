@@ -1481,14 +1481,22 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             ok: outcome.ok,
             foundNothing: outcome.foundNothing,
             disposition: record.disposition.rawValue)
+        // Only a SUCCEEDED dispatch feeds the exemplar store. `outcome.ok`
+        // conflates "was this the right Skill" with "did it execute" — an AX
+        // timeout, an unrelated adapter bug, or a since-fixed defect all read
+        // as `ok: false` / `foundNothing: true` with zero bearing on whether
+        // routing here was correct. Recording that as a negative permanently
+        // suppresses this phrasing's affinity for the Skill (see
+        // `SemanticSkillRequestIndex`'s negative-margin gate) even after the
+        // real defect is fixed — the exact "a bad night pins a centroid"
+        // outcome `RoutingExemplarStore`'s own PIN says must not happen.
         if name != Self.confirmSkillName, name != Self.cancelSkillName,
+           outcome.ok, !outcome.foundNothing,
            let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id {
             EmbeddingRouting.recordExemplars(
                 query: world.store.routingQuery(),
                 intent: world.store.route()?.intent ?? .operate,
-                outcomes: [(
-                    skillID.rawValue,
-                    outcome.ok && !outcome.foundNothing)],
+                outcomes: [(skillID.rawValue, true)],
                 store: exemplarStore.withLock { $0 })
         }
         return outcome
@@ -2712,6 +2720,11 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         "complete_coding_change": 280, // above Vibe's 240 s session cap
         "run_shortcut": 150,   // Subprocess.run(timeout: 120) — `shortcuts run`
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
+        // A collapsed sidebar folder needs an AX expand + 700ms settle re-walk
+        // (MediaSurfaceLibrary.sidebarRows) before the title match even starts.
+        "play_playlist":    10,
+        "shuffle_playlist": 10,
+        "find_playlist":    10,
     ]
 
     public static let ordinarySkillTimeoutMinimum: TimeInterval = 1

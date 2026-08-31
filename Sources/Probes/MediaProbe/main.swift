@@ -10,6 +10,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import MaryAmbient
 import MaryPlugin
 import MaryBrain
 import MaryFoundation
@@ -264,6 +265,226 @@ if let index = CommandLine.arguments.firstIndex(of: "--play"),
         check(false, "no library was visible")
     case .couldNotPress:
         check(false, "found it but could not start it")
+    }
+}
+
+// MARK: - Play mechanics diagnostic — did the row press actually navigate?
+
+// `play()` reported success ("Hal → Hal") without the track changing. Measure
+// each step raw: does pressing the row actually select it, how many "Play"
+// buttons exist outside the transport (pagePlayLabel is the generic "Play",
+// picked by largest area — ambiguous if more than one candidate exists), and
+// does the content area actually show anything naming the target playlist.
+if let index = CommandLine.arguments.firstIndex(of: "--diagnose"),
+   index + 1 < CommandLine.arguments.count {
+    let wanted = CommandLine.arguments[index + 1]
+    heading("diagnosing \"\(wanted)\"")
+
+    func folded(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+    func label(_ element: AXUIElement) -> String? {
+        AX.string(element, kAXTitleAttribute) ?? AX.string(element, kAXDescriptionAttribute)
+    }
+
+    let app = AXUIElementCreateApplication(pid)
+    let windows = AX.attribute(app, kAXWindowsAttribute) as? [AXUIElement] ?? []
+    print("      windows: \(windows.count)")
+    for (i, window) in windows.enumerated() {
+        let title = label(window) ?? "(untitled)"
+        let frame = AX.frame(of: window)
+        let minimized = AX.attribute(window, kAXMinimizedAttribute) as? Bool
+        print("      [\(i)] \"\(title)\" frame=\(frame.map { "\(Int($0.width))x\(Int($0.height))@\(Int($0.minX)),\(Int($0.minY))" } ?? "?") minimized=\(minimized.map(String.init) ?? "?")")
+    }
+
+    guard let libraryLabel = registration.schema.libraryLabel else {
+        print("  ✗  no libraryLabel declared."); exit(1)
+    }
+    var outline: AXUIElement?
+    var outlineWindow = -1
+    func findOutline(_ element: AXUIElement, windowIndex: Int, depth: Int) {
+        guard outline == nil, depth < 40 else { return }
+        if let l = label(element), folded(l) == folded(libraryLabel) {
+            outline = element; outlineWindow = windowIndex; return
+        }
+        for child in AX.children(element) { findOutline(child, windowIndex: windowIndex, depth: depth + 1) }
+    }
+    for (i, window) in windows.enumerated() { findOutline(window, windowIndex: i, depth: 0) }
+    guard let outline else { print("  ✗  outline not found"); exit(1) }
+    check(true, "outline found", "in window[\(outlineWindow)]")
+
+    // Expand every collapsed row, same rule `sidebarRows` uses in production.
+    func expandAll(_ element: AXUIElement, depth: Int) {
+        guard depth < 12 else { return }
+        if AX.string(element, kAXRoleAttribute) == "AXRow",
+           AX.attribute(element, kAXDisclosingAttribute) as? Bool == false {
+            _ = AXUIElementSetAttributeValue(
+                element, kAXDisclosingAttribute as CFString, true as CFTypeRef)
+        }
+        for child in AX.children(element) { expandAll(child, depth: depth + 1) }
+    }
+    expandAll(outline, depth: 0)
+    try? await Task.sleep(nanoseconds: 700_000_000)
+
+    var targetRow: AXUIElement?
+    func findRow(_ element: AXUIElement, depth: Int) {
+        guard targetRow == nil, depth < 12 else { return }
+        if AX.string(element, kAXRoleAttribute) == "AXRow" {
+            var name: String?
+            func firstText(_ inner: AXUIElement, depth: Int) {
+                guard name == nil, depth < 12 else { return }
+                if let role = AX.string(inner, kAXRoleAttribute), role.contains("StaticText"),
+                   let value = AX.string(inner, kAXValueAttribute), !value.isEmpty {
+                    name = value; return
+                }
+                for child in AX.children(inner) { firstText(child, depth: depth + 1) }
+            }
+            firstText(element, depth: 0)
+            if let name, folded(name) == folded(wanted) {
+                targetRow = element
+                print("      matched row: \"\(name)\"")
+                return
+            }
+        }
+        for child in AX.children(element) { findRow(child, depth: depth + 1) }
+    }
+    findRow(outline, depth: 0)
+    guard let targetRow else {
+        print("  ✗  row \"\(wanted)\" not found after expanding every folder."); exit(1)
+    }
+
+    let selectedBefore = AX.attribute(targetRow, kAXSelectedAttribute) as? Bool
+    print("      row AXSelected before press: \(selectedBefore.map(String.init) ?? "unreadable")")
+    let outlineFrame = AX.frame(of: outline)
+    let windowFrame = AX.frame(of: windows[outlineWindow])
+    let rowFrameBefore = AX.frame(of: targetRow)
+    print("      window frame: \(windowFrame.map { "\($0)" } ?? "?")")
+    print("      outline frame: \(outlineFrame.map { "\($0)" } ?? "?")")
+    print("      row frame before scroll: \(rowFrameBefore.map { "\($0)" } ?? "?")")
+    if let rf = rowFrameBefore, let wf = windowFrame {
+        print("      row frame is within the WINDOW's visible bounds: \(wf.intersects(rf))")
+    }
+
+    let scrolled = AXUIElementPerformAction(
+        targetRow, "AXScrollToVisible" as CFString) == .success
+    print("      AXScrollToVisible on the row returned success: \(scrolled)")
+    if scrolled {
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        let rowFrameAfter = AX.frame(of: targetRow)
+        print("      row frame after scroll: \(rowFrameAfter.map { "\($0)" } ?? "?")")
+    }
+
+    // Off-screen (scrolled out of the viewport) — a coordinate click can't
+    // land on it. Try setting selection as a pure state write instead of a
+    // physical interaction.
+    var settable: DarwinBoolean = false
+    let selectableCheck = AXUIElementIsAttributeSettable(
+        targetRow, kAXSelectedAttribute as CFString, &settable)
+    print("      kAXSelectedAttribute settable: \(selectableCheck == .success && settable.boolValue)")
+    let setSelected = AXUIElementSetAttributeValue(
+        targetRow, kAXSelectedAttribute as CFString, true as CFTypeRef)
+    check(setSelected == .success, "AXUIElementSetAttributeValue(AXSelected, true) returned success")
+    try? await Task.sleep(nanoseconds: 500_000_000)
+    let selectedAfterSet = AX.attribute(targetRow, kAXSelectedAttribute) as? Bool
+    check(selectedAfterSet == true, "row AXSelected after the direct set",
+          selectedAfterSet.map(String.init) ?? "unreadable")
+
+    let pressed = AXUIElementPerformAction(targetRow, kAXPressAction as CFString) == .success
+    check(pressed, "AXPress on the row returned success")
+    if !pressed, selectedAfterSet != true, let frame = AX.frame(of: targetRow),
+       frame.width > 1, frame.height > 1,
+       let source = CGEventSource(stateID: .hidSystemState),
+       let down = CGEvent(
+        mouseEventSource: source, mouseType: .leftMouseDown,
+        mouseCursorPosition: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
+        mouseButton: .left),
+       let up = CGEvent(
+        mouseEventSource: source, mouseType: .leftMouseUp,
+        mouseCursorPosition: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
+        mouseButton: .left) {
+        down.postToPid(pid); up.postToPid(pid)
+        print("      AXPress failed and selection wasn't set — fell back to a synthetic click")
+    }
+    try? await Task.sleep(nanoseconds: 900_000_000)
+
+    let selectedAfter = AX.attribute(targetRow, kAXSelectedAttribute) as? Bool
+    check(selectedAfter == true, "row AXSelected after press",
+          selectedAfter.map(String.init) ?? "unreadable")
+
+    // Every "Play"-labeled button outside the transport — pagePlayLabel's
+    // exact search, but listing every candidate instead of picking silently.
+    var playButtons: [(window: Int, frame: CGRect)] = []
+    func walkForPlay(_ element: AXUIElement, windowIndex: Int, depth: Int, insideTransport: Bool) {
+        guard depth < 40 else { return }
+        let elementLabel = label(element)
+        let hereTransport = insideTransport
+            || (elementLabel.map { folded($0) == folded(registration.schema.transportLabel) } ?? false)
+        if !hereTransport,
+           let role = AX.string(element, kAXRoleAttribute), role.contains("Button"),
+           let l = elementLabel, folded(l) == folded("Play"),
+           let frame = AX.frame(of: element) {
+            playButtons.append((windowIndex, frame))
+        }
+        for child in AX.children(element) {
+            walkForPlay(child, windowIndex: windowIndex, depth: depth + 1, insideTransport: hereTransport)
+        }
+    }
+    for (i, window) in windows.enumerated() {
+        walkForPlay(window, windowIndex: i, depth: 0, insideTransport: false)
+    }
+    print("      \"Play\" buttons outside the transport: \(playButtons.count)")
+    for (i, b) in playButtons.enumerated() {
+        let area = Int(b.frame.width * b.frame.height)
+        print("        [\(i)] window=\(b.window) frame=\(Int(b.frame.width))x\(Int(b.frame.height))@\(Int(b.frame.minX)),\(Int(b.frame.minY)) area=\(area)")
+    }
+    let biggest = playButtons.max { $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height }
+
+    // Any visible text naming the target, outside the sidebar — did the
+    // content area actually navigate to it.
+    var hits: [(window: Int, text: String)] = []
+    func walkForText(_ element: AXUIElement, windowIndex: Int, depth: Int, insideOutline: Bool) {
+        guard depth < 40, hits.count < 8 else { return }
+        let hereOutline = insideOutline || CFEqual(element, outline)
+        if !hereOutline,
+           let role = AX.string(element, kAXRoleAttribute), role.contains("StaticText"),
+           let value = AX.string(element, kAXValueAttribute),
+           folded(value).contains(folded(wanted)) {
+            hits.append((windowIndex, value))
+        }
+        for child in AX.children(element) {
+            walkForText(child, windowIndex: windowIndex, depth: depth + 1, insideOutline: hereOutline)
+        }
+    }
+    for (i, window) in windows.enumerated() {
+        walkForText(window, windowIndex: i, depth: 0, insideOutline: false)
+    }
+    print("      text naming \"\(wanted)\" outside the sidebar: \(hits.count)")
+    for hit in hits { print("        window=\(hit.window): \"\(hit.text)\"") }
+
+    if let biggest {
+        let beforeTitle = MediaSurfaceAX.read(pid: pid, registration: registration)?.title
+        // Frame alone isn't a handle — re-find the element at that frame to press it.
+        var target: AXUIElement?
+        func rewalk(_ element: AXUIElement, depth: Int) {
+            guard target == nil, depth < 40 else { return }
+            if let f = AX.frame(of: element), f == biggest.frame,
+               let role = AX.string(element, kAXRoleAttribute), role.contains("Button") {
+                target = element; return
+            }
+            for child in AX.children(element) { rewalk(child, depth: depth + 1) }
+        }
+        rewalk(windows[biggest.window], depth: 0)
+        if let target {
+            check(AXUIElementPerformAction(target, kAXPressAction as CFString) == .success,
+                  "pressed the largest Play button")
+        }
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        let after = MediaSurfaceAX.read(pid: pid, registration: registration)
+        print("      transport after: title=\(after?.title ?? "unexposed") isPlaying=\(after?.isPlaying.map(String.init) ?? "?")")
+        check(after?.title != beforeTitle, "and the title changed",
+              "\(beforeTitle ?? "nothing") → \(after?.title ?? "nothing")")
+    } else {
+        print("  ✗  no \"Play\" button found outside the transport to press.")
     }
 }
 
