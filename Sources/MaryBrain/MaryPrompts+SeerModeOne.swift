@@ -112,7 +112,7 @@ extension MaryPrompts {
     """
 
     /// The immediate source material for a selected-text transformation.
-    public static func selectionRevisionBrief(_ attention: AmbientWorld) -> String {
+    public static func selectionRevisionBrief(_ attention: AmbientWorld.Snapshot) -> String {
         guard let selected = attention.selectedText?.trimmingCharacters(
             in: .whitespacesAndNewlines), !selected.isEmpty
         else { return "" }
@@ -144,7 +144,7 @@ extension MaryPrompts {
     /// The exact referent for a conversational/deictic read. This is separate
     /// from `selectionRevisionBrief`: merely asking about highlighted words
     /// must never imply that Mary should mutate their source surface.
-    public static func selectionReferenceBrief(_ attention: AmbientWorld) -> String {
+    public static func selectionReferenceBrief(_ attention: AmbientWorld.Snapshot) -> String {
         guard let selected = attention.selectedText?.trimmingCharacters(
             in: .whitespacesAndNewlines), !selected.isEmpty
         else { return "" }

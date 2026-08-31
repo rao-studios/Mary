@@ -163,7 +163,7 @@ import Testing
             try await AbilityTurnContext.$snapshot.withValue(snapshot) {
                 let runtime = AbilityRuntime(
                     plugins: MaryAdapterCatalog.adapters(),
-                    ambient: ambient,
+                    world: AmbientWorld(store: ambient),
                     contextProvider: { AbilityExecutionContext(projects: [:]) })
                 let build = try #require(runtime.schemas.first { $0.name == "build_project" })
                 let expected = AbilityRuntime.cautionSentence(for: .nativeCommandOnly)

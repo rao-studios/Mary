@@ -5,7 +5,7 @@
 //  WHAT: Mary's standing faculties (lanes). Not a place, not this turn's machine state.
 //  OUT:  AmbientPlace.lane / store keys
 //  PIN:  Raw values stay (applications, mac, …). Taught apps are registrations.
-//        AmbientWorld (the snapshot) is the turn's machine state.
+//        AmbientWorld.Snapshot is the turn's packet; AmbientWorld hosts the standing state.
 //
 
 import Foundation
@@ -25,7 +25,7 @@ public enum AmbientPlaceClass: String, Sendable, Equatable, CaseIterable {
     case perceptionOnly
 }
 
-/// One of Mary's own faculties — the channel a place rides, not the turn's World.
+/// One of Mary's own faculties — the channel a place rides, not the turn's snapshot.
 public enum AmbientAttention: String, Sendable, Equatable, Hashable, CaseIterable {
 
     /// Host lane every taught application rides. Channel, not an app.

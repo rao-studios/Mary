@@ -137,8 +137,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private let executionLog: AbilityExecutionLog
     /// Episode sink for this turn's actions. Nil in tests (no fake episode).
     private let behavior: BehavioralAssembler?
-    /// Ambient store — this dispatcher is one of its four writers.
-    private let ambient: AmbientContextStore
+    /// Ambient world — this dispatcher is one of its store's four writers.
+    private let world: AmbientWorld
     /// Handle ledger. Injected so tests locate without minting into the process-wide store.
     private let passages: PassageRegistry
     /// Addressable-container identity. A document-keyed read is evidence for one container.
@@ -174,7 +174,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         focusProvider: (@Sendable () -> String?)? = nil,
         executionLog: AbilityExecutionLog = .shared,
         behavior: BehavioralAssembler? = nil,
-        ambient: AmbientContextStore = .shared,
+        world: AmbientWorld = .shared,
         passages: PassageRegistry = .shared,
         containers: ContainerRegistry = .shared,
         applications: (any AmbientApplicationIndex)? = nil,
@@ -224,7 +224,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         self.contextProvider = contextProvider
         self.focusProvider = focusProvider
         self.executionLog = executionLog
-        self.ambient = ambient
+        self.world = world
         self.passages = passages
         self.containers = containers
         self.applicationsOverride = applications
@@ -758,12 +758,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// The immutable turn signal set after semantic route containment.
     private func routedSignalSnapshot() -> SchemaSignalTurnSnapshot {
         let snapshot = SchemaSignalTurnContext.snapshot ?? .empty
-        let route = ambient.route()
+        let route = world.store.route()
         guard let rejectedAttention = route?.world,
               rejectedAttention.tier == .selection,
               route?.selectionDefinesTurn != true
         else { return snapshot }
-        let rejectedHandoffID = ambient.selectionHandoff(
+        let rejectedHandoffID = world.store.selectionHandoff(
             attention: rejectedAttention.attention)?.id
         // Code or prose — asked of the registration, not a name.
         let rejectedSchema: InteractionID =
@@ -783,16 +783,16 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
     /// Turn routing verdict. Internal (not private) so taught-app parity tests can read it.
     func abilityRoutingContext() -> AbilityRoutingContext {
-        let route = ambient.route()
+        let route = world.store.route()
         let windowIntent = windowManagementTurnIntent(route: route)
         let diagnosticAttention = route?.world
         // Keep the source packet on AmbientRoute for diagnostics and event ordering
         let excludesDiagnosticSelection = diagnosticAttention?.tier == .selection
             && route?.selectionDefinesTurn != true
         let attention = excludesDiagnosticSelection ? nil : diagnosticAttention
-        let facts = ambient.facts()
+        let facts = world.store.facts()
         let handoff = attention.flatMap {
-            ambient.routedSelectionHandoff(attention: $0.attention)
+            world.store.routedSelectionHandoff(attention: $0.attention)
         }
         var interactions: Set<InteractionID> = []
         let signalSnapshot = routedSignalSnapshot()
@@ -919,7 +919,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             targets.formUnion(profile.targetClasses)
         }
         // One vectorization for the whole turn — scorer is called per Skill across passes.
-        let query = ambient.routingQuery()
+        let query = world.store.routingQuery()
         return AbilityRoutingContext(
             utterance: query,
             intent: route?.intent.rawValue,
@@ -952,7 +952,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private func windowManagementTurnIntent(
         route: AmbientRoute?
     ) -> WindowManagementTurnIntent {
-        let referent = ambient.referent()
+        let referent = world.store.referent()
         let index = AmbientApplicationIndexProvider.current
 
         // Document-holding place that leads: referent, then lead, then named.
@@ -972,7 +972,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 isReferent: referent?.place == candidate)
         }
         return WindowManagementTurnClassifier.classify(
-            utterance: ambient.utterance(),
+            utterance: world.store.utterance(),
             documentPlace: documentPlace)
     }
 
@@ -1025,7 +1025,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         var context = contextProvider()
         context.surfaceReferent = surfaceReferent.withLock { $0 }
         // Utterance provenance for adapters. Set here — the injected provider is built once.
-        context.utterance = ambient.utterance()
+        context.utterance = world.store.utterance()
         return context
     }
 
@@ -1037,7 +1037,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         snapshot: AbilityRuntimeSnapshot
     ) -> ProviderTurnSelection {
         if let memo = providerSelection.withLock({ $0 }) { return memo }
-        let route = ambient.route()
+        let route = world.store.route()
         // The words' own applications: the route gate plus the lead.
         var named = Set(route?.gate.applications ?? [])
         if let leadApplicationID = route?.leadApplicationID {
@@ -1136,9 +1136,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// Places this turn's words re-admit — `AmbientRanker`'s mentions ladder.
     func admittedPlaceMentions() -> Set<AmbientPlace> {
         AmbientRanker.admittedPlaceMentions(
-            route: ambient.route(),
-            referent: ambient.referent(),
-            utterance: ambient.utterance())
+            route: world.store.route(),
+            referent: world.store.referent(),
+            utterance: world.store.utterance())
     }
 
     /// True when this binding may appear on a turn scoped by `placeScope()`.
@@ -1238,7 +1238,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     public func readNamedPart(_ phrase: String) async -> String? {
         let wanted = phrase.trimmingCharacters(in: .whitespacesAndNewlines)
         // Container the turn named first, then the leading world.
-        let owner = ambient.referent()?.place.memoryToken ?? focusProvider?()
+        let owner = world.store.referent()?.place.memoryToken ?? focusProvider?()
         guard !wanted.isEmpty,
               let owner,
               let targeted = targetedReads[owner],
@@ -1261,14 +1261,14 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
     /// Fetch-first: highlight → selection read, document → inspect, else look.
     public func fetchDeclaredEditorSight(query: String?) async -> String? {
-        let world = ambient.world()
-        let highlight = world?.selectedText?
+        let snapshot = world.snapshot()
+        let highlight = snapshot?.selectedText?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        if world?.isDirectReference == true, !highlight.isEmpty {
+        if snapshot?.isDirectReference == true, !highlight.isEmpty {
             if let passage = await dispatchSummary("read_selection") { return passage }
             return highlight
         }
-        if world?.place.isApplication == true {
+        if snapshot?.place.isApplication == true {
             if let passage = await dispatchSummary("current_file") { return passage }
             if let passage = await dispatchSummary("read_document") { return passage }
         }
@@ -1338,7 +1338,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
         // `routedSelectionHandoff`: turn-local snapshot plus the route's own gate.
         if anaphoric,
-           let handoff = ambient.routedSelectionHandoff(attention: backing.place.attention) {
+           let handoff = world.store.routedSelectionHandoff(attention: backing.place.attention) {
             let selected = handoff.text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !selected.isEmpty { wanted.append(selected) }
         }
@@ -1354,7 +1354,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         for (index, target) in wanted.enumerated() {
             guard case .found(let found) = await PassageEditRunner.mint(
                 target: target, in: snapshot, backing: backing,
-                registry: passages, ambient: ambient, now: now)
+                registry: passages, ambient: world.store, now: now)
             else { continue }
             return LocatedPassage(
                 passage: found.passage, label: found.label, verb: verb,
@@ -1386,7 +1386,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
         // Source-owned handoff keeps the full AX text.
         // PIN: Not `requiringWritingTarget: true` — that flag killed this rung in production.
-        let selected = (ambient.routedSelectionHandoff(
+        let selected = (world.store.routedSelectionHandoff(
             attention: backing.place.attention)?.text ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if !selected.isEmpty,
@@ -1400,7 +1400,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         }
 
         guard let anchor = PassageEditRunner
-                .attention(for: backing.place, ambient: ambient)?
+                .attention(for: backing.place, ambient: world.store)?
                 .anchor(in: snapshot.text),
               let unit = units
                 .filter(\.kind.isBlock)
@@ -1484,8 +1484,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         if name != Self.confirmSkillName, name != Self.cancelSkillName,
            let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id {
             EmbeddingRouting.recordExemplars(
-                query: ambient.routingQuery(),
-                intent: ambient.route()?.intent ?? .operate,
+                query: world.store.routingQuery(),
+                intent: world.store.route()?.intent ?? .operate,
                 outcomes: [(
                     skillID.rawValue,
                     outcome.ok && !outcome.foundNothing)],
@@ -1677,7 +1677,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // `type_at_cursor` covers compose and replace-selection — requirement is conditional.
         if binding.name == "type_at_cursor",
            arguments["mode"] == "replace_selection",
-           ambient.routedSelectionHandoff(
+           world.store.routedSelectionHandoff(
                requiringWritingTarget: true) == nil {
             return SkillOutcome(
                 ok: false,
@@ -1792,7 +1792,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         if contract.primitive == .composeDraft {
             let staged = StagedWritingSurface.shared.fresh()
             // Named writing place — not a compiled editor list (that dropped other apps).
-            let namedWriting = ambient.route()?.namedPlaces
+            let namedWriting = world.store.route()?.namedPlaces
                 .first(where: { $0.focus == .writing })
             if let clause = CognitivePrimitiveCatalog.composePlacementClause(
                 stagedApplicationName: staged.map { $0.spokenName ?? $0.bundleID },
@@ -1802,7 +1802,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         } else if contract.primitive == .reviseSelection {
             // revise_selection: whether the routed selection is still there to write into.
             if let clause = CognitivePrimitiveCatalog.revisionPlacementClause(
-                hasRoutedSelection: ambient.routedSelectionHandoff(
+                hasRoutedSelection: world.store.routedSelectionHandoff(
                     requiringWritingTarget: true) != nil) {
                 summary += clause
             }
@@ -1810,7 +1810,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             // Code-lane mirror, gated on the predicate that lane's placing Skill uses.
             if let clause = CognitivePrimitiveCatalog.codeRevisionPlacementClause(
                 hasRoutedCodeSelection:
-                    ambient.routedSelectionHandoff()?.place.focus == .coding) {
+                    world.store.routedSelectionHandoff()?.place.focus == .coding) {
                 summary += clause
             }
         }
@@ -2108,9 +2108,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 .filter { $0.count > 2 }
                 .map(String.init))
         // Same immutable route as prompt assembly — Architect is an Ability path.
-        let routedFacts = ambient.route().map { route in
-            ambient.facts().filter(route.admitsHeldFact)
-        } ?? ambient.facts()
+        let routedFacts = world.store.route().map { route in
+            world.store.facts().filter(route.admitsHeldFact)
+        } ?? world.store.facts()
         let candidates = routedFacts.filter { fact in
             if retainedOnly && fact.registration != .askedFor
                 && !fact.slot.isRead
@@ -2609,7 +2609,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // Injected stores — `PassageRefresh.after` reports the count.
         _ = PassageRefresh.after(
             before: bracket.before, after: after, place: bracket.backing.place,
-            registry: passages, ambient: ambient)
+            registry: passages, ambient: world.store)
     }
 
     /// A successful read becomes an ambient fact. Gates here are existing doctrine.
@@ -2629,7 +2629,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 document: documentOfRead(outcome: outcome),
                 passageHandle: outcome.passageHandle)
         else { return }
-        ambient.register(fact)
+        world.store.register(fact)
         if case .namedRead(let document, _) = fact.slot,
            let document,
            !document.isEmpty {

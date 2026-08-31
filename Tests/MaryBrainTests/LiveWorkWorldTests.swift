@@ -24,7 +24,7 @@ import Testing
                     displayName: "Xcode"),
             ])
         ) {
-            let machine = AmbientWorld(
+            let machine = AmbientWorld.Snapshot(
                 tier: .selection,
                 attention: .applications,
                 subject: "AbilityRuntime.swift",
@@ -40,7 +40,7 @@ import Testing
     }
 
     @Test func arbiterDocumentIsNotOverridden() {
-        let machine = AmbientWorld(
+        let machine = AmbientWorld.Snapshot(
             tier: .selection,
             attention: .applications,
             applicationID: "com.apple.dt.Xcode")

@@ -93,10 +93,10 @@ public actor MaryBrain: LanguageResponder {
     /// Last READ delivery (debugger row). Seeded from `wiring`; tests inject via setter.
     // internal for file split — treat as private
     var readLedger: ReadDeliveryLedger
-    /// Short-term awareness. Turn loop writes utterance + spoken-about; watchers write facts.
+    /// Short-term awareness, hosted. Turn loop writes utterance + spoken-about; watchers write facts.
     /// Seeded from `wiring`.
     // internal for file split — treat as private
-    var ambient: AmbientContextStore
+    var world: AmbientWorld
     /// Refresh volatile frontmost context (AX selection) before classify/prompt.
     // internal for file split — treat as private
     var turnContextPreparer: (@Sendable () async -> Void)?
@@ -191,10 +191,6 @@ public actor MaryBrain: LanguageResponder {
 
     func setReadLedgerForTesting(_ ledger: ReadDeliveryLedger) {
         readLedger = ledger
-    }
-
-    func setAmbientStoreForTesting(_ store: AmbientContextStore) {
-        ambient = store
     }
 
     func setActionJoinGraceForTesting(_ nanoseconds: UInt64) {
@@ -356,7 +352,7 @@ public actor MaryBrain: LanguageResponder {
         self.systemPromptProvider = { systemPrompt }
         self.wiring = wiring
         self.readLedger = wiring.readLedger
-        self.ambient = wiring.ambient
+        self.world = wiring.world
         self.focusTracker = wiring.focusTracker
     }
 

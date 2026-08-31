@@ -85,9 +85,9 @@ package enum MaryRuntime {
     /// current direct attention.
     package static func routedHeldAmbient(
         facts: [AmbientFact],
-        world: AmbientWorld?,
+        world: AmbientWorld.Snapshot?,
         route: AmbientRoute?
-    ) -> (facts: [AmbientFact], world: AmbientWorld?) {
+    ) -> (facts: [AmbientFact], world: AmbientWorld.Snapshot?) {
         guard let route else {
             return (
                 facts,
@@ -115,7 +115,7 @@ package enum MaryRuntime {
         containers: .shared,
         focusTracker: .shared,
         readLedger: .shared,
-        ambient: .shared,
+        world: .shared,
         elementIndex: elementIndex,
         behavior: BehavioralAssembler(recorder: TotemBehavioralRecording()))
 

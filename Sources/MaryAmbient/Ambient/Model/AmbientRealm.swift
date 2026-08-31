@@ -5,7 +5,7 @@
 //  WHAT: What could serve this turn — applications conforming to the need, held while where is decided.
 //  IN:   AmbientRealmResolver
 //  OUT:  AmbientPlace (the where, singular)
-//  PIN:  World = Mary's standing lanes. Realm = candidates outside her. Place = decided where.
+//  PIN:  Attention = Mary's standing lanes. Realm = candidates outside her. Place = decided where.
 //
 
 import Foundation

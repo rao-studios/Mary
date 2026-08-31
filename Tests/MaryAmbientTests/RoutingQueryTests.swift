@@ -2,7 +2,7 @@
 //  RoutingQueryTests.swift
 //  MaryAmbientTests
 //
-//  WHAT: Utterance + world + history compose one embedding query.
+//  WHAT: Utterance + live snapshot + history compose one embedding query.
 //  OUT:  RoutingQuery.compose
 //
 
@@ -16,23 +16,21 @@ import Testing
         #expect(query == "play the RAO playlist")
     }
 
-    @Test func liveWorldAndHistoryAppendAsClippedLines() {
+    @Test func liveSnapshotAndHistoryAppendAsClippedLines() {
         let query = RoutingQuery.compose(
             utterance: "play the RAO playlist",
-            world: .init(
-                leadApplicationID: "xcode",
-                leadTitle: "Xcode",
-                frontmostApplicationID: "xcode",
-                playerRunning: true,
-                playerName: "Music",
-                selectionSubject: nil,
-                leadFact: "main.swift"),
+            world: AmbientWorld.Snapshot(
+                tier: .activation,
+                attention: .applications,
+                subject: "main.swift",
+                applicationID: "com.apple.dt.Xcode"),
             recentUserTurns: ["hello", "what is playing"])
         #expect(query.hasPrefix("play the RAO playlist"))
         #expect(query.contains("lead: Xcode"))
-        #expect(query.contains("player: running (Music)"))
-        #expect(query.contains("fact: main.swift"))
+        #expect(query.contains("selection: main.swift"))
         #expect(query.contains("recent: hello | what is playing"))
+        #expect(!query.contains("player:"))
+        #expect(!query.contains("fact:"))
         #expect(!query.contains("frontmost:"))
     }
 

@@ -96,20 +96,20 @@ import Testing
         try Self.assertUniquePlayPlaylist(Self.screenshotInApp, store: store)
     }
 
-    /// The composed multi-line query — utterance plus world plus recent
+    /// The composed multi-line query — utterance plus snapshot plus recent
     /// turns, exactly as `RoutingQuery.compose` builds it in production. A
     /// real NLEmbedding sees the whole string, unlike the fake cluster
     /// vectorizer (which only ever looks at the first line) — this is the
     /// one measurement `EmbeddingRoutingTests` cannot make.
-    @Test func composedWorldAndHistoryQueriesStillUniquelyPickPlayPlaylist() throws {
+    @Test func composedSnapshotAndHistoryQueriesStillUniquelyPickPlayPlaylist() throws {
         let store = RoutingExemplarStore(persist: false)
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,
-                world: .init(
-                    leadApplicationID: "xcode", leadTitle: "Xcode",
-                    frontmostApplicationID: "xcode",
-                    playerRunning: true, playerName: "Music"),
+                world: AmbientWorld.Snapshot(
+                    tier: .activation,
+                    attention: .applications,
+                    applicationID: "com.apple.dt.Xcode"),
                 recentUserTurns: ["what's the time", "how's the weather"])
             try Self.assertUniquePlayPlaylist(query, store: store)
         }

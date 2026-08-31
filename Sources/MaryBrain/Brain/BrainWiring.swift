@@ -17,7 +17,7 @@ public struct BrainWiring: Sendable {
     public var containers: ContainerRegistry
     public var focusTracker: WorkspaceFocusTracker
     public var readLedger: ReadDeliveryLedger
-    public var ambient: AmbientContextStore
+    public var world: AmbientWorld
     public var elementIndex: AmbientElementIndexStore
     /// WHAT MARY DID, one episode per user turn. Default-fresh like the rest
     public var behavior: BehavioralAssembler
@@ -27,7 +27,7 @@ public struct BrainWiring: Sendable {
         containers: ContainerRegistry = ContainerRegistry(),
         focusTracker: WorkspaceFocusTracker = WorkspaceFocusTracker(),
         readLedger: ReadDeliveryLedger = ReadDeliveryLedger(),
-        ambient: AmbientContextStore = AmbientContextStore(),
+        world: AmbientWorld = AmbientWorld(),
         elementIndex: AmbientElementIndexStore = AmbientElementIndexStore(),
         behavior: BehavioralAssembler = BehavioralAssembler(),
     ) {
@@ -35,7 +35,7 @@ public struct BrainWiring: Sendable {
         self.containers = containers
         self.focusTracker = focusTracker
         self.readLedger = readLedger
-        self.ambient = ambient
+        self.world = world
         self.elementIndex = elementIndex
         self.behavior = behavior
         // The ledger is composed OVER the element index (the same coupling

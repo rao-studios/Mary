@@ -147,7 +147,7 @@ extension MaryBrain {
         // Stale-grounding windows (accepted): - W1 — routine settles mid-Lane-A: this snapshot predates a doneMarker/follow-up…
         let messages = spokenMessages()
         // In-turn: resolve LIVE. The utterance override is still installed here (it is cleared by runTurn's defer, which has not run yet)
-        let inspiredSight = ambient.route()?.inspiresSight == true
+        let inspiredSight = world.store.route()?.inspiresSight == true
             && (routeIntent == .perceive
                 || LookClassifier.lookQuery(in: userText) != nil)
         let instructions = seerInstructionsProvider(SeerPass(
@@ -536,7 +536,7 @@ extension MaryBrain {
         let joinedReads = laneReads.filter { !$0.foundNothing }
         if !joinedReads.isEmpty, readPassages.isEmpty {
             // DID *THESE* READS LAND? Matched by CONTENT, in the same spirit as `noteSpoken`
-            let held = ambient.reads(since: turnStartedAt)
+            let held = world.store.reads(since: turnStartedAt)
             let landed = held.contains { fact in
                 !fact.content.isEmpty
                     && joinedReads.contains { $0.summary.contains(fact.content) }
@@ -602,7 +602,7 @@ extension MaryBrain {
         // Write back what was spoken about a fact.
         if !readPassages.isEmpty, !spokenText.isEmpty {
             // Return value is consumed here (it used to be discarded).
-            let spokenKeys = ambient.noteSpoken(contentsIn: readPassages, note: spokenText)
+            let spokenKeys = world.store.noteSpoken(contentsIn: readPassages, note: spokenText)
             for key in spokenKeys {
                 guard case .namedRead(let document, _) = key.slot,
                       let document, !document.isEmpty else { continue }

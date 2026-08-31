@@ -21,7 +21,7 @@ struct RouteRow: Identifiable, Equatable {
     var decidedBy: AmbientSignal
     var rankingMode: AmbientRankingMode
     var gate: AmbientIntentGate
-    var world: AmbientWorld?
+    var world: AmbientWorld.Snapshot?
     var writingTarget: AmbientWritingTarget?
     var supportingContext: String?
 

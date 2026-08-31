@@ -3,7 +3,7 @@
 //  MaryAmbientTests
 //
 //  WHAT: Turn World is the taught editor, never the applications host lane.
-//  OUT:  AmbientWorld.place / AmbientEngine.leadPlace
+//  OUT:  AmbientWorld.Snapshot.place / AmbientEngine.leadPlace
 //
 
 import Foundation
@@ -50,7 +50,7 @@ import MaryFoundation
         AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([registration])
         ) {
-            let snapshot = AmbientWorld(
+            let snapshot = AmbientWorld.Snapshot(
                 tier: .selection,
                 attention: .applications,
                 subject: "Xcode",
@@ -76,7 +76,7 @@ import MaryFoundation
         AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([registration])
         ) {
-            let snapshot = AmbientWorld(
+            let snapshot = AmbientWorld.Snapshot(
                 tier: .selection,
                 attention: .applications,
                 subject: "Pages",
@@ -99,7 +99,7 @@ import MaryFoundation
         AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([registration])
         ) {
-            let snapshot = AmbientWorld(
+            let snapshot = AmbientWorld.Snapshot(
                 tier: .selection,
                 attention: .applications,
                 subject: "Xcode",

@@ -35,7 +35,7 @@ extension MaryBrain {
         let mayReferenceSelection = AmbientRanker.isDeictic(userText)
             || EditIntentClassifier.intent(in: userText) != nil
         let snapshot = AmbientSelectionTurnSnapshot(
-            handoff: ambient.snapshotSelectionForTurn(
+            handoff: world.store.snapshotSelectionForTurn(
                 allowingRecentClaimed: mayReferenceSelection))
         let signalSnapshot = SchemaSignalRuntime.shared.snapshotForTurn(
             registry: abilitySnapshot,
@@ -102,7 +102,7 @@ extension MaryBrain {
         focusTracker.setTurnOverride(FocusOverride.classifyOverride(utterance: userText))
         defer { focusTracker.clearTurnOverride() }
         // Published before either prompt is built.
-        ambient.noteUtterance(userText)
+        world.store.noteUtterance(userText)
 
         // After the utterance is published so Ability Totem search can use
         // this turn's words. Observers still refresh here so live facts and
@@ -235,7 +235,7 @@ extension MaryBrain {
                 referent: discussedPassageReferent,
                 precedingUserTurnID: precedingUserTurnID,
                 lastAssistantText: lastSpokenAssistantText(),
-                persistentLead: ambient.leadPlace()?.attention,
+                persistentLead: world.store.leadPlace()?.attention,
                 now: Date())
             : nil
         let editIntent = classifiedIntent ?? acceptedOffer.map {
@@ -319,7 +319,7 @@ extension MaryBrain {
 
         // A REVISION IS AN ACTION, and saying so here is the other half of "commit to it right away".
         // PIN: `EditIntentClassifier` is the stricter, more conservative of the two
-        let ambientWorld = ambient.world()
+        let snapshot = world.snapshot()
         let focusedApplicationID = dispatcher?.focusedApplicationID
         let now = Date()
         let namedApplicationIDs = Set(applicationProfiles.lazy
@@ -342,34 +342,18 @@ extension MaryBrain {
                 profiles: applicationProfiles,
                 requireEvidence: true,
                 focusTracker: focusTracker)
-        let playerHit = MediaSurfaceSupport.shared.resolve(nil)
-        let leadPlace = AmbientRoute.leadPlace(leadApplicationID: leadApplicationID)
-        let leadFact = leadPlace.flatMap { place in
-            ambient.facts(place: place).first { !$0.content.isEmpty }?.content
-        }
         let recentUserTurns = Array(
             history.dropLast()
                 .filter { $0.role == .user }
                 .map(\.text)
                 .suffix(RoutingQuery.historyCap))
-        // TODO: Why did we create a new World object? This is what creates confusion
-        // coding agents tend to duplicate logics like this. We should reuse
-        // ambient world.
-        let routingWorld = RoutingQuery.World(
-            leadApplicationID: leadApplicationID,
-            leadTitle: applicationProfiles.first { $0.id == leadApplicationID }?.title,
-            frontmostApplicationID: focusedApplicationID,
-            playerRunning: playerHit != nil,
-            playerName: playerHit.map { $0.0.displayName },
-            selectionSubject: ambientWorld?.subject,
-            leadFact: leadFact)
         // The routing query that composes a routine.
         let routingQuery = RoutingQuery.compose(
             utterance: userText,
-            world: routingWorld,
+            world: snapshot,
             recentUserTurns: recentUserTurns)
-        ambient.noteRoutingQuery(routingQuery)
-        let worldBit = routingWorld.isEmpty ? "world=no" : "world=yes"
+        world.store.noteRoutingQuery(routingQuery)
+        let worldBit = snapshot == nil ? "world=no" : "world=yes"
         let historyBit = recentUserTurns.isEmpty ? "history=no" : "history=yes"
         Self.turnLog.info(
             "embed query — chars=\(userText.count, privacy: .public) \(worldBit, privacy: .public) \(historyBit, privacy: .public)")
@@ -407,7 +391,7 @@ extension MaryBrain {
             bareDecision: bareDecision,
             hasPendingSkillConfirmation: hadPendingAction,
             activeRoutineCount: routinesAtEntry,
-            world: ambientWorld,
+            world: snapshot,
             // A pronoun continues the named conversational subject even when another recognized app remains frontmost behind Mary.
             leadApplicationID: leadApplicationID,
             profiles: applicationProfiles,
@@ -417,7 +401,7 @@ extension MaryBrain {
                 focusTracker: focusTracker),
             focus: focusTracker.signal(),
             evidence: focusTracker.freshEvidence()))
-        ambient.noteRoute(route)
+        world.store.noteRoute(route)
         actionTurn = route.intent == .operate
             || route.intent == .compose
             || editIntent != nil
@@ -483,7 +467,7 @@ extension MaryBrain {
         }
         // Container for this turn — once, then published. Re-aim only (next command).
         if Self.bareCorrection(in: userText),
-           let previous = ambient.reference().referent,
+           let previous = world.store.reference().referent,
            let resolveCorrection = referenceCorrector {
             let intended = resolveCorrection(previous)
             let ack = intended.map { "Got it — \($0.title)." } ?? "Got it — not that one."
@@ -615,7 +599,7 @@ extension MaryBrain {
         }
 
         // editIntent.shape → referentResolver.
-        ambient.noteReference(
+        world.store.noteReference(
             referentResolver?(ReferenceAct.from(editIntent?.shape)) ?? .none)
 
         // World veto unarmed in this cut.
@@ -652,7 +636,7 @@ extension MaryBrain {
         }
         // Arm discussed-passage referent so a later "yes please" can spend it.
         if route.selectionDefinesTurn, let attention = route.world,
-           let discussed = ambient.selectionHandoff(attention: attention.attention)?.text
+           let discussed = world.store.selectionHandoff(attention: attention.attention)?.text
                 ?? attention.selectedText,
            !discussed.isEmpty {
             discussedPassageReferent = DiscussedPassageReferent(

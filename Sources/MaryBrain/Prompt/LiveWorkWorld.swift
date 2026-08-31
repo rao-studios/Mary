@@ -21,7 +21,7 @@ public enum LiveWorkWorld: Sendable, Equatable {
     case unled
 
     /// Prompt claim from the turn's machine state. Empty snapshot → unled.
-    public init(machine world: AmbientWorld?) {
+    public init(machine world: AmbientWorld.Snapshot?) {
         guard let world else {
             self = .unled
             return
@@ -37,7 +37,7 @@ public enum LiveWorkWorld: Sendable, Equatable {
     }
 
     /// Arbiter claim, unless it is unled while the turn World already names a place.
-    public static func claim(arbiter: LiveWorkWorld, machine: AmbientWorld?) -> LiveWorkWorld {
+    public static func claim(arbiter: LiveWorkWorld, machine: AmbientWorld.Snapshot?) -> LiveWorkWorld {
         if case .unled = arbiter {
             return LiveWorkWorld(machine: machine)
         }

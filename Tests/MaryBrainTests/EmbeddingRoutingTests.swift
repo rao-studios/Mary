@@ -35,10 +35,10 @@ import Testing
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,
-                world: .init(
-                    leadTitle: "Xcode",
-                    playerRunning: true,
-                    playerName: "Music"))
+                world: AmbientWorld.Snapshot(
+                    tier: .activation,
+                    attention: .applications,
+                    applicationID: "com.apple.dt.Xcode"))
             let verdict = try #require(
                 env.intent.classify(query, exemplars: store),
                 "\(utterance) did not classify")
@@ -81,7 +81,11 @@ import Testing
         let store = RoutingExemplarStore(persist: false)
         let query = RoutingQuery.compose(
             utterance: "Let's look at this code",
-            world: .init(leadTitle: "Xcode", leadFact: "main.swift"))
+            world: AmbientWorld.Snapshot(
+                tier: .activation,
+                attention: .applications,
+                subject: "main.swift",
+                applicationID: "com.apple.dt.Xcode"))
         let verdict = try #require(env.intent.classify(query, exemplars: store))
         #expect(verdict.intent == .perceive)
         #expect(

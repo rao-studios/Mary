@@ -294,7 +294,7 @@ import Testing
             try await AbilityTurnContext.$snapshot.withValue(snapshot) {
                 let runtime = AbilityRuntime(
                     plugins: MaryAdapterCatalog.adapters(),
-                    ambient: ambient,
+                    world: AmbientWorld(store: ambient),
                     contextProvider: { AbilityExecutionContext(projects: [:]) })
                 let offered = Set(runtime.schemas.map(\.name))
                 #expect(offered.contains("build_project"),
@@ -411,7 +411,7 @@ import Testing
             try await AbilityTurnContext.$snapshot.withValue(snapshot) {
                 let runtime = AbilityRuntime(
                     plugins: MaryAdapterCatalog.adapters(),
-                    ambient: ambient,
+                    world: AmbientWorld(store: ambient),
                     contextProvider: { AbilityExecutionContext(projects: [:]) })
                 let offered = Set(runtime.schemas.map(\.name))
 

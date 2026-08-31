@@ -5,7 +5,7 @@
 //  WHAT: Resolves a turn once, before prompts or executable Skills are assembled.
 //  IN:   classifiers / attention / lead / profiles
 //  OUT:  AmbientRoute → prompt and memory
-//  PIN:  Worlds vs realms vs places: engine picks a place; AmbientAttention is standing lanes.
+//  PIN:  Engine picks a place; attention is the standing lanes; the snapshot is this turn's packet at that place.
 //
 
 import Foundation
@@ -24,7 +24,7 @@ public enum AmbientEngine {
         public var bareDecision: Bool?
         public var hasPendingSkillConfirmation: Bool
         public var activeRoutineCount: Int
-        public var world: AmbientWorld?
+        public var world: AmbientWorld.Snapshot?
         public var leadApplicationID: String?
         public var profiles: [ApplicationProfile]
         /// Applications whose LIVE CONTENTS the utterance may be addressing: where each one's
@@ -48,7 +48,7 @@ public enum AmbientEngine {
             bareDecision: Bool? = nil,
             hasPendingSkillConfirmation: Bool = false,
             activeRoutineCount: Int = 0,
-            world: AmbientWorld? = nil,
+            world: AmbientWorld.Snapshot? = nil,
             leadApplicationID: String? = nil,
             profiles: [ApplicationProfile] = [],
             addressCandidates: [AmbientAddressProbe.Candidate] = [],
@@ -241,7 +241,7 @@ public enum AmbientEngine {
     /// PIN: the applications host adapter is transport, never a selection's identity.
     private static func applicationProfile(
         _ profile: ApplicationProfile,
-        represents world: AmbientWorld
+        represents world: AmbientWorld.Snapshot
     ) -> Bool {
         if AmbientAttention.from(pluginOwner: profile.id) == .applications {
             return false
@@ -274,7 +274,7 @@ public enum AmbientEngine {
         namedPlaces: Set<AmbientPlace>,
         gate: AmbientIntentGate,
         leadApplicationID: String?,
-        world: AmbientWorld?
+        world: AmbientWorld.Snapshot?
     ) -> (AmbientIntent, AmbientSignal) {
         if inputs.hasPendingSkillConfirmation, inputs.bareDecision != nil {
             return (.decide, .pendingDecision)
@@ -334,7 +334,7 @@ public enum AmbientEngine {
     /// A selection is always a valid conversational referent. It becomes a mutation target only
     /// when its exact source surface is allowed to receive prose.
     private static func directSelectionCanReceiveRevision(
-        _ world: AmbientWorld
+        _ world: AmbientWorld.Snapshot
     ) -> Bool {
         // Payload recovery is a useful source of *reading* context, but its characters did not
         // come from the live source element. Likewise, a canvas descendant does not identify the

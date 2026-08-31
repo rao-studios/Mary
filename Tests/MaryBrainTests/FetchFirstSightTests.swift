@@ -74,7 +74,7 @@ import MaryFoundation
         let runtime = AbilityRuntime(
             plugins: [SightAdapter(dispatched: Dispatched())],
             focusProvider: { "xcode" },
-            ambient: ambient,
+            world: AmbientWorld(store: ambient),
             contextProvider: { AbilityExecutionContext(projects: [:]) })
         #expect(runtime.wouldServeLook())
     }
@@ -95,7 +95,7 @@ import MaryFoundation
         let runtime = AbilityRuntime(
             plugins: [SightAdapter(dispatched: dispatched)],
             focusProvider: { "xcode" },
-            ambient: ambient,
+            world: AmbientWorld(store: ambient),
             contextProvider: { AbilityExecutionContext(projects: [:]) })
         let passage = await runtime.fetchDeclaredEditorSight(query: "Let's take a look at this code")
         #expect(passage == "func parameters() {}")

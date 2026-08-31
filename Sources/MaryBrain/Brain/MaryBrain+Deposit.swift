@@ -45,7 +45,7 @@ extension MaryBrain {
             ?? (skillPlace?.placeClass == .dataSource
                 ? skillPlace?.application
                 : subject.app)
-        let route = ambient.route()
+        let route = world.store.route()
         // APPLICATION-USE LEARNING IS NOT IN THIS CUT.
         _ = route
         Task.detached {

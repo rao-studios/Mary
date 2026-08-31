@@ -5,7 +5,7 @@
 //  WHAT: Where a fact lives — native lane or registered application.
 //  IN:   AmbientAttention (closed) / ApplicationRegistration (open)
 //  OUT:  store keys, ranking, prompt
-//  PIN:  Native place IS its world. Dynamic is the open identity. World ≠ place ≠ realm.
+//  PIN:  Place is the address (lane or taught app). A snapshot is AT a place; place ≠ realm ≠ attention.
 //
 
 import Foundation

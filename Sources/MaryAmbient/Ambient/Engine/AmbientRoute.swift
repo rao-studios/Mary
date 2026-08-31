@@ -72,7 +72,7 @@ public struct AmbientRoute: Sendable, Equatable {
     /// The question form, requested ability, and durable-memory lanes for this turn.
     public var gate: AmbientIntentGate
     /// The freshest behavioral signal available when this turn was routed.
-    public var world: AmbientWorld?
+    public var world: AmbientWorld.Snapshot?
     /// Whether that attention is the semantic referent/target of this turn. `attention` remains
     /// available when false for diagnostics and ordering, but prompt construction must not
     /// present it as what deictic words mean.
@@ -124,7 +124,7 @@ public struct AmbientRoute: Sendable, Equatable {
         decidedBy: AmbientSignal,
         verdicts: AmbientVerdicts = AmbientVerdicts(),
         gate: AmbientIntentGate = AmbientIntentGate(),
-        world: AmbientWorld? = nil,
+        world: AmbientWorld.Snapshot? = nil,
         selectionDefinesTurn: Bool = false,
         leadApplicationID: String? = nil,
         leadPlace: AmbientPlace? = nil,
@@ -212,7 +212,7 @@ public extension AmbientRoute {
 
     /// The direct attention this route actually accepted as its referent.
     /// Diagnostic attention remains on the route when this is nil.
-    var routedSelectionWorld: AmbientWorld? {
+    var routedSelectionWorld: AmbientWorld.Snapshot? {
         selectionDefinesTurn && world?.isDirectReference == true
             ? world
             : nil
@@ -224,13 +224,13 @@ public extension AmbientRoute {
     /// Attention after semantic containment. `attention` itself deliberately
     /// retains a rejected source packet for diagnostics; consumers that can
     /// influence prompts, routing, or execution use this projection instead.
-    var routedWorld: AmbientWorld? {
+    var routedWorld: AmbientWorld.Snapshot? {
         guard world?.isDirectReference == true else { return world }
         return routedSelectionWorld
     }
 
     /// Exact identity check between the source-owned packet frozen for this turn and the
-    /// selection the route accepted. `AmbientWorld` has no packet UUID, so all immutable
+    /// selection the route accepted. `AmbientWorld.Snapshot` has no packet UUID, so all immutable
     /// source/value fields participate.
     func admitsSelectionHandoff(_ handoff: AmbientSelectionHandoff) -> Bool {
         guard let world = routedSelectionWorld,

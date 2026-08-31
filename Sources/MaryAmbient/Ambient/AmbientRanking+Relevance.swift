@@ -85,7 +85,7 @@ extension AmbientRanker {
         facts: [AmbientFact],
         utterance: String,
         focusedPlace: AmbientPlace?,
-        world: AmbientWorld? = nil,
+        world: AmbientWorld.Snapshot? = nil,
         at now: Date = Date()
     ) -> (mode: AmbientRankingMode, facts: [AmbientFact]) {
         let attention = world?.isFresh(at: now) == true && world?.isDirectReference == true
@@ -117,7 +117,7 @@ extension AmbientRanker {
         facts: [AmbientFact],
         utterance: String,
         focusedPlace: AmbientPlace?,
-        world: AmbientWorld? = nil,
+        world: AmbientWorld.Snapshot? = nil,
         alreadyRendered: Set<AmbientKey> = [],
         suppressingContentIn suppressed: [String] = [],
         surfaces: [AmbientSurface] = [],

@@ -49,7 +49,7 @@ import MaryFoundation
             plugins: adapters,
             executionLog: log,
             behavior: nil,
-            ambient: AmbientContextStore(),
+            world: AmbientWorld(),
             passages: PassageRegistry(),
             containers: ContainerRegistry(),
             contextProvider: { AbilityExecutionContext(projects: [:]) })

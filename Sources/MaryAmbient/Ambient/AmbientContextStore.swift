@@ -64,103 +64,6 @@ public enum AmbientWorldTier: Int, Sendable, Equatable, CaseIterable, Codable {
     }
 }
 
-/// This turn's machine state — what is actually in front of the user.
-/// Faculty/channel is `attention`; taught place is `place`.
-public struct AmbientWorld: Sendable, Equatable {
-    public var tier: AmbientWorldTier
-    public var attention: AmbientAttention
-    public var subject: String?
-    /// Source app for a direct selection. Workspace worlds already name the plugin;
-    /// `.applications` needs this to type back into the same frontmost surface.
-    public var applicationID: String?
-    public var key: AmbientKey?
-    public var selectedText: String?
-    /// Nearby text for a transform; never the write target.
-    public var surroundingText: String?
-    /// Source mutation capability. Nil for hover/activation (no text surface).
-    public var selectionEditability: AmbientSelectionEditability?
-
-    /// Where this turn's machine state lives. Bundle ids resolve to the taught
-    /// registration; the applications host lane is never the identity.
-    /// PIN: faculty `attention` remains the channel; place names the app.
-    public var place: AmbientPlace {
-        if let applicationID, !applicationID.isEmpty {
-            let index = AmbientApplicationIndexProvider.current
-            if let registration = index.registration(bundleID: applicationID)
-                ?? index.registration(id: applicationID) {
-                return registration.place
-            }
-            return .application(applicationID)
-        }
-        return .lane(attention)
-    }
-    /// How AX identified the text element. Canvas-descendant is enough to
-    /// discuss the words, not to promise in-place replace (focus may be the canvas).
-    public var selectionSourceEvidence: AmbientSelectionSourceEvidence?
-    /// Payload recovered outside the AX source. Still an exact referent;
-    /// routing must see this so it cannot become an in-place replace target.
-    public var selectionPayloadRecovery: AmbientSelectionPayloadRecovery?
-    public var capturedAt: Date
-    public var freshFor: TimeInterval
-
-    public init(
-        tier: AmbientWorldTier,
-        attention: AmbientAttention,
-        subject: String? = nil,
-        applicationID: String? = nil,
-        key: AmbientKey? = nil,
-        selectedText: String? = nil,
-        surroundingText: String? = nil,
-        selectionEditability: AmbientSelectionEditability? = nil,
-        selectionSourceEvidence: AmbientSelectionSourceEvidence? = nil,
-        selectionPayloadRecovery: AmbientSelectionPayloadRecovery? = nil,
-        capturedAt: Date = Date(),
-        freshFor: TimeInterval? = nil
-    ) {
-        self.tier = tier
-        self.attention = attention
-        self.subject = subject
-        self.applicationID = applicationID
-        self.key = key
-        self.selectedText = selectedText
-        self.surroundingText = surroundingText
-        self.selectionEditability = selectionEditability
-        self.selectionSourceEvidence = selectionSourceEvidence
-        self.selectionPayloadRecovery = selectionPayloadRecovery
-        self.capturedAt = capturedAt
-        self.freshFor = freshFor ?? tier.freshFor
-    }
-
-    public init(selection fact: AmbientFact) {
-        self.init(
-            tier: .selection,
-            attention: fact.attention,
-            subject: fact.subject,
-            applicationID: fact.applicationID,
-            key: fact.key,
-            selectedText: fact.content,
-            surroundingText: fact.surroundingText,
-            selectionEditability: nil,
-            selectionSourceEvidence: nil,
-            selectionPayloadRecovery: nil,
-            capturedAt: fact.capturedAt,
-            freshFor: fact.freshFor)
-    }
-
-    public func isFresh(at now: Date = Date()) -> Bool {
-        let age = now.timeIntervalSince(capturedAt)
-        return age >= 0 && age <= freshFor
-    }
-
-    public func matches(_ fact: AmbientFact) -> Bool {
-        if let key { return fact.key == key }
-        guard fact.attention == attention else { return false }
-        return subject == nil || fact.subject == subject
-    }
-
-    public var isDirectReference: Bool { tier == .selection }
-}
-
 /// Process-wide, lock-protected short-term awareness.
 public final class AmbientContextStore: @unchecked Sendable {
 
@@ -186,7 +89,7 @@ public final class AmbientContextStore: @unchecked Sendable {
     private let referenceBox = OSAllocatedUnfairLock<ReferenceDecision>(initialState: .none)
     /// Route for retrieval and prompt assembly.
     private let routeBox = OSAllocatedUnfairLock<AmbientRoute?>(initialState: nil)
-    private let worldBox = OSAllocatedUnfairLock<AmbientWorld?>(initialState: nil)
+    private let worldBox = OSAllocatedUnfairLock<AmbientWorld.Snapshot?>(initialState: nil)
     /// Canonical source-owned highlight. Fact/attention project at read time.
     /// PIN: watermarks outlive a clear so a delayed AX read cannot resurrect.
     private struct SelectionState {
@@ -802,7 +705,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         return true
     }
 
-    public func noteWorld(_ incoming: AmbientWorld, at now: Date = Date()) {
+    public func noteWorld(_ incoming: AmbientWorld.Snapshot, at now: Date = Date()) {
         // Selection attention is `recordSelection` only; reject standalone here.
         guard incoming.tier != .selection else { return }
         guard incoming.isFresh(at: now) else { return }
@@ -818,7 +721,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         emit(facts(attention: incoming.attention, at: now))
     }
 
-    public func world(at now: Date = Date()) -> AmbientWorld? {
+    public func world(at now: Date = Date()) -> AmbientWorld.Snapshot? {
         if let snapshot = AmbientSelectionTurnContext.snapshot {
             // Task-local freezes selection only. Hover/activation still apply.
             if let handoff = snapshot.handoff {
@@ -827,7 +730,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         } else if let handoff = currentSelectionHandoff(at: now) {
             return Self.selectionWorld(from: handoff)
         }
-        return worldBox.withLock { value -> AmbientWorld? in
+        return worldBox.withLock { value -> AmbientWorld.Snapshot? in
             guard let value, value.isFresh(at: now) else {
                 value = nil
                 return nil
@@ -1167,8 +1070,8 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     private static func selectionWorld(
         from handoff: AmbientSelectionHandoff
-    ) -> AmbientWorld {
-        AmbientWorld(
+    ) -> AmbientWorld.Snapshot {
+        AmbientWorld.Snapshot(
             tier: .selection,
             attention: handoff.attention,
             subject: handoff.subject,
