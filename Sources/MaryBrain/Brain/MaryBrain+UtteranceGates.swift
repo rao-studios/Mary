@@ -127,6 +127,8 @@ extension MaryBrain {
             "never mind", "nevermind", "leave it", "cancel it", "no cancel",
             "dont do it", "no stop", "cancel that",
         ]
+        
+        // Prioritizes affirms
         if affirmatives.contains(normalized) { return true }
         if negatives.contains(normalized) { return false }
         return nil
