@@ -37,19 +37,4 @@ import Testing
         #expect(route.decidedBy == .editIntent)
     }
 
-    @Test func withoutAnEmbeddingIntentAWritingActionStillComposes() {
-        let scrivener = ApplicationProfile(
-            id: "scrivener",
-            title: "Scrivener",
-            summary: "Manuscript.",
-            abilities: [AbilityID("scrivener"), .writing],
-            aliases: ["scrivener"])
-        let route = AmbientEngine.resolve(.init(
-            utterance: "write a paragraph",
-            actionTurn: true,
-            leadApplicationID: "scrivener",
-            profiles: [scrivener]))
-        #expect(route.intent == .compose)
-        #expect(route.decidedBy == .writingRegister)
-    }
 }

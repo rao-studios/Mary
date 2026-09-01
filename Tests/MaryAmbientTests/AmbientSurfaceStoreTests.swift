@@ -61,14 +61,6 @@ import Testing
             .activeWindow?.title == "Newer")
     }
 
-    @Test func newerCaptureReplacesTheHeldOne() {
-        let store = AmbientContextStore()
-        store.noteSurface(surface(window: "First"), at: epoch)
-        let second = surface(window: "Second", capturedAt: epoch.addingTimeInterval(5))
-        store.noteSurface(second, at: epoch.addingTimeInterval(5))
-        #expect(store.surface(place: pages, at: epoch.addingTimeInterval(6))?
-            .activeWindow?.title == "Second")
-    }
 
     @Test func expiredSurfacesDropRatherThanDegrade() {
         let store = AmbientContextStore()

@@ -107,7 +107,7 @@ import Testing
             let query = RoutingQuery.compose(
                 utterance: utterance,
                 world: AmbientWorld.Snapshot(
-                    tier: .activation,
+                    sense: .workspace,
                     attention: .applications,
                     applicationID: "com.apple.dt.Xcode"),
                 recentUserTurns: ["what's the time", "how's the weather"])

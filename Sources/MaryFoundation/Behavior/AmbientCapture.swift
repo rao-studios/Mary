@@ -8,6 +8,12 @@
 //  PIN:  Nil = no prompt built; empty = assembled, nothing to see. Places/slots
 //        are Strings. Holds real text; privacy is store/switch/budgets, not redaction here.
 //
+//  MIRRORS THE AMBIENT CORE ON PURPOSE. Each type here shadows a live MaryAmbient
+//  one field for field, because these rows PERSIST — episodes are written to the
+//  Totem corpus and decoded on later runs, so this schema must stay backward
+//  compatible while the live types are free to change. Do not dedup them onto the
+//  ambient types; project in AmbientCaptureBuilder, the one place they meet.
+//
 
 import Foundation
 

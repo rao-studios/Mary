@@ -16,6 +16,10 @@ public struct AmbientSurface: Sendable, Equatable {
     /// The application whose screen this is. `pid` is the process to return
     /// to; `bundleID` the identity ladder's input — both reported, neither
     /// user-visible prompt text.
+    ///
+    /// `CapturedApplication` (MaryFoundation/Behavior/AmbientCapture.swift) mirrors
+    /// these fields for the persisted corpus, and stays separate: `pid` is
+    /// non-optional here because a live surface always has one.
     public struct Application: Sendable, Equatable {
         public var name: String
         public var bundleID: String?

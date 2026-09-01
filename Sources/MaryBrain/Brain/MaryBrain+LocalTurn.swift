@@ -21,16 +21,20 @@ extension MaryBrain {
     func localTurn(
         userText: String,
         systemPrompt: String,
-        actionTurn: Bool = false,
-        editIntent: EditIntent? = nil,
+        /// THE TURN'S ROUTE, WHOLE — same parity as `seerTurn`: the shape of this
+        /// turn was decided once, and local mode reads that decision rather than
+        /// being handed a re-spelled copy of its parts.
+        route: AmbientRoute,
         target: LocatedPassage? = nil,
-        writingTarget: AmbientWritingTarget? = nil,
         acceptedOffer: Bool = false,
         worldVetoArming: WorldVeto.Arming? = nil,
         traceID: UUID? = nil,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
         epoch: UInt64
     ) async {
+        let actionTurn = route.isActionTurn
+        let editIntent = route.verdicts.editIntent
+        let writingTarget = route.writingTarget
         var fullText = ""
         var usedEmptyRetry = false
 
@@ -282,14 +286,7 @@ extension MaryBrain {
                     ))
                     outcomes.append(LaneOutcome(
                         skillName: reference.bindingOperation ?? call.name,
-                        summary: outcome.summary,
-                        ok: outcome.ok, deferred: outcome.deferred,
-                        foundNothing: outcome.foundNothing,
-                        requested: outcome.status == .requested,
-                        editDisposition: outcome.editDisposition,
-                        ambientDeposited: outcome.ambientDeposited,
-                        blocked: outcome.status == .blocked,
-                        landed: outcome.landed))
+                        outcome: outcome))
                 }
                 appendHistory(contentsOf: roundTurns, epoch: epoch)
                 if Task.isCancelled {

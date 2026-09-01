@@ -28,7 +28,9 @@ extension AmbientWorld {
     /// This turn's machine state — what is actually in front of the user.
     /// Faculty/channel is `attention`; taught place is `place`.
     public struct Snapshot: Sendable, Equatable {
-        public var tier: AmbientWorldTier
+        /// How this turn's world was evidenced. Same vocabulary an observer
+        /// declares it can supply.
+        public var sense: AmbientSense
         public var attention: AmbientAttention
         public var subject: String?
         /// Source app for a direct selection. Workspace worlds already name the plugin;
@@ -65,7 +67,7 @@ extension AmbientWorld {
         public var freshFor: TimeInterval
 
         public init(
-            tier: AmbientWorldTier,
+            sense: AmbientSense,
             attention: AmbientAttention,
             subject: String? = nil,
             applicationID: String? = nil,
@@ -78,7 +80,7 @@ extension AmbientWorld {
             capturedAt: Date = Date(),
             freshFor: TimeInterval? = nil
         ) {
-            self.tier = tier
+            self.sense = sense
             self.attention = attention
             self.subject = subject
             self.applicationID = applicationID
@@ -89,12 +91,12 @@ extension AmbientWorld {
             self.selectionSourceEvidence = selectionSourceEvidence
             self.selectionPayloadRecovery = selectionPayloadRecovery
             self.capturedAt = capturedAt
-            self.freshFor = freshFor ?? tier.freshFor
+            self.freshFor = freshFor ?? sense.freshFor
         }
 
         public init(selection fact: AmbientFact) {
             self.init(
-                tier: .selection,
+                sense: .selection,
                 attention: fact.attention,
                 subject: fact.subject,
                 applicationID: fact.applicationID,
@@ -119,6 +121,6 @@ extension AmbientWorld {
             return subject == nil || fact.subject == subject
         }
 
-        public var isDirectReference: Bool { tier == .selection }
+        public var isDirectReference: Bool { sense == .selection }
     }
 }

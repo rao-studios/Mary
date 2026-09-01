@@ -148,17 +148,4 @@ import Testing
         #expect(capture.isEmpty)
         #expect(capture.mode == "relevance")
     }
-
-    // MARK: - It survives the codec
-
-    /// The whole point of the tokens: a capture round-trips through the
-    /// dataset's encoder unchanged.
 }
-
-// MARK: - The realm: what could have served, and where it landed
-
-/// THE JUDGEMENT HALF OF THE INPUT. The surfaces record what Mary could SEE;
-/// the realm records what she could USE and which of those won. A dataset row
-/// with only the first teaches an association ("she typed into TextEdit"); a
-/// row with both teaches the choice ("three conformed; this one led on a
-/// four-second-old activation").

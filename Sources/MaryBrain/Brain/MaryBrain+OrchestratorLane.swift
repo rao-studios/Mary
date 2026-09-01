@@ -314,15 +314,7 @@ extension MaryBrain {
                     lastOutcomes.append(outcome.summary)
                     result.outcomes.append(LaneOutcome(
                         skillName: reference.bindingOperation ?? call.name,
-                        summary: outcome.summary,
-                        ok: outcome.ok, deferred: outcome.deferred,
-                        // The one place `foundNothing` can be lost — downstream reads it off `LaneOutcome`.
-                        foundNothing: outcome.foundNothing,
-                        requested: outcome.status == .requested,
-                        editDisposition: outcome.editDisposition,
-                        ambientDeposited: outcome.ambientDeposited,
-                        blocked: outcome.status == .blocked,
-                        landed: outcome.landed))
+                        outcome: outcome))
                     archive(
                         reference: reference,
                         skillName: reference.bindingOperation ?? call.name,

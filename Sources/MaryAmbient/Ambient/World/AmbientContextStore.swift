@@ -18,30 +18,6 @@ import MaryFoundation
 import Foundation
 import os
 
-/// Mutable-once route holder after classifiers run inside a frozen turn.
-/// PIN: TaskLocal cannot be reassigned; this box can. Caller: runTurnBody.
-public final class AmbientRouteTurnState: @unchecked Sendable {
-    private let box = OSAllocatedUnfairLock<AmbientRoute?>(initialState: nil)
-
-    public init() {}
-
-    public func note(_ route: AmbientRoute) { box.withLock { $0 = route } }
-    public func current() -> AmbientRoute? { box.withLock { $0 } }
-}
-
-/// Per-request route holder. Nil = this turn has not routed yet.
-/// PIN: never fall back to another turn's process-global snapshot.
-public enum AmbientRouteTurnContext {
-    @TaskLocal public static var state: AmbientRouteTurnState?
-}
-
-/// A normalized form of awareness a support plugin can provide.
-public enum AmbientSense: String, CaseIterable, Hashable, Sendable, Codable {
-    case workspace
-    case selection
-    case hover
-}
-
 /// Process-wide, lock-protected short-term awareness.
 public final class AmbientContextStore: @unchecked Sendable {
 
@@ -196,7 +172,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
         worldBox.withLock { snapshot in
             guard snapshot?.attention == place.attention,
-                  snapshot?.tier != .selection
+                  snapshot?.sense != .selection
             else { return }
             snapshot = nil
         }
@@ -336,7 +312,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         let accepted = selectionStateBox.withLock { state -> Bool in
             Self.pruneSelectionMutations(&state, at: now)
             let source = SelectionSource(handoff)
-            let process = SelectionProcess(handoff)
+            let process = source.process
             if let mutation = state.processMutationAt[process], mutation > handoff.capturedAt {
                 return false
             }
@@ -414,7 +390,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             }
         }
         worldBox.withLock { snapshot in
-            guard snapshot?.tier == .selection else { return }
+            guard snapshot?.sense == .selection else { return }
             snapshot = nil
         }
         emit([Self.selectionFact(from: handoff)])
@@ -500,7 +476,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         guard result.removed != nil else { return }
         worldBox.withLock { snapshot in
             guard snapshot?.applicationID == applicationID,
-                  snapshot?.tier == .selection
+                  snapshot?.sense == .selection
             else { return }
             snapshot = nil
         }
@@ -535,7 +511,7 @@ public final class AmbientContextStore: @unchecked Sendable {
             guard !activationIsSameSource
             else { return nil }
             let source = SelectionSource(current)
-            let process = SelectionProcess(current)
+            let process = source.process
             state.sourceMutationAt[source] = max(
                 state.sourceMutationAt[source] ?? .distantPast, now)
             state.processMutationAt[process] = max(
@@ -545,7 +521,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
         guard let removed else { return false }
         worldBox.withLock { snapshot in
-            guard snapshot?.tier == .selection,
+            guard snapshot?.sense == .selection,
                   snapshot?.applicationID == removed.applicationID
             else { return }
             snapshot = nil
@@ -626,7 +602,7 @@ public final class AmbientContextStore: @unchecked Sendable {
                 return recent
             }
             let source = SelectionSource(handoff)
-            let process = SelectionProcess(handoff)
+            let process = source.process
             var delivered = state.deliveredSelections[process] ?? []
             // Replace only the equivalent tombstone; do not grow the ledger.
             delivered.removeAll { $0.matches(handoff) }
@@ -685,16 +661,16 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     public func noteWorld(_ incoming: AmbientWorld.Snapshot, at now: Date = Date()) {
         // Selection attention is `recordSelection` only; reject standalone here.
-        guard incoming.tier != .selection else { return }
+        guard incoming.sense != .selection else { return }
         guard incoming.isFresh(at: now) else { return }
         worldBox.withLock { current in
-            guard let existing = current, existing.isFresh(at: now) else {
-                current = incoming
+            // Out-of-order arrival, not rank: a late read must not overwrite a
+            // newer one. Same rule the tier-0 surface store keeps.
+            if let existing = current, existing.isFresh(at: now),
+               existing.capturedAt > incoming.capturedAt {
                 return
             }
-            if incoming.tier.rawValue >= existing.tier.rawValue {
-                current = incoming
-            }
+            current = incoming
         }
         emit(facts(attention: incoming.attention, at: now))
     }
@@ -829,8 +805,17 @@ public final class AmbientContextStore: @unchecked Sendable {
             processID = handoff.processID
             sourceSurfaceID = handoff.sourceSurfaceID
         }
+
+        /// The same identity at process granularity. Derived, so the two keys
+        /// cannot disagree about which process they name.
+        var process: SelectionProcess {
+            SelectionProcess(applicationID: applicationID, processID: processID)
+        }
     }
 
+    /// A source minus its surface, and deliberately its own type: process-level
+    /// tombstones outlive any one surface, so these keys must never be mixed with
+    /// `SelectionSource`.
     private struct SelectionProcess: Hashable {
         let applicationID: String
         let processID: Int32
@@ -838,10 +823,6 @@ public final class AmbientContextStore: @unchecked Sendable {
         public init(applicationID: String, processID: Int32) {
             self.applicationID = applicationID
             self.processID = processID
-        }
-
-        public init(_ handoff: AmbientSelectionHandoff) {
-            self.init(applicationID: handoff.applicationID, processID: handoff.processID)
         }
     }
 
@@ -1050,7 +1031,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         from handoff: AmbientSelectionHandoff
     ) -> AmbientWorld.Snapshot {
         AmbientWorld.Snapshot(
-            tier: .selection,
+            sense: .selection,
             attention: handoff.attention,
             subject: handoff.subject,
             applicationID: handoff.applicationID,
@@ -1082,7 +1063,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         }
         guard let removed else { return }
         worldBox.withLock { snapshot in
-            guard snapshot?.tier == .selection,
+            guard snapshot?.sense == .selection,
                   snapshot?.applicationID == removed.applicationID
             else { return }
             snapshot = nil

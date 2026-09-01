@@ -49,6 +49,9 @@ public enum SurfaceClaimOwnership {
 
 public enum SurfacePollTarget {
 
+    /// A running process as macOS reports it, before anything is resolved into
+    /// Mary's vocabulary. Not a `SourceScope`: this is the INPUT to identity
+    /// resolution, and a scope of eight nils would say less.
     public struct Process: Equatable, Sendable {
         public var bundleID: String
         public var pid: pid_t
@@ -60,11 +63,20 @@ public enum SurfacePollTarget {
     }
 
     public struct Hit: Equatable, Sendable {
+        /// The LOGICAL application id, already resolved — see `place`.
         public var applicationID: String
         public var pid: pid_t
         /// True when the hit is the frontmost application. A miss against a frontmost editor
         /// retracts (the file closed).
         public var isFrontmost: Bool
+
+        /// The hit as a place, through the one resolution ladder. Callers that want
+        /// to name where this is — a log line, a trace row — say it this way rather
+        /// than re-deriving a display name from the raw id.
+        public var place: AmbientPlace {
+            AmbientApplicationIndexProvider.current.registration(id: applicationID)?.place
+                ?? .application(applicationID)
+        }
 
         public init(applicationID: String, pid: pid_t, isFrontmost: Bool) {
             self.applicationID = applicationID

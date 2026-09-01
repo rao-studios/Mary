@@ -55,7 +55,7 @@ enum RouteReport {
         lines.append("ranking: \(row.rankingMode.rawValue)")
         if let attention = row.world {
             let subject = attention.subject.map { "#\($0)" } ?? ""
-            lines.append("attention: \(attention.tier.rawValue)@\(attention.attention.rawValue)\(subject)")
+            lines.append("attention: \(attention.sense.rawValue)@\(attention.attention.rawValue)\(subject)")
         }
         lines.append("writing.target: \(row.writingTarget?.rawValue ?? "none")")
         lines.append("writing.context: \(row.supportingContext.map(oneLine) ?? "none")")

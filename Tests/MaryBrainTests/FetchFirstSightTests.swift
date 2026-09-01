@@ -163,7 +163,7 @@ import MaryFoundation
     @Test func receiptSummaryFallsThroughToNextRung() async {
         let ambient = AmbientContextStore()
         ambient.noteWorld(AmbientWorld.Snapshot(
-            tier: .activation, attention: .applications,
+            sense: .workspace, attention: .applications,
             applicationID: "com.apple.dt.Xcode"))
         let dispatched = Dispatched()
         let adapter = SightAdapter(
@@ -193,7 +193,7 @@ import MaryFoundation
     @Test func codingLeadReadsBufferNeverCurrentFileOrLook() async {
         let ambient = AmbientContextStore()
         ambient.noteWorld(AmbientWorld.Snapshot(
-            tier: .activation, attention: .applications,
+            sense: .workspace, attention: .applications,
             applicationID: "com.apple.dt.Xcode"))
         let dispatched = Dispatched()
         let adapter = SightAdapter(
@@ -225,7 +225,7 @@ import MaryFoundation
     @Test func writingLeadReadsDocumentNeverBuffer() async {
         let ambient = AmbientContextStore()
         ambient.noteWorld(AmbientWorld.Snapshot(
-            tier: .activation, attention: .applications,
+            sense: .workspace, attention: .applications,
             applicationID: "com.apple.Notes"))
         let dispatched = Dispatched()
         let adapter = SightAdapter(
@@ -247,6 +247,52 @@ import MaryFoundation
             #expect(sight?.passage == "Once upon a time,\nthere was a paragraph.")
             #expect(sight?.isRead == true)
             #expect(dispatched.snapshot() == ["read_document"])
+        }
+    }
+
+    /// A ROUTE THAT REJECTED THE SELECTION IS ANSWERED, not re-asked. Inside a
+    /// turn the sight ladder reads `route.routedWorld`; when the route did not
+    /// accept the standing highlight that is nil, and re-reading the store here
+    /// would hand the rejected selection straight back as sight.
+    @Test func aRejectedSelectionIsNotServedAsSight() async {
+        let ambient = AmbientContextStore()
+        // A real highlight STANDS in the store — `fetchFirstPrefersSelectionReadOverLook`
+        // is the same fixture and proves this one gets served when the route accepts it.
+        _ = ambient.recordSelection(.init(
+            attention: .applications,
+            application: "xcode",
+            applicationID: "com.apple.dt.Xcode",
+            processID: 1,
+            text: "func parameters() {}",
+            subject: "AbilityRuntime.swift",
+            range: 0..<20,
+            channel: .sourcePoll,
+            sourceEvidence: .exactElement))
+        let dispatched = Dispatched()
+        let adapter = SightAdapter(dispatched: dispatched)
+        // ...but this turn's route did not take it as the referent.
+        let standing = AmbientWorld.Snapshot(
+            sense: .selection,
+            attention: .applications,
+            applicationID: "com.apple.dt.Xcode",
+            selectedText: "func parameters() {}")
+        let route = AmbientRoute(
+            intent: .converse, decidedBy: .none,
+            world: standing, selectionDefinesTurn: false)
+        #expect(route.routedWorld == nil, "precondition: the route rejected it")
+
+        let state = AmbientRouteTurnState()
+        state.note(route)
+        await AmbientRouteTurnContext.$state.withValue(state) {
+            await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+                let runtime = AbilityRuntime(
+                    plugins: [adapter],
+                    focusProvider: { "xcode" },
+                    world: AmbientWorld(store: ambient),
+                    contextProvider: { AbilityExecutionContext(projects: [:]) })
+                _ = await runtime.fetchDeclaredEditorSight(query: nil)
+                #expect(!dispatched.snapshot().contains("read_selection"))
+            }
         }
     }
 

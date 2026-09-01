@@ -96,9 +96,9 @@ enum ScrivenerPerceptionProbe {
               leadApplicationID ?? "none")
 
         let utterance = value("--utterance") ?? "type this at the cursor"
-        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs.live(
             utterance: utterance,
-            leadApplicationID: leadApplicationID,
+            signal: signal,
             profiles: profiles))
         AmbientContextStore.shared.noteUtterance(utterance)
         AmbientContextStore.shared.noteRoute(route)

@@ -36,7 +36,7 @@ import Testing
             let query = RoutingQuery.compose(
                 utterance: utterance,
                 world: AmbientWorld.Snapshot(
-                    tier: .activation,
+                    sense: .workspace,
                     attention: .applications,
                     applicationID: "com.apple.dt.Xcode"))
             let verdict = try #require(
@@ -82,7 +82,7 @@ import Testing
         let query = RoutingQuery.compose(
             utterance: "Let's look at this code",
             world: AmbientWorld.Snapshot(
-                tier: .activation,
+                sense: .workspace,
                 attention: .applications,
                 subject: "main.swift",
                 applicationID: "com.apple.dt.Xcode"))

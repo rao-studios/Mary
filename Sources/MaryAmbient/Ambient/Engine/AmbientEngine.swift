@@ -13,6 +13,20 @@ import Foundation
 /// Resolves a turn once, before prompts or executable Skills are assembled.
 public enum AmbientEngine {
 
+    /// Verdicts the caller already reached about this utterance, so one turn has
+    /// one answer — the override the tracker is running under is the one the route
+    /// records. Seeded whole: `focusOverride` is legitimately nil, so an optional
+    /// could not distinguish "no override" from "never asked".
+    public struct AmbientVerdictSeeds: Sendable, Equatable {
+        public var isDeictic: Bool
+        public var focusOverride: WorkspaceFocus?
+
+        public init(isDeictic: Bool, focusOverride: WorkspaceFocus?) {
+            self.isDeictic = isDeictic
+            self.focusOverride = focusOverride
+        }
+    }
+
     public struct Inputs: Sendable {
         public var utterance: String
         /// Embedding query. Nil — ability nomination still uses `utterance`.
@@ -37,6 +51,8 @@ public enum AmbientEngine {
         /// Immutable ability graph used for this routing decision. Nil asks
         /// the library for its active (lazily loaded) registry.
         public var abilitySnapshot: (any AbilityCapabilityIndex)?
+        /// Nil asks the classifiers here. See `AmbientVerdictSeeds`.
+        public var seeds: AmbientVerdictSeeds?
         public var now: Date
 
         public init(
@@ -55,6 +71,7 @@ public enum AmbientEngine {
             focus: FocusSignal = FocusSignal(),
             evidence: [AmbientPlace: FocusEvidence] = [:],
             abilitySnapshot: (any AbilityCapabilityIndex)? = nil,
+            seeds: AmbientVerdictSeeds? = nil,
             now: Date = Date()
         ) {
             self.utterance = utterance
@@ -72,7 +89,34 @@ public enum AmbientEngine {
             self.focus = focus
             self.evidence = evidence
             self.abilitySnapshot = abilitySnapshot
+            self.seeds = seeds
             self.now = now
+        }
+
+        /// Inputs from ONE live focus read, so a caller holding a signal never
+        /// flattens it to a lead id and drops the rest.
+        /// NOT FOR THE TURN LOOP: its `requireEvidence` ladder deliberately
+        /// produces nil leads, which a signal would quietly fill.
+        public static func live(
+            utterance: String,
+            signal: FocusSignal,
+            profiles: [ApplicationProfile] = [],
+            routingQuery: String? = nil,
+            world: AmbientWorld.Snapshot? = nil,
+            editIntent: EditIntent? = nil,
+            abilitySnapshot: (any AbilityCapabilityIndex)? = nil,
+            now: Date = Date()
+        ) -> Self {
+            Self(
+                utterance: utterance,
+                routingQuery: routingQuery,
+                editIntent: editIntent,
+                world: world,
+                leadApplicationID: signal.lead?.application,
+                profiles: profiles,
+                focus: signal,
+                abilitySnapshot: abilitySnapshot,
+                now: now)
         }
     }
 
@@ -89,7 +133,8 @@ public enum AmbientEngine {
         let namedPlaces = namedApplications.isEmpty
             ? AmbientRanker.namedPlaces(in: inputs.utterance)
             : explicitlyNamedPlaces
-        let isDeictic = AmbientRanker.isDeictic(inputs.utterance)
+        let isDeictic = inputs.seeds?.isDeictic
+            ?? AmbientRanker.isDeictic(inputs.utterance)
 
         // A source-owned selection is a one-turn interaction, not a workspace focus signal.
         let conflictPlaces = explicitlyNamedPlaces.isEmpty && namedPlaces.count == 1
@@ -158,13 +203,13 @@ public enum AmbientEngine {
             addressed: addressed)
         let verdicts = AmbientVerdicts(
             actionTurn: inputs.actionTurn,
-            editShape: inputs.editIntent?.shape,
-            editTargets: inputs.editIntent?.target ?? [],
+            editIntent: inputs.editIntent,
             namedPart: NamedPartClassifier.namedPart(in: inputs.utterance),
             namesAmbientSource: NamedPartClassifier.namesAmbientSource(inputs.utterance),
             isDeictic: isDeictic,
             namesTransform: AmbientRanker.namesTransform(inputs.utterance),
-            focusOverride: FocusOverride.classifyOverride(utterance: inputs.utterance),
+            focusOverride: inputs.seeds.map(\.focusOverride)
+                ?? FocusOverride.classifyOverride(utterance: inputs.utterance),
             bareDecision: inputs.bareDecision)
         let (intent, signal) = classify(
             routedInputs,
@@ -186,8 +231,9 @@ public enum AmbientEngine {
         }
         let supportingContext = writingTarget == .selection ? verdicts.namedPart : nil
 
-        // `(lead, leadApplicationID)` come from the two independent ladders above and legitimately
-        // COEXIST — a native lead world beside a Dynamic focused-application id.
+        // ONE STORED ANSWER. `leadApplicationID` settles where the turn leads; the
+        // place is `AmbientRoute.leadPlace`, derived from it through the single
+        // resolution ladder so the two can never be constructed disagreeing.
         let allNamedPlaces = namedPlaces.union(
             AmbientRoute.namedPlaces(
                 gate: gate, addressedPlaces: Set(addressed.map(\.place))))

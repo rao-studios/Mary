@@ -71,7 +71,10 @@ extension MaryBrain {
         else { return nil }
         // 7. WORLD CONFLICT CANCELS: the user who moved to another workspace
         //    and said "yes please" is answering something else.
-        if let persistentLead, persistentLead != referent.attention { return nil }
+        //    BOTH SIDES ARE PLACE-DERIVED. `persistentLead` comes off the store's
+        //    lead place; reading the referent's lane through its place too means
+        //    the comparison is in one vocabulary rather than two.
+        if let persistentLead, persistentLead != referent.place.attention { return nil }
         return AcceptedOffer(referent: referent)
     }
 

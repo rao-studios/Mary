@@ -44,7 +44,9 @@ public enum RoutingQuery {
         }
         if let subject = snapshot.subject ?? snapshot.selectedText,
            !subject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            lines.append("selection: \(clip(subject, cap: 80))")
+            // The label follows the sense: only a highlight is a selection.
+            let label = snapshot.sense == .selection ? "selection" : "subject"
+            lines.append("\(label): \(clip(subject, cap: 80))")
         }
         return lines
     }

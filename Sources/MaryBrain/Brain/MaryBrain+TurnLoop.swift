@@ -32,7 +32,10 @@ extension MaryBrain {
         let abilitySnapshot = dispatcher?.abilitySnapshot
             ?? AbilityLibrary.shared.snapshotEnsuringLoaded()
         // A source-owned selection is one machine Interaction, but natural conversation can refer to it across adjacent sentences.
-        let mayReferenceSelection = AmbientRanker.isDeictic(userText)
+        // ASKED HERE, CARRIED DOWN. The body seeds this same verdict into the
+        // engine rather than letting the classifier answer twice for one turn.
+        let isDeictic = AmbientRanker.isDeictic(userText)
+        let mayReferenceSelection = isDeictic
             || EditIntentClassifier.intent(in: userText) != nil
         let snapshot = AmbientSelectionTurnSnapshot(
             handoff: world.store.snapshotSelectionForTurn(
@@ -50,7 +53,8 @@ extension MaryBrain {
                             userText: userText,
                             continuation: continuation,
                             epoch: epoch,
-                            superseding: superseding)
+                            superseding: superseding,
+                            isDeictic: isDeictic)
                     }
                 }
             }
@@ -62,7 +66,10 @@ extension MaryBrain {
         userText: String,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
         epoch: UInt64,
-        superseding: Bool
+        superseding: Bool,
+        /// Already answered in `runTurn` to decide whether this turn may claim a
+        /// recent selection; seeded into the engine so one turn has one verdict.
+        isDeictic: Bool
     ) async {
         logTurnEntry(userText: userText)
         defer { turnBox.retire(epoch) }
@@ -78,8 +85,10 @@ extension MaryBrain {
             }
         }
         // Held dictation owns the utterance. Bare yes/no/stop stay deterministic.
+        // A pending action + a bare yes/no is not the model's decision to make.
+        let bareDecision = Self.bareDecision(in: userText)
         let pendingConfirmationArmed = dispatcher?.hasPendingSkillConfirmation ?? false
-        if !pendingConfirmationArmed || Self.bareDecision(in: userText) == nil {
+        if !pendingConfirmationArmed || bareDecision == nil {
             if DictationSession.shared.isHeld() {
                 if await runHeldDictationTurn(
                     userText: userText, continuation: continuation, epoch: epoch) {
@@ -99,7 +108,10 @@ extension MaryBrain {
         dispatcher?.beginTurn()
 
         // The utterance may name a domain ("add a scene…", "fix the build…").
-        focusTracker.setTurnOverride(FocusOverride.classifyOverride(utterance: userText))
+        // CLASSIFIED ONCE, then seeded into the engine below: the override the
+        // tracker is actually running under has to be the one the route records.
+        let focusOverride = FocusOverride.classifyOverride(utterance: userText)
+        focusTracker.setTurnOverride(focusOverride)
         defer { focusTracker.clearTurnOverride() }
         // Published before either prompt is built.
         world.store.noteUtterance(userText)
@@ -150,8 +162,6 @@ extension MaryBrain {
         }
         trimHistory()
 
-        // A pending action + a bare yes/no is not the model's decision to make
-        let bareDecision = Self.bareDecision(in: userText)
         let hadPendingAction = dispatcher?.hasPendingSkillConfirmation ?? false
         let routinesAtEntry = activeRoutines.count
 
@@ -361,9 +371,11 @@ extension MaryBrain {
         // registry (package-authored `intentExemplars`), not a process-wide
         // static — a fake dispatcher's `.empty` snapshot degrades cleanly to
         // the lexical ladder, in tests and in a headless probe alike.
-        let turnRegistryForEmbed = dispatcher?.abilitySnapshot
+        // ONE BINDING for the whole body: inside a turn this only reads the
+        // installed `AbilityTurnContext` task-local anyway.
+        let turnRegistry = dispatcher?.abilitySnapshot
             ?? AbilityRuntimeSnapshot.empty
-        let intentIndex = turnRegistryForEmbed.semanticIntentIndex
+        let intentIndex = turnRegistry.semanticIntentIndex
         let intentVerdict = intentIndex?.classify(routingQuery)
         let embeddingIntent: AmbientIntent?
         if intentIndex == nil {
@@ -381,6 +393,9 @@ extension MaryBrain {
                 userText, applicationAliases: applicationAddressAliases)
         }
 
+        // SAMPLED ONCE, for the route and the row that records it: the ledger keeps
+        // moving, so a second read could show places the engine never routed on.
+        let focusSignal = focusTracker.signal()
         // Route resolved here (shape now known). Recorded only; nothing below reads it.
         let route = AmbientEngine.resolve(AmbientEngine.Inputs(
             utterance: userText,
@@ -399,21 +414,21 @@ extension MaryBrain {
                 profiles: applicationProfiles,
                 elementIndex: wiring.elementIndex,
                 focusTracker: focusTracker),
-            focus: focusTracker.signal(),
-            evidence: focusTracker.freshEvidence()))
+            focus: focusSignal,
+            evidence: focusTracker.freshEvidence(),
+            seeds: AmbientEngine.AmbientVerdictSeeds(
+                isDeictic: isDeictic, focusOverride: focusOverride)))
         world.store.noteRoute(route)
-        actionTurn = route.intent == .operate
-            || route.intent == .compose
-            || editIntent != nil
-        let skillAffinities = turnRegistryForEmbed.semanticSkillIndex?
+        actionTurn = route.isActionTurn
+        let skillAffinities = turnRegistry.semanticSkillIndex?
             .affinities(in: routingQuery) ?? [:]
         let offeredNames = Set((dispatcher?.schemas ?? []).map(\.name))
         let offeredAffinities = skillAffinities.filter { id, _ in
-            guard let skill = turnRegistryForEmbed.skill(id: id) else { return false }
+            guard let skill = turnRegistry.skill(id: id) else { return false }
             return offeredNames.contains(skill.reference.invocationName)
         }
         let uniqueSkill = EmbeddingRouting.uniqueWinner(
-            affinities: offeredAffinities, snapshot: turnRegistryForEmbed)
+            affinities: offeredAffinities, snapshot: turnRegistry)
         let abilityList = route.gate.requestedAbilities
             .map(\.rawValue).sorted().joined(separator: ",")
         let topSkills = offeredAffinities
@@ -624,37 +639,27 @@ extension MaryBrain {
             systemPrompt += "\n\n" + MaryPrompts.supportingContextBrief(
                 phrase: phrase, text: supportingContext)
         }
-        if route.selectionDefinesTurn,
-           route.writingTarget == .selection,
-           let attention = route.world {
+        // ASKED ONCE, OF THE ROUTE. `routedSelectionWorld` already answers which
+        // selection this turn accepted; re-spelling its guard here is how they drift.
+        if route.writingTarget == .selection, let attention = route.routedSelectionWorld {
             systemPrompt += "\n\n" + MaryPrompts.selectionRevisionBrief(attention)
-        } else if route.selectionDefinesTurn,
-                  route.verdicts.isDeictic,
-                  route.world?.isDirectReference == true,
-                  let attention = route.world {
+        } else if route.verdicts.isDeictic, let attention = route.routedSelectionWorld {
             systemPrompt += "\n\n" + MaryPrompts.selectionReferenceBrief(attention)
         }
         // Arm discussed-passage referent so a later "yes please" can spend it.
-        if route.selectionDefinesTurn, let attention = route.world,
-           let discussed = world.store.selectionHandoff(attention: attention.attention)?.text
-                ?? attention.selectedText,
+        // The snapshot was built FROM this turn's frozen handoff and carries its
+        // text uncut, so there is no second copy to fetch back out of the store.
+        if let attention = route.routedSelectionWorld,
+           let discussed = attention.selectedText,
            !discussed.isEmpty {
             discussedPassageReferent = DiscussedPassageReferent(
                 text: discussed,
-                attention: attention.attention,
-                applicationID: attention.applicationID,
-                subject: attention.subject,
+                place: attention.place,
                 armedAt: Date(),
                 armedByExchange: userTurn.id)
         }
 
         let traceID = UUID()
-        let turnRegistry = dispatcher?.abilitySnapshot
-            ?? AbilityRuntimeSnapshot.empty
-        // The responder-layer signal stamped at exchange time, so the lens
-        // shows what was co-active WHEN the turn ran, never live state
-        // projected onto an old row.
-        let focusSignal = focusTracker.signal()
         AmbientTraceLog.shared.record(AmbientTraceRecord(
             id: traceID,
             exchangeID: userTurn.id,
@@ -707,7 +712,7 @@ extension MaryBrain {
 
         let located = route.needsLocate
             ? await locateTarget(
-                for: editIntent, attentionHint: acceptedOffer?.referent.attention)
+                for: editIntent, attentionHint: acceptedOffer?.referent.place.attention)
             : nil
         if Task.isCancelled {
             logTurnExit("cancelled during locate")
@@ -726,9 +731,8 @@ extension MaryBrain {
             await localTurn(
                 userText: userText,
                 systemPrompt: systemPrompt,
-                actionTurn: actionTurn,
-                editIntent: editIntent, target: located,
-                writingTarget: route.writingTarget,
+                route: route,
+                target: located,
                 acceptedOffer: acceptedOffer != nil,
                 worldVetoArming: worldVetoArming,
                 traceID: traceID,
@@ -753,15 +757,11 @@ extension MaryBrain {
             userText: userText,
             originUserTurnID: userTurn.id,
             systemPrompt: systemPrompt,
-            actionTurn: actionTurn,
-            editIntent: editIntent,
+            route: route,
             target: located,
-            writingTarget: route.writingTarget,
             acceptedOffer: acceptedOffer != nil,
             worldVetoArming: worldVetoArming,
             traceID: traceID,
-            routeIntent: route.intent,
-            leadPlace: route.leadPlace,
             seerChat: seerChat,
             continuation: continuation,
             epoch: epoch

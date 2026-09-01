@@ -23,7 +23,7 @@ extension WorkspaceFocusTracker {
         leadBox.withLock { $0 = (place, Date()) }
         stampEvidence(place: place, kind: .activation, processBundleID: bundleID)
         AmbientContextStore.shared.noteWorld(.init(
-            tier: .activation, attention: .applications,
+            sense: .workspace, attention: .applications,
             subject: localizedName ?? bundleID,
             applicationID: bundleID))
     }
@@ -150,10 +150,10 @@ extension WorkspaceFocusTracker {
             ?? AmbientPlace(attention: .applications, application: id)
         leadBox.withLock { $0 = (place, Date()) }
         stampEvidence(place: place, kind: .activation)
-        // The activation-tier attention the native arms mint, in the lane
+        // The workspace-sense attention the native arms mint, in the lane
         // vocabulary dynamic facts already use (.applications + application id).
         AmbientContextStore.shared.noteWorld(
-            .init(tier: .activation, attention: .applications, subject: id, applicationID: id))
+            .init(sense: .workspace, attention: .applications, subject: id, applicationID: id))
     }
 
     /// A CHANGED canvas selection is evidence of the user working in the app — the dynamic

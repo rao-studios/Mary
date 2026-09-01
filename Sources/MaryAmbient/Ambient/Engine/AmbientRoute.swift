@@ -22,9 +22,12 @@ public enum AmbientWritingTarget: String, Sendable, Equatable, Codable {
 public struct AmbientVerdicts: Sendable, Equatable {
     /// Operate/compose this turn — embeddings, or ActionClassifier when none.
     public var actionTurn: Bool
-    /// `EditIntentClassifier`'s shape, when it found one.
-    public var editShape: EditIntent.Shape?
-    public var editTargets: [String]
+    /// `EditIntentClassifier`'s answer, whole — a shape and target list would drop
+    /// `payload`, `anchor`, `destination` and `isAnaphoric`.
+    public var editIntent: EditIntent?
+    /// The shape alone, for the trace lines that only ever wanted the verb.
+    public var editShape: EditIntent.Shape? { editIntent?.shape }
+    public var editTargets: [String] { editIntent?.target ?? [] }
     /// `NamedPartClassifier.namedPart`.
     public var namedPart: String?
     /// `NamedPartClassifier.namesAmbientSource`.
@@ -40,8 +43,7 @@ public struct AmbientVerdicts: Sendable, Equatable {
 
     public init(
         actionTurn: Bool = false,
-        editShape: EditIntent.Shape? = nil,
-        editTargets: [String] = [],
+        editIntent: EditIntent? = nil,
         namedPart: String? = nil,
         namesAmbientSource: Bool = false,
         isDeictic: Bool = false,
@@ -50,8 +52,7 @@ public struct AmbientVerdicts: Sendable, Equatable {
         bareDecision: Bool? = nil
     ) {
         self.actionTurn = actionTurn
-        self.editShape = editShape
-        self.editTargets = editTargets
+        self.editIntent = editIntent
         self.namedPart = namedPart
         self.namesAmbientSource = namesAmbientSource
         self.isDeictic = isDeictic
@@ -85,7 +86,13 @@ public struct AmbientRoute: Sendable, Equatable {
 
     /// WHERE the turn leads, as ONE value: the lead world when a built-in leads,
     /// `(.applications, id)` when a registered Dynamic application does.
-    public var leadPlace: AmbientPlace?
+    ///
+    /// DERIVED, NOT STORED, and the direction is forced: a legacy registration
+    /// resolves to `.lane(...)` and a browser family to a shared place, so the id
+    /// cannot be recovered from the place. The ladder only runs this way.
+    public var leadPlace: AmbientPlace? {
+        Self.leadPlace(leadApplicationID: leadApplicationID)
+    }
 
     /// WHAT COULD HAVE SERVED THIS TURN, and which of them did. Resolved once, at route
     /// construction, from the same need and signals that decide everything else about the turn.
@@ -116,9 +123,9 @@ public struct AmbientRoute: Sendable, Equatable {
     /// How the ambient store ranked its facts for this utterance.
     public var rankingMode: AmbientRankingMode
 
-    /// `leadPlace`/`namedPlaces` default to their derivations so every existing construction —
-    /// the engine's and the tests' — carries coherent places without spelling them; passing
-    /// either explicitly is reserved for callers that already resolved them.
+    /// `namedPlaces` defaults to its derivation so every construction carries
+    /// coherent places without spelling them. `leadPlace` is not a parameter at
+    /// all — it derives, so the two cannot be handed in disagreeing.
     public init(
         intent: AmbientIntent,
         decidedBy: AmbientSignal,
@@ -127,7 +134,6 @@ public struct AmbientRoute: Sendable, Equatable {
         world: AmbientWorld.Snapshot? = nil,
         selectionDefinesTurn: Bool = false,
         leadApplicationID: String? = nil,
-        leadPlace: AmbientPlace? = nil,
         namedPlaces: Set<AmbientPlace>? = nil,
         realm: AmbientRealm? = nil,
         candidateAttentions: Set<AmbientAttention> = [],
@@ -145,8 +151,6 @@ public struct AmbientRoute: Sendable, Equatable {
         self.world = world
         self.selectionDefinesTurn = selectionDefinesTurn
         self.leadApplicationID = leadApplicationID
-        self.leadPlace = leadPlace
-            ?? Self.leadPlace(leadApplicationID: leadApplicationID)
         self.namedPlaces = namedPlaces ?? Self.namedPlaces(gate: gate)
         self.realm = realm
         self.candidateAttentions = candidateAttentions
@@ -208,6 +212,12 @@ public extension AmbientRoute {
         // timestamp, and content close that identity gap so a later highlight
         // in the same application cannot masquerade as this turn's referent.
         return fact.content == String(selectedText.prefix(AmbientFact.contentCap))
+    }
+
+    /// Whether this turn acts rather than converses — the POST-route answer.
+    /// (`verdicts.actionTurn` is the classifier's pre-route guess, kept for traces.)
+    var isActionTurn: Bool {
+        intent == .operate || intent == .compose || verdicts.editIntent != nil
     }
 
     /// The direct attention this route actually accepted as its referent.

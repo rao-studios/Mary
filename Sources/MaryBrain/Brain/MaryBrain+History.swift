@@ -135,13 +135,6 @@ extension MaryBrain {
         history.removeSubrange(0..<lastUser)
     }
 
-    /// TEST SEAM: model "a selection brief armed the referent on the last completed turn" without driving the live attention machinery.
-    func seedDiscussedPassageReferent(text: String, attention: AmbientAttention) {
-        discussedPassageReferent = DiscussedPassageReferent(
-            text: text, attention: attention, applicationID: nil, subject: nil,
-            armedAt: Date(), armedByExchange: lastUserTurnID ?? UUID())
-    }
-
     /// ARM THE PROSE OFFER, if this reply carried one.
     /// PIN: Called from every site that finalizes an assistant turn, with the SPOKEN text
     func noteOfferedProse(spoken: String?, place: AmbientPlace?) {
@@ -154,15 +147,6 @@ extension MaryBrain {
             place: place,
             armedAt: Date(),
             armedByExchange: openExchange?.userTurnID ?? lastUserTurnID ?? UUID())
-    }
-
-    /// TEST SEAM, `seedDiscussedPassageReferent`'s sibling: model "Mary
-    /// offered this prose on the last completed turn" without driving the
-    /// spoken lane.
-    func seedOfferedProseReferent(text: String, place: AmbientPlace? = nil) {
-        offeredProseReferent = OfferedProseReferent(
-            text: text, place: place,
-            armedAt: Date(), armedByExchange: lastUserTurnID ?? UUID())
     }
 
     /// The last thing Mary SAID — the sentence gate 6 reads the offer out

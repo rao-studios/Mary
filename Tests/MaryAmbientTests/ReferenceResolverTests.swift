@@ -127,14 +127,4 @@ import Testing
         let choice = ReferenceResolver.resolve(utterance: "the other one", candidates: rows)
         #expect(choice?.key == "k2")
     }
-
-    /// NEVER THE ONE IN FRONT. Both phrase lists mean "not this".
-
-    // MARK: - Abstention
-
-    /// ABSTAINING IS THE COMMON ANSWER and it means "the one in front".
-
 }
-
-// MARK: - Salience ordering
-

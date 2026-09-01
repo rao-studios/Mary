@@ -121,10 +121,9 @@ public actor MaryBrain: LanguageResponder {
     struct DiscussedPassageReferent: Sendable, Equatable {
         /// Exact handoff text — never the prompt-clipped fact.
         var text: String
-        var attention: AmbientAttention
-        var applicationID: String?
-        /// Document title for the honest-miss sentence.
-        var subject: String?
+        /// WHERE the passage was discussed, spelled as `OfferedProseReferent` spells
+        /// it — one place, not the `(attention, applicationID)` pair it holds.
+        var place: AmbientPlace
         var armedAt: Date
         /// Arming turn id. An intervening exchange kills acceptance.
         var armedByExchange: UUID

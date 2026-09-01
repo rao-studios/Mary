@@ -73,8 +73,8 @@ enum CodeSurfaceWriteProbe {
               "the tracker's own frontmost read leads with Xcode", leadApplicationID ?? "none")
 
         let utterance = value("--utterance") ?? "replace what I've selected"
-        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
-            utterance: utterance, leadApplicationID: leadApplicationID, profiles: profiles))
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs.live(
+            utterance: utterance, signal: signal, profiles: profiles))
         AmbientContextStore.shared.noteUtterance(utterance)
         AmbientContextStore.shared.noteRoute(route)
         check(route.leadPlace?.application == "xcode",

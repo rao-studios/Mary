@@ -23,26 +23,32 @@ extension MaryBrain {
         var failed = false
     }
 
-    /// One dispatched Skill's settled outcome inside a lane
+    /// One dispatched Skill's settled outcome inside a lane. CARRIES the outcome
+    /// rather than re-spelling it — restating these fields per construction site
+    /// is how `foundNothing` once got dropped on the last hop.
     struct LaneOutcome: Sendable {
+        /// The lane's dispatch name — the binding's operation, else the model's
+        /// invocation name. The lane's own addition; not a `SkillOutcome` field.
         var skillName: String
-        var summary: String
-        var ok: Bool
-        var deferred: Bool = false
-        /// `SkillOutcome.foundNothing`, carried the last hop — the binding LOOKED and what was asked for is not in what it can read.
-        var foundNothing: Bool = false
-        /// `SkillOutcome.status == .requested` — a CONFIRM park.
-        var requested: Bool = false
-        /// `SkillOutcome.editDisposition`, carried the last hop
-        var editDisposition: EditDisposition? = nil
-        /// `SkillOutcome.ambientDeposited` — the read's content already lives
-        /// in ambient context ("Still in hand"), so reciting its machine
-        /// summary aloud is redundant. The silent-settle gate reads this.
-        var ambientDeposited: Bool = false
-        /// `SkillOutcome.status == .blocked` — a POLICY refusal (the mismatch mirror, a schema-policy denial), distinct from an adapter failure.
-        var blocked: Bool = false
-        /// `SkillOutcome.landed` — the acting intent is satisfied.
-        var landed: Bool = false
+        var outcome: SkillOutcome
+
+        var summary: String { outcome.summary }
+        var ok: Bool { outcome.ok }
+        var deferred: Bool { outcome.deferred }
+        /// The binding LOOKED and what was asked for is not in what it can read.
+        var foundNothing: Bool { outcome.foundNothing }
+        /// A CONFIRM park.
+        var requested: Bool { outcome.status == .requested }
+        var editDisposition: EditDisposition? { outcome.editDisposition }
+        /// The read's content already lives in ambient context ("Still in hand"),
+        /// so reciting its machine summary aloud is redundant. The silent-settle
+        /// gate reads this.
+        var ambientDeposited: Bool { outcome.ambientDeposited }
+        /// A POLICY refusal (the mismatch mirror, a schema-policy denial),
+        /// distinct from an adapter failure.
+        var blocked: Bool { outcome.status == .blocked }
+        /// The acting intent is satisfied.
+        var landed: Bool { outcome.landed }
     }
 
     struct OrchestratorLaneResult {
@@ -65,10 +71,10 @@ extension MaryBrain {
         userText: String,
         originUserTurnID: UUID,
         systemPrompt: String,
-        actionTurn: Bool = false,
-        editIntent: EditIntent? = nil,
+        /// THE TURN'S ROUTE, WHOLE. It already answers every question this used to
+        /// take as a separate scalar; passing the pieces only let them disagree.
+        route: AmbientRoute,
         target located: LocatedPassage? = nil,
-        writingTarget: AmbientWritingTarget? = nil,
         /// True when this turn is a synthesized accepted-offer revision —
         /// EditReport's silent-miss arm keys on it.
         acceptedOffer: Bool = false,
@@ -77,18 +83,21 @@ extension MaryBrain {
         worldVetoArming: WorldVeto.Arming? = nil,
         /// Stage-0 observation only: which `AmbientTraceLog` row this turn's Skill calls belong to.
         traceID: UUID? = nil,
-        routeIntent: AmbientIntent? = nil,
-        /// WHERE this turn is happening, for the prose offer this reply may carry: an offer made about a manuscript must be written back into that manuscript
-        leadPlace: AmbientPlace? = nil,
         seerChat: any SeerChatProviding,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
         epoch: UInt64
     ) async {
+        let actionTurn = route.isActionTurn
+        let editIntent = route.verdicts.editIntent
+        let writingTarget = route.writingTarget
+        let routeIntent = route.intent
+        // WHERE this turn is happening, for the prose offer this reply may carry: an offer made about a manuscript must be written back into that manuscript
+        let leadPlace = route.leadPlace
         // Fetch first, then speak.
         let turnStartedAt = Date()
         var readPassages: [String] = []
         if editIntent == nil, !actionTurn, let dispatcher,
-           let phrase = NamedPartClassifier.namedPart(in: userText) {
+           let phrase = route.verdicts.namedPart {
             // A SUSPENSION POINT before any lane exists.
             let passage = await withNanosecondBudget(Self.preReadBudgetNanoseconds) {
                 await dispatcher.readNamedPart(phrase)
@@ -111,8 +120,11 @@ extension MaryBrain {
         var lookUnderway = false
         var lookServed = false
         var readServed = false
+        // ASKED ONCE for the turn — the same question decides the pre-look here
+        // and the inspired-sight line below.
+        let asksLook = LookClassifier.lookQuery(in: userText) != nil
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
-           routeIntent == .perceive || LookClassifier.lookQuery(in: userText) != nil {
+           routeIntent == .perceive || asksLook {
             let sight = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
                 await dispatcher.fetchDeclaredEditorSight(query: userText)
             }
@@ -148,10 +160,9 @@ extension MaryBrain {
         // Snapshot Seer's messages BEFORE the orchestrator starts mutating history with Skill turns.
         // Stale-grounding windows (accepted): - W1 — routine settles mid-Lane-A: this snapshot predates a doneMarker/follow-up…
         let messages = spokenMessages()
-        // In-turn: resolve LIVE. The utterance override is still installed here (it is cleared by runTurn's defer, which has not run yet)
-        let inspiredSight = world.store.route()?.inspiresSight == true
-            && (routeIntent == .perceive
-                || LookClassifier.lookQuery(in: userText) != nil)
+        // The route is in hand; there is nothing to fetch back out of the store.
+        let inspiredSight = route.inspiresSight
+            && (routeIntent == .perceive || asksLook)
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
             // THE ROUTER'S OWN VERDICT, carried rather than re-derived.

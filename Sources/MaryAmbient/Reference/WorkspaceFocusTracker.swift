@@ -105,7 +105,7 @@ public final class WorkspaceFocusTracker: Sendable {
                 place: AmbientPlaceResolver.browserPlace, kind: .activation,
                 processBundleID: bundleID)
             AmbientContextStore.shared.noteWorld(.init(
-                tier: .activation, attention: .applications,
+                sense: .workspace, attention: .applications,
                 subject: AmbientPlaceResolver.browserApplicationID,
                 applicationID: AmbientPlaceResolver.browserApplicationID))
         } else if let registration = AmbientApplicationIndexProvider.current

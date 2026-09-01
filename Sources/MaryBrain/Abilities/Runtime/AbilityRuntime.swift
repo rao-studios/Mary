@@ -760,7 +760,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         let snapshot = SchemaSignalTurnContext.snapshot ?? .empty
         let route = world.store.route()
         guard let rejectedAttention = route?.world,
-              rejectedAttention.tier == .selection,
+              rejectedAttention.sense == .selection,
               route?.selectionDefinesTurn != true
         else { return snapshot }
         let rejectedHandoffID = world.store.selectionHandoff(
@@ -787,7 +787,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         let windowIntent = windowManagementTurnIntent(route: route)
         let diagnosticAttention = route?.world
         // Keep the source packet on AmbientRoute for diagnostics and event ordering
-        let excludesDiagnosticSelection = diagnosticAttention?.tier == .selection
+        let excludesDiagnosticSelection = diagnosticAttention?.sense == .selection
             && route?.selectionDefinesTurn != true
         let attention = excludesDiagnosticSelection ? nil : diagnosticAttention
         let facts = world.store.facts()
@@ -823,7 +823,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             perceptions.insert(.applicationFocus)
         }
         if handoff?.scope.windowID != nil { perceptions.insert(.windowFocus) }
-        if attention?.tier == .hover { perceptions.insert(.hover) }
+        // No producer mints a hover world yet; the correspondence is declared
+        // on AmbientSense.perception.
+        if attention?.sense == .hover { perceptions.insert(.hover) }
         if facts.contains(where: { $0.slot == .viewport }) {
             perceptions.insert(.viewport)
         }
@@ -1284,7 +1286,14 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     public func fetchDeclaredEditorSight(
         query: String?
     ) async -> (passage: String, isRead: Bool)? {
-        let snapshot = world.snapshot()
+        // THE TURN ALREADY DECIDED THIS. Nil is an answer — the route rejected the
+        // standing selection — so re-reading the store would hand it straight back.
+        let snapshot: AmbientWorld.Snapshot?
+        if let routed = AmbientRouteTurnContext.state?.current() {
+            snapshot = routed.routedWorld
+        } else {
+            snapshot = world.snapshot()
+        }
         let highlight = snapshot?.selectedText?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if snapshot?.isDirectReference == true, !highlight.isEmpty {

@@ -129,9 +129,9 @@ enum CodeSurfaceProbe {
               leadApplicationID ?? "none")
 
         let utterance = value("--utterance") ?? "what does this function do"
-        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs.live(
             utterance: utterance,
-            leadApplicationID: leadApplicationID,
+            signal: signal,
             profiles: profiles))
         AmbientContextStore.shared.noteUtterance(utterance)
         AmbientContextStore.shared.noteRoute(route)

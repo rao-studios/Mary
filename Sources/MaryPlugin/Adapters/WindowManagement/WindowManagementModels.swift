@@ -208,7 +208,9 @@ protocol WindowApplicationResolving: Sendable {
 
 /// A window an application resolved for itself — opaque identity plus owner.
 public struct ManagedWindowReference: Sendable, Equatable {
-    /// Bundle identifier of the owning application.
+    /// BUNDLE identifier — NOT the logical id `applicationID` names elsewhere
+    /// (ApplicationRegistration, AmbientPlace). Resolve through the registry
+    /// before feeding any place ladder.
     public let applicationID: String
     /// Owner's own stable spelling for this window.
     public let identity: String

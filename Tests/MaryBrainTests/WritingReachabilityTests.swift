@@ -174,10 +174,9 @@ import Testing
     /// while that made it a promise rather than a proof: `workspaceFamily` was
     /// `route.lead?.ability`, and `AmbientAttention.ability` answers only for the
     /// compiled worlds — so the guarantee "being in a writing workspace is
-    /// enough" held in Pages and nowhere else. It is real now because the
-    /// value comes off `route.leadPlace`, and
-    /// `TaughtApplicationParityTests.aTaughtWorkspaceLeadEarnsTheWorkspaceSignals`
-    /// pins that a taught manuscript application actually produces it.
+    /// enough" held in Pages and nowhere else. It is real now because the value
+    /// comes off `route.leadPlace`, which a taught application resolves through
+    /// its registration — see `TurnWorldExtractionTests`.
     @Test func theWritingAbilityIsReachableFromAWritingWorkspaceAlone() throws {
         guard InstalledPackages.installed() != nil else { return }
         let writing = try loadRootPackage("writing").ability

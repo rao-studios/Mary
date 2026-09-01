@@ -135,9 +135,9 @@ enum ProjectProbe {
 
         let query = value("--query") ?? "comet"
         let utterance = "find where the manuscript mentions \(query)"
-        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs.live(
             utterance: utterance,
-            leadApplicationID: leadApplicationID,
+            signal: signal,
             profiles: profiles))
         AmbientContextStore.shared.noteUtterance(utterance)
         AmbientContextStore.shared.noteRoute(route)
@@ -267,9 +267,9 @@ enum ProjectProbe {
 
         let query = value("--query") ?? "PluginCorpusStructureSchema"
         let utterance = value("--utterance") ?? "find where the code mentions \(query)"
-        let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+        let route = AmbientEngine.resolve(AmbientEngine.Inputs.live(
             utterance: utterance,
-            leadApplicationID: leadApplicationID,
+            signal: signal,
             profiles: profiles))
         AmbientContextStore.shared.noteUtterance(utterance)
         AmbientContextStore.shared.noteRoute(route)

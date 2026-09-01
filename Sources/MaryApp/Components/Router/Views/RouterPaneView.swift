@@ -351,7 +351,7 @@ struct RouterPaneView: View {
     }
 
     private func attentionDescription(_ attention: AmbientWorld.Snapshot) -> String {
-        [attention.tier.displayName, attention.attention.displayName, attention.subject]
+        [attention.sense.displayName, attention.attention.displayName, attention.subject]
             .compactMap { $0 }
             .joined(separator: " · ")
     }

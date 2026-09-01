@@ -57,20 +57,12 @@ public extension MaryObserver {
     /// Cautious default: claiming less sight costs a re-read, not a wrong answer.
     var holdsWholeDocument: Bool { false }
     var ambientSenses: Set<AmbientSense> { [] }
+    /// The schemas follow from the senses; the mapping lives on `AmbientSense`.
     var providedInteractions: Set<InteractionID> {
-        var interactions: Set<InteractionID> = []
-        for sense in ambientSenses {
-            if sense == .selection { interactions.insert(.textSelection) }
-        }
-        return interactions
+        Set(ambientSenses.compactMap(\.interaction))
     }
     var providedPerceptions: Set<PerceptionID> {
-        var perceptions: Set<PerceptionID> = []
-        for sense in ambientSenses {
-            if sense == .workspace { perceptions.insert(.workspaceFocus) }
-            if sense == .hover { perceptions.insert(.hover) }
-        }
-        return perceptions
+        Set(ambientSenses.compactMap(\.perception))
     }
     var adapterManifest: InstalledAdapterManifest? {
         guard !providedInteractions.isEmpty || !providedPerceptions.isEmpty else { return nil }

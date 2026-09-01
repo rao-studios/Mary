@@ -1,8 +1,11 @@
 //
 //  AmbientRankingMode.swift
-//  Mary
+//  MaryAmbient
 //
-//  Created by Ritesh Pakala Rao on 8/31/26.
+//  WHAT: Which of the three branches decided this turn's fact order.
+//  IN:   AmbientRanker's three-way rule
+//  OUT:  AmbientRoute.rankingMode — recorded so a trace can say WHY this order
+//  PIN:  Diagnostic vocabulary, not a switch: nothing routes on the mode itself.
 //
 
 import Foundation

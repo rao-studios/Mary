@@ -48,15 +48,12 @@ extension MaryBrain {
         if let hit = SurfacePollTarget.pairHit(
             claims: claims, standingApplicationID: standing)
         {
-            let name = CodeSurfaceSupport.shared
-                .registration(applicationID: hit.applicationID)?.displayName
-                ?? hit.applicationID
-            let line = "xcode — running pid=\(hit.pid) app=\(name)"
+            let line = "code surface — running pid=\(hit.pid) app=\(hit.place.displayName)"
                 + " frontmost=\(hit.isFrontmost)"
             Self.turnLog.info("\(line, privacy: .public)")
         } else {
             Self.turnLog.info(
-                "xcode — not running; pair-coding skills would no-op on current_file")
+                "code surface — none running; pair-coding skills would no-op on current_file")
         }
 
         let focused = focusedApplicationID ?? "none"
