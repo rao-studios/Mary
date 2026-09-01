@@ -7,6 +7,7 @@
 //  OUT:  AmbientTraceLog
 //  PIN:  Trace is evidence about a turn; choosing a roster stays in MaryBrain.
 //
+
 import Foundation
 
 public struct AbilityRosterSkillKey: Codable, Hashable, Sendable {
