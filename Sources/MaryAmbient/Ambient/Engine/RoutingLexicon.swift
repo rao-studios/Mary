@@ -25,4 +25,32 @@ public enum RoutingLexicon {
         "should", "tell", "read", "show", "list", "search", "find",
         "check", "describe", "explain", "summarize", "give",
     ]
+
+    /// HOW THE USER ADDRESSES HER. One idea, and it was spelled twice — once
+    /// for peeling a preamble off an edit request, once for deciding whether a
+    /// dictated line was meant for Mary or for the page.
+    public static let addressWords: Set<String> = ["hey", "mary", "ok", "okay"]
+
+    // MARK: - What deliberately did NOT move here
+    //
+    // MEASURED, NOT ASSUMED. Several families look like duplicates and are
+    // not; merging them would hand each one words that break its job.
+    //
+    // `AmbientRanker.stopWords` (56) vs `ReferenceResolver.stopWords` (23):
+    // the first is ordinary English filler, the second additionally drops
+    // "document", "window", "rewrite" — words that must not DISTINGUISH one
+    // container from another, but which the ranker still needs to read.
+    //
+    // `PassageWidening.partNouns` vs `NamedPartClassifier.partNouns`: same
+    // size, different halves — "func", "declaration", "lines" against
+    // "appendix", "footnote", "excerpt". One widens a span in code, the other
+    // names a part of prose.
+    //
+    // `EditIntentClassifier.replaceVerbs` vs the three-way rule's
+    // `continuationVerbs`: overlapping members, different questions. The first
+    // asks "does this verb presuppose an existing passage", the second "does
+    // this clause continue the last one". A single list could answer neither.
+    //
+    // The transform verbs that DID belong to one idea are already gone: they
+    // are a package-authored seed family now — see `SemanticSeedFamilyIndex`.
 }

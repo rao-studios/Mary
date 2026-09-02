@@ -24,10 +24,10 @@ extension MaryBrain {
 
     // MARK: - The address gate
 
-    /// ADDRESS SPELLINGS, deliberately generous.
     /// The address is a GATE, not a target: its whole job is to separate "this
-    /// is for you" from "this is for the page".
-    static let dictationAddressWords: Set<String> = ["mary", "hey", "ok", "okay"]
+    /// is for you" from "this is for the page". SAME WORDS the edit classifier
+    /// peels — one spelling, in `RoutingLexicon`.
+    static var dictationAddressWords: Set<String> { RoutingLexicon.addressWords }
 
     /// IS THIS UTTERANCE FOR MARY, rather than for the page?
     /// THE WHOLE OF THE MODE'S GRAMMAR, and it is POSITIONAL — a rule about

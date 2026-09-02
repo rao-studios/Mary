@@ -115,7 +115,7 @@ public enum EditIntentClassifier {
     public static let inPlaceOfPhrase = "in place of"
 
     /// Leading forms of address, stripped before anything is matched.
-    public static let addressWords: Set<String> = ["hey", "mary", "ok", "okay"]
+    public static var addressWords: Set<String> { RoutingLexicon.addressWords }
 
     /// BACKCHANNEL — the noises a person makes on the way into a sentence, and the reason this
     /// classifier missed a live revision entirely.

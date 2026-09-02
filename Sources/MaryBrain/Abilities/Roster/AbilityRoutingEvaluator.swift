@@ -31,6 +31,13 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     /// When true, utterance tokens/phrases and targetClass do not gate offer.
     public var usesEmbeddingRoster: Bool
 
+    /// Abilities this turn's WORDS asked for, read lexically off each
+    /// Ability's own triggers. Only consulted in the no-vectorizer regime,
+    /// where it restores the admission that `utteranceToken` predicates used
+    /// to provide — from the SAME authoring surface, so there is still one
+    /// place an Ability says what it answers to.
+    public var requestedAbilities: Set<AbilityID> = []
+
     public init(
         utterance: String = "",
         intent: String? = nil,
@@ -44,7 +51,8 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         sourceResolution: SourceResolution = .unresolved,
         workspaceFamily: String? = nil,
         semanticSkillAffinity: [SkillID: Float] = [:],
-        usesEmbeddingRoster: Bool = false
+        usesEmbeddingRoster: Bool = false,
+        requestedAbilities: Set<AbilityID> = []
     ) {
         self.utterance = utterance
         self.intent = intent
@@ -59,6 +67,7 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         self.workspaceFamily = workspaceFamily
         self.semanticSkillAffinity = semanticSkillAffinity
         self.usesEmbeddingRoster = usesEmbeddingRoster
+        self.requestedAbilities = requestedAbilities
     }
 }
 

@@ -107,6 +107,19 @@ final class PackageIssueSink {
                 if SourceResolution(rawValue: value) == nil {
                     error("unknown-source-resolution", "\(path).value", "The router names an unknown source resolution.")
                 }
+            case .utteranceToken, .utterancePhrase:
+                // A WARNING, NOT AN ERROR — the kinds stay decodable so a
+                // sealed third-party package still loads and still routes.
+                warning(
+                    "utterance-literal-in-routing", "\(path).value",
+                    """
+                    "\(value)" matches the user's words inside a routing predicate. \
+                    Author it under ability.triggers instead: utterances are matched \
+                    semantically against the trigger corpus, and a literal here is a \
+                    SECOND matcher over the same authoring surface — one that only \
+                    runs when the machine has no embedding model, and that silently \
+                    disagrees with the corpus when it does.
+                    """)
             default: break
             }
         }

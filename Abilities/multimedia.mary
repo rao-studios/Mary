@@ -50,223 +50,6 @@
             ],
             "kind" : "targetClass",
             "value" : "media-player"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "playing"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "play"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "pause"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "skip"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "song"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "track"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "volume"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "louder"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "quieter"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "mute"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "shuffle"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "playlist"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "playlists"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "what is playing"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "play some music"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "pause the music"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "skip this song"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "next song"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "turn it up"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "turn it down"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "play my playlist"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "what playlists do i have"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "mix"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "queue"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "album"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "artist"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "music"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "put on my"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "shuffle my"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "do i have a playlist"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "on shuffle"
           }
         ],
         "kind" : "any"
@@ -330,43 +113,51 @@
         "sheet music"
       ],
       "phrases" : [
-        "what is playing",
-        "play some music",
-        "pause the music",
-        "skip this song",
+        "do i have a playlist",
+        "find a playlist",
+        "find my",
+        "find my playlist",
+        "is there a playlist",
         "next song",
-        "turn it up",
-        "turn it down",
+        "on shuffle",
+        "pause the music",
+        "play my",
         "play my playlist",
-        "what playlists do i have",
+        "play some music",
         "put on my",
         "shuffle my",
-        "do i have a playlist",
-        "find my playlist",
-        "on shuffle"
+        "skip this song",
+        "start my",
+        "turn it down",
+        "turn it up",
+        "what is playing",
+        "what playlists",
+        "what playlists do i have",
+        "which playlists"
       ],
       "seedFamilies" : {
 
       },
       "tokens" : [
-        "playing",
-        "play",
+        "album",
+        "artist",
+        "louder",
+        "mix",
+        "music",
+        "mute",
+        "next",
         "pause",
+        "play",
+        "playing",
+        "playlist",
+        "playlists",
+        "queue",
+        "quieter",
+        "shuffle",
         "skip",
         "song",
         "track",
-        "volume",
-        "louder",
-        "quieter",
-        "mute",
-        "shuffle",
-        "playlist",
-        "playlists",
-        "mix",
-        "queue",
-        "album",
-        "artist",
-        "music"
+        "volume"
       ]
     },
     "version" : "1.0.0"
@@ -538,53 +329,13 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.control-playback",
-      "id" : "pause-the-music",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Pause the music."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.control-playback",
-      "id" : "skip-this-song",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Skip this song."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.play-music",
-      "id" : "play-a-song",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Play Stand by Me."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.open-player",
-      "id" : "open-the-player",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Open my music."
-    },
-    {
-      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.play-playlist",
-      "id" : "play-a-playlist",
+      "id" : "can-you-open-the-app-and-play-a-named-playlist",
       "interactions" : [
 
       ],
       "targetClass" : "media-player",
-      "utterance" : "Play my Dinner Office Playlist."
+      "utterance" : "Can you open Apple Music and play the RAO playlist?"
     },
     {
       "expectedDisposition" : "route",
@@ -598,43 +349,23 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.play-playlist",
-      "id" : "can-you-open-the-app-and-play-a-named-playlist",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "control-playback-2191",
       "interactions" : [
 
       ],
       "targetClass" : "media-player",
-      "utterance" : "Can you open Apple Music and play the RAO playlist?"
+      "utterance" : "Turn it down a bit."
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.list-playlists",
-      "id" : "list-the-playlists",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "control-playback-6306",
       "interactions" : [
 
       ],
       "targetClass" : "media-player",
-      "utterance" : "What playlists do I have?"
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.shuffle-playlist",
-      "id" : "shuffle-a-playlist",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Shuffle my Dinner Office playlist."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "multimedia.shuffle-playlist",
-      "id" : "play-a-playlist-on-shuffle",
-      "interactions" : [
-
-      ],
-      "targetClass" : "media-player",
-      "utterance" : "Play my running mix on shuffle."
+      "utterance" : "Skip to the next one."
     },
     {
       "expectedDisposition" : "route",
@@ -649,12 +380,82 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.find-playlist",
+      "id" : "find-playlist-5322",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Do I have a playlist for that?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.find-playlist",
       "id" : "is-there-a-playlist",
       "interactions" : [
 
       ],
       "targetClass" : "media-player",
       "utterance" : "Is there a playlist called Dinner Office?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.list-playlists",
+      "id" : "list-the-playlists",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "What playlists do I have?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.open-player",
+      "id" : "open-the-player",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Open my music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "pause-the-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Pause the music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-playlist",
+      "id" : "play-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play my Dinner Office Playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.shuffle-playlist",
+      "id" : "play-a-playlist-on-shuffle",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play my running mix on shuffle."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-a-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play Stand by Me."
     },
     {
       "expectedDisposition" : "route",
@@ -665,6 +466,26 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "Put on my running mix."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.shuffle-playlist",
+      "id" : "shuffle-a-playlist",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Shuffle my Dinner Office playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "skip-this-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Skip this song."
     },
     {
       "expectedDisposition" : "route",
@@ -691,7 +512,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "76fbf9d9c2bbb41f0492943ba0c01162fa9c891ac606d633ff58f3e6413e1cfc"
+    "digest" : "829d73f4796f516817dfdd86390bd0914292065ee888c880c439d01015456b31"
   },
   "interactions" : [
 
@@ -789,27 +610,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "playing"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "what is playing"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "what's playing"
             }
           ],
           "kind" : "any"
@@ -906,48 +706,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "pause"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "skip"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "next"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "louder"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "quieter"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "mute"
             }
           ],
           "kind" : "any"
@@ -1277,27 +1035,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "playlists"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "what playlists"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "which playlists"
             }
           ],
           "kind" : "any"
@@ -1398,41 +1135,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "playlist"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "mix"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "play my"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "put on my"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "start my"
             }
           ],
           "kind" : "any"
@@ -1533,34 +1235,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "do i have a playlist"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "find a playlist"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "is there a playlist"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "find my"
             }
           ],
           "kind" : "any"
@@ -1661,27 +1335,6 @@
               ],
               "kind" : "targetClass",
               "value" : "media-player"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utteranceToken",
-              "value" : "shuffle"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "shuffle my"
-            },
-            {
-              "children" : [
-
-              ],
-              "kind" : "utterancePhrase",
-              "value" : "on shuffle"
             }
           ],
           "kind" : "any"

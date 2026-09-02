@@ -78,97 +78,6 @@
               }
             ],
             "kind" : "all"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "build"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "compile"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "run"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "tests"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "scheme"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utteranceToken",
-            "value" : "project"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "build it"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "build the project"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "run it"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "run the project"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "stop it"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "run the tests"
-          },
-          {
-            "children" : [
-
-            ],
-            "kind" : "utterancePhrase",
-            "value" : "save everything"
           }
         ],
         "kind" : "any"
@@ -1106,7 +1015,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "53a5302502d00050007d6dd399d742281eb1b5d64f13e2f1e44a4fe815d4b0cc"
+    "digest" : "584a07c7a372552c7c21ba41cf42ce1810980edfa99bea10486bc639c17b1bf0"
   },
   "interactions" : [
     {

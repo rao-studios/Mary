@@ -611,7 +611,13 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             }
             return nil
         }
-        if !AbilityRoutingEvaluator.isEligible(runtime.ability.routing, in: context) {
+        // THE WORDS, OR THE SURFACE. An Ability is admitted lexically either
+        // by its routing policy (which surfaces are in view) or because the
+        // utterance names it — the latter used to live as `utteranceToken`
+        // arms inside the policy itself, a second copy of the trigger list
+        // that could disagree with it. The triggers are now the only copy.
+        if !AbilityRoutingEvaluator.isEligible(runtime.ability.routing, in: context),
+           !context.requestedAbilities.contains(runtime.ability.id) {
             return "does not match its Ability-level routing policy"
         }
         if !AbilityRoutingEvaluator.isEligible(runtime.skill.routing, in: context) {
@@ -935,7 +941,13 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             sourceResolution: sourceResolution,
             workspaceFamily: workspaceFamily,
             semanticSkillAffinity: semanticSkillAffinities(for: query),
-            usesEmbeddingRoster: abilitySnapshot.semanticSkillIndex != nil)
+            usesEmbeddingRoster: abilitySnapshot.semanticSkillIndex != nil,
+            // COMPUTED ONLY WHEN IT WILL BE READ. With a Skill index in hand
+            // the roster is affinity-gated and this is never consulted, so a
+            // second lexical scan of every Ability's triggers would be pure
+            // waste on the path that matters.
+            requestedAbilities: abilitySnapshot.semanticSkillIndex == nil
+                ? abilitySnapshot.requestedAbilities(in: query) : [])
     }
 
     /// See `semanticSkillAffinityCache`. One vectorization and one library scan per turn.
