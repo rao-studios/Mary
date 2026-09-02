@@ -232,13 +232,28 @@ public enum SwiftSymbolLocator {
             guard let open = firstCodeBrace(source, chars: chars, regions: regions, after: afterHeader),
                   headerByBrace[open] == nil else { continue }
             // The brace must belong to THIS header: nothing but signature-ish text between
-            // them — approximated by requiring no `}` at code position in the gap (a closed
-            // scope.
+            // them — no `}` at code position (a closed scope), AND no second declaration
+            // keyword.
+            //
+            // THE SECOND HALF IS NOT DECORATION. Without it a brace-less
+            // declaration reaches forward and claims the NEXT declaration's
+            // body: in `let path: String` followed by `func read() {`, the
+            // stored property found `read`'s opening brace, claimed it first,
+            // and `read` itself was then skipped as already-claimed — so the
+            // caret inside `read` reported its scope as `let path`. Measured
+            // against a real file, not imagined.
             var belongs = true
-            var i = source.distance(from: source.startIndex, to: afterHeader)
+            let gapStart = source.distance(from: source.startIndex, to: afterHeader)
+            var i = gapStart
             while i < open {
                 if chars[i] == "}" && isCode(regions, i) { belongs = false; break }
                 i += 1
+            }
+            if belongs, gapStart < open {
+                let gap = source[
+                    source.index(source.startIndex, offsetBy: gapStart)
+                        ..< source.index(source.startIndex, offsetBy: open)]
+                belongs = !Self.namesADeclaration(in: gap)
             }
             guard belongs else { continue }
             guard let close = matchBrace(chars: chars, regions: regions, open: open) else { continue }
@@ -274,6 +289,18 @@ public enum SwiftSymbolLocator {
         if case .code = regions[offset] { return true }
         return false
     }
+
+    /// Whether a header-to-brace gap contains a second declaration keyword —
+    /// the proof that this brace opens somebody else's body.
+    private static func namesADeclaration(in gap: Substring) -> Bool {
+        let words = gap.split { !$0.isLetter && !$0.isNumber && $0 != "_" }
+        return words.contains { declarationKeywords.contains(String($0)) }
+    }
+
+    private static let declarationKeywords: Set<String> = [
+        "func", "struct", "class", "enum", "actor", "protocol", "extension",
+        "init", "subscript", "deinit",
+    ]
 
     private static let declarationModifiers: Set<String> = [
         "public", "private", "internal", "fileprivate", "open", "package",

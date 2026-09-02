@@ -200,6 +200,23 @@ enum BrainFakes {
             return toolWorlds[skillName]
         }
 
+        /// AWARENESS: what the pre-lane pass answers. Nil (the default) means
+        /// "nothing followed is in front", which is what every pre-existing
+        /// test gets — so their turns stay byte-identical.
+        var awarenessSight: AwarenessSight?
+        private(set) var awarenessQueries: [String] = []
+
+        func fetchAwareness(query: String) async -> AwarenessSight? {
+            lock.lock(); defer { lock.unlock() }
+            awarenessQueries.append(query)
+            return awarenessSight
+        }
+
+        func awarenessQueriesSnapshot() -> [String] {
+            lock.lock(); defer { lock.unlock() }
+            return awarenessQueries
+        }
+
         func readNamedPart(_ phrase: String) async -> String? {
             lock.lock(); defer { lock.unlock() }
             namedPartRequests.append(phrase)

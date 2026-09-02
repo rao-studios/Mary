@@ -290,7 +290,7 @@ extension PromptCatalog {
         ordering: .last
     ) { inputs in
         let liveBlocks = inputs.liveWork + inputs.heldFacts
-            + inputs.heldMentions + inputs.readPassages
+            + inputs.heldMentions + inputs.awareness + inputs.readPassages
         guard !liveBlocks.isEmpty else { return "" }
 
         // Register follows the owning app, same as system() headers.
@@ -392,6 +392,24 @@ extension PromptCatalog {
                 }
             }
             body = body.isEmpty ? held : body + "\n\n" + held
+        }
+        if !inputs.awareness.isEmpty {
+            // BEARINGS, NOT A PASSAGE. Between the held facts and the read
+            // because it is neither: it is what I went and found out about
+            // the work while they were still asking.
+            let traced = """
+            I also traced this just now, through their project on disk — what \
+            reaches the part they are looking at, what it reaches, and where \
+            their own words land in it. These are real reads, not recollection. \
+            The file names and line numbers are MY bearings for finding things \
+            again: use them to say what something is and where it fits — "it's \
+            called from the session's open path", never "line forty-two of \
+            Session dot swift" — and never claim to have read a body that \
+            isn't quoted here.
+
+            \(inputs.awareness.joined(separator: "\n\n"))
+            """
+            body = body.isEmpty ? traced : body + "\n\n" + traced
         }
         if !inputs.readPassages.isEmpty {
             // ONE authority, and the read is its last word.

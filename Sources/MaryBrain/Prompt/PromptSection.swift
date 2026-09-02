@@ -141,6 +141,10 @@ public struct PromptInputs: Sendable {
     /// THE ROUTER'S OWN VERDICT was perceive — a judgment question about
     /// work in hand, not a plain recitation and not small talk.
     public var perceiving: Bool = false
+    /// TRACED THIS TURN: what reaches the work in front of them and what it
+    /// reaches, each naming its own file and line. Renders inside the live
+    /// block, after the held facts and before the read.
+    public var awareness: [String] = []
 
     public init(
         plugins: [any MaryAdapter] = [],
@@ -165,13 +169,15 @@ public struct PromptInputs: Sendable {
         runningActions: [String] = [],
         lookUnderway: Bool = false,
         inspiredSight: Bool = false,
-        perceiving: Bool = false
+        perceiving: Bool = false,
+        awareness: [String] = []
     ) {
         self.conversational = conversational
         self.runningActions = runningActions
         self.lookUnderway = lookUnderway
         self.inspiredSight = inspiredSight
         self.perceiving = perceiving
+        self.awareness = awareness
         self.capability = capability
         self.groundedResults = groundedResults
         self.liveWork = liveWork

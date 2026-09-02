@@ -87,6 +87,10 @@ public protocol AbilityDispatching: Sendable {
     /// before either lane speaks. `isRead` tells the caller whether the
     /// passage came from a genuine read (Lane B already holds it) or a look.
     func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)?
+    /// FETCH-FIRST FOR THE CRAFT ITSELF: the unit the user is inside, and what
+    /// reaches it. Nil when nothing followed is in front, when the turn is not
+    /// one this should serve, or when there is nothing true to say.
+    func fetchAwareness(query: String) async -> AwarenessSight?
     /// LOCATE-FIRST: find the passage a REVISION is about, before either lane exists, and hand back a handle plus the verb that changes it.
     /// `readNamedPart`'s sibling and its opposite.
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage?
@@ -164,6 +168,7 @@ public extension AbilityDispatching {
     func lookAtScreen(_ query: String?) async -> String? { nil }
     func wouldServeLook() -> Bool { false }
     func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)? { nil }
+    func fetchAwareness(query: String) async -> AwarenessSight? { nil }
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage? { nil }
     func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage? {
         await locatePassage(intent)
@@ -172,6 +177,30 @@ public extension AbilityDispatching {
         nil
     }
 }
+/// What one awareness pass found: the work itself, and its bearings.
+///
+/// TWO FIELDS, NOT ONE STRING, because they are answers to different
+/// questions and land in different places. The UNIT is text Mary read and may
+/// quote — it rides the same road every other pre-read takes. The
+/// SURROUNDINGS are references with file and line, which are bearings for
+/// speaking about the unit and never something to recite.
+public struct AwarenessSight: Sendable, Equatable {
+    /// The declaration or passage the user is inside.
+    public var unit: String?
+    /// What reaches it, what it reaches, and where their words landed.
+    public var surroundings: String?
+
+    public init(unit: String? = nil, surroundings: String? = nil) {
+        self.unit = unit
+        self.surroundings = surroundings
+    }
+
+    /// Nothing was found. The caller treats this as no pass at all.
+    public var isEmpty: Bool {
+        (unit?.isEmpty ?? true) && (surroundings?.isEmpty ?? true)
+    }
+}
+
 /// What ONE spoken pass needs beyond the live focus.
 public struct SeerPass: Sendable {
     /// Finished ACTIONS to report — the detached follow-up persona.
@@ -203,6 +232,12 @@ public struct SeerPass: Sendable {
     /// plain recitation request.
     public var perceiving: Bool
 
+    /// TRACED THIS TURN: what reaches the work in front of them and what it
+    /// reaches, each naming its own file and line. Beside `readPassages`
+    /// rather than inside it — a bearing is not a passage, and the voice must
+    /// not recite one.
+    public var awareness: [String]
+
     /// Which `RetrievalTraceLedger` row this pass's prompt build books to — observation only.
     public var exchangeID: UUID?
 
@@ -216,6 +251,7 @@ public struct SeerPass: Sendable {
         lookUnderway: Bool = false,
         inspiredSight: Bool = false,
         perceiving: Bool = false,
+        awareness: [String] = [],
         exchangeID: UUID? = nil
     ) {
         self.groundedResults = groundedResults
@@ -227,6 +263,7 @@ public struct SeerPass: Sendable {
         self.lookUnderway = lookUnderway
         self.inspiredSight = inspiredSight
         self.perceiving = perceiving
+        self.awareness = awareness
         self.exchangeID = exchangeID
     }
 }

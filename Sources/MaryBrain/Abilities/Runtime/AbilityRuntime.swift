@@ -54,6 +54,28 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         @TaskLocal static var runID: String?
     }
 
+    /// MARY'S OWN READ, not the model's call. Set only by the fetch-first
+    /// members of this file (`readNamedPart`, `lookAtScreen`, `dispatchSummary`)
+    /// while they dispatch, and read by exactly one gate — `offerLedgerFailure`.
+    ///
+    /// WHY IT EXISTS. The offer ledger is the roster's authorization claim over
+    /// the MODEL: a Skill the roster did not offer this turn must not be
+    /// invocable by something that read its name out of a schema. A pre-read is
+    /// not that. Mary decided, from the route and the world, to go and look at
+    /// the work in front of the user before she speaks — and the roster is
+    /// scored against the user's WORDS, so "what do you think about this code"
+    /// (which embeds nowhere near "Read the Buffer") withheld `read_buffer` and
+    /// `read_selection` from her own eyes. She then answered a question about
+    /// code having read none, which is where "paste the code here" came from,
+    /// with a live highlight on screen.
+    ///
+    /// The hard gate is untouched: `dispatchEligibilityFailure` still runs, so
+    /// model exposure, capability policy, permissions, readiness, perception
+    /// and mutation authorization all still decide whether the read may happen.
+    enum RuntimeRead {
+        @TaskLocal static var isFetchFirst: Bool = false
+    }
+
     private struct InFlightRun {
         /// Canceller for the in-flight worker (native or workflow — types differ).
         let cancel: @Sendable () -> Void
@@ -123,6 +145,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     private var skillBindings: [SkillBinding] { attributed.map(\.binding) }
     /// Plugin id → targeted-read binding. Fetch-first uses this; runtime never names plugin Skills.
     private let targetedReads: [String: (binding: String, parameter: String)]
+    /// Awareness bindings, learned from whichever adapters declare them.
+    /// PIN: the brain asks for "awareness"; only this table knows the names.
+    private let awarenessReads: [AwarenessRead]
     /// Plugin id → its revision verb, and plugin id → its half of the passage contract.
     private let targetedEdits: [String: (binding: String, parameter: String)]
     private let passageBackings: [String: PassageBacking]
@@ -217,6 +242,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 edits[plugin.name] = verb
             }
         }
+        self.awarenessReads = plugins.compactMap(\.awarenessRead)
         self.targetedReads = reads
         self.targetedEdits = edits
         self.passageBackings = backings
@@ -668,6 +694,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         for runtime: AbilityRuntimeSkill,
         roster: AbilityRosterArbitration
     ) -> String? {
+        // MARY'S OWN PRE-READ IS NOT A MODEL INVOCATION. See `RuntimeRead`.
+        if RuntimeRead.isFetchFirst { return nil }
         // Offerable right now: nothing to say.
         if roster.contains(runtime) { return nil }
         let ledger = offerLedger.withLock { $0 }
@@ -1264,7 +1292,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 withJSONObject: [targeted.parameter: wanted], options: [.sortedKeys]),
               let json = String(data: arguments, encoding: .utf8)
         else { return nil }
-        let outcome = await dispatch(name: targeted.binding, argumentsJSON: json)
+        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+            await dispatch(name: targeted.binding, argumentsJSON: json)
+        }
         guard outcome.ok, !outcome.foundNothing else { return nil }
         let summary = outcome.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         return summary.isEmpty ? nil : summary
@@ -1331,6 +1361,67 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         return (passage, false)
     }
 
+    /// FETCH-FIRST FOR THE CRAFT: read the unit the user is inside, and trace
+    /// what reaches it, before either lane speaks.
+    ///
+    /// WHICH TURNS. Not the ones that asked for an ACTION — those have a
+    /// receipt to report and no time to spend — and not an edit, which already
+    /// located its own target. Everything else that happens inside work Mary
+    /// follows is fair game, including the plainest question there is: the
+    /// route calls "what do you think about this code" a CONVERSE turn about
+    /// as often as it calls it a perceive one, and that classification is
+    /// exactly what used to decide whether Mary read the code before answering
+    /// a question about it.
+    ///
+    /// WHICH ORDER, and it matters. On a turn that already reads as being
+    /// about the work, the unit comes first and the trace supports it. On a
+    /// turn the router thinks is small talk, the TRACE goes first and has to
+    /// find something real before the unit is read at all — so an idle remark
+    /// in an editor stays an idle remark, and only a sentence that actually
+    /// lands somewhere in their project turns into a read.
+    public func fetchAwareness(query: String) async -> AwarenessSight? {
+        guard let read = awarenessReads.first(where: { candidate in
+            skillBindings.contains { $0.name == candidate.unit }
+                && skillBindings.contains { $0.name == candidate.surroundings }
+        }) else { return nil }
+
+        let route = AmbientRouteTurnContext.state?.current() ?? world.store.route()
+        // The turn already decided it wants something done. Leave it alone.
+        if route?.isActionTurn == true || route?.verdicts.editIntent != nil { return nil }
+
+        let aboutTheWork: Bool
+        switch route?.intent {
+        case .perceive, .ask, .architect:
+            aboutTheWork = true
+        case .converse, .none:
+            // A REMARK MAY STILL BE ABOUT THE WORK — "what do you think about
+            // THIS" is scored as conversation and is not. But it has to point
+            // at something: a deictic word, or a highlight the turn accepted.
+            // Idle company in an editor stays idle company, and costs nothing.
+            guard route?.verdicts.isDeictic == true
+                || route?.routedSelectionWorld != nil
+            else { return nil }
+            aboutTheWork = false
+        default:
+            return nil
+        }
+
+        var sight = AwarenessSight()
+        if aboutTheWork {
+            sight.unit = await dispatchSummary(read.unit)
+            sight.surroundings = await dispatchSummary(
+                read.surroundings, arguments: ["query": query], rejectingReceipts: false)
+        } else {
+            // EARN THE READ. Nothing traced, nothing read.
+            sight.surroundings = await dispatchSummary(
+                read.surroundings, arguments: ["query": query], rejectingReceipts: false)
+            if sight.surroundings != nil {
+                sight.unit = await dispatchSummary(read.unit)
+            }
+        }
+        return sight.isEmpty ? nil : sight
+    }
+
     public func lookAtScreen(_ query: String?) async -> String? {
         guard wouldServeLook() else { return nil }
         var arguments: [String: String] = [:]
@@ -1339,15 +1430,29 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 withJSONObject: arguments, options: [.sortedKeys]),
               let json = String(data: data, encoding: .utf8)
         else { return nil }
-        let outcome = await dispatch(name: Self.lookSkillName, argumentsJSON: json)
+        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+            await dispatch(name: Self.lookSkillName, argumentsJSON: json)
+        }
         guard outcome.ok, !outcome.foundNothing else { return nil }
         let summary = outcome.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         return summary.isEmpty ? nil : summary
     }
 
-    private func dispatchSummary(_ name: String, rejectingReceipts: Bool = true) async -> String? {
+    /// One fetch-first read, by binding name, with optional arguments.
+    /// PIN: the ONLY caller family of `RuntimeRead.isFetchFirst` besides
+    ///      `readNamedPart` and `lookAtScreen` — see that enum's header.
+    private func dispatchSummary(
+        _ name: String,
+        arguments: [String: String] = [:],
+        rejectingReceipts: Bool = true
+    ) async -> String? {
         guard skillBindings.contains(where: { $0.name == name }) else { return nil }
-        let outcome = await dispatch(name: name, argumentsJSON: "{}")
+        let json = (try? JSONSerialization.data(
+            withJSONObject: arguments, options: [.sortedKeys]))
+            .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+            await dispatch(name: name, argumentsJSON: json)
+        }
         guard outcome.ok, !outcome.foundNothing else { return nil }
         let summary = outcome.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !summary.isEmpty else { return nil }

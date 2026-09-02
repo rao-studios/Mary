@@ -302,4 +302,149 @@ import MaryFoundation
         #expect(MaryPrompts.lookFirstNudge.contains("read_document"))
         #expect(MaryPrompts.lookFirstNudge.contains("look_at_screen"))
     }
+
+    // MARK: - The roster gates the model, not Mary's own eyes
+
+    /// THE LIVE BUG THIS PINS: a highlight on screen, "what do you think about
+    /// this code", and `read_selection` never ran.
+    ///
+    /// The turn loop asks the dispatcher for `schemaCount` before `seerTurn`,
+    /// which PROJECTS this turn's roster — and in the embedding regime a Skill
+    /// enters that roster only when the utterance embeds near its own authored
+    /// corpus. A judgment question about code does not embed near "Read the
+    /// Selection", so the fetch-first pre-read dispatched straight into
+    /// `offerLedgerFailure` and came back blocked. Mary then answered a
+    /// question about code having read none, which is where "paste the code
+    /// here" came from — with the code highlighted in front of her.
+    ///
+    /// A PRE-READ IS NOT THE MODEL REACHING FOR AN UNOFFERED SKILL. It is Mary
+    /// deciding, from the route and the world, to look at the work before she
+    /// speaks. The ledger yields to that and to nothing else: the same call
+    /// made by the model, in the same turn, is still refused.
+    @Test func maryOwnPreReadOutrunsTheTurnRoster() async throws {
+        let snapshot = try #require(Self.rosterWithholdingReadSelection())
+        let ambient = AmbientContextStore()
+        ambient.noteUtterance(Self.judgmentQuestion)
+        _ = ambient.recordSelection(.init(
+            attention: .applications,
+            application: "xcode",
+            applicationID: "com.apple.dt.Xcode",
+            processID: 1,
+            text: "func parameters() {}",
+            subject: "AbilityRuntime.swift",
+            range: 0..<20,
+            channel: .sourcePoll,
+            sourceEvidence: .exactElement))
+        let dispatched = Dispatched()
+        let runtime = AbilityRuntime(
+            plugins: [SightAdapter(dispatched: dispatched)],
+            focusProvider: { "xcode" },
+            world: AmbientWorld(store: ambient),
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+
+        await AbilityTurnContext.$snapshot.withValue(snapshot) {
+            // The turn loop's own first question, and the thing that arms the
+            // ledger. Without it there is no gate to outrun.
+            _ = runtime.schemaCount
+
+            let sight = await runtime.fetchDeclaredEditorSight(query: Self.judgmentQuestion)
+            #expect(sight?.passage == "func parameters() {}")
+            #expect(sight?.isRead == true)
+            #expect(dispatched.snapshot() == ["read_selection"])
+
+            // ...and the model asking for the very same Skill, in the very
+            // same turn, is still refused by the very same ledger.
+            let refused = await runtime.dispatch(
+                name: "read_selection", argumentsJSON: "{}")
+            #expect(!refused.ok)
+            #expect(refused.status == .blocked)
+            #expect(refused.summary.contains("roster"))
+            #expect(dispatched.snapshot() == ["read_selection"], "blocked before the binding ran")
+        }
+    }
+
+    /// The words the user actually said, and the reason the roster withholds:
+    /// nothing in this sentence resembles the Skill's authored corpus.
+    private static let judgmentQuestion = "what do you think about this code"
+
+    /// A frozen registry whose embedding roster cannot admit `read_selection`
+    /// for `judgmentQuestion` — the shape of a real turn in an editor.
+    private static func rosterWithholdingReadSelection() -> AbilityRuntimeSnapshot? {
+        let package = MaryAbilityPackage(
+            package: .init(
+                id: "tests.eyes",
+                version: "1.0.0",
+                publisher: "Mary tests",
+                summary: "A discipline that reads a highlight."),
+            ability: .init(
+                id: "tests.eyes",
+                title: "Eyes",
+                summary: "Reads what is selected.",
+                tint: "#334455",
+                skills: ["tests.eyes.read-selection"],
+                paradigm: .discipline),
+            skills: [
+                SkillSchema(
+                    id: "tests.eyes.read-selection",
+                    title: "Read the Selection",
+                    summary: "Read the text currently highlighted in the editor.",
+                    kind: .effectful,
+                    execution: .init(
+                        kind: .binding,
+                        bindings: [.init(
+                            adapterID: "code-surface",
+                            operation: "read_selection",
+                            preference: 100)]),
+                    modelExposure: .init(invocationName: "read_selection"))
+            ])
+        let record = AbilityPackageRecord(
+            package: package,
+            source: .sourceTree,
+            sourceURL: URL(fileURLWithPath: "/tmp/tests.eyes.mary"),
+            validation: .init(),
+            rawData: Data())
+        // Knows the Skill's own corpus and NOTHING else — so the utterance
+        // vectorizes to nil and the Skill scores no affinity at all.
+        let vectorizer = KnownTermsVectorizer(terms: [
+            "Read the Selection",
+            "Read the text currently highlighted in the editor.",
+            "read selection",
+            "tests eyes read selection",
+        ])
+        guard let skills = SemanticSkillRequestIndex.build(
+            records: [record], vectorizer: vectorizer)
+        else { return nil }
+        let manifest = InstalledAdapterManifest(
+            adapterID: AdapterID("code-surface"),
+            title: "Code Surface",
+            transport: .native,
+            operations: [InstalledAdapterBinding(
+                adapterID: AdapterID("code-surface"), operation: "read_selection")])
+        return AbilityRuntimeSnapshot(
+            records: [record],
+            validation: .init(),
+            adapterManifests: [manifest],
+            semanticSkillIndex: skills)
+    }
+
+    /// One orthogonal basis vector per known term; anything else is nil, so a
+    /// miss is a miss rather than a stale neighbour.
+    private struct KnownTermsVectorizer: AmbientTextVectorizer {
+        let indices: [String: Int]
+
+        init(terms: [String]) {
+            var map: [String: Int] = [:]
+            for (index, term) in terms.enumerated() {
+                map[term.lowercased()] = index
+            }
+            indices = map
+        }
+
+        func vector(for text: String) -> [Float]? {
+            guard let index = indices[text.lowercased()] else { return nil }
+            var vector = [Float](repeating: 0, count: max(indices.count, 1))
+            vector[index] = 1
+            return vector
+        }
+    }
 }

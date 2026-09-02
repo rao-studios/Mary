@@ -385,6 +385,42 @@ private extension String {
     /// A MISS HERE IS A CORPUS RESULT, not a reason to reinstate a list: the
     /// repair is exemplars on `coding.mary` / `writing.mary`, or a threshold
     /// moved on the strength of this run.
+    /// AWARENESS IS A FACULTY, NOT A CRAFT THE USER ASKS FOR — and the axis
+    /// it joined is scored against every discipline's authored corpus. Its
+    /// package therefore carries no intent exemplars and two bare tokens, so
+    /// the sentences that need it stay the sentences already spoken to
+    /// coding: a judgment question about code must still read as coding, and
+    /// must never resolve to the thing that goes and looks it up.
+    ///
+    /// It also sorts FIRST in the registry (package ids order the axis, and
+    /// "awareness" precedes "coding"), so a leak here would not be a tie —
+    /// it would be a win.
+    @Test func awarenessNeverAnswersForTheCraftItServes() throws {
+        guard let environment = try Self.environment() else { return }
+        let registry = environment.snapshot
+        #expect(registry.disciplines.contains(AbilityID("awareness")),
+                "precondition: the faculty is installed as a discipline")
+        #expect(registry.disciplines.first == AbilityID("awareness"),
+                "precondition: it sorts first, so a leak would win outright")
+
+        let aboutCode = [
+            "what do you think about this code",
+            "is this function right",
+            "refactor this function",
+            "why does the build fail",
+        ]
+        var report: [String] = []
+        for utterance in aboutCode {
+            let verdict = registry.discipline(in: utterance)
+            report.append("[\(utterance)] -> \(verdict?.rawValue ?? "none")")
+        }
+        print(report.joined(separator: "\n"))
+        for utterance in aboutCode {
+            #expect(registry.discipline(in: utterance) != WorkspaceFocus(AbilityID("awareness")),
+                    "[\(utterance)]")
+        }
+    }
+
     @Test func disciplineCuesResolveThroughTheShippedCorpus() throws {
         guard let environment = try Self.environment() else { return }
         let registry = environment.snapshot

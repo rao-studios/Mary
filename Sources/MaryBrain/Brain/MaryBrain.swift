@@ -186,6 +186,11 @@ public actor MaryBrain: LanguageResponder {
     static let preReadBudgetNanoseconds: UInt64 = 2_500_000_000
     /// Pre-lane look ceiling. Past it the turn proceeds lookless; description follows up.
     static let preLookBudgetNanoseconds: UInt64 = 8_000_000_000
+    /// Pre-lane AWARENESS ceiling. Shorter than the look's, because this is
+    /// disk and regex rather than a screenshot and a vision round — and
+    /// because it runs on ordinary turns, where a slow answer is worse than a
+    /// less-informed one.
+    static let preAwarenessBudgetNanoseconds: UInt64 = 2_500_000_000
     // internal for file split — treat as private
     static let turnContextRefreshBudgetNanoseconds: UInt64 = 1_000_000_000
 

@@ -104,6 +104,11 @@
   "dependencies" : [
     {
       "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "awareness"
+    },
+    {
+      "minimumVersion" : "1.0.0",
       "optional" : false,
       "packageID" : "coding"
     },
@@ -120,7 +125,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "75291e80df422f0e86cebeefff4c7e5ca1d30fbebe624aaa7306351880eba7ec"
+    "digest" : "897e572b86a71ee8465369a96d53f6ada114dc9dd036b99085fa078d7843d4b3"
   },
   "interactions" : [
 

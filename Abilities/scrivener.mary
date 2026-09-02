@@ -111,13 +111,18 @@
   "dependencies" : [
     {
       "minimumVersion" : "1.0.0",
-      "optional" : false,
-      "packageID" : "writing"
+      "optional" : true,
+      "packageID" : "awareness"
     },
     {
       "minimumVersion" : "1.0.0",
       "optional" : true,
       "packageID" : "window-management"
+    },
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "writing"
     }
   ],
   "fixtures" : [
@@ -127,7 +132,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "519255def42b03786d777d4eb94c74c5eabf1858f4c4e9c286c404c49b9943e2"
+    "digest" : "e3b1940bd7a979d2c4cf5eadfea55364ea6e5c42d034d429f41248231963a56e"
   },
   "interactions" : [
 

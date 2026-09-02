@@ -28,6 +28,25 @@ public enum AbilitySurfaceReferent: Sendable, Equatable {
     case previouslyCreatedSurfaceUnavailable
 }
 
+/// The two bindings a provider offers Mary's own standing awareness of the
+/// work in front of the user: the UNIT she is inside, and what SURROUNDS it.
+///
+/// PIN: the brain never learns a Skill name — this is `targetedRead`'s shape
+/// and exists for the same reason. A provider says which of its bindings
+/// answer these two questions; `AbilityRuntime` calls them, and the turn loop
+/// only ever asks for "awareness".
+public struct AwarenessRead: Sendable, Equatable {
+    /// Binding returning the declaration/passage the cursor or highlight is in.
+    public var unit: String
+    /// Binding returning what reaches that unit and what it reaches.
+    public var surroundings: String
+
+    public init(unit: String, surroundings: String) {
+        self.unit = unit
+        self.surroundings = surroundings
+    }
+}
+
 /// Carried into every binding execution.
 public struct AbilityExecutionContext: Sendable {
     /// Configured project name → path on disk.
@@ -183,6 +202,9 @@ public protocol MaryAdapter: Sendable {
     var targetedRead: (binding: String, parameter: String)? { get }
     /// Extra owner keys that share this adapter's `targetedRead`.
     var targetedReadAliases: [String] { get }
+    /// Bindings that answer what the user is looking at, and what surrounds it.
+    /// Nil for every provider that is not an awareness faculty.
+    var awarenessRead: AwarenessRead? { get }
     /// Addressable containers. Nil for a single-document world.
     /// OUT: ReferenceResolver. PIN: ContainerRoster.cached must not spawn.
     var containerRoster: ContainerRoster? { get }
@@ -221,6 +243,7 @@ public extension MaryAdapter {
     var applicationIdentifiers: Set<String> { [] }
     var targetedRead: (binding: String, parameter: String)? { nil }
     var targetedReadAliases: [String] { [] }
+    var awarenessRead: AwarenessRead? { nil }
     var containerRoster: ContainerRoster? { nil }
     var refusals: [String] { [] }
 

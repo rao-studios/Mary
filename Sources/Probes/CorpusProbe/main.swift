@@ -33,6 +33,13 @@ if CodeSurfaceProbe.shouldRun(CommandLine.arguments) {
     exit(failures == 0 ? 0 : 1)
 }
 
+// The awareness faculty: the unit at the cursor and what reaches it. Own
+// flag, beside the code-surface lanes it reads through.
+if AwarenessProbe.shouldRun(CommandLine.arguments) {
+    await AwarenessProbe.run(CommandLine.arguments)
+    exit(failures == 0 ? 0 : 1)
+}
+
 // Write-side sibling. Own flag, checked immediately after CodeSurfaceProbe.
 if CodeSurfaceWriteProbe.shouldRun(CommandLine.arguments) {
     await CodeSurfaceWriteProbe.run(CommandLine.arguments)

@@ -158,6 +158,45 @@ extension MaryBrain {
                 lookUnderway = true
             }
         }
+        // AWARENESS: the unit they are inside, and what reaches it. Runs on
+        // ordinary turns too — the sentence this whole path exists for ("what
+        // do you think about this code") is one the router scores as
+        // conversation about as often as it scores it perception, and the
+        // dispatcher's own gate decides whether this turn deserves the read.
+        var awareness: [String] = []
+        var awarenessServed = false
+        if editIntent == nil, !actionTurn, let dispatcher {
+            let sight = await withNanosecondBudget(Self.preAwarenessBudgetNanoseconds) {
+                await dispatcher.fetchAwareness(query: userText)
+            }
+            if Task.isCancelled {
+                appendCancelledEpilogue(
+                    spokenText: "", actionTurn: actionTurn, outcomes: [], epoch: epoch)
+                continuation.finish()
+                return
+            }
+            if let sight {
+                awarenessServed = true
+                if let surroundings = sight.surroundings, !surroundings.isEmpty {
+                    awareness = [surroundings]
+                }
+                // The unit is a READ, and takes a read's road — unless a read
+                // already answered this turn, in which case that one is the
+                // one they asked for and this would only crowd it.
+                if let unit = sight.unit, !unit.isEmpty, readPassages.isEmpty {
+                    readPassages = [unit]
+                    readServed = true
+                    readLedger.record(ReadDelivery(
+                        route: .prefetched, detail: "awareness-unit",
+                        characters: unit.count))
+                }
+            }
+            let line = "awareness — served=\(awarenessServed)"
+                + " unit=\(readServed ? readPassages.first?.count ?? 0 : 0)"
+                + " surroundings=\(awareness.first?.count ?? 0)"
+            Self.turnLog.info("\(line, privacy: .public)")
+        }
+
         let lookWould = dispatcher?.wouldServeLook() ?? false
         let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) read=\(readServed) underway=\(lookUnderway)"
         Self.turnLog.info("\(lookLine, privacy: .public)")
@@ -170,12 +209,16 @@ extension MaryBrain {
             && routeIntent == .perceive
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
-            // THE ROUTER'S OWN VERDICT, carried rather than re-derived.
-            conversational: routeIntent == .converse,
+            // THE ROUTER'S OWN VERDICT, carried rather than re-derived —
+            // except where this turn's own evidence contradicts it. Having
+            // just read their work and traced what reaches it, this is not a
+            // pass with nothing in hand, whatever the router called it.
+            conversational: routeIntent == .converse && !awarenessServed,
             runningActionLabels: activeRoutines.values.map(\.label),
             lookUnderway: lookUnderway,
             inspiredSight: inspiredSight,
-            perceiving: routeIntent == .perceive,
+            perceiving: routeIntent == .perceive || awarenessServed,
+            awareness: awareness,
             exchangeID: originUserTurnID))
         let laneSeed = history
 

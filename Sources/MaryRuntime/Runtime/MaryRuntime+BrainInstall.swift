@@ -111,6 +111,10 @@ extension MaryRuntime {
             codeSurfaceRegistrations(from: load.snapshot))
         // Corpora — one roster for style crawl and project lane (lane filters on `structure`).
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
+        // Awareness — the applications that asked to be followed, with the
+        // project grammar awareness walks. Derived from the graph, like every
+        // roster above it; adding an application adds no line here.
+        AwarenessSupport.shared.reconcile(awarenessRegistrations(from: load.snapshot))
         registerCodingStyleProducer(profiles: profiles, snapshot: load.snapshot)
         installCorpusPipeline()
         // Transports — a package that stops declaring a player must stop having one.
@@ -214,6 +218,50 @@ extension MaryRuntime {
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 displayName: plugin.application.title,
                 schema: schema)
+        }
+    }
+
+    /// Applications that DECLARED a dependency on the awareness discipline.
+    ///
+    /// Optionality is deliberately not consulted: an application asking to be
+    /// followed is an application asking to be followed, and `optional: true`
+    /// only says it still loads when awareness is not installed — the same
+    /// shape `window-management` has had since the first package. What IS
+    /// consulted is whether awareness actually activated: an edge to a package
+    /// that is not in this snapshot registers nothing.
+    package static func awarenessRegistrations(
+        from snapshot: AbilityRuntimeSnapshot
+    ) -> [AwarenessRegistration] {
+        let activated = Dictionary(
+            uniqueKeysWithValues: snapshot.records
+                .filter(\.validation.isValid)
+                .map { ($0.package.package.id, $0.package) })
+        guard activated.values.contains(where: { $0.ability.id == .awareness }) else {
+            return []
+        }
+        return snapshot.records.compactMap { record -> AwarenessRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  !plugin.application.bundleIdentifiers.isEmpty
+            else { return nil }
+            // A required dependency that did not activate means this package is
+            // not really installed — `corpusRegistrations`' own gate.
+            let required = record.package.dependencies.filter { !$0.optional }
+            guard required.allSatisfy({ activated[$0.packageID] != nil }) else {
+                return nil
+            }
+            guard record.package.dependencies.contains(where: {
+                activated[$0.packageID]?.ability.id == .awareness
+            }) else { return nil }
+            return AwarenessRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
+                displayName: plugin.application.title,
+                corpus: plugin.corpus
+                    ?? Self.inheritedCorpus(for: record.package, activated: activated),
+                hasCodeSurface: plugin.codeSurface != nil,
+                hasProseSurface: plugin.proseSurface != nil)
         }
     }
 

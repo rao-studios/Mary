@@ -40,6 +40,10 @@ public struct AbilityID: SchemaIdentifier {
     public static let writing: Self = "writing"
     public static let architect: Self = "architect"
     public static let coding: Self = "coding"
+    /// The craft of already knowing what the work in front of you is: the unit
+    /// under the cursor, what reaches it, what it reaches. Named so a place can
+    /// ask "does this registration realize awareness?" without naming an app.
+    public static let awareness: Self = "awareness"
     public static let windowManagement: Self = "window-management"
     public static let design: Self = "design"
     /// Named so ambient can ask "does this registration realize browsing?"

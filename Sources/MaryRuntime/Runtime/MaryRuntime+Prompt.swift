@@ -202,7 +202,7 @@ extension MaryRuntime {
             // turn's fetch-first passage — one text, one claim.
             let held = heldContext(
                 resolved, budget: AmbientRanker.voiceBudget,
-                suppressing: pass.readPassages)
+                suppressing: pass.readPassages + pass.awareness)
             // `seerRender` is `.seerInstructions`'s own body (the wrapper
             // returns `seerRender(...).text`), so the returned text is
             // byte-identical; the render form keeps the spend waterfall.
@@ -224,7 +224,8 @@ extension MaryRuntime {
                 runningActions: pass.runningActionLabels,
                 lookUnderway: pass.lookUnderway,
                 inspiredSight: pass.inspiredSight,
-                perceiving: pass.perceiving)
+                perceiving: pass.perceiving,
+                awareness: pass.awareness)
             let assembled = promptWithTails(
                 render: render, lane: .seerInstructions, held: held,
                 budget: AmbientRanker.voiceBudget,

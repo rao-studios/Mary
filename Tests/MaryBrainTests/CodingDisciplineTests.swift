@@ -630,6 +630,106 @@ import Testing
         return snapshot.skills.first { $0.skill.id == skill.id }!
     }
 
+    // MARK: - Awareness rides beside the craft, and never becomes it
+
+    /// THE CONTAMINATION THIS FORBIDS. `AmbientPlace.ability` takes the FIRST
+    /// registry-ordered discipline an application's compiled profile contains,
+    /// and the registry is sorted by package id — where "awareness" sorts
+    /// before "coding". Had the editor REALIZED an awareness Skill, awareness
+    /// would have entered its profile and the editor's place would have read
+    /// as awareness: style evidence filed under the wrong craft, the deposit
+    /// subject losing its project, and the pair-coding capability line
+    /// replaced by a stranger's.
+    ///
+    /// It does not, because awareness binds its own adapter directly
+    /// (`authoredBindings`, `coding.read-buffer`'s exact shape) and names no
+    /// application — so an editor gets the faculty without joining it.
+    @Test func awarenessRidesBesideCodingWithoutBecomingThePlacesCraft() async throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let xcode = try loadRootPackage("xcode")
+        let coding = try loadRootPackage("coding")
+        let writing = try loadRootPackage("writing")
+        let windowManagement = try loadRootPackage("window-management")
+        let awareness = try loadRootPackage("awareness")
+        let allPackages = [xcode, coding, writing, windowManagement, awareness]
+
+        let compilation = PluginCompiler.compile(
+            packages: allPackages,
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility, .files] })
+        let xcodeProfile = try #require(
+            compilation.applicationProfiles.first { $0.id == "xcode" })
+        #expect(!xcodeProfile.abilities.contains(.awareness),
+                "asking to be followed is not joining the craft")
+        #expect(xcodeProfile.abilities.contains(.coding))
+
+        let validation = AbilityPackageValidator.validateGraph(allPackages)
+        #expect(validation.isValid, "the shipped packages must load cleanly together")
+        func record(_ package: MaryAbilityPackage) -> AbilityPackageRecord {
+            AbilityPackageRecord(
+                package: package, source: .installed,
+                sourceURL: URL(fileURLWithPath: "/dev/null"),
+                validation: validation,
+                rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
+        }
+        let snapshot = AbilityRuntimeSnapshot(
+            records: allPackages.map(record),
+            validation: validation,
+            adapterManifests: MaryAdapterCatalog.adapterManifests(
+                adapters: MaryAdapterCatalog.adapters(),
+                observers: MaryAdapterCatalog.observers()),
+            plugins: compilation)
+        // THE ORDER THAT WOULD HAVE BITTEN: awareness really does sort first.
+        #expect(snapshot.disciplines.first == .awareness,
+                "precondition — this test is worthless if the risky ordering isn't real")
+
+        let perception = try #require(xcodeProfile.perception)
+        let ambient = AmbientContextStore()
+        try await AmbientCapabilityIndexProvider.$scoped.withValue(snapshot) {
+        try await AmbientApplicationIndexProvider.$scoped.withValue(
+            AmbientApplicationRoster([
+                ApplicationRegistration(
+                    id: "xcode", profile: xcodeProfile,
+                    bundleIdentifiers: ["com.apple.dt.Xcode"],
+                    placeClass: .workspace, displayName: "Xcode",
+                    perception: perception),
+            ])
+        ) {
+            let place = AmbientPlace.application("xcode")
+            #expect(place.ability == .coding, "the craft the editor practices")
+            #expect(place.focus == .coding)
+
+            let route = AmbientEngine.resolve(AmbientEngine.Inputs(
+                utterance: "what does this function do",
+                leadApplicationID: "xcode",
+                profiles: [xcodeProfile]))
+            ambient.noteUtterance("what does this function do")
+            ambient.noteRoute(route)
+
+            try await AbilityTurnContext.$snapshot.withValue(snapshot) {
+                let runtime = AbilityRuntime(
+                    plugins: MaryAdapterCatalog.adapters(),
+                    world: AmbientWorld(store: ambient),
+                    contextProvider: { AbilityExecutionContext(projects: [:]) })
+                // READY, not merely installed: the faculty's manifest has to
+                // satisfy its own package's binding contract.
+                let awarenessSkills = snapshot.skills.filter { $0.ability.id == .awareness }
+                #expect(awarenessSkills.count == 5)
+                for skill in awarenessSkills {
+                    #expect(
+                        skill.availability.readiness == .ready,
+                        "\(skill.skill.id.rawValue): \(skill.availability.reasons.joined(separator: "; "))")
+                }
+                // Additive: awareness carries no conflict group, so it never
+                // enters the winner-take-all election coding and writing share.
+                let offered = Set(runtime.schemas.map(\.name))
+                #expect(offered.contains("build_project"), "coding still wins its own turn")
+                #expect(offered.contains("read_buffer"))
+            }
+        }
+        }
+    }
+
     private func loadRootPackage(_ name: String) throws -> MaryAbilityPackage {
         guard let abilities = InstalledPackages.installed() else {
             throw CocoaError(.fileNoSuchFile)
