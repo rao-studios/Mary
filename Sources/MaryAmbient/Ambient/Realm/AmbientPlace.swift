@@ -128,21 +128,25 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
         return attention.hasEyes
     }
 
-    /// Coding or writing, or neither.
+    /// The discipline this place hosts, or none. WHATEVER IS INSTALLED —
+    /// a place hosts a discipline when the Ability it realizes IS one, so a
+    /// third craft needs no case here.
     public var focus: WorkspaceFocus? {
         guard let registration else { return attention.focus }
-        switch ability {
-        case .some(.coding):  return .coding
-        case .some(.writing): return .writing
-        default:              return nil
-        }
+        guard let ability,
+              AmbientCapabilityIndexProvider.current.disciplines.contains(ability)
+        else { return nil }
+        return WorkspaceFocus(ability)
     }
 
-    /// Craft this place is for. `focus` above is the two-value projection.
+    /// Craft this place is for. `focus` above is the discipline projection.
+    /// PRECEDENCE IS THE REGISTRY'S, not an enum's declaration order: an app
+    /// realizing two disciplines is whichever the installed graph ranks first.
     public var ability: AbilityID? {
         guard let registration else { return attention.ability }
         let declared = registration.profile.abilities
-        return WorkspaceFocus.abilityOrder.first(where: declared.contains)
+        return AmbientCapabilityIndexProvider.current.disciplines
+            .first(where: declared.contains)
             ?? declared.sorted { $0.rawValue < $1.rawValue }.first
     }
 

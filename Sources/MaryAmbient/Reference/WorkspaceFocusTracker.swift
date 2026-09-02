@@ -4,7 +4,7 @@
 //
 //  WHAT: Which place the user is in — most recent activity, not a glance.
 //  IN:   poll sample() / NSWorkspace didActivate / watcher note(...)
-//  OUT:  lead → AmbientContextStore. Overlays: FocusOverride > PinnedWorld > ambient
+//  OUT:  lead → AmbientContextStore. Overlays: named discipline > PinnedWorld > ambient
 //  PIN:  Mary's window, Terminal, a browser leave the signal alone unless they earn a place.
 //
 

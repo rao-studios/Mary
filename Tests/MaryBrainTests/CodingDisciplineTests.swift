@@ -71,12 +71,17 @@ import Testing
     /// nil, and a code workspace silently had no discipline at all.
     @Test func theEditorsPlaceReadsAsCoding() throws {
         guard InstalledPackages.installed() != nil else { return }
+        let packages = [try loadRootPackage("xcode"), try loadRootPackage("coding")]
         let compilation = PluginCompiler.compile(
-            packages: [try loadRootPackage("xcode"), try loadRootPackage("coding")],
+            packages: packages,
             nativeAdapterManifests: [],
             grantedPermissions: { _ in [.accessibility] })
         let profile = try #require(
             compilation.applicationProfiles.first { $0.id == "xcode" })
+        // WHICH CRAFTS EXIST, taken from the packages themselves: the axis is
+        // open, so "coding is a discipline and xcode is not" is a fact of the
+        // installed graph rather than of the type.
+        let graph = DisciplineGraph(declaredBy: packages)
         // THE COMPILED PERCEPTION, not a hand-picked stand-in — this used to
         // be `ApplicationPerception(kind: .workspace, documentOperation: nil,
         // pollSeconds: 3)`, written when both surfaces were nil for xcode and
@@ -86,6 +91,7 @@ import Testing
         // codeSurface:)`'s behaviour rather than a fixed copy of it.
         let perception = try #require(profile.perception)
 
+        try AmbientCapabilityIndexProvider.$scoped.withValue(graph) {
         try AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([
                 ApplicationRegistration(
@@ -113,6 +119,7 @@ import Testing
             // through a `workspaceFamily == "coding"` predicate — the one
             // admission road that does not depend on classifying a sentence.
             #expect(place.ability == .coding)
+        }
         }
     }
 
@@ -273,6 +280,11 @@ import Testing
         // race a concurrently running suite over the same global route.
         let ambient = AmbientContextStore()
 
+        // THE GRAPH THIS TURN RUNS UNDER, in view for the whole arbitration.
+        // `AmbientPlace.focus` asks it which Abilities are disciplines, and a
+        // workspaceFamily predicate cannot admit a coding Skill to a place
+        // whose craft nothing can name.
+        try await AmbientCapabilityIndexProvider.$scoped.withValue(snapshot) {
         try await AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([
                 ApplicationRegistration(
@@ -306,6 +318,7 @@ import Testing
                 #expect(offered.contains("read_selection"))
                 #expect(offered.contains("list_declarations"))
             }
+        }
         }
     }
 
@@ -390,6 +403,11 @@ import Testing
 
         let ambient = AmbientContextStore()
 
+        // THE GRAPH THIS TURN RUNS UNDER, in view for the whole arbitration.
+        // `AmbientPlace.focus` asks it which Abilities are disciplines, and a
+        // workspaceFamily predicate cannot admit a coding Skill to a place
+        // whose craft nothing can name.
+        try await AmbientCapabilityIndexProvider.$scoped.withValue(snapshot) {
         try await AmbientApplicationIndexProvider.$scoped.withValue(
             AmbientApplicationRoster([
                 ApplicationRegistration(
@@ -449,6 +467,7 @@ import Testing
                         """)
                 }
             }
+        }
         }
     }
 

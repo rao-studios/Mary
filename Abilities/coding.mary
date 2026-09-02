@@ -258,33 +258,64 @@
         ]
       },
       "negativeTokens" : [
-
+        "chapter",
+        "draft",
+        "manuscript",
+        "novel",
+        "paragraph",
+        "prose",
+        "scene",
+        "synopsis"
       ],
       "phrases" : [
+        "add a breakpoint",
+        "add a test",
         "build it",
         "build the project",
+        "clean this up",
+        "fix this bug",
+        "make this more concise",
+        "refactor this",
+        "rename this function",
+        "rewrite this comment",
         "run it",
         "run the project",
-        "stop it",
         "run the tests",
         "save everything",
-        "make this more concise",
-        "clean this up",
-        "refactor this",
-        "rewrite this comment"
+        "stop it",
+        "what does this function do"
       ],
       "tokens" : [
+        "api",
+        "breakpoint",
+        "bug",
         "build",
-        "compile",
-        "run",
-        "tests",
-        "scheme",
-        "project",
-        "concise",
-        "refactor",
-        "simplify",
+        "class",
+        "code",
         "comment",
-        "selection"
+        "compile",
+        "compiler",
+        "concise",
+        "debug",
+        "debugger",
+        "docstring",
+        "enum",
+        "function",
+        "linker",
+        "method",
+        "parser",
+        "project",
+        "protocol",
+        "readme",
+        "refactor",
+        "run",
+        "scheme",
+        "selection",
+        "simplify",
+        "struct",
+        "swift",
+        "tests",
+        "variable"
       ]
     },
     "version" : "1.0.0"
@@ -1060,7 +1091,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6cd66404fcc4003d8cd61157da7ad904a518b737474a370f383b58c81e59aa4a"
+    "digest" : "4d36364a8d18b98be317aaf63a0fd250e91099b3ff7bd046fa7e03df9b727d66"
   },
   "interactions" : [
     {

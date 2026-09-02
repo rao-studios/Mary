@@ -59,6 +59,13 @@ public struct SemanticAbilityRequestIndex: Sendable {
                 $0.replacingOccurrences(of: "-", with: " ")
                     .replacingOccurrences(of: ".", with: " ")
             }
+            // THE WHOLE SENTENCES THE PACKAGE ALREADY AUTHORED. `intentExemplars`
+            // are keyed by intent because `SemanticIntentIndex` reads them that
+            // way, but every one of them is also a sentence ABOUT this Ability
+            // — which is exactly what this index scores. They were being
+            // written, shipped and then ignored here: 30 sentences across the
+            // two disciplines, while recall leaned on bare tokens.
+            positiveTerms += triggers.intentExemplars.values.flatMap { $0 }
             // Fixtures widen only Ability NOMINATION. They never identify a Skill or operation here
             positiveTerms += record.package.fixtures
                 .filter { $0.expectedDisposition == "route" }

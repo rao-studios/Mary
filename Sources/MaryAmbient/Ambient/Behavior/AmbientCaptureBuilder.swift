@@ -162,10 +162,7 @@ public enum AmbientCaptureBuilder {
 
     /// A discipline as a dataset token.
     public static func token(for focus: WorkspaceFocus) -> String {
-        switch focus {
-        case .coding: return "coding"
-        case .writing: return "writing"
-        }
+        focus.rawValue
     }
 
     /// An evidence kind as a dataset token. Spelled here rather than read off the enum because

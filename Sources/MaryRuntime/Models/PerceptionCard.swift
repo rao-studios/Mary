@@ -239,10 +239,11 @@ package struct FocusSummary: Equatable {
     /// Asked of the place's own discipline, not a compiled world name.
     package func isEffective(_ world: PerceptionWorld) -> Bool {
         guard let effective else { return false }
-        switch effective {
-        case .writing: return world.place == writingPlace
-        case .coding: return world.place.focus == .coding
-        }
+        // The writing place is a stored property because a manuscript's place
+        // is resolved elsewhere; every other discipline answers from the
+        // place's own declared craft.
+        if effective == .writing, let writingPlace { return world.place == writingPlace }
+        return world.place.focus == effective
     }
 
     package init(

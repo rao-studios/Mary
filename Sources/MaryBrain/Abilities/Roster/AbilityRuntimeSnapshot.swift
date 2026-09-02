@@ -356,6 +356,13 @@ public struct AbilityRuntimeSnapshot: Sendable {
         }
     }
 
+    /// SCORED ability recall — the ranked sibling of `requestedAbilities`,
+    /// for callers that must compare two Abilities rather than admit a set.
+    /// Empty without an index: there is no lexical way to produce a score.
+    public func abilityAffinities(in utterance: String) -> [AbilityID: Float] {
+        semanticIndex?.affinities(in: utterance) ?? [:]
+    }
+
     public func requestedAbilities(in utterance: String) -> Set<AbilityID> {
         if let semanticIndex {
             return semanticIndex.requestedAbilities(in: utterance)

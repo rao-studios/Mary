@@ -107,7 +107,11 @@ extension MaryBrain {
         // The utterance may name a domain ("add a scene…", "fix the build…").
         // CLASSIFIED ONCE, then seeded into the engine below: the override the
         // tracker is actually running under has to be the one the route records.
-        let focusOverride = FocusOverride.classifyOverride(utterance: userText)
+        // ASKED OF THE INSTALLED DISCIPLINES, semantically. Read here rather
+        // than off the triage verdict because the tracker override has to be
+        // standing before the lead place is resolved, which is well above the
+        // routing query — see `setTurnOverride` immediately below.
+        let focusOverride = AmbientRanker.namedDiscipline(in: userText)
         focusTracker.setTurnOverride(focusOverride)
         defer { focusTracker.clearTurnOverride() }
         // Published before either prompt is built.

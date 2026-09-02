@@ -125,11 +125,7 @@ enum RouteReport {
     // MARK: - Atoms
 
     private static func token(_ focus: WorkspaceFocus?) -> String {
-        switch focus {
-        case .coding: return "coding"
-        case .writing: return "writing"
-        case nil: return "none"
-        }
+        return focus?.rawValue ?? "none"
     }
 
     private static func yesNo(_ value: Bool) -> String { value ? "yes" : "no" }

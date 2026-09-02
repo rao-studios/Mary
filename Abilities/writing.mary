@@ -178,10 +178,14 @@
         ]
       },
       "negativeTokens" : [
+        "breakpoint",
         "code",
+        "compiler",
+        "debugger",
+        "linker",
+        "shell",
         "swift",
-        "terminal",
-        "shell"
+        "terminal"
       ],
       "phrases" : [
         "add a paragraph",
@@ -195,19 +199,29 @@
         "write this"
       ],
       "tokens" : [
+        "binder",
+        "chapter",
         "compose",
         "dictate",
         "dictation",
         "draft",
         "edit",
         "expand",
+        "manuscript",
+        "narrative",
+        "novel",
+        "paragraph",
         "polish",
         "proofread",
+        "prose",
         "replace",
         "revise",
         "reword",
         "rewrite",
+        "scene",
         "shorten",
+        "storyline",
+        "synopsis",
         "tighten",
         "write"
       ]
@@ -739,7 +753,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "bcf0990e0396f196952fa1e51e191df8a6ecb98deb4e86c8edc9b5dfb64ebcf1"
+    "digest" : "9866a6b83adb4fa97829ad67b53078de146cd2abc56b8f75a0aaf6d50cac4b4e"
   },
   "interactions" : [
     {

@@ -13,7 +13,10 @@ import Foundation
 extension MaryPrompts {
 
     /// Voice capability line for the pinned world. Template over displayName.
-    /// PIN: Two arms only (coding/writing); packages may not author persona prose.
+    /// PIN: PACKAGES MAY NOT AUTHOR PERSONA PROSE — that is why this stays a
+    /// closed switch while the discipline axis itself is open. A craft Mary
+    /// ships prose for gets its own arm; any other installed discipline gets
+    /// the general line rather than a sentence a package wrote about her.
     public static func capabilityLine(for world: PinnedWorld) -> String {
         let name = AmbientApplicationIndexProvider.current
             .registration(id: world.applicationID)?.displayName ?? world.applicationID
@@ -22,6 +25,8 @@ extension MaryPrompts {
             return "Right now you're pair-coding with the user in \(name) — your hands can write new code into their project and revise the code already there; this voice pass is not writing as it speaks."
         case .writing:
             return "Right now you're co-writing with the user in \(name) — your hands can write new prose into their document and revise the words already there; this voice pass is not writing as it speaks."
+        default:
+            return "Right now you're working alongside the user in \(name) — your hands can act there directly; this voice pass is not acting as it speaks."
         }
     }
 

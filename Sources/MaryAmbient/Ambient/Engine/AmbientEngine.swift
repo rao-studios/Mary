@@ -209,7 +209,7 @@ public enum AmbientEngine {
             isDeictic: isDeictic,
             namesTransform: AmbientRanker.namesTransform(inputs.utterance),
             focusOverride: inputs.seeds.map(\.focusOverride)
-                ?? FocusOverride.classifyOverride(utterance: inputs.utterance),
+                ?? AmbientRanker.namedDiscipline(in: inputs.utterance),
             bareDecision: inputs.bareDecision)
         let (intent, signal) = classify(
             routedInputs,

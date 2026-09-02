@@ -121,8 +121,9 @@ public enum ReferenceFocus {
 
         // GUARANTEE CLAUSE 3, checked first and cheapest. A coding cue means this whole mechanism
         // stands down — "replace this function's body" must never be hijacked to a note because a
-        // note was mentioned two turns ago.
-        guard FocusOverride.classifyOverride(utterance: said) != .coding
+        // note was mentioned two turns ago. The cue is now the coding package's
+        // own corpus rather than a list of words someone remembered to add.
+        guard AmbientRanker.namedDiscipline(in: said) != .coding
         else { return .none }
 
         var candidates: [ReferenceResolver.Candidate] = []

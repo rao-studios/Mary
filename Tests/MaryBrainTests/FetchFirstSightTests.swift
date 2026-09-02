@@ -175,7 +175,7 @@ import MaryFoundation
                     "read_document",
                     summary: "func parameters() {\n    // real body\n}", dispatched: dispatched),
             ])
-        await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+        await withScopedWorld(roster: Self.codingIndex()) {
             let runtime = AbilityRuntime(
                 plugins: [adapter],
                 focusProvider: { "xcode" },
@@ -206,7 +206,7 @@ import MaryFoundation
                 Self.summaryBinding(
                     "read_document", summary: "should not be reached", dispatched: dispatched),
             ])
-        await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+        await withScopedWorld(roster: Self.codingIndex()) {
             let runtime = AbilityRuntime(
                 plugins: [adapter],
                 focusProvider: { "xcode" },
@@ -237,7 +237,7 @@ import MaryFoundation
                     "read_document",
                     summary: "Once upon a time,\nthere was a paragraph.", dispatched: dispatched),
             ])
-        await AmbientApplicationIndexProvider.$scoped.withValue(Self.writingIndex()) {
+        await withScopedWorld(roster: Self.writingIndex()) {
             let runtime = AbilityRuntime(
                 plugins: [adapter],
                 focusProvider: { "notes" },
@@ -284,7 +284,7 @@ import MaryFoundation
         let state = AmbientRouteTurnState()
         state.note(route)
         await AmbientRouteTurnContext.$state.withValue(state) {
-            await AmbientApplicationIndexProvider.$scoped.withValue(Self.codingIndex()) {
+            await withScopedWorld(roster: Self.codingIndex()) {
                 let runtime = AbilityRuntime(
                     plugins: [adapter],
                     focusProvider: { "xcode" },

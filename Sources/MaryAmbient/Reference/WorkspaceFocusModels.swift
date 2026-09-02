@@ -9,22 +9,34 @@
 import Foundation
 import MaryFoundation
 
-/// THE DISCIPLINE AXIS — coding or writing, or neither. Not a taxonomy of applications but
-/// of WORK: the arbiter uses it to decide whether a manuscript and a source file are rivals
-/// for the same attention or two unrelated things.
-public enum WorkspaceFocus: String, CaseIterable, Sendable, Equatable {
-    case coding
-    case writing
+/// THE DISCIPLINE AXIS — the kind of WORK a place hosts. Not a taxonomy of
+/// applications but of craft: the arbiter uses it to decide whether a
+/// manuscript and a source file are rivals for the same attention or two
+/// unrelated things.
+///
+/// AN OPEN SET, and that is the point. A discipline IS one Ability — the same
+/// word on purpose — so the disciplines are whichever installed packages
+/// declare `paradigm: .discipline`, and installing one more is a package
+/// import rather than a new case here. This was two frozen cases (`coding`,
+/// `writing`); every list that enumerated them is now a question asked of the
+/// registry, because a closed set is a gate, and a gate cannot be taught.
+public struct WorkspaceFocus: RawRepresentable, Hashable, Sendable {
+    public let rawValue: String
 
-    /// The Ability a package realizes in order to join this discipline. THE SAME WORD ON
-    /// PURPOSE. A discipline is not a second taxonomy laid over the packages — it is one
-    /// Ability, seen on the axis the arbiter splits on.
+    public init(rawValue: String) { self.rawValue = rawValue }
+    public init(_ abilityID: AbilityID) { self.rawValue = abilityID.rawValue }
+
+    /// The Ability a package realizes in order to join this discipline. THE
+    /// SAME WORD ON PURPOSE. A discipline is not a second taxonomy laid over
+    /// the packages — it is one Ability, seen on the axis the arbiter splits on.
     public var abilityID: AbilityID { AbilityID(rawValue) }
 
-    /// The disciplines as Ability ids, in precedence order. CODING BEFORE WRITING, which is
-    /// `allCases` order and therefore the declaration order above: a package realizing both is
-    /// a coding workspace that also writes, not a writing one that also codes.
-    public static var abilityOrder: [AbilityID] { allCases.map(\.abilityID) }
+    /// The two Mary ships. NAMES, NOT A MEMBERSHIP LIST: code that reads well
+    /// saying `.coding` still may, but nothing may enumerate the disciplines
+    /// from here — ask `AmbientCapabilityIndexProvider.current.disciplines`,
+    /// which answers for whatever is installed.
+    public static let coding = WorkspaceFocus(rawValue: "coding")
+    public static let writing = WorkspaceFocus(rawValue: "writing")
 }
 
 /// A USER-PLANTED FOCUS PIN.

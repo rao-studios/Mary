@@ -333,10 +333,7 @@ struct RouterPaneView: View {
     }
 
     private func focusToken(_ focus: WorkspaceFocus) -> String {
-        switch focus {
-        case .coding: return "coding"
-        case .writing: return "writing"
-        }
+        return focus.rawValue
     }
 
     private func decisionTint(_ decision: AbilityRosterDecision) -> Color? {

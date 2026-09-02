@@ -101,11 +101,7 @@ package enum PerceptionReport {
     // MARK: - Atoms
 
     private static func token(_ focus: WorkspaceFocus?) -> String {
-        switch focus {
-        case .coding: return "coding"
-        case .writing: return "writing"
-        case nil: return "none"
-        }
+        focus?.rawValue ?? "none"
     }
 
     private static func age(of date: Date?, at now: Date) -> String {

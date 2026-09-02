@@ -48,11 +48,19 @@ extension PerceptionSnapshotViewModel {
     /// Same inputs as runtime `resolveFocus()`. Contribution results, never running checks.
     nonisolated static func leadPlace(_ inputs: Inputs) -> AmbientPlace? {
         let contributing = inputs.contributing
+        // REGISTRY ORDER over whatever disciplines are actually contributing —
+        // the pane mirrors runtime arbitration, so it asks the same question of
+        // the same graph rather than naming two crafts.
+        let ranked = AmbientCapabilityIndexProvider.current.disciplines
+            .map(WorkspaceFocus.init)
+        let liveDisciplines = contributing.compactMap { $0.world.place.focus }
+        let ordered = ranked.filter(liveDisciplines.contains)
+            + liveDisciplines.filter { !ranked.contains($0) }
         let discipline = WorkspaceFocusArbiter.lead(
             focus: inputs.effective,
-            hasCoding: contributing.contains { $0.world.place.focus == .coding },
-            hasWriting: contributing.contains { $0.world.place.focus == .writing },
-            writingInPlay: inputs.writingInPlay)
+            live: ordered,
+            inPlay: inputs.writingInPlay
+                ? nil : Set(ordered.filter { $0 != .writing }))
         guard let discipline else { return nil }
         // Named place outranks a signal. Pane has no utterance: writing place, then discipline contributor.
         if discipline == .writing, let writing = inputs.writingPlace,

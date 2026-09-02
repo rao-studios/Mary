@@ -8,6 +8,8 @@
 //
 
 import Foundation
+@testable import MaryAmbient
+@testable import MaryFoundation
 
 /// Bounds-guarded index into a stub snapshot: nil instead of a trap when the
 /// timing-determined array is short. Pair it with `try #require` (the house
@@ -105,6 +107,53 @@ final class ArrivalSignal: @unchecked Sendable {
             waiters.removeAll { $0 === waiter }
             lock.unlock()
             if !alreadyResolved, let continuation { continuation.resume() }
+        }
+    }
+}
+
+/// A capability graph that answers only the question `AmbientPlace.focus`
+/// asks: WHICH ABILITIES ARE DISCIPLINES.
+///
+/// The discipline axis is open now — it is whatever installed packages declare
+/// `paradigm: .discipline` — so a place cannot tell a craft from an expertise
+/// without a graph in view. Tests that assert on a place's discipline must
+/// therefore state which crafts exist, the same way they already state which
+/// applications are registered.
+struct DisciplineGraph: AbilityCapabilityIndex {
+    var disciplineIDs: [AbilityID]
+
+    init(_ disciplineIDs: [AbilityID]) { self.disciplineIDs = disciplineIDs }
+
+    /// Derived from real packages, so the fixture tracks what actually ships
+    /// rather than a remembered copy of it.
+    init(declaredBy packages: [MaryAbilityPackage]) {
+        disciplineIDs = packages
+            .filter { $0.paradigm == .discipline }
+            .map(\.ability.id)
+            .sorted { $0.rawValue < $1.rawValue }
+    }
+
+    let revision = UUID()
+    func requestedAbilities(in _: String) -> Set<AbilityID> { [] }
+    var disciplines: [AbilityID] { disciplineIDs }
+}
+
+/// SCOPE A WHOLE WORLD: the applications that are registered AND the graph
+/// that says which of their Abilities are crafts.
+///
+/// These two always travel together now. A roster alone leaves every place
+/// discipline-less, because `AmbientPlace.focus` can no longer read a craft
+/// off a frozen enum — it asks the installed graph. Tests that state one
+/// without the other pass or fail on whichever suite last installed a global
+/// provider, which is exactly the flake this replaces.
+func withScopedWorld<T>(
+    roster: any AmbientApplicationIndex,
+    disciplines: [AbilityID] = [.coding, .writing],
+    _ body: () async throws -> T
+) async rethrows -> T {
+    try await AmbientCapabilityIndexProvider.$scoped.withValue(DisciplineGraph(disciplines)) {
+        try await AmbientApplicationIndexProvider.$scoped.withValue(roster) {
+            try await body()
         }
     }
 }

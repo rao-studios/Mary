@@ -20,7 +20,7 @@ extension MaryBrain {
     ]
 
     func logTurnEntry(userText: String) {
-        let cue = FocusOverride.classifyOverride(utterance: userText)?.rawValue ?? "none"
+        let cue = AmbientRanker.namedDiscipline(in: userText)?.rawValue ?? "none"
         let selection: String
         if let handoff = AmbientSelectionTurnContext.snapshot?.handoff {
             let subject = handoff.subject.map { " file=\($0)" } ?? ""

@@ -90,6 +90,65 @@ import Testing
     }
 
     /// Bare utterance — no world, no history. The floor case.
+    // MARK: - The discipline axis, measured
+
+    /// WHAT THE DELETED WORD LIST USED TO ANSWER, asked of the real model and
+    /// the shipped corpus instead. `FocusOverride` carried fifty hand-picked
+    /// cues ("readme", "docstring", "manuscript", "proofread"); these are the
+    /// sentences it existed to get right, and they are now a measurement
+    /// rather than an enumeration.
+    ///
+    /// A MISS HERE IS A CORPUS RESULT, not a reason to reinstate a list: the
+    /// repair is exemplars on `coding.mary` / `writing.mary`, or a threshold
+    /// moved on the strength of this run.
+    @Test func disciplineCuesResolveThroughTheShippedCorpus() throws {
+        guard let environment = try Self.environment() else { return }
+        let registry = environment.snapshot
+
+        let coding: [String] = [
+            "refactor this function",
+            "why does the build fail",
+            "add a breakpoint here",
+            "proofread my README",
+        ]
+        let writing: [String] = [
+            "tighten this paragraph",
+            "how does this chapter read",
+            "rewrite the synopsis",
+            "proofread this scene",
+        ]
+        var report: [String] = []
+        for utterance in coding {
+            let verdict = registry.discipline(in: utterance)
+            report.append("coding  [\(utterance)] -> \(verdict?.rawValue ?? "none")")
+        }
+        for utterance in writing {
+            let verdict = registry.discipline(in: utterance)
+            report.append("writing [\(utterance)] -> \(verdict?.rawValue ?? "none")")
+        }
+        // MEASURED, THEN PRINTED. The suite's contract is that it reports what
+        // the model actually does; the assertion below is the floor that
+        // matters — a cue must never resolve to the WRONG craft, which is the
+        // failure that silently routes a manuscript turn into Xcode.
+        print(report.joined(separator: "\n"))
+        for utterance in coding {
+            #expect(registry.discipline(in: utterance) != .writing, "[\(utterance)]")
+        }
+        for utterance in writing {
+            #expect(registry.discipline(in: utterance) != .coding, "[\(utterance)]")
+        }
+    }
+
+    /// THE DISCIPLINES ARE WHATEVER SHIPPED. Pins the roster against the real
+    /// packages so a paradigm typo in a `.mary` shows up as a missing craft.
+    @Test func theShippedGraphDeclaresItsDisciplines() throws {
+        guard let environment = try Self.environment() else { return }
+        let disciplines = environment.snapshot.disciplines
+        #expect(disciplines.contains(.coding))
+        #expect(disciplines.contains(.writing))
+        #expect(!disciplines.contains(AbilityID("xcode")), "an editor is expertise")
+    }
+
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
         let store = RoutingExemplarStore(persist: false)
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)

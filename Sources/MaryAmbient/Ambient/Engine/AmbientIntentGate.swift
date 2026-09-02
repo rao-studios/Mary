@@ -178,11 +178,12 @@ public struct AmbientIntentGate: Sendable, Equatable {
                 expandDisciplineUsage: expandDisciplineUsage && lanes.contains(.ability)))
     }
 
-    /// When the index has no paradigm, the craft axis is the honest fallback:
-    /// coding and writing are disciplines; anything else is expertise until
-    /// a package says otherwise.
+    /// When the index has no paradigm for this Ability, ask it which Abilities
+    /// are disciplines at all. Expertise is the honest default: a package Mary
+    /// does not know cannot be assumed to be a craft.
     private static func inferredParadigm(_ id: AbilityID) -> AbilityParadigm {
-        WorkspaceFocus.abilityOrder.contains(id) ? .discipline : .applicationExpertise
+        AmbientCapabilityIndexProvider.current.disciplines.contains(id)
+            ? .discipline : .applicationExpertise
     }
 
     private static func questionForms(in utterance: String) -> Set<AmbientQuestion> {

@@ -36,7 +36,7 @@ public struct AmbientVerdicts: Sendable, Equatable {
     public var isDeictic: Bool
     /// `AmbientRanker.namesTransform`.
     public var namesTransform: Bool
-    /// `FocusOverride.classifyOverride`.
+    /// `AmbientRanker.namedDiscipline`.
     public var focusOverride: WorkspaceFocus?
     /// A bare yes/no, when the utterance is one.
     public var bareDecision: Bool?

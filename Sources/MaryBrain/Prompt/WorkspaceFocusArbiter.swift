@@ -82,22 +82,33 @@ public enum WorkspaceFocusArbiter {
 
     // MARK: - Which discipline leads
 
-    /// Which side leads.
+    /// WHICH DISCIPLINE LEADS. Open over however many are installed: the
+    /// asked-for one when it is actually live, else the first live discipline
+    /// still in play.
+    ///
+    /// - Parameters:
+    ///   - focus: the discipline the turn asked for, if any.
+    ///   - live: the disciplines with a live contribution, IN REGISTRY
+    ///     PRECEDENCE ORDER — the caller owns that order because only it can
+    ///     ask the registry.
+    ///   - inPlay: the live disciplines whose signal is fresh enough to inherit
+    ///     the lead unasked. A discipline the user NAMED leads whether or not
+    ///     it is in this set; this gate only bounds the fallback, which is how
+    ///     a document left open last week stops quietly claiming the turn.
     public static func lead(
-        focus: WorkspaceFocus?, hasCoding: Bool, hasWriting: Bool,
-        writingInPlay: Bool = true,
+        focus: WorkspaceFocus?,
+        live: [WorkspaceFocus],
+        inPlay: Set<WorkspaceFocus>? = nil,
         strictFocus: Bool = false
     ) -> WorkspaceFocus? {
-        switch focus {
-        case .writing:
-            return hasWriting ? .writing : (strictFocus ? nil : (hasCoding ? .coding : nil))
-        case .coding:
-            if hasCoding { return .coding }
-            return !strictFocus && hasWriting && writingInPlay ? .writing : nil
-        case nil:
-            if hasCoding { return .coding }
-            return (hasWriting && writingInPlay) ? .writing : nil
-        }
+        // ASKED FOR AND PRESENT — it leads, stale or not. Naming it is the
+        // freshest signal there is.
+        if let focus, live.contains(focus) { return focus }
+        // ASKED FOR AND ABSENT — strict mode would rather lead nothing than
+        // hand the turn to a craft the user did not name.
+        if strictFocus { return nil }
+        let fresh = inPlay ?? Set(live)
+        return live.first { fresh.contains($0) }
     }
 
     // MARK: - Which place leads
@@ -187,11 +198,18 @@ public enum WorkspaceFocusArbiter {
                 liveWorld: .application(suppressingName))
         }
 
-        let hasCoding = live.contains { $0.discipline == .coding }
-        let hasWriting = live.contains { $0.discipline == .writing }
+        // REGISTRY ORDER, then whatever else is live: a discipline the graph
+        // does not rank still gets to lead rather than being dropped.
+        let ranked = AmbientCapabilityIndexProvider.current.disciplines
+            .map(WorkspaceFocus.init)
+        let liveDisciplines = live.compactMap(\.discipline)
+        let ordered = ranked.filter(liveDisciplines.contains)
+            + liveDisciplines.filter { !ranked.contains($0) }
         let leadDiscipline = lead(
-            focus: focus, hasCoding: hasCoding, hasWriting: hasWriting,
-            writingInPlay: writingInPlay, strictFocus: strictFocus)
+            focus: focus,
+            live: ordered,
+            inPlay: writingInPlay ? nil : Set(ordered.filter { $0 != .writing }),
+            strictFocus: strictFocus)
 
         guard let owner = leadPlace(among: live, discipline: leadDiscipline) else {
             // NOTHING LEADS. Every live place still gets its line; what nobody

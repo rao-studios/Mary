@@ -51,9 +51,10 @@ extension AmbientRanker {
     }
 
     /// WHICH DISCIPLINE an utterance names, when it names one by cue rather than by
-    /// application.
+    /// application. Asked of the installed graph — every discipline package's
+    /// own authored triggers — rather than of a list of domain words.
     public static func namedDiscipline(in utterance: String) -> WorkspaceFocus? {
-        FocusOverride.classifyOverride(utterance: utterance)
+        AmbientCapabilityIndexProvider.current.discipline(in: utterance)
     }
 
     /// Which PLACES an utterance names — `namedWorlds(in:)` as places, unioned with every
