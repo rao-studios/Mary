@@ -53,7 +53,7 @@
     "skills" : [
       "chrome.new-tab"
     ],
-    "summary" : "Teaches Mary Chrome. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
+    "summary" : "Google Chrome: web pages, tabs, articles and site content in the browser.",
     "tint" : "#1A73E8",
     "title" : "Chrome",
     "totemProjections" : [
@@ -64,7 +64,12 @@
 
       ],
       "intentExemplars" : {
-
+        "ask" : [
+          "what does the article on this tab argue"
+        ],
+        "perceive" : [
+          "summarise the page I am browsing"
+        ]
       },
       "negativeTokens" : [
 
@@ -124,7 +129,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "7959ada04c0e65d9dbfbb189763f5d227918b3f31aeff43f6ef3b7b91165a51e"
+    "digest" : "bec2e88cda21b946288992eac083dd2da96fcecb9a47fe2fb296f2af376925b1"
   },
   "interactions" : [
 

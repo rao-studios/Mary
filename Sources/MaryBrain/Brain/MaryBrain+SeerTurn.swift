@@ -120,11 +120,16 @@ extension MaryBrain {
         var lookUnderway = false
         var lookServed = false
         var readServed = false
-        // ASKED ONCE for the turn — the same question decides the pre-look here
-        // and the inspired-sight line below.
-        let asksLook = LookClassifier.lookQuery(in: userText) != nil
+        // THE ROUTE'S OWN ANSWER, asked once for the turn — it decides the
+        // pre-look here and the inspired-sight line below.
+        //
+        // This used to OR in a second opinion from `LookClassifier`, which
+        // asked its own question of the same words with its own eighteen
+        // question-openers and thirteen sight-words. The route already
+        // classifies perception from every package's authored `perceive`
+        // exemplars; a parallel word list could only disagree with it.
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
-           routeIntent == .perceive || asksLook {
+           routeIntent == .perceive {
             let sight = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
                 await dispatcher.fetchDeclaredEditorSight(query: userText)
             }
@@ -162,7 +167,7 @@ extension MaryBrain {
         let messages = spokenMessages()
         // The route is in hand; there is nothing to fetch back out of the store.
         let inspiredSight = route.inspiresSight
-            && (routeIntent == .perceive || asksLook)
+            && routeIntent == .perceive
         let instructions = seerInstructionsProvider(SeerPass(
             readPassages: readPassages,
             // THE ROUTER'S OWN VERDICT, carried rather than re-derived.

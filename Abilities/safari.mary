@@ -53,7 +53,7 @@
     "skills" : [
       "safari.new-tab"
     ],
-    "summary" : "Teaches Mary Safari. Screen-acting uses the shared Affordance and Looking faculties; pointer recipes are authorable.",
+    "summary" : "Safari: web pages, tabs, articles and site content in Apple's browser.",
     "tint" : "#1A73E8",
     "title" : "Safari",
     "totemProjections" : [
@@ -64,7 +64,12 @@
 
       ],
       "intentExemplars" : {
-
+        "ask" : [
+          "what is the reader view showing"
+        ],
+        "perceive" : [
+          "summarise this web article for me"
+        ]
       },
       "negativeTokens" : [
 
@@ -124,7 +129,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8ba7d7837ae2d862eae37a5ac688c52cfff4c2784cebc6d30f0a53ee38cfc8bf"
+    "digest" : "a6258c839dd619b18cace0c4187f45fce3664f784f1e9623ec65a150475ee2d3"
   },
   "interactions" : [
 

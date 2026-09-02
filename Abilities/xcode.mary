@@ -59,7 +59,7 @@
     "skills" : [
 
     ],
-    "summary" : "One macOS code editor, described rather than compiled in.",
+    "summary" : "Xcode: the IDE where Swift projects are built, run, debugged and edited.",
     "tint" : "#7EA6E0",
     "title" : "Xcode",
     "totemProjections" : [
@@ -70,7 +70,13 @@
 
       ],
       "intentExemplars" : {
-
+        "operate" : [
+          "build and run the current scheme"
+        ],
+        "perceive" : [
+          "show me the failing test output",
+          "what is the compiler complaining about"
+        ]
       },
       "negativeTokens" : [
 
@@ -114,7 +120,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "e9c953bb4890d7c782bfbba3ee754437a9bc7cbe4ec8059bd6cb02fd9c591204"
+    "digest" : "75291e80df422f0e86cebeefff4c7e5ca1d30fbebe624aaa7306351880eba7ec"
   },
   "interactions" : [
 

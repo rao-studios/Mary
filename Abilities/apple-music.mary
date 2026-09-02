@@ -56,7 +56,7 @@
     "skills" : [
 
     ],
-    "summary" : "One macOS music player, described rather than compiled in.",
+    "summary" : "Apple Music: the user's music library, playlists, tracks and playback.",
     "tint" : "#FA586A",
     "title" : "Apple Music",
     "totemProjections" : [
@@ -67,7 +67,11 @@
 
       ],
       "intentExemplars" : {
-
+        "operate" : [
+          "put something on in Apple Music",
+          "skip this track in the music app",
+          "turn the music down in iTunes"
+        ]
       },
       "negativeTokens" : [
 
@@ -111,7 +115,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "bade960f9e89ad5372d88322d6687e0443e0a24a746cb95ecb624398b2ad15d0"
+    "digest" : "0ed2b7940155ff40405c30bc34f5ba5144fe07a7b4bb6334b4212abc93c6dfbb"
   },
   "interactions" : [
 

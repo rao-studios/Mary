@@ -58,7 +58,7 @@
     "skills" : [
 
     ],
-    "summary" : "One macOS text editor, described rather than compiled in.",
+    "summary" : "TextEdit: quick plain-text and rich-text notes in a single untitled window.",
     "tint" : "#8ECAE6",
     "title" : "TextEdit",
     "totemProjections" : [
@@ -69,7 +69,12 @@
 
       ],
       "intentExemplars" : {
-
+        "compose" : [
+          "jot this down quickly as plain text"
+        ],
+        "perceive" : [
+          "is this note still unsaved"
+        ]
       },
       "negativeTokens" : [
 
@@ -112,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "273fc7f4727bedf16083af5a8a555bd29e47da57198257ec10e456cf98cbaf0c"
+    "digest" : "6617785434132a82033dd90b0356dc011605083be34214bc39c7e7d24bd22c4c"
   },
   "interactions" : [
 

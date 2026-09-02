@@ -57,7 +57,7 @@
     "skills" : [
 
     ],
-    "summary" : "One macOS text editor, described rather than compiled in.",
+    "summary" : "Apple Pages: page-layout documents with styles, sections, headings and templates.",
     "tint" : "#8ECAE6",
     "title" : "Pages",
     "totemProjections" : [
@@ -68,7 +68,12 @@
 
       ],
       "intentExemplars" : {
-
+        "compose" : [
+          "lay this out with headings and a title page"
+        ],
+        "perceive" : [
+          "what template and styles is this document using"
+        ]
       },
       "negativeTokens" : [
 
@@ -109,7 +114,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "86f5937f4189a919054c5f54889ff6501f4523285b5a878f2371da9f886612a4"
+    "digest" : "362d029124fbf691b2abbe381418b7eb5a52fc3b38bb374cf83061e741c63d58"
   },
   "interactions" : [
 

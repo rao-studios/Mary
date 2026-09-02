@@ -80,7 +80,15 @@
 
       ],
       "intentExemplars" : {
-
+        "compose" : [
+          "add this as a new scene under the current folder"
+        ],
+        "operate" : [
+          "split this document at the cursor"
+        ],
+        "perceive" : [
+          "which part of the binder am I in"
+        ]
       },
       "negativeTokens" : [
 
@@ -119,7 +127,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b3339c75e187886554c62a74f1865bf77f4434e5446e472f73704149cf70fa2c"
+    "digest" : "519255def42b03786d777d4eb94c74c5eabf1858f4c4e9c286c404c49b9943e2"
   },
   "interactions" : [
 

@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Does this utterance name a part of the document? Fetch-first switch.
-//  OUT:  pre-read before speaking lane. Sibling: LookClassifier (inverse bias)
+//  OUT:  pre-read before speaking lane
 //  PIN:  Skill results cannot reach the speaking lane — the live document channel must.
 //
 

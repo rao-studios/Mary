@@ -21,6 +21,10 @@ import Testing
 @testable import MaryBrain
 @testable import MaryFoundation
 
+private extension String {
+    func ifEmpty(_ fallback: String) -> String { isEmpty ? fallback : self }
+}
+
 @Suite struct EmbeddingCalibrationTests {
 
     private static var enabled: Bool {
@@ -90,6 +94,73 @@ import Testing
     }
 
     /// Bare utterance — no world, no history. The floor case.
+    // MARK: - Application expertise, measured
+
+    /// DOES NAMING AN APPLICATION RECALL ITS ABILITY?
+    ///
+    /// MEASURED FINDING, recorded here because it bounds what this seam can be
+    /// trusted for: recall over seven similar applications is OVER-INCLUSIVE at
+    /// the 0.62 floor. "Read me this browser tab" recalls Pages; "my manuscript
+    /// app" recalls Safari. Both survive with the expertise exemplars stripped
+    /// entirely, so they come from aliases and summaries, not from authored
+    /// sentences — this is the index being generous, not the corpus being wrong.
+    ///
+    /// A SECOND FINDING, from the run that produced this test: exemplars that
+    /// share a sentence FRAME across sibling packages ("read me the X", "what
+    /// is in my Y") make recall strictly broader, because the distinguishing
+    /// word is a small fraction of a short sentence vector. The shipped
+    /// exemplars were re-authored to distinct shapes on that measurement.
+    ///
+    /// Over-recall costs roster WIDTH, not a wrong act — the arbiter and
+    /// eligibility still gate every Skill — so this reports the full picture
+    /// and asserts only that the seam discriminates at all. Tightening it
+    /// wants a margin rule, not more corpus.
+    ///
+    /// Probes are PARAPHRASES, never the authored sentences — an exemplar
+    /// tuned to its own probe measures the probe.
+    @Test func namingAnApplicationRecallsItsExpertise() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+
+        // CATEGORY, NOT IDENTITY, is the bar that matters. Pages and TextEdit
+        // are genuinely alike, and recalling both for a note is imprecise
+        // rather than wrong. Recalling a BROWSER for a manuscript scopes the
+        // turn to an application from another world entirely — that is the
+        // failure worth asserting.
+        let category: [String: String] = [
+            "pages": "prose", "textedit": "prose", "scrivener": "prose",
+            "xcode": "code",
+            "chrome": "browser", "safari": "browser",
+            "apple-music": "music",
+        ]
+        let cases: [(String, String)] = [
+            ("why won't this compile in the IDE", "code"),
+            ("what is my manuscript app showing me", "prose"),
+            ("read me this browser tab", "browser"),
+            ("put a record on in the music app", "music"),
+            ("type this into my plain text editor", "prose"),
+        ]
+        var report: [String] = []
+        var wrong: [String] = []
+        for (utterance, expected) in cases {
+            let apps = snapshot.requestedAbilities(in: utterance)
+                .map(\.rawValue)
+                .filter { category[$0] != nil }
+            report.append(
+                "expertise [\(utterance)] -> \(apps.sorted().joined(separator: ",").ifEmpty("none"))")
+            let mistaken = apps.filter { category[$0] != expected }
+            if !mistaken.isEmpty {
+                wrong.append("[\(utterance)] wanted \(expected), also recalled \(mistaken.sorted())")
+            }
+            // THE SEAM MUST DISCRIMINATE. Recalling every category is the same
+            // as recalling nothing, and would mean the roster is never scoped.
+            let categories = Set(apps.compactMap { category[$0] })
+            #expect(categories.count < 4, "[\(utterance)] recalled every category")
+        }
+        print(report.joined(separator: "\n"))
+        print("expertise over-recall (known, roster width only): \(wrong)")
+    }
+
     // MARK: - Window verbs, measured
 
     /// WHAT THE DELETED WINDOW GATE USED TO DECIDE. Listing windows and
