@@ -94,6 +94,80 @@ private extension String {
     }
 
     /// Bare utterance — no world, no history. The floor case.
+    // MARK: - Warm remarks, measured
+
+    /// A KIND SENTENCE MUST NOT DISPATCH ANYTHING.
+    ///
+    /// THE BUG THIS EXISTS FOR: "You've done so much" dispatched
+    /// `stop_dictation`. The path was corpus, not code — `writing.mary` seeded
+    /// the stop-dictation fixture "That's it, we're done dictating.", which
+    /// teaches a VALEDICTORY SHAPE rather than an act. The warm remark scored
+    /// 0.67 against it, cleared the floor as the only skill in the field, and
+    /// a lone unique winner is enough to promote a fail-closed converse turn
+    /// to `operate` and reach the no-model dispatch.
+    ///
+    /// THE LESSON, AND IT GENERALISES: a phrase that is SAFE AS AN EXACT
+    /// WHOLE-UTTERANCE MATCH is not automatically safe as an EMBEDDING SEED.
+    /// The deterministic tier can hold "we are done" harmlessly — it matches
+    /// that string and nothing else. The same words in a corpus teach the
+    /// shape of every fond goodbye. Seed IMPERATIVES THAT NAME THE ACT
+    /// ("Stop taking this down."), never statements that the work is finished.
+    ///
+    /// The assertion is one-directional on purpose: these sentences must reach
+    /// no Skill. What Mary SAYS back is the model's business.
+    @Test func warmRemarksReachNoSkill() throws {
+        guard let environment = try Self.environment() else { return }
+        guard let skills = SemanticSkillRequestIndex.build(
+            records: environment.snapshot.records,
+            vectorizer: try #require(NLUtteranceVectorizer.shared))
+        else { return }
+
+        let remarks = [
+            "You've done so much",
+            "thank you for everything",
+            "that's really kind of you",
+            "we're all done here",
+            "that's it",
+            "you have done a lot",
+        ]
+        var report: [String] = []
+        var dispatchable: [String] = []
+        for remark in remarks {
+            let over = skills.affinities(in: remark)
+                .filter { $0.value >= EmbeddingRouting.floor }
+                .sorted { $0.value > $1.value }
+            report.append("warm [\(remark)] -> \(over.isEmpty ? "none" : over.map { "\($0.key.rawValue)=\(String(format: "%.2f", $0.value))" }.joined(separator: " "))")
+            // A lone winner needs no margin to be "unique", so ANY Skill over
+            // the floor here is one promotion away from acting.
+            if !over.isEmpty {
+                dispatchable.append("[\(remark)] -> \(over.map(\.key.rawValue))")
+            }
+        }
+        print(report.joined(separator: "\n"))
+        #expect(dispatchable.isEmpty, "a warm remark reached a Skill: \(dispatchable)")
+    }
+
+    /// The genuine act still routes — the fix must not have bought silence by
+    /// making stop-dictation unreachable.
+    @Test func theRealStopStillReachesItsSkill() throws {
+        guard let environment = try Self.environment() else { return }
+        guard let skills = SemanticSkillRequestIndex.build(
+            records: environment.snapshot.records,
+            vectorizer: try #require(NLUtteranceVectorizer.shared))
+        else { return }
+
+        for utterance in ["stop dictating", "stop writing this down"] {
+            let best = skills.affinities(in: utterance)
+                .sorted { $0.value > $1.value }
+                .first
+            print("stop [\(utterance)] -> \(best.map { "\($0.key.rawValue)=\(String(format: "%.2f", $0.value))" } ?? "none")")
+            #expect(
+                best?.key.rawValue == "writing.stop-dictation",
+                "[\(utterance)] should still name the stop Skill")
+            #expect((best?.value ?? 0) >= EmbeddingRouting.floor)
+        }
+    }
+
     // MARK: - Application expertise, measured
 
     /// DOES NAMING AN APPLICATION RECALL ITS ABILITY?

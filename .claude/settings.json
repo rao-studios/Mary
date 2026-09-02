@@ -5,7 +5,8 @@
       "Bash(python3 /private/tmp/claude-501/-Users-ritesh-Documents-rao-repositories-Mary/5586df29-14e0-4366-be34-25085f7330d3/scratchpad/edit_multimedia.py)",
       "Bash(swift build *)",
       "Bash(awk 'NR>=65 && /^    \\(private \\)?func |^    }$/ {print NR\": \"$0}' Sources/MaryBrain/Brain/MaryBrain+TurnLoop.swift)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(python3 -)"
     ]
   }
 }
