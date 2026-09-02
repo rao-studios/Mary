@@ -33,12 +33,15 @@ enum ProbeChat {
         let arguments = CommandLine.arguments
         guard let flagIndex = arguments.firstIndex(of: "--probe-chat"),
               flagIndex + 1 < arguments.count else {
-            print("Usage: Mary --probe-chat <text> [--engine tinker|mistral|mistral-api] [--speak] [--tts kokoro|mistral]")
+            print("Usage: Mary --probe-chat <text> [--engine mistral] [--speak] [--tts kokoro|mistral]")
             return 1
         }
         let text = arguments[flagIndex + 1]
         let speak = arguments.contains("--speak")
-        var engineName = "mistral-api"
+        // DEFAULT TO AN ENGINE THIS SWITCH ACTUALLY HAS. It read
+        // "mistral-api", which no case matched, so a bare `--probe-chat`
+        // always exited 1 on the usage line below.
+        var engineName = "mistral"
         if let engineIndex = arguments.firstIndex(of: "--engine"), engineIndex + 1 < arguments.count {
             engineName = arguments[engineIndex + 1]
         }
@@ -63,7 +66,7 @@ enum ProbeChat {
         switch engineName {
         case "mistral": engine = MaryLocalEngine(modelID: modelID ?? MaryLocalEngine.defaultModelID)
         default:
-            print("Unknown engine '\(engineName)' — use tinker, mistral, or mistral-api.")
+            print("Unknown engine '\(engineName)' — use mistral (on-device MLX).")
             return 1
         }
 

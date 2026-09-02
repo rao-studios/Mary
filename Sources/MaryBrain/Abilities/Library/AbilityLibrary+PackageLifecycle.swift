@@ -271,26 +271,27 @@ extension AbilityLibrary {
             plugins: plugins,
             // Built here — at reload, off the turn path — so the embedding
             // model load and corpus vectorization never cost a turn a
-            // millisecond. No OS embedding asset means nil, exact-only.
-            semanticIndex: NLUtteranceVectorizer.shared.flatMap {
+            // millisecond. THE ENGINE IS `MaryEmbeddings`' CHOICE, not this
+            // file's: no vectorizer at all still means nil, exact-only.
+            semanticIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticAbilityRequestIndex.build(
                     records: discovery.records, vectorizer: $0)
             },
             // The Skill tier is built in the same breath and for the same
             // reason: one model load, two corpora, both off the turn path.
-            semanticSkillIndex: NLUtteranceVectorizer.shared.flatMap {
+            semanticSkillIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticSkillRequestIndex.build(
                     records: discovery.records, vectorizer: $0)
             },
             // The intent tier reads every installed package's own
             // `intentExemplars` — a third corpus, same one model load.
-            semanticIntentIndex: NLUtteranceVectorizer.shared.flatMap {
+            semanticIntentIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticIntentIndex.build(
                     records: discovery.records, vectorizer: $0)
             },
             // The fourth corpus: named seed families, the shapes of speech
             // that are neither an intent nor a Skill. Same one model load.
-            semanticSeedFamilyIndex: NLUtteranceVectorizer.shared.flatMap {
+            semanticSeedFamilyIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticSeedFamilyIndex.build(
                     records: discovery.records, vectorizer: $0)
             })

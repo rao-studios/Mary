@@ -43,22 +43,41 @@ import Testing
             query: "q", skillID: "window-management.list-app-windows",
             intent: AmbientIntent.perceive.rawValue, ok: true))
 
-        #expect(id.split(separator: "|").count == 4, "id: \(id)")
-        #expect(id.hasPrefix("mary.exemplar|"))
+        #expect(id.hasPrefix("mary-routing-"), "id: \(id)")
+        #expect(id.dropFirst("mary-routing-".count).split(separator: "|").count == 3, "id: \(id)")
     }
 
     /// A TOTEM HOLDS MORE THAN ROUTING MEMORY. Anything that is not one of
     /// ours must be ignored rather than half-parsed into a lesson.
     @Test(arguments: [
-        "behavior/episode/1234",
-        "mary.exemplar|operate",
-        "mary.exemplar|operate|skill|not-a-number",
-        "somethingelse|operate|skill|1700000000",
+        "mary-behavior-1234",
+        "mary-routing-operate",
+        "mary-routing-operate|skill|not-a-number",
+        "somethingelse-operate|skill|1700000000",
         "",
     ])
     func aForeignDocumentTeachesNothing(_ documentID: String) {
         #expect(TotemContextStore.ExemplarAddress.exemplar(
             documentID: documentID, text: "some text") == nil)
+    }
+
+    /// THE PANE HAS TO RECOGNISE THEM. `TotemAddressClassifier` reads families
+    /// from prefixes alone, so an address off the house pattern lands in
+    /// "Unrecognized" however well-formed it is — which is exactly where these
+    /// went before the prefix was fixed.
+    @Test func routingAddressesClassifyOntoThePersonalLane() {
+        let group = TotemAddressClassifier.classifyGroup(
+            id: TotemContextStore.exemplarGroup(ownerID: "owner-a").id)
+        #expect(group.family == .routingGroup)
+        #expect(group.lane == .personal)
+        #expect(!group.isSeerOwned)
+
+        let document = TotemAddressClassifier.classifyDocument(
+            id: TotemContextStore.ExemplarAddress.documentID(for: RoutingExemplar(
+                query: "q", skillID: "multimedia.play-playlist",
+                intent: AmbientIntent.operate.rawValue, ok: true)))
+        #expect(document.family == .routingExemplar)
+        #expect(document.lane == .personal)
     }
 
     /// The group is per-owner, so two people on one machine never read each
@@ -68,6 +87,6 @@ import Testing
         let theirs = TotemContextStore.exemplarGroup(ownerID: "owner-b")
 
         #expect(mine.id != theirs.id)
-        #expect(mine.id.hasPrefix("owner-a/"))
+        #expect(mine.id == "mary-routing-owner-a")
     }
 }

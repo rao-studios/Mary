@@ -56,6 +56,15 @@ public enum RoutingExemplarMemoryProvider {
         provider = resolve
     }
 
+    /// Whether anything is installed at all. A turn with no backend must not
+    /// pay a scheduling hop to be told there is nothing to recall.
+    public static var isInstalled: Bool {
+        if scoped != nil { return true }
+        lock.lock()
+        defer { lock.unlock() }
+        return provider != nil
+    }
+
     public static var current: any RoutingExemplarMemory {
         if let scoped { return scoped }
         lock.lock()

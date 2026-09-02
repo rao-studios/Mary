@@ -30,7 +30,7 @@ enum ProbeSeer {
         let arguments = CommandLine.arguments
         guard let flagIndex = arguments.firstIndex(of: "--probe-seer"),
               flagIndex + 1 < arguments.count else {
-            print("Usage: Mary --probe-seer <text> [--engine tinker|mistral|mistral-api] [--transport classic|realtime] [--speak]")
+            print("Usage: Mary --probe-seer <text> [--engine mistral] [--transport classic|realtime] [--speak]")
             return 1
         }
         let text = arguments[flagIndex + 1]

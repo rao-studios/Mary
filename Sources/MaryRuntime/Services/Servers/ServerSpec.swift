@@ -138,6 +138,8 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         package static let totemPort = 8081
         package static let totemGRPCPort = 9090
         package static let totemGraphBackend = "mistral"
+        /// Vendor model behind Seer's `/v1/embed`.
+        package static let seerEmbeddingModel = "mistral-embed"
         package static let fleetCheckoutPath = "~/Documents/rao/repositories/Fleet"
         package static let fleetPort = 8083
         package static let fleetGRPCPort = 9093

@@ -18,16 +18,19 @@ import Foundation
 
 extension TotemContextStore {
 
-    /// `mary.exemplar|<intent>|<skillID>|<epochSeconds>`
+    /// `mary-routing-<intent>|<skillID>|<epochSeconds>`
     ///
-    /// Pipe-separated because Skill ids are dotted and group ids are slashed;
-    /// a pipe appears in neither, so parsing back is unambiguous.
+    /// THE PREFIX IS THE HOUSE CONVENTION and it is load-bearing:
+    /// `TotemAddressClassifier` reads families from prefixes alone, so an
+    /// address that does not start `mary-<family>-` shows up in the Totems
+    /// pane as "Unrecognized" no matter what it holds.
+    /// The payload is pipe-separated because Skill ids are dotted and
+    /// hyphenated; a pipe appears in neither, so parsing back is unambiguous.
     enum ExemplarAddress {
-        static let prefix = "mary.exemplar"
+        static let prefix = "mary-routing-"
 
         static func documentID(for exemplar: RoutingExemplar) -> String {
-            [
-                prefix,
+            prefix + [
                 exemplar.intent,
                 exemplar.skillID,
                 String(Int(exemplar.storedAt.timeIntervalSince1970)),
@@ -37,23 +40,26 @@ extension TotemContextStore {
         /// The lesson a recalled document teaches, or nil when the id is not
         /// one of ours (a totem holds more than routing memory).
         static func exemplar(documentID: String, text: String) -> RoutingExemplar? {
-            let parts = documentID.split(separator: "|", omittingEmptySubsequences: false)
-            guard parts.count == 4, parts[0] == prefix,
-                  let seconds = TimeInterval(parts[3])
+            guard documentID.hasPrefix(prefix) else { return nil }
+            let parts = documentID.dropFirst(prefix.count)
+                .split(separator: "|", omittingEmptySubsequences: false)
+            guard parts.count == 3, let seconds = TimeInterval(parts[2])
             else { return nil }
             return RoutingExemplar(
                 query: text,
-                skillID: String(parts[2]),
-                intent: String(parts[1]),
+                skillID: String(parts[1]),
+                intent: String(parts[0]),
                 // Only successes are ever taught — see the dispatch chokepoint.
                 ok: true,
                 storedAt: Date(timeIntervalSince1970: seconds))
         }
     }
 
-    /// The group routing memory lives in, per owner.
+    /// The group routing memory lives in, per owner — `mary-routing-<owner>`,
+    /// the same shape as `mary-style-<owner>` and the interaction group, so the
+    /// Totems pane files it under the Personal lane rather than Unrecognized.
     static func exemplarGroup(ownerID: String) -> (id: String, label: String) {
-        ("\(ownerID)/mary-routing", "Mary · how you ask")
+        ("mary-routing-\(ownerID)", "Mary · how you ask")
     }
 
     package func rememberRoutingExemplar(_ exemplar: RoutingExemplar) async {
@@ -123,45 +129,3 @@ struct TotemRoutingExemplarMemory: RoutingExemplarMemory {
     }
 }
 
-extension TotemContextStore {
-
-    /// The file previous builds kept routing lessons in.
-    static var legacyExemplarFile: URL {
-        let support = FileManager.default.urls(
-            for: .applicationSupportDirectory, in: .userDomainMask).first
-            ?? URL(fileURLWithPath: NSHomeDirectory())
-                .appendingPathComponent("Library/Application Support")
-        return support
-            .appendingPathComponent("Mary", isDirectory: true)
-            .appendingPathComponent("routing-exemplars.json")
-    }
-
-    /// ONE-SHOT: carry the local file's lessons into personal memory, then
-    /// remove it.
-    ///
-    /// MIGRATED, NOT DELETED. The legacy behaviour directory could simply be
-    /// removed because Totem already held everything in it; this file is the
-    /// only copy of how a particular person has been asking for things, and
-    /// dropping it would silently reset their routing to a fresh install.
-    ///
-    /// The file survives a failed migration on purpose — if the totem is
-    /// unreachable the next launch tries again, and nothing is lost in the
-    /// meantime.
-    package func migrateLegacyRoutingExemplars() async {
-        let file = Self.legacyExemplarFile
-        guard let data = try? Data(contentsOf: file),
-              let rows = try? JSONDecoder().decode([RoutingExemplar].self, from: data)
-        else { return }
-        guard await session.userID != nil else { return }
-
-        let cutoff = Date().addingTimeInterval(-RoutingExemplarStore.horizon)
-        let live = rows.filter { $0.storedAt >= cutoff && $0.ok }
-        for row in live {
-            await rememberRoutingExemplar(row)
-        }
-        // Only once every lesson has been offered to memory.
-        try? FileManager.default.removeItem(at: file)
-        let line = "migrated \(live.count) routing exemplar(s) into personal memory"
-        BehavioralAssembler.behavioralLog.info("\(line, privacy: .public)")
-    }
-}

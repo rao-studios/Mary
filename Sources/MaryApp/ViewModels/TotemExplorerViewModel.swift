@@ -645,6 +645,7 @@ final class TotemExplorerViewModel: ObservableObject {
         case .scopeGroup: return "Scope"
         case .behaviorInteraction: return "Interactions"
         case .styleGroup: return "Style"
+        case .routingGroup: return "Routing"
         case .seerMemory: return "Memory"
         case .seerResonance: return "Resonance"
         case .abilityDocument: return "Ability document"
@@ -658,6 +659,7 @@ final class TotemExplorerViewModel: ObservableObject {
         case .styleProfile: return "Style profile"
         case .behaviorEpisode: return "Behavioral codec"
         case .behaviorInteractionDocument: return "Interaction"
+        case .routingExemplar: return "Routing lesson"
         case .unknown: return "Unknown"
         }
     }

@@ -109,6 +109,13 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerEmbedding.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
+            model: ServerSpec.Defaults.seerEmbeddingModel)
+        // The manager decides whether this tier is ever used — it prefers the
+        // on-device model wherever one exists.
+        MaryEmbeddings.installSeerBackend(
+            seerEmbedding, model: ServerSpec.Defaults.seerEmbeddingModel)
     }
 
     /// Route Seer turns SSE or realtime WS. Classic client stays wired (fallback).

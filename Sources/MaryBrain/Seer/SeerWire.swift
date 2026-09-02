@@ -215,6 +215,25 @@ enum SeerWire {
 
     // MARK: - Complete
 
+    /// Mirrors Seer's `EmbedVectorsRequest` (Sources/API/Routes/EmbedVectors.swift).
+    /// `/v1/embed` RETURNS vectors; `/v1/embeddings` stores documents and
+    /// answers `{success}` — they are different routes on purpose.
+    struct EmbedRequest: Encodable {
+        var inputs: [String]
+        var model: String?
+    }
+
+    struct EmbedResponse: Decodable {
+        var model: String
+        var dimensions: Int
+        var data: [EmbedVector]
+
+        struct EmbedVector: Decodable {
+            var index: Int
+            var embedding: [Float]
+        }
+    }
+
     /// Mirrors Seer's `CompleteRequest` (Sources/API/Routes/Complete.swift):
     /// one bounded generation, no `seer` scope, no streaming.
     struct CompleteRequest: Encodable {

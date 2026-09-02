@@ -127,11 +127,25 @@ extension MaryBrain {
         // the round trip has to happen at an await that already exists, under
         // a budget, before anything scores. A recall that misses its budget
         // leaves the turn routing on its authored corpus alone.
+        // AND THIS TURN'S VECTOR IS WARMED HERE, for the same reason: every
+        // scorer below is synchronous, so a vector that needs an await must
+        // already exist when they run. Under Apple's model this also collapses
+        // the four separate vectorizations of the same sentence a turn used to
+        // pay for; under Seer's it is the only way the tier works at all.
         RoutingExemplarStore.shared.clearRecall()
+        // NOTHING TO DO IS NOT WORK. With no vectorizer and no memory backend
+        // there is nothing to warm and nothing to recall, and wrapping that in
+        // a budget still costs a scheduling hop on every turn — enough to
+        // reorder a routine racing a history trim.
+        let warmsThisTurn = MaryEmbeddings.engine() != nil
+        let recallsThisTurn = RoutingExemplarMemoryProvider.isInstalled
         if let prepare = turnContextPreparer {
             _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
-                async let recalled: Void = RoutingExemplarStore.shared.recall(near: userText)
+                async let warmed: Void = MaryEmbeddings.warm(userText)
+                async let recalled: Void = recallsThisTurn
+                    ? RoutingExemplarStore.shared.recall(near: userText) : ()
                 await prepare()
+                await warmed
                 await recalled
                 return Optional(())
             }
@@ -140,9 +154,13 @@ extension MaryBrain {
                 continuation.finish()
                 return
             }
-        } else {
+        } else if warmsThisTurn || recallsThisTurn {
             _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
-                await RoutingExemplarStore.shared.recall(near: userText)
+                async let warmed: Void = MaryEmbeddings.warm(userText)
+                if recallsThisTurn {
+                    await RoutingExemplarStore.shared.recall(near: userText)
+                }
+                await warmed
                 return Optional(())
             }
         }

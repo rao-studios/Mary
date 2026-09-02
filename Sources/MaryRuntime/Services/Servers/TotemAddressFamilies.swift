@@ -22,6 +22,8 @@ package enum TotemAddressFamily: String, CaseIterable {
     case behaviorInteraction
     /// `mary-style-<owner>` — `TotemMemoryTopology.styleGroup`.
     case styleGroup
+    /// `mary-routing-<owner>` — `TotemContextStore.exemplarGroup`.
+    case routingGroup
     /// `memory-<owner>` — written by the Seer server, never by Mary.
     case seerMemory
     /// `resonance-<owner>` — written by the Seer server, never by Mary.
@@ -53,6 +55,9 @@ package enum TotemAddressFamily: String, CaseIterable {
     case behaviorInteractionDocument
     /// `mary-behavior-…` — sealed BehavioralEpisode on Ability Totem.
     case behaviorEpisode
+    /// `mary-routing-<intent>|<skill>|<epoch>` — one settled routing lesson.
+    /// The label rides in the id because a totem search returns no metadata.
+    case routingExemplar
 
     /// Unknown prefix — own bucket, not folded into a neighbour.
     case unknown
@@ -78,7 +83,8 @@ package struct TotemAddressClassification: Equatable {
             lane = .ability
         case .scopeGroup, .behaviorInteraction, .styleGroup, .projectSchema,
              .stateSnapshot, .skillRecord, .unitManifest, .unitCard,
-             .styleProfile, .behaviorInteractionDocument:
+             .styleProfile, .behaviorInteractionDocument,
+             .routingGroup, .routingExemplar:
             lane = .personal
         case .seerMemory, .seerResonance, .unknown:
             lane = nil
@@ -106,6 +112,7 @@ package enum TotemAddressClassifier {
             ("mary-ability-", .abilityGroup),
             ("mary-scope-", .scopeGroup),
             ("mary-style-", .styleGroup),
+            ("mary-routing-", .routingGroup),
             ("memory-", .seerMemory),
             ("resonance-", .seerResonance),
         ])
@@ -123,6 +130,7 @@ package enum TotemAddressClassifier {
             ("mary-unit-manifest-", .unitManifest),
             ("mary-unit-", .unitCard),
             ("mary-style-profile-", .styleProfile),
+            ("mary-routing-", .routingExemplar),
         ])
 
     private static func classify(

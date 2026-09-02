@@ -124,7 +124,7 @@ package enum MaryRuntime {
     ///      Nil vectorizer (no English embedding asset) is valid.
     private static let elementIndex: AmbientElementIndexStore = {
         let store = AmbientElementIndexStore.shared
-        if let vectorizer = NLAmbientTextVectorizer.shared {
+        if let vectorizer = MaryEmbeddings.vectorizer() {
             store.installVectorizer(vectorizer)
         }
         return store
@@ -182,6 +182,11 @@ package enum MaryRuntime {
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
         session: seerSession)
     static let seerCode = SeerCodeClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
+        session: seerSession)
+    /// Vectors, not generation — the tier under Apple's on-device model.
+    /// `MaryEmbeddings` decides whether anything asks it.
+    static let seerEmbedding = SeerEmbeddingClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
         session: seerSession)
     // No session: /v1/totems is open; Totems pane works before sign-in.

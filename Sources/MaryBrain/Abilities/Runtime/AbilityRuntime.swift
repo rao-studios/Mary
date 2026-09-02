@@ -1025,6 +1025,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         providerSelection.withLock { $0 = nil }
         // Embedding memo is this turn's utterance. See `semanticSkillAffinityCache`.
         semanticSkillAffinityCache.withLock { $0 = nil }
+        MaryEmbeddings.endTurn()
         // Surface referent for this turn — same lifetime as the other memos.
         surfaceReferent.withLock { $0 = .currentLiveSelection }
         // Demoted, not dropped — see `TurnOfferLedger`. Detached routines dispatch across this boundary.

@@ -85,9 +85,6 @@ extension MaryRuntime {
         // Routing lessons are personal memory. MaryBrain cannot name Totem
         // (it does not depend on MaryTotem), so the runtime hands it a backend.
         RoutingExemplarMemoryProvider.install { TotemRoutingExemplarMemory() }
-        // Carry any previous build's local lessons across, once. Off the
-        // launch path: a migration must not delay a first turn.
-        Task.detached { await MaryRuntime.totemContext.migrateLegacyRoutingExemplars() }
 
         // 2. Package graph.
         let load = AbilityLibrary.shared.configureAndLoad(
