@@ -34,7 +34,7 @@ struct LifeCalibrationSheet: View {
             .padding(.layer4)
         }
         .background(Paper.page)
-        .frame(width: 480, height: 620)
+        .marySheet(ideal: CGSize(width: 480, height: 620))
         .onAppear { viewModel.start() }
         .onDisappear { viewModel.stop() }
     }

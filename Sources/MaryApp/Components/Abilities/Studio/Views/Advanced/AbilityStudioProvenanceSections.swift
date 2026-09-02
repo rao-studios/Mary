@@ -263,10 +263,11 @@ struct AbilityStudioRecipeStepSection: View {
                 Text(current ?? "the next step")
                     .font(.maryMono(9.5))
                     .foregroundStyle(Color.maryInk.opacity(0.75))
+                    .lineLimit(1)
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
-            .fixedSize()
+            .frame(maxWidth: 200, alignment: .leading)
             Spacer(minLength: 0)
         }
     }

@@ -53,37 +53,37 @@ struct AbilityStudioSkillsPane: View {
                 .help("Say what this ability should be able to do; Seer drafts the blocks.")
             }
         } content: {
-            VStack(alignment: .leading, spacing: .layer3) {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical) {
-                        VStack(alignment: .leading, spacing: .layer4) {
-                            ForEach(bench.lanes) { lane in
-                                self.lane(lane)
-                            }
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    VStack(alignment: .leading, spacing: .layer4) {
+                        ForEach(bench.lanes) { lane in
+                            self.lane(lane)
                         }
-                        .padding(.bottom, 2)
-                    }
-                    .scrollIndicators(.never)
-                    // A recipe row can select a skill that lives in a collapsed
-                    // lane, off the bottom. Open the lane, then go to it.
-                    .onChange(of: model.selectedSkillID) { _, id in
-                        guard let id,
-                              let lane = bench.lanes.first(where: { $0.tiles.contains { $0.id == id } })
-                        else { return }
-                        collapsedLanes.remove(lane.abilityID)
-                        if lane.isCollapsedByDefault { expandedByDefault.insert(lane.abilityID) }
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            proxy.scrollTo(id, anchor: .center)
+                        // Inside the same scroll as the lanes: a tall detail
+                        // card scrolls with the bench instead of pushing the
+                        // pane past the window's bottom edge.
+                        if let selectedTile {
+                            AbilityStudioSkillDetail(
+                                model: model,
+                                tile: selectedTile,
+                                draft: package,
+                                onOpenOwner: openOwner)
                         }
                     }
+                    .padding(.bottom, 2)
                 }
-
-                if let selectedTile {
-                    AbilityStudioSkillDetail(
-                        model: model,
-                        tile: selectedTile,
-                        draft: package,
-                        onOpenOwner: openOwner)
+                .scrollIndicators(.never)
+                // A recipe row can select a skill that lives in a collapsed
+                // lane, off the bottom. Open the lane, then go to it.
+                .onChange(of: model.selectedSkillID) { _, id in
+                    guard let id,
+                          let lane = bench.lanes.first(where: { $0.tiles.contains { $0.id == id } })
+                    else { return }
+                    collapsedLanes.remove(lane.abilityID)
+                    if lane.isCollapsedByDefault { expandedByDefault.insert(lane.abilityID) }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
                 }
             }
         }

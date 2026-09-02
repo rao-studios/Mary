@@ -294,7 +294,7 @@ struct AbilityStudioSkillEditor: View {
             }
         }
         .padding(.layer4)
-        .frame(width: 300)
+        .maryPopover()
         .background(Paper.page)
     }
 

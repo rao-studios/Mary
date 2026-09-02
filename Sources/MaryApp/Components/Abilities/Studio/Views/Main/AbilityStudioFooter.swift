@@ -27,22 +27,33 @@ struct AbilityStudioFooter: View {
                 .foregroundStyle(errors == 0 ? Color.maryGreen : Color.maryError)
             Text(verdict(errors: errors))
                 .foregroundStyle(errors == 0 ? Color.maryGreen : Color.maryError)
+                .lineLimit(1)
+                .layoutPriority(1)
 
             if errors > 0 || advisories > 0 {
                 Button(action: onShowIssues) {
                     Text(counts(errors: errors, advisories: advisories))
                         .foregroundStyle(Color.maryInk.opacity(0.6))
                         .underline(errors > 0)
+                        .lineLimit(1)
                 }
                 .buttonStyle(.plain)
                 .help("Open Advanced to see them")
             }
 
             if model.isLocalDraft {
-                dot
-                Text("Saving creates a local override")
-                    .foregroundStyle(Color.maryInk.opacity(0.55))
-                    .help("The base package is immutable. Your copy lives in Application Support and shadows it.")
+                // Below the compact span this collapses to the dot alone —
+                // the sentence moves into `.help` rather than clipping.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: .layer2) {
+                        dot
+                        Text("Saving creates a local override")
+                            .foregroundStyle(Color.maryInk.opacity(0.55))
+                            .lineLimit(1)
+                    }
+                    dot
+                }
+                .help("The base package is immutable. Your copy lives in Application Support and shadows it.")
             }
 
             Spacer(minLength: .layer3)

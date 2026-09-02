@@ -162,7 +162,6 @@ struct AbilityStudioAdvancedDrawer: View {
             }
             .scrollIndicators(.never)
         }
-        .frame(width: 320)
         .background(Paper.page)
         .overlay(alignment: .leading) {
             Rectangle().fill(Color.maryBorder).frame(width: 1)

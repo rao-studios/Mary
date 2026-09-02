@@ -64,7 +64,7 @@ struct SettingsSheet: View {
             }
             .padding(.layer5)
         }
-        .frame(width: 480, height: 560)
+        .marySheet(ideal: CGSize(width: 480, height: 560))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
         .onAppear {

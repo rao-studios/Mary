@@ -48,16 +48,18 @@ struct MaryApp: App {
     var body: some Scene {
         WindowGroup {
             Home()
-                .frame(minWidth: 720, minHeight: 560)
+                .maryWindow(floor: Paper.Layout.homeFloor)
         }
+        .defaultSize(Paper.Layout.fittedDefaultSize(Paper.Layout.homeDefault))
         .windowResizability(.contentMinSize)
 
         // Ability Studio is its own window (authoring outlives a turn). Other debug surfaces are sheets.
         // One window: browsing and authoring are the same act, on one draft.
         Window("Ability Studio", id: "ability-studio") {
             AbilityStudioView()
+                .maryWindow(floor: Paper.Layout.studioFloor)
         }
-        .defaultSize(width: 1240, height: 800)
+        .defaultSize(Paper.Layout.fittedDefaultSize(Paper.Layout.studioDefault))
         .windowResizability(.contentMinSize)
     }
 }

@@ -3,7 +3,9 @@
 //  Mary
 //
 //  WHAT: Intrinsic-width wrap layout (subview width from content, not column).
-//  OUT:  AbilityBadgeRow / MaryChip. PIN: Not LazyVGrid adaptive (mid-word wraps).
+//  OUT:  AbilityBadgeRow / MaryChip. Part of the responsive-layout standard —
+//        see Paper+Layout.swift — for rows that must wrap rather than clip.
+//  PIN:  Not LazyVGrid adaptive (mid-word wraps).
 //
 
 import SwiftUI

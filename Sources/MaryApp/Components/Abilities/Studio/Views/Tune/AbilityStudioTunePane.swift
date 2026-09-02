@@ -18,6 +18,7 @@ import SwiftUI
 struct AbilityStudioTunePane: View {
     @ObservedObject var model: AbilityStudioViewModel
     let package: MaryAbilityPackage
+    @Environment(\.maryLayoutClass) private var layoutClass
 
     /// The intent keys shipped packages actually use.
     private static let intentKeys = ["operate", "perceive", "compose", "ask"]
@@ -31,12 +32,14 @@ struct AbilityStudioTunePane: View {
             EmptyView()
         } content: {
             // Tune grows with an ability's vocabulary; capping it keeps the
-            // bench on screen instead of pushing it off the bottom.
+            // bench on screen instead of pushing it off the bottom. The cap
+            // itself shrinks with the window so the bench keeps its share
+            // at the Studio's floor.
             ScrollView(.vertical) {
                 knobs.padding(.trailing, 2)
             }
             .scrollIndicators(.never)
-            .frame(maxHeight: 340)
+            .frame(maxHeight: Paper.Layout.tuneCap[layoutClass] ?? 280)
         }
         .sheet(isPresented: $showsRehearsal) {
             AbilityStudioRehearsalSheet(model: model, package: package)

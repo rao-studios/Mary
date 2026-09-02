@@ -43,7 +43,6 @@ struct AbilityStudioRail: View {
             .padding(.horizontal, 7)
             .padding(.vertical, .layer2)
         }
-        .frame(width: 268)
         .background(Paper.page)
         .overlay(alignment: .trailing) {
             Rectangle().fill(Color.maryBorder).frame(width: 1)

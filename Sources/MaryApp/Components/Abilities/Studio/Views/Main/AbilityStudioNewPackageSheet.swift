@@ -39,73 +39,76 @@ struct AbilityStudioNewPackageSheet: View {
         VStack(alignment: .leading, spacing: .layer4) {
             header
 
-            MaryCard(padding: .layer4) {
-                VStack(alignment: .leading, spacing: .layer3) {
-                    HStack(spacing: .layer2) {
-                        Image(systemName: "macwindow.badge.plus")
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color.maryGold)
-                        Text("Teach an application")
-                            .font(.marySans(12, weight: .medium))
-                            .foregroundStyle(Color.maryInk)
-                        Spacer()
-                    }
-                    StudioNote(
-                        "Mary learns one application through bounded hands — key presses, typing, pointer moves, scrolling and waits. Disciplines like Coding or Multimedia ship with Mary, because their skills need faculties compiled into the app; your expertise realizes those skills for this application.")
-                }
-            }
-
-            VStack(alignment: .leading, spacing: .layer3) {
-                StudioField(
-                    "Application",
-                    value: appLabel,
-                    placeholder: "Pick a running application",
-                    isEditable: false
-                ) { _ in }
-                .overlay(alignment: .trailing) { applicationMenu.padding(.trailing, 6) }
-
-                if selectedBundleID.isEmpty {
-                    StudioField(
-                        "Bundle identifier",
-                        value: manualBundleID,
-                        placeholder: "com.example.app",
-                        mono: true,
-                        live: true
-                    ) { manualBundleID = $0 }
-                }
-
-                HStack(alignment: .top, spacing: .layer3) {
-                    StudioField("Name", value: title, placeholder: "Spotify", live: true) { next in
-                        title = next
-                        if packageID.isEmpty {
-                            packageID = AbilityStudioPackageFactory.portableStem(next, fallback: "")
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer4) {
+                    MaryCard(padding: .layer4) {
+                        VStack(alignment: .leading, spacing: .layer3) {
+                            HStack(spacing: .layer2) {
+                                Image(systemName: "macwindow.badge.plus")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.maryGold)
+                                Text("Teach an application")
+                                    .font(.marySans(12, weight: .medium))
+                                    .foregroundStyle(Color.maryInk)
+                                Spacer()
+                            }
+                            StudioNote(
+                                "Mary learns one application through bounded hands — key presses, typing, pointer moves, scrolling and waits. Disciplines like Coding or Multimedia ship with Mary, because their skills need faculties compiled into the app; your expertise realizes those skills for this application.")
                         }
                     }
-                    StudioField("Identifier", value: packageID, placeholder: "spotify", mono: true, live: true) {
-                        packageID = $0
+
+                    VStack(alignment: .leading, spacing: .layer3) {
+                        StudioField(
+                            "Application",
+                            value: appLabel,
+                            placeholder: "Pick a running application",
+                            isEditable: false
+                        ) { _ in }
+                        .overlay(alignment: .trailing) { applicationMenu.padding(.trailing, 6) }
+
+                        if selectedBundleID.isEmpty {
+                            StudioField(
+                                "Bundle identifier",
+                                value: manualBundleID,
+                                placeholder: "com.example.app",
+                                mono: true,
+                                live: true
+                            ) { manualBundleID = $0 }
+                        }
+
+                        HStack(alignment: .top, spacing: .layer3) {
+                            StudioField("Name", value: title, placeholder: "Spotify", live: true) { next in
+                                title = next
+                                if packageID.isEmpty {
+                                    packageID = AbilityStudioPackageFactory.portableStem(next, fallback: "")
+                                }
+                            }
+                            StudioField("Identifier", value: packageID, placeholder: "spotify", mono: true, live: true) {
+                                packageID = $0
+                            }
+                        }
+
+                        StudioField(
+                            "What should this ability help with?",
+                            value: summary,
+                            placeholder: "Play music, browse a library, drive the transport…"
+                        ) { summary = $0 }
+                    }
+
+                    if let creationError {
+                        HStack(alignment: .top, spacing: .layer2) {
+                            Image(systemName: "exclamationmark.triangle")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.maryError)
+                            Text(creationError)
+                                .font(.marySans(11))
+                                .foregroundStyle(Color.maryError)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
-
-                StudioField(
-                    "What should this ability help with?",
-                    value: summary,
-                    placeholder: "Play music, browse a library, drive the transport…"
-                ) { summary = $0 }
             }
-
-            if let creationError {
-                HStack(alignment: .top, spacing: .layer2) {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color.maryError)
-                    Text(creationError)
-                        .font(.marySans(11))
-                        .foregroundStyle(Color.maryError)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-
-            Spacer(minLength: 0)
+            .scrollIndicators(.never)
 
             HStack(spacing: .layer2) {
                 StudioNote("Nothing is installed until the first save.")
@@ -120,7 +123,7 @@ struct AbilityStudioNewPackageSheet: View {
             }
         }
         .padding(.layer5)
-        .frame(width: 520, height: 520)
+        .marySheet(ideal: CGSize(width: 520, height: 540))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
     }

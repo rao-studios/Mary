@@ -76,7 +76,7 @@ struct AbilityRunInspectorSheet: View {
             Spacer(minLength: 0)
         }
         .padding(.layer4)
-        .frame(minWidth: 520, minHeight: 340, maxHeight: 560)
+        .marySheet(ideal: CGSize(width: 560, height: 520), floor: CGSize(width: 520, height: 340))
         .background(Paper.page)
         .task(id: inspected.turnID) { await loadEpisode() }
     }
@@ -221,11 +221,14 @@ struct AbilityRunInspectorSheet: View {
                 Text(reference.abilityTitle)
                     .font(.marySans(14, weight: .semibold))
                     .foregroundStyle(Color.maryAbilityTint(reference.abilityTint))
+                    .lineLimit(1)
                 Text("|")
                     .foregroundStyle(Color.primary.opacity(0.32))
                 Text(reference.invocationName)
                     .font(.system(size: 13, weight: .semibold, design: .monospaced))
                     .foregroundStyle(Color.primary.opacity(0.8))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             } else {
                 Text("Looked first")
                     .font(.marySans(14, weight: .semibold))

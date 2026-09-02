@@ -29,36 +29,47 @@ struct AbilityStudioRecipePane: View {
 
     var body: some View {
         StudioPane("Recipe") {
-            recipeChips
+            addRecipeButton
         } content: {
-            if let recipe, let catalog = model.invocationCatalog {
-                steps(recipe, catalog: catalog)
-            } else {
-                emptyState
+            VStack(alignment: .leading, spacing: .layer2) {
+                recipeChips
+                if let recipe, let catalog = model.invocationCatalog {
+                    steps(recipe, catalog: catalog)
+                } else {
+                    emptyState
+                }
             }
         }
     }
 
     // MARK: - Chips
 
+    /// Wraps rather than overflows: a well-used ability can end up with more
+    /// recipes than a 420pt column shows on one line.
     @ViewBuilder
     private var recipeChips: some View {
-        HStack(spacing: .layer1) {
-            ForEach(recipes, id: \.id) { item in
-                MaryChip(
-                    label: item.title,
-                    isOn: item.id == recipe?.id
-                ) {
-                    model.selectedRecipeID = item.id
-                    model.expandedRecipeStepID = nil
+        if !recipes.isEmpty {
+            FlowLayout(spacing: .layer1) {
+                ForEach(recipes, id: \.id) { item in
+                    MaryChip(
+                        label: item.title,
+                        isOn: item.id == recipe?.id
+                    ) {
+                        model.selectedRecipeID = item.id
+                        model.expandedRecipeStepID = nil
+                    }
                 }
             }
-            if !recipes.isEmpty {
-                StudioAddButton(title: "Recipe") { openNewRecipe() }
-            }
         }
-        .popover(isPresented: $showsNewRecipe, arrowEdge: .bottom) {
-            newRecipeForm
+    }
+
+    @ViewBuilder
+    private var addRecipeButton: some View {
+        if !recipes.isEmpty {
+            StudioAddButton(title: "Recipe") { openNewRecipe() }
+                .popover(isPresented: $showsNewRecipe, arrowEdge: .bottom) {
+                    newRecipeForm
+                }
         }
     }
 
@@ -78,30 +89,35 @@ struct AbilityStudioRecipePane: View {
                 }
             }
 
-            ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
-                AbilityStudioRecipeRowView(
-                    model: model,
-                    row: row,
-                    recipeID: recipe.id,
-                    catalog: catalog,
-                    isLast: index == rows.count - 1,
-                    canReorder: canReorder,
-                    expandedStepID: Binding(
-                        get: { model.expandedRecipeStepID },
-                        set: { model.expandedRecipeStepID = $0 }))
-            }
+            // Rows scroll on their own so a long recipe never pushes the
+            // parameter chips below off the window; the chips stay pinned.
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer2) {
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                        AbilityStudioRecipeRowView(
+                            model: model,
+                            row: row,
+                            recipeID: recipe.id,
+                            catalog: catalog,
+                            isLast: index == rows.count - 1,
+                            canReorder: canReorder,
+                            expandedStepID: Binding(
+                                get: { model.expandedRecipeStepID },
+                                set: { model.expandedRecipeStepID = $0 }))
+                    }
 
-            if showsPendingRow {
-                pendingRow(recipe: recipe, catalog: catalog)
-            } else {
-                StudioAddButton(title: "Step") {
-                    pendingStep = ""
-                    showsPendingRow = true
+                    if showsPendingRow {
+                        pendingRow(recipe: recipe, catalog: catalog)
+                    } else {
+                        StudioAddButton(title: "Step") {
+                            pendingStep = ""
+                            showsPendingRow = true
+                        }
+                        .padding(.leading, 19)
+                    }
                 }
-                .padding(.leading, 19)
             }
-
-            Spacer(minLength: .layer2)
+            .scrollIndicators(.never)
 
             inputs(recipe)
         }
@@ -223,7 +239,7 @@ struct AbilityStudioRecipePane: View {
             }
         }
         .padding(.layer4)
-        .frame(width: 320)
+        .maryPopover()
         .background(Paper.page)
     }
 

@@ -176,20 +176,23 @@ struct AbilityStudioRecipeRowView: View {
 
     private var suggestions: some View {
         let matches = catalog.matches(typed)
-        return VStack(alignment: .leading, spacing: 1) {
-            if matches.isEmpty {
-                Text("Nothing installed answers to that.")
-                    .font(.marySans(11))
-                    .foregroundStyle(Color.maryInk.opacity(0.5))
-                    .padding(.horizontal, .layer2)
-                    .padding(.vertical, .layer2)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 1) {
+                if matches.isEmpty {
+                    Text("Nothing installed answers to that.")
+                        .font(.marySans(11))
+                        .foregroundStyle(Color.maryInk.opacity(0.5))
+                        .padding(.horizontal, .layer2)
+                        .padding(.vertical, .layer2)
+                }
+                ForEach(matches) { entry in
+                    suggestion(entry)
+                }
             }
-            ForEach(matches) { entry in
-                suggestion(entry)
-            }
+            .padding(5)
         }
-        .padding(5)
-        .frame(width: 330)
+        .scrollIndicators(.never)
+        .maryPopover()
         .background(Paper.page)
     }
 

@@ -79,6 +79,7 @@ struct RouterPaneView: View {
                 Text("Routes")
                     .font(.marySerif(15, weight: .light, italic: true))
                     .foregroundStyle(Paper.ink.opacity(0.85))
+                    .lineLimit(1)
                 Button {
                     showsAbilityRuns = true
                 } label: {

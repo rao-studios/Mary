@@ -78,7 +78,7 @@ struct ContributionInspectorSheet: View {
             .padding(.layer4)
         }
         .background(Paper.page)
-        .frame(width: 440, height: 480)
+        .marySheet(ideal: CGSize(width: 440, height: 480))
         .task {
             await viewModel.load(owner: owner, responseText: responseText)
         }

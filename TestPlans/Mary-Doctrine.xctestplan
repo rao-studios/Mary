@@ -29,7 +29,8 @@
         "RuntimePrimitiveIsolationTests",
         "AbilityTotemLaneTests",
         "GuardrailCategoryAdmissionTests",
-        "BehaviorCodecTests"
+        "BehaviorCodecTests",
+        "LayoutDisciplineTests"
       ],
       "target" : {
         "containerPath" : "container:",

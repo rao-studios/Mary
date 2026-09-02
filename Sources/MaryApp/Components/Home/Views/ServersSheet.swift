@@ -46,7 +46,7 @@ struct ServersSheet: View {
             .padding(.layer4)
         }
         .background(Paper.page)
-        .frame(width: 480, height: 620)
+        .marySheet(ideal: CGSize(width: 480, height: 620))
         .onAppear {
             viewModel.start()
             seerPath = config.state.seerCheckoutPath
@@ -195,7 +195,7 @@ struct ServersSheet: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(width: 260)
+            .frame(maxWidth: 260)
             Spacer()
         }
         Text("How Totem builds entities and relationships from what Mary deposits. Applies on the next Totem restart. MLX needs a Metal-enabled build; without one it silently degrades to keywords.")

@@ -162,13 +162,25 @@ struct TotemsPaneView: View {
                 .accessibilityLabel("Refresh")
             }
 
-            Picker("", selection: $tab) {
-                ForEach(TotemsTab.allCases) { option in
-                    Text(option.title).tag(option.rawValue)
+            ViewThatFits(in: .horizontal) {
+                Picker("", selection: $tab) {
+                    ForEach(TotemsTab.allCases) { option in
+                        Text(option.title).tag(option.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+
+                // Below the segmented control's minimum, every tab stays
+                // reachable as chips that wrap instead of compressing.
+                FlowLayout(spacing: .layer1) {
+                    ForEach(TotemsTab.allCases) { option in
+                        MaryChip(label: option.title, isOn: option == selectedTab) {
+                            tab = option.rawValue
+                        }
+                    }
                 }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
         }
         .padding(.horizontal, .layer4)
         .padding(.vertical, .layer2)

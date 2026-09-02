@@ -33,18 +33,7 @@ struct VoiceStatusBar: View {
     var body: some View {
         MaryCard(padding: 14) {
             VStack(alignment: .leading, spacing: .layer3) {
-                HStack(spacing: .layer4) {
-                    micButton
-                    HStack(spacing: .layer2) {
-                    }
-                    stateChip
-                    if !runningRoutines.isEmpty {
-                        runningPill
-                            .transition(.opacity)
-                    }
-                    Spacer()
-                    LevelMeter(level: audioLevel)
-                }
+                topRow
                 if !partialTranscript.isEmpty {
                     Text.note2(partialTranscript)
                         .italic()
@@ -68,6 +57,43 @@ struct VoiceStatusBar: View {
                 Paper.page
             }
             .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - Top row
+
+    /// Narrows in three steps as the conversation column shrinks: the full
+    /// meter, a shorter one, then icon-only with no meter at all. The
+    /// running-work pill stays in every variant — it is the one thing here
+    /// that must never disappear silently.
+    private var topRow: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: .layer4) {
+                micButton
+                stateChip
+                if !runningRoutines.isEmpty {
+                    runningPill.transition(.opacity)
+                }
+                Spacer()
+                LevelMeter(level: audioLevel)
+            }
+            HStack(spacing: .layer3) {
+                micButton
+                stateChip
+                if !runningRoutines.isEmpty {
+                    runningPill.transition(.opacity)
+                }
+                Spacer()
+                LevelMeter(level: audioLevel, barCount: 12)
+            }
+            HStack(spacing: .layer2) {
+                micButton.labelStyle(.iconOnly)
+                stateChip
+                if !runningRoutines.isEmpty {
+                    runningPill.transition(.opacity)
+                }
+                Spacer(minLength: 0)
+            }
         }
     }
 
@@ -105,26 +131,31 @@ struct VoiceStatusBar: View {
                     .buttonStyle(.maryQuiet)
                 }
             }
-            ForEach(runningRoutines) { row in
-                HStack(spacing: .layer3) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(row.label.isEmpty ? "background work" : row.label)
-                            .font(.marySans(12))
-                            .foregroundStyle(Color.primary.opacity(0.8))
-                            .lineLimit(2)
-                        Text(row.elapsed)
-                            .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(Color.primary.opacity(0.45))
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer3) {
+                    ForEach(runningRoutines) { row in
+                        HStack(spacing: .layer3) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(row.label.isEmpty ? "background work" : row.label)
+                                    .font(.marySans(12))
+                                    .foregroundStyle(Color.primary.opacity(0.8))
+                                    .lineLimit(2)
+                                Text(row.elapsed)
+                                    .font(.system(size: 10, design: .monospaced))
+                                    .foregroundStyle(Color.primary.opacity(0.45))
+                            }
+                            Spacer(minLength: .layer3)
+                            // Ordinary correction, not a destructive confirm.
+                            Button("Stop") { RunControl.stopRoutine(id: row.id) }
+                                .buttonStyle(.maryQuiet)
+                        }
                     }
-                    Spacer(minLength: .layer3)
-                    // Ordinary correction, not a destructive confirm.
-                    Button("Stop") { RunControl.stopRoutine(id: row.id) }
-                        .buttonStyle(.maryQuiet)
                 }
             }
+            .scrollIndicators(.never)
         }
         .padding(.layer4)
-        .frame(minWidth: 260, maxWidth: 340)
+        .maryPopover()
     }
 
     // MARK: - Mic
@@ -215,7 +246,7 @@ struct VoiceStatusBar: View {
 /// A 24-bar mini waveform driven by mic RMS.
 struct LevelMeter: View {
     let level: Float
-    private let barCount = 24
+    var barCount: Int = 24
 
     var body: some View {
         HStack(alignment: .center, spacing: 2) {

@@ -21,22 +21,7 @@ extension Home: View {
             onShowServers: {
                 _state.showServers.wrappedValue = true
             },
-            showDebugger: state.showDebugger,
-            onToggleDebugger: {
-                _state.showDebugger.wrappedValue.toggle()
-            },
-            showRouter: state.showRouter,
-            onToggleRouter: {
-                _state.showRouter.wrappedValue.toggle()
-            },
-            showTotems: state.showTotems,
-            onToggleTotems: {
-                _state.showTotems.wrappedValue.toggle()
-            },
-            showCorpus: state.showCorpus,
-            onToggleCorpus: {
-                _state.showCorpus.wrappedValue.toggle()
-            }
+            openPanes: _state.openPanes
         )
         .sheet(isPresented: _state.showSettings) {
             SettingsSheet()
@@ -53,16 +38,33 @@ extension Home: View {
 /// tokens into streamVM past Granite's 200 ms @Store debounce.
 struct HomeSessionView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.maryWindowSize) private var windowSize
     let onShowSettings: () -> Void
     let onShowServers: () -> Void
-    let showDebugger: Bool
-    let onToggleDebugger: () -> Void
-    let showRouter: Bool
-    let onToggleRouter: () -> Void
-    let showTotems: Bool
-    let onToggleTotems: () -> Void
-    let showCorpus: Bool
-    let onToggleCorpus: () -> Void
+    @Binding var openPanes: [Home.Pane]
+
+    /// The panes the current width has room for. Order is the user's
+    /// intent; a pane past the budget folds away rather than clipping the
+    /// conversation or crowding the ones already shown.
+    private var visiblePanes: Set<Home.Pane> {
+        HomePaneBudget.visible(open: openPanes, width: windowSize.width)
+    }
+
+    /// Off → append (open it). Visible → remove (close it). Open but
+    /// folded → move to the end, so the budget picks it up first. Snapshots
+    /// both checks before mutating — `visiblePanes` is computed from
+    /// `openPanes`, so reading it again after the first `removeAll` would
+    /// answer a question that has already changed underneath it.
+    private func tapPane(_ pane: Home.Pane) {
+        let wasVisible = visiblePanes.contains(pane)
+        let wasOpen = openPanes.contains(pane)
+        if wasOpen {
+            openPanes.removeAll { $0 == pane }
+        }
+        if !wasVisible {
+            openPanes.append(pane)
+        }
+    }
 
     @Relay var chat: ChatService
     @Relay(.silence) var config: ConfigService
@@ -83,28 +85,28 @@ struct HomeSessionView: View {
                     bootStatus: chat.state.bootStatus,
                     streamVM: streamVM,
                     // Place capsule opens the existing Routes pane; never closes it.
-                    onOpenRoutes: { if !showRouter { onToggleRouter() } }
+                    onOpenRoutes: { if !visiblePanes.contains(.router) { tapPane(.router) } }
                 )
                 // Bar insets the conversation column only (VoiceBar owns its relays).
                 .safeAreaInset(edge: .bottom) { VoiceBar(streamVM: streamVM) }
                 // Divider drags cannot crush the conversation below its readable floor.
-                .frame(minWidth: 396)
+                .maryColumn(Paper.Layout.conversation)
                 .layoutPriority(1)
-                if showDebugger {
+                if visiblePanes.contains(.debugger) {
                     Debugger()
-                        .frame(minWidth: 300, maxWidth: 520)
+                        .maryColumn(Paper.Layout.sidePane)
                 }
-                if showRouter {
+                if visiblePanes.contains(.router) {
                     Router()
-                        .frame(minWidth: 320, maxWidth: 560)
+                        .maryColumn(Paper.Layout.sidePane)
                 }
-                if showTotems {
+                if visiblePanes.contains(.totems) {
                     Totems()
-                        .frame(minWidth: 360, maxWidth: 600)
+                        .maryColumn(Paper.Layout.sidePane)
                 }
-                if showCorpus {
+                if visiblePanes.contains(.corpus) {
                     Corpus()
-                        .frame(minWidth: 380, maxWidth: 640)
+                        .maryColumn(Paper.Layout.sidePane)
                 }
             }
         }
@@ -113,6 +115,17 @@ struct HomeSessionView: View {
             streamVM.update(utterances: chat.state.conversation.utterances)
         }
         .task {
+            #if DEBUG
+            MaryLayoutCheck.pinHome()
+            if let directive = MaryLayoutCheck.directive {
+                if !directive.panes.isEmpty {
+                    openPanes = directive.panes.compactMap(Home.Pane.init(rawValue:))
+                }
+                if directive.studioSize != nil {
+                    openWindow(id: "ability-studio")
+                }
+            }
+            #endif
             // Wait for persisted conversation (and config) before boot.
             chat.preload()
             while !chat.isLoaded, !Task.isCancelled {
@@ -145,24 +158,8 @@ struct HomeSessionView: View {
                 .font(.marySerif(20, weight: .light, italic: true))
                 .foregroundStyle(Paper.ink.opacity(0.85))
             Spacer()
-            Button {
-                onToggleDebugger()
-            } label: {
-                Image(systemName: "eye")
-                    .font(.system(size: 14))
-                    .foregroundStyle(showDebugger ? Paper.ink : Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Mary's eyes")
-            Button {
-                onToggleRouter()
-            } label: {
-                Image(systemName: "arrow.triangle.branch")
-                    .font(.system(size: 14))
-                    .foregroundStyle(showRouter ? Paper.ink : Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Routes")
+            paneButton(.debugger, symbol: "eye", label: "Mary's eyes")
+            paneButton(.router, symbol: "arrow.triangle.branch", label: "Routes")
             Button {
                 openWindow(id: "ability-studio")
             } label: {
@@ -172,15 +169,7 @@ struct HomeSessionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Ability Studio")
-            Button {
-                onToggleTotems()
-            } label: {
-                Image(systemName: "point.3.connected.trianglepath.dotted")
-                    .font(.system(size: 14))
-                    .foregroundStyle(showTotems ? Paper.ink : Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Totems")
+            paneButton(.totems, symbol: "point.3.connected.trianglepath.dotted", label: "Totems")
             Button {
                 onShowServers()
             } label: {
@@ -190,15 +179,7 @@ struct HomeSessionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Servers")
-            Button {
-                onToggleCorpus()
-            } label: {
-                Image(systemName: "books.vertical")
-                    .font(.system(size: 14))
-                    .foregroundStyle(showCorpus ? Paper.ink : Paper.ink.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Corpus")
+            paneButton(.corpus, symbol: "books.vertical", label: "Corpus")
             Button {
                 onShowSettings()
             } label: {
@@ -217,6 +198,27 @@ struct HomeSessionView: View {
                 .fill(Color.maryBorder)
                 .frame(height: 1)
         }
+    }
+
+    /// Off (0.7) → visible (full ink) → folded (0.45). A folded pane is
+    /// still open — the window is just not wide enough to show it — so the
+    /// dimmed tint reads as "waiting," not "off."
+    private func paneButton(_ pane: Home.Pane, symbol: String, label: String) -> some View {
+        let isVisible = visiblePanes.contains(pane)
+        let isFolded = !isVisible && openPanes.contains(pane)
+        return Button {
+            tapPane(pane)
+        } label: {
+            Image(systemName: symbol)
+                .font(.system(size: 14))
+                .foregroundStyle(
+                    isVisible ? Paper.ink
+                    : isFolded ? Paper.ink.opacity(0.45)
+                    : Paper.ink.opacity(0.7))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .help(isFolded ? "Open, but folded — widen the window" : label)
     }
 
     // MARK: - Boot

@@ -40,21 +40,23 @@ struct AbilityStudioDraftSkillSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: .layer4) {
             header
-            HStack(alignment: .top, spacing: .layer4) {
-                VStack(alignment: .leading, spacing: .layer4) {
-                    goalStep
-                    surfaceStep
-                }
-                .frame(width: 330)
+            ScrollView {
+                HStack(alignment: .top, spacing: .layer4) {
+                    VStack(alignment: .leading, spacing: .layer4) {
+                        goalStep
+                        surfaceStep
+                    }
+                    .maryColumn(Paper.Layout.column)
 
-                proposalStep
-                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    proposalStep
+                        .frame(maxWidth: .infinity, alignment: .topLeading)
+                }
             }
-            Spacer(minLength: 0)
+            .scrollIndicators(.never)
             footer
         }
         .padding(.layer5)
-        .frame(width: 860, height: 620)
+        .marySheet(ideal: CGSize(width: 860, height: 620))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
         .onAppear { capture = AbilityStudioSurfaceCapture.read(package: package) }
@@ -126,7 +128,7 @@ struct AbilityStudioDraftSkillSheet: View {
                         }
                     }
                     .scrollIndicators(.never)
-                    .frame(height: 190)
+                    .frame(minHeight: 120, idealHeight: 190, maxHeight: 240)
                     Text("\(selectedFrames.count) of \(capture?.frames.count ?? 0) selected")
                         .font(.marySans(9.5))
                         .foregroundStyle(Color.maryInk.opacity(0.42))

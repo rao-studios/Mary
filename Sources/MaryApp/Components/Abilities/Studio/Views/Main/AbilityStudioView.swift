@@ -18,6 +18,8 @@ import SwiftUI
 struct AbilityStudioView: View {
     @StateObject var model = AbilityStudioViewModel()
     @Relay(.silence) var config: ConfigService
+    @Environment(\.maryWindowSize) private var windowSize
+    @Environment(\.maryLayoutClass) private var layoutClass
     @AppStorage("abilityStudio.railCollapsed") private var railCollapsed = false
     @State private var showsAdvanced = false
     @State private var showsNewPackageSheet = false
@@ -25,10 +27,19 @@ struct AbilityStudioView: View {
     /// selection so the ring is a nudge, not a mode.
     @State private var focusedPane: AbilityStudioPane?
 
+    /// Below the dual-panel width the rail and the drawer take turns: opening
+    /// Advanced folds the rail (the collapse intent in `@AppStorage` is
+    /// untouched), and closing Advanced or widening the window brings it back.
+    private var railVisible: Bool {
+        !railCollapsed && (!showsAdvanced || windowSize.width >= Paper.Layout.dualPanelWidth)
+    }
+
     var body: some View {
-        HStack(spacing: 0) {
-            if !railCollapsed {
+        MaryColumns(spacing: 0) {
+            if railVisible {
                 AbilityStudioRail(model: model) { showsNewPackageSheet = true }
+                    .maryColumn(Paper.Layout.rail)
+                    .layoutPriority(1)
                     .transition(.move(edge: .leading))
             }
 
@@ -47,22 +58,32 @@ struct AbilityStudioView: View {
                 }
                 AbilityStudioFooter(model: model) { showsAdvanced = true }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .maryColumn(Paper.Layout.studioMain)
+            .layoutPriority(3)
 
             if showsAdvanced, let package = model.draftPackage {
                 AbilityStudioAdvancedDrawer(model: model, package: package) { pane in
                     focusedPane = pane
                 }
+                .maryColumn(Paper.Layout.drawer)
+                .layoutPriority(0)
                 .transition(.move(edge: .trailing))
             }
         }
-        .frame(minWidth: 1040, minHeight: 680)
         .background(Paper.page)
         .preferredColorScheme(.light)
-        .animation(.easeInOut(duration: 0.16), value: railCollapsed)
+        .animation(.easeInOut(duration: 0.16), value: railVisible)
         .animation(.easeInOut(duration: 0.16), value: showsAdvanced)
         .onChange(of: model.selectedPackageID) { _, _ in focusedPane = nil }
-        .onAppear { model.start() }
+        .onAppear {
+            model.start()
+            #if DEBUG
+            MaryLayoutCheck.pinStudio()
+            if MaryLayoutCheck.directive?.showsDrawer == true {
+                showsAdvanced = true
+            }
+            #endif
+        }
         .onDisappear { model.stop() }
         .sheet(isPresented: $showsNewPackageSheet) {
             AbilityStudioNewPackageSheet(model: model)
@@ -89,9 +110,10 @@ struct AbilityStudioView: View {
 
     @ViewBuilder
     private func panes(_ package: MaryAbilityPackage) -> some View {
-        HStack(alignment: .top, spacing: .layer4) {
+        MaryColumns(spacing: .layer4) {
             AbilityStudioRecipePane(model: model, package: package)
-                .frame(width: 420)
+                .maryColumn(Paper.Layout.column)
+                .layoutPriority(1)
                 .overlay(focusRing(.recipe))
 
             VStack(spacing: .layer3) {
@@ -100,9 +122,10 @@ struct AbilityStudioView: View {
                 AbilityStudioSkillsPane(model: model, package: package)
                     .overlay(focusRing(.skills))
             }
-            .frame(maxWidth: .infinity)
+            .maryColumn(Paper.Layout.studioMain)
+            .layoutPriority(2)
         }
-        .padding(.horizontal, .layer5)
+        .padding(.horizontal, layoutClass == .compact ? .layer4 : .layer5)
         .padding(.vertical, .layer4)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

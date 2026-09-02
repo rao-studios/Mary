@@ -120,6 +120,28 @@ struct MaryStat: View {
     }
 }
 
+/// A bare "…" menu for chrome that folds at a narrow width — one more
+/// header icon that happens to hide the rest of them.
+struct MaryOverflowMenu<MenuContent: View>: View {
+    var help: String = "More"
+    @ViewBuilder var content: MenuContent
+
+    var body: some View {
+        Menu {
+            content
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .font(.system(size: 14))
+                .foregroundStyle(Paper.ink.opacity(0.7))
+                .frame(width: 26, height: 26)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .help(help)
+        .accessibilityLabel(help)
+    }
+}
+
 /// Colored status dot.
 struct StatusDot: View {
     let color: Color

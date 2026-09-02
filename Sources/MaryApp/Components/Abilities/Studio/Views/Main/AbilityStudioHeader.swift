@@ -6,6 +6,9 @@
 //  IN:   AbilityStudioView shell.
 //  OUT:  mutateDraftPackage (title) / mutateAuthoringDocument (paradigm).
 //  PIN:  Mirrors Home's header bar — MaryMark, italic serif title, bare symbols.
+//        Below the compact span, trailing controls fold behind ViewThatFits:
+//        paradigm becomes an icon, the cost detail moves into its `.help`,
+//        and export/import/revert collapse into one overflow menu.
 //
 
 import MaryBrain
@@ -52,6 +55,33 @@ struct AbilityStudioHeader: View {
             // Keying on the package makes it a different field.
             .id(package.package.id)
 
+            ViewThatFits(in: .horizontal) {
+                fullTrailing
+                compactTrailing
+            }
+        }
+        .padding(.horizontal, .layer5)
+        .padding(.vertical, .layer2)
+        .background(Paper.page)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color.maryBorder).frame(height: 1)
+        }
+    }
+
+    private var canSave: Bool {
+        model.canEditSelectedPackage && model.validation.isValid
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(Color.maryBorder)
+            .frame(width: 1, height: 20)
+    }
+
+    // MARK: - Full
+
+    private var fullTrailing: some View {
+        HStack(spacing: .layer3) {
             paradigmMenu
 
             Spacer(minLength: .layer3)
@@ -114,28 +144,73 @@ struct AbilityStudioHeader: View {
                           : "Fix the errors in Advanced before saving.")
             }
         }
-        .padding(.horizontal, .layer5)
-        .padding(.vertical, .layer2)
-        .background(Paper.page)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(Color.maryBorder).frame(height: 1)
+    }
+
+    // MARK: - Compact
+
+    /// The narrow fallback: paradigm shrinks to its icon, the cost detail
+    /// moves into `.help`, the "unsaved" badge drops (Save already says so),
+    /// and export/import fold into one overflow menu. Advanced and Save
+    /// stay — they are the two actions a narrow window still needs at hand.
+    private var compactTrailing: some View {
+        HStack(spacing: .layer2) {
+            compactParadigmButton
+
+            Spacer(minLength: .layer2)
+
+            if let cost {
+                Text(cost.amount(pricePerCall: pricePerCall))
+                    .font(.maryMono(12))
+                    .foregroundStyle(
+                        cost.total == 0
+                            ? Color.maryInk.opacity(0.45)
+                            : Color.maryInk)
+                    .lineLimit(1)
+                    .help("\(cost.detail) — \(cost.help)")
+            }
+
+            if model.hasPendingRegistryUpdate {
+                MaryBadge(text: "registry changed", color: .maryError)
+                    .help("The registry changed on disk. This draft stays pinned; Revert opens the active version.")
+            }
+
+            StudioIconButton(
+                symbol: "curlybraces",
+                help: "Everything else — contracts, fixtures, raw schema",
+                isOn: showsAdvanced
+            ) {
+                showsAdvanced.toggle()
+            }
+
+            MaryOverflowMenu(help: "Export, import") {
+                Button("Export…", action: model.exportPackage)
+                    .disabled(!model.canEditSelectedPackage)
+                Button("Import…", action: model.importPackage)
+                    .disabled(model.isDirty)
+            }
+
+            if model.isDirty {
+                Button("Revert", action: model.revert)
+                    .buttonStyle(.maryQuiet)
+                    .lineLimit(1)
+                Button(model.isCreatingNewPackage ? "Save & Activate" : "Save", action: model.save)
+                    .buttonStyle(.mary)
+                    .disabled(!canSave)
+                    .opacity(canSave ? 1 : 0.4)
+                    .lineLimit(1)
+                    .help(model.validation.isValid
+                          ? "Save activates this ability for the next turn."
+                          : "Fix the errors in Advanced before saving.")
+            }
         }
     }
 
-    private var canSave: Bool {
-        model.canEditSelectedPackage && model.validation.isValid
-    }
-
-    private var divider: some View {
-        Rectangle()
-            .fill(Color.maryBorder)
-            .frame(width: 1, height: 20)
-    }
+    // MARK: - Paradigm
 
     /// Paradigm goes through the authoring document, not the fast path: the
     /// paradigm validator can refuse the change (a discipline may not carry a
     /// Plugin), and its verdict belongs in `status` rather than in a broken draft.
-    private var paradigmMenu: some View {
+    private func paradigmPicker<LabelContent: View>(@ViewBuilder label: () -> LabelContent) -> some View {
         Menu {
             ForEach(AbilityParadigm.allCases, id: \.self) { paradigm in
                 Button {
@@ -147,6 +222,15 @@ struct AbilityStudioHeader: View {
                 }
             }
         } label: {
+            label()
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .help(AbilityParadigmPresentation(package.paradigm).explanation)
+    }
+
+    private var paradigmMenu: some View {
+        paradigmPicker {
             HStack(spacing: 5) {
                 Image(systemName: AbilityStudioLabels.roleSymbol(package))
                     .font(.system(size: 10))
@@ -163,9 +247,15 @@ struct AbilityStudioHeader: View {
             .padding(.vertical, 4)
             .background(RoundedRectangle(cornerRadius: 9).fill(Color.maryFill))
         }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
         .layoutPriority(-1)
-        .help(AbilityParadigmPresentation(package.paradigm).explanation)
+    }
+
+    private var compactParadigmButton: some View {
+        paradigmPicker {
+            Image(systemName: AbilityStudioLabels.roleSymbol(package))
+                .font(.system(size: 12))
+                .foregroundStyle(Color.maryInk.opacity(0.6))
+                .frame(width: 26, height: 26)
+        }
     }
 }

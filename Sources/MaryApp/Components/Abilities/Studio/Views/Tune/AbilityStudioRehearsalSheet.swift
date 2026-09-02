@@ -37,37 +37,40 @@ struct AbilityStudioRehearsalSheet: View {
         VStack(alignment: .leading, spacing: .layer4) {
             header
             utteranceBar
-            if let rehearsal {
-                verdictBanner(rehearsal)
-                HStack(alignment: .top, spacing: .layer4) {
-                    tiers(rehearsal)
-                    levers(rehearsal)
-                        .frame(width: 300)
-                }
-            } else {
-                Spacer()
-                HStack {
-                    Spacer()
-                    VStack(spacing: .layer3) {
-                        MaryEmblem(iconSize: 44)
-                        Text("Say it and see")
-                            .font(.marySerif(16, weight: .light, italic: true))
-                            .foregroundStyle(Color.maryInk)
-                        Text("This runs the same indexes the turn loop runs, against the registry that is active right now.")
-                            .font(.marySans(11))
-                            .foregroundStyle(Color.maryInk.opacity(0.5))
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: 320)
+            ScrollView {
+                if let rehearsal {
+                    VStack(alignment: .leading, spacing: .layer4) {
+                        verdictBanner(rehearsal)
+                        HStack(alignment: .top, spacing: .layer4) {
+                            tiers(rehearsal)
+                            levers(rehearsal)
+                                .maryColumn(Paper.Layout.drawer)
+                        }
                     }
-                    Spacer()
+                } else {
+                    HStack {
+                        Spacer()
+                        VStack(spacing: .layer3) {
+                            MaryEmblem(iconSize: 44)
+                            Text("Say it and see")
+                                .font(.marySerif(16, weight: .light, italic: true))
+                                .foregroundStyle(Color.maryInk)
+                            Text("This runs the same indexes the turn loop runs, against the registry that is active right now.")
+                                .font(.marySans(11))
+                                .foregroundStyle(Color.maryInk.opacity(0.5))
+                                .multilineTextAlignment(.center)
+                                .frame(maxWidth: 320)
+                        }
+                        Spacer()
+                    }
+                    .padding(.vertical, .layer6)
                 }
-                Spacer()
             }
-            Spacer(minLength: 0)
+            .scrollIndicators(.never)
             footer
         }
         .padding(.layer5)
-        .frame(width: 900, height: 640)
+        .marySheet(ideal: CGSize(width: 900, height: 640))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
     }
@@ -208,7 +211,7 @@ struct AbilityStudioRehearsalSheet: View {
                 .font(.maryMono(10))
                 .foregroundStyle(Color.maryInk.opacity(row.standing == .belowFloor ? 0.4 : 0.85))
                 .lineLimit(1)
-                .frame(width: 168, alignment: .leading)
+                .frame(width: Paper.Layout.labelColumn, alignment: .leading)
 
             GeometryReader { proxy in
                 let width = proxy.size.width

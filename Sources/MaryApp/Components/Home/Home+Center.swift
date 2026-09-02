@@ -3,19 +3,20 @@ import SwiftUI
 import MaryRuntime
 
 extension Home {
+    /// A side pane the split can show beside the conversation. Order in
+    /// `Center.State.openPanes` is the user's intent, oldest first; which of
+    /// these are actually on screen is a width budget — see `HomePaneBudget`.
+    enum Pane: String, Codable, Hashable, CaseIterable {
+        case debugger, router, totems, corpus
+    }
+
     struct Center: GraniteCenter {
         struct State: GraniteState {
             var showSettings: Bool = false
-            /// Totems split. Transient, like the panes below.
-            var showTotems: Bool = false
             /// Servers sheet (same shape as Settings). Totems header has a second door.
             var showServers: Bool = false
-            /// Debugger split. Transient — not ConfigService persistence.
-            var showDebugger: Bool = false
-            /// Routes split. Separate flag so Debugger and Router can both be open.
-            var showRouter: Bool = false
-            /// Corpus split. Transient like the panes above.
-            var showCorpus: Bool = false
+            /// Transient, like the panes it names — not ConfigService persistence.
+            var openPanes: [Pane] = []
         }
 
         @Store public var state: State
