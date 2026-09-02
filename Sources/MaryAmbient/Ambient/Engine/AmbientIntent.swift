@@ -70,7 +70,9 @@ public enum AmbientSignal: String, Sendable, Equatable, CaseIterable, Codable {
     case editIntent
     /// Embedding intent index picked operate / perceive / converse.
     case embedding
-    /// `ActionClassifier.isActionCommand` said command (no embedding index).
+    /// Set when a turn acted without an embedding verdict. NO LONGER PRODUCED —
+/// kept so traces recorded before the lexical action classifier was deleted
+/// still decode.
     case actionCommand
     /// An action verb in the writing register with no edit intent.
     case writingRegister

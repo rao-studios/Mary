@@ -12,7 +12,7 @@ import Foundation
 public enum LookClassifier {
 
     /// Wh/aux openers a look question leads with. By construction the
-    /// non-action population: `ActionClassifier.questionOpeners` vetoes
+    /// non-action population: `RoutingLexicon.questionOpeners` vetoes
     /// action classification for these same words.
     static let questionOpeners: Set<String> = [
         "what", "whats", "who", "whos", "which", "where", "wheres",
@@ -32,7 +32,7 @@ public enum LookClassifier {
     static let demonstratives: Set<String> = ["this", "that", "these", "those"]
 
     /// Leading noise peeled before the opener check — the same words
-    /// `ActionClassifier`/`EditIntentClassifier` peel, respelled minimally
+    /// `EditIntentClassifier` peel, respelled minimally
     /// here to keep this classifier dependency-light and pure.
     static let leadingNoise: Set<String> = [
         "hey", "mary", "ok", "okay", "oh", "so", "well", "um", "uh",

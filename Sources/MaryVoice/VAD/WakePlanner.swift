@@ -14,13 +14,14 @@ import Foundation
 public enum WakePlanner {
 
     public struct Tuning: Sendable, Equatable {
-        /// Name plus STT homophones. Duplicated from MaryBrain — MaryVoice cannot import it.
-        public var wakeNames: Set<String> = ["mary", "bonny", "bonni", "bonne"]
+        /// HER NAME. One spelling — the STT homophones that used to sit here
+        /// spelled a different assistant's name entirely.
+        public var wakeNames: Set<String> = ["mary"]
         /// Words allowed before the name. Position-strict everywhere else.
         public var preambleWords: Set<String> = ["hey", "ok", "okay", "hi"]
         /// Address + politeness stripped from both ends when matching stop.
         public var commandAddressWords: Set<String> =
-            ["mary", "bonny", "bonni", "bonne", "hey", "ok", "okay", "please", "now"]
+            ["mary", "hey", "ok", "okay", "please", "now"]
 
         public init() {}
         public static let standard = Tuning()

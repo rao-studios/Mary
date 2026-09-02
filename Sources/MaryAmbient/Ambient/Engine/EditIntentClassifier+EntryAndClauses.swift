@@ -42,7 +42,7 @@ extension EditIntentClassifier {
             .components(separatedBy: CharacterSet.letters.inverted)
             .filter { !$0.isEmpty }
         // At most ONE leading application alias reads as an address — the
-        // same rule `ActionClassifier` applies, for the same live failure
+        // the same rule the question-opener veto applies, for the same live failure
         // ("Sketch can you add…" never reached its frame).
         var peeledAlias = false
         while let first = words.first,
@@ -73,10 +73,10 @@ extension EditIntentClassifier {
             .filter { !$0.isEmpty }
         guard let first = words.first else { return nil }
 
-        // Openers that want an ANSWER, borrowed whole from `ActionClassifier`.
-        if ActionClassifier.questionOpeners.contains(first) { return nil }
+        // Openers that want an ANSWER — the shared closed-class grammar.
+        if RoutingLexicon.questionOpeners.contains(first) { return nil }
 
-        // The me/us veto, lifted from `ActionClassifier` for the same reason it exists there:
+        // The me/us veto — a request addressed to her is not an edit:
         // "update me on the build" opens with a revision verb and is not a revision.
         if words.count >= 2, words[1] == "me" || words[1] == "us" { return nil }
 

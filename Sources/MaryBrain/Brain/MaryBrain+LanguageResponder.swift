@@ -5,7 +5,7 @@
 //  WHAT: LanguageResponder surface — respond / amend / startTurn.
 //  IN:   VoicePipeline / SendText
 //  OUT:  AsyncThrowingStream<BrainEvent>
-//  PIN:  Signaled from BonnieVoice; starts a turn.
+//  PIN:  Signaled from MaryVoice; starts a turn.
 //
 import MaryAmbient
 import MaryFoundation
@@ -27,7 +27,7 @@ extension MaryBrain {
         startTurn(userText: userText, superseding: true)
     }
 
-    // ROUTE: signaled from BonnieVoice, starts a turn
+    // ROUTE: signaled from MaryVoice, starts a turn
     private nonisolated func startTurn(
         userText: String,
         superseding: Bool

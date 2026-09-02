@@ -20,7 +20,7 @@ import Testing
         "I meant the other one", "No the other note.", "  the other document  ",
     ])
     func aOneWordCorrectionIsRecognised(_ text: String) {
-        #expect(MaryBrain.bareCorrection(in: text), "[\(text)] should be a correction")
+        #expect(ReferenceCorrectionGrammar.isCorrection(text), "[\(text)] should be a correction")
     }
 
     /// CONSERVATIVE, EXACTLY AS `bareDecision` IS, and for a sharper reason: a
@@ -39,14 +39,14 @@ import Testing
         "",
     ])
     func ordinaryProseIsNotACorrection(_ text: String) {
-        #expect(!MaryBrain.bareCorrection(in: text), "[\(text)] must not be a correction")
+        #expect(!ReferenceCorrectionGrammar.isCorrection(text), "[\(text)] must not be a correction")
     }
 
     /// A correction and a decision must never both fire on one utterance.
     @Test func correctionsAndDecisionsDoNotOverlap() {
         for text in ["no", "nope", "cancel", "yes", "go ahead"] {
-            #expect(MaryBrain.bareDecision(in: text) != nil)
-            #expect(!MaryBrain.bareCorrection(in: text), "[\(text)] is a decision, not a correction")
+            #expect(DeterministicTier.decision(in: text) != nil)
+            #expect(!ReferenceCorrectionGrammar.isCorrection(text), "[\(text)] is a decision, not a correction")
         }
     }
 }

@@ -20,6 +20,11 @@ public struct TyperPlugin: MaryAdapter {
     public init() {
         // Passage verbs register here, so any dispatcher has the world→backing resolver.
         _ = PassageRecipes.hasBackingResolver
+        // AND THE DICTATION HANDS. Without this the session's open/type/scratch
+        // hooks stay uninstalled and every dictation Skill refuses with
+        // "Typing isn't available in this build" — the Skills, the package
+        // bindings and the adapter contract were all correct and inert.
+        _ = DictationRunner.installHooks
     }
 
     /// Which half of writing these hands are: caret compose, not named-passage revise.

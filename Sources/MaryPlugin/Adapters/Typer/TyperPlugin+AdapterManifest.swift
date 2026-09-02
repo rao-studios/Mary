@@ -94,6 +94,14 @@ extension TyperPlugin {
                 "stop_dictation",
                 capabilities: ["text.hold-dictation"],
                 target: "editable-prose-surface"),
+            "scratch_dictation": operation(
+                "scratch_dictation",
+                capabilities: ["text.hold-dictation"],
+                target: "editable-prose-surface"),
+            "break_dictation": operation(
+                "break_dictation",
+                capabilities: ["text.hold-dictation"],
+                target: "editable-prose-surface"),
             "find_passage": operation(
                 "find_passage",
                 capabilities: ["document.passage.locate"],

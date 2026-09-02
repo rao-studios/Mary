@@ -2765,9 +2765,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
         // A collapsed sidebar folder needs an AX expand + 700ms settle re-walk
         // (MediaSurfaceLibrary.sidebarRows) before the title match even starts.
-        "play_playlist":    10,
-        "shuffle_playlist": 10,
-        "find_playlist":    10,
+        // "play_playlist":    10,
+        // "shuffle_playlist": 10,
+        // "find_playlist":    10,
     ]
 
     public static let ordinarySkillTimeoutMinimum: TimeInterval = 1

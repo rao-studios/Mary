@@ -102,21 +102,32 @@ public struct SemanticAbilityRequestIndex: Sendable {
 
     /// Embedding-only recall. Tokens and phrases seeded the corpus at build.
     public func requestedAbilities(in utterance: String) -> Set<AbilityID> {
-        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [] }
+        Set(affinities(in: utterance)
+            .filter { $0.value >= positiveThreshold }
+            .keys)
+    }
+
+    /// THE SCORED SIBLING of `requestedAbilities`, for consumers that RANK
+    /// rather than admit — discipline selection needs to know which ability
+    /// the words lean toward and by how much over the runner-up, which a
+    /// thresholded set cannot say. Negative suppression still applies (a
+    /// suppressed ability is absent, not low-scoring); the positive floor is
+    /// the caller's to choose.
+    public func affinities(in utterance: String) -> [AbilityID: Float] {
+        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
         let query = Self.normalized(raw)
-        var requested: Set<AbilityID> = []
+        var scores: [AbilityID: Float] = [:]
         for entry in entries {
             let best = entry.positives
                 .map { Self.dot($0, query) }
                 .max() ?? -1
-            guard best >= positiveThreshold else { continue }
             let bestNegative = entry.negatives
                 .map { Self.dot($0, query) }
                 .max() ?? -1
             guard best - bestNegative >= negativeMargin else { continue }
-            requested.insert(entry.abilityID)
+            scores[entry.abilityID] = best
         }
-        return requested
+        return scores
     }
 
     private static func normalized(_ vector: [Float]) -> [Float] {

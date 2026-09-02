@@ -701,7 +701,14 @@ import Testing
         let proactiveStream = brain.proactiveEvents()
         let settleWatcher = Task { await watchRoutineTerminal(proactiveStream) }
 
-        let turn = Task { try? await collect(brain.respond(to: "add the probe hookup")) }
+        // AN EDIT SHAPE, on purpose: this fake registry ships no embedding
+        // index, and action-ness is an embedding verdict now. A revision is
+        // STRUCTURE — `EditIntentClassifier` reads it with no corpus at all —
+        // so it is the one way to state "this turn acts" without standing up
+        // a vectorizer for a cancellation test.
+        let turn = Task {
+            try? await collect(brain.respond(to: "replace the probe hookup with a stub"))
+        }
         // An ACTION turn has no Lane A, so `runTurn` runs unbroken from the
         // lane spawn to `laneFinished` — which makes `cancel()`, an
         // actor-isolated call, land inside the action join grace by

@@ -84,25 +84,22 @@ extension MaryBrain {
                 continuation.yield(.exchangeSuperseded(userTurnID: open.userTurnID))
             }
         }
+        // THE ONE DETERMINISTIC CONSULT. Everything else this turn asks about
+        // the words, it asks the corpus — semantically.
+        let bareDecision = DeterministicTier.decision(in: userText)
         // Held dictation owns the utterance. Bare yes/no/stop stay deterministic.
         // A pending action + a bare yes/no is not the model's decision to make.
-        let bareDecision = Self.bareDecision(in: userText)
         let pendingConfirmationArmed = dispatcher?.hasPendingSkillConfirmation ?? false
-        if !pendingConfirmationArmed || bareDecision == nil {
-            if DictationSession.shared.isHeld() {
-                if await runHeldDictationTurn(
-                    userText: userText, continuation: continuation, epoch: epoch) {
-                    logTurnExit("held dictation")
-                    continuation.finish()
-                    return
-                }
-            } else if Self.dictationOpener(in: userText) {
-                await openDictationSession(
-                    userText: userText, continuation: continuation, epoch: epoch)
-                logTurnExit("dictation opener")
-                continuation.finish()
-                return
-            }
+        // A held session owns UNADDRESSED speech — that is the whole mode.
+        // Opening one is the writing package's `start_dictation` Skill, routed
+        // like any other; nothing here knows the words that ask for it.
+        if !pendingConfirmationArmed || bareDecision == nil,
+           DictationSession.shared.isHeld(),
+           await runHeldDictationTurn(
+            userText: userText, continuation: continuation, epoch: epoch) {
+            logTurnExit("held dictation")
+            continuation.finish()
+            return
         }
 
         dispatcher?.beginTurn()
@@ -171,32 +168,13 @@ extension MaryBrain {
             let skillName = approved
                 ? AbilityRuntime.confirmSkillName
                 : AbilityRuntime.cancelSkillName
-            let invocation = ModelSkillInvocation(
-                id: "decision-\(UUID().uuidString)", name: skillName, argumentsJSON: "{}")
-            let invocationReference = dispatcher.skillReference(for: skillName)
-            continuation.yield(.skillInvocation(
-                reference: invocationReference, argumentsJSON: "{}",
-                runID: invocation.id))
-            let startedAt = Date()
-            let outcome = await dispatcher.dispatch(
-                name: skillName, argumentsJSON: "{}", runID: invocation.id)
-            continuation.yield(.skillResult(record: BehavioralActionRecord(
-                outcome: outcome,
-                intention: skillName,
+            decisionOutcome = await performSkillTurn(
+                dispatcher: dispatcher,
+                name: skillName,
                 argumentsJSON: "{}",
-                reference: invocationReference,
-                runID: invocation.id,
-                startedAt: startedAt)))
-            appendHistory(contentsOf: [
-                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
-                BrainTurn(
-                    role: .skillResult,
-                    text: outcome.summary,
-                    skillInvocationID: invocation.id,
-                    skillName: skillName
-                ),
-            ], epoch: epoch)
-            decisionOutcome = outcome
+                runIDPrefix: "decision",
+                continuation: continuation,
+                epoch: epoch)
         }
 
         // A bare "stop/cancel" while routines run halts EVERYTHING (user decision: one stop, no disambiguation grammar)
@@ -284,46 +262,19 @@ extension MaryBrain {
             var arguments: [String: String] = ["text": offer.text, "mode": "compose"]
             // WHERE SHE OFFERED IT, not wherever is frontmost when they agreed.
             if let name = offer.place?.registration?.id { arguments["app"] = name }
-            let argumentsJSON = (try? JSONSerialization.data(
-                withJSONObject: arguments, options: [.sortedKeys]))
-                .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-            let skillName = "type_at_cursor"
-            let invocation = ModelSkillInvocation(
-                id: "prose-\(UUID().uuidString)", name: skillName,
-                argumentsJSON: argumentsJSON)
-            let invocationReference = dispatcher.skillReference(for: skillName)
-            continuation.yield(.skillInvocation(
-                reference: invocationReference, argumentsJSON: argumentsJSON,
-                runID: invocation.id))
-            let startedAt = Date()
-            let outcome = await dispatcher.dispatch(
-                name: skillName, argumentsJSON: argumentsJSON,
-                runID: invocation.id)
-            continuation.yield(.skillResult(record: BehavioralActionRecord(
-                outcome: outcome,
-                intention: skillName,
-                argumentsJSON: argumentsJSON,
-                reference: invocationReference,
-                runID: invocation.id,
-                startedAt: startedAt)))
-            appendHistory(contentsOf: [
-                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
-                BrainTurn(
-                    role: .skillResult,
-                    text: outcome.summary,
-                    skillInvocationID: invocation.id,
-                    skillName: skillName
-                ),
-            ], epoch: epoch)
+            let outcome = await performSkillTurn(
+                dispatcher: dispatcher,
+                name: "type_at_cursor",
+                argumentsJSON: Self.argumentsJSON(arguments),
+                runIDPrefix: "prose",
+                continuation: continuation,
+                epoch: epoch)
             let spoken = outcome.ok
                 ? Self.wroteOfferedProseLine(place: offer.place?.displayName)
                 : Self.couldNotWriteOfferedProseLine(detail: outcome.summary)
-            continuation.yield(.token(spoken))
-            appendHistory(
-                BrainTurn(role: .assistant, text: spoken), epoch: epoch)
-            continuation.yield(.completed(fullText: spoken))
-            logTurnExit("accepted prose offer")
-            continuation.finish()
+            closeSkillTurn(
+                spoken: spoken, exit: "accepted prose offer",
+                continuation: continuation, epoch: epoch)
             return
         }
 
@@ -375,23 +326,17 @@ extension MaryBrain {
         // installed `AbilityTurnContext` task-local anyway.
         let turnRegistry = dispatcher?.abilitySnapshot
             ?? AbilityRuntimeSnapshot.empty
-        let intentIndex = turnRegistry.semanticIntentIndex
-        let intentVerdict = intentIndex?.classify(routingQuery)
-        let embeddingIntent: AmbientIntent?
-        if intentIndex == nil {
-            embeddingIntent = nil
-        } else {
-            embeddingIntent = intentVerdict?.intent ?? .converse
-        }
-        var actionTurn = editIntent != nil
-        if let embeddingIntent {
-            actionTurn = actionTurn
-                || embeddingIntent == .operate
-                || embeddingIntent == .compose
-        } else {
-            actionTurn = actionTurn || ActionClassifier.isActionCommand(
-                userText, applicationAliases: applicationAddressAliases)
-        }
+        // THE ONE SEMANTIC READ of this turn. Intent, requested abilities,
+        // skill affinities and the unique pick all come from the same pass, so
+        // the route, the roster and the log cannot disagree about what was said.
+        let offeredNames = Set((dispatcher?.schemas ?? []).map(\.name))
+        let triage = TurnTriage.verdict(
+            query: routingQuery,
+            registry: turnRegistry,
+            offeredNames: offeredNames)
+        let embeddingIntent = triage.intent
+        // Revision is STRUCTURE, so it ORs in rather than being embedded.
+        var actionTurn = editIntent != nil || triage.isActionShaped
 
         // SAMPLED ONCE, for the route and the row that records it: the ledger keeps
         // moving, so a second read could show places the engine never routed on.
@@ -420,15 +365,8 @@ extension MaryBrain {
                 isDeictic: isDeictic, focusOverride: focusOverride)))
         world.store.noteRoute(route)
         actionTurn = route.isActionTurn
-        let skillAffinities = turnRegistry.semanticSkillIndex?
-            .affinities(in: routingQuery) ?? [:]
-        let offeredNames = Set((dispatcher?.schemas ?? []).map(\.name))
-        let offeredAffinities = skillAffinities.filter { id, _ in
-            guard let skill = turnRegistry.skill(id: id) else { return false }
-            return offeredNames.contains(skill.reference.invocationName)
-        }
-        let uniqueSkill = EmbeddingRouting.uniqueWinner(
-            affinities: offeredAffinities, snapshot: turnRegistry)
+        let offeredAffinities = triage.skillAffinities
+        let uniqueSkill = triage.uniqueSkill
         let abilityList = route.gate.requestedAbilities
             .map(\.rawValue).sorted().joined(separator: ",")
         let topSkills = offeredAffinities
@@ -439,20 +377,12 @@ extension MaryBrain {
         let pick: String
         if uniqueSkill != nil {
             pick = "unique-win"
-        } else if skillAffinities.count > 1 {
+        } else if offeredAffinities.count > 1 {
             pick = "tie"
         } else {
             pick = "below-floor"
         }
-        let intentBit: String
-        if let intentVerdict {
-            let runner = intentVerdict.runnerUp?.rawValue ?? "none"
-            intentBit = "intent=\(intentVerdict.intent.rawValue) score=\(String(format: "%.2f", intentVerdict.score)) runner=\(runner)"
-        } else if embeddingIntent != nil {
-            intentBit = "intent=converse score=0 runner=none"
-        } else {
-            intentBit = "intent=lexical"
-        }
+        let intentBit = triage.intentDescription
         let abilitiesBit = abilityList.isEmpty ? "none" : abilityList
         let skillsBit = topSkills.isEmpty ? "none" : topSkills
         Self.turnLog.info(
@@ -481,7 +411,7 @@ extension MaryBrain {
             recentApplicationReferent = (focusedApplicationID, now)
         }
         // Container for this turn — once, then published. Re-aim only (next command).
-        if Self.bareCorrection(in: userText),
+        if ReferenceCorrectionGrammar.isCorrection(userText),
            let previous = world.store.reference().referent,
            let resolveCorrection = referenceCorrector {
             let intended = resolveCorrection(previous)
@@ -505,47 +435,20 @@ extension MaryBrain {
             let application = (named ?? route.leadPlace)?.application
             var arguments: [String: String] = [:]
             if let application { arguments["app"] = application }
-            let argumentsJSON = (try? JSONSerialization.data(
-                withJSONObject: arguments, options: [.sortedKeys]))
-                .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-            let invocation = ModelSkillInvocation(
-                id: "window-\(UUID().uuidString)", name: verb,
-                argumentsJSON: argumentsJSON)
-            let invocationReference = dispatcher.skillReference(for: verb)
-            continuation.yield(.skillInvocation(
-                reference: invocationReference, argumentsJSON: argumentsJSON,
-                runID: invocation.id))
-            let startedAt = Date()
-            let outcome = await dispatcher.dispatch(
-                name: verb, argumentsJSON: argumentsJSON, runID: invocation.id)
-            continuation.yield(.skillResult(record: BehavioralActionRecord(
-                outcome: outcome,
-                intention: verb,
-                argumentsJSON: argumentsJSON,
-                reference: invocationReference,
-                runID: invocation.id,
-                startedAt: startedAt)))
-            appendHistory(contentsOf: [
-                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
-                BrainTurn(
-                    role: .skillResult,
-                    text: outcome.summary,
-                    skillInvocationID: invocation.id,
-                    skillName: verb
-                ),
-            ], epoch: epoch)
+            let outcome = await performSkillTurn(
+                dispatcher: dispatcher,
+                name: verb,
+                argumentsJSON: Self.argumentsJSON(arguments),
+                runIDPrefix: "window",
+                continuation: continuation,
+                epoch: epoch)
             Self.laneLog.info("window verb dispatched deterministically — no model round")
             // A READ'S SUMMARY IS THE ANSWER; A RAISE'S IS NOT.
             let spoken = (outcome.ok && verb != "list_app_windows")
                 ? "" : outcome.summary
-            if !spoken.isEmpty {
-                continuation.yield(.token(spoken))
-                appendHistory(
-                    BrainTurn(role: .assistant, text: spoken), epoch: epoch)
-            }
-            continuation.yield(.completed(fullText: spoken))
-            logTurnExit("window verb \(verb)")
-            continuation.finish()
+            closeSkillTurn(
+                spoken: spoken, exit: "window verb \(verb)",
+                continuation: continuation, epoch: epoch)
             return
         }
 
@@ -560,52 +463,23 @@ extension MaryBrain {
             let argumentsJSON = EmbeddingRouting.argumentsJSON(
                 for: skill, utterance: userText, applicationID: applicationID,
                 applicationProfiles: applicationProfiles)
-            let invocation = ModelSkillInvocation(
-                id: "embed-\(UUID().uuidString)", name: name,
-                argumentsJSON: argumentsJSON)
-            let invocationReference = dispatcher.skillReference(for: name)
-            continuation.yield(.skillInvocation(
-                reference: invocationReference, argumentsJSON: argumentsJSON,
-                runID: invocation.id))
-            let startedAt = Date()
-            // Armed only for this one shortcut dispatch — a title match with
-            // no exact candidate may commit to its best guess rather than
-            // refuse. Lane B/model-driven dispatches of the same skill never
-            // set this and keep today's honest refusal.
-            let outcome = await SpokenTitleCommitContext.$allowed.withValue(true) {
-                await dispatcher.dispatch(
-                    name: name, argumentsJSON: argumentsJSON, runID: invocation.id)
-            }
-            continuation.yield(.skillResult(record: BehavioralActionRecord(
-                outcome: outcome,
-                intention: name,
+            let outcome = await performSkillTurn(
+                dispatcher: dispatcher,
+                name: name,
                 argumentsJSON: argumentsJSON,
-                reference: invocationReference,
-                runID: invocation.id,
-                startedAt: startedAt)))
-            appendHistory(contentsOf: [
-                BrainTurn(role: .assistant, text: "", skillInvocations: [invocation]),
-                BrainTurn(
-                    role: .skillResult,
-                    text: outcome.summary,
-                    skillInvocationID: invocation.id,
-                    skillName: name
-                ),
-            ], epoch: epoch)
+                runIDPrefix: "embed",
+                allowTitleCommit: true,
+                continuation: continuation,
+                epoch: epoch)
             Self.turnLog.info(
                 "embed dispatch — invoke \(name, privacy: .public)")
             // A committed guess must speak — silence here would start
             // playing the wrong thing with no way to catch it.
             let spoken = (outcome.ok && !outcome.foundNothing && !outcome.committedGuess)
                 ? "" : outcome.summary
-            if !spoken.isEmpty {
-                continuation.yield(.token(spoken))
-                appendHistory(
-                    BrainTurn(role: .assistant, text: spoken), epoch: epoch)
-            }
-            continuation.yield(.completed(fullText: spoken))
-            logTurnExit("embedding dispatch \(name)")
-            continuation.finish()
+            closeSkillTurn(
+                spoken: spoken, exit: "embedding dispatch \(name)",
+                continuation: continuation, epoch: epoch)
             return
         }
         if route.intent == .operate {

@@ -2,10 +2,13 @@
 //  MaryBrain+UtteranceGates.swift
 //  MaryBrain
 //
-//  WHAT: Deterministic whole-utterance gates — yes/no, correction, accepted-offer.
-//  IN:   runTurnBody
-//  OUT:  bareDecision / bareCorrection / bareAcceptance
+//  WHAT: The ACCEPTANCE gates — structure, not vocabulary. Ownership
+//        precedence, referent liveness, adjacency, place agreement.
+//  IN:   runTurnBody, with a DeterministicTier.Reading already taken
+//  OUT:  bareAcceptance / acceptedProse
 //  PIN:  discussedPassageLifetime lives here (bareAcceptance's only reader).
+//        NO PHRASE SET BELONGS IN THIS FILE — rung 1 reads the tier's
+//        decision, rung 6 asks `TurnTriage` whether she made an offer.
 //
 import MaryVoice
 import Foundation
@@ -13,23 +16,6 @@ import Foundation
 extension MaryBrain {
 
     private static let discussedPassageLifetime: TimeInterval = 5 * 60
-
-    /// A whole-utterance yes/no, or nil when the answer says anything more (conditions, changes, questions stay with the model).
-    /// WHOLE-UTTERANCE AND EXACT, exactly as `bareDecision` is
-    static func bareCorrection(in text: String) -> Bool {
-        let normalized = text.lowercased()
-            .filter { $0.isLetter || $0.isWhitespace }
-            .split(separator: " ")
-            .joined(separator: " ")
-        let corrections: Set<String> = [
-            "no the other one", "the other one", "not that one", "not that note",
-            "wrong one", "wrong note", "the wrong one", "the wrong note",
-            "i meant the other one", "i meant the other note", "the other note",
-            "no not that one", "no wrong one", "not that document",
-            "the other document", "no the other note",
-        ]
-        return corrections.contains(normalized)
-    }
 
     /// AN ACCEPTED OFFER — the fourth mechanism.
     struct AcceptedOffer: Sendable, Equatable {
@@ -112,28 +98,5 @@ extension MaryBrain {
                 utterance, applicationAliases: applicationAliases)
         else { return nil }
         return referent
-    }
-
-    static func bareDecision(in text: String) -> Bool? {
-        let normalized = text.lowercased()
-            .filter { $0.isLetter || $0.isWhitespace }
-            .split(separator: " ")
-            .joined(separator: " ")
-        let affirmatives: Set<String> = [
-            "yes", "yeah", "yep", "yup", "sure", "ok", "okay", "confirm",
-            "proceed", "do it", "go ahead", "go for it", "please do",
-            "yes please", "sounds good", "yes go ahead", "okay do it",
-            "yes do it", "yes proceed", "sure go ahead", "okay go ahead",
-        ]
-        let negatives: Set<String> = [
-            "no", "nope", "cancel", "stop", "dont", "do not", "no thanks",
-            "never mind", "nevermind", "leave it", "cancel it", "no cancel",
-            "dont do it", "no stop", "cancel that",
-        ]
-        
-        // Prioritizes affirms
-        if affirmatives.contains(normalized) { return true }
-        if negatives.contains(normalized) { return false }
-        return nil
     }
 }

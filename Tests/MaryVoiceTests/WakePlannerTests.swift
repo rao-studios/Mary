@@ -24,11 +24,6 @@ import Testing
             ("hi form", "Hi Mary", .bare),
             ("leading recognizer punctuation", "— Mary", .bare),
 
-            // HOMOPHONES — STT spells her name four ways.
-            ("bonny", "bonny", .bare),
-            ("bonni", "Hey Bonni", .bare),
-            ("bonne", "bonne", .bare),
-
             // WAKE + REQUEST — the remainder rides along, casing and
             // punctuation preserved.
             ("request after comma", "Hey Mary, what's the weather?",
@@ -64,7 +59,7 @@ import Testing
             // STILL AMBIGUOUS — keep transcribing.
             ("empty partial", "", true),
             ("preamble only", "hey", true),
-            ("the name is forming", "hey bon", true),
+            ("the name is forming", "hey mar", true),
             ("a greeting word is forming", "he", true),
             ("the name landed", "mary", true),
             ("wake with request underway", "hey mary what", true),

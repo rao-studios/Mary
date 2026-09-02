@@ -112,6 +112,54 @@ extension TyperPlugin {
             ),
 
             SkillBinding(
+                name: "scratch_dictation",
+                description: "Take back the last thing dictated into a held session. One span deep — it undoes the previous utterance, not the whole passage.",
+                access: .write,
+                backing: .native { _, _ in
+                    switch await DictationSession.scratchLastSpan() {
+                    case .typed:
+                        return SkillOutcome(ok: true, summary: "Scratched.")
+                    case .lostSurface(let reason):
+                        return SkillOutcome(ok: false, summary: reason)
+                    case .unavailable:
+                        return SkillOutcome(ok: false, summary: "There's nothing to scratch.")
+                    }
+                },
+                spokenFailureHint: "check Accessibility in my Settings",
+                stage: true,
+                // The scratch is a caret edit in the held surface, like the spans it removes.
+                unroutedWrite: true
+            ),
+
+            SkillBinding(
+                name: "break_dictation",
+                description: "Start a new paragraph or a new line in a held dictation session, so the speaker can shape the page without touching the keyboard.",
+                parameters: [
+                    .init(
+                        name: "kind",
+                        type: "string",
+                        description: "\"paragraph\" for a blank line between blocks, \"line\" for a single break. Defaults to paragraph.",
+                        required: false),
+                ],
+                access: .tweak,
+                backing: .native { args, _ in
+                    let line = args["kind"]?.lowercased() == "line"
+                    switch await DictationSession.typeSpan(line ? "\n" : "\n\n") {
+                    case .typed:
+                        return SkillOutcome(
+                            ok: true, summary: line ? "New line." : "New paragraph.")
+                    case .lostSurface(let reason):
+                        return SkillOutcome(ok: false, summary: reason)
+                    case .unavailable:
+                        return SkillOutcome(ok: false, summary: "I'm not taking dictation.")
+                    }
+                },
+                spokenFailureHint: "check Accessibility in my Settings",
+                stage: true,
+                unroutedWrite: true
+            ),
+
+            SkillBinding(
                 name: "stop_dictation",
                 description: "Close a held dictation session and report how much was written.",
                 access: .tweak,
