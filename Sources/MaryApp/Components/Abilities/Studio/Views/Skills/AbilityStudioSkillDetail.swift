@@ -5,8 +5,8 @@
 //  WHAT: The selected skill, close up — and what can be done with it.
 //  IN:   AbilityStudioSkillsPane selection.
 //  OUT:  addWorkflowStep, transitionSkillKind, updateSkill.
-//  PIN:  Replaces the six numbered blocks of the old Skill card. Everything cut
-//        is still reachable — under More, or in the Advanced drawer.
+//  PIN:  Replaces the six numbered blocks of the old Skill card. A skill this
+//        package owns is edited right here; one it only uses opens its owner.
 //
 
 import MaryBrain
@@ -66,6 +66,9 @@ struct AbilityStudioSkillDetail: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 facts
+                if isOwn, let skill = ownSkill {
+                    AbilityStudioSkillEditor(model: model, skill: skill, package: draft)
+                }
                 actions
             }
         }

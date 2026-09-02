@@ -54,15 +54,29 @@ struct AbilityStudioSkillsPane: View {
             }
         } content: {
             VStack(alignment: .leading, spacing: .layer3) {
-                ScrollView(.vertical) {
-                    VStack(alignment: .leading, spacing: .layer4) {
-                        ForEach(bench.lanes) { lane in
-                            self.lane(lane)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical) {
+                        VStack(alignment: .leading, spacing: .layer4) {
+                            ForEach(bench.lanes) { lane in
+                                self.lane(lane)
+                            }
+                        }
+                        .padding(.bottom, 2)
+                    }
+                    .scrollIndicators(.never)
+                    // A recipe row can select a skill that lives in a collapsed
+                    // lane, off the bottom. Open the lane, then go to it.
+                    .onChange(of: model.selectedSkillID) { _, id in
+                        guard let id,
+                              let lane = bench.lanes.first(where: { $0.tiles.contains { $0.id == id } })
+                        else { return }
+                        collapsedLanes.remove(lane.abilityID)
+                        if lane.isCollapsedByDefault { expandedByDefault.insert(lane.abilityID) }
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            proxy.scrollTo(id, anchor: .center)
                         }
                     }
-                    .padding(.bottom, 2)
                 }
-                .scrollIndicators(.never)
 
                 if let selectedTile {
                     AbilityStudioSkillDetail(
@@ -106,11 +120,13 @@ struct AbilityStudioSkillsPane: View {
                                     model.selectedSkillID == tile.id ? nil : tile.id
                             }
                             .lineageTile(tile.id)
+                            .id(tile.id)
                         }
                     }
                     .padding(.bottom, 18)
                 }
                 .scrollIndicators(.never)
+                .scrollPosition(id: laneScrollTarget(lane), anchor: .center)
             }
 
             laneLabel(lane, isCollapsed: isCollapsed)
@@ -127,6 +143,19 @@ struct AbilityStudioSkillsPane: View {
                     },
                     uniquingKeysWith: { first, _ in first }))
         }
+    }
+
+    /// The horizontal scroll follows a selection into this lane; otherwise it
+    /// stays where the author left it.
+    private func laneScrollTarget(_ lane: AbilityStudioSkillLane) -> Binding<SkillID?> {
+        Binding(
+            get: {
+                guard let id = model.selectedSkillID,
+                      lane.tiles.contains(where: { $0.id == id })
+                else { return nil }
+                return id
+            },
+            set: { _ in })
     }
 
     private func laneLabel(

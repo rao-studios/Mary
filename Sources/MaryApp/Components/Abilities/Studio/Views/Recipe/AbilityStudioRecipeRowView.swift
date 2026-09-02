@@ -59,9 +59,13 @@ struct AbilityStudioRecipeRowView: View {
                     Spacer(minLength: .layer1)
 
                     if let ownerTitle = row.ownerTitle {
-                        StudioOwnerChip(
-                            title: ownerTitle,
-                            tint: Color.maryAbilityTint(row.ownerTint ?? "", fallback: .maryGold))
+                        Button(action: revealSkill) {
+                            StudioOwnerChip(
+                                title: ownerTitle,
+                                tint: Color.maryAbilityTint(row.ownerTint ?? "", fallback: .maryGold))
+                        }
+                        .buttonStyle(.plain)
+                        .help(revealHelp)
                     }
                     glyphs
                     Circle()
@@ -223,6 +227,30 @@ struct AbilityStudioRecipeRowView: View {
         .help(entry.isComposable
               ? entry.summary
               : "A recipe cannot call a skill that stops to ask the user.")
+    }
+
+    // MARK: - To the skill
+
+    /// A step is a usage; the skill is edited on the bench. This is the path
+    /// from one to the other.
+    private var revealHelp: String {
+        switch row.target {
+        case .draftSkill: return "Show this skill on the bench"
+        case .installed(let runtime): return "Show \(runtime.ability.title)'s skill on the bench"
+        case .primitive: return "One of Mary's own — nothing to edit"
+        case nil: return "Nothing answers to this name yet"
+        }
+    }
+
+    private func revealSkill() {
+        switch row.target {
+        case .draftSkill(let skill):
+            model.selectedSkillID = skill.id
+        case .installed(let runtime):
+            model.selectedSkillID = runtime.skill.id
+        case .primitive, nil:
+            break
+        }
     }
 
     // MARK: - Writes
