@@ -135,7 +135,7 @@ import Testing
             query: "wrangle the widget",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore(persist: false))
+            exemplars: RoutingExemplarStore())
 
         #expect(verdict.uniqueSkill != nil)
         #expect(verdict.intent == .operate)
@@ -154,7 +154,7 @@ import Testing
             query: "hello there",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore(persist: false))
+            exemplars: RoutingExemplarStore())
 
         #expect(verdict.intent == .converse)
         #expect(!verdict.promotedByUniqueSkill)
@@ -170,7 +170,7 @@ import Testing
             query: "xyzzy plugh nothing matches this",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore(persist: false))
+            exemplars: RoutingExemplarStore())
 
         #expect(verdict.uniqueSkill == nil)
         #expect(verdict.intent == .converse)
@@ -186,7 +186,7 @@ import Testing
             query: "wrangle the widget",
             registry: environment,
             offeredNames: [],
-            exemplars: RoutingExemplarStore(persist: false))
+            exemplars: RoutingExemplarStore())
 
         #expect(verdict.uniqueSkill == nil)
         #expect(!verdict.promotedByUniqueSkill)

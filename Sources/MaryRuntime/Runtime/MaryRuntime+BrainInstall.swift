@@ -82,6 +82,12 @@ extension MaryRuntime {
         // 1. Seams first — inversions so MaryAmbient does not call up.
         ProseSurfaceSupport.shared.installBackingResolver()
         AmbientCapabilityBridge.install()
+        // Routing lessons are personal memory. MaryBrain cannot name Totem
+        // (it does not depend on MaryTotem), so the runtime hands it a backend.
+        RoutingExemplarMemoryProvider.install { TotemRoutingExemplarMemory() }
+        // Carry any previous build's local lessons across, once. Off the
+        // launch path: a migration must not delay a first turn.
+        Task.detached { await MaryRuntime.totemContext.migrateLegacyRoutingExemplars() }
 
         // 2. Package graph.
         let load = AbilityLibrary.shared.configureAndLoad(

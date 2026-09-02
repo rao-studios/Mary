@@ -58,7 +58,7 @@ import Testing
     /// THE MANDATED TEST. A converse-routed turn that the model nonetheless
     /// dispatched must leave an OPERATE row and no converse row at all.
     @Test func aConverseRoutedDispatchRecordsOperateNotConverse() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(effectful: "do_thing")
         runtime.setExemplarStoreForTesting(store)
 
@@ -82,7 +82,7 @@ import Testing
     /// the affordance press, the confirm/cancel replay and the accepted-prose
     /// road ("yes please") out of the corpus.
     @Test func anUngrantedDispatchTeachesNothing() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(effectful: "do_thing")
         runtime.setExemplarStoreForTesting(store)
 
@@ -97,7 +97,7 @@ import Testing
     /// utterance; without the budget each would map those words onto a Skill
     /// the user never named.
     @Test func aLaneTeachesOnceHoweverManySkillsItRuns() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(effectful: "do_thing", second: "do_other")
         runtime.setExemplarStoreForTesting(store)
 
@@ -118,7 +118,7 @@ import Testing
     /// read uniquely and the shortcut would read the file and CLOSE the turn
     /// without doing the work.
     @Test func theModelLaneDoesNotTeachReads() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(readOnly: "read_thing")
         runtime.setExemplarStoreForTesting(store)
 
@@ -136,7 +136,7 @@ import Testing
     /// The confidence lane may: there the embedding picked this Skill from
     /// these very words, so the row only reinforces its own win.
     @Test func theConfidenceLaneMayTeachAReadItAlreadyWon() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(readOnly: "read_thing")
         runtime.setExemplarStoreForTesting(store)
 
@@ -155,7 +155,7 @@ import Testing
     /// A FAILURE STILL TEACHES NOTHING — the "bad night pins a centroid" PIN
     /// survives the rewrite.
     @Test func aFailedDispatchTeachesNothing() async {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let runtime = Self.runtime(failing: "do_thing")
         runtime.setExemplarStoreForTesting(store)
 

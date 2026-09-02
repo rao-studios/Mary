@@ -360,7 +360,7 @@ private extension String {
     }
 
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)
         try Self.assertUniquePlayPlaylist(Self.screenshotInApp, store: store)
     }
@@ -371,7 +371,7 @@ private extension String {
     /// vectorizer (which only ever looks at the first line) — this is the
     /// one measurement `EmbeddingRoutingTests` cannot make.
     @Test func composedSnapshotAndHistoryQueriesStillUniquelyPickPlayPlaylist() throws {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,

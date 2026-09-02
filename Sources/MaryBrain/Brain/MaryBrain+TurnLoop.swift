@@ -120,15 +120,30 @@ extension MaryBrain {
         // After the utterance is published so Ability Totem search can use
         // this turn's words. Observers still refresh here so live facts and
         // the search share one budget.
+        //
+        // ROUTING MEMORY IS RECALLED HERE TOO, and this is the only place it
+        // can be: the readers below (`SemanticSkillRequestIndex.affinities`,
+        // `SemanticIntentIndex.classify`) are synchronous all the way up, so
+        // the round trip has to happen at an await that already exists, under
+        // a budget, before anything scores. A recall that misses its budget
+        // leaves the turn routing on its authored corpus alone.
+        RoutingExemplarStore.shared.clearRecall()
         if let prepare = turnContextPreparer {
             _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
+                async let recalled: Void = RoutingExemplarStore.shared.recall(near: userText)
                 await prepare()
+                await recalled
                 return Optional(())
             }
             if Task.isCancelled {
                 logTurnExit("cancelled during observer refresh")
                 continuation.finish()
                 return
+            }
+        } else {
+            _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
+                await RoutingExemplarStore.shared.recall(near: userText)
+                return Optional(())
             }
         }
 

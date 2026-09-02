@@ -24,7 +24,7 @@ import Testing
     /// Read-time first-lining means rows already on disk regain their effect
     /// without a migration.
     @Test func aComposedRowScoresAsItsFirstLine() {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let composed = """
             the usual rao mix
             lead: Apple Music
@@ -50,7 +50,7 @@ import Testing
     /// append-only and keyed by full query text, so it grew with every
     /// distinct sentence ever recorded, unbounded, for the life of the process.
     @Test func theMemoDoesNotOutliveItsRows() {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let vectorizer = LineVectorizer(lines: (0..<40).map { "phrase \($0)" })
         for index in 0..<40 {
             store.record(RoutingExemplar(
@@ -71,7 +71,7 @@ import Testing
     /// The derived view answers the two questions its readers ask, in recency
     /// order, without copying the whole store per call.
     @Test func queriesComeBackNewestFirstAndSplitByOutcome() {
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let base = Date()
         store.record(RoutingExemplar(
             query: "older", skillID: "s", intent: "operate", ok: true,

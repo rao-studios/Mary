@@ -2,10 +2,18 @@
 //  RoutingExemplarStore.swift
 //  MaryBrain
 //
-//  WHAT: Settled (query, skill, intent, ok) vectors that move later distances.
-//  IN:   confidence dispatch / lane outcomes
+//  WHAT: This turn's view of settled (query, skill, intent) lessons.
+//  IN:   an async recall from `RoutingExemplarMemory`, once per turn
 //  OUT:  extra positives/negatives for intent and skill search
-//  PIN:  Recency cap; a bad night must not pin a centroid.
+//  PIN:  A TURN-SCOPED VIEW, NOT A DATABASE. Durability moved to personal
+//        Totem memory: a routing lesson is how THIS user asks for things, so
+//        it should follow them to another machine and be retrieved by
+//        resemblance — neither of which a JSON file could do.
+//        RETRIEVE, THEN SCORE LOCALLY. The backend ranked these in ITS
+//        embedding space; every text here is re-vectorized in the space the
+//        authored corpus lives in, because comparing two spaces against one
+//        floor is wrong in a way nothing would report.
+//        Recency cap; a bad night must not pin a centroid.
 //
 
 import MaryAmbient
@@ -37,15 +45,18 @@ public struct RoutingExemplar: Sendable, Codable, Equatable {
 
 public final class RoutingExemplarStore: @unchecked Sendable {
 
-    public static let shared = RoutingExemplarStore(persist: true)
+    public static let shared = RoutingExemplarStore()
 
     public static let perSkillCap = 24
     public static let totalCap = 200
     public static let horizon: TimeInterval = 30 * 24 * 60 * 60
 
+    /// How many neighbours one recall asks for. The read is a turn-path
+    /// round trip, and the consumers take a MAX over what comes back — past
+    /// a handful, further neighbours cannot change the answer.
+    public static let recallLimit = 24
+
     private let box = OSAllocatedUnfairLock<[RoutingExemplar]>(initialState: [])
-    private let persist: Bool
-    private let url: URL?
 
     /// The store, pre-grouped the way its two readers actually ask —
     /// recency-sorted query lists per skill and per intent, split by `ok`.
@@ -64,45 +75,60 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     private let derivedBox = OSAllocatedUnfairLock<Derived?>(initialState: nil)
     private static let derivedStaleness: TimeInterval = 60 * 60
 
-    public init(persist: Bool = false) {
-        self.persist = persist
-        if persist {
-            let root = FileManager.default
-                .urls(for: .applicationSupportDirectory, in: .userDomainMask)
-                .first?
-                .appendingPathComponent("Mary", isDirectory: true)
-            if let root {
-                try? FileManager.default.createDirectory(
-                    at: root, withIntermediateDirectories: true)
-                url = root.appendingPathComponent("routing-exemplars.json")
-            } else {
-                url = nil
-            }
-            load()
-        } else {
-            url = nil
-        }
+    /// `memory` is resolved per call rather than captured, so installing a
+    /// backend after the shared store exists still takes effect.
+    private let memoryOverride: (any RoutingExemplarMemory)?
+
+    public init(memory: (any RoutingExemplarMemory)? = nil) {
+        self.memoryOverride = memory
+    }
+
+    private var memory: any RoutingExemplarMemory {
+        memoryOverride ?? RoutingExemplarMemoryProvider.current
+    }
+
+    // MARK: - The turn
+
+    /// Ask personal memory what resembles this turn's words, and hold the
+    /// answer for the synchronous readers below.
+    ///
+    /// ONE ROUND TRIP PER TURN. The old design read every stored row for every
+    /// Skill and vectorized each — retrieval, re-implemented per turn against
+    /// a file. Now the backend retrieves and this scores.
+    public func recall(near utterance: String) async {
+        let recalled = await memory.recall(near: utterance, limit: Self.recallLimit)
+        let live = prune(recalled)
+        box.withLock { $0 = live }
+        derivedBox.withLock { $0 = nil }
+        let keep = Set(live.map { RoutingQuery.firstLine($0.query) })
+        vectorCache.withLock { cache in cache = cache.filter { keep.contains($0.key) } }
+    }
+
+    /// Drop this turn's recalled view. Nothing is lost — the lessons live in
+    /// personal memory, not here.
+    public func clearRecall() {
+        box.withLock { $0 = [] }
+        derivedBox.withLock { $0 = nil }
     }
 
     public func all() -> [RoutingExemplar] {
         prune(box.withLock { $0 })
     }
 
+    /// Teach personal memory, and make the lesson usable at once — a turn that
+    /// dispatches twice should see the first lesson on the second read.
     public func record(_ exemplar: RoutingExemplar) {
-        let survivors = box.withLock { items in
+        let live = box.withLock { items -> Set<String> in
             items.append(exemplar)
             items = Self.capped(prune(items))
-            return items
+            return Set(items.map { RoutingQuery.firstLine($0.query) })
         }
         derivedBox.withLock { $0 = nil }
-        // A row evicted by the caps must not keep a warm vector — without this
-        // the memo grew append-only with every distinct query ever recorded,
-        // long past the rows themselves.
-        let live = Set(survivors.map { RoutingQuery.firstLine($0.query) })
-        vectorCache.withLock { cache in
-            cache = cache.filter { live.contains($0.key) }
-        }
-        save()
+        // The memo never outlives its rows, wherever the rows change.
+        vectorCache.withLock { cache in cache = cache.filter { live.contains($0.key) } }
+        let memory = self.memory
+        // FIRE AND FORGET: a turn must never wait to be taught.
+        Task.detached { await memory.remember(exemplar) }
     }
 
     public func queries(skillID: String, ok: Bool) -> [String] {
@@ -198,19 +224,4 @@ public final class RoutingExemplarStore: @unchecked Sendable {
         return merged
     }
 
-    private func load() {
-        guard persist, let url,
-              let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode([RoutingExemplar].self, from: data)
-        else { return }
-        box.withLock { $0 = Self.capped(prune(decoded)) }
-        derivedBox.withLock { $0 = nil }
-    }
-
-    private func save() {
-        guard persist, let url else { return }
-        let items = all()
-        guard let data = try? JSONEncoder().encode(items) else { return }
-        try? data.write(to: url, options: .atomic)
-    }
 }

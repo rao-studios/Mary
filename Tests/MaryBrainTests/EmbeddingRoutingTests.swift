@@ -31,7 +31,7 @@ import Testing
 
     @Test func screenshotUtterancesOperateAndUniquePlayPlaylist() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,
@@ -65,7 +65,7 @@ import Testing
 
     @Test func aSongTitlePicksPlayMusicNotPlayPlaylist() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let utterance = "Play Stand by Me."
         let verdict = try #require(env.intent.classify(utterance, exemplars: store))
         #expect(verdict.intent == .operate)
@@ -78,7 +78,7 @@ import Testing
 
     @Test func lookingAtCodeWithACodingLeadIsPerceive() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore(persist: false)
+        let store = RoutingExemplarStore()
         let query = RoutingQuery.compose(
             utterance: "Let's look at this code",
             world: AmbientWorld.Snapshot(
@@ -96,8 +96,8 @@ import Testing
 
     @Test func anOkExemplarPullsAParaphraseAboveTheFloor() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let empty = RoutingExemplarStore(persist: false)
-        let loaded = RoutingExemplarStore(persist: false)
+        let empty = RoutingExemplarStore()
+        let loaded = RoutingExemplarStore()
         let paraphrase = "that rao mix again"
         #expect(env.skills.affinities(in: paraphrase, exemplars: empty).isEmpty)
         loaded.record(RoutingExemplar(
