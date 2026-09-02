@@ -453,6 +453,12 @@ extension MaryBrain {
                 argumentsJSON: argumentsJSON,
                 runIDPrefix: "embed",
                 allowTitleCommit: true,
+                // THE ONE PATH WHOSE LESSON IS FREE: the embedding picked this
+                // Skill uniquely from these very words, so the row reinforces
+                // a win the corpus already produced. Reads included, for the
+                // same reason.
+                exemplarGrant: ExemplarRecordingContext.grant(
+                    lane: .confidence, query: userText, route: route.intent),
                 continuation: continuation,
                 epoch: epoch)
             Self.turnLog.info(

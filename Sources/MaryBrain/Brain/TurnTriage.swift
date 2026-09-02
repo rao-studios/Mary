@@ -45,6 +45,11 @@ enum TurnTriage {
         var skillAffinities: [SkillID: Float]
         var uniqueSkill: AbilityRuntimeSkill?
 
+        /// The intent came from the SKILL corpus, not the intent corpus — see
+        /// the promotion in `verdict`. Carried so the turn log can say so
+        /// rather than reporting an operate verdict the intent index never gave.
+        var promotedByUniqueSkill: Bool
+
         /// NO INDEX, NO OPINION.
         static let abstained = Verdict(
             intent: nil,
@@ -53,11 +58,15 @@ enum TurnTriage {
             isActionShaped: false,
             requestedAbilities: [],
             skillAffinities: [:],
-            uniqueSkill: nil)
+            uniqueSkill: nil,
+            promotedByUniqueSkill: false)
 
         /// What the log and the trace quote, so both say the same thing.
         var intentDescription: String {
             guard let intent else { return "intent=lexical" }
+            if promotedByUniqueSkill {
+                return "intent=\(intent.rawValue) promoted=skill"
+            }
             let runner = intentRunnerUp?.rawValue ?? "none"
             return "intent=\(intent.rawValue) score=\(String(format: "%.2f", intentScore)) runner=\(runner)"
         }
@@ -81,16 +90,38 @@ enum TurnTriage {
             return .abstained
         }
         let classified = intentIndex.classify(query, exemplars: exemplars)
-        // FAIL CLOSED. An index that exists but recognizes nothing says
-        // `converse`, never nil: nil means "no index at all", and the engine's
-        // ladder branches on that difference.
-        let intent = classified?.intent ?? .converse
 
-        let affinities = registry.semanticSkillIndex?.affinities(in: query) ?? [:]
+        // Exemplars reach BOTH tiers. `classify` took them and `affinities`
+        // silently fell back to `.shared`, so an injected store only half
+        // applied and the Skill tier could never be tested in isolation.
+        let affinities = registry.semanticSkillIndex?
+            .affinities(in: query, exemplars: exemplars) ?? [:]
         let offered = affinities.filter { id, _ in
             guard let skill = registry.skill(id: id) else { return false }
             return offeredNames.contains(skill.reference.invocationName)
         }
+
+        let uniqueSkill = EmbeddingRouting.uniqueWinner(
+            affinities: offered, snapshot: registry)
+
+        // FAIL CLOSED. An index that exists but recognizes nothing says
+        // `converse`, never nil: nil means "no index at all", and the engine's
+        // ladder branches on that difference.
+        //
+        // EXCEPT WHEN THE SKILL CORPUS ANSWERED. A fail-closed converse is not
+        // a verdict, it is the absence of one — and a turn where exactly one
+        // OFFERED Skill cleared the floor with a margin over every rival is the
+        // corpus saying, in the only voice it has, that these words are about
+        // one act. Believing "converse" there is how the stuck case was made:
+        // no dispatch, so no exemplar, so the intent index never learned the
+        // phrasing, forever ("which windows are up right now").
+        //
+        // A SCORED converse still blocks — this fires only when `classify`
+        // returned nil outright. Everything downstream keeps its own gates: the
+        // shortcut still needs a dispatchable shape, and a zero-argument verb
+        // still needs a whole simple sentence.
+        let promoted = classified == nil && uniqueSkill != nil
+        let intent = promoted ? .operate : (classified?.intent ?? .converse)
 
         return Verdict(
             intent: intent,
@@ -99,7 +130,7 @@ enum TurnTriage {
             isActionShaped: intent == .operate || intent == .compose,
             requestedAbilities: registry.requestedAbilities(in: query),
             skillAffinities: offered,
-            uniqueSkill: EmbeddingRouting.uniqueWinner(
-                affinities: offered, snapshot: registry))
+            uniqueSkill: uniqueSkill,
+            promotedByUniqueSkill: promoted)
     }
 }

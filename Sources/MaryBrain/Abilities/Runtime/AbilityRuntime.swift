@@ -956,8 +956,10 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
            cached.utterance == utterance {
             return cached.affinities
         }
+        // THE INJECTED STORE, not `.shared` — `setExemplarStoreForTesting`
+        // only isolates a test if every read honours it.
         let computed = abilitySnapshot.semanticSkillIndex?
-            .affinities(in: utterance) ?? [:]
+            .affinities(in: utterance, exemplars: exemplarStore.withLock { $0 }) ?? [:]
         semanticSkillAffinityCache.withLock { $0 = (utterance, computed) }
         return computed
     }
@@ -1545,12 +1547,28 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // `SemanticSkillRequestIndex`'s negative-margin gate) even after the
         // real defect is fixed — the exact "a bad night pins a centroid"
         // outcome `RoutingExemplarStore`'s own PIN says must not happen.
-        if name != Self.confirmSkillName, name != Self.cancelSkillName,
+        //
+        // AND ONLY A DISPATCH A LANE VOUCHED FOR. Recording used to happen for
+        // every caller of this chokepoint — the accepted-prose path storing
+        // "yes please" as the way to ask for `type_at_cursor`, the runtime's
+        // own pre-reads storing the user's sentence against a Skill they never
+        // asked for. `ExemplarRecordingContext.grant` is how a lane says "these
+        // words caused this act"; without one, nothing is learned.
+        if let grant = ExemplarRecordingContext.grant,
+           name != Self.confirmSkillName, name != Self.cancelSkillName,
            outcome.ok, !outcome.foundNothing,
-           let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id {
+           let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id,
+           // A MODEL LANE MAY NOT TEACH A READ. "Fix the bug in main.swift"
+           // reads the buffer before it edits; learned, that phrasing could
+           // later win `read_buffer` uniquely and the shortcut would read the
+           // file and CLOSE the turn without doing the work. The confidence
+           // lane is exempt: there the embedding already picked this Skill
+           // from this query, so the row only reinforces its own win.
+           grant.lane == .confidence || !isReadOnly(name),
+           grant.budget.consume() {
             EmbeddingRouting.recordExemplars(
-                query: world.store.routingQuery(),
-                intent: world.store.route()?.intent ?? .operate,
+                query: grant.query,
+                intent: grant.intent,
                 outcomes: [(skillID.rawValue, true)],
                 store: exemplarStore.withLock { $0 })
         }

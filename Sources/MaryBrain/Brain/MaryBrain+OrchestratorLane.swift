@@ -68,6 +68,12 @@ extension MaryBrain {
         // Whether this turn asked for a change (action, edit intent, or transform vocabulary).
         let impliesAction = actionTurn || editIntent != nil
             || AmbientRanker.namesTransform(userText)
+        // ONE LESSON PER LANE, from the words that started it — a routine's
+        // later steps must not each map this utterance onto a Skill the user
+        // never named. Nil when the route teaches nothing (revise, halt, and
+        // the classifier-owned intents the embedding never settles).
+        let exemplarGrant = ExemplarRecordingContext.grant(
+            lane: .model, query: userText, route: routeIntent)
         var usedContinuation = false
         var round = 0
         do {
@@ -286,9 +292,11 @@ extension MaryBrain {
                         continue
                     }
                     let startedAt = Date()
-                    let outcome = await dispatcher.dispatch(
-                        name: call.name, argumentsJSON: call.argumentsJSON,
-                        runID: call.id)
+                    let outcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+                        await dispatcher.dispatch(
+                            name: call.name, argumentsJSON: call.argumentsJSON,
+                            runID: call.id)
+                    }
                     let reference = outcome.skillReference
                         ?? dispatcher.skillReference(for: call.name)
                     emitter.emitSkillResult(BehavioralActionRecord(

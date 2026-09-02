@@ -111,10 +111,22 @@ private extension String {
     /// word is a small fraction of a short sentence vector. The shipped
     /// exemplars were re-authored to distinct shapes on that measurement.
     ///
+    /// THE MARGIN THAT CAME OUT OF THIS. The gap report below is what
+    /// `defaultDominanceMargin` was chosen from: on "read me this browser tab"
+    /// the genuine sibling sits 0.043 behind the leader and the bystander
+    /// 0.068, so 0.05 keeps one and cuts the other. It measurably fixed that
+    /// probe (three applications down to the two browsers).
+    ///
+    /// IT CANNOT FIX A WRONG LEADER, and one probe still has one: "my
+    /// manuscript app" puts SAFARI on top — its authored exemplar "what is the
+    /// reader view showing" collides on the "…showing me" frame, the same
+    /// sentence-shape collision that shows up whenever sibling packages share
+    /// a phrasing. The margin then keeps the wrong leader and cuts the right
+    /// runner-up. That is corpus work, not threshold work.
+    ///
     /// Over-recall costs roster WIDTH, not a wrong act — the arbiter and
     /// eligibility still gate every Skill — so this reports the full picture
-    /// and asserts only that the seam discriminates at all. Tightening it
-    /// wants a margin rule, not more corpus.
+    /// and asserts the invariant the rule does guarantee.
     ///
     /// Probes are PARAPHRASES, never the authored sentences — an exemplar
     /// tuned to its own probe measures the probe.
@@ -143,6 +155,19 @@ private extension String {
         var report: [String] = []
         var wrong: [String] = []
         for (utterance, expected) in cases {
+            // THE GAP REPORT the dominance margin is chosen from: every scored
+            // expertise ability and how far it sits below the leader.
+            let scored = snapshot.abilityAffinities(in: utterance)
+                .filter { category[$0.key.rawValue] != nil }
+                .sorted { $0.value > $1.value }
+            if let lead = scored.first?.value {
+                let gaps = scored.map {
+                    String(format: "%@ %.3f(-%.3f)%@",
+                           $0.key.rawValue, $0.value, lead - $0.value,
+                           category[$0.key.rawValue] == expected ? "" : "*")
+                }
+                report.append("  gaps [\(utterance)] \(gaps.joined(separator: "  "))")
+            }
             let apps = snapshot.requestedAbilities(in: utterance)
                 .map(\.rawValue)
                 .filter { category[$0] != nil }
@@ -152,8 +177,19 @@ private extension String {
             if !mistaken.isEmpty {
                 wrong.append("[\(utterance)] wanted \(expected), also recalled \(mistaken.sorted())")
             }
-            // THE SEAM MUST DISCRIMINATE. Recalling every category is the same
-            // as recalling nothing, and would mean the roster is never scoped.
+            // THE INVARIANT THE DOMINANCE RULE GUARANTEES: nothing recalled
+            // may sit further than the margin behind the leader. Asserted
+            // against the REAL model, where the floor alone let half the
+            // installed expertise through together.
+            if let lead = scored.first?.value {
+                for (id, score) in scored where apps.contains(id.rawValue) {
+                    #expect(
+                        score >= lead - SemanticAbilityRequestIndex.defaultDominanceMargin,
+                        "[\(utterance)] recalled \(id.rawValue) at \(score), \(lead - score) behind the leader")
+                }
+            }
+            // AND IT MUST STILL DISCRIMINATE — recalling every category is the
+            // same as recalling nothing.
             let categories = Set(apps.compactMap { category[$0] })
             #expect(categories.count < 4, "[\(utterance)] recalled every category")
         }
@@ -194,7 +230,9 @@ private extension String {
             let verdict = TurnTriage.verdict(
                 query: utterance, registry: snapshot, offeredNames: offered)
             let picked = verdict.uniqueSkill?.reference.invocationName
-            report.append("window [\(utterance)] -> \(picked ?? "none")  intent=\(verdict.intent?.rawValue ?? "nil")")
+            let promoted = verdict.promotedByUniqueSkill ? " promoted" : ""
+            report.append(
+                "window [\(utterance)] -> \(picked ?? "none")  intent=\(verdict.intent?.rawValue ?? "nil")\(promoted)")
             // THE DIRECTION THAT ACTS. Picking nothing costs a model round;
             // picking the WRONG verb moves the user's windows.
             if let picked, picked != expected {

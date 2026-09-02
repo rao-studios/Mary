@@ -26,7 +26,7 @@ import Testing
     /// THE HEADLINE. A package declares a craft and seeds its triggers; the
     /// words then route to it with nothing in Swift ever naming "sketching".
     @Test func aDisciplineNobodyCompiledInIsIdentifiedFromTheWords() throws {
-        guard let registry = Self.registry() else { return }
+        let registry = try #require(Self.registry(), "fixture failed to build")
 
         let verdict = registry.discipline(in: "sketch the layout")
         #expect(verdict == WorkspaceFocus(Self.sketching))
@@ -36,7 +36,7 @@ import Testing
     /// The registry answers WHICH crafts exist — the question that used to be
     /// a two-case enum.
     @Test func theDisciplineRosterComesFromTheInstalledGraph() throws {
-        guard let registry = Self.registry() else { return }
+        let registry = try #require(Self.registry(), "fixture failed to build")
 
         #expect(registry.disciplines.contains(Self.sketching))
         #expect(!registry.disciplines.contains(AbilityID("some-expertise")),
@@ -47,14 +47,14 @@ import Testing
     /// spelling of the old "cues from both sides cancel to nil" rule: a turn
     /// that names two disciplines defers to window truth rather than guessing.
     @Test func aContestedUtteranceNamesNoDiscipline() throws {
-        guard let registry = Self.registry() else { return }
+        let registry = try #require(Self.registry(), "fixture failed to build")
 
         #expect(registry.discipline(in: "tied phrase") == nil)
     }
 
     /// Words that name no craft at all leave the axis alone.
     @Test func anUnrelatedUtteranceNamesNoDiscipline() throws {
-        guard let registry = Self.registry() else { return }
+        let registry = try #require(Self.registry(), "fixture failed to build")
 
         #expect(registry.discipline(in: "xyzzy plugh") == nil)
     }

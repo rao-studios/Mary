@@ -27,6 +27,22 @@ public struct SemanticAbilityRequestIndex: Sendable {
     /// request — the embedding shape of `negativeTokens`.
     public static let defaultNegativeMargin: Float = 0.05
 
+    /// How far below the LEADER an Ability may sit and still be requested.
+    ///
+    /// MEASURED, NOT GUESSED (`EmbeddingCalibrationTests`, real NLEmbedding).
+    /// Seven similar applications all clear a 0.62 floor on an app-shaped
+    /// sentence, so a floor alone recalled three of them for "read me this
+    /// browser tab". The gaps say where the line is: the genuine sibling
+    /// (chrome, −0.043 behind safari) belongs; the bystander (pages, −0.068)
+    /// does not.
+    ///
+    /// WHAT THIS CANNOT FIX, stated so nobody mistakes it for a cure: a WRONG
+    /// LEADER. "What is my manuscript app showing me" puts safari on top at
+    /// 0.695, and a rule measured from the leader keeps whatever leads. That
+    /// is a corpus problem (safari's own alias is "the browser"), not a
+    /// margin problem.
+    public static let defaultDominanceMargin: Float = 0.05
+
     private struct Entry: Sendable {
         var abilityID: AbilityID
         var positives: [[Float]]
@@ -37,6 +53,7 @@ public struct SemanticAbilityRequestIndex: Sendable {
     private let vectorizer: any UtteranceVectorizer
     private let positiveThreshold: Float
     private let negativeMargin: Float
+    private let dominanceMargin: Float
 
     public var entryCount: Int { entries.count }
 
@@ -46,7 +63,8 @@ public struct SemanticAbilityRequestIndex: Sendable {
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
         positiveThreshold: Float = defaultPositiveThreshold,
-        negativeMargin: Float = defaultNegativeMargin
+        negativeMargin: Float = defaultNegativeMargin,
+        dominanceMargin: Float = defaultDominanceMargin
     ) -> SemanticAbilityRequestIndex? {
         var entries: [Entry] = []
         for record in records {
@@ -92,34 +110,43 @@ public struct SemanticAbilityRequestIndex: Sendable {
             entries: entries,
             vectorizer: vectorizer,
             positiveThreshold: positiveThreshold,
-            negativeMargin: negativeMargin)
+            negativeMargin: negativeMargin,
+            dominanceMargin: dominanceMargin)
     }
 
     private init(
         entries: [Entry],
         vectorizer: any UtteranceVectorizer,
         positiveThreshold: Float,
-        negativeMargin: Float
+        negativeMargin: Float,
+        dominanceMargin: Float = defaultDominanceMargin
     ) {
         self.entries = entries
         self.vectorizer = vectorizer
         self.positiveThreshold = positiveThreshold
         self.negativeMargin = negativeMargin
+        self.dominanceMargin = dominanceMargin
     }
 
     /// Embedding-only recall. Tokens and phrases seeded the corpus at build.
+    ///
+    /// TWO TESTS, NOT ONE: clear the floor, AND stay within `dominanceMargin`
+    /// of whoever leads. On an app-shaped sentence half the installed
+    /// expertise clears the floor together — the floor says "this could be
+    /// about an application", only the gap says WHICH.
     public func requestedAbilities(in utterance: String) -> Set<AbilityID> {
-        Set(affinities(in: utterance)
-            .filter { $0.value >= positiveThreshold }
-            .keys)
+        let scored = affinities(in: utterance).filter { $0.value >= positiveThreshold }
+        guard let lead = scored.values.max() else { return [] }
+        return Set(scored.filter { $0.value >= lead - dominanceMargin }.keys)
     }
 
     /// THE SCORED SIBLING of `requestedAbilities`, for consumers that RANK
     /// rather than admit — discipline selection needs to know which ability
     /// the words lean toward and by how much over the runner-up, which a
     /// thresholded set cannot say. Negative suppression still applies (a
-    /// suppressed ability is absent, not low-scoring); the positive floor is
-    /// the caller's to choose.
+    /// suppressed ability is absent, not low-scoring); the positive floor and
+    /// the dominance margin are the caller's to choose — `discipline(in:)`
+    /// applies its own, and must not have them applied twice.
     public func affinities(in utterance: String) -> [AbilityID: Float] {
         guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
         let query = Self.normalized(raw)

@@ -53,7 +53,7 @@ import Testing
     /// one score alike. The question mark is what makes the second an offer,
     /// and that is the caller's test, not the corpus's.
     @Test func theFamilyRecognizesAsksAndOffersAlike() throws {
-        guard let index = Self.index() else { return }
+        let index = try #require(Self.index(), "fixture failed to build")
 
         #expect(index.matches(SemanticSeedFamilyIndex.transform, in: "tighten this up"))
         #expect(index.matches(SemanticSeedFamilyIndex.transform, in: "Want me to tighten it up?"))
@@ -63,7 +63,7 @@ import Testing
     /// NIL IS NOT ZERO. A caller must be able to tell "scored badly" from
     /// "could not be scored at all".
     @Test func anUnknownFamilyScoresNilRatherThanZero() throws {
-        guard let index = Self.index() else { return }
+        let index = try #require(Self.index(), "fixture failed to build")
 
         #expect(index.bestScore("no-such-family", in: "tighten this up") == nil)
         #expect(index.bestScore(SemanticSeedFamilyIndex.transform, in: "tighten this up") != nil)
@@ -75,7 +75,7 @@ import Testing
     /// exactly one framed draft. This is the road `acceptedProse` walks before
     /// it types anything, and it had no coverage until now.
     @Test func aFramedOfferIsRecognizedAndABareQuestionIsNot() throws {
-        guard let registry = Self.registry() else { return }
+        let registry = try #require(Self.registry(), "fixture failed to build")
 
         try AmbientCapabilityIndexProvider.$scoped.withValue(registry) {
             let draft = "The harbour lights came up one by one across the water"

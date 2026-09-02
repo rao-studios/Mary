@@ -35,6 +35,12 @@ extension MaryBrain {
         let actionTurn = route.isActionTurn
         let editIntent = route.verdicts.editIntent
         let writingTarget = route.writingTarget
+        // ONE LESSON PER LANE, from the words that started it. Built here so a
+        // multi-round turn cannot teach the router three different things, and
+        // so the query is this turn's utterance rather than whatever the
+        // process-wide routing query says by the time a round lands.
+        let exemplarGrant = ExemplarRecordingContext.grant(
+            lane: .model, query: userText, route: route.intent)
         var fullText = ""
         var usedEmptyRetry = false
 
@@ -259,9 +265,11 @@ extension MaryBrain {
                         continue
                     }
                     let startedAt = Date()
-                    let outcome = await dispatcher.dispatch(
-                        name: call.name, argumentsJSON: call.argumentsJSON,
-                        runID: call.id)
+                    let outcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+                        await dispatcher.dispatch(
+                            name: call.name, argumentsJSON: call.argumentsJSON,
+                            runID: call.id)
+                    }
                     let reference = outcome.skillReference
                         ?? dispatcher.skillReference(for: call.name)
                     continuation.yield(.skillResult(record: BehavioralActionRecord(

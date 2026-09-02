@@ -30,7 +30,7 @@ import Testing
         aliases: ["apple music", "the music app", "itunes"])
 
     @Test func screenshotUtterancesOperateAndUniquePlayPlaylist() throws {
-        guard let env = try Self.environment() else { return }
+        let env = try #require(try Self.environment(), "fixture failed to build")
         let store = RoutingExemplarStore(persist: false)
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
@@ -64,7 +64,7 @@ import Testing
     }
 
     @Test func aSongTitlePicksPlayMusicNotPlayPlaylist() throws {
-        guard let env = try Self.environment() else { return }
+        let env = try #require(try Self.environment(), "fixture failed to build")
         let store = RoutingExemplarStore(persist: false)
         let utterance = "Play Stand by Me."
         let verdict = try #require(env.intent.classify(utterance, exemplars: store))
@@ -77,7 +77,7 @@ import Testing
     }
 
     @Test func lookingAtCodeWithACodingLeadIsPerceive() throws {
-        guard let env = try Self.environment() else { return }
+        let env = try #require(try Self.environment(), "fixture failed to build")
         let store = RoutingExemplarStore(persist: false)
         let query = RoutingQuery.compose(
             utterance: "Let's look at this code",
@@ -95,7 +95,7 @@ import Testing
     }
 
     @Test func anOkExemplarPullsAParaphraseAboveTheFloor() throws {
-        guard let env = try Self.environment() else { return }
+        let env = try #require(try Self.environment(), "fixture failed to build")
         let empty = RoutingExemplarStore(persist: false)
         let loaded = RoutingExemplarStore(persist: false)
         let paraphrase = "that rao mix again"
@@ -112,7 +112,7 @@ import Testing
     }
 
     @Test func requestedAbilitiesAreSemanticOnlyWhenAnIndexExists() throws {
-        guard let env = try Self.environment() else { return }
+        let env = try #require(try Self.environment(), "fixture failed to build")
         let requested = env.snapshot.requestedAbilities(in: Self.screenshotInApp)
         #expect(requested.contains(AbilityID("multimedia")))
         #expect(

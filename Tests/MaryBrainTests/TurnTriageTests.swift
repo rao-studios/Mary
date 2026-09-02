@@ -41,7 +41,7 @@ import Testing
     /// matches must come back `.converse`, never nil — nil is reserved for
     /// "there is no index", and the engine reads the two differently.
     @Test func anUnrecognizedQueryFailsClosedToConverse() throws {
-        guard let environment = try Self.environment() else { return }
+        let environment = try #require(try Self.environment(), "fixture failed to build")
 
         let verdict = TurnTriage.verdict(
             query: "xyzzy plugh nothing matches this",
@@ -55,7 +55,7 @@ import Testing
 
     /// An operate verdict is action-shaped; a converse verdict is not.
     @Test func actionShapeFollowsTheIntent() throws {
-        guard let environment = try Self.environment() else { return }
+        let environment = try #require(try Self.environment(), "fixture failed to build")
 
         let operate = TurnTriage.verdict(
             query: "operate the thing",
@@ -78,7 +78,7 @@ import Testing
     /// the arbiter decides what is offered this turn, and a shortcut that
     /// ignored it would dispatch something the model was never shown.
     @Test func aSkillTheRosterWithheldCannotWin() throws {
-        guard let environment = try Self.environment() else { return }
+        let environment = try #require(try Self.environment(), "fixture failed to build")
 
         let offered = TurnTriage.verdict(
             query: "operate the thing",
@@ -102,7 +102,7 @@ import Testing
     /// — a query that wins bare can drop below the floor composed. Every
     /// consumer scores line one, and this pins that it still does.
     @Test func onlyTheFirstLineOfAComposedQueryIsScored() throws {
-        guard let environment = try Self.environment() else { return }
+        let environment = try #require(try Self.environment(), "fixture failed to build")
 
         let bare = TurnTriage.verdict(
             query: "operate the thing",
@@ -121,18 +121,95 @@ import Testing
         #expect(composed.uniqueSkill?.id == bare.uniqueSkill?.id)
     }
 
+    // MARK: - Promotion by the skill corpus
+
+    /// THE STUCK CASE. When the intent index has no opinion at all but exactly
+    /// one OFFERED Skill clears the floor with a margin, the skill corpus is
+    /// the only voice saying what the words are about — and believing the
+    /// fail-closed "converse" instead is self-sealing: no dispatch, so no
+    /// exemplar, so the phrasing is never learned. Ever.
+    @Test func aUniqueSkillPromotesAFailClosedConverse() throws {
+        let environment = try #require(try Self.environment(), "fixture failed to build")
+
+        let verdict = TurnTriage.verdict(
+            query: "wrangle the widget",
+            registry: environment,
+            offeredNames: ["operate_thing"],
+            exemplars: RoutingExemplarStore(persist: false))
+
+        #expect(verdict.uniqueSkill != nil)
+        #expect(verdict.intent == .operate)
+        #expect(verdict.isActionShaped)
+        #expect(verdict.promotedByUniqueSkill)
+        #expect(verdict.intentDescription == "intent=operate promoted=skill",
+                "the log must not report a score the intent index never gave")
+    }
+
+    /// A SCORED CONVERSE IS A VERDICT and blocks the promotion. Only the
+    /// ABSENCE of an opinion may be overridden by the skill corpus.
+    @Test func aScoredConverseIsNotPromoted() throws {
+        let environment = try #require(try Self.environment(), "fixture failed to build")
+
+        let verdict = TurnTriage.verdict(
+            query: "hello there",
+            registry: environment,
+            offeredNames: ["operate_thing"],
+            exemplars: RoutingExemplarStore(persist: false))
+
+        #expect(verdict.intent == .converse)
+        #expect(!verdict.promotedByUniqueSkill)
+        #expect(!verdict.isActionShaped)
+    }
+
+    /// NO WINNER, NO PROMOTION — a fail-closed converse with nothing unique
+    /// behind it stays converse.
+    @Test func aFailClosedConverseWithoutAWinnerStaysConverse() throws {
+        let environment = try #require(try Self.environment(), "fixture failed to build")
+
+        let verdict = TurnTriage.verdict(
+            query: "xyzzy plugh nothing matches this",
+            registry: environment,
+            offeredNames: ["operate_thing"],
+            exemplars: RoutingExemplarStore(persist: false))
+
+        #expect(verdict.uniqueSkill == nil)
+        #expect(verdict.intent == .converse)
+        #expect(!verdict.promotedByUniqueSkill)
+    }
+
+    /// AND THE ROSTER STILL BOUNDS IT. A Skill the arbiter withheld cannot
+    /// promote a turn, because it was never a candidate to win.
+    @Test func aWithheldSkillCannotPromote() throws {
+        let environment = try #require(try Self.environment(), "fixture failed to build")
+
+        let verdict = TurnTriage.verdict(
+            query: "wrangle the widget",
+            registry: environment,
+            offeredNames: [],
+            exemplars: RoutingExemplarStore(persist: false))
+
+        #expect(verdict.uniqueSkill == nil)
+        #expect(!verdict.promotedByUniqueSkill)
+        #expect(verdict.intent == .converse)
+    }
+
     // MARK: - Fixture
 
     /// Two orthogonal clusters and a synthetic package that seeds one intent
     /// and one Skill. Anything unlisted vectorizes to nil, so a miss is a
     /// miss rather than a stale neighbour.
+    /// FAILS LOUDLY when it cannot build. This used to return nil on a corpus
+    /// that would not vectorize, and every `guard let ... else { return }`
+    /// above turned that into a silent pass.
     private static func environment() throws -> AbilityRuntimeSnapshot? {
         let skill = SkillSchema(
             id: SkillID("fixture.operate-thing"),
             title: "Operate Thing",
             summary: "Fixture skill.",
             kind: .cognitive,
-            execution: .init(kind: .cognitive),
+            execution: .init(
+                kind: .binding,
+                bindings: [.init(adapterID: AdapterID("fixture"), operation: "operate_thing")]),
             modelExposure: .init(invocationName: "operate_thing"))
         let package = MaryAbilityPackage(
             package: .init(
@@ -149,7 +226,14 @@ import Testing
                     tokens: ["operate the thing"],
                     intentExemplars: ["operate": ["operate the thing"]]),
                 skills: [skill.id]),
-            skills: [skill])
+            skills: [skill],
+            // A whole sentence the SKILL corpus knows and no intent exemplar
+            // shares — the shape of the stuck case.
+            fixtures: [AbilityFixture(
+                id: "skill-only",
+                utterance: "wrangle the widget",
+                expectedSkill: skill.id,
+                expectedDisposition: "route")])
         let record = AbilityPackageRecord(
             package: package,
             source: .sourceTree,
@@ -158,7 +242,13 @@ import Testing
             rawData: Data())
         let records = [record]
         let vectorizer = ClusterVectorizer(clusters: [
-            ["operate the thing"],
+            // The query, AND the Skill's own corpus terms — the index skips a
+            // Skill whose every term fails to vectorize, which silently made
+            // this whole fixture nil.
+            ["operate the thing", "Operate Thing", "operate thing",
+             "fixture operate thing", "Fixture skill."],
+            // Skill corpus only — no intent seed shares this basis.
+            ["wrangle the widget"],
             // The built-in converse baseline, so an unmatched query has
             // somewhere to fail closed to.
             ["hello", "how are you", "thanks", "good morning",
@@ -169,10 +259,19 @@ import Testing
               let skills = SemanticSkillRequestIndex.build(
                 records: records, vectorizer: vectorizer)
         else { return nil }
+        // `EmbeddingRouting.uniqueWinner` takes only READY, model-exposed
+        // Skills, so the fixture needs an adapter publishing its operation —
+        // without it nothing could ever win and the roster tests were empty.
+        let manifest = InstalledAdapterManifest(
+            adapterID: AdapterID("fixture"),
+            title: "Fixture",
+            transport: .native,
+            operations: [InstalledAdapterBinding(
+                adapterID: AdapterID("fixture"), operation: "operate_thing")])
         return AbilityRuntimeSnapshot(
             records: records,
             validation: .init(),
-            adapterManifests: [],
+            adapterManifests: [manifest],
             semanticIndex: SemanticAbilityRequestIndex.build(
                 records: records, vectorizer: vectorizer),
             semanticSkillIndex: skills,

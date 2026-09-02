@@ -27,6 +27,12 @@ extension MaryBrain {
         /// candidate may commit to its best guess rather than refuse. Lane B
         /// and model-driven dispatches never set this.
         allowTitleCommit: Bool = false,
+        /// What this dispatch may teach the router, or nil to teach nothing.
+        /// Only the paths that ARE a routing decision pass one: the deciding
+        /// gates (confirm/cancel), the accepted-prose road (whose utterance is
+        /// "yes please", not a way of asking for anything) and the window
+        /// verbs' old hand-written gate never did.
+        exemplarGrant: ExemplarRecordingContext.Grant? = nil,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
         epoch: UInt64
     ) async -> SkillOutcome {
@@ -38,14 +44,14 @@ extension MaryBrain {
             reference: invocationReference, argumentsJSON: argumentsJSON,
             runID: invocation.id))
         let startedAt = Date()
-        let outcome: SkillOutcome
-        if allowTitleCommit {
-            outcome = await SpokenTitleCommitContext.$allowed.withValue(true) {
-                await dispatcher.dispatch(
-                    name: name, argumentsJSON: argumentsJSON, runID: invocation.id)
+        let outcome: SkillOutcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+            if allowTitleCommit {
+                return await SpokenTitleCommitContext.$allowed.withValue(true) {
+                    await dispatcher.dispatch(
+                        name: name, argumentsJSON: argumentsJSON, runID: invocation.id)
+                }
             }
-        } else {
-            outcome = await dispatcher.dispatch(
+            return await dispatcher.dispatch(
                 name: name, argumentsJSON: argumentsJSON, runID: invocation.id)
         }
         continuation.yield(.skillResult(record: BehavioralActionRecord(

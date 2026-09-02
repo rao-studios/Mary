@@ -47,6 +47,23 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     private let persist: Bool
     private let url: URL?
 
+    /// The store, pre-grouped the way its two readers actually ask —
+    /// recency-sorted query lists per skill and per intent, split by `ok`.
+    ///
+    /// `queries(...)` used to copy, prune and sort the WHOLE array on every
+    /// call, and `SemanticSkillRequestIndex.affinities` calls it twice per
+    /// Skill entry per turn — dozens of full copies to answer questions whose
+    /// shape never changes between records. Rebuilt lazily; invalidated by
+    /// `record()`/`load()`, and by age so the 30-day horizon stays honest
+    /// inside a long-running session.
+    private struct Derived {
+        var bySkill: [String: [String]]   // key "\(skillID)|\(ok)"
+        var byIntent: [String: [String]]  // key "\(intent)|\(ok)"
+        var builtAt: Date
+    }
+    private let derivedBox = OSAllocatedUnfairLock<Derived?>(initialState: nil)
+    private static let derivedStaleness: TimeInterval = 60 * 60
+
     public init(persist: Bool = false) {
         self.persist = persist
         if persist {
@@ -72,43 +89,69 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     }
 
     public func record(_ exemplar: RoutingExemplar) {
-        box.withLock { items in
+        let survivors = box.withLock { items in
             items.append(exemplar)
             items = Self.capped(prune(items))
+            return items
+        }
+        derivedBox.withLock { $0 = nil }
+        // A row evicted by the caps must not keep a warm vector — without this
+        // the memo grew append-only with every distinct query ever recorded,
+        // long past the rows themselves.
+        let live = Set(survivors.map { RoutingQuery.firstLine($0.query) })
+        vectorCache.withLock { cache in
+            cache = cache.filter { live.contains($0.key) }
         }
         save()
     }
 
     public func queries(skillID: String, ok: Bool) -> [String] {
-        all()
-            .filter { $0.skillID == skillID && $0.ok == ok }
-            .sorted { $0.storedAt > $1.storedAt }
-            .map(\.query)
+        derived().bySkill["\(skillID)|\(ok)"] ?? []
     }
 
     public func queries(intent: String, ok: Bool) -> [String] {
-        all()
-            .filter { $0.intent == intent && $0.ok == ok }
-            .sorted { $0.storedAt > $1.storedAt }
-            .map(\.query)
+        derived().byIntent["\(intent)|\(ok)"] ?? []
     }
 
-    /// Normalized vectors, memoized by query text — `classify`/`affinities`
+    private func derived() -> Derived {
+        if let ready = derivedBox.withLock({ $0 }),
+           Date().timeIntervalSince(ready.builtAt) < Self.derivedStaleness {
+            return ready
+        }
+        let rows = all().sorted { $0.storedAt > $1.storedAt }
+        var bySkill: [String: [String]] = [:]
+        var byIntent: [String: [String]] = [:]
+        for row in rows {
+            bySkill["\(row.skillID)|\(row.ok)", default: []].append(row.query)
+            byIntent["\(row.intent)|\(row.ok)", default: []].append(row.query)
+        }
+        let built = Derived(bySkill: bySkill, byIntent: byIntent, builtAt: Date())
+        derivedBox.withLock { $0 = built }
+        return built
+    }
+
+    /// Normalized vectors, memoized by FIRST LINE — `classify`/`affinities`
     /// consult exemplars on every call, and re-vectorizing the same settled
     /// sentence every turn is pure waste once it has been seen once.
-    /// Append-only: an evicted row's cache entry is simply never looked up
-    /// again, not actively pruned — bounded in practice by the store's own
-    /// per-skill/total caps.
+    /// Pruned in `record()` to the surviving rows.
+    ///
+    /// FIRST LINE, because that is what every consumer scores. Rows recorded
+    /// before the recording fix carry the composed multi-line routing query —
+    /// the shape `RoutingQuery` itself documents as measurably diluted — so
+    /// vectorizing them whole made the learning loop inert exactly when a
+    /// world snapshot existed. Reading the first line restores those rows'
+    /// effect without a migration.
     private let vectorCache = OSAllocatedUnfairLock<[String: [Float]]>(initialState: [:])
 
     private func normalizedVectors(
         for texts: [String], vectorizer: any UtteranceVectorizer
     ) -> [[Float]] {
         texts.compactMap { text -> [Float]? in
-            if let cached = vectorCache.withLock({ $0[text] }) { return cached }
-            guard let raw = vectorizer.vector(for: text) else { return nil }
+            let line = RoutingQuery.firstLine(text)
+            if let cached = vectorCache.withLock({ $0[line] }) { return cached }
+            guard let raw = vectorizer.vector(for: line) else { return nil }
             let normalized = AmbientVectorMath.normalized(raw)
-            vectorCache.withLock { $0[text] = normalized }
+            vectorCache.withLock { $0[line] = normalized }
             return normalized
         }
     }
@@ -128,6 +171,9 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     }
 
     public var count: Int { all().count }
+
+    /// Memo size, so a test can pin that it does not outlive its rows.
+    public var cachedVectorCountForTesting: Int { vectorCache.withLock { $0.count } }
 
     private func prune(_ items: [RoutingExemplar]) -> [RoutingExemplar] {
         let cutoff = Date().addingTimeInterval(-Self.horizon)
@@ -158,6 +204,7 @@ public final class RoutingExemplarStore: @unchecked Sendable {
               let decoded = try? JSONDecoder().decode([RoutingExemplar].self, from: data)
         else { return }
         box.withLock { $0 = Self.capped(prune(decoded)) }
+        derivedBox.withLock { $0 = nil }
     }
 
     private func save() {
