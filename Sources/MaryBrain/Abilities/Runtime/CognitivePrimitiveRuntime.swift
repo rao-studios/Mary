@@ -47,7 +47,14 @@ struct CognitivePrimitiveContract: Sendable {
     var parameters: [ModelSkillSchema.Parameter]
 }
 
-enum CognitivePrimitiveCatalog {
+/// One workflow-only primitive, named for an authoring surface. Read-only: the
+/// contracts themselves stay internal, because only the runtime may execute one.
+public struct WorkflowPrimitiveDescriptor: Hashable, Sendable {
+    public let operation: String
+    public let summary: String
+}
+
+public enum CognitivePrimitiveCatalog {
     private static let contracts: [CognitivePrimitiveContract] = [
         .init(
             primitive: .composeDraft,
@@ -237,6 +244,24 @@ enum CognitivePrimitiveCatalog {
             $0.allowedAbility == abilityID
                 && $0.workflowOperation == workflowOperation
         }
+    }
+
+    /// The primitives a recipe owned by this ability may name as a step. Ability
+    /// Studio offers these alongside installed skills; they resolve at dispatch
+    /// through `contract(workflowOperation:abilityID:)`.
+    public static func workflowPrimitives(
+        for abilityID: AbilityID
+    ) -> [WorkflowPrimitiveDescriptor] {
+        contracts
+            .filter { $0.allowedAbility == abilityID }
+            .compactMap { contract in
+                contract.workflowOperation.map {
+                    WorkflowPrimitiveDescriptor(
+                        operation: $0,
+                        summary: contract.description)
+                }
+            }
+            .sorted { $0.operation < $1.operation }
     }
 
     static func modelSchema(for runtime: AbilityRuntimeSkill) -> ModelSkillSchema? {

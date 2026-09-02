@@ -244,8 +244,14 @@ extension AbilityStudioAuthoringDocument {
         }
     }
 
+    /// `required` is the difference between "this package realizes that one's
+    /// meaning" and "this package happens to call it". Only the first may
+    /// promote an existing optional dependency: a required dependency is what
+    /// `extendedDisciplines` reads, so promoting one silently changes what an
+    /// expertise claims to extend.
     static func ensureDependency(
         on ownerPackage: MaryAbilityPackage?,
+        required: Bool = true,
         in candidate: inout MaryAbilityPackage
     ) {
         guard let ownerPackage,
@@ -253,7 +259,7 @@ extension AbilityStudioAuthoringDocument {
         if let index = candidate.dependencies.firstIndex(where: {
             $0.packageID == ownerPackage.package.id
         }) {
-            candidate.dependencies[index].optional = false
+            if required { candidate.dependencies[index].optional = false }
             if candidate.dependencies[index].minimumVersion
                 < ownerPackage.package.version {
                 candidate.dependencies[index].minimumVersion =
@@ -262,7 +268,8 @@ extension AbilityStudioAuthoringDocument {
         } else {
             candidate.dependencies.append(.init(
                 packageID: ownerPackage.package.id,
-                minimumVersion: ownerPackage.package.version))
+                minimumVersion: ownerPackage.package.version,
+                optional: !required))
         }
     }
 

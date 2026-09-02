@@ -121,6 +121,9 @@ extension ConfigService {
             /// How long an ordinary Skill may stay running (1…20 s). Named
             /// build/test bindings keep their own ceilings.
             package var skillRunTimeoutSeconds: Double = 2
+            /// What one model call is worth, for Ability Studio's per-run
+            /// estimate. Zero by default: Mary makes no claim about pricing.
+            package var modelCallPriceUSD: Double = 0
 
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
@@ -130,6 +133,7 @@ extension ConfigService {
                 case seerEnabled, autoStartServers, seerCheckoutPath, totemCheckoutPath, seerPort, seerGRPCPort, totemPort, totemGRPCPort, totemNodeID, seerEmail, seerPassword, totemGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, totemGraphPolicyManaged, seerChatModel, seerTransport
                 case codingAgentEnabled, codingAgentModelID, codingEngine
                 case skillRunTimeoutSeconds
+                case modelCallPriceUSD
             }
 
             package init() {}
@@ -200,6 +204,8 @@ extension ConfigService {
                 codingEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .codingEngine) ?? .local
                 skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(
                     try c.decodeIfPresent(Double.self, forKey: .skillRunTimeoutSeconds) ?? 2)
+                modelCallPriceUSD = max(
+                    0, try c.decodeIfPresent(Double.self, forKey: .modelCallPriceUSD) ?? 0)
             }
 
             /// name → path for prompt building and activity dispatch.

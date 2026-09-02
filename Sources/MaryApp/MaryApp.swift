@@ -53,27 +53,11 @@ struct MaryApp: App {
         .windowResizability(.contentMinSize)
 
         // Ability Studio is its own window (authoring outlives a turn). Other debug surfaces are sheets.
+        // One window: browsing and authoring are the same act, on one draft.
         Window("Ability Studio", id: "ability-studio") {
             AbilityStudioView()
         }
-        .defaultSize(width: 1040, height: 720)
-        .windowResizability(.contentMinSize)
-
-        WindowGroup(
-            "Ability Editor",
-            id: "ability-editor",
-            for: AbilityStudioEditorWindowRequest.self
-        ) { request in
-            if let request = request.wrappedValue {
-                AbilityStudioEditorWindow(request: request)
-            } else {
-                ContentUnavailableView(
-                    "Choose an Ability",
-                    systemImage: "shippingbox",
-                    description: Text("Open an Ability from Ability Studio to edit it visually."))
-            }
-        }
-        .defaultSize(width: 1320, height: 860)
+        .defaultSize(width: 1240, height: 800)
         .windowResizability(.contentMinSize)
     }
 }

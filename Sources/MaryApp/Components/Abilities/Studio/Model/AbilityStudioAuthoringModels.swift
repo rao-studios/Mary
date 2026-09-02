@@ -34,6 +34,11 @@ enum AbilityStudioAuthoringError: LocalizedError {
     case cannotRemoveLastPluginOperation
     case installedOperationNotFound(adapterID: AdapterID, operation: String)
     case installedFacultyMustBeNative(AdapterID)
+    case recipeNotFound(SkillID)
+    case workflowStepNotFound(String)
+    case cannotRemoveLastWorkflowStep(SkillID)
+    case invalidInvocationName(String)
+    case workflowIsBranching(SkillID)
     case invalidMutation([SchemaIssue])
     case encodingFailed
 
@@ -65,6 +70,18 @@ enum AbilityStudioAuthoringError: LocalizedError {
             return "Installed adapter \(adapterID.rawValue) does not publish \(operation)."
         case .installedFacultyMustBeNative(let adapterID):
             return "\(adapterID.rawValue) is Ability-carried data, not an installed compiled faculty."
+        case .recipeNotFound(let skillID):
+            return "Recipe \(skillID.rawValue) does not exist."
+        case .workflowStepNotFound(let stepID):
+            return "Recipe step \(stepID) does not exist."
+        case .cannotRemoveLastWorkflowStep:
+            return "A recipe must keep at least one step. Remove the recipe itself instead."
+        case .invalidInvocationName(let value):
+            return value.isEmpty
+                ? "Name the skill this step should call."
+                : "\(value) is not a callable skill name — use lower-case words joined by underscores."
+        case .workflowIsBranching(let skillID):
+            return "Recipe \(skillID.rawValue) has its own failure branches; reorder its steps in Advanced."
         case .invalidMutation(let issues):
             return issues.first?.message ?? "The edit would make the Ability graph invalid."
         case .encodingFailed:

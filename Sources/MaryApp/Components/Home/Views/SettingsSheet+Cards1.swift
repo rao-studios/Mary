@@ -48,9 +48,36 @@ extension SettingsSheet {
                             .foregroundStyle(Color.maryInk.opacity(0.45))
                     }
                 }
+
+                Divider().overlay(Color.maryBorder)
+
+                HStack(spacing: .layer3) {
+                    Text("Price per model call")
+                        .font(.marySans(11))
+                    Spacer()
+                    TextField(
+                        "0.00",
+                        value: modelCallPriceBinding,
+                        format: .currency(code: "USD"))
+                        .textFieldStyle(.roundedBorder)
+                        .font(.maryMono(11))
+                        .frame(width: 90)
+                }
+                Text("Only used by Ability Studio's per-run estimate. Mary makes no claim about what a call costs — set what yours does.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
             }
         }
         .task { await refreshSeerSignIn() }
+    }
+
+    var modelCallPriceBinding: Binding<Double> {
+        Binding(
+            get: { config.state.modelCallPriceUSD },
+            set: { next in
+                config.center.update.send(
+                    ConfigService.Update.Meta(modelCallPriceUSD: max(0, next)))
+            })
     }
 
     /// Pair-coding faculty. On/off is separate from WHERE synthesis runs —

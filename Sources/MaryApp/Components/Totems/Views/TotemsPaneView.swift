@@ -118,6 +118,7 @@ struct TotemsPaneView: View {
                     .font(.marySerif(15, weight: .light, italic: true))
                     .foregroundStyle(Paper.ink.opacity(0.85))
                 Spacer()
+                /*
                 Button {
                     showsServers = true
                 } label: {
@@ -128,6 +129,7 @@ struct TotemsPaneView: View {
                 .buttonStyle(.plain)
                 .help("Servers")
                 .accessibilityLabel("Servers")
+                 */
                 Button {
                     showsLife = true
                 } label: {

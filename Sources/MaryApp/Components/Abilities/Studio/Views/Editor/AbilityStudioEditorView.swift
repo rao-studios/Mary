@@ -329,23 +329,6 @@ struct AbilityStudioEditorView: View {
     }
 }
 
-/// Convenience lifecycle wrapper for a typed `WindowGroup`. Existing windows
-/// open an installed id; new windows receive a canonical in-memory package and
-/// do not cross the install/activation boundary until their first Save.
-@MainActor
-struct AbilityStudioEditorWindow: View {
-    let request: AbilityStudioEditorWindowRequest
-    @StateObject private var model = AbilityStudioViewModel()
-    @State private var didOpenRequest = false
-
-    var body: some View {
-        AbilityStudioEditorView(model: model)
-            .onAppear {
-                model.start()
-                guard !didOpenRequest else { return }
-                didOpenRequest = true
-                model.openEditor(request)
-            }
-            .onDisappear { model.stop() }
-    }
-}
+// The typed-window wrapper is gone with the second window. What remains of this
+// file is the five-stage editor, still compiled but no longer reachable; its
+// stages are replaced pane by pane and the file is deleted at the end.

@@ -60,7 +60,8 @@ extension ConfigService {
             codingAgentEnabled: Bool? = nil,
             codingAgentModelID: String? = nil,
             codingEngine: LLMEngineChoice? = nil,
-            skillRunTimeoutSeconds: Double? = nil
+            skillRunTimeoutSeconds: Double? = nil,
+            modelCallPriceUSD: Double? = nil
         ) {
             self.llmEngine = llmEngine
             self.skillEngine = skillEngine
@@ -99,6 +100,7 @@ extension ConfigService {
             self.codingAgentModelID = codingAgentModelID
             self.codingEngine = codingEngine
             self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
+            self.modelCallPriceUSD = modelCallPriceUSD
         }
             package var llmEngine: LLMEngineChoice? = nil
             package var skillEngine: LLMEngineChoice? = nil
@@ -139,6 +141,7 @@ extension ConfigService {
             package var codingAgentModelID: String? = nil
             package var codingEngine: LLMEngineChoice? = nil
             package var skillRunTimeoutSeconds: Double? = nil
+            package var modelCallPriceUSD: Double? = nil
         }
 
         @Payload package var meta: Meta?
@@ -191,6 +194,9 @@ extension ConfigService {
                 state.codingAgentModelID = value
             }
             if let value = meta.codingEngine { state.codingEngine = value }
+            if let value = meta.modelCallPriceUSD, value >= 0 {
+                state.modelCallPriceUSD = value
+            }
             if let value = meta.skillRunTimeoutSeconds {
                 state.skillRunTimeoutSeconds = AbilityRuntime.clampedOrdinarySkillTimeout(value)
             }

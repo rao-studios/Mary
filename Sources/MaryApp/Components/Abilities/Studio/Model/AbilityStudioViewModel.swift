@@ -16,6 +16,22 @@ final class AbilityStudioViewModel: ObservableObject {
     @Published var status: String?
     @Published private(set) var applicationResolutionEpoch = 0
 
+    /// A rail selection the draft is standing in the way of. The view asks
+    /// Save / Discard / Keep editing rather than refusing the click.
+    @Published var pendingSelection: PackageID?
+
+    // Selection state. View state only — `rejectUnknownKeys` refuses anything
+    // editor-shaped in the package, so none of this may reach the draft JSON.
+    @Published var selectedRecipeID: SkillID?
+    @Published var selectedSkillID: SkillID?
+    @Published var expandedRecipeStepID: String?
+
+    enum PendingSelectionResolution {
+        case save
+        case discard
+        case cancel
+    }
+
     private let library: AbilityLibrary
     private let applicationLocator: PluginApplicationLocator
     private let workspaceNotificationCenter: NotificationCenter
@@ -94,7 +110,42 @@ final class AbilityStudioViewModel: ObservableObject {
             return
         }
         selectedPackageID = id
+        clearSelectionState()
         reloadDraft()
+    }
+
+    /// The rail's entry point. A clean draft switches at once; a dirty one asks.
+    func requestSelect(_ id: PackageID?) {
+        guard id != selectedPackageID else { return }
+        guard isDirty else {
+            select(id)
+            return
+        }
+        pendingSelection = id
+    }
+
+    func resolvePendingSelection(_ resolution: PendingSelectionResolution) {
+        let destination = pendingSelection
+        pendingSelection = nil
+        switch resolution {
+        case .cancel:
+            return
+        case .save:
+            save()
+            // Save can fail on validation or an external write. Staying put with
+            // the reason in `status` beats discarding the work silently.
+            guard !isDirty else { return }
+            select(destination)
+        case .discard:
+            revert()
+            select(destination)
+        }
+    }
+
+    private func clearSelectionState() {
+        selectedRecipeID = nil
+        selectedSkillID = nil
+        expandedRecipeStepID = nil
     }
 
     // MARK: - Declarative Remote Hands authoring (Runtime tab)
@@ -118,35 +169,14 @@ final class AbilityStudioViewModel: ObservableObject {
         updateDraft(json)
     }
 
-    /// Optimistic unsaved edit. Editor window owns the lease; registry unchanged until Save.
-    func editorRequestForNewPackage(
-        _ package: MaryAbilityPackage
-    ) -> AbilityStudioEditorWindowRequest? {
+    /// Take an in-memory lease on a package that has never been installed and
+    /// open it as the current draft. One lease, not two: the old flow took one
+    /// to mint a window request and another when that window appeared.
+    /// Nothing reaches the registry until Save.
+    func openNewPackage(_ package: MaryAbilityPackage) -> Bool {
         do {
-            _ = try library.beginCreatingPackage(package)
-            status = "Opened an unsaved \(package.package.id.rawValue) draft. It is not installed until Save."
-            return AbilityStudioEditorWindowRequest(newPackage: package)
-        } catch {
-            status = error.localizedDescription
-            return nil
-        }
-    }
-
-    /// Open installed or in-memory lease. `initialDraft` is canonical JSON for both modes.
-    func openEditor(_ request: AbilityStudioEditorWindowRequest) {
-        guard let initialDraft = request.initialDraft else {
-            select(request.packageID)
-            return
-        }
-        guard initialDraft.package.id == request.packageID else {
-            openFailedNewDraft(
-                initialDraft,
-                message: "The new Ability request does not match its package id.")
-            return
-        }
-        do {
-            let session = try library.beginCreatingPackage(initialDraft)
-            selectedPackageID = request.packageID
+            let session = try library.beginCreatingPackage(package)
+            selectedPackageID = package.package.id
             editSession = session
             draft = session.draftJSON
             validation = library.validate(json: draft)
@@ -154,9 +184,12 @@ final class AbilityStudioViewModel: ObservableObject {
             isLocalDraft = false
             pendingSnapshot = nil
             hasPendingRegistryUpdate = false
+            clearSelectionState()
             status = "Unsaved new Ability — Save installs and activates it for the first time."
+            return true
         } catch {
-            openFailedNewDraft(initialDraft, message: error.localizedDescription)
+            openFailedNewDraft(package, message: error.localizedDescription)
+            return false
         }
     }
 
@@ -461,7 +494,10 @@ final class AbilityStudioViewModel: ObservableObject {
 
     private func selectInitialIfNeeded() {
         if let selectedPackageID, snapshot.package(id: selectedPackageID) != nil { return }
+        // The package changed under us; ids held in selection state belonged to
+        // the old one.
         selectedPackageID = snapshot.records.first?.id
+        clearSelectionState()
     }
 
     private func acceptActivatedSnapshot(_ next: AbilityRuntimeSnapshot) {

@@ -130,6 +130,10 @@ extension MaryRuntime {
         SeerUnitAnnotator(complete: seerComplete)
     }
 
+    /// The same bounded route, for Ability Studio's skill drafter. One request,
+    /// one JSON answer — not a spoken turn, and not the chat lane.
+    package static var studioComplete: any SeerCompleteProviding { seerComplete }
+
     /// Sign in with the configured account. Returns error text or nil.
     package static func applySeerAccount(email: String, password: String, seerPort: Int) async -> String? {
         await seerSession.configure(
