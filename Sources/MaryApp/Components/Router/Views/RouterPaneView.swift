@@ -221,10 +221,13 @@ struct RouterPaneView: View {
             if !row.abilityRoster.decisions.isEmpty {
                 field(
                     "roster",
-                    "\(row.abilityRoster.selected.count) selected · \(row.abilityRoster.decisions.count) evaluated")
+                    "\(row.abilityRoster.selected.count) offered · \(row.abilityRoster.decisions.count) evaluated")
                 ForEach(row.abilityRoster.decisions) { decision in
+                    // OFFERED, NOT RAN — `selected` means the model COULD call
+                    // this Skill this turn, nothing more. Actual calls are the
+                    // "ran" rows below, from `row.skillRuns`.
                     field(
-                        "candidate",
+                        "offered",
                         "\(decision.reference.displayLabel) · \(decision.disposition.rawValue)",
                         tint: decisionTint(decision))
                     let group = decision.conflictGroup ?? "none"
@@ -242,7 +245,7 @@ struct RouterPaneView: View {
             }
             ForEach(row.skillRuns) { run in
                 field(
-                    "skill",
+                    "ran",
                     "\(run.reference.displayLabel) · \(run.status.rawValue) · \(run.effect.rawValue)",
                     tint: run.status == .failed || run.status == .blocked
                         ? .maryError

@@ -34,13 +34,16 @@ package struct Utterance: GraniteModel, Identifiable {
     package var followUpText: String? = nil
     /// One record per dispatched action, call order. Distinct from abilityBadges.
     package var actions: [BehavioralActionRecord] = []
+    /// Mary's own pre-reads this turn — never a model call. Rendered as one
+    /// muted "looked first" capsule, never as an Ability|Skill chip.
+    package var ownReads: [BehavioralActionRecord] = []
     /// Transient stream flags — excluded from persistence.
     package var isThinking: Bool = false
     package var isStreaming: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case id, role, text, abilityBadges, createdAt, contribution, turnID,
-             followUpText, actions
+             followUpText, actions, ownReads
     }
 
     package init(from decoder: Decoder) throws {
@@ -58,6 +61,9 @@ package struct Utterance: GraniteModel, Identifiable {
         // Absent in conversations persisted before runs existed.
         actions = try container.decodeIfPresent(
             [BehavioralActionRecord].self, forKey: .actions) ?? []
+        // Absent in conversations persisted before own-reads existed.
+        ownReads = try container.decodeIfPresent(
+            [BehavioralActionRecord].self, forKey: .ownReads) ?? []
     }
 
     package init(
@@ -113,7 +119,7 @@ package struct Conversation: GraniteModel {
                 return count + 1
             case .assistant:
                 let isHusk = utterance.text.isEmpty && utterance.abilityBadges.isEmpty
-                    && utterance.actions.isEmpty
+                    && utterance.actions.isEmpty && utterance.ownReads.isEmpty
                     && (utterance.followUpText ?? "").isEmpty
                 return isHusk ? count : count + 1
             }

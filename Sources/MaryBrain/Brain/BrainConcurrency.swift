@@ -39,6 +39,34 @@ final class ProactiveMulticast: @unchecked Sendable {
     }
 }
 
+/// Turn-scoped box for Mary's own pre-reads — collected BEFORE any
+/// `LaneEmitter` exists, so a second emitter would have nothing to attach
+/// to. Bound as a task-local around `seerTurn`'s fetch-first phase; the
+/// dispatch chokepoint appends to whichever instance is current, and
+/// `seerTurn` drains it once, right before the lane spawns.
+final class OwnActCollector: @unchecked Sendable {
+    private let lock = NSLock()
+    private var records: [BehavioralActionRecord] = []
+
+    func append(_ record: BehavioralActionRecord) {
+        lock.lock(); records.append(record); lock.unlock()
+    }
+
+    /// One-shot: empties the box. A second drain of the same turn sees nothing.
+    func drain() -> [BehavioralActionRecord] {
+        lock.lock(); defer { lock.unlock() }
+        let drained = records
+        records = []
+        return drained
+    }
+
+    /// Nil outside a bound turn — in particular, the Life pulse's own
+    /// `.maryAct` dispatches (see `AbilityDispatching.perform`) never nest
+    /// inside `seerTurn`, so they find no collector and are silently not
+    /// collected. Provenance still stamps them; only the capsule skips them.
+    @TaskLocal static var current: OwnActCollector?
+}
+
 /// Routes an orchestrator lane's emissions: while ATTACHED they ride the turn's BrainEvent continuation (badges in the live turn)
 final class LaneEmitter: @unchecked Sendable {
     private let lock = NSLock()

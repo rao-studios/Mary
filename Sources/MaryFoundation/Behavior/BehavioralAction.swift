@@ -57,6 +57,33 @@ public enum BehavioralDisposition: String, Codable, Hashable, Sendable, CaseIter
     }
 }
 
+/// WHO ASKED. A chip is a receipt for an act; this says whose act it was.
+/// PIN: Decode-tolerant, `BehavioralDisposition`'s own pattern — a record
+///      written before this existed, or by a newer build, must still open.
+public enum ActionInitiator: String, Codable, Hashable, Sendable, CaseIterable {
+    /// The model called it.
+    case model
+    /// Mary's own pre-read — the ONLY runtime path that bypasses the offer
+    /// ledger's authorization claim over the model. See `AbilityRuntime`'s
+    /// `RuntimeRead` for the gate this provenance now backs.
+    case maryRead
+    /// Mary acting unattended (the idle Life pulse). Still faces the offer
+    /// ledger like any other act — this is provenance, never a bypass.
+    case maryAct
+    /// Unknown to this build. Decode-only.
+    case unknown
+
+    public init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = ActionInitiator(rawValue: raw) ?? .unknown
+    }
+
+    /// The current dispatch's provenance, for the one chokepoint that stamps
+    /// every `BehavioralActionRecord`. Bound around a pre-read or an
+    /// unattended act; left at its default everywhere else.
+    @TaskLocal public static var current: ActionInitiator = .model
+}
+
 /// Performable action. Outcome lives on BehavioralActionRecord.
 public struct BehavioralAction: Codable, Hashable, Sendable {
 
@@ -118,6 +145,11 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
     public var startedAt: Date
     public var finishedAt: Date?
 
+    /// Who asked for this act. Defaulted so every existing call site — and
+    /// every fixture, and every persisted record from before this field
+    /// existed — reads `.model` without change.
+    public var initiator: ActionInitiator
+
     public init(
         id: String,
         action: BehavioralAction,
@@ -128,7 +160,8 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
         containerKey: String? = nil,
         confirmationID: UUID? = nil,
         startedAt: Date,
-        finishedAt: Date? = nil
+        finishedAt: Date? = nil,
+        initiator: ActionInitiator = .model
     ) {
         self.id = id
         self.action = action
@@ -140,6 +173,7 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
         self.confirmationID = confirmationID
         self.startedAt = startedAt
         self.finishedAt = finishedAt
+        self.initiator = initiator
     }
 
     /// Lane declined before dispatch. Recorded — refusal is behaviour.
@@ -179,7 +213,7 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
 
     private enum CodingKeys: String, CodingKey {
         case id, action, disposition, summary, foundNothing, undoable
-        case containerKey, confirmationID, startedAt, finishedAt
+        case containerKey, confirmationID, startedAt, finishedAt, initiator
     }
 
     /// Absent optionals decode; older files still open.
@@ -195,5 +229,6 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
         confirmationID = try values.decodeIfPresent(UUID.self, forKey: .confirmationID)
         startedAt = try values.decode(Date.self, forKey: .startedAt)
         finishedAt = try values.decodeIfPresent(Date.self, forKey: .finishedAt)
+        initiator = try values.decodeIfPresent(ActionInitiator.self, forKey: .initiator) ?? .model
     }
 }

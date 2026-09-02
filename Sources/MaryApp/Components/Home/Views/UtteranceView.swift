@@ -139,7 +139,7 @@ struct UtteranceView: View {
                         .foregroundStyle(Color.primary.opacity(0.65))
                 }
             }
-            if !utterance.abilityBadges.isEmpty {
+            if !utterance.abilityBadges.isEmpty || !utterance.ownReads.isEmpty {
                 abilityBadges
             }
         }
@@ -168,6 +168,7 @@ struct UtteranceView: View {
         AbilityBadgeRow(
             badges: utterance.abilityBadges,
             actions: utterance.actions,
+            ownReads: utterance.ownReads,
             realmLensEntry: realmLensEntry,
             onOpenRoutes: onOpenRoutes,
             onInspect: { reference, runs in
@@ -175,6 +176,10 @@ struct UtteranceView: View {
                     reference: reference,
                     runs: runs,
                     turnID: utterance.turnID)
+            },
+            onInspectOwnReads: { runs in
+                inspectedRuns = InspectedAbilityRuns(
+                    ownReads: runs, turnID: utterance.turnID)
             })
     }
 

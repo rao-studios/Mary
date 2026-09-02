@@ -43,6 +43,7 @@ public enum MediaSurfaceLibrary {
     private static func pressButton(
         labelled label: String, pid: pid_t, registration: MediaSurfaceRegistration
     ) async -> Bool {
+        guard !Task.isCancelled else { return false }
         guard let built = AXSnapshotBuilder.build(pid: pid, options: .exhaustive)
         else { return false }
         let folded = MediaSurfaceRegistration.folded(label)
@@ -117,12 +118,18 @@ public enum MediaSurfaceLibrary {
             return .noSuchPlaylist(offered)
         }
 
+        // STOP MEANS STOP, NOT HURRY. Every remaining step is a real
+        // Accessibility write; a cancelled caller (Stop, supersede) must not
+        // race through them faster than an uncancelled one would.
+        guard !Task.isCancelled else { return .couldNotPress }
         var selected = await selectRow(row.element)
         if !selected { selected = await press(row.element, pid: pid) }
         guard selected else { return .couldNotPress }
         // Selecting a row navigates, and the play control is part of what navigation draws
         // — searching for it in the same runloop turn finds the previous page's.
+        guard !Task.isCancelled else { return .couldNotPress }
         try? await Task.sleep(nanoseconds: 900_000_000)
+        guard !Task.isCancelled else { return .couldNotPress }
         guard await pressPagePlay(pid: pid, registration: registration) else {
             return .couldNotPress
         }
@@ -358,6 +365,7 @@ public enum MediaSurfaceLibrary {
     /// ladder, for the reason it records: a control.
     @discardableResult
     static func press(_ element: AXUIElement, pid: pid_t) async -> Bool {
+        guard !Task.isCancelled else { return false }
         if AXUIElementPerformAction(element, kAXPressAction as CFString) == .success {
             try? await Task.sleep(nanoseconds: 350_000_000)
             return true

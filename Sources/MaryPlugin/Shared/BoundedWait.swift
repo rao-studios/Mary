@@ -32,11 +32,15 @@ public final class RaceBox<T: Sendable>: @unchecked Sendable {
 
     /// The first caller wins; every later one is a no-op. `nil` is the
     /// deadline's own answer — "nobody came back in time".
+    /// PIN: `resolved` is set the moment a value is claimed, park included —
+    ///      a value sitting unattached is still the FIRST answer, and a
+    ///      second `finish` (the deadline arriving after a fast success, or
+    ///      the reverse) must find the box already closed, not overwrite it.
     public func finish(_ value: T?) {
         lock.lock()
         guard !resolved else { lock.unlock(); return }
+        resolved = true
         if let continuation {
-            resolved = true
             self.continuation = nil
             lock.unlock()
             continuation.resume(returning: value)

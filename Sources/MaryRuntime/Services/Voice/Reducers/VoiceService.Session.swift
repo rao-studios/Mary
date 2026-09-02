@@ -224,6 +224,10 @@ extension VoiceService {
                     guard !Task.isCancelled else { break sessionEvents }
                     mirror(.abilityRunResult(record: record, turnID: currentTurnID))
 
+                case .ownReads(let records):
+                    guard !Task.isCancelled else { break sessionEvents }
+                    mirror(.ownReads(records, turnID: currentTurnID))
+
                 case .vad, .ttsChunkStarted, .ttsFinished:
                     break
                 }

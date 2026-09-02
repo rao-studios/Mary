@@ -45,6 +45,10 @@ public extension BehavioralActionRecord {
             containerKey: outcome.passageHandle,
             confirmationID: confirmationID,
             startedAt: startedAt,
-            finishedAt: finishedAt)
+            finishedAt: finishedAt,
+            // Read at construction time, inside the same dynamic scope the
+            // dispatch that produced `outcome` ran in — `ActionInitiator`'s
+            // own doc names this the one chokepoint that stamps every record.
+            initiator: ActionInitiator.current)
     }
 }

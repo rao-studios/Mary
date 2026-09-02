@@ -57,10 +57,11 @@ struct ConversationPageView: View {
                     text: streamVM.streamedText,
                     isThinking: streamVM.phase == .thinking
                 )
-                if !utterance.abilityBadges.isEmpty {
+                if !utterance.abilityBadges.isEmpty || !utterance.ownReads.isEmpty {
                     AbilityBadgeRow(
                         badges: utterance.abilityBadges,
                         actions: utterance.actions,
+                        ownReads: utterance.ownReads,
                         realmLensEntry: utterance.turnID.flatMap { realmLens.entries[$0] })
                 }
             }

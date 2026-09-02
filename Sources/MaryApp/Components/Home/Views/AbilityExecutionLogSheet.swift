@@ -90,7 +90,7 @@ struct AbilityExecutionLogSheet: View {
             VStack(alignment: .leading, spacing: .layer3) {
                 SectionLabel("still working")
                 HStack(spacing: .layer3) {
-                    Slider(value: timeoutBinding, in: 1...20, step: 1)
+                    Slider(value: timeoutBinding, in: 1...30, step: 1)
                     Text("\(Int(config.state.skillRunTimeoutSeconds.rounded()))s")
                         .font(.maryMono(10))
                         .frame(width: 28, alignment: .trailing)

@@ -200,6 +200,8 @@ package actor TextTurnRunner {
                 case .skillResult(let record):
                     // Whole BehavioralActionRecord — chip, log, dataset share one value.
                     forward(.abilityRunResult(record: record, turnID: turnID))
+                case .ownReads(let records):
+                    forward(.ownReads(records, turnID: turnID))
                 case .contribution(let json):
                     forward(.contribution(json: json, turnID: turnID))
                 case .routineDetached(let origin):

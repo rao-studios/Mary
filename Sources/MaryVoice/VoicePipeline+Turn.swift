@@ -142,6 +142,8 @@ extension VoicePipeline {
                         reference: reference, argumentsJSON: argumentsJSON, runID: runID))
                 case .skillResult(let record):
                     emit(.skillResult(record: record))
+                case .ownReads(let records):
+                    emit(.ownReads(records))
                 case .contribution(let json):
                     emit(.contribution(json: json))
                 case .completed(let fullText):

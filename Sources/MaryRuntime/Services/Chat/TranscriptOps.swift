@@ -40,7 +40,8 @@ package enum TranscriptOps {
             state.conversation.utterances[idx].text = accumulated
 
         case .abilityBadge(let reference, let turnID):
-            guard let idx = inTurnAssistantIndex(state, turnID: turnID) else { return }
+            // Anchored the same way as its own run rows below — see `anchorIndex`.
+            guard let idx = anchorIndex(state, turnID: turnID, what: "ability badge") else { return }
             state.conversation.utterances[idx].isThinking = false
             if !state.conversation.utterances[idx].abilityBadges.contains(reference) {
                 state.conversation.utterances[idx].abilityBadges.append(reference)
@@ -48,19 +49,14 @@ package enum TranscriptOps {
 
         case .abilityRunStarted(let run, let turnID):
             // One row per CALL — unlike the badge above, runs never dedupe.
-            // Anchored the same way (proactive producers pass the origin id).
-            let idx = turnID.flatMap { bubbleIndex(turnID: $0, in: state) }
-                ?? inTurnAssistantIndex(state, turnID: nil)
-            guard let idx else { return }
+            guard let idx = anchorIndex(state, turnID: turnID, what: "ability run") else { return }
             if !state.conversation.utterances[idx].actions.contains(where: { $0.id == run.id }) {
                 state.conversation.utterances[idx].actions.append(run)
             }
 
         case .abilityRunResult(let record, let turnID):
             // Replace the row by wire invocation id, never position. Settled record, not a patch.
-            let idx = turnID.flatMap { bubbleIndex(turnID: $0, in: state) }
-                ?? inTurnAssistantIndex(state, turnID: nil)
-            guard let idx else { return }
+            guard let idx = anchorIndex(state, turnID: turnID, what: "ability run result") else { return }
             if let runIdx = state.conversation.utterances[idx].actions
                 .firstIndex(where: { $0.id == record.id }) {
                 state.conversation.utterances[idx].actions[runIdx] = record
@@ -70,6 +66,13 @@ package enum TranscriptOps {
                 // can see is the transcript disagreeing with what happened.
                 state.conversation.utterances[idx].actions.append(record)
             }
+
+        case .ownReads(let records, let turnID):
+            // Anchored the same way as the badge/run family above — a turn's
+            // own reads and its model-called runs must never split across
+            // bubbles just because one arrived before the other landed.
+            guard let idx = anchorIndex(state, turnID: turnID, what: "own reads") else { return }
+            state.conversation.utterances[idx].ownReads.append(contentsOf: records)
 
         case .contribution(let json, let turnID):
             guard let idx = inTurnAssistantIndex(state, turnID: turnID) else { return }
@@ -82,6 +85,13 @@ package enum TranscriptOps {
             guard let idx = currentAssistantIndex(state) else { return }
             state.conversation.utterances[idx].text = ""
             state.conversation.utterances[idx].abilityBadges = []
+            // The run rows belong to the reply being replaced, same as the
+            // badges above — left behind, they are orphan rows with no chip
+            // able to open them, and they keep the husk alive on their own.
+            state.conversation.utterances[idx].actions = []
+            // Same reasoning, same reply being replaced — a stranded "looked
+            // first" capsule would credit the wrong answer with the read.
+            state.conversation.utterances[idx].ownReads = []
             // The spans are CHARACTER OFFSETS into the text just cleared.
             // Left behind, they index the replacement reply and paint
             // brushstrokes over words the credited source never wrote.
@@ -185,13 +195,11 @@ package enum TranscriptOps {
             }
 
         case .proactiveAbilityBadge(let reference, let turnID):
-            // Progress chip onto the routine's ORIGINATING bubble. Unknown
-            // id → drop + log; a positional fallback would re-open the
-            // chip-on-the-wrong-bubble bug this slice closes.
-            guard let idx = bubbleIndex(turnID: turnID, in: state) else {
-                log.warning("proactive ability badge '\(reference.displayLabel, privacy: .public)' dropped — origin bubble \(turnID) not on the page")
-                return
-            }
+            // Progress chip onto the routine's ORIGINATING bubble — the same
+            // anchor its own run rows use. Unknown id → drop + log; a
+            // positional fallback would re-open the chip-on-the-wrong-bubble
+            // bug this slice closes.
+            guard let idx = anchorIndex(state, turnID: turnID, what: "proactive ability badge") else { return }
             if !state.conversation.utterances[idx].abilityBadges.contains(reference) {
                 state.conversation.utterances[idx].abilityBadges.append(reference)
             }
@@ -254,6 +262,26 @@ package enum TranscriptOps {
         })
     }
 
+    /// THE ONE RESOLVER THE WHOLE CHIP FAMILY SHARES — a badge, its run rows,
+    /// and its proactive twin must always land on the SAME bubble, because
+    /// they describe the SAME act. Nil turnID is the live-stream shorthand
+    /// (probes, and any writer with no turn id yet) and resolves to whichever
+    /// bubble is actively streaming; a real turnID resolves by identity alone
+    /// — `bubbleIndex`'s firstIndex — and a MISS drops with a log.
+    /// PIN: NEVER a positional fallback onto whatever happens to be streaming
+    /// now. That silent substitution is how a run row from one turn used to
+    /// land on an unrelated later reply — see `bubbleIndex`'s own doc.
+    static func anchorIndex(
+        _ state: ChatService.Center.State, turnID: UUID?, what: String
+    ) -> Int? {
+        guard let turnID else { return currentAssistantIndex(state) }
+        guard let idx = bubbleIndex(turnID: turnID, in: state) else {
+            log.warning("\(what, privacy: .public) dropped — origin bubble \(turnID) not on the page")
+            return nil
+        }
+        return idx
+    }
+
     // MARK: - Private
 
     /// A bubble earns its place with any of: spoken text, merged follow-up
@@ -266,6 +294,7 @@ package enum TranscriptOps {
             && (bubble.followUpText ?? "").isEmpty
             && bubble.abilityBadges.isEmpty
             && bubble.actions.isEmpty
+            && bubble.ownReads.isEmpty
             && !(bubble.turnID.map { state.activeRoutineOrigins.contains($0) } ?? false)
     }
 

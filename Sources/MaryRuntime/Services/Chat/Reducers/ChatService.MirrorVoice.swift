@@ -31,6 +31,9 @@ extension ChatService {
                 case abilityRunStarted(BehavioralActionRecord, turnID: UUID? = nil)
                 /// That call, settled — the SAME id, the whole record.
                 case abilityRunResult(record: BehavioralActionRecord, turnID: UUID? = nil)
+                /// Mary's own pre-reads, drained once before the lane spawned.
+                /// Never a model call — the "looked first" capsule's source.
+                case ownReads([BehavioralActionRecord], turnID: UUID? = nil)
                 case contribution(json: String, turnID: UUID? = nil)
                 /// Terminal write is in-turn — late completion drops instead of finalizing the newest.
                 case assistantDone(String, turnID: UUID? = nil)

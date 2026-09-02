@@ -363,6 +363,39 @@ import MaryFoundation
         }
     }
 
+    /// THE LIFE PULSE IS MARY'S ACT, NOT A SECOND BYPASS. `AbilityDispatching
+    /// .perform` — the idle Life pulse's own dispatch loop — binds `.maryAct`,
+    /// and that bit means only "who initiated this," never "skip the roster's
+    /// claim." Same withheld Skill, same armed ledger, same refusal as the
+    /// model would get — only the fetch-first pre-read above may pass.
+    @Test func theLifePulseIsMarysActAndStillFacesTheOfferLedger() async throws {
+        let snapshot = try #require(Self.rosterWithholdingReadSelection())
+        let ambient = AmbientContextStore()
+        ambient.noteUtterance(Self.judgmentQuestion)
+        let dispatched = Dispatched()
+        let runtime = AbilityRuntime(
+            plugins: [SightAdapter(dispatched: dispatched)],
+            focusProvider: { "xcode" },
+            world: AmbientWorld(store: ambient),
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+
+        await AbilityTurnContext.$snapshot.withValue(snapshot) {
+            // Arms the ledger exactly as the model-driven turn loop does.
+            _ = runtime.schemaCount
+
+            let reference = runtime.skillReference(for: "read_selection")
+            let records = await runtime.perform(sequence: [
+                BehavioralAction(
+                    intention: "read_selection", argumentsJSON: "{}", skill: reference),
+            ])
+
+            #expect(records.count == 1)
+            #expect(records.first?.disposition == .blocked)
+            #expect(records.first?.initiator == .maryAct)
+            #expect(dispatched.snapshot().isEmpty, "blocked before the binding ran")
+        }
+    }
+
     /// The words the user actually said, and the reason the roster withholds:
     /// nothing in this sentence resembles the Skill's authored corpus.
     private static let judgmentQuestion = "what do you think about this code"

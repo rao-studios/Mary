@@ -519,13 +519,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     playlistNamed: wanted, pid: pid, registration: registration
                 ) {
                 case .played(let name):
-                    let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+                    // NO POST-EFFECT AX READ. The act has already landed —
+                    // an exhaustive walk here only decorates a string the
+                    // confidence path discards on a clean success, and every
+                    // second spent after the press is a second closer to the
+                    // dispatch budget with nothing left to protect.
                     return SkillOutcome(
                         ok: true,
-                        summary: reading?.title.map { "Playing \(name) — \"\($0)\"." }
-                            ?? "Playing \(name).",
+                        summary: "Playing \(name).",
                         archivePolicy: .stateSnapshot,
-                        target: reading?.element,
                         adapterTrail: ["media-surface"])
                 case .playedAsGuess(let name):
                     // Committed under SpokenTitleCommitContext — state it as
@@ -596,15 +598,13 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     playlistNamed: wanted, pid: pid, registration: registration
                 ) {
                 case .played(let name):
-                    let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
-                    let track = reading?.title.map { " — \"\($0)\"" } ?? ""
+                    // NO POST-EFFECT AX READ — see `playPlaylist`'s own note.
                     return SkillOutcome(
                         ok: true,
                         summary: shuffled
-                            ? "Shuffling \(name)\(track)."
-                            : "Playing \(name)\(track) — I couldn't reach the shuffle control.",
+                            ? "Shuffling \(name)."
+                            : "Playing \(name) — I couldn't reach the shuffle control.",
                         archivePolicy: .stateSnapshot,
-                        target: reading?.element,
                         adapterTrail: ["media-surface"])
                 case .playedAsGuess(let name):
                     let reading = MediaSurfaceAX.read(pid: pid, registration: registration)

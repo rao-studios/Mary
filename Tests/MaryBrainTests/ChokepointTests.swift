@@ -291,4 +291,30 @@ import MaryFoundation
 
         #expect(Set(log.entries().map(\.id)).count == 4)
     }
+
+    // MARK: - Provenance (who asked)
+
+    /// A PRE-READ IS RECORDED AS MARY'S OWN, not the model's. `ActionInitiator`
+    /// bridges from the same `.maryRead` bit `RuntimeRead.isFetchFirst` reads —
+    /// see that bridge's own doc for why this is one bit, not two that could drift.
+    @Test func aPreReadIsRecordedAsMarysOwn() async {
+        let log = AbilityExecutionLog()
+        let runtime = runtime([adapter("act") { SkillOutcome(ok: true, summary: "x") }], log: log)
+        _ = await ActionInitiator.$current.withValue(.maryRead) {
+            await runtime.dispatch(name: "act", argumentsJSON: "{}")
+        }
+
+        #expect(log.entries().first?.initiator == .maryRead)
+    }
+
+    /// THE ORDINARY CASE, PINNED. Every existing call site — the model's tool
+    /// calls chief among them — never touches `ActionInitiator.$current`, so
+    /// the chokepoint's own default applies without any caller opting in.
+    @Test func aModelCallIsRecordedAsTheModels() async {
+        let log = AbilityExecutionLog()
+        let runtime = runtime([adapter("act") { SkillOutcome(ok: true, summary: "x") }], log: log)
+        _ = await runtime.dispatch(name: "act", argumentsJSON: "{}")
+
+        #expect(log.entries().first?.initiator == .model)
+    }
 }

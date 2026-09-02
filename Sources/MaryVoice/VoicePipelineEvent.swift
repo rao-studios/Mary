@@ -55,6 +55,9 @@ public enum VoicePipelineEvent: Sendable {
     case skillInvocation(reference: AbilitySkillReference, argumentsJSON: String, runID: String)
     /// Skill answer. Consumer: transcript chip + execution log.
     case skillResult(record: BehavioralActionRecord)
+    /// Mary's own pre-reads for this turn, drained once before the lane
+    /// spawned — never a model call. Consumer: the "looked first" capsule.
+    case ownReads([BehavioralActionRecord])
     /// Opaque provenance JSON. Consumer: app contribution model.
     case contribution(json: String)
     /// Responder's full final text. Consumer: transcript.
@@ -167,6 +170,10 @@ public enum BrainEvent: Sendable {
     case skillInvocation(reference: AbilitySkillReference, argumentsJSON: String, runID: String)
     /// Skill answer. Consumer: transcript chip + execution log.
     case skillResult(record: BehavioralActionRecord)
+    /// Mary's own pre-reads for this turn, drained once before the lane
+    /// spawned — never a model call, so never `.skillInvocation`/`.skillResult`.
+    /// Consumer: the "looked first" capsule.
+    case ownReads([BehavioralActionRecord])
     /// Opaque provenance JSON before `.completed`. Consumer: `VoicePipelineEvent.contribution`.
     case contribution(json: String)
     case completed(fullText: String)

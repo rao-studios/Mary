@@ -119,16 +119,27 @@ public extension AbilityDispatching {
             // replayed step is one identity end to end — the same rule the
             // model-driven path now follows with the wire id.
             let runID = UUID().uuidString
-            let outcome = await dispatch(
-                name: action.intention, argumentsJSON: action.argumentsJSON,
-                runID: runID)
-            let record = BehavioralActionRecord(
-                outcome: outcome,
-                intention: action.intention,
-                argumentsJSON: action.argumentsJSON,
-                reference: action.skill,
-                runID: runID,
-                startedAt: startedAt)
+            // MARY ACTING UNATTENDED — the idle Life pulse is this default
+            // loop's only caller. Provenance only: the offer ledger still
+            // authorizes every one of these dispatches exactly as it would a
+            // model call — see `ActionInitiator.maryAct`'s own doc.
+            // BOTH the dispatch AND the record below must sit inside this
+            // scope — `ActionInitiator.current` reverts the instant the
+            // closure returns, and this loop builds its own record after
+            // dispatch's internal chokepoint has already built (and reverted
+            // from) its own.
+            let record = await ActionInitiator.$current.withValue(.maryAct) {
+                let outcome = await dispatch(
+                    name: action.intention, argumentsJSON: action.argumentsJSON,
+                    runID: runID)
+                return BehavioralActionRecord(
+                    outcome: outcome,
+                    intention: action.intention,
+                    argumentsJSON: action.argumentsJSON,
+                    reference: action.skill,
+                    runID: runID,
+                    startedAt: startedAt)
+            }
             records.append(record)
             guard record.disposition == .succeeded else { break }
         }

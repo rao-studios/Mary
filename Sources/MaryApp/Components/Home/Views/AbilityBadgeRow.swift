@@ -17,12 +17,19 @@ struct AbilityBadgeRow: View {
     let badges: [AbilitySkillReference]
     /// One row per call; `badges` dedupes to one per Skill.
     let actions: [BehavioralActionRecord]
+    /// Mary's own pre-reads this turn — never a model call, never a chip.
+    /// One muted capsule for the whole turn, not one per read.
+    var ownReads: [BehavioralActionRecord] = []
     var realmLensEntry: RealmLensEntry? = nil
     var onOpenRoutes: (() -> Void)? = nil
     var onInspect: ((AbilitySkillReference, [BehavioralActionRecord]) -> Void)? = nil
+    var onInspectOwnReads: (([BehavioralActionRecord]) -> Void)? = nil
 
     var body: some View {
         FlowLayout(spacing: .layer2) {
+            if !ownReads.isEmpty {
+                ownReadsCapsule
+            }
             if let place = realmLensEntry?.leadPlace {
                 realmCapsule(place)
             }
@@ -119,6 +126,54 @@ struct AbilityBadgeRow: View {
             return presentation.accessibilityLabel
         }
         return "\(presentation.accessibilityLabel), \(state)"
+    }
+
+    // MARK: - Own reads (Mary's own pre-reads, never a model call)
+
+    /// One name per Ability, count folded in past the first — never one
+    /// capsule per read. `ownReads` is a whole turn's worth, drained once.
+    private var ownReadGroups: [(title: String, count: Int)] {
+        var order: [String] = []
+        var counts: [String: Int] = [:]
+        for record in ownReads {
+            let title = AbilityBadgePresentation(reference: record.action.skill).abilityTitle
+            if counts[title] == nil { order.append(title) }
+            counts[title, default: 0] += 1
+        }
+        return order.map { ($0, counts[$0] ?? 0) }
+    }
+
+    /// `looked first: awareness ×2, coding` — muted, no ability tint, no
+    /// pulse, no `|` invocation name. A receipt that Mary read before
+    /// answering, not a chip for something the model called.
+    @ViewBuilder
+    private var ownReadsCapsule: some View {
+        let label = ownReadGroups.map { group in
+            group.count > 1 ? "\(group.title) ×\(group.count)" : group.title
+        }.joined(separator: ", ")
+        let capsule = HStack(spacing: 5) {
+            Text("looked first:")
+                .foregroundStyle(Color.primary.opacity(0.45))
+            Text(label)
+                .foregroundStyle(Color.primary.opacity(0.7))
+        }
+        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+        .padding(.horizontal, .layer2)
+        .padding(.vertical, 4)
+        .background(Capsule().fill(Color.primary.opacity(0.05)))
+        .overlay(
+            Capsule().strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Looked first: \(label)")
+        if let onInspectOwnReads {
+            Button { onInspectOwnReads(ownReads) } label: { capsule }
+                .buttonStyle(.plain)
+                .help("Read before answering — Mary's own lookup, not a model call")
+        } else {
+            capsule
+                .help("Read before answering — Mary's own lookup, not a model call")
+        }
     }
 
     // MARK: - Place capsule (the lens)

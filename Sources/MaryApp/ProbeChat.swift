@@ -107,6 +107,9 @@ enum ProbeChat {
                     print("\n[ability] \(reference.displayLabel) \(argumentsJSON)")
                 case .skillResult(let record):
                     print("[ability-result] \(record.action.skill.displayLabel): \(record.summary)")
+                case .ownReads(let records):
+                    let names = records.map(\.action.skill.displayLabel).joined(separator: ", ")
+                    print("\n[looked-first] \(names)")
                 case .contribution(let json):
                     print("\n[contribution] \(json)")
                 case .autoMemoryTriggered:

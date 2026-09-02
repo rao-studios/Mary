@@ -13,11 +13,27 @@ import MaryRuntime
 
 /// Tapped chip identity + runs on that utterance. `Identifiable` for `.sheet(item:)`.
 struct InspectedAbilityRuns: Identifiable {
-    let reference: AbilitySkillReference
+    /// Nil = the "looked first" capsule was tapped — Mary's own reads for
+    /// the whole turn, not scoped to one Skill. No "This Skill"/"Episode"
+    /// lens split then; `runs` is already the turn's whole own-read set.
+    let reference: AbilitySkillReference?
     let runs: [BehavioralActionRecord]
     /// Turn this reply belongs to (sealed episode id). Nil on restored rows from before stamps.
     var turnID: UUID? = nil
-    var id: String { reference.id }
+    var id: String { reference?.id ?? "own-reads-\(turnID?.uuidString ?? "standalone")" }
+
+    init(reference: AbilitySkillReference, runs: [BehavioralActionRecord], turnID: UUID? = nil) {
+        self.reference = reference
+        self.runs = runs
+        self.turnID = turnID
+    }
+
+    /// Mary's own reads for the turn — the capsule's tap target.
+    init(ownReads runs: [BehavioralActionRecord], turnID: UUID?) {
+        self.reference = nil
+        self.runs = runs
+        self.turnID = turnID
+    }
 }
 
 struct AbilityRunInspectorSheet: View {
@@ -35,20 +51,27 @@ struct AbilityRunInspectorSheet: View {
     @State private var episode: BehavioralEpisode?
     @State private var episodeLoaded = false
 
+    /// The capsule's tap, not a chip's — one Skill to scope down from, so no lens.
+    private var isOwnReadsOnly: Bool { inspected.reference == nil }
+
     var body: some View {
         VStack(alignment: .leading, spacing: .layer3) {
             header
             provenance
-            Picker("", selection: $lens) {
-                ForEach(Lens.allCases) { lens in
-                    Text(lens.rawValue).tag(lens)
+            if isOwnReadsOnly {
+                ownReadsSection
+            } else {
+                Picker("", selection: $lens) {
+                    ForEach(Lens.allCases) { lens in
+                        Text(lens.rawValue).tag(lens)
+                    }
                 }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            switch lens {
-            case .skill: skillSection
-            case .episode: episodeSection
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                switch lens {
+                case .skill: skillSection
+                case .episode: episodeSection
+                }
             }
             Spacer(minLength: 0)
         }
@@ -75,6 +98,25 @@ struct AbilityRunInspectorSheet: View {
         }
     }
 
+    /// Every Ability this turn read from before answering — unlike
+    /// `skillSection`, more than one Skill can appear, so each card names its own.
+    @ViewBuilder
+    private var ownReadsSection: some View {
+        if inspected.runs.isEmpty {
+            Text("No pre-reads recorded for this turn.")
+                .font(.marySans(12))
+                .foregroundStyle(Color.primary.opacity(0.6))
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: .layer3) {
+                    ForEach(inspected.runs) { run in
+                        runCard(run, showsSkillName: true)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - The episode
 
     /// Whole turn, not just this Skill. Chip opens the sealed episode.
@@ -88,7 +130,7 @@ struct AbilityRunInspectorSheet: View {
                         emptyNote("This turn recorded no actions.")
                     } else {
                         ForEach(episode.output.actions) { run in
-                            runCard(run, dimmed: run.action.skill != inspected.reference)
+                            runCard(run, dimmed: inspected.reference.map { run.action.skill != $0 } ?? false)
                         }
                     }
                 }
@@ -175,24 +217,32 @@ struct AbilityRunInspectorSheet: View {
 
     private var header: some View {
         HStack(spacing: .layer2) {
-            Text(inspected.reference.abilityTitle)
-                .font(.marySans(14, weight: .semibold))
-                .foregroundStyle(Color.maryAbilityTint(inspected.reference.abilityTint))
-            Text("|")
-                .foregroundStyle(Color.primary.opacity(0.32))
-            Text(inspected.reference.invocationName)
-                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                .foregroundStyle(Color.primary.opacity(0.8))
+            if let reference = inspected.reference {
+                Text(reference.abilityTitle)
+                    .font(.marySans(14, weight: .semibold))
+                    .foregroundStyle(Color.maryAbilityTint(reference.abilityTint))
+                Text("|")
+                    .foregroundStyle(Color.primary.opacity(0.32))
+                Text(reference.invocationName)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color.primary.opacity(0.8))
+            } else {
+                Text("Looked first")
+                    .font(.marySans(14, weight: .semibold))
+                    .foregroundStyle(Color.primary.opacity(0.7))
+            }
             Spacer()
             Button("Done") { dismiss() }
                 .keyboardShortcut(.defaultAction)
         }
     }
 
-    /// Which plugin ran (compiled vs package-taught). Chip has no room for this.
+    /// Which plugin ran (compiled vs package-taught). Chip has no room for
+    /// this — and own-reads mode can span more than one, so each card names
+    /// its own Skill instead of one header line claiming a single provider.
     @ViewBuilder
     private var provenance: some View {
-        if let provider = inspected.reference.provider {
+        if let provider = inspected.reference?.provider {
             let realization = AbilityRealizationPresentation(provider.pluginClass)
             HStack(spacing: .layer2) {
                 Image(systemName: realization.symbol)
@@ -208,8 +258,11 @@ struct AbilityRunInspectorSheet: View {
     }
 
     /// - Parameter dimmed: other Skill on the same turn — shown as context, not the answer.
+    /// - Parameter showsSkillName: names the calling Skill regardless of
+    ///   `dimmed` — own-reads mode can span several Skills with none of them
+    ///   dimmed, so which one made this call is not otherwise visible.
     private func runCard(
-        _ run: BehavioralActionRecord, dimmed: Bool = false
+        _ run: BehavioralActionRecord, dimmed: Bool = false, showsSkillName: Bool? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: .layer2) {
             HStack(spacing: .layer2) {
@@ -219,7 +272,7 @@ struct AbilityRunInspectorSheet: View {
                 Text(AbilityRunPresentation.label(run))
                     .font(.marySans(11, weight: .semibold))
                     .foregroundStyle(Color.primary.opacity(0.7))
-                if dimmed {
+                if showsSkillName ?? dimmed {
                     Text(run.action.skill.invocationName)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(Color.primary.opacity(0.5))

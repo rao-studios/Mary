@@ -72,8 +72,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// The hard gate is untouched: `dispatchEligibilityFailure` still runs, so
     /// model exposure, capability policy, permissions, readiness, perception
     /// and mutation authorization all still decide whether the read may happen.
+    ///
+    /// BRIDGES TO THE RECORD'S OWN PROVENANCE (`ActionInitiator`) rather than
+    /// carrying a second, parallel flag — the chokepoint stamps every record
+    /// with `ActionInitiator.current` regardless, so a pre-read's provenance
+    /// and the fact that it may skip the ledger are one and the same bit, not
+    /// two that could drift apart. Binding happens via `ActionInitiator.$current`
+    /// directly at the three fetch-first call sites; this is the read side only.
     enum RuntimeRead {
-        @TaskLocal static var isFetchFirst: Bool = false
+        static var isFetchFirst: Bool { ActionInitiator.current == .maryRead }
     }
 
     private struct InFlightRun {
@@ -1292,7 +1299,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 withJSONObject: [targeted.parameter: wanted], options: [.sortedKeys]),
               let json = String(data: arguments, encoding: .utf8)
         else { return nil }
-        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+        let outcome = await ActionInitiator.$current.withValue(.maryRead) {
             await dispatch(name: targeted.binding, argumentsJSON: json)
         }
         guard outcome.ok, !outcome.foundNothing else { return nil }
@@ -1430,7 +1437,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 withJSONObject: arguments, options: [.sortedKeys]),
               let json = String(data: data, encoding: .utf8)
         else { return nil }
-        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+        let outcome = await ActionInitiator.$current.withValue(.maryRead) {
             await dispatch(name: Self.lookSkillName, argumentsJSON: json)
         }
         guard outcome.ok, !outcome.foundNothing else { return nil }
@@ -1450,7 +1457,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         let json = (try? JSONSerialization.data(
             withJSONObject: arguments, options: [.sortedKeys]))
             .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
-        let outcome = await RuntimeRead.$isFetchFirst.withValue(true) {
+        let outcome = await ActionInitiator.$current.withValue(.maryRead) {
             await dispatch(name: name, argumentsJSON: json)
         }
         guard outcome.ok, !outcome.foundNothing else { return nil }
@@ -1634,6 +1641,12 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             startedAt: startedAt)
         executionLog.record(record)
         behavior?.append(record)
+        // Mary's own act, not the model's — the "looked first" capsule's raw
+        // material. Nil outside a bound turn (see `OwnActCollector.current`'s
+        // own doc), so this is a no-op for the Life pulse.
+        if record.initiator != .model {
+            OwnActCollector.current?.append(record)
+        }
         let totalMs = (DispatchTime.now().uptimeNanoseconds
             &- dispatchStart.uptimeNanoseconds) / 1_000_000
         let line = "dispatch \(name) — total \(totalMs)ms,"
@@ -2059,11 +2072,11 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
         // Packages may shorten the budget, not enlarge Mary's ten-minute ceiling.
         let userCap = ordinarySkillTimeout.withLock { $0 }
-        let budget = Self.effectiveWorkflowBudget(
-            invocationName: runtime.reference.invocationName,
-            packageTimeout: runtime.skill.timeoutSeconds ?? 600,
-            policyCap: policy.maximumDurationSeconds ?? 600,
-            userCap: userCap)
+        let budget = Self.effectiveBudget(
+            bindingName: runtime.reference.invocationName,
+            userCap: userCap,
+            declaredTimeoutSeconds: runtime.skill.timeoutSeconds ?? 600,
+            maximumDurationSeconds: min(policy.maximumDurationSeconds ?? 600, 600))
         let supplementalPorts = workflowSupplementalPorts(
             for: runtime,
             arguments: arguments,
@@ -2888,61 +2901,50 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
     // MARK: - The dispatch budget
 
-    /// Default wait before the funnel stops, for bindings that do not name their own.
-    /// PIN: A universal cap must not kill a real build.
-    static let defaultSkillBudget: TimeInterval = 75
-
-    /// The Skill bindings that legitimately outlive the default
+    /// Named jobs that legitimately outlive an ordinary dispatch, and say so
+    /// themselves — everything else gets `ordinaryLandingFloor`.
     static let skillBudgets: [String: TimeInterval] = [
         "run_tests":    330,   // Subprocess.run(timeout: 300) — `swift test`
         "build_check":  330,   // BuildVerifier's `swift build`, the same 300
         "complete_coding_change": 280, // above Vibe's 240 s session cap
         "run_shortcut": 150,   // Subprocess.run(timeout: 120) — `shortcuts run`
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
-        // A collapsed sidebar folder needs an AX expand + 700ms settle re-walk
-        // (MediaSurfaceLibrary.sidebarRows) before the title match even starts.
-        // "play_playlist":    10,
-        // "shuffle_playlist": 10,
-        // "find_playlist":    10,
     ]
 
     public static let ordinarySkillTimeoutMinimum: TimeInterval = 1
-    public static let ordinarySkillTimeoutMaximum: TimeInterval = 20
+    public static let ordinarySkillTimeoutMaximum: TimeInterval = 30
     public static let ordinarySkillTimeoutDefault: TimeInterval = 2
 
     public static func clampedOrdinarySkillTimeout(_ seconds: TimeInterval) -> TimeInterval {
         min(max(seconds, ordinarySkillTimeoutMinimum), ordinarySkillTimeoutMaximum)
     }
 
-    /// Ordinary bindings take `userCap`; named long jobs keep `declared`.
+    /// EVERY ORDINARY DISPATCH WAITS AT LEAST THIS LONG TO LAND — real enough
+    /// for an Accessibility walk through a large app (a collapsed Apple Music
+    /// sidebar folder needs an AX expand + 700ms settle re-walk before the
+    /// title match even starts). Below it, nothing was ever finishing in time
+    /// anyway, only failing to say so honestly. The slider can raise this
+    /// ceiling for someone willing to wait longer; it can never lower it below
+    /// a real act's actual landing time.
+    static let ordinaryLandingFloor: TimeInterval = 20
+
+    /// The wait one dispatch gets. A WORKFLOW passes its own package-declared
+    /// ceiling, which wins outright — a package that states its work takes
+    /// up to ten minutes has made a claim the slider must not override. A
+    /// plain binding has no such declaration to read (`SkillSchema.timeoutSeconds`
+    /// is a workflow-only field); named long jobs are Mary's own accounting
+    /// for exactly that gap. Everything else gets the floor, extended only if
+    /// the slider asks for more than the floor already gives.
     public static func effectiveBudget(
         bindingName: String,
-        declared: TimeInterval,
         userCap: TimeInterval,
+        declaredTimeoutSeconds: TimeInterval? = nil,
         maximumDurationSeconds: TimeInterval? = nil
     ) -> TimeInterval {
-        let capped: TimeInterval
-        if skillBudgets[bindingName] != nil {
-            capped = declared
-        } else {
-            capped = min(declared, clampedOrdinarySkillTimeout(userCap))
-        }
-        return min(capped, maximumDurationSeconds ?? capped)
-    }
-
-    public static func effectiveWorkflowBudget(
-        invocationName: String,
-        packageTimeout: TimeInterval,
-        policyCap: TimeInterval,
-        userCap: TimeInterval
-    ) -> TimeInterval {
-        let budget = min(min(packageTimeout, 600), policyCap)
-        if skillBudgets[invocationName] != nil { return budget }
-        return min(budget, clampedOrdinarySkillTimeout(userCap))
-    }
-
-    static func budget(for binding: SkillBinding) -> TimeInterval {
-        skillBudgets[binding.name] ?? defaultSkillBudget
+        let base = declaredTimeoutSeconds
+            ?? skillBudgets[bindingName]
+            ?? max(clampedOrdinarySkillTimeout(userCap), ordinaryLandingFloor)
+        return min(base, maximumDurationSeconds ?? base)
     }
 
     private let ordinarySkillTimeout = OSAllocatedUnfairLock<TimeInterval>(
@@ -2968,11 +2970,9 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         maximumDurationSeconds: TimeInterval? = nil
     ) async -> SkillOutcome {
         let scale = budgetScale.withLock { $0 }
-        let declaredBudget = Self.budget(for: binding)
         let userCap = ordinarySkillTimeout.withLock { $0 }
         let unscaledBudget = Self.effectiveBudget(
             bindingName: binding.name,
-            declared: declaredBudget,
             userCap: userCap,
             maximumDurationSeconds: maximumDurationSeconds)
         let budget = unscaledBudget * scale

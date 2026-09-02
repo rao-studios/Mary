@@ -96,11 +96,17 @@ extension MaryBrain {
         // Fetch first, then speak.
         let turnStartedAt = Date()
         var readPassages: [String] = []
+        // Bound around every fetch-first call below — the dispatch
+        // chokepoint appends to it when a read's `ActionInitiator` is
+        // `.maryRead`. Drained once, just before the lane spawns.
+        let ownActs = OwnActCollector()
         if editIntent == nil, !actionTurn, let dispatcher,
            let phrase = route.verdicts.namedPart {
             // A SUSPENSION POINT before any lane exists.
-            let passage = await withNanosecondBudget(Self.preReadBudgetNanoseconds) {
-                await dispatcher.readNamedPart(phrase)
+            let passage = await OwnActCollector.$current.withValue(ownActs) {
+                await withNanosecondBudget(Self.preReadBudgetNanoseconds) {
+                    await dispatcher.readNamedPart(phrase)
+                }
             }
             if Task.isCancelled {
                 appendCancelledEpilogue(
@@ -130,8 +136,10 @@ extension MaryBrain {
         // exemplars; a parallel word list could only disagree with it.
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
            routeIntent == .perceive {
-            let sight = await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
-                await dispatcher.fetchDeclaredEditorSight(query: userText)
+            let sight = await OwnActCollector.$current.withValue(ownActs) {
+                await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
+                    await dispatcher.fetchDeclaredEditorSight(query: userText)
+                }
             }
             if Task.isCancelled {
                 appendCancelledEpilogue(
@@ -166,8 +174,10 @@ extension MaryBrain {
         var awareness: [String] = []
         var awarenessServed = false
         if editIntent == nil, !actionTurn, let dispatcher {
-            let sight = await withNanosecondBudget(Self.preAwarenessBudgetNanoseconds) {
-                await dispatcher.fetchAwareness(query: userText)
+            let sight = await OwnActCollector.$current.withValue(ownActs) {
+                await withNanosecondBudget(Self.preAwarenessBudgetNanoseconds) {
+                    await dispatcher.fetchAwareness(query: userText)
+                }
             }
             if Task.isCancelled {
                 appendCancelledEpilogue(
@@ -200,6 +210,14 @@ extension MaryBrain {
         let lookWould = dispatcher?.wouldServeLook() ?? false
         let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) read=\(readServed) underway=\(lookUnderway)"
         Self.turnLog.info("\(lookLine, privacy: .public)")
+
+        // Fetch-first is over — one drain, whatever landed in the box above.
+        // No LaneEmitter existed yet to carry these, so they ride the turn's
+        // own continuation directly, same as every other in-turn write here.
+        let ownReads = ownActs.drain()
+        if !ownReads.isEmpty {
+            continuation.yield(.ownReads(ownReads))
+        }
 
         // Snapshot Seer's messages BEFORE the orchestrator starts mutating history with Skill turns.
         // Stale-grounding windows (accepted): - W1 — routine settles mid-Lane-A: this snapshot predates a doneMarker/follow-up…

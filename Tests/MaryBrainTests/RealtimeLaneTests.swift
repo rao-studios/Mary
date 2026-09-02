@@ -119,6 +119,7 @@ import Testing
             case .token:                       return "token"
             case .skillInvocation:             return "skillInvocation"
             case .skillResult:                 return "skillResult"
+            case .ownReads:                    return "ownReads"
             case .contribution:                return "contribution"
             case .completed:                   return "completed"
             case .autoMemoryTriggered:         return "autoMemory"
