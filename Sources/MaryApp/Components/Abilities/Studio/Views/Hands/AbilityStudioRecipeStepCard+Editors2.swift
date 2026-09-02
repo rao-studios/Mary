@@ -1,5 +1,9 @@
 //
 //  AbilityStudioRecipeStepCard+Editors2.swift
+//  Mary
+//
+//  WHAT: Waits, scrolls, drags and accessibility anchors.
+//  IN:   AbilityStudioRecipeStepCard (sibling split)
 //
 
 import MaryBrain

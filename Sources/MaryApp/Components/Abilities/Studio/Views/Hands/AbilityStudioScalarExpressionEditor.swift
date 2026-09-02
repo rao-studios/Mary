@@ -1,3 +1,11 @@
+//
+//  AbilityStudioScalarExpressionEditor.swift
+//  Mary
+//
+//  WHAT: A number that is either fixed or taken from one of the action's inputs.
+//  IN:   pointer and scroll blocks.
+//  OUT:  PluginScalarExpression.
+//
 import MaryBrain
 import SwiftUI
 

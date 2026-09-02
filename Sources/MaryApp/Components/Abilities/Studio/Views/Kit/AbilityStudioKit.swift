@@ -114,6 +114,11 @@ struct StudioField: View {
     /// Reads as plain text until pointed at. For the one field that is also a
     /// heading, where a permanent well would shout.
     var quiet: Bool = false
+    /// Commit on every keystroke. Only for view-local state — a package field
+    /// re-encodes and re-validates the whole draft, which is why the default
+    /// waits for submit or focus loss. A form whose button depends on the value
+    /// needs this, or the button never enables while you type.
+    var live: Bool = false
     let onCommit: (String) -> Void
 
     @State private var draft: String = ""
@@ -128,6 +133,7 @@ struct StudioField: View {
         isEditable: Bool = true,
         font: Font? = nil,
         quiet: Bool = false,
+        live: Bool = false,
         onCommit: @escaping (String) -> Void
     ) {
         self.label = label
@@ -137,6 +143,7 @@ struct StudioField: View {
         self.isEditable = isEditable
         self.font = font
         self.quiet = quiet
+        self.live = live
         self.onCommit = onCommit
     }
 
@@ -175,6 +182,7 @@ struct StudioField: View {
         // An outside edit (revert, reload, another pane) reaches a field that is
         // not being typed into. One that IS focused keeps what the user typed.
         .onChange(of: value) { _, next in if !focused { draft = next } }
+        .onChange(of: draft) { _, _ in if live { commit() } }
         .onChange(of: focused) { _, isFocused in if !isFocused { commit() } }
     }
 

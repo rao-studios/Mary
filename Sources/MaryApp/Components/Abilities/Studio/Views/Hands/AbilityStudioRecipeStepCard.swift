@@ -1,3 +1,11 @@
+//
+//  AbilityStudioRecipeStepCard.swift
+//  Mary
+//
+//  WHAT: One macUI block — its kind, its arguments, its place in the order.
+//  IN:   AbilityStudioRecipeSequencer.
+//  OUT:  updateStep / moveStep / removeStep.
+//
 import MaryBrain
 import SwiftUI
 

@@ -1,5 +1,9 @@
 //
 //  AbilityStudioRecipeStepCard+Editors1.swift
+//  Mary
+//
+//  WHAT: Key chords, typed text and pointer blocks.
+//  IN:   AbilityStudioRecipeStepCard (sibling split)
 //
 
 import MaryBrain

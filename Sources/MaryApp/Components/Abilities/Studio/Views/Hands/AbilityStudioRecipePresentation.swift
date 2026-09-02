@@ -1,3 +1,13 @@
+//
+//  AbilityStudioRecipePresentation.swift
+//  Mary
+//
+//  WHAT: How each block kind is seeded, named and drawn.
+//  IN:   the block editor; the Seer drafter reads `authorableCases`.
+//  OUT:  PluginRecipeStepKind vocabulary.
+//  PIN:  A seeded block carries no invented gesture — an unfilled key reads as
+//        unfinished, which is better than a plausible wrong one.
+//
 import MaryBrain
 import SwiftUI
 

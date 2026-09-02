@@ -9,7 +9,7 @@ extension AbilityStudioViewModel {
         _ transform: (inout AbilityStudioAuthoringDocument) throws -> Void
     ) -> Bool {
         guard let package = draftPackage else {
-            status = "The draft JSON does not decode — fix it in the Schema tab first."
+            status = "The draft JSON does not decode — repair it in Advanced ▸ Schema first."
             return false
         }
 

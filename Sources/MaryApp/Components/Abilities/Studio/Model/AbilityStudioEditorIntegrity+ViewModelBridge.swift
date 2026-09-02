@@ -14,7 +14,7 @@ extension AbilityStudioViewModel {
         _ transform: (inout MaryAbilityPackage) throws -> Void
     ) -> Bool {
         guard var candidate = draftPackage else {
-            status = "The draft JSON does not decode — fix it in Advanced Schema first."
+            status = "The draft JSON does not decode — repair it in Advanced ▸ Schema first."
             return false
         }
         do {

@@ -201,14 +201,15 @@ struct AbilityStudioRecipePane: View {
             Text("New recipe")
                 .font(.marySerif(15, weight: .light, italic: true))
                 .foregroundStyle(Color.maryInk)
-            StudioField("Called", value: newRecipeTitle, placeholder: "Play my mix") {
+            StudioField("Called", value: newRecipeTitle, placeholder: "Play my mix", live: true) {
                 newRecipeTitle = $0
             }
             StudioField(
                 "First step",
                 value: newRecipeStep,
                 placeholder: "open_player",
-                mono: true
+                mono: true,
+                live: true
             ) { newRecipeStep = $0 }
             StudioNote("A recipe needs at least one step, so name the skill it starts with.")
             HStack {

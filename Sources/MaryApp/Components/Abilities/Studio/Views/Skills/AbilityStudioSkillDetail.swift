@@ -24,6 +24,17 @@ struct AbilityStudioSkillDetail: View {
         draft.skills.first { $0.id == tile.id }
     }
 
+    /// This package can realize a dependency-owned portable skill when the
+    /// coverage read says the contract is satisfiable by bounded hands.
+    private var implementation: AbilityStudioActionCoveragePresentation.PortableSkillOption? {
+        guard case .none = tile.realization else { return nil }
+        return AbilityStudioActionCoveragePresentation(
+            package: draft,
+            snapshot: model.snapshot)
+            .implementationOptions
+            .first { $0.skillID == tile.id }
+    }
+
     /// A recipe cannot call something that asks the user, nor itself.
     private var canAddToRecipe: Bool {
         guard let recipe = model.selectedRecipe, let invocation = tile.invocation else {
@@ -122,6 +133,16 @@ struct AbilityStudioSkillDetail: View {
                       ? "Append this skill as the recipe's next step."
                       : addToRecipeReason)
 
+            if let implementation {
+                Button("Give it hands") { giveHands(implementation) }
+                    .buttonStyle(.maryQuiet)
+                    .font(.marySans(11))
+                    .disabled(!implementation.compatibility.canImplement)
+                    .opacity(implementation.compatibility.canImplement ? 1 : 0.4)
+                    .help(implementation.compatibility.reason
+                          ?? "Create a local recipe in this ability that carries out \(tile.title).")
+            }
+
             if !isOwn {
                 Button("Open \(tile.ownerTitle)") { onOpenOwner(tile.ownerAbilityID) }
                     .buttonStyle(.maryQuiet)
@@ -146,6 +167,35 @@ struct AbilityStudioSkillDetail: View {
                 operation: invocation,
                 to: recipe.id,
                 ownerPackage: model.ownerPackage(forInvocation: invocation))
+        }
+    }
+
+    /// Seeds one starter block and lets the author fill in the rest in the
+    /// recipe row. A skill that can act needs a real gesture; one that only
+    /// verifies gets a bounded wait.
+    private func giveHands(
+        _ option: AbilityStudioActionCoveragePresentation.PortableSkillOption
+    ) {
+        guard option.compatibility.canImplement,
+              let owner = model.snapshot.package(id: option.ownerPackageID)?.package
+        else { return }
+        let starter: PluginRecipeStepSchema
+        switch option.compatibility.starter {
+        case .keyChord:
+            // No chord is guessed here — an unfilled key is visibly unfinished,
+            // which is better than a plausible wrong one.
+            starter = .init(id: "perform", kind: .keyChord, key: .a)
+        case .boundedVerification, nil:
+            starter = .init(id: "verify", kind: .wait, durationSeconds: 0.1)
+        }
+        model.mutateAuthoringDocument { document in
+            _ = try document.addPluginOperation(
+                title: option.skillTitle,
+                summary: option.summary,
+                steps: [starter],
+                realizing: option.skillID,
+                ownerPackage: owner,
+                targetClasses: option.compatibility.targetClasses)
         }
     }
 

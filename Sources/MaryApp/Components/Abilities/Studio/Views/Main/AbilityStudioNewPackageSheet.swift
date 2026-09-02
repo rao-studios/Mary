@@ -69,18 +69,19 @@ struct AbilityStudioNewPackageSheet: View {
                         "Bundle identifier",
                         value: manualBundleID,
                         placeholder: "com.example.app",
-                        mono: true
+                        mono: true,
+                        live: true
                     ) { manualBundleID = $0 }
                 }
 
                 HStack(alignment: .top, spacing: .layer3) {
-                    StudioField("Name", value: title, placeholder: "Spotify") { next in
+                    StudioField("Name", value: title, placeholder: "Spotify", live: true) { next in
                         title = next
                         if packageID.isEmpty {
                             packageID = AbilityStudioPackageFactory.portableStem(next, fallback: "")
                         }
                     }
-                    StudioField("Identifier", value: packageID, placeholder: "spotify", mono: true) {
+                    StudioField("Identifier", value: packageID, placeholder: "spotify", mono: true, live: true) {
                         packageID = $0
                     }
                 }

@@ -1,9 +1,9 @@
 import MaryBrain
 import Foundation
 
-/// Transactional visual edits; Schema tab may still hold an incomplete draft.
+/// Transactional visual edits; Advanced ▸ Schema may still hold an incomplete draft.
 struct AbilityStudioAuthoringDocument: Sendable {
-    internal(set) var package: MaryAbilityPackage
+    var package: MaryAbilityPackage
     var contextPackages: [MaryAbilityPackage]
 
     init(
@@ -16,20 +16,6 @@ struct AbilityStudioAuthoringDocument: Sendable {
         }
     }
 
-    var kind: AbilityStudioAuthoringKind {
-        if package.plugin != nil {
-            return .packageOwnedNativeApplication
-        }
-        if package.skills.contains(where: {
-            $0.execution.kind == .binding && !$0.execution.bindings.isEmpty
-        }) {
-            return .installedFaculty
-        }
-        // Studio currently offers two executable authoring lanes. A semantic
-        // package without a package-owned provider belongs in the installed
-        // faculty lane until the author chooses its compiled realization.
-        return .installedFaculty
-    }
 
     var validation: AbilityPackageValidation {
         AbilityPackageValidator.validateGraph(contextPackages + [package])

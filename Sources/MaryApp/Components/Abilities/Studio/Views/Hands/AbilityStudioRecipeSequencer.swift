@@ -1,3 +1,13 @@
+//
+//  AbilityStudioRecipeSequencer.swift
+//  Mary
+//
+//  WHAT: The ordered macUI blocks of one callable action.
+//  IN:   AbilityStudioHandsEditor, under an expanded recipe row.
+//  OUT:  addStep / moveStep / removeStep on the authoring document.
+//  PIN:  Authorable steps are what the executor can actually perform. Cleanup
+//        is narrower still — a chord or a wait, nothing that can act.
+//
 import MaryBrain
 import SwiftUI
 

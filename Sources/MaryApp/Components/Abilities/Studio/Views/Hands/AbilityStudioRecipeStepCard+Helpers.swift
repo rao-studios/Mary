@@ -1,5 +1,9 @@
 //
 //  AbilityStudioRecipeStepCard+Helpers.swift
+//  Mary
+//
+//  WHAT: Schema paths and coordinate spaces for one block.
+//  IN:   AbilityStudioRecipeStepCard (sibling split)
 //
 
 import MaryBrain

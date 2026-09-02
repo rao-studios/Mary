@@ -13,8 +13,6 @@ enum AbilityStudioEditorIntegrity {
         case skillHasBindings(SkillID)
         case skillHasPluginRealization(SkillID)
         case skillHasWorkflowSteps(SkillID)
-        case installedFacultyUnavailable(AdapterID, String)
-        case installedFacultySourceMismatch(SkillID)
         case operationNotFound(String)
         case operationAlreadyExists(String)
         case inputNotFound(String)
@@ -35,17 +33,13 @@ enum AbilityStudioEditorIntegrity {
             case .skillNotFound(let id):
                 return "Skill \(id.rawValue) is no longer present in this draft."
             case .workflowKindIsSourceOnly:
-                return "Workflow execution is source-only until Ability Editor has a complete workflow-step editor."
+                return "A recipe and an ordinary skill are different shapes, not two settings of one. Add a recipe in the Recipe pane rather than converting this skill."
             case .skillHasBindings(let id):
                 return "Remove \(id.rawValue)'s installed-faculty bindings before changing it to a Cognitive Skill."
             case .skillHasPluginRealization(let id):
                 return "Remove the Remote Hands action realizing \(id.rawValue) before changing it to a Cognitive Skill."
             case .skillHasWorkflowSteps(let id):
-                return "Skill \(id.rawValue) owns workflow steps. Edit that execution shape in Advanced Schema."
-            case .installedFacultyUnavailable(let adapterID, let operation):
-                return "Installed faculty \(adapterID.rawValue)/\(operation) is not an available compiled provider."
-            case .installedFacultySourceMismatch(let skillID):
-                return "The installed faculty no longer supplies the complete contract for \(skillID.rawValue). Refresh the catalog and choose it again."
+                return "Skill \(id.rawValue) is a recipe. Edit its steps in the Recipe pane."
             case .operationNotFound(let operation):
                 return "Native operation \(operation) is no longer present in this draft."
             case .operationAlreadyExists(let operation):

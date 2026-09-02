@@ -148,7 +148,7 @@ final class AbilityStudioViewModel: ObservableObject {
         expandedRecipeStepID = nil
     }
 
-    // MARK: - Declarative Remote Hands authoring (Runtime tab)
+    // MARK: - The draft
 
     /// Source of truth is the draft string. Visual editors re-encode through `updateDraft`.
     var draftPackage: MaryAbilityPackage? {
@@ -157,7 +157,7 @@ final class AbilityStudioViewModel: ObservableObject {
 
     func mutateDraftPackage(_ transform: (inout MaryAbilityPackage) -> Void) {
         guard var package = draftPackage else {
-            status = "The draft JSON does not decode — fix it in the Schema tab first."
+            status = "The draft JSON does not decode — repair it in Advanced ▸ Schema first."
             return
         }
         transform(&package)

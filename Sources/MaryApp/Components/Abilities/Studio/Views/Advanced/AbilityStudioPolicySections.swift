@@ -76,14 +76,6 @@ struct AbilityStudioFixturesSection: View {
 
         ForEach(Array(package.fixtures.enumerated()), id: \.element.id) { index, fixture in
             AbilityStudioDeclarationCard(identifier: fixture.id) {
-                Button {
-                    model.mutateDraftPackage { $0.fixtures.remove(at: index) }
-                } label: {
-                    EmptyView()
-                }
-                .hidden()
-                .frame(width: 0, height: 0)
-
                 Text("“\(fixture.utterance)”")
                     .font(.marySerif(11, italic: true))
                     .foregroundStyle(Color.maryInk.opacity(0.8))
@@ -107,7 +99,8 @@ struct AbilityStudioFixturesSection: View {
         HStack(spacing: .layer2) {
             StudioField(
                 value: pending,
-                placeholder: "something someone would say…"
+                placeholder: "something someone would say…",
+                live: true
             ) { pending = $0 }
             Button("Add", action: add)
                 .buttonStyle(.maryQuiet)
