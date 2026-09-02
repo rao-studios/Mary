@@ -74,6 +74,9 @@
         "this page",
         "this tab"
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
         "chrome",
         "browser",
@@ -121,7 +124,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "581b35893a6f5c2b92fd202332f4449d4432c5b89e13aabeaba4da9ae1f79e6d"
+    "digest" : "7959ada04c0e65d9dbfbb189763f5d227918b3f31aeff43f6ef3b7b91165a51e"
   },
   "interactions" : [
 

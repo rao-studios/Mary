@@ -33,12 +33,18 @@ public protocol AbilityCapabilityIndex: Sendable {
     /// contested turn must defer to window truth rather than guess.
     /// Replaced a hand-curated list of fifty domain words.
     func discipline(in utterance: String) -> WorkspaceFocus?
+
+    /// DOES THIS SENTENCE NAME A TRANSFORMATION — asking for one, or offering
+    /// one? Scored against the `transform` seed family every craft authors for
+    /// itself. Replaced a forty-entry substring list that lived here.
+    func namesTransform(in text: String) -> Bool
 }
 
 public extension AbilityCapabilityIndex {
     func paradigm(of abilityID: AbilityID) -> AbilityParadigm? { nil }
     var disciplines: [AbilityID] { [] }
     func discipline(in _: String) -> WorkspaceFocus? { nil }
+    func namesTransform(in _: String) -> Bool { false }
 }
 
 /// The answer when nothing has been installed: no Abilities requested. Deliberately not an
@@ -53,6 +59,7 @@ public struct EmptyAbilityCapabilityIndex: AbilityCapabilityIndex {
     public func paradigm(of _: AbilityID) -> AbilityParadigm? { nil }
     public var disciplines: [AbilityID] { [] }
     public func discipline(in _: String) -> WorkspaceFocus? { nil }
+    public func namesTransform(in _: String) -> Bool { false }
 }
 
 /// Where the ambient layer looks when a caller did not hand it an index. The owner of the

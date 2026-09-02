@@ -90,6 +90,32 @@ public enum AbilityPackageValidator {
         for (index, alias) in inspectedIntentAliases.enumerated() {
             sink.checkID(alias, "ability.triggers.intentAliases[\(index)]")
         }
+        // THE TWO AUTHORED-SENTENCE MAPS. Both were unvalidated: keys are
+        // checked where they are consumed (MaryFoundation cannot see
+        // `AmbientIntent`, nor which seed families the Brain reads), but the
+        // SENTENCES are this layer's business, and a corpus of empty strings
+        // or single words silently weakens every seam that scores against it.
+        for (key, sentences) in package.ability.triggers.intentExemplars.sorted(by: { $0.key < $1.key }) {
+            validateAuthoredSentences(
+                sentences,
+                path: "ability.triggers.intentExemplars[\(key)]",
+                noun: "intent exemplar",
+                sink: sink)
+        }
+        for (key, sentences) in package.ability.triggers.seedFamilies.sorted(by: { $0.key < $1.key }) {
+            sink.checkID(key, "ability.triggers.seedFamilies key")
+            validateAuthoredSentences(
+                sentences,
+                path: "ability.triggers.seedFamilies[\(key)]",
+                noun: "seed sentence",
+                sink: sink)
+        }
+        if package.ability.triggers.seedFamilies.count > 8 {
+            sink.error(
+                "too-many-seed-families",
+                "ability.triggers.seedFamilies",
+                "An Ability may declare at most 8 seed families.")
+        }
         duplicates(package.ability.skills.map(\.rawValue)).forEach {
             sink.error("duplicate-ability-skill", "ability.skills", "Skill id \($0) appears more than once in the Ability schema.")
         }
@@ -135,6 +161,53 @@ public enum AbilityPackageValidator {
         if let corpus = package.corpus {
             PluginValidator.validateCorpus(corpus, root: package.package.id.rawValue) {
                 sink.error($0, $1, $2)
+            }
+        }
+    }
+
+    /// SENTENCES, NOT TERMS. These corpora are embedded whole, so the useful
+    /// checks differ from `validateSearchTerms`: a bare word carries almost no
+    /// sentence-embedding signal, and an empty string vectorizes to nothing at
+    /// all while still looking like authored intent.
+    static func validateAuthoredSentences(
+        _ sentences: [String],
+        path: String,
+        noun: String,
+        sink: PackageIssueSink
+    ) {
+        if sentences.isEmpty {
+            sink.warning(
+                "empty-authored-corpus", path,
+                "A declared \(noun) list with no sentences reads as authored and matches nothing.")
+        }
+        if sentences.count > 64 {
+            sink.error(
+                "too-many-authored-sentences", path,
+                "At most 64 \(noun)s per key.")
+        }
+        var seen: Set<String> = []
+        for (index, sentence) in sentences.prefix(64).enumerated() {
+            let trimmed = sentence.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty {
+                sink.error(
+                    "empty-authored-sentence", "\(path)[\(index)]",
+                    "A \(noun) may not be blank.")
+                continue
+            }
+            if trimmed.utf8.count > 240 {
+                sink.error(
+                    "authored-sentence-too-long", "\(path)[\(index)]",
+                    "A \(noun) may be at most 240 bytes.")
+            }
+            if trimmed.split(whereSeparator: \.isWhitespace).count < 2 {
+                sink.warning(
+                    "authored-sentence-is-a-word", "\(path)[\(index)]",
+                    "\"\(trimmed)\" is one word. This corpus is embedded as sentences; a bare term belongs in triggers.tokens.")
+            }
+            if !seen.insert(trimmed.lowercased()).inserted {
+                sink.warning(
+                    "duplicate-authored-sentence", "\(path)[\(index)]",
+                    "\"\(trimmed)\" is seeded twice under the same key.")
             }
         }
     }

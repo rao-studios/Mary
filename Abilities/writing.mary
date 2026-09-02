@@ -198,6 +198,24 @@
         "take this down",
         "write this"
       ],
+      "seedFamilies" : {
+        "transform" : [
+          "clean up this prose",
+          "do you want me to clean that up?",
+          "expand on this",
+          "fix the wording here",
+          "make this clearer",
+          "polish this draft",
+          "proofread this scene",
+          "reword that sentence",
+          "rewrite that paragraph",
+          "shall i rewrite this paragraph?",
+          "shorten this section",
+          "should i polish that for you?",
+          "tighten this up",
+          "want me to tighten it up?"
+        ]
+      },
       "tokens" : [
         "binder",
         "chapter",
@@ -753,7 +771,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "9866a6b83adb4fa97829ad67b53078de146cd2abc56b8f75a0aaf6d50cac4b4e"
+    "digest" : "ec52c10bd5292670cad79cb890988cdbec49f4a0de1107c11f303d698209a1b7"
   },
   "interactions" : [
     {

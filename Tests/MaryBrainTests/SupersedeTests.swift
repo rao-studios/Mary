@@ -392,27 +392,45 @@ import Testing
 
     /// Watches the proactive channel until the routine's terminal event —
     /// or a timeout, so a regression fails instead of hanging the suite.
+    /// Watch a routine to its terminal event, to a ceiling.
+    ///
+    /// A TIMEOUT IS NOT A RESULT. `(false, false)` on expiry is also what a
+    /// genuine cancellation returns, so an overloaded machine used to be
+    /// indistinguishable from a routine that really did not settle. The
+    /// expiry now records itself.
     private func watchRoutineTerminal(
-        _ stream: AsyncStream<ProactiveEvent>, timeoutSeconds: Double = 5
+        _ stream: AsyncStream<ProactiveEvent>,
+        timeoutSeconds: Double = 5,
+        sourceLocation: SourceLocation = #_sourceLocation
     ) async -> (spokeFollowUp: Bool, settled: Bool) {
-        await withTaskGroup(of: (Bool, Bool).self) { group in
+        let outcome = await withTaskGroup(of: (Bool, Bool, Bool).self) { group in
             group.addTask {
                 var spoke = false
                 for await event in stream {
                     if case .followUpToken = event { spoke = true }
-                    if case .routineSettled = event { return (spoke, true) }
-                    if case .routineCancelled = event { return (spoke, false) }
+                    if case .routineSettled = event { return (spoke, true, true) }
+                    if case .routineCancelled = event { return (spoke, false, true) }
                 }
-                return (spoke, false)
+                return (spoke, false, true)
             }
             group.addTask {
                 try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds * 1_000_000_000))
-                return (false, false)
+                return (false, false, false)
             }
-            let first = await group.next() ?? (false, false)
+            let first = await group.next() ?? (false, false, false)
             group.cancelAll()
-            return (spokeFollowUp: first.0, settled: first.1)
+            return first
         }
+        if !outcome.2 {
+            Issue.record(
+                """
+                TIMING: no terminal routine event within \(timeoutSeconds)s. This is a \
+                timeout, not a cancellation — the (spoke, settled) pair below is the \
+                expiry default, not something the routine reported.
+                """,
+                sourceLocation: sourceLocation)
+        }
+        return (spokeFollowUp: outcome.0, settled: outcome.1)
     }
 
     @Test func overlappingPlainRespondSupersedesInFlightTurn() async throws {
@@ -563,7 +581,7 @@ import Testing
     /// The 30 s grace is headroom, not a deadline to beat. It is what stops a
     /// loaded machine from turning "mid-grace" into "already detached" — the
     /// failure a fixed 250 ms window can always be starved into.
-    @Test func overlapDuringGraceDetachesRoutineAsSuperseded() async throws {
+    @Test(.tags(.timingSensitive)) func overlapDuringGraceDetachesRoutineAsSuperseded() async throws {
         let seer = ScriptedSeer(scripts: [
             .init(events: [.token("New topic reply.")]),   // the OVERLAP's Lane A
         ])
@@ -616,7 +634,7 @@ import Testing
                 "history holds exactly the superseding exchange: \(spoken.map(\.content))")
     }
 
-    @Test func overlapPreservesUnrelatedDetachedRoutines() async throws {
+    @Test(.tags(.timingSensitive)) func overlapPreservesUnrelatedDetachedRoutines() async throws {
         let seer = ScriptedSeer(scripts: [
             .init(events: [.token("On it.")]),                       // turn 1 → routine
             .init(events: [.token("Hanging.")], hangAtEnd: true),    // turn 2 hangs
@@ -690,7 +708,7 @@ import Testing
     /// drops empty assistants, so a stranded user turn would put two
     /// consecutive user roles on every later request. The factual marker
     /// keeps alternation and anchors the routine's follow-up merge.
-    @Test func cancelledActionTurnClosesExchangeWithMarker() async throws {
+    @Test(.tags(.timingSensitive)) func cancelledActionTurnClosesExchangeWithMarker() async throws {
         let seer = ScriptedSeer(scripts: [])   // an action turn never calls Seer
         let engine = ScriptedEngine(rounds: [.init(calls: [call("probe")])])
         let dispatcher = SlowDispatcher()

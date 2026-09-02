@@ -90,6 +90,107 @@ import Testing
     }
 
     /// Bare utterance — no world, no history. The floor case.
+    // MARK: - Window verbs, measured
+
+    /// WHAT THE DELETED WINDOW GATE USED TO DECIDE. Listing windows and
+    /// raising them were told apart by a five-word veto ("forward", "front",
+    /// "raise", "unhide", "restore"); they are now told apart by the corpus,
+    /// and a tie hands the turn to the model rather than guessing.
+    ///
+    /// Zero-argument verbs had NO fixtures before this phase — the hand-written
+    /// gate meant the corpus never had to distinguish them.
+    @Test func windowVerbsSeparateThroughTheShippedCorpus() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let offered = Set(
+            snapshot.skills
+                .filter { $0.skill.modelExposure.enabled }
+                .map(\.reference.invocationName))
+
+        // PARAPHRASES, NOT FIXTURES. A probe that repeats a seeded sentence
+        // measures memorisation; these are how someone might actually put it.
+        let cases: [(String, String)] = [
+            ("show me everything I have open", "list_app_windows"),
+            ("which windows are up right now", "list_app_windows"),
+            ("raise them all to the front", "bring_all_windows_forward"),
+            ("surface every window for me", "bring_all_windows_forward"),
+            ("blow this up to fill the screen", "make_window_full_screen"),
+            ("take this out of full screen", "exit_full_screen"),
+        ]
+        var report: [String] = []
+        var wrong: [String] = []
+        for (utterance, expected) in cases {
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered)
+            let picked = verdict.uniqueSkill?.reference.invocationName
+            report.append("window [\(utterance)] -> \(picked ?? "none")  intent=\(verdict.intent?.rawValue ?? "nil")")
+            // THE DIRECTION THAT ACTS. Picking nothing costs a model round;
+            // picking the WRONG verb moves the user's windows.
+            if let picked, picked != expected {
+                wrong.append("[\(utterance)] picked \(picked), expected \(expected)")
+            }
+        }
+        print(report.joined(separator: "\n"))
+        #expect(wrong.isEmpty, "\(wrong)")
+    }
+
+    // MARK: - The transform family, measured
+
+    /// WHAT THE FORTY-VERB LIST USED TO ANSWER. `namesTransform` gated offer
+    /// detection on both sides — the user asking for a change, and Mary's own
+    /// reply proposing one — and a miss there quietly closes the acceptance
+    /// road while a false positive arms a write.
+    ///
+    /// The floor that matters is the NEGATIVE one: a sentence that names no
+    /// transformation must not join the family, because that is the direction
+    /// that types something nobody asked for.
+    @Test func theTransformFamilyResolvesThroughTheShippedCorpus() throws {
+        guard let environment = try Self.environment() else { return }
+        guard let index = SemanticSeedFamilyIndex.build(
+            records: environment.snapshot.records,
+            vectorizer: try #require(NLUtteranceVectorizer.shared))
+        else { return }
+
+        // DELIBERATELY NOT SEEDS. A probe that is itself in the corpus scores
+        // 1.00 and measures nothing; these are paraphrases the packages have
+        // never seen, so the number is generalization.
+        let transforms = [
+            "make it shorter",
+            "trim this down a bit",
+            "smarten up the wording here",
+            "tidy up this method",
+            "give the opening another pass",
+        ]
+        let offers = [
+            "Should I clean that up for you?",
+            "Do you want me to shorten it?",
+        ]
+        let notTransforms = [
+            "what time is it",
+            "read me the first paragraph",
+            "what does this function do",
+            "play some music",
+            "how are you today",
+        ]
+        var report: [String] = []
+        func score(_ text: String) -> Float {
+            index.bestScore(SemanticSeedFamilyIndex.transform, in: text) ?? -1
+        }
+        for text in transforms + offers + notTransforms {
+            report.append(String(format: "transform %.2f  [%@]", score(text), text))
+        }
+        print(report.joined(separator: "\n"))
+
+        // THE DIRECTION THAT WRITES. A false positive here arms an offer road
+        // that ends in typed bytes, so this half is asserted; the recall half
+        // is reported and read.
+        for text in notTransforms {
+            #expect(
+                !index.matches(SemanticSeedFamilyIndex.transform, in: text),
+                "[\(text)] must not read as a transformation")
+        }
+    }
+
     // MARK: - The discipline axis, measured
 
     /// WHAT THE DELETED WORD LIST USED TO ANSWER, asked of the real model and

@@ -80,6 +80,9 @@
         "my project",
         "the workspace"
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
         "xcode",
         "project",
@@ -111,7 +114,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "339738abd7b83efa648fb7a26e7a953680a1ee7775f73d1ac84d578a603dd874"
+    "digest" : "e9c953bb4890d7c782bfbba3ee754437a9bc7cbe4ec8059bd6cb02fd9c591204"
   },
   "interactions" : [
 

@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import Testing
 @testable import MaryAmbient
 @testable import MaryFoundation
 
@@ -156,4 +157,25 @@ func withScopedWorld<T>(
             try await body()
         }
     }
+}
+
+
+/// TESTS THAT RACE A WALL CLOCK.
+///
+/// A tagged test makes a claim that is true only if the scheduler gets round
+/// to something within a fixed budget. They are not weaker tests — the claim
+/// is real — but they can fail on a loaded machine while the mechanism works
+/// perfectly. `TakeoverTests` measured the effect: under the full parallel
+/// run, a 50 ms `Task.sleep` in a test's own task took **447 ms** to resume.
+///
+/// THE RULE FOR ANYTHING TAGGED HERE: a wait that expires must say so itself
+/// (`Issue.record`), never return a value that a real negative result could
+/// also produce. A timeout reported as a timeout is diagnosable; a timeout
+/// disguised as "the routine did not settle" sends the next reader hunting a
+/// bug that is not there.
+///
+/// Run just these with `swift test --filter <suite>`; they are tagged so they
+/// can be found, not so they can be skipped.
+extension Tag {
+    @Tag static var timingSensitive: Self
 }

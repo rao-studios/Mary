@@ -287,6 +287,12 @@ extension AbilityLibrary {
             semanticIntentIndex: NLUtteranceVectorizer.shared.flatMap {
                 SemanticIntentIndex.build(
                     records: discovery.records, vectorizer: $0)
+            },
+            // The fourth corpus: named seed families, the shapes of speech
+            // that are neither an intent nor a Skill. Same one model load.
+            semanticSeedFamilyIndex: NLUtteranceVectorizer.shared.flatMap {
+                SemanticSeedFamilyIndex.build(
+                    records: discovery.records, vectorizer: $0)
             })
         lock.lock()
         state.snapshot = next

@@ -215,21 +215,21 @@ extension AmbientRanker {
         ].contains { text.contains($0) }
     }
 
-    /// The verbs that TRANSFORM rather than ask. Deliberately excludes pure reading verbs
-    /// ("read", "show", "what does it say") — reading an unfocused world is a question about
-    /// it, not a transformation of it, and the user's rule names transformation specifically.
+    /// DOES THIS SENTENCE NAME A TRANSFORMATION rather than merely ask about
+    /// something? Asked of the installed crafts' own `transform` seed family.
+    ///
+    /// This was forty substrings, and the list carried a real bug worth
+    /// recording: `"add "` was matched WITH ITS TRAILING SPACE against a
+    /// padded string, so "add" at the very end of an utterance never matched
+    /// while every other verb did. Reading verbs stay excluded as they always
+    /// were — a package seeds the transformations it performs, and reading a
+    /// world is a question about it, not a change to it.
+    ///
+    /// USED ON BOTH SIDES: the user asking for a change, and Mary's own reply
+    /// offering one. What makes the second an OFFER is the question mark the
+    /// caller checks, not a separate vocabulary.
     public static func namesTransform(_ utterance: String) -> Bool {
-        let text = " " + utterance.lowercased() + " "
-        let verbs = [
-            "rewrite", "rewriting", "revise", "revising", "edit", "editing",
-            "change", "changing", "fix", "fixing", "tighten", "tightening",
-            "shorten", "shortening", "expand", "expanding", "polish",
-            "reword", "rephrase", "proofread", "proof-read", "correct",
-            "refactor", "rename", "replace", "delete", "remove", "insert",
-            "add ", "append", "translate", "reformat", "format", "clean up",
-            "tidy", "update", "make it", "turn it into",
-        ]
-        return verbs.contains { text.contains(" \($0)") }
+        AmbientCapabilityIndexProvider.current.namesTransform(in: utterance)
     }
 
 }

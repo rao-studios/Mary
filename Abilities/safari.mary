@@ -74,6 +74,9 @@
         "this page",
         "this tab"
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
         "safari",
         "browser",
@@ -121,7 +124,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "274d722a63c5bbc4f0a664cf8f8811f9659c3ee1800a1e6a785dc4c533090663"
+    "digest" : "8ba7d7837ae2d862eae37a5ac688c52cfff4c2784cebc6d30f0a53ee38cfc8bf"
   },
   "interactions" : [
 

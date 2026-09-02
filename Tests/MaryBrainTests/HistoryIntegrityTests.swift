@@ -152,10 +152,19 @@ import Testing
 
     /// Waits for the routine's terminal proactive event (or times out) so a
     /// regression fails instead of hanging the suite.
+    /// Wait for a routine to reach a terminal event, to a ceiling.
+    ///
+    /// A TIMEOUT IS NOT A RESULT. This used to discard the outcome entirely,
+    /// so an expired budget looked exactly like a settled routine and the
+    /// failure surfaced later as a confusing assertion about spoken text. It
+    /// now records the timeout where it happens, so a slow machine reads as a
+    /// slow machine.
     private func awaitSettled(
-        _ stream: AsyncStream<ProactiveEvent>, timeoutSeconds: Double = 6
+        _ stream: AsyncStream<ProactiveEvent>,
+        timeoutSeconds: Double = 6,
+        sourceLocation: SourceLocation = #_sourceLocation
     ) async {
-        _ = await withTaskGroup(of: Bool.self) { group in
+        let arrived = await withTaskGroup(of: Bool.self) { group in
             group.addTask {
                 for await event in stream {
                     switch event {
@@ -172,6 +181,15 @@ import Testing
             let first = await group.next() ?? false
             group.cancelAll()
             return first
+        }
+        if !arrived {
+            Issue.record(
+                """
+                TIMING: no terminal routine event within \(timeoutSeconds)s. This is a \
+                timeout, not a behavioural failure — assertions below ran against a \
+                routine that had not finished.
+                """,
+                sourceLocation: sourceLocation)
         }
     }
 
@@ -212,7 +230,7 @@ import Testing
         #expect(spoken.map(\.role) == ["user", "assistant"], "\(spoken.map(\.content))")
     }
 
-    @Test func alternationHoldsAfterDetachAndMerge() async throws {
+    @Test(.tags(.timingSensitive)) func alternationHoldsAfterDetachAndMerge() async throws {
         let seer = ScriptedSeer(scripts: [
             .init(events: [.token("On it.")]),             // turn 1 → routine
             .init(events: [.token("Meanwhile, hi!")]),     // intervening turn
@@ -241,7 +259,7 @@ import Testing
                 "the merge landed on the origin: \(spoken.map(\.content))")
     }
 
-    @Test func alternationHoldsAfterTrimWithLiveRoutine() async throws {
+    @Test(.tags(.timingSensitive)) func alternationHoldsAfterTrimWithLiveRoutine() async throws {
         let seer = ScriptedSeer(scripts: [
             .init(events: [.token("On it.")]),
             .init(events: [.token("Two.")]),
@@ -278,7 +296,7 @@ import Testing
     /// Supersede racing finishRoutine: the routine's merge lands (or drops)
     /// while an overlap removes ANOTHER turn's exchange — actor-serialized,
     /// so either order must leave alternation intact.
-    @Test func alternationHoldsWhenSupersedeRacesFinishRoutine() async throws {
+    @Test(.tags(.timingSensitive)) func alternationHoldsWhenSupersedeRacesFinishRoutine() async throws {
         let seer = ScriptedSeer(scripts: [
             .init(events: [.token("On it.")]),                    // turn 1 → routine
             .init(events: [.token("Hanging")], hangAtEnd: true),  // turn 2 hangs

@@ -429,38 +429,18 @@ extension MaryBrain {
             return
         }
 
-        // Whole-app window verbs: list_app_windows / bring_all_windows_forward.
-        // Same early-return shape as bare-correction (no lane, no skills).
-        if let dispatcher,
-           decisionOutcome == nil, editIntent == nil, !hadPendingAction,
-           let verb = Self.deterministicWindowVerb(userText) {
-            // THE ROUTE'S ANSWER, NOT THIS PATH'S GUESS.
-            let named = route.namedPlaces.first { $0.application != nil }
-            let application = (named ?? route.leadPlace)?.application
-            var arguments: [String: String] = [:]
-            if let application { arguments["app"] = application }
-            let outcome = await performSkillTurn(
-                dispatcher: dispatcher,
-                name: verb,
-                argumentsJSON: Self.argumentsJSON(arguments),
-                runIDPrefix: "window",
-                continuation: continuation,
-                epoch: epoch)
-            Self.laneLog.info("window verb dispatched deterministically — no model round")
-            // A READ'S SUMMARY IS THE ANSWER; A RAISE'S IS NOT.
-            let spoken = (outcome.ok && verb != "list_app_windows")
-                ? "" : outcome.summary
-            closeSkillTurn(
-                spoken: spoken, exit: "window verb \(verb)",
-                continuation: continuation, epoch: epoch)
-            return
-        }
-
+        // THE ONE NO-MODEL DISPATCH. Window verbs arrive here too now: they
+        // are ordinary Skills that happen to need no argument, and the gate
+        // that used to name them by hand is gone.
         if let dispatcher,
            decisionOutcome == nil, editIntent == nil, !hadPendingAction,
            route.intent == .operate,
            let skill = uniqueSkill,
-           EmbeddingRouting.isEligibleForArgumentExtraction(skill) {
+           let shape = EmbeddingRouting.confidenceShape(of: skill),
+           // A verb carrying no span claims the WHOLE sentence, so it only
+           // acts on a whole simple one. A skill extracting a span already
+           // reads around the joiners it finds.
+           shape != .noRequiredArguments || EmbeddingRouting.isSingleClause(userText) {
             let name = skill.reference.invocationName
             let applicationID = route.gate.applications.count == 1
                 ? route.gate.applications.first : nil

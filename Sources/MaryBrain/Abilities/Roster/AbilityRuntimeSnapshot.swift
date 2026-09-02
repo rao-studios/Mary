@@ -46,6 +46,8 @@ public struct AbilityRuntimeSnapshot: Sendable {
     /// built from every installed package's own `intentExemplars`. Nil keeps
     /// the lexical ladder in `AmbientEngine.classify`.
     public let semanticIntentIndex: SemanticIntentIndex?
+    /// Named seed families — see `SemanticSeedFamilyIndex`.
+    public let semanticSeedFamilyIndex: SemanticSeedFamilyIndex?
 
     public init(
         revision: UUID = UUID(),
@@ -57,11 +59,13 @@ public struct AbilityRuntimeSnapshot: Sendable {
         plugins: PluginCompilation = .init(),
         semanticIndex: SemanticAbilityRequestIndex? = nil,
         semanticSkillIndex: SemanticSkillRequestIndex? = nil,
-        semanticIntentIndex: SemanticIntentIndex? = nil
+        semanticIntentIndex: SemanticIntentIndex? = nil,
+        semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil
     ) {
         self.semanticIndex = semanticIndex
         self.semanticSkillIndex = semanticSkillIndex
         self.semanticIntentIndex = semanticIntentIndex
+        self.semanticSeedFamilyIndex = semanticSeedFamilyIndex
         let inventory = InstalledAdapterInventory(
             manifests: adapterManifests + plugins.adapterManifests,
             primitiveBindings: primitiveBindings)

@@ -86,22 +86,35 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
     /// see `AmbientIntent` — the key is validated where it is consumed.
     public var intentExemplars: [String: [String]]
 
+    /// Authored sentences for named SEED FAMILIES — the shapes of speech that
+    /// are not an intent and not a Skill, but that the turn body still has to
+    /// recognize ("does this sentence ask for a transformation?").
+    ///
+    /// A GENERIC MAP ON PURPOSE. Every family that used to be a verb list in
+    /// Swift becomes a key here, so the next one needs authored sentences
+    /// rather than a schema change. Keys are validated where they are consumed
+    /// — MaryFoundation must not learn what families the Brain knows.
+    public var seedFamilies: [String: [String]]
+
     public init(
         tokens: [String] = [],
         phrases: [String] = [],
         negativeTokens: [String] = [],
         intentAliases: [String] = [],
-        intentExemplars: [String: [String]] = [:]
+        intentExemplars: [String: [String]] = [:],
+        seedFamilies: [String: [String]] = [:]
     ) {
         self.tokens = tokens
         self.phrases = phrases
         self.negativeTokens = negativeTokens
         self.intentAliases = intentAliases
         self.intentExemplars = intentExemplars
+        self.seedFamilies = seedFamilies
     }
 
     private enum CodingKeys: String, CodingKey {
         case tokens, phrases, negativeTokens, intentAliases, intentExemplars
+        case seedFamilies
     }
 
     /// Tolerant decode — a package sealed before this field existed must
@@ -116,5 +129,7 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
             [String].self, forKey: .intentAliases) ?? []
         intentExemplars = try container.decodeIfPresent(
             [String: [String]].self, forKey: .intentExemplars) ?? [:]
+        seedFamilies = try container.decodeIfPresent(
+            [String: [String]].self, forKey: .seedFamilies) ?? [:]
     }
 }

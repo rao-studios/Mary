@@ -49,7 +49,7 @@ import Testing
                     affinities: affinities, snapshot: env.snapshot),
                 "\(utterance) had no unique Skill")
             #expect(winner.skill.id == SkillID("multimedia.play-playlist"), "\(utterance)")
-            #expect(EmbeddingRouting.isEligibleForArgumentExtraction(winner), "\(utterance)")
+            #expect(EmbeddingRouting.confidenceShape(of: winner) != nil, "\(utterance)")
             // The extracted argument must be the PLAYLIST SPAN, never the
             // whole sentence — this is the screenshot's own bug.
             let argumentsJSON = EmbeddingRouting.argumentsJSON(
@@ -136,7 +136,7 @@ import Testing
                     name: "message", type: "string", summary: "Commit message.",
                     required: true, requiresComposition: true),
             ])
-        #expect(!EmbeddingRouting.isEligibleForArgumentExtraction(skill))
+        #expect(EmbeddingRouting.confidenceShape(of: skill) == nil)
     }
 
     /// A single required string parameter carrying `enumValues` (a closed
@@ -151,7 +151,7 @@ import Testing
                     name: "action", type: "string", summary: "What to do.",
                     required: true, enumValues: ["play", "pause", "skip"]),
             ])
-        #expect(!EmbeddingRouting.isEligibleForArgumentExtraction(skill))
+        #expect(EmbeddingRouting.confidenceShape(of: skill) == nil)
     }
 
     /// A plain single required string parameter — the (b)-shape this whole
@@ -163,7 +163,7 @@ import Testing
             parameters: [
                 .init(name: "query", type: "string", summary: "Which playlist.", required: true),
             ])
-        #expect(EmbeddingRouting.isEligibleForArgumentExtraction(skill))
+        #expect(EmbeddingRouting.confidenceShape(of: skill) == .singleString)
     }
 
     private static func fixtureSkill(

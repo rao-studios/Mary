@@ -49,6 +49,12 @@ extension AbilityRuntimeSnapshot: AbilityCapabilityIndex {
         }
         return WorkspaceFocus(best.key)
     }
+
+    /// The `transform` seed family, asked of whichever packages authored it.
+    public func namesTransform(in text: String) -> Bool {
+        semanticSeedFamilyIndex?
+            .matches(SemanticSeedFamilyIndex.transform, in: text) ?? false
+    }
 }
 
 public enum AmbientCapabilityBridge {

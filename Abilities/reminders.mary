@@ -87,6 +87,9 @@
         "remind me to",
         "add a reminder"
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
         "reminders",
         "remind",
@@ -174,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8da4e17a8c81425a3384c82eeab2e2792de1fae14e02fd9f23e0dbf2d2b4c656"
+    "digest" : "b214e21993839d0d803eface9edb5ce0dd9410736ec3d83c59654b7575e26f67"
   },
   "interactions" : [
 

@@ -88,6 +88,9 @@
       "phrases" : [
 
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
 
       ]
@@ -116,7 +119,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "bdbcc772ca99521d57e35ca471eddc079dbc3ac8dc670ef5c71dab27a46b5fc6"
+    "digest" : "b3339c75e187886554c62a74f1865bf77f4434e5446e472f73704149cf70fa2c"
   },
   "interactions" : [
 

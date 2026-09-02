@@ -84,39 +84,6 @@ extension MaryBrain {
         return String(format: "%.1fs", Double(elapsed) / 1_000_000_000)
     }
 
-    /// Whole-application window verb and nothing else — gate on the deterministic path in `runTurnBody`.
-    static func deterministicWindowVerb(_ utterance: String) -> String? {
-        let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-
-        let words = trimmed.split { $0.isWhitespace }.map(String.init)
-        guard words.count <= 12 else { return nil }
-        let lowered = " " + words.joined(separator: " ").lowercased() + " "
-        let joiners = [" and ", " then ", " also ", " after that ", " plus "]
-        guard !joiners.contains(where: { lowered.contains($0) }) else { return nil }
-        guard !trimmed.contains(";"), !trimmed.contains(","),
-              !trimmed.contains("?") else { return nil }
-
-        let intent = WindowManagementTurnClassifier.classify(utterance: trimmed)
-        // An explicit script request is for the model, not this shortcut.
-        guard !intent.explicitlyRequestsScript else { return nil }
-
-        switch intent.invocationName {
-        case "bring_all_windows_forward":
-            return intent.invocationName
-
-        case "list_app_windows":
-            // A sentence that also asks to bring something forward is not a pure list.
-            let raiseWords = ["forward", "front", "raise", "unhide", "restore"]
-            guard !raiseWords.contains(where: { lowered.contains(" \($0) ") }) else {
-                return nil
-            }
-            return intent.invocationName
-
-        default:
-            return nil
-        }
-    }
 
     /// Elapsed milliseconds, unrounded — lane log, compared against the 250 ms join grace.
     static func elapsedMs(since start: DispatchTime) -> UInt64 {

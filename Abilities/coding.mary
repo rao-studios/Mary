@@ -285,6 +285,21 @@
         "stop it",
         "what does this function do"
       ],
+      "seedFamilies" : {
+        "transform" : [
+          "clean this up",
+          "extract this into a function",
+          "fix this bug",
+          "make this more concise",
+          "refactor this function",
+          "reformat this file",
+          "rename this variable",
+          "shall i clean this up for you?",
+          "should i simplify that?",
+          "simplify this code",
+          "want me to refactor it?"
+        ]
+      },
       "tokens" : [
         "api",
         "breakpoint",
@@ -1091,7 +1106,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4d36364a8d18b98be317aaf63a0fd250e91099b3ff7bd046fa7e03df9b727d66"
+    "digest" : "53a5302502d00050007d6dd399d742281eb1b5d64f13e2f1e44a4fe815d4b0cc"
   },
   "interactions" : [
     {

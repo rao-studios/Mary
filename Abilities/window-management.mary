@@ -80,11 +80,19 @@
       ],
       "intentExemplars" : {
         "operate" : [
-          "close the window",
           "bring the window forward",
-          "minimize this window",
+          "close the window",
+          "fill the screen with this",
+          "get my windows up on screen",
+          "hide everything except this one",
           "make this window full screen",
-          "show me all my windows"
+          "minimize this window",
+          "put them all in front",
+          "raise everything for me",
+          "show me all my windows",
+          "shrink this back down",
+          "stack them where I can see them",
+          "unminimize the ones I had open"
         ]
       },
       "negativeTokens" : [
@@ -98,6 +106,9 @@
         "full screen",
         "exit full screen"
       ],
+      "seedFamilies" : {
+
+      },
       "tokens" : [
         "window",
         "windows",
@@ -321,6 +332,33 @@
       "utterance" : "Bring my browser forward."
     },
     {
+      "expectedDisposition" : "ask-user",
+      "id" : "ambiguous-title",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application-window",
+      "utterance" : "Bring the Untitled window forward."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.make-window-full-screen",
+      "id" : "fullscreen-enter",
+      "interactions" : [
+
+      ],
+      "utterance" : "Make this full screen."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "fullscreen-exit",
+      "interactions" : [
+
+      ],
+      "utterance" : "Exit full screen."
+    },
+    {
       "expectedDisposition" : "route",
       "expectedSkill" : "window-management.list-app-windows",
       "id" : "list-document-windows",
@@ -332,13 +370,49 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "window-management.bring-window-forward",
-      "id" : "raise-one-document-window",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "list-windows-plain",
       "interactions" : [
-        "interaction.window-reference"
+
+      ],
+      "utterance" : "List my open windows."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "list-windows-which",
+      "interactions" : [
+
+      ],
+      "utterance" : "What windows do I have open?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "raise-all-document-windows",
+      "interactions" : [
+
       ],
       "targetClass" : "document-window",
-      "utterance" : "Bring [W2] to the front."
+      "utterance" : "Bring all my document windows forward."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "raise-all-front",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put every window in front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "raise-all-plain",
+      "interactions" : [
+
+      ],
+      "utterance" : "Bring all my windows forward."
     },
     {
       "expectedDisposition" : "route",
@@ -352,29 +426,20 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "window-management.bring-all-windows-forward",
-      "id" : "raise-all-document-windows",
+      "expectedSkill" : "window-management.bring-window-forward",
+      "id" : "raise-one-document-window",
       "interactions" : [
-
+        "interaction.window-reference"
       ],
       "targetClass" : "document-window",
-      "utterance" : "Bring all my document windows forward."
-    },
-    {
-      "expectedDisposition" : "ask-user",
-      "id" : "ambiguous-title",
-      "interactions" : [
-
-      ],
-      "targetClass" : "macos-application-window",
-      "utterance" : "Bring the Untitled window forward."
+      "utterance" : "Bring [W2] to the front."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "acb1fff514ac76d3bc825d71c50d049abcb6acc3d5b263de06caafa1467e76fd"
+    "digest" : "cd52e3cae2060f1c9be1f58d6f6a8da23d55e00c56d6427dbcd8dfe2cfb180d9"
   },
   "interactions" : [
     {
