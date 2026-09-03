@@ -48,29 +48,27 @@ public enum LifeTrainPolicy: Sendable {
         return completedCount >= firstTrainCount
     }
 
+    /// Turns THIS PERSON took, in this discipline, that finished.
+    ///
+    /// PIN: MARY'S OWN IDLE EPISODES DO NOT COUNT. They are sealed
+    /// `.completed` and filed under the same ability group as a real turn, so
+    /// without this filter a quiet afternoon of pulses would trip a retrain
+    /// on the model's own output — and every generation after that would be
+    /// learning from the last one instead of from the user.
     public static func completedCount(
         in episodes: [BehavioralEpisode], abilityID: AbilityID
     ) -> Int {
-        episodes.filter { episode in
-            episode.sealedReason == .completed
-                && episode.abilityTargets.contains {
-                    $0.abilityID == abilityID && $0.paradigm == .discipline
-                }
-        }.count
+        episodes.filter { isTrainable($0, abilityID: abilityID) }.count
     }
 
-    /// Acted rows first (non-empty output schema); silent rows after (restraint).
-    public static func trainingEpisodes(
-        from episodes: [BehavioralEpisode], abilityID: AbilityID
-    ) -> [BehavioralEpisode] {
-        let eligible = episodes.filter { episode in
-            episode.sealedReason == .completed
-                && episode.abilityTargets.contains {
-                    $0.abilityID == abilityID && $0.paradigm == .discipline
-                }
-        }
-        let acted = eligible.filter(\.didAct)
-        guard !acted.isEmpty else { return [] }
-        return acted + eligible.filter { !$0.didAct }
+    /// Whether one episode may teach this discipline anything.
+    public static func isTrainable(
+        _ episode: BehavioralEpisode, abilityID: AbilityID
+    ) -> Bool {
+        episode.sealedReason == .completed
+            && !episode.provenance.isProactive
+            && episode.abilityTargets.contains {
+                $0.abilityID == abilityID && $0.paradigm == .discipline
+            }
     }
 }

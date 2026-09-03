@@ -26,6 +26,8 @@ extension ConfigService {
         package init(
             llmEngine: LLMEngineChoice? = nil,
             skillEngine: LLMEngineChoice? = nil,
+            lifeMode: LifeMode? = nil,
+            lifeTurnDisciplines: [String]? = nil,
             localModelID: String? = nil,
             sttBackend: STTBackend? = nil,
             ttsBackend: TTSBackend? = nil,
@@ -65,6 +67,8 @@ extension ConfigService {
         ) {
             self.llmEngine = llmEngine
             self.skillEngine = skillEngine
+            self.lifeMode = lifeMode
+            self.lifeTurnDisciplines = lifeTurnDisciplines
             self.localModelID = localModelID
             self.sttBackend = sttBackend
             self.ttsBackend = ttsBackend
@@ -104,6 +108,8 @@ extension ConfigService {
         }
             package var llmEngine: LLMEngineChoice? = nil
             package var skillEngine: LLMEngineChoice? = nil
+            package var lifeMode: LifeMode? = nil
+            package var lifeTurnDisciplines: [String]? = nil
             package var localModelID: String? = nil
             package var sttBackend: STTBackend? = nil
             package var ttsBackend: TTSBackend? = nil
@@ -150,6 +156,8 @@ extension ConfigService {
             guard let meta else { return }
             if let value = meta.llmEngine { state.llmEngine = value }
             if let value = meta.skillEngine { state.skillEngine = value }
+            if let value = meta.lifeMode { state.lifeMode = value }
+            if let value = meta.lifeTurnDisciplines { state.lifeTurnDisciplines = value }
             if let value = meta.localModelID, !value.isEmpty { state.localModelID = value }
             if let value = meta.sttBackend { state.sttBackend = value }
             if let value = meta.ttsBackend { state.ttsBackend = value }

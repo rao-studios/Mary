@@ -65,6 +65,15 @@ public protocol AbilityDispatching: Sendable {
     /// content, so the routine settle policy must never silence it the way a
     /// deposited machine receipt is silenced. Default false.
     func isLookSkill(_ skillName: String) -> Bool
+    /// WHETHER THIS SKILL MAY RUN WITH NOBODY WATCHING — the Life engine's
+    /// only question about an act it is about to perform unattended. A read
+    /// and a cognitive activation change nothing; a `.write` binding parks
+    /// itself for confirmation and so is also safe to reach for. Anything
+    /// else executes on sight, and the idle engine holds it instead.
+    /// Default: reads and activations only, because a dispatcher that has not
+    /// said is a dispatcher whose bindings we cannot inspect.
+    func isUnattendedSafe(_ skillName: String) -> Bool
+
     /// A cognitive activation — instruction for the model's next round, no application effect.
     func isNonEffectful(_ skillName: String) -> Bool
     /// The binding staged a surface (created/opened/raised) without delivering
@@ -128,13 +137,18 @@ public extension AbilityDispatching {
             // closure returns, and this loop builds its own record after
             // dispatch's internal chokepoint has already built (and reverted
             // from) its own.
+            // THE SAME NAME BOTH PATHS USE. The turn-side codec dispatches
+            // `invocationName` and fell back to `intention`; this loop used
+            // `intention` alone, so an adapter whose two fields differ acted
+            // through one name when idle and another when asked.
+            let name = MaryLifeEngine.dispatchName(action)
             let record = await ActionInitiator.$current.withValue(.maryAct) {
                 let outcome = await dispatch(
-                    name: action.intention, argumentsJSON: action.argumentsJSON,
+                    name: name, argumentsJSON: action.argumentsJSON,
                     runID: runID)
                 return BehavioralActionRecord(
                     outcome: outcome,
-                    intention: action.intention,
+                    intention: name,
                     argumentsJSON: action.argumentsJSON,
                     reference: action.skill,
                     runID: runID,
@@ -172,6 +186,9 @@ public extension AbilityDispatching {
     func isReadOnly(_ skillName: String) -> Bool { false }
     func isLookSkill(_ skillName: String) -> Bool { false }
     func isNonEffectful(_ skillName: String) -> Bool { false }
+    func isUnattendedSafe(_ skillName: String) -> Bool {
+        isReadOnly(skillName) || isNonEffectful(skillName)
+    }
     func preparesSurface(_ skillName: String) -> Bool { false }
     func place(ofSkill skillName: String) -> AmbientPlace? { nil }
     func attention(ofSkill skillName: String) -> AmbientAttention? { place(ofSkill: skillName)?.attention }

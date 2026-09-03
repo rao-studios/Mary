@@ -56,6 +56,8 @@ final class TotemExplorerViewModel: ObservableObject {
     @Published private(set) var isFleetHealthy = false
     /// Gold overlay on the Life button while a discipline is training.
     @Published private(set) var lifeIsTraining = false
+    /// What the idle engine is doing, for the same button's second dot.
+    @Published private(set) var lifePhase: LifeEnginePhase = .off
 
     /// Seeded via `configure(...)` from the pane's config relay (no Granite on this VM).
     private(set) var configuredTotemNodeID: String = ""
@@ -140,8 +142,13 @@ final class TotemExplorerViewModel: ObservableObject {
         if built.libraryHasMore != libraryHasMore { libraryHasMore = built.libraryHasMore }
         if built.graph != graph { graph = built.graph }
         if built.retrievalRows != retrievalRows { retrievalRows = built.retrievalRows }
-        let training = MaryRuntime.lifeIsTraining()
-        if training != lifeIsTraining { lifeIsTraining = training }
+        Task { [weak self] in
+            let training = await MaryRuntime.lifeIsTraining()
+            let phase = await MaryRuntime.lifeEngineSnapshot().phase
+            guard let self else { return }
+            if training != self.lifeIsTraining { self.lifeIsTraining = training }
+            if phase != self.lifePhase { self.lifePhase = phase }
+        }
     }
 
     // MARK: - Impure

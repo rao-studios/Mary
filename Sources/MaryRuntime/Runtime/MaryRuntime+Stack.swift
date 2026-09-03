@@ -62,10 +62,22 @@ extension MaryRuntime {
         FleetDirectClient(port: fleetGRPCPort)
     }
 
+    /// Point the Fleet dial at a node without booting the server stack —
+    /// what `mary-life-probe` needs, and nothing else it does not.
+    /// PIN: Lives here because `fleetGRPCPort`'s setter is file-private.
+    package static func configureLifeAccess(nodeID: String, fleetGRPCPort port: Int) {
+        fleetGRPCPort = port
+        totemNodeIDBox.withLock { $0 = nodeID }
+    }
+
     package static func applyServers(config: ConfigService.Center.State, nodeID: String) async {
         totemGRPCPort = config.totemGRPCPort
         fleetGRPCPort = config.fleetGRPCPort
         totemNodeIDBox.withLock { $0 = nodeID }
+        lifeModeBox.withLock { $0 = config.lifeMode }
+        await lifeEngine.setActsOnTurns(
+            Set(config.lifeTurnDisciplines.map(AbilityID.init)))
+        await lifeEngine.setMode(config.lifeMode)
         await localStack.configure([
             .seer(
                 checkoutPath: config.seerCheckoutPath,

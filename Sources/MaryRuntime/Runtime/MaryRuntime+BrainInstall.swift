@@ -138,6 +138,9 @@ extension MaryRuntime {
         // 4. Brain providers.
         let deps = FocusResolutionContext(observers: observers)
         focusSubjectBox.withLock { $0 = { resolveFocus(deps: deps).subject } }
+        // The idle engine reads the world through the same focus stack the
+        // prompt does — installed here because this is where `deps` lives.
+        lifeWorldBox.withLock { $0 = { at in idleWorld(deps: deps, at: at) } }
 
         await brain.setSystemPromptProvider {
             systemPromptText(plugins: adapters, projects: projects, deps: deps)
@@ -180,7 +183,11 @@ extension MaryRuntime {
 
         brainConfigurationInstalledBox.withLock { $0 = true }
         startCodingFollowUpBridge()
-        startLifeLoopIfNeeded()
+        // The idle engine gets the SAME dispatcher the turn loop uses — one
+        // authorization path, whether the model asked or Mary did.
+        await startLifeEngine(
+            dispatcher: await brain.currentDispatcher(),
+            mode: lifeModeBox.withLock { $0 })
     }
 
     /// Ability-keyed style learning for taught apps that realize coding.

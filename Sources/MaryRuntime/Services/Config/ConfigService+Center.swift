@@ -125,6 +125,14 @@ extension ConfigService {
             /// estimate. Zero by default: Mary makes no claim about pricing.
             package var modelCallPriceUSD: Double = 0
 
+            /// How much of itself the idle Life engine is allowed to be.
+            /// `.off` on a fresh install: acting unattended is a thing the
+            /// user turns on after watching it in Observe.
+            package var lifeMode: LifeMode = .off
+            /// Disciplines whose ready adapter may answer a live turn in
+            /// place of tool-calling. Opt-in, per ability, always empty here.
+            package var lifeTurnDisciplines: [String] = []
+
             enum CodingKeys: String, CodingKey {
                 case ambientCorpusIndexing
                 case llmEngine, skillEngine, localModelID, sttBackend, ttsBackend, voice, seerVoice, speechStyle, vad,
@@ -134,6 +142,7 @@ extension ConfigService {
                 case codingAgentEnabled, codingAgentModelID, codingEngine
                 case skillRunTimeoutSeconds
                 case modelCallPriceUSD
+                case lifeMode, lifeTurnDisciplines
             }
 
             package init() {}
@@ -144,6 +153,9 @@ extension ConfigService {
                 self.init()
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 llmEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .llmEngine) ?? .hosted
+                lifeMode = try c.decodeIfPresent(LifeMode.self, forKey: .lifeMode) ?? .off
+                lifeTurnDisciplines = try c.decodeIfPresent(
+                    [String].self, forKey: .lifeTurnDisciplines) ?? []
                 skillEngine = try c.decodeIfPresent(LLMEngineChoice.self, forKey: .skillEngine) ?? .local
                 ambientCorpusIndexing = try c.decodeIfPresent(
                     Bool.self, forKey: .ambientCorpusIndexing) ?? true

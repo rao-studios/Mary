@@ -23,6 +23,10 @@ extension MaryBrain {
         self.dispatcher = dispatcher
     }
 
+    /// The installed dispatcher, so the Life engine can be handed the same
+    /// one rather than building a second authorization path.
+    public func currentDispatcher() -> (any AbilityDispatching)? { dispatcher }
+
     /// The provider runs at the start of each turn, so prompts can carry the
     /// current date and time.
     /// Install the correction applier. See `referenceCorrector`.
@@ -100,11 +104,12 @@ extension MaryBrain {
         trimHistory()
     }
 
-    public func setLifeLoRALookup(
-        _ lookup: (@Sendable (AbilityID) -> LifeLoRASlot?)?
-    ) {
-        lifeLoRALookup = lookup
+    public func setLifeEngine(_ engine: MaryLifeEngine?) {
+        lifeEngine = engine
     }
+
+    /// The idle engine, for the surfaces that monitor it.
+    public var life: MaryLifeEngine? { lifeEngine }
 
     public func setOrdinarySkillTimeout(_ seconds: TimeInterval) {
         dispatcher?.setOrdinarySkillTimeout(seconds)

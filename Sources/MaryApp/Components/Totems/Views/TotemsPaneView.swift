@@ -138,8 +138,13 @@ struct TotemsPaneView: View {
                         .foregroundStyle(Paper.ink.opacity(0.7))
                         .frame(width: 14, height: 14)
                         .overlay(alignment: .topTrailing) {
+                            // Gold: a discipline is training. Ink: the idle
+                            // engine is thinking or acting right now.
                             if vm.lifeIsTraining {
                                 StatusDot(color: .maryGold)
+                                    .offset(x: 3, y: -3)
+                            } else if vm.lifePhase == .inferring || vm.lifePhase == .acting {
+                                StatusDot(color: .maryInk)
                                     .offset(x: 3, y: -3)
                             }
                         }

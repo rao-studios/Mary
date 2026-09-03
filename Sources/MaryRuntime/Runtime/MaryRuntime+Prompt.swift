@@ -63,8 +63,33 @@ extension MaryRuntime {
                 budget: budget)
         }
 
+    /// THE INPUT HALF OF AN EPISODE, built one way.
+    ///
+    /// PIN: The idle Life engine projects its pulse through this same
+    /// function. When it did not, the two disagreed in every field that
+    /// matters — the lead arrived as `textedit` here and `applications:textedit`
+    /// there, the mode was a literal instead of the renderer's own, and the
+    /// summary was an unordered scrape of facts rather than the blocks the
+    /// prompt actually rendered. An adapter trained on one shape and asked to
+    /// answer the other is guessing, and the schema gate makes the guess look
+    /// well-formed. Both callers pass their own rendering; nothing else here
+    /// is allowed to differ.
+    static func behavioralCapture(
+        rendering: AmbientRendering, lead: AmbientPlace?, at now: Date
+    ) -> AmbientCapture {
+        let store = AmbientContextStore.shared
+        return AmbientCaptureBuilder.capture(
+            facts: store.facts(at: now),
+            surfaces: leadFirstSurfaces(store.surfaces(at: now), lead: lead),
+            rendering: rendering,
+            selection: store.routedSelectionHandoff(at: now),
+            lead: lead,
+            realm: store.route()?.realm,
+            at: now)
+    }
+
     /// Surfaces in reading order, lead place first. Shared by renderer and capture.
-    private static func leadFirstSurfaces(
+    static func leadFirstSurfaces(
         _ surfaces: [AmbientSurface], lead: AmbientPlace?
     ) -> [AmbientSurface] {
         var surfaces = surfaces
@@ -159,17 +184,8 @@ extension MaryRuntime {
                 spend: assembled.spend,
                 ambient: assembled.ambient)
             // Input half of the episode. Turn loop claims it — see BehavioralAssembler.
-            let now = Date()
             brainWiring.behavior.stageCapture(
-                AmbientCaptureBuilder.capture(
-                    facts: AmbientContextStore.shared.facts(at: now),
-                    surfaces: leadFirstSurfaces(
-                        AmbientContextStore.shared.surfaces(at: now), lead: resolved.leadPlace),
-                    rendering: held,
-                    selection: AmbientContextStore.shared.routedSelectionHandoff(at: now),
-                    lead: resolved.leadPlace,
-                    realm: AmbientContextStore.shared.route()?.realm,
-                    at: now))
+                behavioralCapture(rendering: held, lead: resolved.leadPlace, at: Date()))
             return text
     }
 

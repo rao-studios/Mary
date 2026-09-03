@@ -10,8 +10,6 @@
 import Foundation
 import MLXLLM
 import MLXLMCommon
-import FleetCore
-import FleetInference
 import MaryFoundation
 
 public actor MaryLocalEngine: InferenceEngine {
@@ -33,8 +31,6 @@ public actor MaryLocalEngine: InferenceEngine {
     private var context: ModelContext?
     /// 0…1 while the first-use download runs (surfaced by Boot state).
     private(set) var downloadProgress: Double = 1.0
-    private var adapterPath: URL?
-    private var codecSession: StructuredSession?
 
     public nonisolated let displayName: String
 
@@ -68,40 +64,6 @@ public actor MaryLocalEngine: InferenceEngine {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
-    }
-
-    public func loadAdapter(path: URL) {
-        if adapterPath != path {
-            adapterPath = path
-            codecSession = nil
-        }
-    }
-
-    public func unloadAdapter() {
-        adapterPath = nil
-        codecSession = nil
-    }
-
-    public func completeCodec(
-        input: BehavioralTrainingInput,
-        schemaJSON: Data,
-        adapterPath: URL
-    ) async throws -> BehavioralTrainingOutput {
-        loadAdapter(path: adapterPath)
-        guard let schema = try? JSONDecoder().decode(SchemaTemplate.self, from: schemaJSON)
-        else { throw CodecCompleteError.invalidSchema }
-        if codecSession == nil {
-            codecSession = StructuredSession(
-                modelId: modelID, adapterDirectory: adapterPath)
-        }
-        let bytes = try BehavioralCodec.encoder().encode(input)
-        guard let text = String(data: bytes, encoding: .utf8) else {
-            throw CodecCompleteError.invalidSchema
-        }
-        let json = try JSONParser.parse(text)
-        let result = try await codecSession!.complete(input: json, schema: schema)
-        return try BehavioralCodec.decoder().decode(
-            BehavioralTrainingOutput.self, from: Data(result.rawText.utf8))
     }
 
     // MARK: - Private

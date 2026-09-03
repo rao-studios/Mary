@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import MaryBrain
 import MaryRuntime
 
 struct LifeCalibrationSheet: View {
@@ -17,6 +18,7 @@ struct LifeCalibrationSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: .layer4) {
                 header
+                engineCard
                 if !viewModel.snapshot.fleetReachable {
                     Text("Fleet isn't reachable — episode fill still comes from the turn log.")
                         .font(.marySans(11))
@@ -52,6 +54,165 @@ struct LifeCalibrationSheet: View {
             Button("Done") { dismiss() }
                 .buttonStyle(.mary)
         }
+    }
+
+    // MARK: - The engine
+
+    /// WHAT THE IDLE ENGINE IS DOING RIGHT NOW. Everything below this card is
+    /// about earning an adapter; this card is about the thing that uses one.
+    private var engineCard: some View {
+        MaryCard {
+            VStack(alignment: .leading, spacing: .layer3) {
+                HStack(spacing: .layer3) {
+                    StatusDot(color: phaseColor(viewModel.engine.phase))
+                    Text("Engine")
+                        .font(.marySans(13, weight: .medium))
+                        .foregroundStyle(Color.maryInk)
+                    Spacer()
+                    Text(phaseLine)
+                        .font(.marySans(11))
+                        .foregroundStyle(Color.maryInk.opacity(0.55))
+                        .lineLimit(1)
+                }
+
+                Picker("", selection: modeBinding) {
+                    ForEach(LifeMode.allCases, id: \.self) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+
+                Text(modeExplanation)
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+
+                if let adapter = viewModel.engine.loadedAdapter {
+                    Text("holding \(adapter.abilityID.rawValue) · gen \(adapter.generation) · \(adapter.shortCID)")
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.45))
+                }
+
+                HStack(spacing: .layer3) {
+                    Button(viewModel.pulsing ? "Pulsing…" : "Pulse now (dry run)") {
+                        viewModel.pulseDryRun()
+                    }
+                    .buttonStyle(.mary)
+                    .disabled(viewModel.pulsing || viewModel.engine.mode == .off)
+                    Spacer()
+                    if viewModel.engine.mode == .act {
+                        Text("\(viewModel.engine.actsToday) of \(viewModel.engine.dailyActBudget) acts today")
+                            .font(.marySans(10))
+                            .foregroundStyle(Color.maryInk.opacity(0.45))
+                    }
+                }
+
+                if !viewModel.engine.recent.isEmpty {
+                    Divider()
+                    Text("Decisions")
+                        .font(.marySans(11, weight: .medium))
+                    VStack(alignment: .leading, spacing: 2) {
+                        ForEach(viewModel.engine.recent) { decision in
+                            decisionRow(decision)
+                        }
+                    }
+                }
+
+                if let failure = viewModel.engine.errorTail.first {
+                    Text(failure)
+                        .font(.marySans(10))
+                        .foregroundStyle(Color.maryError)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private func decisionRow(_ decision: LifeDecision) -> some View {
+        let expanded = viewModel.expandedDecisionID == decision.id
+        VStack(alignment: .leading, spacing: 2) {
+            Button {
+                viewModel.toggleDecision(decision.id)
+            } label: {
+                HStack(spacing: .layer2) {
+                    Text(decision.at, style: .time)
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.35))
+                    Text(decision.line)
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.65))
+                        .lineLimit(1)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            if expanded {
+                if let input = decision.input {
+                    Text("Input")
+                        .font(.marySans(10, weight: .medium))
+                    Text(prettyEncodable(input))
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.7))
+                        .textSelection(.enabled)
+                }
+                if let output = decision.output {
+                    Text("Output")
+                        .font(.marySans(10, weight: .medium))
+                    Text(prettyEncodable(output))
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.7))
+                        .textSelection(.enabled)
+                    Text(String(
+                        format: "%.0f%% of tokens forced · %d prompt tokens",
+                        decision.forcedFraction * 100, decision.promptTokens))
+                        .font(.maryMono(9))
+                        .foregroundStyle(Color.maryInk.opacity(0.4))
+                }
+            }
+        }
+    }
+
+    private var modeBinding: Binding<LifeMode> {
+        Binding(
+            get: { viewModel.engine.mode },
+            set: { viewModel.setMode($0) })
+    }
+
+    private var phaseLine: String {
+        let phase = viewModel.engine.phase.rawValue
+        let detail = viewModel.engine.phaseDetail
+        return detail.isEmpty ? phase : "\(phase) · \(detail)"
+    }
+
+    private var modeExplanation: String {
+        switch viewModel.engine.mode {
+        case .off:
+            return "Mary does nothing while you're away."
+        case .observe:
+            return "Mary works out what she would do and records it. She never acts."
+        case .act:
+            return "Mary acts on what she works out — reads and activations only. Anything that changes your work waits for you."
+        }
+    }
+
+    private func phaseColor(_ phase: LifeEnginePhase) -> Color {
+        switch phase {
+        case .off, .paused: return .gray
+        case .idle, .waiting, .cooldown: return Color.maryInk.opacity(0.4)
+        case .inferring, .acting: return .maryGold
+        case .failed: return .maryError
+        }
+    }
+
+    private func prettyEncodable<T: Encodable>(_ value: T) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(value),
+              let text = String(data: data, encoding: .utf8)
+        else { return "—" }
+        return text
     }
 
     private func disciplineCard(_ row: LifeDisciplineStatus) -> some View {
@@ -93,6 +254,17 @@ struct LifeCalibrationSheet: View {
     @ViewBuilder
     private func expandedDetail(_ row: LifeDisciplineStatus) -> some View {
         Divider()
+        if row.ready {
+            Toggle(
+                "Let this answer live turns",
+                isOn: Binding(
+                    get: { viewModel.answersTurns(row.id) },
+                    set: { viewModel.setAnswersTurns(row.id, $0) }))
+                .font(.marySans(11))
+            Text("Off by default. When on, Mary answers turns in this discipline through the trained adapter instead of reasoning them out — faster and more like you, but only as good as what it learned.")
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+        }
         if let trainedAt = row.trainedAt {
             Text(trainedAt, style: .relative)
                 .font(.maryMono(9))

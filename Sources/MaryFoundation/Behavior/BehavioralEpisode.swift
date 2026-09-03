@@ -87,6 +87,14 @@ public struct EpisodeProvenance: Codable, Hashable, Sendable {
     /// Producing build.
     public var appVersion: String
 
+    /// The lane Mary's own idle episodes carry. Load-bearing: training
+    /// filters on it, because an engine that learns from its own output
+    /// drifts a little further from the person with every generation.
+    public static let proactiveLane = "proactive"
+
+    /// Mary acted on her own, with nobody waiting.
+    public var isProactive: Bool { lane == Self.proactiveLane }
+
     public init(engine: String, lane: String, appVersion: String) {
         self.engine = engine
         self.lane = lane

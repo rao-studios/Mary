@@ -23,6 +23,7 @@ let package = Package(
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
         .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
+        .executable(name: "mary-life-probe", targets: ["LifeProbe"]),
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
     ],
@@ -221,6 +222,13 @@ let package = Package(
             name: "CorpusProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/CorpusProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // What the idle Life engine sees, decides, and holds. Never acts.
+        .executableTarget(
+            name: "LifeProbe",
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryFoundation"],
+            path: "Sources/Probes/LifeProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .executableTarget(

@@ -151,9 +151,9 @@ public actor MaryBrain: LanguageResponder {
     /// PIN: A new turn finding this non-nil supersedes — drop history + UI bubbles together.
     // internal for file split — treat as private
     var openExchange: (userTurnID: UUID, epoch: UInt64)?
-    /// Ready LoRAs by discipline, from Runtime. Nil lookup = no Life.
+    /// The idle engine, installed by Runtime. Nil = no Life in this process.
     // internal for file split — treat as private
-    var lifeLoRALookup: (@Sendable (AbilityID) -> LifeLoRASlot?)?
+    var lifeEngine: MaryLifeEngine?
     // internal for file split — treat as private
     let turnBox = TurnBox()
     /// Brain-initiated events outside turns — routine progress + follow-ups.
