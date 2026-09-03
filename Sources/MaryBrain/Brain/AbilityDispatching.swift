@@ -13,6 +13,14 @@ import Foundation
 /// What the brain needs from the activities system — ActivityRegistry conforms.
 public protocol AbilityDispatching: Sendable {
     var schemas: [ModelSkillSchema] { get }
+    /// THE TURN PHASE'S ROSTER, ONCE. Schemas, the trace explaining them and
+    /// their names come out of a single arbitration; asking for them
+    /// separately used to arbitrate all 105 Skills once per question.
+    func projectRoster() -> AbilityRuntime.RosterProjection
+    /// Every name a Skill call could carry, without arbitrating anything.
+    /// For callers that only need to RECOGNIZE a name (the prose sanitizer),
+    /// never to decide what may run.
+    var knownSkillNames: Set<String> { get }
     /// The immutable schema graph currently projected by the dispatcher.
     /// `AbilityTurnContext` freezes this value for the duration of a turn.
     var abilitySnapshot: AbilityRuntime.Snapshot { get }
@@ -163,6 +171,10 @@ public extension AbilityDispatching {
     /// Correct-but-slow default, so a stub dispatcher gets it for free. The
     /// real registry overrides it with an arithmetic answer.
     var schemaCount: Int { schemas.count }
+    func projectRoster() -> AbilityRuntime.RosterProjection {
+        AbilityRuntime.RosterProjection(schemas: schemas, trace: abilityRosterTrace)
+    }
+    var knownSkillNames: Set<String> { Set(schemas.map(\.name)) }
     var abilityRosterTrace: AbilityRosterTrace { .empty }
     var applicationProfiles: [ApplicationProfile] { [] }
     var focusedApplicationID: String? { nil }

@@ -14,6 +14,10 @@ import Foundation
 struct AbilityRosterArbitration: Sendable {
     var selectedKeys: Set<AbilityRosterSkillKey>
     var trace: AbilityRosterTrace
+    /// The trace's own reasons, keyed. `failure(for:)` is asked once per skill
+    /// by the offer ledger and again per circuit skill by the turn log, and a
+    /// linear scan of every decision per ask is the same answer more slowly.
+    var reasons: [AbilityRosterSkillKey: String] = [:]
 
     func contains(_ runtime: AbilityRuntimeSkill) -> Bool {
         selectedKeys.contains(AbilityRosterSkillKey(runtime))
@@ -21,8 +25,7 @@ struct AbilityRosterArbitration: Sendable {
 
     func failure(for runtime: AbilityRuntimeSkill) -> String? {
         guard !contains(runtime) else { return nil }
-        let key = AbilityRosterSkillKey(runtime)
-        return trace.decisions.first(where: { $0.key == key })?.reason
+        return reasons[AbilityRosterSkillKey(runtime)]
             ?? "was not selected by the Ability roster"
     }
 }
@@ -71,9 +74,50 @@ enum AbilityRosterArbitrator {
         context: AbilityRoutingContext,
         baseFailure: (AbilityRuntimeSkill) -> String?
     ) -> AbilityRosterArbitration {
-        let ordered = skills.sorted(by: stableOrder)
+        // SORT THE INDICES, NOT THE SKILLS. `stableOrder` is three string
+        // compares, but `sorted` MOVES its elements, and an AbilityRuntimeSkill
+        // carries a whole authored ability, skill schema, availability and
+        // reference — so every move was a fistful of retains. Ordering ints and
+        // materializing once costs a fraction of the same answer.
+        let ordered = orderedStably(skills)
         let byAbility = Dictionary(grouping: ordered) {
             AbilityKey(packageID: $0.packageID, abilityID: $0.ability.id)
+        }
+        // Fallbacks are authored as a Skill id and resolved WITHIN the owner's
+        // own package and ability. Keyed once, that resolution is a lookup;
+        // scanning `ordered` for each one made the whole pass quadratic.
+        let byKey = Dictionary(
+            ordered.map { (AbilityRosterSkillKey($0), $0) },
+            uniquingKeysWith: { first, _ in first })
+        func sibling(
+            of owner: AbilityRuntimeSkill, skillID: SkillID
+        ) -> AbilityRuntimeSkill? {
+            byKey[AbilityRosterSkillKey(
+                packageID: owner.packageID,
+                abilityID: owner.ability.id,
+                skillID: skillID)]
+        }
+        // ONE EVIDENCE PASS. The score is a pure function of the skill's own
+        // routing policy, its requirements and this turn's context — none of
+        // which change during arbitration — and it was being recomputed for
+        // the same skill in as many as four separate passes below.
+        let scores: [AbilityRosterSkillKey: AbilityRoutingEvidenceScore] = Dictionary(
+            uniqueKeysWithValues: ordered.map { runtime in
+                (AbilityRosterSkillKey(runtime), evidence(
+                    policy: runtime.skill.routing,
+                    requirements: runtime.skill.requirements,
+                    context: context,
+                    skillID: runtime.skill.id))
+            })
+        func score(
+            _ runtime: AbilityRuntimeSkill,
+            key: AbilityRosterSkillKey? = nil
+        ) -> AbilityRoutingEvidenceScore {
+            scores[key ?? AbilityRosterSkillKey(runtime)] ?? evidence(
+                policy: runtime.skill.routing,
+                requirements: runtime.skill.requirements,
+                context: context,
+                skillID: runtime.skill.id)
         }
         let failures = Dictionary(
             uniqueKeysWithValues: ordered.compactMap { runtime in
@@ -83,11 +127,7 @@ enum AbilityRosterArbitrator {
 
         for runtime in ordered {
             let key = AbilityRosterSkillKey(runtime)
-            let score = evidence(
-                policy: runtime.skill.routing,
-                requirements: runtime.skill.requirements,
-                context: context,
-                skillID: runtime.skill.id)
+            let score = score(runtime, key: key)
             if let failure = failures[key] {
                 decisions[key] = decision(
                     runtime,
@@ -176,11 +216,7 @@ enum AbilityRosterArbitrator {
                 decisions[key] = decision(
                     runtime,
                     disposition: .inactiveAbility,
-                    score: evidence(
-                        policy: runtime.skill.routing,
-                        requirements: runtime.skill.requirements,
-                        context: context,
-                        skillID: runtime.skill.id),
+                    score: score(runtime, key: key),
                     reason: "its Ability lost or conservatively declined the active Ability conflict")
             }
         }
@@ -195,11 +231,7 @@ enum AbilityRosterArbitrator {
         // A Skill named as a fallback is standby-only.
         let allFallbackTargets = Set(ordered.flatMap { owner in
             owner.skill.routing.fallbacks.compactMap { fallbackID in
-                ordered.first(where: {
-                    $0.packageID == owner.packageID
-                        && $0.ability.id == owner.ability.id
-                        && $0.skill.id == fallbackID
-                }).map(AbilityRosterSkillKey.init)
+                sibling(of: owner, skillID: fallbackID).map(AbilityRosterSkillKey.init)
             }
         })
         var activeCandidates: [AbilityRosterSkillKey: Candidate] = [:]
@@ -207,21 +239,14 @@ enum AbilityRosterArbitrator {
             let key = AbilityRosterSkillKey(runtime)
             activeCandidates[key] = Candidate(
                 runtime: runtime,
-                score: evidence(
-                    policy: runtime.skill.routing,
-                    requirements: runtime.skill.requirements,
-                    context: context,
-                    skillID: runtime.skill.id),
+                score: score(runtime, key: key),
                 fallbackFor: nil)
         }
 
         let availableOwnersByFallback = Dictionary(grouping: abilityEligible.flatMap { owner in
             owner.skill.routing.fallbacks.compactMap { fallbackID in
-                ordered.first(where: {
-                    $0.packageID == owner.packageID
-                        && $0.ability.id == owner.ability.id
-                        && $0.skill.id == fallbackID
-                }).map { (AbilityRosterSkillKey($0), owner) }
+                sibling(of: owner, skillID: fallbackID)
+                    .map { (AbilityRosterSkillKey($0), owner) }
             }
         }, by: { $0.0 })
 
@@ -230,11 +255,8 @@ enum AbilityRosterArbitrator {
             visited: Set<AbilityRosterSkillKey>
         ) -> AbilityRuntimeSkill? {
             for fallbackID in primary.skill.routing.fallbacks {
-                guard let candidate = ordered.first(where: {
-                    $0.packageID == primary.packageID
-                        && $0.ability.id == primary.ability.id
-                        && $0.skill.id == fallbackID
-                }) else { continue }
+                guard let candidate = sibling(of: primary, skillID: fallbackID)
+                else { continue }
                 let key = AbilityRosterSkillKey(candidate)
                 guard !visited.contains(key) else { continue }
                 if failures[key] == nil,
@@ -268,11 +290,7 @@ enum AbilityRosterArbitrator {
             if activeCandidates[fallbackKey] == nil {
                 activeCandidates[fallbackKey] = Candidate(
                     runtime: fallback,
-                    score: evidence(
-                        policy: fallback.skill.routing,
-                        requirements: fallback.skill.requirements,
-                        context: context,
-                        skillID: fallback.skill.id),
+                    score: score(fallback, key: fallbackKey),
                     fallbackFor: primary.reference)
             }
         }
@@ -282,16 +300,11 @@ enum AbilityRosterArbitrator {
             guard activeCandidates[key] == nil else { continue }
             let owner = availableOwnersByFallback[key, default: []]
                 .map(\.1)
-                .sorted(by: stableOrder)
-                .first
+                .min(by: stableOrder)
             decisions[key] = decision(
                 runtime,
                 disposition: .fallbackStandby,
-                score: evidence(
-                    policy: runtime.skill.routing,
-                    requirements: runtime.skill.requirements,
-                    context: context,
-                    skillID: runtime.skill.id),
+                score: score(runtime, key: key),
                 selectedAlternative: owner?.reference,
                 reason: owner == nil
                     ? "is a standby fallback and no unavailable primary activated it"
@@ -300,7 +313,7 @@ enum AbilityRosterArbitrator {
 
         // Skill conflict groups are deliberately package/Ability scoped. An imported package cannot suppress a separate package merely by guessing its group string.
         var selected = Set<AbilityRosterSkillKey>()
-        let candidates = activeCandidates.values.sorted { stableOrder($0.runtime, $1.runtime) }
+        let candidates = orderedStably(Array(activeCandidates.values), by: \.runtime.reference)
         let grouped = Dictionary(grouping: candidates) { candidate -> ConflictKey? in
             normalizedGroup(candidate.runtime.skill.routing.conflictGroup).map {
                 ConflictKey(
@@ -399,18 +412,16 @@ enum AbilityRosterArbitrator {
             decisions[key] = decision(
                 runtime,
                 disposition: .fallbackStandby,
-                score: evidence(
-                    policy: runtime.skill.routing,
-                    requirements: runtime.skill.requirements,
-                    context: context,
-                    skillID: runtime.skill.id),
+                score: score(runtime, key: key),
                 reason: "remained standby after bounded fallback resolution")
         }
 
-        let trace = AbilityRosterTrace(decisions: decisions.values.sorted {
-            stableOrder($0.reference, $1.reference)
-        })
-        return AbilityRosterArbitration(selectedKeys: selected, trace: trace)
+        let trace = AbilityRosterTrace(
+            decisions: orderedStably(Array(decisions.values), by: \.reference))
+        return AbilityRosterArbitration(
+            selectedKeys: selected,
+            trace: trace,
+            reasons: decisions.mapValues(\.reason))
     }
 
 }

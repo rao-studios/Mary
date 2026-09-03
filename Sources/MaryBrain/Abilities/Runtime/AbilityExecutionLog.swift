@@ -24,12 +24,16 @@ public final class AbilityExecutionLog: @unchecked Sendable {
         self.capacity = max(1, capacity)
     }
 
+    /// APPEND, don't insert. Every dispatch lands here, and inserting at the
+    /// front shifted the whole 200-record buffer under the lock to maintain an
+    /// order only `entries()` cares about. Oldest-first in storage, trimmed in
+    /// batches; the reader still sees newest first.
     public func record(_ record: BehavioralActionRecord) {
         lock.lock()
         defer { lock.unlock() }
-        buffer.insert(record, at: 0)
-        if buffer.count > capacity {
-            buffer.removeLast(buffer.count - capacity)
+        buffer.append(record)
+        if buffer.count > capacity * 2 {
+            buffer.removeFirst(buffer.count - capacity)
         }
     }
 
@@ -37,7 +41,7 @@ public final class AbilityExecutionLog: @unchecked Sendable {
     public func entries() -> [BehavioralActionRecord] {
         lock.lock()
         defer { lock.unlock() }
-        return buffer
+        return buffer.suffix(capacity).reversed()
     }
 
     public func clear() {

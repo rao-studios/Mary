@@ -12,10 +12,10 @@ import Foundation
 /// deliberately data-only: a shared package can tune eligibility and ordering,
 /// but it cannot inject code or bypass Mary's confirmation/stage policies.
 public struct AbilityRoutingContext: Sendable, Equatable {
-    public var utterance: String
+    public let utterance: String
     public var intent: String?
-    public var namedApplications: Set<String>
-    public var targetClasses: Set<String>
+    public let namedApplications: Set<String>
+    public let targetClasses: Set<String>
     public var interactions: Set<InteractionID>
     /// Highest schema-validated evidence rank for each current Interaction.
     /// The payload remains in the Interaction runtime; roster arbitration sees
@@ -30,6 +30,16 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     public var semanticSkillAffinity: [SkillID: Float]
     /// When true, utterance tokens/phrases and targetClass do not gate offer.
     public var usesEmbeddingRoster: Bool
+
+    // DERIVED ONCE, IN `init`, FROM THE THREE FIELDS ABOVE — which is why
+    // those three are `let`. A predicate tree is walked per skill per
+    // arbitration and again three times inside scoring, and each
+    // `.utteranceToken` node used to re-split the whole utterance while each
+    // `.namedApplication` / `.targetClass` node rebuilt a lowercased copy of
+    // its whole set. Same answers, computed where they stop being per-node.
+    public let utteranceWords: Set<String>
+    public let lowercasedNamedApplications: Set<String>
+    public let lowercasedTargetClasses: Set<String>
 
     /// Abilities this turn's WORDS asked for, read lexically off each
     /// Ability's own triggers. Only consulted in the no-vectorizer regime,
@@ -68,6 +78,16 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         self.semanticSkillAffinity = semanticSkillAffinity
         self.usesEmbeddingRoster = usesEmbeddingRoster
         self.requestedAbilities = requestedAbilities
+        self.utteranceWords = Self.words(in: utterance)
+        self.lowercasedNamedApplications = Set(namedApplications.map { $0.lowercased() })
+        self.lowercasedTargetClasses = Set(targetClasses.map { $0.lowercased() })
+    }
+
+    /// The tokenizer the evaluator used to run per predicate node.
+    static func words(in value: String) -> Set<String> {
+        Set(value.lowercased()
+            .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+            .map(String.init))
     }
 }
 
@@ -103,14 +123,16 @@ public enum AbilityRoutingEvaluator {
             return value != nil && context.intent?.lowercased() == value
         case .utteranceToken:
             guard let value else { return false }
-            return words(in: context.utterance).contains(value)
+            return context.utteranceWords.contains(value)
         case .utterancePhrase:
             guard let value else { return false }
             return context.utterance.lowercased().contains(value)
         case .namedApplication:
-            return value != nil && context.namedApplications.map { $0.lowercased() }.contains(value!)
+            guard let value else { return false }
+            return context.lowercasedNamedApplications.contains(value)
         case .targetClass:
-            return value != nil && context.targetClasses.map { $0.lowercased() }.contains(value!)
+            guard let value else { return false }
+            return context.lowercasedTargetClasses.contains(value)
         case .hasInteraction:
             return value != nil && context.interactions.contains(InteractionID(value!))
         case .hasPerception:
@@ -125,12 +147,6 @@ public enum AbilityRoutingEvaluator {
         case .workspaceFamily:
             return value != nil && context.workspaceFamily?.lowercased() == value
         }
-    }
-
-    private static func words(in value: String) -> Set<String> {
-        Set(value.lowercased()
-            .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
-            .map(String.init))
     }
 
     private static func rank(_ value: SourceResolution) -> Int {

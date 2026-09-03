@@ -366,7 +366,13 @@ extension MaryBrain {
         // THE ONE SEMANTIC READ of this turn. Intent, requested abilities,
         // skill affinities and the unique pick all come from the same pass, so
         // the route, the roster and the log cannot disagree about what was said.
-        let offeredNames = Set((dispatcher?.schemas ?? []).map(\.name))
+        // THE PRE-ROUTE ROSTER. Triage needs the offered names to score, and
+        // the route needs triage — so this necessarily runs before
+        // `noteRoute` below, and sees no route. It is NOT the roster the log
+        // and the trace record want; those read `routedProjection` after the
+        // route lands. Two projections, because there are genuinely two
+        // rosters in a turn body, not because either is asked twice.
+        let offeredNames = dispatcher?.projectRoster().names ?? []
         let triage = TurnTriage.verdict(
             query: routingQuery,
             registry: turnRegistry,
@@ -401,6 +407,9 @@ extension MaryBrain {
             seeds: AmbientEngine.AmbientVerdictSeeds(
                 isDeictic: isDeictic, focusOverride: focusOverride)))
         world.store.noteRoute(route)
+        // THE ROUTED ROSTER, as the circuit log has always seen it: after the
+        // route, before the referent.
+        let routedProjection = dispatcher?.projectRoster()
         actionTurn = route.isActionTurn
         let offeredAffinities = triage.skillAffinities
         let uniqueSkill = triage.uniqueSkill
@@ -428,7 +437,8 @@ extension MaryBrain {
             route: route,
             focusedApplicationID: focusedApplicationID,
             actionTurn: actionTurn,
-            editIntent: editIntent)
+            editIntent: editIntent,
+            rosterTrace: routedProjection?.trace ?? .empty)
         wiring.behavior.noteAbilityTargets(
             route.gate.memory.abilityTargets, forEpisode: userTurn.id)
         // Explicit language outranks a live but unrelated window. Otherwise a
@@ -513,6 +523,13 @@ extension MaryBrain {
         // editIntent.shape → referentResolver.
         world.store.noteReference(
             referentResolver?(ReferenceAct.from(editIntent?.shape)) ?? .none)
+        // THE REFERENT MOVES THE ROSTER. It reaches arbitration through the
+        // window-management intent's target classes, so the trace record —
+        // which is written below, after this — must project again rather than
+        // reuse the routed one. Only the record's own two questions collapse
+        // here; they were adjacent arguments to the same initializer, each
+        // arbitrating all 105 Skills to the identical verdict.
+        let tracedProjection = dispatcher?.projectRoster()
 
         // World veto unarmed in this cut.
         let worldVetoArming: WorldVeto.Arming? = nil
@@ -565,8 +582,8 @@ extension MaryBrain {
             systemPromptChars: systemPrompt.count,
             registryRevision: turnRegistry.revision,
             packageIDs: turnRegistry.records.map(\.id),
-            exposedSkillCount: dispatcher?.schemaCount ?? 0,
-            abilityRoster: dispatcher?.abilityRosterTrace ?? .empty,
+            exposedSkillCount: tracedProjection?.schemas.count ?? 0,
+            abilityRoster: tracedProjection?.trace ?? .empty,
             coActivePlaces: focusSignal.coActive,
             glancedPlaces: focusSignal.glanced))
         // The retrieval row opens BESIDE the route row, joined by the same exchange id, before either lane exists

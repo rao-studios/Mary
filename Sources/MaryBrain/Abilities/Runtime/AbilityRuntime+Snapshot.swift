@@ -51,6 +51,16 @@ extension AbilityRuntime {
         private let fallbackReferences: [String: AbilitySkillReference]
         /// EVERY binding the compatibility evaluator admitted per Skill, preference-ordered — `selectedBinding` is always the first.
         private let compatibleBySkill: [SkillID: [InstalledAdapterBinding]]
+        /// Every activated Ability id. `containsAbility` is asked once per
+        /// supporting-ability edge per skill per arbitration, so it is a set
+        /// membership rather than a scan of every record.
+        let abilityIDs: Set<AbilityID>
+        /// Execution policy per DISTINCT capability list. The policy is a pure
+        /// function of `skill.requirements.capabilities` against this
+        /// snapshot's capability schemas, so one entry per distinct list is
+        /// exact — not a cache with an invalidation rule, and not keyed by
+        /// SkillID, which two packages may share.
+        let policiesByCapabilities: [[CapabilityID]: CapabilityExecutionPolicy]
         /// Discipline → the application-expertise Abilities that REQUIRE it,
         /// preference-ordered. Inverted from authored dependencies once per
         /// revision; see the expertise section below — internal rather
@@ -195,6 +205,15 @@ extension AbilityRuntime {
             }
             let finalizedSkills = SkillExecutionAvailabilityEvaluator.finalize(runtimeSkills)
             self.skills = finalizedSkills
+            self.abilityIDs = Set(records.map(\.package.ability.id))
+            var policies: [[CapabilityID]: CapabilityExecutionPolicy] = [:]
+            for runtime in finalizedSkills {
+                let wanted = runtime.skill.requirements.capabilities
+                guard policies[wanted] == nil else { continue }
+                policies[wanted] = CapabilityExecutionPolicy(
+                    capabilities: wanted.compactMap { capabilitySchemas[$0] })
+            }
+            self.policiesByCapabilities = policies
             self.skillsByID = Dictionary(
                 finalizedSkills.map { ($0.skill.id, $0) },
                 uniquingKeysWith: { first, _ in first })
@@ -293,7 +312,7 @@ extension AbilityRuntime {
         }
 
         public func containsAbility(_ abilityID: AbilityID) -> Bool {
-            records.contains { $0.package.ability.id == abilityID }
+            abilityIDs.contains(abilityID)
         }
 
         public func bindingOperation(forInvocation name: String) -> String {

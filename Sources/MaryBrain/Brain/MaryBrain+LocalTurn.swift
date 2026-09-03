@@ -66,7 +66,9 @@ extension MaryBrain {
                 round += 1
                 var roundText = ""
                 var skillInvocations: [ModelSkillInvocation] = []
-                let schemas = dispatcher?.schemas ?? []
+                // One projection per round, as in the orchestrator lane.
+                let roundProjection = dispatcher?.projectRoster()
+                let schemas = roundProjection?.schemas ?? []
 
                 // Same engine-gate rule as the orchestrator lane: a detached
                 // routine may still be generating when a local turn starts.
@@ -158,7 +160,7 @@ extension MaryBrain {
                 guard let dispatcher, !skillInvocations.isEmpty else {
                     if skillInvocations.isEmpty {
                         TurnCircuitLog.laneNOOP(
-                            offeredNames: dispatcher?.schemas.map(\.name) ?? [])
+                            offeredNames: Array(roundProjection?.names ?? []))
                     }
                     // Plain reply (or nothing left to execute) — the turn is done.
                     if actionTurn {

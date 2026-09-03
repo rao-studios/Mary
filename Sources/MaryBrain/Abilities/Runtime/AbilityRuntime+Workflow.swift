@@ -13,11 +13,15 @@ import Foundation
 
 extension AbilityRuntime {
 
+    /// `routing` and `signals` are THE TURN'S, threaded from the dispatch that
+    /// entered the machine. A workflow step used to re-derive the routing
+    /// verdict for itself, once per step, at every depth.
     func executeWorkflow(
         runtime: AbilityRuntimeSkill,
         arguments: [String: String],
         snapshot: AbilityRuntime.Snapshot,
         context: AbilityExecutionContext,
+        routing: AbilityRoutingContext,
         signals: SchemaSignalTurnSnapshot,
         depth: Int = 0
     ) async -> SkillOutcome {
@@ -51,7 +55,8 @@ extension AbilityRuntime {
         let supplementalPorts = workflowSupplementalPorts(
             for: runtime,
             arguments: arguments,
-            snapshot: snapshot)
+            snapshot: snapshot,
+            signals: signals)
         let worker = Task { [self] in
             await WorkflowStateMachine.run(
                 skill: runtime.skill,
@@ -64,6 +69,7 @@ extension AbilityRuntime {
                         originalArguments: originalArguments,
                         snapshot: snapshot,
                         context: context,
+                        routing: routing,
                         signals: signals,
                         depth: depth)
                 }
@@ -130,6 +136,7 @@ extension AbilityRuntime {
         originalArguments: [String: String],
         snapshot: AbilityRuntime.Snapshot,
         context: AbilityExecutionContext,
+        routing: AbilityRoutingContext,
         signals: SchemaSignalTurnSnapshot,
         depth: Int
     ) async -> WorkflowOperationResult {
@@ -137,8 +144,9 @@ extension AbilityRuntime {
             // A validated workflow is already an exact machine route.
             if let reason = dispatchEligibilityFailure(
                 for: target,
-                in: abilityRoutingContext(),
-                snapshot: snapshot) {
+                in: routing,
+                snapshot: snapshot,
+                signals: signals) {
                 return WorkflowOperationResult(outcome: blockedOutcome(
                     runtime: target,
                     reason: reason))
@@ -171,6 +179,7 @@ extension AbilityRuntime {
                     arguments: arguments,
                     snapshot: snapshot,
                     context: context,
+                    routing: routing,
                     signals: signals,
                     depth: depth + 1)
                 return WorkflowOperationResult(
@@ -285,10 +294,10 @@ extension AbilityRuntime {
     private func workflowSupplementalPorts(
         for runtime: AbilityRuntimeSkill,
         arguments: [String: String],
-        snapshot: AbilityRuntime.Snapshot
+        snapshot: AbilityRuntime.Snapshot,
+        signals: SchemaSignalTurnSnapshot
     ) -> [String: WorkflowPortValue] {
         var ports: [String: WorkflowPortValue] = [:]
-        let signals = routedSignalSnapshot()
         for interaction in signals.interactions(declaredBy: runtime.skill) {
             ports[interaction.reference.schemaID.rawValue] = WorkflowPortValue(
                 value: Self.legacyString(interaction.value.value),

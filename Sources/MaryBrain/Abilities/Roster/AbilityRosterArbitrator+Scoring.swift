@@ -300,6 +300,28 @@ extension AbilityRosterArbitrator {
         stableOrder(lhs.reference, rhs.reference)
     }
 
+    /// Stable order WITHOUT moving the elements. Swift's `sorted` shuffles
+    /// whole values, and both the runtime skills and the decisions sorted here
+    /// are large structs whose every move is a run of retain/release traffic —
+    /// the single most expensive thing the arbitrator did. Ordering the
+    /// indices and materializing once is the same sequence for a fraction of
+    /// the work.
+    static func orderedStably<Element>(
+        _ elements: [Element],
+        by reference: (Element) -> AbilitySkillReference
+    ) -> [Element] {
+        guard elements.count > 1 else { return elements }
+        let references = elements.map(reference)
+        let order = elements.indices.sorted {
+            stableOrder(references[$0], references[$1])
+        }
+        return order.map { elements[$0] }
+    }
+
+    static func orderedStably(_ skills: [AbilityRuntimeSkill]) -> [AbilityRuntimeSkill] {
+        orderedStably(skills, by: \.reference)
+    }
+
     static func stableOrder(
         _ lhs: AbilitySkillReference,
         _ rhs: AbilitySkillReference

@@ -152,6 +152,17 @@ public actor VoicePipeline {
     func runTurnForTesting() async {
         await runTurn()
     }
+    /// Arm the amend flow as `commitAmend` does, without a mic or a governor.
+    func armAmendForTesting(original: String, wasSubmitted: Bool) {
+        amendCapture.amendContext = (original: original, wasSubmitted: wasSubmitted)
+    }
+    var amendContextForTesting: (original: String, wasSubmitted: Bool)? {
+        amendCapture.amendContext
+    }
+    /// The commit that landed while the original transcript was still resolving.
+    func setPendingAmendCommitForTesting() {
+        amendCapture.setPendingCommit()
+    }
     func handleFrameForTesting(_ frame: MicFrame) async {
         await handle(frame: frame)
     }

@@ -37,11 +37,15 @@ extension MaryBrain {
     }
 
     /// Xcode running, live file, route, and whether coding would project.
+    /// `rosterTrace` comes from the turn body's one projection — reading
+    /// `abilityRosterTrace` here arbitrated all 105 Skills a second time to
+    /// print six lines about the coding circuit.
     func logCodingCircuit(
         route: AmbientRoute,
         focusedApplicationID: String?,
         actionTurn: Bool,
-        editIntent: EditIntent?
+        editIntent: EditIntent?,
+        rosterTrace: AbilityRosterTrace
     ) {
         let claims = CodeSurfaceSupport.shared.all()
         let standing = CodeSurfaceObserver.shared.observedPlace?.application
@@ -93,7 +97,7 @@ extension MaryBrain {
             Self.turnLog.info("\(line, privacy: .public)")
         }
 
-        TurnCircuitLog.roster(trace: dispatcher?.abilityRosterTrace ?? .empty)
+        TurnCircuitLog.roster(trace: rosterTrace)
     }
 }
 

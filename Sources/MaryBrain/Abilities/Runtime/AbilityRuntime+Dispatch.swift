@@ -121,9 +121,13 @@ extension AbilityRuntime {
     }
 
     private func dispatchCore(name: String, argumentsJSON: String) async -> SkillOutcome {
+        // THE TURN'S INPUTS, ONCE, AT THE TOP. Every gate and every executor
+        // below reads these bindings; none of them goes back to the world.
         let snapshot = abilitySnapshot
-        let routing = abilityRoutingContext()
-        let roster = rosterArbitration(snapshot: snapshot, context: routing)
+        let signals = routedSignalSnapshot()
+        let routing = abilityRoutingContext(snapshot: snapshot, signals: signals)
+        let roster = rosterArbitration(
+            snapshot: snapshot, context: routing, signals: signals)
         let operation = turnBindingOperation(forInvocation: name, snapshot: snapshot)
         let invokedRuntimeSkill = snapshot.skill(invocationName: name)
         // Exact name may stay exact without crossing applications.
@@ -185,7 +189,8 @@ extension AbilityRuntime {
            let reason = dispatchEligibilityFailure(
                for: invokedRuntimeSkill,
                in: routing,
-               snapshot: snapshot) {
+               snapshot: snapshot,
+               signals: signals) {
             return blockedOutcome(runtime: invokedRuntimeSkill, reason: reason)
         }
         if operation != Self.confirmSkillName,
@@ -218,7 +223,6 @@ extension AbilityRuntime {
         if let invokedRuntimeSkill {
             let arguments = Self.stringArguments(fromJSON: argumentsJSON)
             let policy = snapshot.executionPolicy(for: invokedRuntimeSkill.skill)
-            let signals = routedSignalSnapshot()
             if let failure = payloadFailure(
                 runtime: invokedRuntimeSkill,
                 arguments: arguments,
@@ -244,6 +248,7 @@ extension AbilityRuntime {
                     arguments: arguments,
                     snapshot: snapshot,
                     context: executionContext(),
+                    routing: routing,
                     signals: signals)
                 return Self.applyingTotemArchivePolicy(
                     outcome,
@@ -265,7 +270,8 @@ extension AbilityRuntime {
            let reason = dispatchEligibilityFailure(
                for: runtimeSkill,
                in: routing,
-               snapshot: snapshot)
+               snapshot: snapshot,
+               signals: signals)
                ?? offerLedgerFailure(for: runtimeSkill, roster: roster) {
             return blockedOutcome(runtime: runtimeSkill, reason: reason)
         }
@@ -341,7 +347,6 @@ extension AbilityRuntime {
         let context = executionContext()
         let policy = runtimeSkill.map { snapshot.executionPolicy(for: $0.skill) }
             ?? .unconstrained
-        let signals = routedSignalSnapshot()
         if let runtimeSkill,
            let failure = payloadFailure(
                runtime: runtimeSkill,

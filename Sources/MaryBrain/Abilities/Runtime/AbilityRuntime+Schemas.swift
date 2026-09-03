@@ -12,36 +12,59 @@ import Foundation
 
 extension AbilityRuntime {
 
-    public var schemaCount: Int {
-        let snapshot = abilitySnapshot
-        let routing = abilityRoutingContext()
-        let roster = rosterArbitration(snapshot: snapshot, context: routing)
-        recordProjectedRoster(roster)
-        let scope = placeScope()
-        let visible = attributed.reduce(into: 0) { count, item in
-            guard admits(owner: item.owner, scope: scope) else { return }
-            guard let skill = snapshot.skill(bindingOperation: item.binding.name) else {
-                count += 1
-                return
-            }
-            // Same one-projection-per-Skill rule `projectedSchema` applies.
-            guard turnOperation(for: skill, snapshot: snapshot) == item.binding.name
-            else { return }
-            if roster.contains(skill) { count += 1 }
+    /// ONE TURN-PHASE'S ROSTER, projected once. The schemas the model is
+    /// offered, the trace that explains them, and their names are three views
+    /// of a single arbitration — and they were three separate arbitrations,
+    /// each re-reading the world and re-scoring all 105 Skills to reach the
+    /// same verdict. A caller that needs any of them takes all three.
+    public struct RosterProjection: Sendable {
+        public var schemas: [ModelSkillSchema]
+        public var trace: AbilityRosterTrace
+        public var names: Set<String>
+
+        public init(
+            schemas: [ModelSkillSchema],
+            trace: AbilityRosterTrace,
+            names: Set<String>? = nil
+        ) {
+            self.schemas = schemas
+            self.trace = trace
+            self.names = names ?? Set(schemas.map(\.name))
         }
-        let schemaExecuted = snapshot.skills.filter {
-            $0.skill.execution.kind != .binding
-                && roster.contains($0)
-        }.count
-        return visible + schemaExecuted
-            + (pendingStore.current() != nil ? 2 : 0)
     }
 
-    public var schemas: [ModelSkillSchema] {
+    /// Every name a Skill call could carry, WITHOUT arbitrating anything —
+    /// no world read, no scoring. It is a superset of what this turn offers,
+    /// which is exactly what a text sanitizer wants: it only ever strips
+    /// tool-call syntax, so a wider name set strips no less than the roster's.
+    public var knownSkillNames: Set<String> {
         let snapshot = abilitySnapshot
-        let routing = abilityRoutingContext()
-        let roster = rosterArbitration(snapshot: snapshot, context: routing)
+        var names: Set<String> = [Self.confirmSkillName, Self.cancelSkillName]
+        for runtime in snapshot.skills where runtime.skill.modelExposure.enabled {
+            names.insert(runtime.reference.invocationName)
+        }
+        for item in attributed { names.insert(item.binding.name) }
+        return names
+    }
+
+    public var schemas: [ModelSkillSchema] { projectRoster().schemas }
+
+    /// How many Skills this turn exposes. Same projection, counted — the
+    /// separate arithmetic this used to run could disagree with the schemas
+    /// actually offered, because only the projection knows that a cognitive
+    /// Skill with no registered primitive drops out.
+    public var schemaCount: Int { projectRoster().schemas.count }
+
+    public func projectRoster() -> RosterProjection {
+        // THE TURN'S INPUTS, READ ONCE, IN ORDER. Everything below is a pure
+        // function of these four.
+        let snapshot = abilitySnapshot
+        let signals = routedSignalSnapshot()
+        let routing = abilityRoutingContext(snapshot: snapshot, signals: signals)
+        let roster = rosterArbitration(
+            snapshot: snapshot, context: routing, signals: signals)
         recordProjectedRoster(roster)
+
         // Stable partition: the focused plugin's Skill bindings hoist to the front; within-group order is preserved.
         let scope = placeScope()
         var ordered = attributed.filter { admits(owner: $0.owner, scope: scope) }
@@ -51,13 +74,20 @@ extension AbilityRuntime {
                 + ordered.filter { $0.owner != hoisted }
         }
         // Preference is package data, applied as a stable tuning signal after Mary has formed the safe/focused candidate roster.
-        ordered = ordered.enumerated().sorted { lhs, rhs in
-            let left = snapshot.skill(bindingOperation: lhs.element.binding.name)?
+        // Read once per binding, not twice per comparison.
+        var ranked: [(offset: Int, element: AttributedSkillBinding, preference: Int)] = []
+        ranked.reserveCapacity(ordered.count)
+        for (offset, element) in ordered.enumerated() {
+            let preference = snapshot.skill(bindingOperation: element.binding.name)?
                 .skill.routing.preference ?? 0
-            let right = snapshot.skill(bindingOperation: rhs.element.binding.name)?
-                .skill.routing.preference ?? 0
-            return left == right ? lhs.offset < rhs.offset : left > right
-        }.map(\.element)
+            ranked.append((offset: offset, element: element, preference: preference))
+        }
+        ranked.sort { lhs, rhs in
+            lhs.preference == rhs.preference
+                ? lhs.offset < rhs.offset
+                : lhs.preference > rhs.preference
+        }
+        ordered = ranked.map(\.element)
         var result: [ModelSkillSchema] = []
         let schemaExecuted = snapshot.skills
             .filter { $0.skill.execution.kind != .binding }
@@ -86,6 +116,7 @@ extension AbilityRuntime {
                 parameters: []
             ))
         }
+        let names = Set(result.map(\.name))
         let shouldLog = codingRosterLogged.withLock { logged -> Bool in
             if logged { return false }
             logged = true
@@ -96,9 +127,9 @@ extension AbilityRuntime {
                 snapshot: snapshot,
                 roster: roster,
                 scope: scope,
-                exposed: Set(result.map(\.name)))
+                exposed: names)
         }
-        return result
+        return RosterProjection(schemas: result, trace: roster.trace, names: names)
     }
 
     /// Project the portable Skill schema onto the provider-neutral callable contract.

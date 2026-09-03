@@ -181,14 +181,23 @@ extension AbilityRuntime {
     ) {
         guard binding.access == .read, outcome.ok, !outcome.deferred, !outcome.foundNothing,
               // Adapter already filed a richer fact — skip a duplicate generic one.
-              !outcome.ambientDeposited,
-              let place = placeOfRead(outcome: outcome, owner: owner),
+              !outcome.ambientDeposited
+        else { return }
+        // ONE RESOLVE. The place and the document are two questions about the
+        // same minted passage, and each used to take the registry's lock and
+        // prune every live handle to ask its half.
+        var minted: Passage?
+        if let handle = outcome.passageHandle,
+           case .live(let passage) = passages.resolve(handle) {
+            minted = passage
+        }
+        guard let place = minted?.place ?? place(ofOwner: owner),
               let fact = AmbientBridge.readFact(
                 attention: place.attention,
                 application: place.application,
                 phrase: readPhrase(binding: binding, owner: owner, arguments: arguments),
                 summary: outcome.summary,
-                document: documentOfRead(outcome: outcome),
+                document: minted?.documentKey,
                 passageHandle: outcome.passageHandle)
         else { return }
         world.store.register(fact)
@@ -202,26 +211,6 @@ extension AbilityRuntime {
                 .read,
                 at: fact.capturedAt)
         }
-    }
-
-    /// Document a read's fact is about — from the minted passage, else nil.
-    private func documentOfRead(outcome: SkillOutcome) -> String? {
-        guard let handle = outcome.passageHandle,
-              case .live(let passage) = passages.resolve(handle)
-        else { return nil }
-        return passage.documentKey
-    }
-
-    /// Place a read's fact belongs to — minted passage, else the owning plugin.
-    /// PIN: Reads place off the registry, not the binding.
-    private func placeOfRead(
-        outcome: SkillOutcome, owner: String
-    ) -> AmbientPlace? {
-        if let handle = outcome.passageHandle,
-           case .live(let passage) = passages.resolve(handle) {
-            return passage.place
-        }
-        return place(ofOwner: owner)
     }
 
     /// Phrase the read targeted — slot key so a re-read supersedes.

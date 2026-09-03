@@ -118,7 +118,15 @@ struct CapabilityExecutionPolicy: Sendable, Equatable {
 }
 
 extension AbilityRuntime.Snapshot {
+    /// EXACT, not memoized: the policy depends only on the capability list and
+    /// this snapshot's own schemas, and `policiesByCapabilities` holds one
+    /// entry per distinct list, built in `init`. A Skill from another snapshot
+    /// (tests, rehearsal) still computes, so the answer is never wrong — only
+    /// already-known for the skills this snapshot actually carries.
     func executionPolicy(for skill: SkillSchema) -> CapabilityExecutionPolicy {
-        CapabilityExecutionPolicy(capabilities: capabilitySchemas(requiredBy: skill))
+        if let known = policiesByCapabilities[skill.requirements.capabilities] {
+            return known
+        }
+        return CapabilityExecutionPolicy(capabilities: capabilitySchemas(requiredBy: skill))
     }
 }

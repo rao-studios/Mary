@@ -81,6 +81,7 @@ extension MaryBrain {
                 round += 1
                 var roundText = ""
                 var skillInvocations: [ModelSkillInvocation] = []
+                var roundProjection: AbilityRuntime.RosterProjection?
 
                 // Generation rounds serialize only for engines that need it (local MLX).
                 let roundStart = DispatchTime.now()
@@ -101,9 +102,13 @@ extension MaryBrain {
                         gateWaitMs = Self.elapsedMs(since: roundStart)
                     }
                     defer { if holdsGate { engineGate.release() } }
+                    // ONE PROJECTION PER ROUND. The offered schemas, the
+                    // NOOP log's names and the sanitizer's names are the same
+                    // roster; each used to arbitrate it again.
+                    roundProjection = dispatcher.projectRoster()
                     let events = await actingEvents(
                         system: orchestratorPrompt, history: laneHistory,
-                        skills: dispatcher.schemas)
+                        skills: roundProjection?.schemas ?? [])
                     for try await event in events {
                         if Task.isCancelled { break }
                         switch event {
@@ -229,8 +234,10 @@ extension MaryBrain {
                         continue
                     }
                     // Nothing to execute — keep prose as offline fallback for `seerTurn`.
-                    TurnCircuitLog.laneNOOP(offeredNames: dispatcher.schemas.map(\.name))
-                    result.text = sanitizedSpoken(roundText)
+                    TurnCircuitLog.laneNOOP(
+                        offeredNames: Array(roundProjection?.names ?? []))
+                    result.text = sanitizedSpoken(
+                        roundText, knownSkillNames: roundProjection?.names)
                     return result
                 }
 
@@ -334,7 +341,8 @@ extension MaryBrain {
                 }
                 // Lane history keeps the model's plan; shared history still does not.
                 var laneRoundTurns = roundTurns
-                let planned = sanitizedSpoken(roundText)
+                let planned = sanitizedSpoken(
+                    roundText, knownSkillNames: roundProjection?.names)
                 if !planned.isEmpty {
                     laneRoundTurns[0] = BrainTurn(
                         role: .assistant, text: planned, skillInvocations: skillInvocations)

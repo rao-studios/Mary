@@ -39,9 +39,24 @@ extension AbilityRuntime {
     }
 
     /// Turn routing verdict. Internal (not private) so taught-app parity tests can read it.
+    /// The zero-argument form reads this turn's snapshot and signals for you;
+    /// an entry point that already holds them passes them in, so one turn's
+    /// worth of work happens once rather than once per caller.
     func abilityRoutingContext() -> AbilityRoutingContext {
+        abilityRoutingContext(
+            snapshot: abilitySnapshot, signals: routedSignalSnapshot())
+    }
+
+    func abilityRoutingContext(
+        snapshot: AbilityRuntime.Snapshot,
+        signals: SchemaSignalTurnSnapshot
+    ) -> AbilityRoutingContext {
+        // ONE READ of the application roster: `current` takes a lock and hands
+        // back a struct copy, and this used to ask for it three times.
+        let applicationIndex = AmbientApplicationIndexProvider.current
         let route = world.store.route()
-        let windowIntent = windowManagementTurnIntent(route: route)
+        let windowIntent = windowManagementTurnIntent(
+            route: route, index: applicationIndex)
         let diagnosticAttention = route?.world
         // Keep the source packet on AmbientRoute for diagnostics and event ordering
         let excludesDiagnosticSelection = diagnosticAttention?.sense == .selection
@@ -52,7 +67,7 @@ extension AbilityRuntime {
             world.store.routedSelectionHandoff(attention: $0.attention)
         }
         var interactions: Set<InteractionID> = []
-        let signalSnapshot = routedSignalSnapshot()
+        let signalSnapshot = signals
         let routingInteractions = signalSnapshot.interactions
         interactions.formUnion(routingInteractions.map { $0.reference.schemaID })
         var interactionEvidenceRanks: [InteractionID: Int] = [:]
@@ -126,11 +141,11 @@ extension AbilityRuntime {
         // Workspace family is the lead place's ability — not an inline two-value switch.
         let workspaceFamily: String? = route?.leadPlace?.ability?.rawValue
         let capabilities = Set(
-            abilitySnapshot.bindings
+            snapshot.bindings
                 .filter { $0.adapter.isAvailable }
                 .flatMap { $0.adapter.capabilities })
         let grantedPermissions = Set(
-            abilitySnapshot.adapterManifests
+            snapshot.adapterManifests
                 .filter(\.isAvailable)
                 .flatMap(\.grantedPermissions))
         var targets = Set(route?.namedPlaces.map(\.token) ?? [])
@@ -140,8 +155,7 @@ extension AbilityRuntime {
             targets.insert(lead.placeClass.rawValue)
             // Lead's target classes come from its package.
             // PIN: Used to be a switch over compiled worlds.
-            if let registration = AmbientApplicationIndexProvider.current
-                .registration(place: lead) {
+            if let registration = applicationIndex.registration(place: lead) {
                 targets.formUnion(registration.profile.targetClasses)
             }
         }
@@ -154,8 +168,7 @@ extension AbilityRuntime {
         }
         // Taught workspace classes come from its package.
         if let leadApplicationID = route?.leadApplicationID,
-           let registration = AmbientApplicationIndexProvider.current
-            .registration(id: leadApplicationID) {
+           let registration = applicationIndex.registration(id: leadApplicationID) {
             targets.formUnion(registration.profile.targetClasses)
         }
         // World class from the lead place. The block above stays keyed on `route.lead`.
@@ -192,13 +205,13 @@ extension AbilityRuntime {
             sourceResolution: sourceResolution,
             workspaceFamily: workspaceFamily,
             semanticSkillAffinity: semanticSkillAffinities(for: query),
-            usesEmbeddingRoster: abilitySnapshot.semanticSkillIndex != nil,
+            usesEmbeddingRoster: snapshot.semanticSkillIndex != nil,
             // COMPUTED ONLY WHEN IT WILL BE READ. With a Skill index in hand
             // the roster is affinity-gated and this is never consulted, so a
             // second lexical scan of every Ability's triggers would be pure
             // waste on the path that matters.
-            requestedAbilities: abilitySnapshot.semanticSkillIndex == nil
-                ? abilitySnapshot.requestedAbilities(in: query) : [])
+            requestedAbilities: snapshot.semanticSkillIndex == nil
+                ? snapshot.requestedAbilities(in: query) : [])
     }
 
     /// See `semanticSkillAffinityCache`. One vectorization and one library scan per turn.
@@ -217,10 +230,10 @@ extension AbilityRuntime {
 
     /// The window-classifier's view of the turn.
     private func windowManagementTurnIntent(
-        route: AmbientRoute?
+        route: AmbientRoute?,
+        index: any AmbientApplicationIndex
     ) -> WindowManagementTurnIntent {
         let referent = world.store.referent()
-        let index = AmbientApplicationIndexProvider.current
 
         // Document-holding place that leads: referent, then lead, then named.
         let candidates: [AmbientPlace] = [

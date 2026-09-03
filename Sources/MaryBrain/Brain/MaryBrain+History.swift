@@ -106,10 +106,16 @@ extension MaryBrain {
 
     /// Belt-and-braces over the engine-level interception: prose that will be SPOKEN or persisted as an assistant turn is stripped of Skill-call syntax.
     // internal for file split — treat as private
-    func sanitizedSpoken(_ text: String) -> String {
+    /// RECOGNIZING a name is not deciding what may run, so this asks for the
+    /// dispatcher's known names rather than building the turn's roster — which
+    /// it did on every call, in every round, to strip text. Callers that
+    /// already hold a projection pass its names in.
+    func sanitizedSpoken(
+        _ text: String, knownSkillNames: Set<String>? = nil
+    ) -> String {
         SkillCallTextInterceptor.stripToolCallSyntax(
             from: text,
-            knownSkillNames: Set((dispatcher?.schemas ?? []).map(\.name)))
+            knownSkillNames: knownSkillNames ?? dispatcher?.knownSkillNames ?? [])
     }
 
     /// The spoken history as Seer wire messages: user turns and non-empty

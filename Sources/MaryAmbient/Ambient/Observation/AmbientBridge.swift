@@ -52,6 +52,12 @@ public enum AmbientBridge {
             passageHandle: passageHandle)
     }
 
+    /// Compiled ONCE. Every successful read parses its own bounds label, and
+    /// building the pattern per read paid a full ICU compile to read three
+    /// integers.
+    private static let boundsPattern = try? NSRegularExpression(
+        pattern: "characters\\s+(\\d+)[–-](\\d+)\\s+of\\s+(\\d+)")
+
     /// Pull `Name — characters 12927–13835 of 15775` back out of a read's own bounds label.
     public static func parseBounds(
         in summary: String
@@ -64,8 +70,7 @@ public enum AmbientBridge {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if !name.isEmpty { subject = name }
         }
-        guard let regex = try? NSRegularExpression(
-            pattern: "characters\\s+(\\d+)[–-](\\d+)\\s+of\\s+(\\d+)"),
+        guard let regex = Self.boundsPattern,
             let match = regex.firstMatch(
                 in: head, range: NSRange(head.startIndex..<head.endIndex, in: head)),
             match.numberOfRanges == 4,

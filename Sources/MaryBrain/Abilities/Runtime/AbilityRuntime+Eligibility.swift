@@ -12,11 +12,16 @@ import Foundation
 
 extension AbilityRuntime {
 
+    /// Diagnostics only — probes, the Studio and the trace record. The turn
+    /// path reads `projectRoster()`, which returns this trace beside the
+    /// schemas it was computed with.
     public var abilityRosterTrace: AbilityRosterTrace {
         let snapshot = abilitySnapshot
+        let signals = routedSignalSnapshot()
         return rosterArbitration(
             snapshot: snapshot,
-            context: abilityRoutingContext()).trace
+            context: abilityRoutingContext(snapshot: snapshot, signals: signals),
+            signals: signals).trace
     }
 
     public func skillReference(for invocationName: String) -> AbilitySkillReference {
@@ -34,10 +39,14 @@ extension AbilityRuntime {
         return reference
     }
 
+    /// `signals` is THE TURN'S, read once by the caller. It used to be read
+    /// here, which meant one route-box lock and one signal-snapshot rebuild
+    /// per Skill per arbitration — the same answer, 105 times.
     func dispatchEligibilityFailure(
         for runtime: AbilityRuntimeSkill,
         in context: AbilityRoutingContext,
-        snapshot: AbilityRuntime.Snapshot
+        snapshot: AbilityRuntime.Snapshot,
+        signals: SchemaSignalTurnSnapshot
     ) -> String? {
         let policy = snapshot.executionPolicy(for: runtime.skill)
         if !runtime.skill.modelExposure.enabled {
@@ -94,7 +103,7 @@ extension AbilityRuntime {
         }
         let effect = snapshot.effect(
             forInvocation: runtime.reference.invocationName)
-        if let failure = routedSignalSnapshot()
+        if let failure = signals
             .mutationAuthorizationFailure(for: runtime.skill, effect: effect) {
             return failure
         }
@@ -109,7 +118,7 @@ extension AbilityRuntime {
 
     /// What may be offered — executable set, narrowed by relevance.
     /// PIN: Pre-arbitration gate; input diet unchanged by later filters.
-    private func routingEligibilityFailure(
+    func routingEligibilityFailure(
         for runtime: AbilityRuntimeSkill,
         in context: AbilityRoutingContext
     ) -> String? {
@@ -136,12 +145,14 @@ extension AbilityRuntime {
 
     /// What may be offered — executable set, narrowed by relevance.
     /// PIN: Pre-arbitration gate; input diet unchanged by later filters.
-    private func projectionEligibilityFailure(
+    func projectionEligibilityFailure(
         for runtime: AbilityRuntimeSkill,
         in context: AbilityRoutingContext,
-        snapshot: AbilityRuntime.Snapshot
+        snapshot: AbilityRuntime.Snapshot,
+        signals: SchemaSignalTurnSnapshot
     ) -> String? {
-        dispatchEligibilityFailure(for: runtime, in: context, snapshot: snapshot)
+        dispatchEligibilityFailure(
+            for: runtime, in: context, snapshot: snapshot, signals: signals)
             ?? routingEligibilityFailure(for: runtime, in: context)
     }
 
@@ -177,7 +188,8 @@ extension AbilityRuntime {
 
     func rosterArbitration(
         snapshot: AbilityRuntime.Snapshot,
-        context: AbilityRoutingContext
+        context: AbilityRoutingContext,
+        signals: SchemaSignalTurnSnapshot
     ) -> AbilityRosterArbitration {
         AbilityRosterArbitrator.arbitrate(
             skills: snapshot.skills,
@@ -185,7 +197,8 @@ extension AbilityRuntime {
                 projectionEligibilityFailure(
                     for: runtime,
                     in: context,
-                    snapshot: snapshot)
+                    snapshot: snapshot,
+                    signals: signals)
             }
     }
 
