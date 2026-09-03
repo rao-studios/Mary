@@ -1,6 +1,6 @@
 //
 //  AffordancePlugin.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: One skill for every family — act on what the screen is offering.
 //  IN:   composition root (beside looking / project-corpus)

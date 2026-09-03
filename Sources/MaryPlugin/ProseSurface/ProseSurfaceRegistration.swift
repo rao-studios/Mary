@@ -7,6 +7,7 @@
 
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public struct ProseSurfaceRegistration: Sendable, Equatable, SurfaceClaim, DeclaredTextSurface {

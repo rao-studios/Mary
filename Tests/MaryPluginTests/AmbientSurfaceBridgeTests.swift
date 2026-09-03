@@ -11,6 +11,8 @@ import CoreGraphics
 import Foundation
 import XCTest
 @testable import MaryPlugin
+import MaryComputerUse
+import MaryComputerUseTestSupport
 
 final class AmbientSurfaceBridgeTests: XCTestCase {
 

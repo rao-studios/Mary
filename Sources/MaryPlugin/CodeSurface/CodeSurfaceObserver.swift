@@ -10,6 +10,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 import os
 
@@ -170,7 +171,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         DeclaredTextSightPublisher.publish(
             place: place, editor: editor, window: window, registration: registration)
-        let file = Self.subject(of: window) ?? registration.displayName
+        let file = DeclaredTextAX.documentSubject(of: window) ?? registration.displayName
         let selection = CodeSurfaceAX.selectedRange(of: editor)
 
         if let selection, !selection.isEmpty {
@@ -278,7 +279,7 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
             application: place.application,
             slot: .cursor,
             content: content,
-            subject: Self.subject(of: window),
+            subject: DeclaredTextAX.documentSubject(of: window),
             applicationID: bundleID,
             // Measured bounds in the editor's own coordinates. `total` is the editor's count.
             bounds: bounds,
@@ -295,18 +296,6 @@ public final class CodeSurfaceObserver: MaryObserver, @unchecked Sendable {
     private func declarationPatterns(for registration: CodeSurfaceRegistration) -> [String] {
         corpus.registration(applicationID: registration.applicationID)?
             .schema.relations.declarations ?? []
-    }
-
-    /// The file this window is showing, by name. `AXDocument` is a `file://` URL string —
-    /// measured, and the reason `CodeSurfaceWriter.fileURL` exists — and against Xcode.
-    static func subject(of window: AXUIElement) -> String? {
-        if let raw = AX.string(window, kAXDocumentAttribute), !raw.isEmpty {
-            let path = URL(string: raw)?.path ?? raw
-            let name = (path as NSString).lastPathComponent
-            if !name.isEmpty { return name }
-        }
-        let title = AX.string(window, kAXTitleAttribute)
-        return title?.isEmpty == false ? title : nil
     }
 
     /// Forget the standing caret and file identity.

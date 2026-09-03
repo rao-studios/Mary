@@ -12,6 +12,7 @@ import ApplicationServices
 import Foundation
 import MaryPlugin
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 final class PluginManagedUIExecutor: @unchecked Sendable {
@@ -102,12 +103,13 @@ final class PluginManagedUIExecutor: @unchecked Sendable {
         }
 
         // 4. PERFORM. Pointer spaces are per-transaction; a captured
-        // Accessibility frame from the last recipe must not aim this one.
-        MaryHands.resetPointerSpaces()
+        // Accessibility frame from the last recipe must not aim this one —
+        // which is why they are a value that dies with this call, not a static.
+        var spaces = PointerDriver.Spaces()
         for step in compiled {
             if Task.isCancelled { return refusal(.cancelled) }
             let result = await MaryHands.perform(
-                step, pid: pid, application: application.title)
+                step, pid: pid, application: application.title, spaces: &spaces)
             if case .failure(let error) = result { return refusal(error) }
         }
 

@@ -3,7 +3,7 @@
 //  AXProbe
 //
 //  WHAT: What Mary actually sees — real AXEngine.ambientContext walk.
-//  OUT:  CLI: swift run mary-ax-probe [--app|--pid|--json]
+//  OUT:  CLI: swift run mary-ax-probe [--app|--pid|--json|--watch]
 //  PIN:  Run signed (scripts/dev.sh); ad-hoc AX grant dies on rebuild.
 //
 
@@ -12,6 +12,7 @@ import ApplicationServices
 import Foundation
 import MaryPlugin
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 // MARK: - Arguments
@@ -22,6 +23,12 @@ func value(_ name: String) -> String? {
     guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
     else { return nil }
     return arguments[index + 1]
+}
+
+if WatchProbe.shouldRun(arguments) {
+    // Watching, not walking: this lane never touches another application.
+    await WatchProbe.run(arguments)
+    exit(0)
 }
 
 if ProseProbe.shouldRun(arguments) {
@@ -157,3 +164,6 @@ if let record = ActedElementReader.focusedElement(pid: pid) {
 } else {
     print("\n  acted-element record — none (nothing focused)")
 }
+
+// What this walk cost the machine layer, and anything it refused along the way.
+print("\n\(WatchProbe.render(ComputerUseMonitor.shared.snapshot()))")

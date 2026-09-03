@@ -9,6 +9,7 @@
 //        work would land, never a write.
 //
 import Foundation
+import MaryComputerUse
 
 extension AbilityRuntime {
 

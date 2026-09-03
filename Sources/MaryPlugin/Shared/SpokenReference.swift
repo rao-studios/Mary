@@ -1,11 +1,12 @@
 //
 //  SpokenReference.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Phrase ladder shared by page and snapshot lanes.
 //  OUT:  PageElementResolver | ScreenElementResolver
 
 import Foundation
+import MaryComputerUse
 
 /// What the ladder needs from an element: something spoken, and — if it belongs to a
 /// countable category — which one.
@@ -120,14 +121,10 @@ public enum SpokenReference {
 
     // MARK: - Normalization
 
-    /// Ported unchanged from `PageElementResolver.normalized`.
+    /// One spelling for the whole system — see `ElementIdentity.normalized`.
+    /// A second copy here would let a spoken match and an element key drift.
     public static func normalized(_ value: String) -> String {
-        value.lowercased()
-            .replacingOccurrences(
-                of: "[^a-z0-9 ]", with: " ", options: .regularExpression)
-            .replacingOccurrences(
-                of: " +", with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespaces)
+        ElementIdentity.normalized(value)
     }
 
     /// Remove the words that classified the target rather than named it — the kind word

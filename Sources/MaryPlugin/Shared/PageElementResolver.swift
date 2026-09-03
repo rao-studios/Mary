@@ -1,12 +1,13 @@
 //
 //  PageElementResolver.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: One phrase, one PageElement — or an honest refusal.
 //  IN:   SpokenReference ladder  OUT: browsing skills
 //  PIN:  Ordinals are only honest over a live listing.
 
 import Foundation
+import MaryComputerUse
 
 extension PageElement: SpokenReferable {
     public var spokenLabel: String { label }

@@ -9,6 +9,7 @@
 import ApplicationServices
 import CoreGraphics
 import Foundation
+import MaryComputerUse
 import MaryFoundation
 
 public enum CodeSurfaceAX {

@@ -12,6 +12,7 @@ import ApplicationServices
 import MaryAmbient
 import MaryPlugin
 import Foundation
+import MaryComputerUse
 
 enum ProbeAmbientSurface {
 

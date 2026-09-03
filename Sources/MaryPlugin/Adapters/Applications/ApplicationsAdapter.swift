@@ -1,6 +1,6 @@
 //
 //  ApplicationsAdapter.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Roster slot for the generic app representation. Zero Skills.
 //  IN:   MaryAdapterCatalog (bijection with AmbientAttention.allCases)

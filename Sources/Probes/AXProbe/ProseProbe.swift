@@ -12,6 +12,7 @@ import ApplicationServices
 import Foundation
 import MaryPlugin
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 enum ProseProbe {

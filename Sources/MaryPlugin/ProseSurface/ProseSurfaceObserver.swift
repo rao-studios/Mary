@@ -9,6 +9,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 import os
 
@@ -115,7 +116,7 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
 
         DeclaredTextSightPublisher.publish(
             place: place, editor: editor, window: window, registration: registration)
-        let document = CodeSurfaceObserver.subject(of: window) ?? registration.displayName
+        let document = DeclaredTextAX.documentSubject(of: window) ?? registration.displayName
         let selection = DeclaredTextAX.selectedRange(of: editor)
 
         if let selection, !selection.isEmpty {
@@ -193,7 +194,7 @@ public final class ProseSurfaceObserver: MaryObserver, @unchecked Sendable {
             application: place.application,
             slot: .cursor,
             content: excerpt,
-            subject: CodeSurfaceObserver.subject(of: window),
+            subject: DeclaredTextAX.documentSubject(of: window),
             applicationID: bundleID,
             bounds: bounds,
             documentTotal: total,

@@ -1,6 +1,6 @@
 //
 //  MaryObserver.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Support plugin — live prompt context and shared services.
 //  IN:   MaryAdapterCatalog.observers / host plugin

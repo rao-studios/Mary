@@ -1,6 +1,6 @@
 //
 //  AmbientSurfaceObserver.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: One poller, one AXEngine walk, two publications (surface + affordance slate).
 //  IN:   AXEngine.ambientContext
@@ -13,6 +13,7 @@ import AppKit
 import ApplicationServices
 import MaryAmbient
 import Foundation
+import MaryComputerUse
 import os
 
 public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {

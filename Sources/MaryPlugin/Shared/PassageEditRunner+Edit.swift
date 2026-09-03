@@ -1,6 +1,6 @@
 //
 //  PassageEditRunner+Edit.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Guard-chain steps 5–9 (compute → apply → remint).
 //  IN:   PassageEditRunner.swift (sibling split)

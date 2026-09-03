@@ -9,6 +9,7 @@
 //
 import MaryPlugin
 import Foundation
+import MaryComputerUse
 
 public enum ScreenLookFaculty {
 

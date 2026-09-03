@@ -1,24 +1,22 @@
 {
-  "configurations" : [
+  "configurations": [
     {
-      "id" : "67F1497A-C496-477F-9C35-1344BE28FC50",
-      "name" : "Test Scheme Action",
-      "options" : {
-
-      }
+      "id": "67F1497A-C496-477F-9C35-1344BE28FC50",
+      "name": "Test Scheme Action",
+      "options": {}
     }
   ],
-  "defaultOptions" : {
-    "performanceAntipatternCheckerEnabled" : true,
-    "targetForVariableExpansion" : {
-      "containerPath" : "container:",
-      "identifier" : "Mary",
-      "name" : "Mary"
+  "defaultOptions": {
+    "performanceAntipatternCheckerEnabled": true,
+    "targetForVariableExpansion": {
+      "containerPath": "container:",
+      "identifier": "Mary",
+      "name": "Mary"
     }
   },
-  "testTargets" : [
+  "testTargets": [
     {
-      "selectedTests" : [
+      "selectedTests": [
         "PackageLayeringTests",
         "PackageAdmissionTests",
         "ValidatorLivenessTests",
@@ -32,36 +30,46 @@
         "BehaviorCodecTests",
         "LayoutDisciplineTests"
       ],
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "MaryFoundationTests",
-        "name" : "MaryFoundationTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryFoundationTests",
+        "name": "MaryFoundationTests"
       }
     },
     {
-      "selectedTests" : [
+      "selectedTests": [
+        "OnlyComputerUseTouchesTheMachineTests"
+      ],
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryComputerUseTests",
+        "name": "MaryComputerUseTests"
+      }
+    },
+    {
+      "selectedTests": [
         "NoAppleEventsTests"
       ],
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "MaryPluginTests",
-        "name" : "MaryPluginTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryPluginTests",
+        "name": "MaryPluginTests"
       }
     },
     {
-      "selectedTests" : [
+      "selectedTests": [
         "PluginRuntimePurityTests",
         "AbilityPromptProjectionSecurityTests",
         "GuardrailCategoryProjectionSecurityTests",
         "PluginCompilerPerceptionChannelsTests",
         "RuntimePrimitiveIsolationTests"
       ],
-      "target" : {
-        "containerPath" : "container:",
-        "identifier" : "MaryBrainTests",
-        "name" : "MaryBrainTests"
+      "target": {
+        "containerPath": "container:",
+        "identifier": "MaryBrainTests",
+        "name": "MaryBrainTests"
       }
     }
   ],
-  "version" : 1
+  "version": 1
 }

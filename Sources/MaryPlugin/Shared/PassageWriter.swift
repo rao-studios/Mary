@@ -1,6 +1,6 @@
 //
 //  PassageWriter.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: World seam — one write verb, words to find, not offsets.
 //  IN:   PassageEditRunner APPLY  OUT: CodeSurfaceWriter | ProseSurfaceWriter

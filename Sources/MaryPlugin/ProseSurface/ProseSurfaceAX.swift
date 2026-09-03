@@ -11,6 +11,7 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public enum ProseSurfaceAX {

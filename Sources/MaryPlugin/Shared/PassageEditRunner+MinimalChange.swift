@@ -1,6 +1,6 @@
 //
 //  PassageEditRunner+MinimalChange.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Two-ended trim to one contiguous run, then uniqueAnchor.
 //  IN:   PassageEditRunner.swift (sibling split) | PassageRefresh

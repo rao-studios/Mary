@@ -1,6 +1,6 @@
 //
 //  PassageEditRunner+ResolveAndFind.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Guard-chain steps 1–4 (resolve, snapshot, identity, mint/find).
 //  IN:   PassageEditRunner.swift (sibling split)

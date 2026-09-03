@@ -7,6 +7,7 @@
 
 import ApplicationServices
 import Foundation
+import MaryComputerUse
 import MaryFoundation
 
 public enum MediaSurfaceAX {

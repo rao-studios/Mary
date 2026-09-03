@@ -1,6 +1,6 @@
 //
 //  TypingModels.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: TypingSurface and the resolve ladder for type_at_cursor.
 //  IN:   TyperPlugin.swift (sibling split)
@@ -10,6 +10,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 import os
 
 // PIN: no compiled TypingTarget. taughtSurface(named:) is the ladder rung.

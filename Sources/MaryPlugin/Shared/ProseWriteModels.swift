@@ -1,6 +1,6 @@
 //
-//  PagesPassageWriterModels.swift
-//  MaryBrain
+//  ProseWriteModels.swift
+//  MaryPlugin
 //
 //  WHAT: Locate/replace math for a live AX text element (pure).
 //  IN:   PagesPassageWriter split  OUT: ProseSurfaceWriter

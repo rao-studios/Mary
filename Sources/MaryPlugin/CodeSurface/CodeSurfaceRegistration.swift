@@ -7,6 +7,7 @@
 
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public struct CodeSurfaceRegistration: Sendable, Equatable, SurfaceClaim, DeclaredTextSurface {

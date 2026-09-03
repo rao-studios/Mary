@@ -1,6 +1,6 @@
 //
 //  PassageEditRunner.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Revision guard chain. Every world writer hangs off APPLY.
 //  IN:   handle | locating words → PassageResolver → world snapshot

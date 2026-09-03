@@ -1,6 +1,6 @@
 //
 //  DictationSession.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Live dictation session around a declared text surface.
 //  OUT:  TyperPlugin

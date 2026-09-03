@@ -11,6 +11,7 @@ import MaryAmbient
 import MaryFoundation
 import MaryVoice
 import Foundation
+import MaryComputerUse
 import os
 
 extension MaryBrain {

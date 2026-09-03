@@ -13,6 +13,7 @@ import Foundation
 import MaryPlugin
 import MaryAmbient
 import MaryBrain
+import MaryComputerUse
 import MaryFoundation
 import MaryTotem
 import os

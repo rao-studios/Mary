@@ -8,6 +8,7 @@
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public enum MediaSurfaceLibrary {

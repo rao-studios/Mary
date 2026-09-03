@@ -11,6 +11,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 
 public enum DeclaredTextHandoff {
 
@@ -50,7 +51,7 @@ public enum DeclaredTextHandoff {
             ambient: ambient,
             place: AmbientPlace.application(registration.applicationID),
             applicationID: bundleID,
-            subject: CodeSurfaceObserver.subject(of: window),
+            subject: DeclaredTextAX.documentSubject(of: window),
             channel: .sourcePoll,
             clearCaret: trigger == .activeSourcePreflight)
     }

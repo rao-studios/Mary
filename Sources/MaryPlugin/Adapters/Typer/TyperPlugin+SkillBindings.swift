@@ -1,6 +1,6 @@
 //
 //  TyperPlugin+SkillBindings.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Writing Ability Skill bindings (type, resume, dictate, passages).
 //  IN:   TyperPlugin.swift (sibling split)
@@ -9,6 +9,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 import os
 
 extension TyperPlugin {

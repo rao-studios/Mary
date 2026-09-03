@@ -9,6 +9,7 @@
 //
 
 import Foundation
+import MaryComputerUse
 import MaryFoundation
 
 public struct ProjectGitAdapter: MaryAdapter {

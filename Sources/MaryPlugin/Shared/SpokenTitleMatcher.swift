@@ -1,6 +1,6 @@
 //
 //  SpokenTitleMatcher.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Fuzzy title match for windows / documents / playlists.
 //  OUT:  which-place / media library

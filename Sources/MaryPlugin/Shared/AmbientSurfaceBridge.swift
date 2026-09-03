@@ -1,13 +1,15 @@
 //
 //  AmbientSurfaceBridge.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: AXScreenElement → AXElementRecord (geometry here via AXFrameProjection).
 //  IN:   AXEngine snapshot  OUT: ambient store
-//  PIN:  Identity/kind attach here; AXEngine must not import Shared/.
+//  PIN:  Identity/kind attach here, on the way INTO ambient vocabulary.
+//        The key itself is spelled once, in MaryComputerUse's ElementIdentity.
 
 import CoreGraphics
 import Foundation
+import MaryComputerUse
 
 public extension AmbientBridge {
 
@@ -123,14 +125,14 @@ public extension AmbientBridge {
     /// `AffordanceResolver.identity(of:)`, spelled for a snapshot element —
     /// byte-for-byte the same format, pinned by test.
     static func identity(of element: AXScreenElement) -> String {
-        identity(role: element.role, label: element.label)
+        ElementIdentity.identity(of: element)
     }
 
-    /// The re-finding key from the two parts that make it. Both callers go
-    /// through this, so a focused element and a rostered one can never be
-    /// spelled differently.
+    /// The re-finding key from the two parts that make it. Every caller goes
+    /// through `ElementIdentity`, so a focused element and a rostered one can
+    /// never be spelled differently.
     static func identity(role: String, label: String) -> String {
-        "\(role.lowercased())|\(PageElementResolver.normalized(label))"
+        ElementIdentity.identity(role: role, label: label)
     }
 
     // MARK: - Internals

@@ -10,6 +10,7 @@
 //        act's actual landing time. Silence on timeout is never acceptable.
 //
 import Foundation
+import MaryComputerUse
 import os
 
 extension AbilityRuntime {

@@ -10,6 +10,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public struct ProseSurfaceWriter: PassageWriter {

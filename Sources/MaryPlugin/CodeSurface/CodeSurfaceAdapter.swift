@@ -9,6 +9,7 @@
 import AppKit
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 import os
 

@@ -12,6 +12,7 @@
 import MaryBrain
 import MaryPlugin
 import Foundation
+import MaryComputerUse
 
 /// One accessibility frame, as the drafter is allowed to see it.
 struct AbilityStudioSurfaceFrame: Identifiable, Hashable {

@@ -1,6 +1,6 @@
 //
 //  PassageRefresh.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: After a caret write, re-anchor minted passages that only moved.
 //  IN:   PassageEditRunner.minimalChange  OUT: PassageRegistry / held facts

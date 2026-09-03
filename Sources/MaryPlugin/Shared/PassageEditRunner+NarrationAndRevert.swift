@@ -1,6 +1,6 @@
 //
 //  PassageEditRunner+NarrationAndRevert.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Spoken edit report and revert_last_edit.
 //  IN:   PassageEditRunner.swift (sibling split)

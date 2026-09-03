@@ -1,10 +1,12 @@
 // swift-tools-version: 6.0
 // WHAT: One SwiftPM package. Targets under Sources/, layered by name.
-// OUT:  MaryFoundation → MaryAmbient → MaryPlugin
+// OUT:  MaryFoundation → MaryAmbient → MaryComputerUse → MaryPlugin
 //            → MaryVoice / MaryBrain → MaryTotem → MaryRuntime → Mary
 // PIN:  Layering is enforced by reading this file as text
 //       (PackageLayeringTests). Plugin = Abilities/*.mary; adapters live in
-//       MaryPlugin. AX is tier 0 (MaryAmbient → MaryFoundation only).
+//       MaryPlugin, and the machine they drive lives in MaryComputerUse —
+//       nothing above it posts an event or performs an AX action.
+//       AX is tier 0 (MaryAmbient → MaryFoundation only).
 //       Platform is macOS "26.0" (string, not .v26) for SpeechAnalyzer.
 //       No module aliases. Frigate only through MaryBrain.
 
@@ -66,10 +68,39 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
-        // MARK: - MaryPlugin — adapters + AX engine. No file names an app.
+        // MARK: - MaryComputerUse — the machine layer: AX tree, sight, hands, stage.
+        // PIN: MaryFoundation + MaryAmbient only. The only target that posts an
+        //      input event, performs an AX action, or captures pixels.
+        .target(
+            name: "MaryComputerUse",
+            dependencies: ["MaryFoundation", "MaryAmbient"],
+            path: "Sources/MaryComputerUse",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Synthetic AX trees. Library target so two test targets can share them.
+        .target(
+            name: "MaryComputerUseTestSupport",
+            dependencies: ["MaryComputerUse"],
+            path: "Sources/TestSupport/MaryComputerUseTestSupport",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        .testTarget(
+            name: "MaryComputerUseTests",
+            dependencies: [
+                "MaryComputerUse",
+                "MaryComputerUseTestSupport",
+                "MaryAmbient",
+                "MaryFoundation",
+            ],
+            path: "Tests/MaryComputerUseTests",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+
+        // MARK: - MaryPlugin — the adapter contract and the generic adapters.
+        // PIN: No file names an app. The machine is MaryComputerUse's.
         .target(
             name: "MaryPlugin",
-            dependencies: ["MaryFoundation", "MaryAmbient"],
+            dependencies: ["MaryFoundation", "MaryAmbient", "MaryComputerUse"],
             path: "Sources/MaryPlugin",
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: [
@@ -86,13 +117,19 @@ let package = Package(
         // Live AX walk against a real app.
         .executableTarget(
             name: "AXProbe",
-            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/AXProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
             name: "MaryPluginTests",
-            dependencies: ["MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            dependencies: [
+                "MaryPlugin",
+                "MaryComputerUse",
+                "MaryComputerUseTestSupport",
+                "MaryAmbient",
+                "MaryFoundation",
+            ],
             path: "Tests/MaryPluginTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -129,6 +166,7 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
+                "MaryComputerUse",
                 "MaryPlugin",
                 "MaryVoice",
                 .product(name: "MLX", package: "Frigate"),
@@ -174,6 +212,7 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
+                "MaryComputerUse",
                 "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
@@ -190,6 +229,7 @@ let package = Package(
                 "MaryRuntime",
                 "MaryFoundation",
                 "MaryAmbient",
+                "MaryComputerUse",
                 "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
@@ -212,7 +252,7 @@ let package = Package(
         // Live AX read through the behavioral codec.
         .executableTarget(
             name: "BehaviorProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/BehaviorProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -220,7 +260,7 @@ let package = Package(
         // GPUProbe (below): Metal GPU check before a 4 GB model download.
         .executableTarget(
             name: "CorpusProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/CorpusProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -240,7 +280,7 @@ let package = Package(
         // Live media: package transport labels vs a player's AX tree.
         .executableTarget(
             name: "MediaProbe",
-            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryFoundation"],
             path: "Sources/Probes/MediaProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -250,6 +290,7 @@ let package = Package(
                 "MaryRuntime",
                 "MaryBrain",
                 "MaryPlugin",
+                "MaryComputerUse",
                 "MaryFoundation",
                 "MaryFoundationTestSupport",
                 "MaryAmbient",
@@ -264,6 +305,7 @@ let package = Package(
             dependencies: [
                 "MaryBrain",
                 "MaryPlugin",
+                "MaryComputerUse",
                 "MaryFoundation",
                 "MaryFoundationTestSupport",
             ],

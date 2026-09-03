@@ -10,6 +10,7 @@ import ApplicationServices
 import Foundation
 import MaryAmbient
 import MaryBrain
+import MaryComputerUse
 import MaryFoundation
 import MaryPlugin
 import MaryRuntime

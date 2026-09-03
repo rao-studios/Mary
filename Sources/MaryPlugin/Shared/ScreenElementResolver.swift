@@ -1,11 +1,12 @@
 //
 //  ScreenElementResolver.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Phrase → AXScreenElement via SpokenReference.
 //  IN:   AXElementRoster  OUT: ambient / affordance
 
 import Foundation
+import MaryComputerUse
 
 extension AXScreenElement: SpokenReferable {
     public var spokenLabel: String { label }

@@ -1,6 +1,6 @@
 //
 //  MaryAdapter.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Plugin contract — prompt fragment plus curated Skill bindings.
 //  IN:   MaryAdapterCatalog / Ability runtime

@@ -1,6 +1,6 @@
 //
 //  ApplicationsWatcher.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Generic frontmost-app selection watcher.
 //  IN:   AXSelectionReader / NSWorkspace / SelectionHandoffCoordinator
@@ -10,6 +10,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 import os
 
 public final class ApplicationsWatcher: MaryObserver, @unchecked Sendable {

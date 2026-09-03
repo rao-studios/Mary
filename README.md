@@ -16,7 +16,9 @@ Plugin declares are **adapters**, they are generic by construction, and the word
 
 **Accessibility is tier 0.** The ambient context store takes the AX surface —
 what is actually on screen right now — as its foundation, with per-application
-facts layered on top and selection/attention above that. A stale fact renders
+facts layered on top and selection/attention above that. The walk that produces
+it is the floor of `MaryComputerUse`, which owns everything Mary does *to* the
+machine as well as everything she reads from it — see `docs/computer-use.md`. A stale fact renders
 with its age and loses authority, because held knowledge ages honestly. A stale
 surface is *dropped*, because a screen that may no longer exist is a confidently
 wrong answer waiting for a question.
@@ -74,7 +76,8 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 |---|---|
 | `MaryFoundation` | The schema layer: Plugin grammar, codec + integrity digest, value envelopes, `AXFrame` geometry. Depends on nothing. |
 | `MaryAmbient` | The ambient paradigm: the tiered context store, realms, surfaces, passages, focus and reference resolution. Depends on `MaryFoundation` **alone** — that is what makes it portable, and a test enforces it. |
-| `MaryPlugin` | The adapter contract, the accessibility engine, and the generic providers (surface, typer, prose-surface, window management). |
+| `MaryComputerUse` | The machine layer: the accessibility tree engine (tier 0), derived sight, hands (keyboard, pointer, elements, windows, menus, media keys), stage arbitration, subprocess, and one monitor. The only target that posts an input event, performs an accessibility action, or captures pixels — and a test reads every source file to keep that true. |
+| `MaryPlugin` | The adapter contract and the generic adapters (surface, typer, prose-surface, window management, media, corpus). Adapters translate what a Skill needs into hands and sight; they do not reach the machine themselves. |
 | `MaryVoice` | Mic → VAD → transcription → a `LanguageResponder` seam → speech, every stage observable. |
 | `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients, one on-device MLX engine. The only target that may name Frigate. |
 | `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |

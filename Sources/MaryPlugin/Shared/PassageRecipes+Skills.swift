@@ -1,5 +1,6 @@
 //
 //  PassageRecipes+Skills.swift
+//  MaryPlugin
 //
 //  WHAT: Passage skill bindings (find / replace / insert / delete / revert).
 //  IN:   PassageRecipes.swift (sibling split)

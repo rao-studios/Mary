@@ -1,6 +1,6 @@
 //
 //  WindowManagement.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Machine contract for window management — resolve, then act.
 //  IN:   WindowManagementPlugin / WindowManagementModels
@@ -10,6 +10,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 
 /// Coordinates resolution and chooses an adapter. Adapter order is preference order.
 public final class WindowManagementService: WindowManagementServing, @unchecked Sendable {

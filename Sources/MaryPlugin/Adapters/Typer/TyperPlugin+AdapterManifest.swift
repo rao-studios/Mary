@@ -1,6 +1,6 @@
 //
 //  TyperPlugin+AdapterManifest.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Writing Ability machine contract.
 //  IN:   TyperPlugin

@@ -1,6 +1,6 @@
 //
 //  TyperPlugin.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Type prose at the user's cursor via KeyboardTyper.
 //  IN:   TyperPlugin+Typing / KeyboardTyper / StageArbiter

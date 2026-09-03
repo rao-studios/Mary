@@ -115,7 +115,7 @@ import Testing
     /// Every library target Mary will have, in layering order. A rule naming a
     /// target absent from the manifest is PENDING, not passing.
     static let plannedTargets = [
-        "MaryFoundation", "MaryAmbient", "MaryPlugin",
+        "MaryFoundation", "MaryAmbient", "MaryComputerUse", "MaryPlugin",
         "MaryVoice", "MaryBrain", "MaryTotem", "MaryRuntime", "Mary",
     ]
 
@@ -141,6 +141,58 @@ import Testing
             It must declare exactly one — MaryFoundation.
             """)
         #expect(declared.first?.contains("MaryFoundation") == true)
+    }
+
+    /// THE MACHINE LAYER STANDS ON THE PARADIGM AND NOTHING ELSE.
+    ///
+    /// MaryComputerUse is the only target that posts an input event, performs
+    /// an Accessibility action, or captures pixels. That claim is only worth
+    /// making while the layer itself is cheap to reason about: the schema, the
+    /// ambient vocabulary it publishes into, and the Mac. An edge to MaryPlugin
+    /// would invert the stack — adapters are written against the machine, not
+    /// the other way round — and an edge to anything above it would put a model
+    /// runtime behind a keystroke.
+    @Test func computerUseDependsOnFoundationAndAmbientOnly() throws {
+        let manifest = try Self.manifest()
+        guard let target = Self.targetBlock(manifest, named: "MaryComputerUse") else { return }
+        let declared = Self.dependencyNames(target)
+
+        #expect(
+            declared.count == 2,
+            """
+            MaryComputerUse declares \(declared.count) dependencies: \(declared). \
+            It must declare exactly two — MaryFoundation and MaryAmbient.
+            """)
+        #expect(declared.contains { $0.contains("MaryFoundation") })
+        #expect(declared.contains { $0.contains("MaryAmbient") })
+    }
+
+    /// ADAPTERS ARE WRITTEN AGAINST THE MACHINE LAYER.
+    ///
+    /// The edge runs one way and it must exist: MaryPlugin's adapters translate
+    /// what a Skill needs into hands and sight. If this edge ever disappears,
+    /// the machine code came back into MaryPlugin.
+    @Test func pluginDependsOnComputerUse() throws {
+        let manifest = try Self.manifest()
+        guard let target = Self.targetBlock(manifest, named: "MaryPlugin") else { return }
+        #expect(
+            Self.dependencyNames(target).contains { $0.contains("MaryComputerUse") },
+            "MaryPlugin no longer depends on MaryComputerUse — the machine layer moved back in.")
+    }
+
+    /// NOTHING BELOW THE MACHINE LAYER KNOWS IT EXISTS.
+    ///
+    /// MaryAmbient reads AX for its own selection lane and must keep doing that
+    /// on MaryFoundation alone; the day it reaches for MaryComputerUse, the
+    /// paradigm stops being portable.
+    @Test func nothingBelowComputerUseNamesIt() throws {
+        let manifest = try Self.manifest()
+        for name in ["MaryFoundation", "MaryAmbient", "MaryVoice"] {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            #expect(
+                !Self.dependencyNames(target).contains { $0.contains("MaryComputerUse") },
+                "\(name) depends on MaryComputerUse — it sits below the machine layer.")
+        }
     }
 
     /// THE VOICE LAYER NEVER LEARNS WHAT ANYTHING MEANS.
@@ -175,7 +227,7 @@ import Testing
     /// Conduit/gRPC only through MaryTotem.
     @Test func perceptionLayersStayOutOfInferenceAndTransport() throws {
         let manifest = try Self.manifest()
-        for name in ["MaryAmbient", "MaryPlugin", "MaryVoice"] {
+        for name in ["MaryAmbient", "MaryComputerUse", "MaryPlugin", "MaryVoice"] {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC", "Fleet"] {
                 #expect(

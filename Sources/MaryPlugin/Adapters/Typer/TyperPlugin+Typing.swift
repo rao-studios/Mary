@@ -1,6 +1,6 @@
 //
 //  TyperPlugin+Typing.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Shared typing path for type_at_cursor and resume_typing.
 //  IN:   TyperPlugin+SkillBindings / KeyboardTyper / StageArbiter
@@ -10,6 +10,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 import os
 
 extension TyperPlugin {

@@ -17,6 +17,19 @@ final class PluginRuntimePurityTests: XCTestCase {
         .deletingLastPathComponent()
         .appendingPathComponent("Sources/MaryBrain", isDirectory: true)
 
+    /// Source with `//` comments removed. These assertions name the very
+    /// things they forbid, so a rule quoted in a doc comment must not read as
+    /// a violation of itself.
+    static func code(_ source: String) -> String {
+        source
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { line -> Substring in
+                guard let slashes = line.range(of: "//") else { return line }
+                return line[line.startIndex..<slashes.lowerBound]
+            }
+            .joined(separator: "\n")
+    }
+
     /// Imported application packages must reach exactly one Mary-owned
     /// native interpreter. These names are the former executable-source lane.
     func testBrainSourcesContainNoDynamicScriptRuntime() throws {
@@ -94,11 +107,29 @@ final class PluginRuntimePurityTests: XCTestCase {
             contentsOf: Self.brainRoot.appendingPathComponent(
                 "Abilities/Plugins/Execution/MaryHands.swift"),
             encoding: .utf8)
+        let pointer = try String(
+            contentsOf: Self.brainRoot.appendingPathComponent(
+                "Abilities/Plugins/Execution/MaryHands+Pointer.swift"),
+            encoding: .utf8)
         XCTAssertTrue(hands.contains("KeyChordPress.press"))
         XCTAssertTrue(hands.contains("KeyboardTyper.typeIntoSelection"))
-        XCTAssertFalse(
-            hands.contains("CGEvent("),
-            "MaryHands builds its own events instead of using the shared primitives")
+        XCTAssertTrue(
+            pointer.contains("PointerDriver."),
+            "the pointer lane must go through MaryComputerUse's driver")
+        XCTAssertTrue(
+            pointer.contains("AccessibilityAnchorLocator."),
+            "anchor capture must go through MaryComputerUse's locator")
+
+        // THE HANDS DENORMALIZE; THEY DO NOT REACH. Both halves of this file
+        // family are checked, because the pointer lane is exactly where a
+        // second event synthesizer grew last time.
+        for (name, text) in [("MaryHands.swift", hands), ("MaryHands+Pointer.swift", pointer)] {
+            for token in ["CGEvent(", "CGEventSource", ".postToPid(", "AXUIElement"] {
+                XCTAssertFalse(
+                    Self.code(text).contains(token),
+                    "\(name) names \(token) — the machine belongs to MaryComputerUse")
+            }
+        }
     }
 
     /// THE STAGE IS TAKEN ONCE, BY THE TRANSACTION, AND VERIFIED.

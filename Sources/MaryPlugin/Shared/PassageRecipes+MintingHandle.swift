@@ -1,5 +1,6 @@
 //
 //  PassageRecipes+MintingHandle.swift
+//  MaryPlugin
 //
 //  WHAT: Mint a passage handle from a recipe read.
 //  IN:   PassageRecipes.swift (sibling split)

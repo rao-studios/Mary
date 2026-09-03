@@ -9,6 +9,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import MaryComputerUse
 import os
 
 public enum CodeSurfaceEditorCache {

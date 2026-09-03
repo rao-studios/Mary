@@ -1,6 +1,6 @@
 //
 //  WindowManagementPlugin.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Runtime Skill bindings for window management.
 //  IN:   WindowManagementService

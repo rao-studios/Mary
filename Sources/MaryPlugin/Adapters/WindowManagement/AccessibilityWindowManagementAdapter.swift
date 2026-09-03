@@ -1,6 +1,6 @@
 //
 //  AccessibilityWindowManagementAdapter.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Generic macOS window adapter via public Accessibility APIs.
 //  IN:   WindowManagementService
@@ -11,6 +11,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import MaryComputerUse
 
 struct AccessibilityWindowManagementAdapter: WindowManagementAdapter {
     let id = "macos-accessibility"

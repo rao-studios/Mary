@@ -8,6 +8,7 @@
 import AppKit
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 public struct ProseSurfaceAdapter: MaryAdapter {

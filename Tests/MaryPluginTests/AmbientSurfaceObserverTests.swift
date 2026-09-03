@@ -11,6 +11,8 @@ import Foundation
 import MaryAmbient
 import XCTest
 @testable import MaryPlugin
+import MaryComputerUse
+import MaryComputerUseTestSupport
 
 final class AmbientSurfaceObserverTests: XCTestCase {
 

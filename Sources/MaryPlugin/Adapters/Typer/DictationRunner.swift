@@ -1,6 +1,6 @@
 //
 //  DictationRunner.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Install DictationSession open / type / scratch for the typer.
 //  IN:   DictationSession (kit) / TyperPlugin
@@ -10,6 +10,7 @@
 
 import AppKit
 import Foundation
+import MaryComputerUse
 import os
 
 enum DictationRunner {

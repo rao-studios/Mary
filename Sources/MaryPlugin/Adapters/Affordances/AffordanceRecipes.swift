@@ -1,6 +1,6 @@
 //
 //  AffordanceRecipes.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Press the control that accomplishes the asked-for goal.
 //  IN:   AffordancePlugin / AffordanceResolver / PageElementReader
@@ -13,10 +13,11 @@ import AppKit
 import ApplicationServices
 import MaryAmbient
 import Foundation
+import MaryComputerUse
 
 enum AffordanceRecipes {
 
-    /// How long a goal may wait for its control. Matches BrowserAXReadiness.defaultSettleTimeout.
+    /// How long a goal may wait for its control to appear after a press.
     static let appearanceBudget: TimeInterval = 6
     /// Between re-reads — catch a five-second ad without walking the page constantly.
     static let retryInterval: UInt64 = 700_000_000

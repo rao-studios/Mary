@@ -17,6 +17,7 @@ import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 import MaryFoundation
 
 /// The work in front of the user, resolved.

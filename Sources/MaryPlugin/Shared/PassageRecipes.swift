@@ -1,6 +1,6 @@
 //
 //  PassageRecipes.swift
-//  MaryBrain
+//  MaryPlugin
 //
 //  WHAT: Passage skill surface — which world, which backing.
 //  OUT:  PassageRecipes+Skills / +WhichPlace / +MintingHandle

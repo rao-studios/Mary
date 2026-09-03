@@ -1,12 +1,13 @@
 //
 //  AffordanceResolver.swift
-//  MaryAdapter
+//  MaryPlugin
 //
 //  WHAT: Phrase → one affordance, or an honest refusal.
 //  IN:   SpokenReference  OUT: AffordancePlugin
 
 import Foundation
 import MaryAmbient
+import MaryComputerUse
 
 public enum AffordanceResolver {
 
