@@ -90,7 +90,7 @@ enum ApplicationProviderResolver {
 
     /// Resolve every multi-application Skill's provider for this turn.
     static func resolve(
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         signals: ApplicationProviderSignals,
         /// EVERY registered application — native profiles included.
         profiles: [ApplicationProfile]? = nil
@@ -178,7 +178,7 @@ enum ApplicationProviderResolver {
     /// frozen provenance — the same authority chips print.
     private static func providerApplicationID(
         of binding: InstalledAdapterBinding,
-        in snapshot: AbilityRuntimeSnapshot
+        in snapshot: AbilityRuntime.Snapshot
     ) -> String? {
         snapshot.adapterManifest(id: binding.adapterID)?
             .resolvedProvider.applicationID?.lowercased()

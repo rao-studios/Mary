@@ -201,7 +201,7 @@ import Testing
     /// FAILS LOUDLY when it cannot build. This used to return nil on a corpus
     /// that would not vectorize, and every `guard let ... else { return }`
     /// above turned that into a silent pass.
-    private static func environment() throws -> AbilityRuntimeSnapshot? {
+    private static func environment() throws -> AbilityRuntime.Snapshot? {
         let skill = SkillSchema(
             id: SkillID("fixture.operate-thing"),
             title: "Operate Thing",
@@ -268,7 +268,7 @@ import Testing
             transport: .native,
             operations: [InstalledAdapterBinding(
                 adapterID: AdapterID("fixture"), operation: "operate_thing")])
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: records,
             validation: .init(),
             adapterManifests: [manifest],

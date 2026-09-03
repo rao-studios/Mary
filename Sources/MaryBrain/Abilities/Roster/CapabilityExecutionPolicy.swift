@@ -117,7 +117,7 @@ struct CapabilityExecutionPolicy: Sendable, Equatable {
     }
 }
 
-extension AbilityRuntimeSnapshot {
+extension AbilityRuntime.Snapshot {
     func executionPolicy(for skill: SkillSchema) -> CapabilityExecutionPolicy {
         CapabilityExecutionPolicy(capabilities: capabilitySchemas(requiredBy: skill))
     }

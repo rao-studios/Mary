@@ -58,7 +58,7 @@ struct AbilityStudioInvocationCatalog {
     init(
         draft: MaryAbilityPackage,
         excludingRecipe recipeID: SkillID?,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) {
         var entries: [Entry] = []
         let dependencyIDs = Set(draft.dependencies.map(\.packageID))

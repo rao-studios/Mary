@@ -22,7 +22,7 @@ public enum EmbeddingRouting {
     /// Exactly one Skill above the floor, with a margin over the runner-up.
     public static func uniqueWinner(
         affinities: [SkillID: Float],
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         floor: Float = floor,
         margin: Float = margin
     ) -> AbilityRuntimeSkill? {

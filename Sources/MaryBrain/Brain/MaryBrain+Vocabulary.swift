@@ -48,7 +48,7 @@ extension MaryBrain {
     /// Spoken line when a named Dynamic application's provider is unavailable.
     static func providerUnavailableLine(
         applicationID: String,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> String? {
         guard let profile = snapshot.plugins.applicationProfiles.first(where: {
             $0.id == applicationID

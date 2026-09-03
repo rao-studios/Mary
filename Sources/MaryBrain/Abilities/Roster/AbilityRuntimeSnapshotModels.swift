@@ -2,8 +2,8 @@
 //  AbilityRuntimeSnapshotModels.swift
 //  MaryBrain
 //
-//  WHAT: Model types for AbilityRuntimeSnapshot.
-//  IN:   AbilityRuntimeSnapshot.swift (sibling split)
+//  WHAT: Model types for AbilityRuntime.Snapshot.
+//  IN:   AbilityRuntime.Snapshot.swift (sibling split)
 //  OUT:  package records / plugin compilation / runtime skills
 //
 import MaryFoundation
@@ -125,5 +125,5 @@ public struct AbilityRuntimeSkill: Hashable, Sendable, Identifiable {
 }
 
 enum AbilityTurnContext {
-    @TaskLocal static var snapshot: AbilityRuntimeSnapshot?
+    @TaskLocal static var snapshot: AbilityRuntime.Snapshot?
 }

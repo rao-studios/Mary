@@ -193,7 +193,7 @@ extension MaryRuntime {
     /// Ability-keyed style learning for taught apps that realize coding.
     private static func registerCodingStyleProducer(
         profiles: [ApplicationProfile],
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) {
         let applications = profiles
             .filter { $0.abilities.contains(.coding) }
@@ -216,7 +216,7 @@ extension MaryRuntime {
     /// Corpora the admitted graph will learn from. Expertise binds a live app;
     /// discipline may own the walk grammar. No expertise in front → not crawled.
     package static func corpusRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
+        from snapshot: AbilityRuntime.Snapshot
     ) -> [CorpusRegistration] {
         let activated = Dictionary(
             uniqueKeysWithValues: snapshot.records
@@ -251,7 +251,7 @@ extension MaryRuntime {
     /// consulted is whether awareness actually activated: an edge to a package
     /// that is not in this snapshot registers nothing.
     package static func awarenessRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
+        from snapshot: AbilityRuntime.Snapshot
     ) -> [AwarenessRegistration] {
         let activated = Dictionary(
             uniqueKeysWithValues: snapshot.records
@@ -304,7 +304,7 @@ extension MaryRuntime {
 
     /// Declared transports in this activation. Twin of proseSurfaceRegistrations.
     package static func mediaSurfaceRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
+        from snapshot: AbilityRuntime.Snapshot
     ) -> [MediaSurfaceRegistration] {
         snapshot.records.compactMap { record -> MediaSurfaceRegistration? in
             guard record.validation.isValid,
@@ -321,7 +321,7 @@ extension MaryRuntime {
     }
 
     package static func proseSurfaceRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
+        from snapshot: AbilityRuntime.Snapshot
     ) -> [ProseSurfaceRegistration] {
         snapshot.records.compactMap { record -> ProseSurfaceRegistration? in
             guard record.validation.isValid,
@@ -338,7 +338,7 @@ extension MaryRuntime {
 
     /// Read-only sibling of proseSurfaceRegistrations.
     package static func codeSurfaceRegistrations(
-        from snapshot: AbilityRuntimeSnapshot
+        from snapshot: AbilityRuntime.Snapshot
     ) -> [CodeSurfaceRegistration] {
         snapshot.records.compactMap { record -> CodeSurfaceRegistration? in
             guard record.validation.isValid,

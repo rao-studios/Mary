@@ -15,7 +15,7 @@ public protocol AbilityDispatching: Sendable {
     var schemas: [ModelSkillSchema] { get }
     /// The immutable schema graph currently projected by the dispatcher.
     /// `AbilityTurnContext` freezes this value for the duration of a turn.
-    var abilitySnapshot: AbilityRuntimeSnapshot { get }
+    var abilitySnapshot: AbilityRuntime.Snapshot { get }
     /// Frozen package/ability/skill identity for receipts and conversation
     /// badges. External providers still use their wire term "Skill"; Mary's
     /// domain records the invocation as a Skill belonging to an Ability.
@@ -168,7 +168,7 @@ public extension AbilityDispatching {
     var focusedApplicationID: String? { nil }
     /// Empty unless the dispatcher freezes a registry. Loading the live
     /// library here would vectorize every package as a side effect of routing.
-    var abilitySnapshot: AbilityRuntimeSnapshot { .empty }
+    var abilitySnapshot: AbilityRuntime.Snapshot { .empty }
     func skillReference(for invocationName: String) -> AbilitySkillReference {
         abilitySnapshot.reference(forInvocation: invocationName)
     }

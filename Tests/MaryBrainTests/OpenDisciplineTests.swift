@@ -63,8 +63,8 @@ import Testing
     /// model at all; this abstains instead, which is the P3 trade stated out
     /// loud rather than discovered later.
     @Test func withNoIndexTheAxisAbstains() {
-        #expect(AbilityRuntimeSnapshot.empty.discipline(in: "sketch the layout") == nil)
-        #expect(AbilityRuntimeSnapshot.empty.disciplines.isEmpty)
+        #expect(AbilityRuntime.Snapshot.empty.discipline(in: "sketch the layout") == nil)
+        #expect(AbilityRuntime.Snapshot.empty.disciplines.isEmpty)
     }
 
     // MARK: - It leads, and it prints
@@ -107,7 +107,7 @@ import Testing
     /// A synthetic graph: one discipline package that seeds "sketch the
     /// layout", one expertise package that must NOT count as a craft, and a
     /// second discipline sharing a phrase so the tie can be tested.
-    private static func registry() -> AbilityRuntimeSnapshot? {
+    private static func registry() -> AbilityRuntime.Snapshot? {
         func record(
             _ id: String,
             paradigm: AbilityParadigm,
@@ -153,7 +153,7 @@ import Testing
         guard let index = SemanticAbilityRequestIndex.build(
             records: records, vectorizer: vectorizer)
         else { return nil }
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: records,
             validation: .init(),
             adapterManifests: [],

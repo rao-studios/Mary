@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Closed roster stage — which Skills are callable this turn.
-//  IN:   AbilityRuntimeSnapshot + route + safety gate
+//  IN:   AbilityRuntime.Snapshot + route + safety gate
 //  OUT:  AbilityRosterArbitration (selectedKeys + trace)
 //  PIN:  selectedKeys is the single authority for schema, counts, and dispatch.
 //

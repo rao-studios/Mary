@@ -117,7 +117,7 @@ public struct AbilityTotemProjectionPlan: Sendable, Equatable {
     }
 }
 
-public extension AbilityRuntimeSnapshot {
+public extension AbilityRuntime.Snapshot {
     /// Resolves Totem policy against this exact registry revision. `nil`
     /// means the reference did not come from a package in the snapshot;
     /// `.denied` means it claimed to, but its identity or policy did not match.

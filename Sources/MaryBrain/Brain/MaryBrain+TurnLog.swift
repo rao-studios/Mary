@@ -125,7 +125,7 @@ enum TurnCircuitLog {
     }
 
     static func rosterExposed(
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         roster: AbilityRosterArbitration,
         scope: (lead: AmbientPlace, admitted: Set<AmbientPlace>)?,
         exposed: Set<String>

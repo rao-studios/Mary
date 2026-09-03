@@ -79,7 +79,7 @@ enum TurnTriage {
     /// this turn — a Skill the roster withheld must not win a shortcut.
     static func verdict(
         query: String,
-        registry: AbilityRuntimeSnapshot,
+        registry: AbilityRuntime.Snapshot,
         offeredNames: Set<String>,
         habits: RoutingHabitStore = .shared
     ) -> Verdict {

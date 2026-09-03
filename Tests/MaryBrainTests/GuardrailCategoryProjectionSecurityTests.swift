@@ -77,7 +77,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/Abilities/xcode.mary"),
             validation: AbilityPackageValidator.validate(package),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: record.validation, adapterManifests: [])
         let route = AmbientRoute(
             intent: .converse, decidedBy: .none,
@@ -132,7 +132,7 @@ import Testing
                 validation: validation,
                 rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
         }
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: allPackages.map(record),
             validation: validation,
             adapterManifests: MaryAdapterCatalog.adapterManifests(

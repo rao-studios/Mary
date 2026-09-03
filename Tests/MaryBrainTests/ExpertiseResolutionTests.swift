@@ -73,7 +73,7 @@ import Testing
             dependencies: [.init(packageID: "multimedia", minimumVersion: "1.0.0")])
     }
 
-    private func snapshot(players: [MaryAbilityPackage]) -> AbilityRuntimeSnapshot {
+    private func snapshot(players: [MaryAbilityPackage]) -> AbilityRuntime.Snapshot {
         let packages = [disciplinePackage()] + players
         let records = packages.map { package in
             AbilityPackageRecord(
@@ -87,12 +87,12 @@ import Testing
             transport: .native,
             operations: [InstalledAdapterBinding(
                 adapterID: AdapterID("fixture"), operation: "control_playback")])
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: records, validation: .init(), adapterManifests: [manifest])
     }
 
     private func transportSkill(
-        _ snapshot: AbilityRuntimeSnapshot
+        _ snapshot: AbilityRuntime.Snapshot
     ) throws -> AbilityRuntimeSkill {
         try #require(snapshot.skill(id: SkillID("multimedia.control-playback")))
     }

@@ -91,7 +91,7 @@ struct AbilityStudioRehearsal {
     /// backend" rather than drawing zeros.
     static func run(
         utterance: String,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> AbilityStudioRehearsal {
         let revision = String(snapshot.revision.uuidString.prefix(8))
         let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -142,7 +142,7 @@ struct AbilityStudioRehearsal {
     /// Applications this sentence NAMES, by the same test the turn's own gate
     /// uses (`AmbientIntentGate.resolve` → `ApplicationProfile.isMentioned`).
     private static func namedApplications(
-        in utterance: String, snapshot: AbilityRuntimeSnapshot
+        in utterance: String, snapshot: AbilityRuntime.Snapshot
     ) -> Set<String> {
         Set(snapshot.plugins.applicationProfiles
             .filter { $0.isMentioned(in: utterance) }
@@ -153,7 +153,7 @@ struct AbilityStudioRehearsal {
 
     private static func rankedSkills(
         _ affinities: [SkillID: Float],
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> [Candidate] {
         let ranked = affinities.sorted { $0.value > $1.value }
         let best = ranked.first?.value ?? 0
@@ -179,7 +179,7 @@ struct AbilityStudioRehearsal {
 
     private static func rankedAbilities(
         _ affinities: [AbilityID: Float],
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> [Candidate] {
         let ranked = affinities.sorted { $0.value > $1.value }
         let best = ranked.first?.value ?? 0
@@ -225,7 +225,7 @@ struct AbilityStudioRehearsal {
         for skills: [Candidate],
         utterance: String,
         affinities: [SkillID: Float],
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         expertise: ExpertiseResolution.Verdict?
     ) -> Verdict {
         let landing = expertise?.chosen?.title

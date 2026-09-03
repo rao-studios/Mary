@@ -30,7 +30,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
         value incoming: ValueEnvelope,
         evidenceChannel: String,
         adapterID: AdapterID,
-        registry: AbilityRuntimeSnapshot? = nil,
+        registry: AbilityRuntime.Snapshot? = nil,
         now: Date = Date()
     ) throws -> RuntimeInteractionInstance {
         let registry = registry ?? AbilityLibrary.shared.snapshotEnsuringLoaded()
@@ -123,7 +123,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
         schemaID: PerceptionID,
         value incoming: ValueEnvelope,
         adapterID: AdapterID,
-        registry: AbilityRuntimeSnapshot? = nil,
+        registry: AbilityRuntime.Snapshot? = nil,
         now: Date = Date()
     ) throws -> RuntimePerceptionInstance {
         let registry = registry ?? AbilityLibrary.shared.snapshotEnsuringLoaded()
@@ -180,7 +180,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
     /// Reserves every one-turn Interaction for exactly this turn and returns a
     /// frozen copy. Reusable signals remain live until expiry/replacement.
     public func snapshotForTurn(
-        registry: AbilityRuntimeSnapshot? = nil,
+        registry: AbilityRuntime.Snapshot? = nil,
         at now: Date = Date()
     ) -> SchemaSignalTurnSnapshot {
         snapshotForTurn(
@@ -191,7 +191,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
 
     /// Mary's ambient selection handoff is the only non-adapter bridge into a turn.
     func snapshotForTurn(
-        registry: AbilityRuntimeSnapshot? = nil,
+        registry: AbilityRuntime.Snapshot? = nil,
         ambientSelection: AmbientSelectionHandoff?,
         at now: Date = Date()
     ) -> SchemaSignalTurnSnapshot {
@@ -226,7 +226,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
     /// Adapts the existing source-owned selection packet into the generic schema signal path.
     func bridgeSelection(
         _ handoff: AmbientSelectionHandoff,
-        registry: AbilityRuntimeSnapshot,
+        registry: AbilityRuntime.Snapshot,
         at now: Date = Date()
     ) -> RuntimeInteractionInstance? {
         // CODE OR PROSE, from the declared discipline. A selection in an IDE
@@ -288,7 +288,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
         schemaID: InteractionID,
         scope: SourceScope,
         policy: InteractionClearPolicy,
-        registry: AbilityRuntimeSnapshot? = nil
+        registry: AbilityRuntime.Snapshot? = nil
     ) throws {
         let registry = registry ?? AbilityLibrary.shared.snapshotEnsuringLoaded()
         guard let schema = registry.interactionSchema(id: schemaID) else {
@@ -307,7 +307,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
 
     public func clearSourceTerminated(
         _ scope: SourceScope,
-        registry: AbilityRuntimeSnapshot? = nil
+        registry: AbilityRuntime.Snapshot? = nil
     ) {
         let registry = registry ?? AbilityLibrary.shared.snapshotEnsuringLoaded()
         state.withLock { state in
@@ -332,7 +332,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
 
     private func availableManifest(
         _ adapterID: AdapterID,
-        in registry: AbilityRuntimeSnapshot
+        in registry: AbilityRuntime.Snapshot
     ) throws -> InstalledAdapterManifest {
         guard let manifest = registry.adapterManifest(id: adapterID), manifest.isAvailable else {
             throw SchemaSignalRuntimeError.unavailableAdapter(adapterID)
@@ -412,7 +412,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
 
     private func prune(
         _ state: inout State,
-        registry: AbilityRuntimeSnapshot,
+        registry: AbilityRuntime.Snapshot,
         at now: Date
     ) {
         state.interactions = state.interactions.filter { _, instance in
@@ -432,7 +432,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
     /// evidence channel's authority, strengthen privacy, or shorten freshness.
     private func isValidInteractionInstance(
         _ instance: RuntimeInteractionInstance,
-        registry: AbilityRuntimeSnapshot,
+        registry: AbilityRuntime.Snapshot,
         at now: Date,
         allowsAmbientBridge: Bool
     ) -> Bool {
@@ -479,7 +479,7 @@ public final class SchemaSignalRuntime: @unchecked Sendable {
 
     private func isValidPerceptionInstance(
         _ instance: RuntimePerceptionInstance,
-        registry: AbilityRuntimeSnapshot,
+        registry: AbilityRuntime.Snapshot,
         at now: Date
     ) -> Bool {
         guard let schema = registry.perceptionSchema(id: instance.reference.schemaID),

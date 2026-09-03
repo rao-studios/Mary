@@ -136,7 +136,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/shape.mary"),
             validation: .init(),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: .init(), adapterManifests: [])
         return snapshot.skills.first { $0.skill.id == schema.id }!
     }

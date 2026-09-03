@@ -37,7 +37,7 @@ private extension String {
         "Can you play the RAO playlist in Apple Music"
 
     private struct Environment {
-        var snapshot: AbilityRuntimeSnapshot
+        var snapshot: AbilityRuntime.Snapshot
         var intent: SemanticIntentIndex
         var skills: SemanticSkillRequestIndex
     }
@@ -63,7 +63,7 @@ private extension String {
         else { return nil }
         let abilityIndex = SemanticAbilityRequestIndex.build(
             records: records, vectorizer: vectorizer)
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: records,
             validation: .init(),
             adapterManifests: MaryAdapterCatalog.adapterManifests(

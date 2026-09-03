@@ -253,7 +253,7 @@ import Testing
                 validation: validation,
                 rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
         }
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: allPackages.map(record),
             validation: validation,
             adapterManifests: MaryAdapterCatalog.adapterManifests(
@@ -393,7 +393,7 @@ import Testing
                 validation: validation,
                 rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
         }
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: allPackages.map(record),
             validation: validation,
             adapterManifests: MaryAdapterCatalog.adapterManifests(
@@ -625,7 +625,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/code-revision.mary"),
             validation: .init(),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: .init(), adapterManifests: [])
         return snapshot.skills.first { $0.skill.id == skill.id }!
     }
@@ -672,7 +672,7 @@ import Testing
                 validation: validation,
                 rawData: (try? AbilityPackageCodec.encoded(package)) ?? Data())
         }
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: allPackages.map(record),
             validation: validation,
             adapterManifests: MaryAdapterCatalog.adapterManifests(

@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Project Mary-owned Ability labels into the model prompt.
-//  IN:   AbilityRuntimeSnapshot + AmbientRoute
+//  IN:   AbilityRuntime.Snapshot + AmbientRoute
 //  OUT:  prompt fragment
 //  PIN:  Package ids, versions, and workflow op names stay off this boundary.
 //
@@ -12,7 +12,7 @@ import Foundation
 /// Reports machine-selected Ability contracts to the model without turning a shared package into a prompt bundle. Only Mary-owned labels cross this boundary.
 public enum AbilityPromptProjection {
     public static func render(
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         route: AmbientRoute?
     ) -> String {
         guard let route else { return "" }

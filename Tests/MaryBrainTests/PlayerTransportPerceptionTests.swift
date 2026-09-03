@@ -18,7 +18,7 @@ import Testing
     /// The shipped registry, joined with the adapter roster the app installs.
     private static func shippedRegistry(
         _ abilities: URL
-    ) -> AbilityRuntimeSnapshot? {
+    ) -> AbilityRuntime.Snapshot? {
         let adapters = MaryAdapterCatalog.adapters()
         let library = AbilityLibrary(fileManager: .default, runtimeVersion: "1.0.0")
         let report = library.configureAndLoad(

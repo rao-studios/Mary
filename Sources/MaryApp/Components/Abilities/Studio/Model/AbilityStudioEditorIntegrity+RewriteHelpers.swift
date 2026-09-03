@@ -335,7 +335,7 @@ extension AbilityStudioEditorIntegrity {
 
     static func installedFacultySourcePackages(
         in package: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> [MaryAbilityPackage] {
         let localAdapters = Set(package.plugin?.adapters.map(\.id) ?? [])
         let boundOperations = Set(package.skills.flatMap { skill in

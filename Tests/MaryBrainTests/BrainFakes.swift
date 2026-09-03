@@ -144,7 +144,7 @@ enum BrainFakes {
         /// Directly settable — flipped by tests and by confirm/cancel dispatch.
         var pending = false
         /// Optional packaged registry for archive/projection integration tests.
-        var snapshotOverride: AbilityRuntimeSnapshot?
+        var snapshotOverride: AbilityRuntime.Snapshot?
         /// FETCH-FIRST: what a pre-read answers. Nil (the default) means "no
         /// targeted read in view", which is what every pre-existing test gets
         /// — so their turns stay byte-identical.
@@ -162,7 +162,7 @@ enum BrainFakes {
             [ModelSkillSchema(name: "probe", description: "", parameters: [])]
         }
 
-        var abilitySnapshot: AbilityRuntimeSnapshot {
+        var abilitySnapshot: AbilityRuntime.Snapshot {
             snapshotOverride ?? .empty
         }
 

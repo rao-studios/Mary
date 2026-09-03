@@ -16,7 +16,7 @@ import Foundation
 
 extension PluginManagedUIExecutor {
     func runtimeBindings(
-        in snapshot: AbilityRuntimeSnapshot
+        in snapshot: AbilityRuntime.Snapshot
     ) -> [PluginManagedUIRuntimeBinding] {
         snapshot.records
             .sorted { $0.package.package.id.rawValue < $1.package.package.id.rawValue }
@@ -41,7 +41,7 @@ extension PluginManagedUIExecutor {
         for adapter: PluginAdapterSchema,
         plugin: PluginSchema,
         record: AbilityPackageRecord,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> [PluginManagedUIRuntimeBinding] {
         guard let manifest = snapshot.adapterManifest(id: adapter.id),
               manifest.isAvailable,
@@ -113,7 +113,7 @@ extension PluginManagedUIExecutor {
     func runtimeAccess(
         for operation: String,
         plugin: PluginSchema,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> SkillAccessPolicy {
         let access = plugin.realizations
             .filter { $0.operation == operation }

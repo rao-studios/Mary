@@ -308,7 +308,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/writing-revision.mary"),
             validation: .init(),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: .init(), adapterManifests: [])
         return snapshot.skills.first { $0.skill.id == skill.id }!
     }

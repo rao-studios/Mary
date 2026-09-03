@@ -85,7 +85,7 @@ struct AbilityStudioSkillBench {
 
     init(
         draft: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         selectedRecipe: SkillSchema?
     ) {
         let usedInvocations = Set(selectedRecipe?.execution.steps.map(\.operation) ?? [])
@@ -187,7 +187,7 @@ struct AbilityStudioSkillBench {
     private static func realization(
         for skill: SkillSchema,
         localOperation: String?,
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         runtime: AbilityRuntimeSkill? = nil
     ) -> AbilityStudioSkillTile.Realization {
         if let localOperation { return .localHands(operation: localOperation) }

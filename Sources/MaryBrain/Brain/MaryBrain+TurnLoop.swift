@@ -362,7 +362,7 @@ extension MaryBrain {
         // ONE BINDING for the whole body: inside a turn this only reads the
         // installed `AbilityTurnContext` task-local anyway.
         let turnRegistry = dispatcher?.abilitySnapshot
-            ?? AbilityRuntimeSnapshot.empty
+            ?? AbilityRuntime.Snapshot.empty
         // THE ONE SEMANTIC READ of this turn. Intent, requested abilities,
         // skill affinities and the unique pick all come from the same pass, so
         // the route, the roster and the log cannot disagree about what was said.

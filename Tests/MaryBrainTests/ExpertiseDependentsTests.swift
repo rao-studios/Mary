@@ -3,7 +3,7 @@
 //  MaryBrainTests
 //
 //  WHAT: The dependency graph read backwards, against the SHIPPED packages.
-//  OUT:  AbilityRuntimeSnapshot.expertiseAbilities / applicationID(ofExpertise:)
+//  OUT:  AbilityRuntime.Snapshot.expertiseAbilities / applicationID(ofExpertise:)
 //  PIN:  Required edges only — an optional support is not somebody's player.
 //
 
@@ -36,14 +36,14 @@ import Testing
 
     /// The shipped graph: `apple-music` requires `multimedia`, so multimedia's
     /// Skills can land in Apple Music without anyone authoring the edge twice.
-    private func shippedSnapshot() throws -> AbilityRuntimeSnapshot? {
+    private func shippedSnapshot() throws -> AbilityRuntime.Snapshot? {
         guard let abilities = InstalledPackages.installed() else { return nil }
         let names = ["multimedia", "apple-music"]
         let packages = try names.map { try loadRootPackage($0) }
         let plugins = PluginCompiler.compile(
             packages: packages, nativeAdapterManifests: [],
             grantedPermissions: { _ in [.accessibility] })
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: zip(packages, names).map { package, name in
                 record(package, url: abilities.appendingPathComponent("\(name).mary"))
             },

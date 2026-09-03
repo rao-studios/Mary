@@ -402,7 +402,7 @@ import MaryFoundation
 
     /// A frozen registry whose embedding roster cannot admit `read_selection`
     /// for `judgmentQuestion` — the shape of a real turn in an editor.
-    private static func rosterWithholdingReadSelection() -> AbilityRuntimeSnapshot? {
+    private static func rosterWithholdingReadSelection() -> AbilityRuntime.Snapshot? {
         let package = MaryAbilityPackage(
             package: .init(
                 id: "tests.eyes",
@@ -453,7 +453,7 @@ import MaryFoundation
             transport: .native,
             operations: [InstalledAdapterBinding(
                 adapterID: AdapterID("code-surface"), operation: "read_selection")])
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: [record],
             validation: .init(),
             adapterManifests: [manifest],

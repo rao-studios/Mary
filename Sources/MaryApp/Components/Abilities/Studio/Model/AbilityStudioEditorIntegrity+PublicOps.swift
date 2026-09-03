@@ -167,7 +167,7 @@ extension AbilityStudioEditorIntegrity {
     static func hasExternalInstalledFacultyContract(
         _ skill: SkillSchema,
         in package: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> Bool {
         let localAdapters = Set(package.plugin?.adapters.map(\.id) ?? [])
         return skill.execution.bindings.contains {
@@ -180,7 +180,7 @@ extension AbilityStudioEditorIntegrity {
     /// several source packages publish the same compiled operation.
     static func pinnedInstalledApplicationIDs(
         in package: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> Set<String> {
         let sourceIDs = Set(installedFacultySourcePackages(
             in: package,
@@ -205,7 +205,7 @@ extension AbilityStudioEditorIntegrity {
     /// the adopted faculty's provenance and cannot be weakened visually.
     static func pinnedInstalledDependencyIDs(
         in package: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> Set<PackageID> {
         let sources = installedFacultySourcePackages(in: package, snapshot: snapshot)
         let sourceIDs = Set(sources.flatMap { source in

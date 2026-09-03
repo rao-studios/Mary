@@ -146,7 +146,7 @@ struct AbilityStudioActionCoveragePresentation {
 
     init(
         package: MaryAbilityPackage,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) {
         let plugin = package.plugin
         let localSkills = Dictionary(

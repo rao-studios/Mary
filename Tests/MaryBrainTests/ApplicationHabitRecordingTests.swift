@@ -21,7 +21,7 @@ import Testing
 
     /// A discipline owning one transport Skill, plus one player package that
     /// requires it and owns nothing — the multimedia / apple-music shape.
-    private static func snapshot() -> AbilityRuntimeSnapshot {
+    private static func snapshot() -> AbilityRuntime.Snapshot {
         let skill = SkillSchema(
             id: SkillID("fixture.press"),
             title: "Press",
@@ -62,7 +62,7 @@ import Testing
             adapterID: AdapterID("fixture"), title: "Fixture", transport: .native,
             operations: [InstalledAdapterBinding(
                 adapterID: AdapterID("fixture"), operation: "press")])
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: records, validation: .init(), adapterManifests: [manifest])
     }
 

@@ -195,7 +195,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/eligibility-fixture.mary"),
             validation: .init(),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: .init(), adapterManifests: [])
         return snapshot.skills.first { $0.skill.id == skill.id }!
     }
@@ -241,7 +241,7 @@ import Testing
     }
 
     private struct Environment {
-        var snapshot: AbilityRuntimeSnapshot
+        var snapshot: AbilityRuntime.Snapshot
         var intent: SemanticIntentIndex
         var skills: SemanticSkillRequestIndex
     }
@@ -310,7 +310,7 @@ import Testing
         else { return nil }
         let abilityIndex = SemanticAbilityRequestIndex.build(
             records: records, vectorizer: vectorizer)
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: records,
             validation: .init(),
             adapterManifests: MaryAdapterCatalog.adapterManifests(

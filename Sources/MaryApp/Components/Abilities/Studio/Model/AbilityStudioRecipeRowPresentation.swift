@@ -117,11 +117,11 @@ struct AbilityStudioRecipeResolver {
     static let maximumDepth = 8
 
     private let draft: MaryAbilityPackage
-    private let snapshot: AbilityRuntimeSnapshot
+    private let snapshot: AbilityRuntime.Snapshot
     private let primitives: [String: WorkflowPrimitiveDescriptor]
     private let draftByInvocation: [String: SkillSchema]
 
-    init(draft: MaryAbilityPackage, snapshot: AbilityRuntimeSnapshot) {
+    init(draft: MaryAbilityPackage, snapshot: AbilityRuntime.Snapshot) {
         self.draft = draft
         self.snapshot = snapshot
         primitives = Dictionary(

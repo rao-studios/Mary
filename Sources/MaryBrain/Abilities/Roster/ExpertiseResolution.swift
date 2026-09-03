@@ -69,7 +69,7 @@ public enum ExpertiseResolution {
     /// itself owns. See `assertionIsOnlyDisciplineVocabulary`.
     public static func resolve(
         for skill: AbilityRuntimeSkill,
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         assertedApplicationIDs: Set<String> = [],
         utterance: String? = nil,
         ledger: ApplicationHabitLedger = .shared,
@@ -161,7 +161,7 @@ public enum ExpertiseResolution {
     /// Every word the DISCIPLINE answers to — its own aliases and trigger
     /// vocabulary. "music" is multimedia's, not any one player's.
     private static func disciplineVocabulary(
-        _ discipline: AbilityID, snapshot: AbilityRuntimeSnapshot
+        _ discipline: AbilityID, snapshot: AbilityRuntime.Snapshot
     ) -> Set<String> {
         guard let package = snapshot.records.first(where: {
             $0.package.ability.id == discipline
@@ -190,7 +190,7 @@ public enum ExpertiseResolution {
         applicationID: String,
         utterance: String,
         disciplineVocabulary: Set<String>,
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntime.Snapshot
     ) -> Bool {
         guard let package = snapshot.records.first(where: {
             $0.package.applicationAffinities.contains {
@@ -228,7 +228,7 @@ public enum ExpertiseResolution {
         proving runtime: AbilityRuntimeSkill,
         outcome: SkillOutcome,
         providerApplicationID: String?,
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         now: Date = Date()
     ) -> ApplicationHabit? {
         let discipline = runtime.ability.id

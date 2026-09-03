@@ -58,7 +58,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/imported.mary"),
             validation: validation,
             rawData: importedBytes)
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             revision: UUID(uuidString: "00000000-0000-0000-0000-000000000042")!,
             records: [record],
             validation: validation,
@@ -124,7 +124,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/tmp/custom.mary"),
             validation: validation,
             rawData: bytes)
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record],
             validation: validation,
             adapterManifests: [])
@@ -156,7 +156,7 @@ import Testing
             sourceURL: URL(fileURLWithPath: "/Abilities/\(package.ability.id.rawValue).mary"),
             validation: AbilityPackageValidator.validate(package),
             rawData: Data())
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record],
             validation: record.validation,
             adapterManifests: [])

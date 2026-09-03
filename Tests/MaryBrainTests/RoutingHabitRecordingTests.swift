@@ -223,7 +223,7 @@ import Testing
             operations: (effectful + readOnly).map {
                 InstalledAdapterBinding(adapterID: AdapterID("fixture"), operation: $0)
             })
-        let snapshot = AbilityRuntimeSnapshot(
+        let snapshot = AbilityRuntime.Snapshot(
             records: [record], validation: .init(), adapterManifests: [manifest])
         await AbilityTurnContext.$snapshot.withValue(snapshot) { await body() }
     }

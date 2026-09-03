@@ -157,8 +157,8 @@ import Testing
             skills: [])
     }
 
-    private func snapshot(packages: [MaryAbilityPackage]) -> AbilityRuntimeSnapshot {
-        AbilityRuntimeSnapshot(
+    private func snapshot(packages: [MaryAbilityPackage]) -> AbilityRuntime.Snapshot {
+        AbilityRuntime.Snapshot(
             records: packages.map { package in
                 AbilityPackageRecord(
                     package: package,

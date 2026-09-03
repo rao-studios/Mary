@@ -101,7 +101,7 @@ import Testing
     @Test func withNoIndexNothingIsAnOffer() {
         let draft = "The harbour lights came up one by one across the water"
         try? AmbientCapabilityIndexProvider.$scoped.withValue(
-            AbilityRuntimeSnapshot.empty
+            AbilityRuntime.Snapshot.empty
         ) {
             #expect(OfferedProse.offer(
                 in: "Want me to tighten it up, something like \"\(draft)\"?") == nil)
@@ -115,9 +115,9 @@ import Testing
             records: [Self.record()], vectorizer: Self.vectorizer)
     }
 
-    private static func registry() -> AbilityRuntimeSnapshot? {
+    private static func registry() -> AbilityRuntime.Snapshot? {
         guard let index = index() else { return nil }
-        return AbilityRuntimeSnapshot(
+        return AbilityRuntime.Snapshot(
             records: [Self.record()],
             validation: .init(),
             adapterManifests: [],

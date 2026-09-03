@@ -4,7 +4,7 @@
 //
 //  WHAT: Load `.mary` graphs; swap one immutable snapshot at a time.
 //  IN:   bundled + Application Support overlay
-//  OUT:  AbilityRuntimeSnapshot for the roster
+//  OUT:  AbilityRuntime.Snapshot for the roster
 //  PIN:  A bad edit never disturbs last-known-good.
 //
 import ApplicationServices
@@ -26,7 +26,7 @@ public final class AbilityLibrary: @unchecked Sendable {
     })
 
     struct State {
-        var snapshot: AbilityRuntimeSnapshot = .empty
+        var snapshot: AbilityRuntime.Snapshot = .empty
         var locations: [AbilityPackageLocation] = []
         var installedDirectory: URL?
         var adapterManifests: [InstalledAdapterManifest] = []
@@ -102,14 +102,14 @@ public final class AbilityLibrary: @unchecked Sendable {
         }
     }
 
-    public func snapshot() -> AbilityRuntimeSnapshot {
+    public func snapshot() -> AbilityRuntime.Snapshot {
         if let turn = AbilityTurnContext.snapshot { return turn }
         lock.lock(); defer { lock.unlock() }
         return state.snapshot
     }
 
     /// Returns the active registry, loading package definitions on first use.
-    public func snapshotEnsuringLoaded() -> AbilityRuntimeSnapshot {
+    public func snapshotEnsuringLoaded() -> AbilityRuntime.Snapshot {
         lock.lock()
         let isConfigured = state.configured
         let current = state.snapshot

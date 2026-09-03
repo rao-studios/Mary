@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 
 @MainActor
 final class AbilityStudioViewModel: ObservableObject {
-    @Published private(set) var snapshot: AbilityRuntimeSnapshot = .empty
+    @Published private(set) var snapshot: AbilityRuntime.Snapshot = .empty
     @Published var selectedPackageID: PackageID?
     @Published var draft = "" {
         didSet { decodedDraft = nil }
@@ -38,7 +38,7 @@ final class AbilityStudioViewModel: ObservableObject {
     private let applicationLocator: PluginApplicationLocator
     private let workspaceNotificationCenter: NotificationCenter
     private var editSession: AbilityPackageEditSession?
-    private var pendingSnapshot: AbilityRuntimeSnapshot?
+    private var pendingSnapshot: AbilityRuntime.Snapshot?
     private var eventsTask: Task<Void, Never>?
     private var applicationObservers: [NSObjectProtocol] = []
 
@@ -515,7 +515,7 @@ final class AbilityStudioViewModel: ObservableObject {
         clearSelectionState()
     }
 
-    private func acceptActivatedSnapshot(_ next: AbilityRuntimeSnapshot) {
+    private func acceptActivatedSnapshot(_ next: AbilityRuntime.Snapshot) {
         guard next.revision != snapshot.revision else { return }
         guard !isDirty else {
             pendingSnapshot = next

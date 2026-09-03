@@ -27,13 +27,13 @@ public struct AbilityPackageLocation: Hashable, Sendable {
 
 public struct AbilityLibraryReloadReport: Sendable {
     public var activated: Bool
-    public var snapshot: AbilityRuntimeSnapshot
+    public var snapshot: AbilityRuntime.Snapshot
     public var issues: [SchemaIssue]
     public var filesRead: Int
 
     public init(
         activated: Bool,
-        snapshot: AbilityRuntimeSnapshot,
+        snapshot: AbilityRuntime.Snapshot,
         issues: [SchemaIssue],
         filesRead: Int
     ) {
@@ -80,7 +80,7 @@ public struct AbilityPackageEditSession: Sendable {
 }
 
 public enum AbilityLibraryEvent: Sendable {
-    case activated(AbilityRuntimeSnapshot)
+    case activated(AbilityRuntime.Snapshot)
     case rejected([SchemaIssue])
 }
 

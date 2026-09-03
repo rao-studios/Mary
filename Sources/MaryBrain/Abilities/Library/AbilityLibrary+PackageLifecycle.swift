@@ -263,7 +263,7 @@ extension AbilityLibrary {
                 issues: issues,
                 filesRead: discovery.filesRead)
         }
-        let next = AbilityRuntimeSnapshot(
+        let next = AbilityRuntime.Snapshot(
             records: discovery.records,
             validation: AbilityPackageValidation(issues: issues),
             adapterManifests: configuration.adapterManifests,
