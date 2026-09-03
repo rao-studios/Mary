@@ -70,7 +70,12 @@ struct AbilityStudioRehearsalSheet: View {
             footer
         }
         .padding(.layer5)
-        .marySheet(ideal: CGSize(width: 900, height: 640))
+        // Floor is the width below which the two columns stop fitting their
+        // own minimums: a candidate row is 340 wide, +32 card padding, +260
+        // for the levers column, +64 gutter and sheet padding.
+        .marySheet(
+            ideal: CGSize(width: 900, height: 640),
+            floor: CGSize(width: 720, height: 440))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
     }

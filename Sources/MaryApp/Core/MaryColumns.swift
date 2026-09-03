@@ -12,6 +12,10 @@
 //        beside flexible rail/drawer spans. This starts everyone at their
 //        minimum first, which is also what makes the reported minimum
 //        honest for `.contentMinSize`.
+//  PIN:  It reads each child's span from `MaryColumnSpan`, never by measuring
+//        it. Probing for min/ideal/max instead cost ~200 ms per resize frame:
+//        six `sizeThatFits` calls per child per pass, one of them proposing a
+//        million points, each forcing a real layout of a whole pane.
 //
 
 import SwiftUI
@@ -19,87 +23,93 @@ import SwiftUI
 struct MaryColumns: Layout {
     var spacing: CGFloat = 0
 
+    /// One child's width range, and whether it may take the leftover.
+    private struct Column {
+        let min: CGFloat
+        let ideal: CGFloat
+        let max: CGFloat
+        let priority: Double
+    }
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         guard !subviews.isEmpty else { return .zero }
+        let columns = columns(subviews)
         let totalSpacing = spacing * CGFloat(subviews.count - 1)
-        let height = subviews
-            .map { $0.sizeThatFits(ProposedViewSize(width: proposal.width, height: proposal.height)).height }
-            .max() ?? 0
+        let height = proposal.height ?? tallestSubview(subviews, proposal: proposal)
 
         guard let proposedWidth = proposal.width, proposedWidth.isFinite else {
-            let ideals = subviews.map { idealWidth($0, height: proposal.height) }
-            return CGSize(width: ideals.reduce(0, +) + totalSpacing, height: height)
+            return CGSize(width: columns.reduce(0) { $0 + $1.ideal } + totalSpacing, height: height)
         }
-        let mins = subviews.map { minWidth($0, height: proposal.height) }
-        let totalMin = mins.reduce(0, +) + totalSpacing
-        return CGSize(width: max(proposedWidth, totalMin), height: proposal.height ?? height)
+        let totalMin = columns.reduce(0) { $0 + $1.min } + totalSpacing
+        return CGSize(width: Swift.max(proposedWidth, totalMin), height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         guard !subviews.isEmpty else { return }
-        let n = subviews.count
-        let totalSpacing = spacing * CGFloat(n - 1)
-        let available = max(0, bounds.width - totalSpacing)
+        let widths = widths(for: bounds.width, subviews: subviews)
+        var x = bounds.minX
+        for index in subviews.indices {
+            subviews[index].place(
+                at: CGPoint(x: x, y: bounds.minY),
+                proposal: ProposedViewSize(width: widths[index], height: bounds.height))
+            x += widths[index] + spacing
+        }
+    }
 
-        let mins = subviews.map { minWidth($0, height: bounds.height) }
-        let ideals = subviews.map { idealWidth($0, height: bounds.height) }
-        let maxes = subviews.map { maxWidth($0, height: bounds.height) }
+    // MARK: - Sizing
 
-        var widths = mins
-        var remaining = available - mins.reduce(0, +)
-        let byPriorityDescending = (0..<n).sorted { subviews[$0].priority > subviews[$1].priority }
+    /// Every column starts at its floor; what is left over grows them toward
+    /// their ideal in descending `.layoutPriority`, and any remainder after
+    /// that goes to the columns with no ceiling.
+    private func widths(for available: CGFloat, subviews: Subviews) -> [CGFloat] {
+        let columns = columns(subviews)
+        let totalSpacing = spacing * CGFloat(subviews.count - 1)
+        var widths = columns.map(\.min)
+        var remaining = Swift.max(0, available - totalSpacing) - widths.reduce(0, +)
+        let byPriority = columns.indices.sorted { columns[$0].priority > columns[$1].priority }
 
-        if remaining > 0 {
-            for i in byPriorityDescending {
-                guard remaining > 0 else { break }
-                let room = max(0, min(ideals[i], maxes[i]) - widths[i])
-                let grant = min(room, remaining)
-                widths[i] += grant
-                remaining -= grant
-            }
+        for index in byPriority where remaining > 0 {
+            let room = Swift.max(0, Swift.min(columns[index].ideal, columns[index].max) - widths[index])
+            let grant = Swift.min(room, remaining)
+            widths[index] += grant
+            remaining -= grant
         }
 
         if remaining > 0 {
-            let flexible = byPriorityDescending.filter { maxes[$0] - widths[$0] > 0.5 }
-            if !flexible.isEmpty {
-                let share = remaining / CGFloat(flexible.count)
-                for i in flexible {
-                    let room = max(0, maxes[i] - widths[i])
-                    let grant = min(room, share)
-                    widths[i] += grant
+            let growable = byPriority.filter { columns[$0].max - widths[$0] > 0.5 }
+            if !growable.isEmpty {
+                let share = remaining / CGFloat(growable.count)
+                for index in growable {
+                    let grant = Swift.min(Swift.max(0, columns[index].max - widths[index]), share)
+                    widths[index] += grant
                     remaining -= grant
                 }
-                if remaining > 0, let top = flexible.first {
-                    widths[top] += remaining
-                    remaining = 0
+                // Whatever the capped ones could not take goes to the first
+                // column that still has room, so no width is left unplaced.
+                if remaining > 0, let first = growable.first(where: { columns[$0].max.isInfinite }) {
+                    widths[first] += remaining
                 }
             }
         }
+        return widths
+    }
 
-        var x = bounds.minX
-        for i in 0..<n {
-            subviews[i].place(
-                at: CGPoint(x: x, y: bounds.minY),
-                proposal: ProposedViewSize(width: widths[i], height: bounds.height))
-            x += widths[i] + spacing
+    /// A child that declares a span is taken at its word. One that does not
+    /// is measured — the fallback exists so this layout still behaves for an
+    /// undeclared child, not because any caller relies on it.
+    private func columns(_ subviews: Subviews) -> [Column] {
+        subviews.map { subview in
+            if let span = subview[MaryColumnSpan.self] {
+                return Column(min: span.min, ideal: span.ideal, max: span.max, priority: subview.priority)
+            }
+            let measured = subview.sizeThatFits(.unspecified).width
+            return Column(min: 0, ideal: measured, max: .infinity, priority: subview.priority)
         }
     }
 
-    private func minWidth(_ subview: LayoutSubviews.Element, height: CGFloat?) -> CGFloat {
-        subview.sizeThatFits(ProposedViewSize(width: 0, height: height)).width
-    }
-
-    private func idealWidth(_ subview: LayoutSubviews.Element, height: CGFloat?) -> CGFloat {
-        subview.sizeThatFits(ProposedViewSize(width: nil, height: height)).width
-    }
-
-    /// A column with no declared ceiling still returns a finite number from
-    /// `sizeThatFits`, so growth is detected by probing a very wide proposal:
-    /// a bounded column echoes its `maxWidth`, an unbounded one keeps growing
-    /// past the probe and is treated as `.infinity`.
-    private func maxWidth(_ subview: LayoutSubviews.Element, height: CGFloat?) -> CGFloat {
-        let probe: CGFloat = 1_000_000
-        let width = subview.sizeThatFits(ProposedViewSize(width: probe, height: height)).width
-        return width >= probe - 1 ? .infinity : width
+    private func tallestSubview(_ subviews: Subviews, proposal: ProposedViewSize) -> CGFloat {
+        subviews.reduce(0) { tallest, subview in
+            Swift.max(tallest, subview.sizeThatFits(proposal).height)
+        }
     }
 }

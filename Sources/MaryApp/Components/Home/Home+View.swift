@@ -124,6 +124,7 @@ struct HomeSessionView: View {
                 if directive.studioSize != nil {
                     openWindow(id: "ability-studio")
                 }
+                if MaryLayoutCheck.opens(sheet: "settings") { onShowSettings() }
             }
             #endif
             // Wait for persisted conversation (and config) before boot.

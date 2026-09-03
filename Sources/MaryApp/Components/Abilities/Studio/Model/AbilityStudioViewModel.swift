@@ -8,7 +8,9 @@ import UniformTypeIdentifiers
 final class AbilityStudioViewModel: ObservableObject {
     @Published private(set) var snapshot: AbilityRuntimeSnapshot = .empty
     @Published var selectedPackageID: PackageID?
-    @Published var draft = ""
+    @Published var draft = "" {
+        didSet { decodedDraft = nil }
+    }
     @Published private(set) var validation = AbilityPackageValidation()
     @Published private(set) var isDirty = false
     @Published private(set) var isLocalDraft = false
@@ -150,9 +152,22 @@ final class AbilityStudioViewModel: ObservableObject {
 
     // MARK: - The draft
 
+    /// The decode of `draft`, kept until `draft` changes. Outer optional is
+    /// "not decoded yet"; inner is "decoded, and the JSON does not parse".
+    private var decodedDraft: MaryAbilityPackage??
+
     /// Source of truth is the draft string. Visual editors re-encode through `updateDraft`.
+    ///
+    /// PIN: decoded once per change, never per read. A shipped package is
+    /// ~100 KB of JSON and every render reaches for this several times — the
+    /// header's cost readout, each pane's presentation, the resolver, the
+    /// catalog, the bench. Decoding per read cost ~330 ms per window-resize
+    /// frame on its own.
     var draftPackage: MaryAbilityPackage? {
-        try? AbilityPackageCodec.decode(Data(draft.utf8), verifyIntegrity: false)
+        if let cached = decodedDraft { return cached }
+        let decoded = try? AbilityPackageCodec.decode(Data(draft.utf8), verifyIntegrity: false)
+        decodedDraft = decoded
+        return decoded
     }
 
     func mutateDraftPackage(_ transform: (inout MaryAbilityPackage) -> Void) {

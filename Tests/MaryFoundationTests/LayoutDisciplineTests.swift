@@ -183,6 +183,22 @@ import Testing
         #expect(offenders.isEmpty, "sheet(s) do not size to the window: \(offenders.joined(separator: ", "))")
     }
 
+    /// THE OPT-IN IS INVISIBLE AT THE CALL SITES, so nothing else would catch
+    /// its removal. Since macOS 15 a sheet's default sizing fits its content
+    /// once at presentation and cannot be dragged; `.fitted` is what makes a
+    /// sheet open at the size it declares. Dropping this one modifier silently
+    /// returns every sheet in the app to opening at whatever its first frame
+    /// happened to be — which is exactly how the routing rehearsal sheet came
+    /// to open at 470pt against a declared 900.
+    @Test func sheetsOptIntoFittedPresentation() throws {
+        let file = Self.repositoryRoot
+            .appendingPathComponent("Sources/MaryApp/Core/Paper+Layout.swift")
+        let source = Self.stripComments(try String(contentsOf: file, encoding: .utf8))
+        #expect(
+            source.contains(".presentationSizing(.fitted)"),
+            "marySheet must keep .presentationSizing(.fitted) — without it a sheet opens at its content's first-frame width, not the size it declares.")
+    }
+
     @Test func everyPopoverSizesToTheWindow() throws {
         var offenders: [String] = []
         for file in Self.files(under: Self.maryAppRoot, extensions: ["swift"]) {

@@ -82,6 +82,16 @@ extension Paper {
     }
 }
 
+/// A column's declared span, handed to `MaryColumns` directly.
+///
+/// PIN: measuring a child three times per pass to rediscover numbers it was
+/// just given is what made window resizing crawl — the "can this grow?" probe
+/// laid the Skills bench out at a million points wide, twice per layout pass.
+/// A `LayoutValueKey` costs nothing and is exact.
+struct MaryColumnSpan: LayoutValueKey {
+    static let defaultValue: Paper.Layout.Span? = nil
+}
+
 extension EnvironmentValues {
     /// Density only — see the type's doc comment.
     @Entry var maryLayoutClass: MaryLayoutClass = .regular
@@ -113,25 +123,40 @@ private struct MaryWindowRoot: ViewModifier {
 
 /// Sizes a sheet's content to the window that presented it, never past it.
 /// Sheet content inherits the presenter's environment, so `\.maryWindowSize`
-/// is already there; unmeasured (`.zero`, e.g. a preview) falls back to
-/// `ideal` rather than guessing.
+/// is already there.
+///
+/// PIN: `.presentationSizing(.fitted)` is load-bearing, not decoration. Since
+/// macOS 15 a sheet's default sizing fits its content ONCE at presentation and
+/// cannot be dragged, so a sheet whose opening state is narrower than its
+/// design — the routing rehearsal's empty state — opened at 470pt against a
+/// declared 900 and stayed there. `.fitted` is the documented opt-in that
+/// honours the declared size and restores resizing.
 private struct MarySheetFrame: ViewModifier {
     @Environment(\.maryWindowSize) private var window
     let ideal: CGSize
     let floor: CGSize
 
-    private var cap: CGSize {
-        guard window != .zero else { return ideal }
+    /// The window's room for a sheet, or nil when the window has not been
+    /// measured — then AppKit's own clamp to the parent window is the only
+    /// limit, which is a truer ceiling than any number we could guess.
+    private var room: CGSize? {
+        guard window != .zero else { return nil }
         return CGSize(
             width: max(floor.width, window.width - Paper.Layout.sheetMargin.width),
             height: max(floor.height, window.height - Paper.Layout.sheetMargin.height))
     }
 
     func body(content: Content) -> some View {
-        let capped = cap
-        content.frame(
-            minWidth: floor.width, idealWidth: min(ideal.width, capped.width), maxWidth: capped.width,
-            minHeight: floor.height, idealHeight: min(ideal.height, capped.height), maxHeight: capped.height)
+        let room = room
+        content
+            .frame(
+                minWidth: floor.width,
+                idealWidth: min(ideal.width, room?.width ?? ideal.width),
+                maxWidth: room?.width ?? .infinity,
+                minHeight: floor.height,
+                idealHeight: min(ideal.height, room?.height ?? ideal.height),
+                maxHeight: room?.height ?? .infinity)
+            .presentationSizing(.fitted)
     }
 }
 
@@ -147,6 +172,7 @@ extension View {
     /// `Paper.Layout.atom` or wider.
     func maryColumn(_ span: Paper.Layout.Span) -> some View {
         frame(minWidth: span.min, idealWidth: span.ideal, maxWidth: span.max)
+            .layoutValue(key: MaryColumnSpan.self, value: span)
     }
 
     /// A sheet root that never exceeds the window that presented it.

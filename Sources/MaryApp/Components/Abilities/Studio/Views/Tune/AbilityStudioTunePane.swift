@@ -44,6 +44,11 @@ struct AbilityStudioTunePane: View {
         .sheet(isPresented: $showsRehearsal) {
             AbilityStudioRehearsalSheet(model: model, package: package)
         }
+        #if DEBUG
+        .onAppear {
+            if MaryLayoutCheck.opens(sheet: "rehearsal") { showsRehearsal = true }
+        }
+        #endif
     }
 
     private var knobs: some View {
