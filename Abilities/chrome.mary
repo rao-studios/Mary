@@ -63,7 +63,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "ask" : [
           "what does the article on this tab argue"
         ],
@@ -129,7 +129,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "bec2e88cda21b946288992eac083dd2da96fcecb9a47fe2fb296f2af376925b1"
+    "digest" : "02c4b1d949f667b754611ba4e5688add0c5dbfb5681c3ebe2efc69b26a5c5efc"
   },
   "interactions" : [
 

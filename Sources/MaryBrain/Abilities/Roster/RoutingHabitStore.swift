@@ -1,12 +1,12 @@
 //
-//  RoutingExemplarStore.swift
+//  RoutingHabitStore.swift
 //  MaryBrain
 //
-//  WHAT: This turn's view of settled (query, skill, intent) lessons.
-//  IN:   an async recall from `RoutingExemplarMemory`, once per turn
+//  WHAT: This turn's view of settled (query, skill, intent) habits.
+//  IN:   an async recall from `RoutingHabitMemory`, once per turn
 //  OUT:  extra positives/negatives for intent and skill search
 //  PIN:  A TURN-SCOPED VIEW, NOT A DATABASE. Durability moved to personal
-//        Totem memory: a routing lesson is how THIS user asks for things, so
+//        Totem memory: a routing habit is how THIS user asks for things, so
 //        it should follow them to another machine and be retrieved by
 //        resemblance — neither of which a JSON file could do.
 //        RETRIEVE, THEN SCORE LOCALLY. The backend ranked these in ITS
@@ -21,7 +21,7 @@ import MaryFoundation
 import Foundation
 import os
 
-public struct RoutingExemplar: Sendable, Codable, Equatable {
+public struct RoutingHabit: Sendable, Codable, Equatable {
     public var query: String
     public var skillID: String
     public var intent: String
@@ -43,9 +43,9 @@ public struct RoutingExemplar: Sendable, Codable, Equatable {
     }
 }
 
-public final class RoutingExemplarStore: @unchecked Sendable {
+public final class RoutingHabitStore: @unchecked Sendable {
 
-    public static let shared = RoutingExemplarStore()
+    public static let shared = RoutingHabitStore()
 
     public static let perSkillCap = 24
     public static let totalCap = 200
@@ -56,7 +56,7 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     /// a handful, further neighbours cannot change the answer.
     public static let recallLimit = 24
 
-    private let box = OSAllocatedUnfairLock<[RoutingExemplar]>(initialState: [])
+    private let box = OSAllocatedUnfairLock<[RoutingHabit]>(initialState: [])
 
     /// The store, pre-grouped the way its two readers actually ask —
     /// recency-sorted query lists per skill and per intent, split by `ok`.
@@ -77,14 +77,14 @@ public final class RoutingExemplarStore: @unchecked Sendable {
 
     /// `memory` is resolved per call rather than captured, so installing a
     /// backend after the shared store exists still takes effect.
-    private let memoryOverride: (any RoutingExemplarMemory)?
+    private let memoryOverride: (any RoutingHabitMemory)?
 
-    public init(memory: (any RoutingExemplarMemory)? = nil) {
+    public init(memory: (any RoutingHabitMemory)? = nil) {
         self.memoryOverride = memory
     }
 
-    private var memory: any RoutingExemplarMemory {
-        memoryOverride ?? RoutingExemplarMemoryProvider.current
+    private var memory: any RoutingHabitMemory {
+        memoryOverride ?? RoutingHabitMemoryProvider.current
     }
 
     // MARK: - The turn
@@ -104,22 +104,22 @@ public final class RoutingExemplarStore: @unchecked Sendable {
         vectorCache.withLock { cache in cache = cache.filter { keep.contains($0.key) } }
     }
 
-    /// Drop this turn's recalled view. Nothing is lost — the lessons live in
+    /// Drop this turn's recalled view. Nothing is lost — the habits live in
     /// personal memory, not here.
     public func clearRecall() {
         box.withLock { $0 = [] }
         derivedBox.withLock { $0 = nil }
     }
 
-    public func all() -> [RoutingExemplar] {
+    public func all() -> [RoutingHabit] {
         prune(box.withLock { $0 })
     }
 
-    /// Teach personal memory, and make the lesson usable at once — a turn that
-    /// dispatches twice should see the first lesson on the second read.
-    public func record(_ exemplar: RoutingExemplar) {
+    /// Teach personal memory, and make the habit usable at once — a turn that
+    /// dispatches twice should see the first habit on the second read.
+    public func record(_ habit: RoutingHabit) {
         let live = box.withLock { items -> Set<String> in
-            items.append(exemplar)
+            items.append(habit)
             items = Self.capped(prune(items))
             return Set(items.map { RoutingQuery.firstLine($0.query) })
         }
@@ -128,7 +128,7 @@ public final class RoutingExemplarStore: @unchecked Sendable {
         vectorCache.withLock { cache in cache = cache.filter { live.contains($0.key) } }
         let memory = self.memory
         // FIRE AND FORGET: a turn must never wait to be taught.
-        Task.detached { await memory.remember(exemplar) }
+        Task.detached { await memory.remember(habit) }
     }
 
     public func queries(skillID: String, ok: Bool) -> [String] {
@@ -157,7 +157,7 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     }
 
     /// Normalized vectors, memoized by FIRST LINE — `classify`/`affinities`
-    /// consult exemplars on every call, and re-vectorizing the same settled
+    /// consult habits on every call, and re-vectorizing the same settled
     /// sentence every turn is pure waste once it has been seen once.
     /// Pruned in `record()` to the surviving rows.
     ///
@@ -201,13 +201,13 @@ public final class RoutingExemplarStore: @unchecked Sendable {
     /// Memo size, so a test can pin that it does not outlive its rows.
     public var cachedVectorCountForTesting: Int { vectorCache.withLock { $0.count } }
 
-    private func prune(_ items: [RoutingExemplar]) -> [RoutingExemplar] {
+    private func prune(_ items: [RoutingHabit]) -> [RoutingHabit] {
         let cutoff = Date().addingTimeInterval(-Self.horizon)
         return items.filter { $0.storedAt >= cutoff }
     }
 
-    private static func capped(_ items: [RoutingExemplar]) -> [RoutingExemplar] {
-        var bySkill: [String: [RoutingExemplar]] = [:]
+    private static func capped(_ items: [RoutingHabit]) -> [RoutingHabit] {
+        var bySkill: [String: [RoutingHabit]] = [:]
         for item in items.sorted(by: { $0.storedAt < $1.storedAt }) {
             var bucket = bySkill[item.skillID, default: []]
             bucket.append(item)

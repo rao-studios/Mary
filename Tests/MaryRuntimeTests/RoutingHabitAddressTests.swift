@@ -1,11 +1,11 @@
 //
-//  RoutingExemplarAddressTests.swift
+//  RoutingHabitAddressTests.swift
 //  MaryRuntimeTests
 //
 //  WHAT: The document id IS the label.
 //  PIN:  A totem search returns documentID, text and score — and NOT the
 //        `metadata` an index item accepts. So which Skill and which intent a
-//        recalled lesson teaches has to be readable from its id alone. If this
+//        recalled habit teaches has to be readable from its id alone. If this
 //        round trip breaks, routing memory silently returns nothing: every hit
 //        fails to parse and the loop looks merely empty.
 //
@@ -15,18 +15,18 @@ import Testing
 @testable import MaryBrain
 @testable import MaryRuntime
 
-@Suite struct RoutingExemplarAddressTests {
+@Suite struct RoutingHabitAddressTests {
 
     @Test func aLessonSurvivesTheRoundTripThroughItsDocumentID() throws {
-        let stored = RoutingExemplar(
+        let stored = RoutingHabit(
             query: "put the running mix on",
             skillID: "multimedia.play-playlist",
             intent: AmbientIntent.operate.rawValue,
             ok: true,
             storedAt: Date(timeIntervalSince1970: 1_700_000_000))
 
-        let id = TotemContextStore.ExemplarAddress.documentID(for: stored)
-        let recalled = try #require(TotemContextStore.ExemplarAddress.exemplar(
+        let id = TotemContextStore.RoutingHabitAddress.documentID(for: stored)
+        let recalled = try #require(TotemContextStore.RoutingHabitAddress.habit(
             documentID: id, text: stored.query))
 
         #expect(recalled.skillID == stored.skillID)
@@ -39,7 +39,7 @@ import Testing
     /// SKILL IDS ARE DOTTED and group ids are slashed; the separator must
     /// appear in neither, or a well-formed id would parse into nonsense.
     @Test func theSeparatorCannotOccurInsideTheParts() {
-        let id = TotemContextStore.ExemplarAddress.documentID(for: RoutingExemplar(
+        let id = TotemContextStore.RoutingHabitAddress.documentID(for: RoutingHabit(
             query: "q", skillID: "window-management.list-app-windows",
             intent: AmbientIntent.perceive.rawValue, ok: true))
 
@@ -48,7 +48,7 @@ import Testing
     }
 
     /// A TOTEM HOLDS MORE THAN ROUTING MEMORY. Anything that is not one of
-    /// ours must be ignored rather than half-parsed into a lesson.
+    /// ours must be ignored rather than half-parsed into a habit.
     @Test(arguments: [
         "mary-behavior-1234",
         "mary-routing-operate",
@@ -57,7 +57,7 @@ import Testing
         "",
     ])
     func aForeignDocumentTeachesNothing(_ documentID: String) {
-        #expect(TotemContextStore.ExemplarAddress.exemplar(
+        #expect(TotemContextStore.RoutingHabitAddress.habit(
             documentID: documentID, text: "some text") == nil)
     }
 
@@ -67,24 +67,24 @@ import Testing
     /// went before the prefix was fixed.
     @Test func routingAddressesClassifyOntoThePersonalLane() {
         let group = TotemAddressClassifier.classifyGroup(
-            id: TotemContextStore.exemplarGroup(ownerID: "owner-a").id)
+            id: TotemContextStore.routingHabitGroup(ownerID: "owner-a").id)
         #expect(group.family == .routingGroup)
         #expect(group.lane == .personal)
         #expect(!group.isSeerOwned)
 
         let document = TotemAddressClassifier.classifyDocument(
-            id: TotemContextStore.ExemplarAddress.documentID(for: RoutingExemplar(
+            id: TotemContextStore.RoutingHabitAddress.documentID(for: RoutingHabit(
                 query: "q", skillID: "multimedia.play-playlist",
                 intent: AmbientIntent.operate.rawValue, ok: true)))
-        #expect(document.family == .routingExemplar)
+        #expect(document.family == .routingHabit)
         #expect(document.lane == .personal)
     }
 
     /// The group is per-owner, so two people on one machine never read each
     /// other's routing memory.
     @Test func theGroupIsScopedToItsOwner() {
-        let mine = TotemContextStore.exemplarGroup(ownerID: "owner-a")
-        let theirs = TotemContextStore.exemplarGroup(ownerID: "owner-b")
+        let mine = TotemContextStore.routingHabitGroup(ownerID: "owner-a")
+        let theirs = TotemContextStore.routingHabitGroup(ownerID: "owner-b")
 
         #expect(mine.id != theirs.id)
         #expect(mine.id == "mary-routing-owner-a")

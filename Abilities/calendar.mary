@@ -67,7 +67,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "ask" : [
           "what's on my calendar",
           "what do i have today",
@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4f2ae5279ba674222fd2b96109cb1c53c38ec43d777ce9b1c4980f063e1ba06e"
+    "digest" : "880a590f8f98be3d075ea55c9bd313fbd2d5acefabd3e00f5b0e8ba96037199b"
   },
   "interactions" : [
 

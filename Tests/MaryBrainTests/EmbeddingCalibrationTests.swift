@@ -76,16 +76,16 @@ private extension String {
     }
 
     private static func assertUniquePlayPlaylist(
-        _ query: String, store: RoutingExemplarStore
+        _ query: String, store: RoutingHabitStore
     ) throws {
         guard let env = try environment() else { return }
         let verdict = try #require(
-            env.intent.classify(query, exemplars: store),
+            env.intent.classify(query, habits: store),
             "did not classify at all: \"\(query)\"")
         #expect(verdict.intent == .operate, "\"\(query)\" classified \(verdict.intent), not operate")
         let winner = try #require(
             EmbeddingRouting.uniqueWinner(
-                affinities: env.skills.affinities(in: query, exemplars: store),
+                affinities: env.skills.affinities(in: query, habits: store),
                 snapshot: env.snapshot),
             "\"\(query)\" had no unique Skill winner")
         #expect(
@@ -175,15 +175,15 @@ private extension String {
     /// MEASURED FINDING, recorded here because it bounds what this seam can be
     /// trusted for: recall over seven similar applications is OVER-INCLUSIVE at
     /// the 0.62 floor. "Read me this browser tab" recalls Pages; "my manuscript
-    /// app" recalls Safari. Both survive with the expertise exemplars stripped
+    /// app" recalls Safari. Both survive with the expertise habits stripped
     /// entirely, so they come from aliases and summaries, not from authored
     /// sentences — this is the index being generous, not the corpus being wrong.
     ///
-    /// A SECOND FINDING, from the run that produced this test: exemplars that
+    /// A SECOND FINDING, from the run that produced this test: habits that
     /// share a sentence FRAME across sibling packages ("read me the X", "what
     /// is in my Y") make recall strictly broader, because the distinguishing
     /// word is a small fraction of a short sentence vector. The shipped
-    /// exemplars were re-authored to distinct shapes on that measurement.
+    /// habits were re-authored to distinct shapes on that measurement.
     ///
     /// THE MARGIN THAT CAME OUT OF THIS. The gap report below is what
     /// `defaultDominanceMargin` was chosen from: on "read me this browser tab"
@@ -192,7 +192,7 @@ private extension String {
     /// probe (three applications down to the two browsers).
     ///
     /// IT CANNOT FIX A WRONG LEADER, and one probe still has one: "my
-    /// manuscript app" puts SAFARI on top — its authored exemplar "what is the
+    /// manuscript app" puts SAFARI on top — its authored seed "what is the
     /// reader view showing" collides on the "…showing me" frame, the same
     /// sentence-shape collision that shows up whenever sibling packages share
     /// a phrasing. The margin then keeps the wrong leader and cuts the right
@@ -202,7 +202,7 @@ private extension String {
     /// eligibility still gate every Skill — so this reports the full picture
     /// and asserts the invariant the rule does guarantee.
     ///
-    /// Probes are PARAPHRASES, never the authored sentences — an exemplar
+    /// Probes are PARAPHRASES, never the authored sentences — an habit
     /// tuned to its own probe measures the probe.
     @Test func namingAnApplicationRecallsItsExpertise() throws {
         guard let environment = try Self.environment() else { return }
@@ -383,11 +383,11 @@ private extension String {
     /// rather than an enumeration.
     ///
     /// A MISS HERE IS A CORPUS RESULT, not a reason to reinstate a list: the
-    /// repair is exemplars on `coding.mary` / `writing.mary`, or a threshold
+    /// repair is habits on `coding.mary` / `writing.mary`, or a threshold
     /// moved on the strength of this run.
     /// AWARENESS IS A FACULTY, NOT A CRAFT THE USER ASKS FOR — and the axis
     /// it joined is scored against every discipline's authored corpus. Its
-    /// package therefore carries no intent exemplars and two bare tokens, so
+    /// package therefore carries no intent seeds and two bare tokens, so
     /// the sentences that need it stay the sentences already spoken to
     /// coding: a judgment question about code must still read as coding, and
     /// must never resolve to the thing that goes and looks it up.
@@ -470,7 +470,7 @@ private extension String {
     }
 
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)
         try Self.assertUniquePlayPlaylist(Self.screenshotInApp, store: store)
     }
@@ -481,7 +481,7 @@ private extension String {
     /// vectorizer (which only ever looks at the first line) — this is the
     /// one measurement `EmbeddingRoutingTests` cannot make.
     @Test func composedSnapshotAndHistoryQueriesStillUniquelyPickPlayPlaylist() throws {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,

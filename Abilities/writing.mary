@@ -157,7 +157,7 @@
         "stop-dictation",
         "undo-writing"
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "compose" : [
           "add a scene",
           "add the hookup",
@@ -771,7 +771,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "24310503f90ff584887170448f9a9a632f83b11770298ef039ba4c1617cc5c2b"
+    "digest" : "a13b8c98345d2ace0e21daafdbd3c5dfc381a5bc028f76f90ba201e4a1009255"
   },
   "interactions" : [
     {

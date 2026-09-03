@@ -70,7 +70,7 @@ import Testing
         #expect(MaryEmbeddings.vectorizer()?.vector(for: composed) == [1, 0])
     }
 
-    /// The memo is per turn — a lesson from one turn must not answer the next.
+    /// The memo is per turn — a vector from one turn must not answer the next.
     @Test func endTurnDropsTheMemo() async {
         let backend = ScriptedBackend(vector: [1, 0])
         MaryEmbeddings.installSeerBackend(backend, model: "test-embed")

@@ -63,7 +63,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "ask" : [
           "what is the reader view showing"
         ],
@@ -129,7 +129,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "a6258c839dd619b18cace0c4187f45fce3664f784f1e9623ec65a150475ee2d3"
+    "digest" : "f29173ac36923aae79080628a0056a3a9e3aadd402e7881862291d3110a3ef40"
   },
   "interactions" : [
 

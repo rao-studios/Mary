@@ -1,10 +1,10 @@
 //
-//  IntentExemplarFixtureTests.swift
+//  IntentSeedFixtureTests.swift
 //  MaryBrainTests
 //
-//  WHAT: A package's `intentExemplars` keys are real, eligible AmbientIntent
+//  WHAT: A package's `intentSeeds` keys are real, eligible AmbientIntent
 //        cases, and the whole corpus builds into a working index.
-//  OUT:  AmbientIntent × package `triggers.intentExemplars`
+//  OUT:  AmbientIntent × package `triggers.intentSeeds`
 //  PIN:  Validator cannot see AmbientIntent — this suite lives in Brain,
 //        beside PackageRoutingFixtureTests, which makes the same call for
 //        `intent` routing predicates.
@@ -16,7 +16,7 @@ import Testing
 @testable import MaryBrain
 @testable import MaryFoundation
 
-@Suite struct IntentExemplarFixtureTests {
+@Suite struct IntentSeedFixtureTests {
 
     private static func shippedPackages(_ abilities: URL) throws -> [MaryAbilityPackage] {
         try FileManager.default
@@ -26,23 +26,23 @@ import Testing
             .map { try AbilityPackageCodec.load(from: $0) }
     }
 
-    /// Every key any shipped package authors under `triggers.intentExemplars`
+    /// Every key any shipped package authors under `triggers.intentSeeds`
     /// resolves via `AmbientIntent(rawValue:)` AND is one of the intents
     /// `SemanticIntentIndex` will actually consult — `halt`/`decide`/`revise`/
     /// `architect` are deterministic or classifier-owned, so a seed under one
     /// of those keys can never be reached and is as dead as an unknown key.
-    @Test func everyIntentExemplarKeyIsRealAndEligible() throws {
+    @Test func everyIntentSeedKeyIsRealAndEligible() throws {
         guard let abilities = InstalledPackages.installed() else { return }
         let packages = try Self.shippedPackages(abilities)
         #expect(!packages.isEmpty, "Abilities/ holds no .mary packages")
 
         for package in packages {
-            for key in package.ability.triggers.intentExemplars.keys {
+            for key in package.ability.triggers.intentSeeds.keys {
                 let intent = AmbientIntent(rawValue: key)
                 #expect(
                     intent != nil,
                     """
-                    \(package.package.id.rawValue) declares intentExemplars for \
+                    \(package.package.id.rawValue) declares intentSeeds for \
                     "\(key)", which is not an AmbientIntent case \
                     (\(AmbientIntent.allCases.map(\.rawValue).sorted().joined(separator: ", "))).
                     """)
@@ -50,7 +50,7 @@ import Testing
                     #expect(
                         SemanticIntentIndex.eligibleIntents.contains(intent),
                         """
-                        \(package.package.id.rawValue) declares intentExemplars for \
+                        \(package.package.id.rawValue) declares intentSeeds for \
                         "\(key)", which SemanticIntentIndex never classifies into \
                         (eligible: \(SemanticIntentIndex.eligibleIntents.map(\.rawValue).sorted().joined(separator: ", "))) \
                         — these seeds can never be reached.
@@ -71,7 +71,7 @@ import Testing
         let packages = try Self.shippedPackages(abilities)
         var seenUnderIntent: [String: String] = [:]
         for package in packages {
-            for (key, terms) in package.ability.triggers.intentExemplars {
+            for (key, terms) in package.ability.triggers.intentSeeds {
                 for term in terms {
                     let folded = term.lowercased().trimmingCharacters(in: .whitespaces)
                     if let existing = seenUnderIntent[folded], existing != key {

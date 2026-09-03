@@ -36,6 +36,11 @@ public struct AbilityRuntimeSnapshot: Sendable {
     private let fallbackReferences: [String: AbilitySkillReference]
     /// EVERY binding the compatibility evaluator admitted per Skill, preference-ordered — `selectedBinding` is always the first.
     private let compatibleBySkill: [SkillID: [InstalledAdapterBinding]]
+    /// Discipline → the application-expertise Abilities that REQUIRE it,
+    /// preference-ordered. Inverted from authored dependencies once per
+    /// revision; see `AbilityRuntimeSnapshot+Expertise` — internal rather
+    /// than private because that extension is its only reader.
+    let expertiseByDiscipline: [AbilityID: [AbilityID]]
     /// Optional embedding recall for `requestedAbilities(in:)`. Nil — lexical
     /// fallback for tests and hosts with no OS embedding asset.
     private let semanticIndex: SemanticAbilityRequestIndex?
@@ -43,7 +48,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
     /// Skill offer gate; nil keeps lexical eligibility.
     public let semanticSkillIndex: SemanticSkillRequestIndex?
     /// Optional embedding operate/perceive/compose/ask/converse classifier,
-    /// built from every installed package's own `intentExemplars`. Nil keeps
+    /// built from every installed package's own `intentSeeds`. Nil keeps
     /// the lexical ladder in `AmbientEngine.classify`.
     public let semanticIntentIndex: SemanticIntentIndex?
     /// Named seed families — see `SemanticSeedFamilyIndex`.
@@ -84,6 +89,7 @@ public struct AbilityRuntimeSnapshot: Sendable {
         self.packagesByID = Dictionary(
             records.map { ($0.package.package.id, $0) },
             uniquingKeysWith: { _, latest in latest })
+        self.expertiseByDiscipline = Self.buildExpertiseIndex(records: records)
 
         let capabilitySchemas = Dictionary(
             records.flatMap { $0.package.capabilities }.map { ($0.id, $0) },

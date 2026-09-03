@@ -9,7 +9,7 @@
 //        parsed now so later phases can read them; only window sizing is
 //        applied until Home's pane budget and the Studio's panel budget exist.
 //
-//    MARY_LAYOUT_CHECK="home:720x520;studio:960x600;panes:debugger,router;drawer;sheet:rehearsal"
+//    MARY_LAYOUT_CHECK="home:720x520;studio:960x600;panes:debugger,router;drawer;sheet:rehearsal;utterance:can you pause the music"
 //
 
 #if DEBUG
@@ -26,6 +26,10 @@ enum MaryLayoutCheck {
         /// without driving the UI — synthetic clicks do not reach these
         /// controls. "rehearsal" (Studio) or "settings" (Home).
         var sheet: String?
+        /// Sentence to put into an opened rehearsal, run on appear. An EMPTY
+        /// rehearsal measures its empty state and nothing else, so the tiers
+        /// this harness exists to review need one sentence to draw them.
+        var utterance: String?
     }
 
     static let directive: Directive? = {
@@ -41,6 +45,7 @@ enum MaryLayoutCheck {
             case "panes": result.panes = value.split(separator: ",").map(String.init)
             case "drawer": result.showsDrawer = true
             case "sheet": result.sheet = value
+            case "utterance": result.utterance = value
             default: break
             }
         }
@@ -74,6 +79,11 @@ enum MaryLayoutCheck {
     /// Whether the harness asked for this sheet to open on launch.
     static func opens(sheet name: String) -> Bool {
         directive?.sheet == name
+    }
+
+    /// The sentence the harness wants rehearsed, if any.
+    static var utterance: String? {
+        directive?.utterance.flatMap { $0.isEmpty ? nil : $0 }
     }
 }
 #endif

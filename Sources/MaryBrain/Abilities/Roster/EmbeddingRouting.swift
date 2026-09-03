@@ -121,15 +121,15 @@ public enum EmbeddingRouting {
         return String(data: data, encoding: .utf8) ?? "{}"
     }
 
-    public static func recordExemplars(
+    public static func recordRoutingHabits(
         query: String,
         intent: AmbientIntent,
         outcomes: [(skillID: String, ok: Bool)],
-        store: RoutingExemplarStore = .shared
+        store: RoutingHabitStore = .shared
     ) {
         guard !query.isEmpty else { return }
         for row in outcomes where !row.skillID.isEmpty {
-            store.record(RoutingExemplar(
+            store.record(RoutingHabit(
                 query: query,
                 skillID: row.skillID,
                 intent: intent.rawValue,

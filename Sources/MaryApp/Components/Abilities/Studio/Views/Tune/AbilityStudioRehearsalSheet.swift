@@ -78,6 +78,14 @@ struct AbilityStudioRehearsalSheet: View {
             floor: CGSize(width: 720, height: 440))
         .background(Color.maryBG)
         .preferredColorScheme(.light)
+        #if DEBUG
+        // Harness only, inert without MARY_LAYOUT_CHECK — see MaryLayoutCheck.
+        .onAppear {
+            guard let seeded = MaryLayoutCheck.utterance, typed.isEmpty else { return }
+            typed = seeded
+            run()
+        }
+        #endif
     }
 
     private var header: some View {
@@ -170,8 +178,12 @@ struct AbilityStudioRehearsalSheet: View {
                 Divider().overlay(Color.maryBorder)
                 tier(
                     "Ability tier",
-                    caption: "tokens, phrases, aliases, exemplars, fixtures — minus negatives",
+                    caption: "tokens, phrases, aliases, habits, fixtures — minus negatives",
                     rows: rehearsal.abilities)
+                if let expertise = rehearsal.expertise {
+                    Divider().overlay(Color.maryBorder)
+                    expertiseTier(expertise, reading: rehearsal.expertiseWord)
+                }
                 legend
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -199,6 +211,100 @@ struct AbilityStudioRehearsalSheet: View {
             ForEach(rows.prefix(6)) { row in
                 candidateRow(row, winner: rows.first)
             }
+        }
+    }
+
+    /// WHO INHERITS THE WINNING DISCIPLINE. A skill like `control_playback`
+    /// belongs to `multimedia`, which is nobody's application — the packages
+    /// that REQUIRE multimedia are the players it can land in, and the ranking
+    /// among them is this person's own decayed history.
+    private func expertiseTier(
+        _ verdict: ExpertiseResolution.Verdict,
+        reading: String?
+    ) -> some View {
+        VStack(alignment: .leading, spacing: .layer2) {
+            HStack(alignment: .firstTextBaseline, spacing: .layer2) {
+                SectionLabel("Expertise tier")
+                Text("who inherits \(verdict.disciplineID.rawValue) — ranked by what you reach for")
+                    .font(.marySans(9))
+                    .foregroundStyle(Color.maryInk.opacity(0.4))
+                    .lineLimit(1)
+            }
+            if verdict.candidates.isEmpty {
+                Text("Nothing extends this ability — the turn stays with the discipline's own binding.")
+                    .font(.marySans(10.5))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
+            }
+            ForEach(verdict.candidates.prefix(6)) { row in
+                expertiseRow(row, chosen: verdict.chosen?.expertiseID == row.expertiseID)
+            }
+            if let reading {
+                StudioNote(reading)
+            }
+        }
+    }
+
+    private func expertiseRow(
+        _ row: ExpertiseResolution.Candidate,
+        chosen: Bool
+    ) -> some View {
+        HStack(spacing: .layer2) {
+            Circle()
+                .fill(Color.maryAbilityTint(row.tint))
+                .frame(width: 6, height: 6)
+            Text(row.applicationID)
+                .font(.maryMono(10))
+                .foregroundStyle(Color.maryInk.opacity(chosen ? 0.85 : 0.5))
+                .lineLimit(1)
+                .frame(width: Paper.Layout.labelColumn, alignment: .leading)
+
+            // SHARE, NOT AFFINITY. These are summed recency weights on their
+            // own scale, so they get their own bar rather than borrowing the
+            // 0.30–0.80 axis the two scored tiers share.
+            GeometryReader { proxy in
+                let width = proxy.size.width
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(Color.maryInk.opacity(0.06))
+                        .frame(width: width, height: 6)
+                    Rectangle()
+                        .fill(Self.expertiseColor(row.standing))
+                        .frame(width: max(1, CGFloat(row.share) * width), height: 6)
+                }
+                .frame(height: 18)
+            }
+            .frame(height: 18)
+
+            Text(String(format: "%.2f", row.weight))
+                .font(.maryMono(10))
+                .foregroundStyle(Self.expertiseColor(row.standing))
+                .frame(width: 34, alignment: .trailing)
+            Text(Self.expertiseWord(row.standing))
+                .font(.maryMono(9))
+                .foregroundStyle(Color.maryInk.opacity(0.4))
+                .frame(width: 58, alignment: .trailing)
+        }
+    }
+
+    private static func expertiseColor(
+        _ standing: ExpertiseResolution.Standing
+    ) -> Color {
+        switch standing {
+        case .asserted: return .maryGold
+        case .habitual: return .maryGreen
+        case .fallback: return Paper.graphite
+        case .staticPreference: return Paper.graphite
+        }
+    }
+
+    private static func expertiseWord(
+        _ standing: ExpertiseResolution.Standing
+    ) -> String {
+        switch standing {
+        case .asserted: return "you said"
+        case .habitual: return "habit"
+        case .fallback: return "less used"
+        case .staticPreference: return "default"
         }
     }
 
@@ -280,6 +386,10 @@ struct AbilityStudioRehearsalSheet: View {
                 Rectangle().fill(Color.maryError.opacity(0.14)).frame(width: 13, height: 9)
                 Text("margin \(String(format: "%.2f", AbilityStudioRehearsal.margin)) — anything in here blocks the shortcut")
             }
+            HStack(spacing: 5) {
+                Rectangle().fill(Color.maryGreen).frame(width: 13, height: 6)
+                Text("habit weight halves every 30 days — switch players and the ranking follows")
+            }
             Spacer(minLength: 0)
         }
         .font(.marySans(9))
@@ -332,6 +442,10 @@ struct AbilityStudioRehearsalSheet: View {
                         "xmark",
                         "Push the other one down.",
                         "A negative token subtracts from the ability tier. Sharpening the crowder's own summary and eligibility phrases is what moves the skill tier.")
+                    lever(
+                        "hand.tap",
+                        "Teach the player by using it.",
+                        "There is no knob for the expertise tier. Every successful act in a player is a vote, and votes halve every thirty days — a new player overtakes the old one on its own, and going back reverses it just as quietly.")
                     lever(
                         "exclamationmark.triangle",
                         "Phrases do not reach here.",

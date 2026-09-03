@@ -68,7 +68,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "compose" : [
           "jot this down quickly as plain text"
         ],
@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "6617785434132a82033dd90b0356dc011605083be34214bc39c7e7d24bd22c4c"
+    "digest" : "385517164efbed4f16b4e5073a87e27a491bdb61a36ca38825c89e25725988bd"
   },
   "interactions" : [
 

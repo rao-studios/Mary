@@ -127,7 +127,7 @@ import Testing
     /// one OFFERED Skill clears the floor with a margin, the skill corpus is
     /// the only voice saying what the words are about — and believing the
     /// fail-closed "converse" instead is self-sealing: no dispatch, so no
-    /// exemplar, so the phrasing is never learned. Ever.
+    /// habit, so the phrasing is never learned. Ever.
     @Test func aUniqueSkillPromotesAFailClosedConverse() throws {
         let environment = try #require(try Self.environment(), "fixture failed to build")
 
@@ -135,7 +135,7 @@ import Testing
             query: "wrangle the widget",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore())
+            habits: RoutingHabitStore())
 
         #expect(verdict.uniqueSkill != nil)
         #expect(verdict.intent == .operate)
@@ -154,7 +154,7 @@ import Testing
             query: "hello there",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore())
+            habits: RoutingHabitStore())
 
         #expect(verdict.intent == .converse)
         #expect(!verdict.promotedByUniqueSkill)
@@ -170,7 +170,7 @@ import Testing
             query: "xyzzy plugh nothing matches this",
             registry: environment,
             offeredNames: ["operate_thing"],
-            exemplars: RoutingExemplarStore())
+            habits: RoutingHabitStore())
 
         #expect(verdict.uniqueSkill == nil)
         #expect(verdict.intent == .converse)
@@ -186,7 +186,7 @@ import Testing
             query: "wrangle the widget",
             registry: environment,
             offeredNames: [],
-            exemplars: RoutingExemplarStore())
+            habits: RoutingHabitStore())
 
         #expect(verdict.uniqueSkill == nil)
         #expect(!verdict.promotedByUniqueSkill)
@@ -224,10 +224,10 @@ import Testing
                 tint: "#112233",
                 triggers: AbilityTriggerSchema(
                     tokens: ["operate the thing"],
-                    intentExemplars: ["operate": ["operate the thing"]]),
+                    intentSeeds: ["operate": ["operate the thing"]]),
                 skills: [skill.id]),
             skills: [skill],
-            // A whole sentence the SKILL corpus knows and no intent exemplar
+            // A whole sentence the SKILL corpus knows and no intent seed
             // shares — the shape of the stuck case.
             fixtures: [AbilityFixture(
                 id: "skill-only",

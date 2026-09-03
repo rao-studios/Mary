@@ -144,7 +144,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "operate" : [
           "fix the build",
           "run the probe",
@@ -1015,7 +1015,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "584a07c7a372552c7c21ba41cf42ce1810980edfa99bea10486bc639c17b1bf0"
+    "digest" : "b6f110cf05b9d0d76442f3650aa9974935743d43eca370e823314240dce84c64"
   },
   "interactions" : [
     {

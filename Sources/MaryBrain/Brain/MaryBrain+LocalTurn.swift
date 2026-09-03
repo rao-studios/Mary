@@ -39,7 +39,7 @@ extension MaryBrain {
         // multi-round turn cannot teach the router three different things, and
         // so the query is this turn's utterance rather than whatever the
         // process-wide routing query says by the time a round lands.
-        let exemplarGrant = ExemplarRecordingContext.grant(
+        let routingHabitGrant = RoutingHabitRecordingContext.grant(
             lane: .model, query: userText, route: route.intent)
         var fullText = ""
         var usedEmptyRetry = false
@@ -265,7 +265,7 @@ extension MaryBrain {
                         continue
                     }
                     let startedAt = Date()
-                    let outcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+                    let outcome = await RoutingHabitRecordingContext.withGrant(routingHabitGrant) {
                         await dispatcher.dispatch(
                             name: call.name, argumentsJSON: call.argumentsJSON,
                             runID: call.id)

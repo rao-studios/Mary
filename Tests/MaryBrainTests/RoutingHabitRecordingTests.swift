@@ -1,8 +1,8 @@
 //
-//  ExemplarRecordingTests.swift
+//  RoutingHabitRecordingTests.swift
 //  MaryBrainTests
 //
-//  WHAT: WHO may teach the router, and what the lesson says.
+//  WHAT: WHO may teach the router, and what the habit says.
 //  PIN:  THE POISONING TEST IS THE POINT OF THIS FILE. Recording used the
 //        route's PRE-dispatch intent, so a turn misrouted to `converse` that
 //        the model nonetheless executed stored a `converse` positive — which
@@ -17,7 +17,7 @@ import Testing
 @testable import MaryFoundation
 @testable import MaryPlugin
 
-@Suite struct ExemplarRecordingTests {
+@Suite struct RoutingHabitRecordingTests {
 
     // MARK: - What a dispatch proves
 
@@ -25,7 +25,7 @@ import Testing
     /// act, the act is the evidence — so `converse` is re-labelled rather than
     /// believed, and the intent index learns the truth instead of the mistake.
     @Test func aConverseRouteThatActedTeachesOperate() {
-        #expect(ExemplarRecordingContext.recordableIntent(.converse) == .operate)
+        #expect(RoutingHabitRecordingContext.recordableIntent(.converse) == .operate)
     }
 
     /// The intents an embedding may settle are learned as themselves.
@@ -33,7 +33,7 @@ import Testing
         AmbientIntent.operate, .compose, .perceive, .ask,
     ])
     func eligibleIntentsAreLearnedAsThemselves(_ intent: AmbientIntent) {
-        #expect(ExemplarRecordingContext.recordableIntent(intent) == intent)
+        #expect(RoutingHabitRecordingContext.recordableIntent(intent) == intent)
     }
 
     /// Deterministic and classifier-owned intents teach NOTHING: no embedding
@@ -43,13 +43,13 @@ import Testing
         AmbientIntent.revise, .halt, .decide, .architect,
     ])
     func classifierOwnedIntentsTeachNothing(_ intent: AmbientIntent) {
-        #expect(ExemplarRecordingContext.recordableIntent(intent) == nil)
-        #expect(ExemplarRecordingContext.grant(
+        #expect(RoutingHabitRecordingContext.recordableIntent(intent) == nil)
+        #expect(RoutingHabitRecordingContext.grant(
             lane: .model, query: "do the thing", route: intent) == nil)
     }
 
     @Test func anEmptyUtteranceTeachesNothing() {
-        #expect(ExemplarRecordingContext.grant(
+        #expect(RoutingHabitRecordingContext.grant(
             lane: .model, query: "   ", route: .operate) == nil)
     }
 
@@ -58,15 +58,15 @@ import Testing
     /// THE MANDATED TEST. A converse-routed turn that the model nonetheless
     /// dispatched must leave an OPERATE row and no converse row at all.
     @Test func aConverseRoutedDispatchRecordsOperateNotConverse() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(effectful: "do_thing")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
-        let grant = ExemplarRecordingContext.grant(
+        let grant = RoutingHabitRecordingContext.grant(
             lane: .model, query: "surface every window for me", route: .converse)
         #expect(grant != nil)
         await Self.underSnapshot(["do_thing"], []) {
-            _ = await ExemplarRecordingContext.withGrant(grant) {
+            _ = await RoutingHabitRecordingContext.withGrant(grant) {
                 await runtime.dispatch(name: "do_thing", argumentsJSON: "{}", runID: "r1")
             }
         }
@@ -82,9 +82,9 @@ import Testing
     /// the affordance press, the confirm/cancel replay and the accepted-prose
     /// road ("yes please") out of the corpus.
     @Test func anUngrantedDispatchTeachesNothing() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(effectful: "do_thing")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
         await Self.underSnapshot(["do_thing"], []) {
             _ = await runtime.dispatch(name: "do_thing", argumentsJSON: "{}", runID: "r1")
@@ -97,14 +97,14 @@ import Testing
     /// utterance; without the budget each would map those words onto a Skill
     /// the user never named.
     @Test func aLaneTeachesOnceHoweverManySkillsItRuns() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(effectful: "do_thing", second: "do_other")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
-        let grant = ExemplarRecordingContext.grant(
+        let grant = RoutingHabitRecordingContext.grant(
             lane: .model, query: "tidy up my desk", route: .operate)
         await Self.underSnapshot(["do_thing", "do_other"], []) {
-            await ExemplarRecordingContext.withGrant(grant) {
+            await RoutingHabitRecordingContext.withGrant(grant) {
                 _ = await runtime.dispatch(name: "do_thing", argumentsJSON: "{}", runID: "r1")
                 _ = await runtime.dispatch(name: "do_other", argumentsJSON: "{}", runID: "r2")
             }
@@ -118,14 +118,14 @@ import Testing
     /// read uniquely and the shortcut would read the file and CLOSE the turn
     /// without doing the work.
     @Test func theModelLaneDoesNotTeachReads() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(readOnly: "read_thing")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
-        let grant = ExemplarRecordingContext.grant(
+        let grant = RoutingHabitRecordingContext.grant(
             lane: .model, query: "fix the bug in main", route: .operate)
         await Self.underSnapshot([], ["read_thing"]) {
-            _ = await ExemplarRecordingContext.withGrant(grant) {
+            _ = await RoutingHabitRecordingContext.withGrant(grant) {
                 await runtime.dispatch(name: "read_thing", argumentsJSON: "{}", runID: "r1")
             }
         }
@@ -136,14 +136,14 @@ import Testing
     /// The confidence lane may: there the embedding picked this Skill from
     /// these very words, so the row only reinforces its own win.
     @Test func theConfidenceLaneMayTeachAReadItAlreadyWon() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(readOnly: "read_thing")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
-        let grant = ExemplarRecordingContext.grant(
+        let grant = RoutingHabitRecordingContext.grant(
             lane: .confidence, query: "which windows are up", route: .operate)
         await Self.underSnapshot([], ["read_thing"]) {
-            _ = await ExemplarRecordingContext.withGrant(grant) {
+            _ = await RoutingHabitRecordingContext.withGrant(grant) {
                 await runtime.dispatch(name: "read_thing", argumentsJSON: "{}", runID: "r1")
             }
         }
@@ -155,14 +155,14 @@ import Testing
     /// A FAILURE STILL TEACHES NOTHING — the "bad night pins a centroid" PIN
     /// survives the rewrite.
     @Test func aFailedDispatchTeachesNothing() async {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let runtime = Self.runtime(failing: "do_thing")
-        runtime.setExemplarStoreForTesting(store)
+        runtime.setRoutingHabitStoreForTesting(store)
 
-        let grant = ExemplarRecordingContext.grant(
+        let grant = RoutingHabitRecordingContext.grant(
             lane: .model, query: "do the thing", route: .operate)
         await Self.underSnapshot(["do_thing"], []) {
-            _ = await ExemplarRecordingContext.withGrant(grant) {
+            _ = await RoutingHabitRecordingContext.withGrant(grant) {
                 await runtime.dispatch(name: "do_thing", argumentsJSON: "{}", runID: "r1")
             }
         }
@@ -199,12 +199,12 @@ import Testing
         let skills = (effectful + readOnly).map(schema)
         let package = MaryAbilityPackage(
             package: .init(
-                id: PackageID("tests.exemplar"),
+                id: PackageID("tests.habit"),
                 version: "1.0.0",
                 publisher: "tests",
-                summary: "Exemplar fixture."),
+                summary: "Habit fixture."),
             ability: .init(
-                id: AbilityID("fixture-exemplar"),
+                id: AbilityID("fixture-habit"),
                 title: "Fixture",
                 summary: "Fixture ability.",
                 tint: "#112233",
@@ -212,7 +212,7 @@ import Testing
             skills: skills)
         let record = AbilityPackageRecord(
             package: package, source: .sourceTree,
-            sourceURL: URL(fileURLWithPath: "/tmp/exemplar.mary"),
+            sourceURL: URL(fileURLWithPath: "/tmp/habit.mary"),
             validation: .init(), rawData: Data())
         // The roster refuses a Skill no installed adapter publishes, so the
         // fixture manifest is what makes these dispatches actually run.

@@ -66,7 +66,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "ask" : [
           "do i have reminders today",
           "what are my reminders",
@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b214e21993839d0d803eface9edb5ce0dd9410736ec3d83c59654b7575e26f67"
+    "digest" : "0ecb8f12df92f5bece329e591083055481517c3dbbb688443b57a6077be81fef"
   },
   "interactions" : [
 

@@ -67,7 +67,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "compose" : [
           "lay this out with headings and a title page"
         ],
@@ -114,7 +114,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "362d029124fbf691b2abbe381418b7eb5a52fc3b38bb374cf83061e741c63d58"
+    "digest" : "f6ec1648d7a3f2fd30ecb3c96294ca1fdf56cab6c3a63358de3ce8843e0fa109"
   },
   "interactions" : [
 

@@ -32,7 +32,7 @@ extension MaryBrain {
         /// gates (confirm/cancel), the accepted-prose road (whose utterance is
         /// "yes please", not a way of asking for anything) and the window
         /// verbs' old hand-written gate never did.
-        exemplarGrant: ExemplarRecordingContext.Grant? = nil,
+        routingHabitGrant: RoutingHabitRecordingContext.Grant? = nil,
         continuation: AsyncThrowingStream<BrainEvent, Error>.Continuation,
         epoch: UInt64
     ) async -> SkillOutcome {
@@ -44,7 +44,7 @@ extension MaryBrain {
             reference: invocationReference, argumentsJSON: argumentsJSON,
             runID: invocation.id))
         let startedAt = Date()
-        let outcome: SkillOutcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+        let outcome: SkillOutcome = await RoutingHabitRecordingContext.withGrant(routingHabitGrant) {
             if allowTitleCommit {
                 return await SpokenTitleCommitContext.$allowed.withValue(true) {
                     await dispatcher.dispatch(

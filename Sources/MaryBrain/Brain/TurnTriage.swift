@@ -81,7 +81,7 @@ enum TurnTriage {
         query: String,
         registry: AbilityRuntimeSnapshot,
         offeredNames: Set<String>,
-        exemplars: RoutingExemplarStore = .shared
+        habits: RoutingHabitStore = .shared
     ) -> Verdict {
         guard let intentIndex = registry.semanticIntentIndex else {
             // The index is the seam. Without it there is no semantic opinion to
@@ -89,13 +89,13 @@ enum TurnTriage {
             // action" — it is "I cannot say".
             return .abstained
         }
-        let classified = intentIndex.classify(query, exemplars: exemplars)
+        let classified = intentIndex.classify(query, habits: habits)
 
-        // Exemplars reach BOTH tiers. `classify` took them and `affinities`
+        // Habits reach BOTH tiers. `classify` took them and `affinities`
         // silently fell back to `.shared`, so an injected store only half
         // applied and the Skill tier could never be tested in isolation.
         let affinities = registry.semanticSkillIndex?
-            .affinities(in: query, exemplars: exemplars) ?? [:]
+            .affinities(in: query, habits: habits) ?? [:]
         let offered = affinities.filter { id, _ in
             guard let skill = registry.skill(id: id) else { return false }
             return offeredNames.contains(skill.reference.invocationName)
@@ -113,7 +113,7 @@ enum TurnTriage {
         // OFFERED Skill cleared the floor with a margin over every rival is the
         // corpus saying, in the only voice it has, that these words are about
         // one act. Believing "converse" there is how the stuck case was made:
-        // no dispatch, so no exemplar, so the intent index never learned the
+        // no dispatch, so no habit, so the intent index never learned the
         // phrasing, forever ("which windows are up right now").
         //
         // A SCORED converse still blocks — this fires only when `classify`

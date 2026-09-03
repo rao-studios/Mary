@@ -22,8 +22,10 @@ package enum TotemAddressFamily: String, CaseIterable {
     case behaviorInteraction
     /// `mary-style-<owner>` — `TotemMemoryTopology.styleGroup`.
     case styleGroup
-    /// `mary-routing-<owner>` — `TotemContextStore.exemplarGroup`.
+    /// `mary-routing-<owner>` — `TotemContextStore.routingHabitGroup`.
     case routingGroup
+    /// `mary-habit-<owner>` — `TotemMemoryTopology.applicationHabitGroup`.
+    case applicationHabitGroup
     /// `memory-<owner>` — written by the Seer server, never by Mary.
     case seerMemory
     /// `resonance-<owner>` — written by the Seer server, never by Mary.
@@ -55,9 +57,11 @@ package enum TotemAddressFamily: String, CaseIterable {
     case behaviorInteractionDocument
     /// `mary-behavior-…` — sealed BehavioralEpisode on Ability Totem.
     case behaviorEpisode
-    /// `mary-routing-<intent>|<skill>|<epoch>` — one settled routing lesson.
+    /// `mary-routing-<intent>|<skill>|<epoch>` — one settled routing habit.
     /// The label rides in the id because a totem search returns no metadata.
-    case routingExemplar
+    case routingHabit
+    /// `mary-habit-ledger-…` — `TotemMemoryTopology.applicationHabitLedgerDocumentID`.
+    case applicationHabitLedger
 
     /// Unknown prefix — own bucket, not folded into a neighbour.
     case unknown
@@ -84,7 +88,8 @@ package struct TotemAddressClassification: Equatable {
         case .scopeGroup, .behaviorInteraction, .styleGroup, .projectSchema,
              .stateSnapshot, .skillRecord, .unitManifest, .unitCard,
              .styleProfile, .behaviorInteractionDocument,
-             .routingGroup, .routingExemplar:
+             .routingGroup, .routingHabit,
+             .applicationHabitGroup, .applicationHabitLedger:
             lane = .personal
         case .seerMemory, .seerResonance, .unknown:
             lane = nil
@@ -113,6 +118,7 @@ package enum TotemAddressClassifier {
             ("mary-scope-", .scopeGroup),
             ("mary-style-", .styleGroup),
             ("mary-routing-", .routingGroup),
+            ("mary-habit-", .applicationHabitGroup),
             ("memory-", .seerMemory),
             ("resonance-", .seerResonance),
         ])
@@ -130,7 +136,8 @@ package enum TotemAddressClassifier {
             ("mary-unit-manifest-", .unitManifest),
             ("mary-unit-", .unitCard),
             ("mary-style-profile-", .styleProfile),
-            ("mary-routing-", .routingExemplar),
+            ("mary-routing-", .routingHabit),
+            ("mary-habit-ledger-", .applicationHabitLedger),
         ])
 
     private static func classify(

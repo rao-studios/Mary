@@ -118,6 +118,24 @@ public enum TotemMemoryTopology {
         .init(id: "mary-style-\(ownerID)", label: "Style")
     }
 
+    /// Where habits live — one group per owner, beside style and routing, so
+    /// the Totems pane files them under the Personal lane.
+    public static func applicationHabitGroup(ownerID: String) -> RetrievalScope.Group {
+        .init(id: "mary-habit-\(ownerID)", label: "Mary · what you reach for")
+    }
+
+    /// ONE DOCUMENT PER DISCIPLINE, replaced rather than appended. A habit is
+    /// a tally, not an episode: the question asked of it is always "who leads
+    /// multimedia", never "what resembles this", so a single replaced ledger
+    /// is both cheaper to restore and trivially forgettable.
+    public static func applicationHabitLedgerDocumentID(
+        discipline: String, ownerID: String
+    ) -> String {
+        let key = UnitIndexHashing.canonical(ownerID)
+            + "|" + UnitIndexHashing.canonical(discipline)
+        return "mary-habit-ledger-\(UnitIndexHashing.stableHash(key))"
+    }
+
     public static func behaviorDocumentID(episodeID: UUID) -> String {
         "mary-behavior-\(episodeID.uuidString.lowercased())"
     }

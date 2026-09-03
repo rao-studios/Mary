@@ -95,11 +95,11 @@ public enum AbilityPackageValidator {
         // `AmbientIntent`, nor which seed families the Brain reads), but the
         // SENTENCES are this layer's business, and a corpus of empty strings
         // or single words silently weakens every seam that scores against it.
-        for (key, sentences) in package.ability.triggers.intentExemplars.sorted(by: { $0.key < $1.key }) {
+        for (key, sentences) in package.ability.triggers.intentSeeds.sorted(by: { $0.key < $1.key }) {
             validateAuthoredSentences(
                 sentences,
-                path: "ability.triggers.intentExemplars[\(key)]",
-                noun: "intent exemplar",
+                path: "ability.triggers.intentSeeds[\(key)]",
+                noun: "intent seed",
                 sink: sink)
         }
         for (key, sentences) in package.ability.triggers.seedFamilies.sorted(by: { $0.key < $1.key }) {

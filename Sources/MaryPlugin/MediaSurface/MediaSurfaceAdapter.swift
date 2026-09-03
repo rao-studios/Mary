@@ -154,7 +154,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     // one that reports an error against a player sitting quietly.
                     foundNothing: reading.title == nil && reading.isPlaying != true,
                     target: reading.element,
-                    adapterTrail: ["media-surface"])
+                    adapterTrail: ["media-surface"],
+                    applicationID: registration.applicationID)
             })
     }
 
@@ -206,6 +207,14 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     description: "What to do.",
                     required: true,
                     enumValues: MediaAction.allCases.map(\.rawValue)),
+                // WHICH PLAYER TO START, not which one to press. A media key
+                // reaches whoever holds now-playing no matter what is named
+                // here; this only decides who gets launched when nothing is
+                // playing yet. See the `.play` branch below.
+                .init(
+                    name: "app", type: "string",
+                    description: "Which player. Omit for the one that's running.",
+                    required: false),
             ],
             // A TWEAK AND NOT A WRITE: instantly reversible by the same verb,
             // so it runs without confirmation. Pressing pause and being asked
@@ -219,6 +228,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         ok: false,
                         summary: "I don't know how to \(arguments["action"] ?? "do that") to the music.")
                 }
+                // NOTHING TO PRESS PLAY ON. A media key needs a process
+                // holding now-playing; with no player running at all it lands
+                // nowhere and the turn reports a success that made no sound.
+                // Only `.play` may open one — "pause" and "next" against
+                // silence are already answered correctly by doing nothing.
+                if action == .play, support.resolve(arguments["app"]) == nil {
+                    _ = await MediaSurfaceLaunch.resolveOrLaunch(
+                        named: arguments["app"], support: support)
+                }
                 guard MediaTransport.post(action.key) else {
                     return SkillOutcome(
                         ok: false,
@@ -226,7 +244,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                 }
                 // Read-back is best effort and does not gate the outcome.
                 // PIN: a media key goes to the system, not a process we can wait on.
-                let settled = await Self.settledReading(support: support)
+                let settled = await Self.settledReading(
+                    support: support, named: arguments["app"])
                 return SkillOutcome(
                     ok: true,
                     summary: settled.map { reading, registration in
@@ -234,7 +253,10 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     } ?? action.past + ".",
                     archivePolicy: .stateSnapshot,
                     target: settled?.0.element,
-                    adapterTrail: ["media-surface"])
+                    adapterTrail: ["media-surface"],
+                    // The player the read-back FOUND, which is the one the key
+                    // actually reached — not the one the caller named.
+                    applicationID: settled?.1.applicationID)
             })
     }
 
@@ -242,10 +264,14 @@ public struct MediaSurfaceAdapter: MaryAdapter {
     /// instant the key lands, and a read taken too early reports the state
     /// the press just changed — the most confusing possible answer.
     private static func settledReading(
-        support: MediaSurfaceSupport
+        support: MediaSurfaceSupport,
+        named: String? = nil
     ) async -> (MediaSurfaceAX.Reading, MediaSurfaceRegistration)? {
         try? await Task.sleep(nanoseconds: 350_000_000)
-        guard let (registration, pid) = support.resolve(nil),
+        // The named player first when one was asked for, else whoever is
+        // running — a read-back that ignored the name would report the wrong
+        // player's state on a machine running two.
+        guard let (registration, pid) = support.resolve(named) ?? support.resolve(nil),
               let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
         else { return nil }
         return (reading, registration)
@@ -376,7 +402,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                             : "Opened \(track.spokenDescription) — press play to start it.",
                         archivePolicy: .stateSnapshot,
                         target: reading?.element,
-                        adapterTrail: ["media-surface"])
+                        adapterTrail: ["media-surface"],
+                        applicationID: registration.applicationID)
                 } catch {
                     return SkillOutcome(ok: false, summary: error.localizedDescription)
                 }
@@ -416,7 +443,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     ok: true,
                     summary: playlists.joined(separator: "\n"),
                     archivePolicy: .stateSnapshot,
-                    adapterTrail: ["media-surface"])
+                    adapterTrail: ["media-surface"],
+                    applicationID: registration.applicationID)
             })
     }
 
@@ -462,7 +490,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         ok: true,
                         summary: "Yes — you have \"\(title)\".",
                         archivePolicy: .stateSnapshot,
-                        adapterTrail: ["media-surface"])
+                        adapterTrail: ["media-surface"],
+                        applicationID: registration.applicationID)
                 case .guessed(let title):
                     // Committed under SpokenTitleCommitContext — an
                     // interpretation, not a flat yes.
@@ -471,13 +500,15 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         summary: "Probably \"\(title)\" — that's the closest match I've got.",
                         archivePolicy: .stateSnapshot,
                         adapterTrail: ["media-surface"],
-                        committedGuess: true)
+                        committedGuess: true,
+                        applicationID: registration.applicationID)
                 case .ambiguous(let titles):
                     return SkillOutcome(
                         ok: true,
                         summary: "More than one matches: \(titles.joined(separator: ", ")).",
                         archivePolicy: .stateSnapshot,
-                        adapterTrail: ["media-surface"])
+                        adapterTrail: ["media-surface"],
+                        applicationID: registration.applicationID)
                 case .none(let closest):
                     return SkillOutcome(
                         ok: true,
@@ -528,7 +559,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         ok: true,
                         summary: "Playing \(name).",
                         archivePolicy: .stateSnapshot,
-                        adapterTrail: ["media-surface"])
+                        adapterTrail: ["media-surface"],
+                        applicationID: registration.applicationID)
                 case .playedAsGuess(let name):
                     // Committed under SpokenTitleCommitContext — state it as
                     // an interpretation, correctable in one word.
@@ -537,7 +569,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                         summary: "Playing \(name) — closest match to what you asked for.",
                         archivePolicy: .stateSnapshot,
                         adapterTrail: ["media-surface"],
-                        committedGuess: true)
+                        committedGuess: true,
+                        applicationID: registration.applicationID)
                 case .ambiguous(let titles):
                     // NAMED, NEVER GUESSED — starting one of two is a coin
                     // flip, and the wrong one is audible immediately.
@@ -605,7 +638,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                             ? "Shuffling \(name)."
                             : "Playing \(name) — I couldn't reach the shuffle control.",
                         archivePolicy: .stateSnapshot,
-                        adapterTrail: ["media-surface"])
+                        adapterTrail: ["media-surface"],
+                        applicationID: registration.applicationID)
                 case .playedAsGuess(let name):
                     let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
                     let track = reading?.title.map { " — \"\($0)\"" } ?? ""
@@ -616,7 +650,8 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                             : "Playing \(name)\(track) — closest match, and I couldn't reach the shuffle control.",
                         archivePolicy: .stateSnapshot,
                         adapterTrail: ["media-surface"],
-                        committedGuess: true)
+                        committedGuess: true,
+                        applicationID: registration.applicationID)
                 case .ambiguous(let titles):
                     return SkillOutcome(
                         ok: true,

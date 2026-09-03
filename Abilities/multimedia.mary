@@ -88,7 +88,7 @@
         "control-playback",
         "now-playing"
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "operate" : [
           "play the playlist",
           "play my workout playlist",
@@ -512,7 +512,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "829d73f4796f516817dfdd86390bd0914292065ee888c880c439d01015456b31"
+    "digest" : "4b3d03b045694376da83a7598f567b21ac5883cdb63d1e8f7959b422a085e94d"
   },
   "interactions" : [
 
@@ -669,6 +669,16 @@
             "required" : true,
             "requiresComposition" : false,
             "summary" : "What to do.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which player to start if nothing is playing. Omit for the one that's running.",
             "type" : "string"
           }
         ]

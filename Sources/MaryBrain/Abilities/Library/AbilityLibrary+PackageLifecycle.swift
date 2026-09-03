@@ -284,7 +284,7 @@ extension AbilityLibrary {
                     records: discovery.records, vectorizer: $0)
             },
             // The intent tier reads every installed package's own
-            // `intentExemplars` — a third corpus, same one model load.
+            // `intentSeeds` — a third corpus, same one model load.
             semanticIntentIndex: MaryEmbeddings.vectorizer().flatMap {
                 SemanticIntentIndex.build(
                     records: discovery.records, vectorizer: $0)

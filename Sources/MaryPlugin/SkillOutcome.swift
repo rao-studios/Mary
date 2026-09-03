@@ -88,6 +88,13 @@ public struct SkillOutcome: Sendable {
     /// Adapters that fulfilled this, primary first. Ladder fallbacks list each hop.
     public var adapterTrail: [AdapterID]
 
+    /// THE APPLICATION THIS ACT LANDED IN, as its logical id — the proof a
+    /// habit is learned from. Nil when the act targeted no application (a
+    /// catalog lookup, a cognitive Skill) or when the adapter cannot say which
+    /// one answered. PIN: evidence, never a request — an `app` ARGUMENT says
+    /// where a caller aimed, and aiming is not landing.
+    public var applicationID: String?
+
     public init(
         ok: Bool,
         summary: String,
@@ -104,7 +111,8 @@ public struct SkillOutcome: Sendable {
         landed: Bool = false,
         target: AXElementRecord? = nil,
         adapterTrail: [AdapterID] = [],
-        committedGuess: Bool = false
+        committedGuess: Bool = false,
+        applicationID: String? = nil
     ) {
         self.ok = ok
         self.summary = summary
@@ -122,5 +130,6 @@ public struct SkillOutcome: Sendable {
         self.target = target
         self.adapterTrail = adapterTrail
         self.committedGuess = committedGuess
+        self.applicationID = applicationID
     }
 }

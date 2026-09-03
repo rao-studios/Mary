@@ -2,7 +2,7 @@
 //  EmbeddingRoutingTests.swift
 //  MaryBrainTests
 //
-//  WHAT: Fake orthogonal clusters — playlist vs song, look vs operate, exemplars.
+//  WHAT: Fake orthogonal clusters — playlist vs song, look vs operate, habits.
 //  OUT:  SemanticIntentIndex / SemanticSkillRequestIndex / EmbeddingRouting.uniqueWinner
 //  PIN:  A miss is nil, never a leftover shared vector.
 //
@@ -31,7 +31,7 @@ import Testing
 
     @Test func screenshotUtterancesOperateAndUniquePlayPlaylist() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         for utterance in [Self.screenshotOpen, Self.screenshotInApp] {
             let query = RoutingQuery.compose(
                 utterance: utterance,
@@ -40,10 +40,10 @@ import Testing
                     attention: .applications,
                     applicationID: "com.apple.dt.Xcode"))
             let verdict = try #require(
-                env.intent.classify(query, exemplars: store),
+                env.intent.classify(query, habits: store),
                 "\(utterance) did not classify")
             #expect(verdict.intent == .operate, "\(utterance)")
-            let affinities = env.skills.affinities(in: query, exemplars: store)
+            let affinities = env.skills.affinities(in: query, habits: store)
             let winner = try #require(
                 EmbeddingRouting.uniqueWinner(
                     affinities: affinities, snapshot: env.snapshot),
@@ -65,20 +65,20 @@ import Testing
 
     @Test func aSongTitlePicksPlayMusicNotPlayPlaylist() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let utterance = "Play Stand by Me."
-        let verdict = try #require(env.intent.classify(utterance, exemplars: store))
+        let verdict = try #require(env.intent.classify(utterance, habits: store))
         #expect(verdict.intent == .operate)
         let winner = try #require(
             EmbeddingRouting.uniqueWinner(
-                affinities: env.skills.affinities(in: utterance, exemplars: store),
+                affinities: env.skills.affinities(in: utterance, habits: store),
                 snapshot: env.snapshot))
         #expect(winner.skill.id == SkillID("multimedia.play-music"))
     }
 
     @Test func lookingAtCodeWithACodingLeadIsPerceive() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let query = RoutingQuery.compose(
             utterance: "Let's look at this code",
             world: AmbientWorld.Snapshot(
@@ -86,26 +86,26 @@ import Testing
                 attention: .applications,
                 subject: "main.swift",
                 applicationID: "com.apple.dt.Xcode"))
-        let verdict = try #require(env.intent.classify(query, exemplars: store))
+        let verdict = try #require(env.intent.classify(query, habits: store))
         #expect(verdict.intent == .perceive)
         #expect(
             EmbeddingRouting.uniqueWinner(
-                affinities: env.skills.affinities(in: query, exemplars: store),
+                affinities: env.skills.affinities(in: query, habits: store),
                 snapshot: env.snapshot) == nil)
     }
 
-    @Test func anOkExemplarPullsAParaphraseAboveTheFloor() throws {
+    @Test func anOkHabitPullsAParaphraseAboveTheFloor() throws {
         let env = try #require(try Self.environment(), "fixture failed to build")
-        let empty = RoutingExemplarStore()
-        let loaded = RoutingExemplarStore()
+        let empty = RoutingHabitStore()
+        let loaded = RoutingHabitStore()
         let paraphrase = "that rao mix again"
-        #expect(env.skills.affinities(in: paraphrase, exemplars: empty).isEmpty)
-        loaded.record(RoutingExemplar(
+        #expect(env.skills.affinities(in: paraphrase, habits: empty).isEmpty)
+        loaded.record(RoutingHabit(
             query: "the usual rao mix",
             skillID: "multimedia.play-playlist",
             intent: AmbientIntent.operate.rawValue,
             ok: true))
-        let affinities = env.skills.affinities(in: paraphrase, exemplars: loaded)
+        let affinities = env.skills.affinities(in: paraphrase, habits: loaded)
         #expect(
             (affinities[SkillID("multimedia.play-playlist")] ?? 0)
                 >= EmbeddingRouting.floor)
@@ -246,7 +246,7 @@ import Testing
         var skills: SemanticSkillRequestIndex
     }
 
-    /// A minimal synthetic package carrying only the `perceive` exemplars —
+    /// A minimal synthetic package carrying only the `perceive` habits —
     /// the real `coding.mary` seeds these, but this suite loads only
     /// `multimedia.mary` (the package the confidence-dispatch tests are
     /// about), so a small fixture record supplies the third cluster the
@@ -265,13 +265,13 @@ import Testing
                 id: "tests.perceive-fixture",
                 version: "1.0.0",
                 publisher: "tests",
-                summary: "Perceive-intent exemplar fixture."),
+                summary: "Perceive-intent seed fixture."),
             ability: .init(
                 id: AbilityID("fixture-perceive"),
                 title: "Fixture",
                 summary: "Fixture ability.",
                 tint: "#112233",
-                triggers: AbilityTriggerSchema(intentExemplars: [
+                triggers: AbilityTriggerSchema(intentSeeds: [
                     "perceive": [
                         "look at this code",
                         "let's take a look at this",
@@ -363,7 +363,7 @@ import Testing
             "pause the music",
             "skip this song",
         ],
-        // 4 — exemplar paraphrase pair (orthogonal to playlist seeds)
+        // 4 — habit paraphrase pair (orthogonal to playlist seeds)
         [
             "the usual rao mix",
             "that rao mix again",

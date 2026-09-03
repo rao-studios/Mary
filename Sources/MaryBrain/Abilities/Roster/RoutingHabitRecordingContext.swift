@@ -1,21 +1,21 @@
 //
-//  ExemplarRecordingContext.swift
+//  RoutingHabitRecordingContext.swift
 //  MaryBrain
 //
-//  WHAT: WHO may teach the router, and what the lesson says.
+//  WHAT: WHO may teach the router, and what the habit says.
 //  IN:   the lanes that represent a real routing decision
 //  OUT:  the grant `AbilityRuntime.dispatch` requires before recording
 //  PIN:  Recording lived in the dispatch chokepoint with NO notion of lane, so
 //        every dispatch taught the router something — including a `type_at_cursor`
 //        whose "utterance" was "yes please", and the runtime's own internal
-//        pre-reads. A lesson is only worth learning when the words that caused
+//        pre-reads. A habit is only worth learning when the words that caused
 //        the act are the words being stored.
 //
 import MaryAmbient
 import Foundation
 import os
 
-public enum ExemplarRecordingContext {
+public enum RoutingHabitRecordingContext {
 
     /// Which road reached the dispatch. The distinction is not bookkeeping:
     /// it decides whether a READ may be learned (see `AbilityRuntime`).
@@ -29,7 +29,7 @@ public enum ExemplarRecordingContext {
         case model
     }
 
-    /// One lesson per lane instance. A routine's second and third steps run
+    /// One habit per lane instance. A routine's second and third steps run
     /// under the same utterance; without this they would each map that
     /// utterance onto a Skill the user never named.
     public final class Budget: @unchecked Sendable {

@@ -132,18 +132,18 @@ extension MaryBrain {
         // already exist when they run. Under Apple's model this also collapses
         // the four separate vectorizations of the same sentence a turn used to
         // pay for; under Seer's it is the only way the tier works at all.
-        RoutingExemplarStore.shared.clearRecall()
+        RoutingHabitStore.shared.clearRecall()
         // NOTHING TO DO IS NOT WORK. With no vectorizer and no memory backend
         // there is nothing to warm and nothing to recall, and wrapping that in
         // a budget still costs a scheduling hop on every turn — enough to
         // reorder a routine racing a history trim.
         let warmsThisTurn = MaryEmbeddings.engine() != nil
-        let recallsThisTurn = RoutingExemplarMemoryProvider.isInstalled
+        let recallsThisTurn = RoutingHabitMemoryProvider.isInstalled
         if let prepare = turnContextPreparer {
             _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
                 async let warmed: Void = MaryEmbeddings.warm(userText)
                 async let recalled: Void = recallsThisTurn
-                    ? RoutingExemplarStore.shared.recall(near: userText) : ()
+                    ? RoutingHabitStore.shared.recall(near: userText) : ()
                 await prepare()
                 await warmed
                 await recalled
@@ -158,7 +158,7 @@ extension MaryBrain {
             _ = await withNanosecondBudget(Self.turnContextRefreshBudgetNanoseconds) {
                 async let warmed: Void = MaryEmbeddings.warm(userText)
                 if recallsThisTurn {
-                    await RoutingExemplarStore.shared.recall(near: userText)
+                    await RoutingHabitStore.shared.recall(near: userText)
                 }
                 await warmed
                 return Optional(())
@@ -356,7 +356,7 @@ extension MaryBrain {
         Self.turnLog.info(
             "embed query — chars=\(userText.count, privacy: .public) \(worldBit, privacy: .public) \(historyBit, privacy: .public)")
         // Hoisted above the classify: the intent index rides the frozen
-        // registry (package-authored `intentExemplars`), not a process-wide
+        // registry (package-authored `intentSeeds`), not a process-wide
         // static — a fake dispatcher's `.empty` snapshot degrades cleanly to
         // the lexical ladder, in tests and in a headless probe alike.
         // ONE BINDING for the whole body: inside a turn this only reads the
@@ -490,7 +490,7 @@ extension MaryBrain {
                 // Skill uniquely from these very words, so the row reinforces
                 // a win the corpus already produced. Reads included, for the
                 // same reason.
-                exemplarGrant: ExemplarRecordingContext.grant(
+                routingHabitGrant: RoutingHabitRecordingContext.grant(
                     lane: .confidence, query: userText, route: route.intent),
                 continuation: continuation,
                 epoch: epoch)

@@ -58,9 +58,13 @@ struct AbilityStudioRehearsal {
 
     /// What the turn loop would do with this sentence.
     enum Verdict: Hashable {
-        /// One skill clears the floor and the margin — the turn dispatches with
-        /// no model round at all.
-        case dispatches(String)
+        /// One skill clears the floor and the margin AND has a shape the
+        /// shortcut can fill — the turn dispatches with no model round at all.
+        case dispatches(String, in: String?)
+        /// Wins its tier, but its arguments are not a spoken span the shortcut
+        /// may fill (an enum, a composed value), so the turn takes one model
+        /// round with this Skill offered first. `confidenceShape` is the gate.
+        case modelFills(leader: String, in: String?)
         /// Two or more sit within the margin; the shortcut is suppressed.
         case tooClose(winner: String, crowder: String, delta: Float)
         /// Nothing clears the floor.
@@ -72,6 +76,9 @@ struct AbilityStudioRehearsal {
     let utterance: String
     let abilities: [Candidate]
     let skills: [Candidate]
+    /// Who inherits the winning Skill's discipline, ranked by habit. Nil when
+    /// the winner's ability is not a discipline or nothing extends it.
+    let expertise: ExpertiseResolution.Verdict?
     let verdict: Verdict
     /// The registry these numbers came from. Indexes are built at reload, so a
     /// fixture added now changes them only after Save.
@@ -93,23 +100,53 @@ struct AbilityStudioRehearsal {
                 utterance: trimmed,
                 abilities: [],
                 skills: [],
+                expertise: nil,
                 verdict: trimmed.isEmpty ? .nothingMatched : .noBackend,
                 revision: revision)
         }
 
         let skillAffinities = snapshot.semanticSkillIndex?
-            .affinities(in: trimmed, exemplars: .shared) ?? [:]
+            .affinities(in: trimmed, habits: .shared) ?? [:]
         let abilityAffinities = snapshot.abilityAffinities(in: trimmed)
 
         let skills = rankedSkills(skillAffinities, snapshot: snapshot)
         let abilities = rankedAbilities(abilityAffinities, snapshot: snapshot)
 
+        // THE THIRD TIER, resolved by the SAME function the dispatch uses. It
+        // is asked about the leading Skill whether or not the shortcut fires,
+        // because the model lane fills `app` from this ranking too.
+        let leader = EmbeddingRouting.uniqueWinner(
+            affinities: skillAffinities, snapshot: snapshot)
+            ?? skills.first { $0.standing != .belowFloor }
+                .flatMap { snapshot.skill(id: SkillID($0.id)) }
+        let expertise = leader.flatMap { runtime in
+            ExpertiseResolution.resolve(
+                for: runtime,
+                snapshot: snapshot,
+                assertedApplicationIDs: Self.namedApplications(
+                    in: trimmed, snapshot: snapshot),
+                utterance: trimmed)
+        }
+
         return AbilityStudioRehearsal(
             utterance: trimmed,
             abilities: abilities,
             skills: skills,
-            verdict: verdict(for: skills, affinities: skillAffinities, snapshot: snapshot),
+            expertise: expertise,
+            verdict: verdict(
+                for: skills, utterance: trimmed, affinities: skillAffinities,
+                snapshot: snapshot, expertise: expertise),
             revision: revision)
+    }
+
+    /// Applications this sentence NAMES, by the same test the turn's own gate
+    /// uses (`AmbientIntentGate.resolve` → `ApplicationProfile.isMentioned`).
+    private static func namedApplications(
+        in utterance: String, snapshot: AbilityRuntimeSnapshot
+    ) -> Set<String> {
+        Set(snapshot.plugins.applicationProfiles
+            .filter { $0.isMentioned(in: utterance) }
+            .map(\.id))
     }
 
     // MARK: - Ranking
@@ -175,19 +212,36 @@ struct AbilityStudioRehearsal {
         return delta < margin ? .crowding : .contender
     }
 
-    /// Mirrors `EmbeddingRouting.uniqueWinner`: a shortcut needs the floor AND
-    /// the margin, and the winner must be ready and model-exposed.
+    /// Mirrors the turn loop's WHOLE gate, not just the tier: a shortcut needs
+    /// the floor and the margin (`uniqueWinner`), a ready, model-exposed
+    /// winner, AND arguments the shortcut may fill (`confidenceShape`) — plus,
+    /// for a verb carrying no span, a single clause.
+    ///
+    /// THE SHAPE GATE IS NOT DECORATION. `control_playback`'s one required
+    /// argument is an enum, so "pause the music" has always taken a model
+    /// round; a rehearsal that stopped at `uniqueWinner` promised a shortcut
+    /// the turn loop would never take.
     private static func verdict(
         for skills: [Candidate],
+        utterance: String,
         affinities: [SkillID: Float],
-        snapshot: AbilityRuntimeSnapshot
+        snapshot: AbilityRuntimeSnapshot,
+        expertise: ExpertiseResolution.Verdict?
     ) -> Verdict {
+        let landing = expertise?.chosen?.title
         let above = skills.filter { $0.standing != .belowFloor }
         guard let leader = above.first else { return .nothingMatched }
         if let winner = EmbeddingRouting.uniqueWinner(
             affinities: affinities,
             snapshot: snapshot) {
-            return .dispatches(winner.skill.title)
+            guard let shape = EmbeddingRouting.confidenceShape(of: winner) else {
+                return .modelFills(leader: winner.skill.title, in: landing)
+            }
+            if shape == .noRequiredArguments,
+               !EmbeddingRouting.isSingleClause(utterance) {
+                return .modelFills(leader: winner.skill.title, in: landing)
+            }
+            return .dispatches(winner.skill.title, in: landing)
         }
         if let crowder = above.dropFirst().first, crowder.standing == .crowding {
             return .tooClose(
@@ -204,8 +258,14 @@ struct AbilityStudioRehearsal {
 
     var verdictWord: String {
         switch verdict {
-        case .dispatches(let title):
-            return "Mary answers with \(title), no model round at all."
+        case .dispatches(let title, let landing):
+            guard let landing else {
+                return "Mary answers with \(title), no model round at all."
+            }
+            return "Mary answers with \(title) in \(landing), no model round at all."
+        case .modelFills(let leader, let landing):
+            let place = landing.map { " in \($0)" } ?? ""
+            return "\(leader) leads, but its arguments are structured, so the model fills them in — one model round, \(leader)\(place) offered first."
         case .tooClose(let winner, let crowder, let delta) where winner != crowder:
             return "\(crowder) sits \(String(format: "%.2f", delta)) under \(winner), inside the \(String(format: "%.2f", Self.margin)) margin — Mary will not take the shortcut."
         case .tooClose(let winner, _, _):
@@ -218,8 +278,42 @@ struct AbilityStudioRehearsal {
     }
 
     var isClean: Bool {
-        if case .dispatches = verdict { return true }
-        return false
+        switch verdict {
+        // A model round that reaches the right Skill in the right application
+        // is a correct routing outcome, not a fault — the banner must not
+        // shout about a Skill whose arguments simply are not a spoken span.
+        case .dispatches, .modelFills: return true
+        default: return false
+        }
+    }
+
+    /// The third tier's one-line reading.
+    var expertiseWord: String? {
+        guard let expertise, let chosen = expertise.chosen else { return nil }
+        switch chosen.standing {
+        case .asserted:
+            return "\(chosen.title) — you named it."
+        case .habitual:
+            let runnerUp = expertise.candidates.dropFirst().first?.weight ?? 0
+            let seen = chosen.lastSeen.map {
+                " — last used \(Self.ago(from: $0))"
+            } ?? ""
+            return String(
+                format: "%@ leads by habit, %.2f vs %.2f%@",
+                chosen.title, chosen.weight, runnerUp, seen)
+        case .fallback, .staticPreference:
+            return "\(chosen.title) — no habit yet, so the packages' own preference decides."
+        }
+    }
+
+    private static func ago(from date: Date) -> String {
+        let seconds = Date().timeIntervalSince(date)
+        if seconds < 90 { return "just now" }
+        let minutes = Int(seconds / 60)
+        if minutes < 60 { return "\(minutes)m ago" }
+        let hours = minutes / 60
+        if hours < 24 { return "\(hours)h ago" }
+        return "\(hours / 24)d ago"
     }
 
     /// The crowder, when there is one — the row a fixture is meant to separate.

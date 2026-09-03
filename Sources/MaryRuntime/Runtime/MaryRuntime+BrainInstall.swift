@@ -82,9 +82,12 @@ extension MaryRuntime {
         // 1. Seams first — inversions so MaryAmbient does not call up.
         ProseSurfaceSupport.shared.installBackingResolver()
         AmbientCapabilityBridge.install()
-        // Routing lessons are personal memory. MaryBrain cannot name Totem
+        // Routing habits are personal memory. MaryBrain cannot name Totem
         // (it does not depend on MaryTotem), so the runtime hands it a backend.
-        RoutingExemplarMemoryProvider.install { TotemRoutingExemplarMemory() }
+        RoutingHabitMemoryProvider.install { TotemRoutingHabitMemory() }
+        // Which application this person reaches for, per discipline — same
+        // inversion, same reason.
+        ApplicationHabitMemoryProvider.install { TotemApplicationHabitMemory() }
 
         // 2. Package graph.
         let load = AbilityLibrary.shared.configureAndLoad(
@@ -103,6 +106,17 @@ extension MaryRuntime {
         applicationProfilesBox.withLock { $0 = profiles }
         // Joined roster, not compiled adapters alone — taught apps would answer nil.
         AmbientApplicationBridge.install(profiles: profiles)
+        // Habits — restored per activation, not per launch only, so a newly
+        // installed discipline gets its ledger too. Detached: a ranking that
+        // has not arrived yet falls back to declared preference, which is
+        // exactly the cold-start answer.
+        let restoredDisciplines = load.snapshot.disciplines
+        if ApplicationHabitMemoryProvider.isInstalled, !restoredDisciplines.isEmpty {
+            Task.detached {
+                await ApplicationHabitLedger.shared.restore(
+                    disciplines: restoredDisciplines)
+            }
+        }
         // Prose surfaces — re-installed every activation (import/edit changes the set).
         ProseSurfaceSupport.shared.reconcile(
             proseSurfaceRegistrations(from: load.snapshot))

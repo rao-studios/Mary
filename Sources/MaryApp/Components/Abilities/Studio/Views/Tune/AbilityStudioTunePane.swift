@@ -141,14 +141,14 @@ struct AbilityStudioTunePane: View {
                         }
                     }
                     StudioChipEditor(
-                        values: ability.triggers.intentExemplars[intentKey] ?? [],
+                        values: ability.triggers.intentSeeds[intentKey] ?? [],
                         placeholder: "a whole sentence someone would say…"
                     ) { next in
                         model.mutateDraftPackage { draft in
                             if next.isEmpty {
-                                draft.ability.triggers.intentExemplars[intentKey] = nil
+                                draft.ability.triggers.intentSeeds[intentKey] = nil
                             } else {
-                                draft.ability.triggers.intentExemplars[intentKey] = next
+                                draft.ability.triggers.intentSeeds[intentKey] = next
                             }
                         }
                     }

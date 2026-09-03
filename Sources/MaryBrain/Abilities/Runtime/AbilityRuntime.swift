@@ -192,12 +192,21 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     >(initialState: nil)
     /// Where settled outcomes are recorded. `.shared` (persist: true) in
     /// production; a unit test that dispatches must not write to
-    /// `~/Library/Application Support/Mary/routing-exemplars.json`.
-    private let exemplarStore = OSAllocatedUnfairLock<RoutingExemplarStore>(
+    /// `~/Library/Application Support/Mary/routing-habits.json`.
+    private let routingHabitStore = OSAllocatedUnfairLock<RoutingHabitStore>(
         initialState: .shared)
 
-    func setExemplarStoreForTesting(_ store: RoutingExemplarStore) {
-        exemplarStore.withLock { $0 = store }
+    func setRoutingHabitStoreForTesting(_ store: RoutingHabitStore) {
+        routingHabitStore.withLock { $0 = store }
+    }
+
+    /// Where "which app you reach for" is tallied. `.shared` in production; a
+    /// unit test that dispatches must not teach the real personal ledger.
+    private let applicationHabitLedger = OSAllocatedUnfairLock<ApplicationHabitLedger>(
+        initialState: .shared)
+
+    func setApplicationHabitLedgerForTesting(_ ledger: ApplicationHabitLedger) {
+        applicationHabitLedger.withLock { $0 = ledger }
     }
 
     public init(
@@ -991,10 +1000,10 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
            cached.utterance == utterance {
             return cached.affinities
         }
-        // THE INJECTED STORE, not `.shared` — `setExemplarStoreForTesting`
+        // THE INJECTED STORE, not `.shared` — `setRoutingHabitStoreForTesting`
         // only isolates a test if every read honours it.
         let computed = abilitySnapshot.semanticSkillIndex?
-            .affinities(in: utterance, exemplars: exemplarStore.withLock { $0 }) ?? [:]
+            .affinities(in: utterance, habits: routingHabitStore.withLock { $0 }) ?? [:]
         semanticSkillAffinityCache.withLock { $0 = (utterance, computed) }
         return computed
     }
@@ -1097,11 +1106,26 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         }
         let interaction = route?.selectionDefinesTurn == true
             ? route?.world?.applicationID : nil
+        let ledger = applicationHabitLedger.withLock { $0 }
+        let utterance = world.store.utterance()
         let signals = ApplicationProviderSignals(
             namedApplicationIDs: named,
             interactionApplicationID: interaction,
             pinnedApplicationID: nil,
-            focusedApplicationID: focusedApplicationID)
+            focusedApplicationID: focusedApplicationID,
+            // Only a settled habit — `resolve` reports `.habitual` solely when
+            // one player leads the decayed tally, so a cold start falls
+            // through to the declared preference rung below.
+            habitualApplicationID: { [snapshot] abilityID in
+                guard let skill = snapshot.skills.first(where: {
+                    $0.ability.id == abilityID
+                }) else { return nil }
+                let verdict = ExpertiseResolution.resolve(
+                    for: skill, snapshot: snapshot,
+                    utterance: utterance, ledger: ledger)
+                guard verdict?.isHabitual == true else { return nil }
+                return verdict?.chosen?.applicationID
+            })
         let resolved = ApplicationProviderResolver.resolve(
             snapshot: snapshot, signals: signals,
             // Combined list (native included) so a spoken native-app name hits the mismatch ledger.
@@ -1657,7 +1681,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             ok: outcome.ok,
             foundNothing: outcome.foundNothing,
             disposition: record.disposition.rawValue)
-        // Only a SUCCEEDED dispatch feeds the exemplar store. `outcome.ok`
+        // Only a SUCCEEDED dispatch feeds the habit store. `outcome.ok`
         // conflates "was this the right Skill" with "did it execute" — an AX
         // timeout, an unrelated adapter bug, or a since-fixed defect all read
         // as `ok: false` / `foundNothing: true` with zero bearing on whether
@@ -1665,15 +1689,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         // suppresses this phrasing's affinity for the Skill (see
         // `SemanticSkillRequestIndex`'s negative-margin gate) even after the
         // real defect is fixed — the exact "a bad night pins a centroid"
-        // outcome `RoutingExemplarStore`'s own PIN says must not happen.
+        // outcome `RoutingHabitStore`'s own PIN says must not happen.
         //
         // AND ONLY A DISPATCH A LANE VOUCHED FOR. Recording used to happen for
         // every caller of this chokepoint — the accepted-prose path storing
         // "yes please" as the way to ask for `type_at_cursor`, the runtime's
         // own pre-reads storing the user's sentence against a Skill they never
-        // asked for. `ExemplarRecordingContext.grant` is how a lane says "these
+        // asked for. `RoutingHabitRecordingContext.grant` is how a lane says "these
         // words caused this act"; without one, nothing is learned.
-        if let grant = ExemplarRecordingContext.grant,
+        if let grant = RoutingHabitRecordingContext.grant,
            name != Self.confirmSkillName, name != Self.cancelSkillName,
            outcome.ok, !outcome.foundNothing,
            let skillID = abilitySnapshot.skill(invocationName: name)?.skill.id,
@@ -1685,11 +1709,28 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
            // from this query, so the row only reinforces its own win.
            grant.lane == .confidence || !isReadOnly(name),
            grant.budget.consume() {
-            EmbeddingRouting.recordExemplars(
+            EmbeddingRouting.recordRoutingHabits(
                 query: grant.query,
                 intent: grant.intent,
                 outcomes: [(skillID.rawValue, true)],
-                store: exemplarStore.withLock { $0 })
+                store: routingHabitStore.withLock { $0 })
+        }
+        // WHICH PLAYER, alongside which Skill. Same success gate as the
+        // habit above — a vouched dispatch that actually landed — but no
+        // budget: the budget exists so one turn teaches one PHRASING, whereas
+        // every act in a player is a vote about where this person works.
+        if RoutingHabitRecordingContext.grant != nil,
+           name != Self.confirmSkillName, name != Self.cancelSkillName,
+           outcome.ok, !outcome.foundNothing,
+           let runtime = abilitySnapshot.skill(invocationName: name),
+           let habit = ExpertiseResolution.habit(
+               proving: runtime,
+               outcome: outcome,
+               providerApplicationID: turnProviderSelection(
+                   snapshot: abilitySnapshot)
+                   .choice(for: runtime.skill.id)?.provider?.applicationID,
+               snapshot: abilitySnapshot) {
+            applicationHabitLedger.withLock { $0 }.record(habit)
         }
         return outcome
     }
@@ -1874,6 +1915,32 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
 
         var arguments = Self.stringArguments(fromJSON: argumentsJSON)
         arguments = Self.reconcile(arguments, against: binding.parameters)
+        // THE SILENCE THIS FILLS: "pause the music" names no player, and a
+        // discipline's Skill has no application of its own. When something
+        // inherits that discipline, the person's own habit says which one they
+        // mean — so they never have to say "in Apple Music" again, and when
+        // they move to another player the ranking follows them.
+        //
+        // ONLY THE SILENCE. A named app arrives via the provider ladder's
+        // decisive rung and wins there; a model that filled `app` itself is
+        // left alone.
+        if let runtimeSkill,
+           binding.parameters.contains(where: { $0.name == "app" }),
+           (arguments["app"] ?? "").isEmpty,
+           let verdict = ExpertiseResolution.resolve(
+               for: runtimeSkill,
+               snapshot: snapshot,
+               assertedApplicationIDs: turnProviderSelection(snapshot: snapshot)
+                   .decisiveApplicationIDs,
+               // So a shared word like "music" cannot count as naming a
+               // player — see `assertionIsOnlyDisciplineVocabulary`.
+               utterance: world.store.utterance(),
+               ledger: applicationHabitLedger.withLock { $0 }),
+           let chosen = verdict.chosen {
+            arguments["app"] = chosen.applicationID
+            Self.timingLog.info(
+                "expertise — discipline=\(verdict.disciplineID.rawValue, privacy: .public) chose=\(chosen.applicationID, privacy: .public) standing=\(chosen.standing.rawValue, privacy: .public)")
+        }
         // `type_at_cursor` covers compose and replace-selection — requirement is conditional.
         if binding.name == "type_at_cursor",
            arguments["mode"] == "replace_selection",

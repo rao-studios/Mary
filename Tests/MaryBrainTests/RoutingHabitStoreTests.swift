@@ -1,5 +1,5 @@
 //
-//  ExemplarStoreTests.swift
+//  RoutingHabitStoreTests.swift
 //  MaryBrainTests
 //
 //  WHAT: The learning loop's store — what it vectorizes, what it keeps.
@@ -13,7 +13,7 @@ import Testing
 @testable import MaryBrain
 @testable import MaryFoundation
 
-@Suite struct ExemplarStoreTests {
+@Suite struct RoutingHabitStoreTests {
 
     /// THE INERTNESS FIX. Production recorded the COMPOSED routing query
     /// (utterance, then `lead:` and `recent:` lines) while every consumer
@@ -24,13 +24,13 @@ import Testing
     /// Read-time first-lining means rows already on disk regain their effect
     /// without a migration.
     @Test func aComposedRowScoresAsItsFirstLine() {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let composed = """
             the usual rao mix
             lead: Apple Music
             recent: what is playing | turn it up
             """
-        store.record(RoutingExemplar(
+        store.record(RoutingHabit(
             query: composed,
             skillID: "multimedia.play-playlist",
             intent: AmbientIntent.operate.rawValue,
@@ -50,10 +50,10 @@ import Testing
     /// append-only and keyed by full query text, so it grew with every
     /// distinct sentence ever recorded, unbounded, for the life of the process.
     @Test func theMemoDoesNotOutliveItsRows() {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let vectorizer = LineVectorizer(lines: (0..<40).map { "phrase \($0)" })
         for index in 0..<40 {
-            store.record(RoutingExemplar(
+            store.record(RoutingHabit(
                 query: "phrase \(index)",
                 skillID: "fixture.skill",
                 intent: AmbientIntent.operate.rawValue,
@@ -62,23 +62,23 @@ import Testing
             _ = store.vectors(skillID: "fixture.skill", ok: true, vectorizer: vectorizer)
         }
         // perSkillCap is 24, so 16 of the 40 have been evicted.
-        #expect(store.count == RoutingExemplarStore.perSkillCap)
+        #expect(store.count == RoutingHabitStore.perSkillCap)
         #expect(
-            store.cachedVectorCountForTesting <= RoutingExemplarStore.perSkillCap,
+            store.cachedVectorCountForTesting <= RoutingHabitStore.perSkillCap,
             "memo held \(store.cachedVectorCountForTesting) vectors for \(store.count) rows")
     }
 
     /// The derived view answers the two questions its readers ask, in recency
     /// order, without copying the whole store per call.
     @Test func queriesComeBackNewestFirstAndSplitByOutcome() {
-        let store = RoutingExemplarStore()
+        let store = RoutingHabitStore()
         let base = Date()
-        store.record(RoutingExemplar(
+        store.record(RoutingHabit(
             query: "older", skillID: "s", intent: "operate", ok: true,
             storedAt: base.addingTimeInterval(-10)))
-        store.record(RoutingExemplar(
+        store.record(RoutingHabit(
             query: "newer", skillID: "s", intent: "operate", ok: true, storedAt: base))
-        store.record(RoutingExemplar(
+        store.record(RoutingHabit(
             query: "failed", skillID: "s", intent: "operate", ok: false, storedAt: base))
 
         #expect(store.queries(skillID: "s", ok: true) == ["newer", "older"])

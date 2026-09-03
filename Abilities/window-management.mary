@@ -78,7 +78,7 @@
         "make-window-full-screen",
         "exit-full-screen"
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "operate" : [
           "bring the window forward",
           "close the window",
@@ -439,7 +439,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "cd52e3cae2060f1c9be1f58d6f6a8da23d55e00c56d6427dbcd8dfe2cfb180d9"
+    "digest" : "12740f13db859df5444df5b70f9b9744190f32dfd48bd043fad2cebf289b83d1"
   },
   "interactions" : [
     {

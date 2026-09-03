@@ -3,12 +3,12 @@
 //  MaryBrain
 //
 //  WHAT: Embedding operate / perceive / compose / ask / converse from
-//        package-authored exemplars (`ability.triggers.intentExemplars`).
+//        package-authored seeds (`ability.triggers.intentSeeds`).
 //  IN:   RoutingQuery string
 //  OUT:  AmbientEngine.embeddingIntent
 //  PIN:  Halt / confirm / edit / revise / architect stay lexical — never
 //        entered here. Fail closed → converse. Corpus is package data, not a
-//        fixed dictionary: any ability may seed its own intent exemplars.
+//        fixed dictionary: any ability may seed its own intent seeds.
 //
 import MaryAmbient
 import MaryFoundation
@@ -77,7 +77,7 @@ public struct SemanticIntentIndex: Sendable {
         var vector: [Float]
     }
 
-    /// Every installed package's own exemplars, plus the built-in converse
+    /// Every installed package's own habits, plus the built-in converse
     /// baseline. Built off the turn path, in the same breath as the Ability
     /// and Skill embedding indexes — see `AbilityLibrary+PackageLifecycle`.
     public static func build(
@@ -99,7 +99,7 @@ public struct SemanticIntentIndex: Sendable {
         }
 
         for record in records {
-            for (key, terms) in record.package.ability.triggers.intentExemplars {
+            for (key, terms) in record.package.ability.triggers.intentSeeds {
                 guard let intent = AmbientIntent(rawValue: key),
                       eligibleIntents.contains(intent)
                 else {
@@ -144,7 +144,7 @@ public struct SemanticIntentIndex: Sendable {
         guard !entries.isEmpty else { return nil }
         let dim = entries.first?.positives.first?.count ?? 0
         MaryBrain.turnLog.info(
-            "embed generate — intent entries=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) unknownKeys=\(unknownIntentKeys, privacy: .public) conflicts=\(conflicts, privacy: .public) exemplars=\(RoutingExemplarStore.shared.count, privacy: .public)")
+            "embed generate — intent entries=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) unknownKeys=\(unknownIntentKeys, privacy: .public) conflicts=\(conflicts, privacy: .public) habits=\(RoutingHabitStore.shared.count, privacy: .public)")
         return SemanticIntentIndex(entries: entries, vectorizer: vectorizer)
     }
 
@@ -156,7 +156,7 @@ public struct SemanticIntentIndex: Sendable {
     /// Best intent at or above the floor with a margin over the runner-up.
     public func classify(
         _ query: String,
-        exemplars: RoutingExemplarStore = .shared,
+        habits: RoutingHabitStore = .shared,
         floor: Float = floor,
         margin: Float = margin
     ) -> Verdict? {
@@ -165,9 +165,9 @@ public struct SemanticIntentIndex: Sendable {
         var scored: [(AmbientIntent, Float)] = []
         for entry in entries {
             let positives = entry.positives
-                + exemplars.vectors(intent: entry.intent.rawValue, ok: true, vectorizer: vectorizer)
+                + habits.vectors(intent: entry.intent.rawValue, ok: true, vectorizer: vectorizer)
             let best = positives.map { AmbientVectorMath.dot($0, needle) }.max() ?? -1
-            let negatives = exemplars.vectors(
+            let negatives = habits.vectors(
                 intent: entry.intent.rawValue, ok: false, vectorizer: vectorizer)
             let bestNegative = negatives.map { AmbientVectorMath.dot($0, needle) }.max() ?? -1
             if bestNegative >= 0, best - bestNegative < SemanticAbilityRequestIndex.defaultNegativeMargin {

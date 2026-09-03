@@ -61,7 +61,7 @@ extension MaryBrain {
 
         // G3 — revision veto. Bounds and judgement live in `RevisionVeto`; this is plumbing.
         var veto = RevisionVeto(target: target)
-        // World veto — armed by a revise-cue with a live ledger referent, never by the exemplar.
+        // World veto — armed by a revise-cue with a live ledger referent, never by the habit.
         var worldVeto = WorldVeto(arming: worldVetoArming)
 
         var usedEmptyRetry = false
@@ -72,7 +72,7 @@ extension MaryBrain {
         // later steps must not each map this utterance onto a Skill the user
         // never named. Nil when the route teaches nothing (revise, halt, and
         // the classifier-owned intents the embedding never settles).
-        let exemplarGrant = ExemplarRecordingContext.grant(
+        let routingHabitGrant = RoutingHabitRecordingContext.grant(
             lane: .model, query: userText, route: routeIntent)
         var usedContinuation = false
         var round = 0
@@ -292,7 +292,7 @@ extension MaryBrain {
                         continue
                     }
                     let startedAt = Date()
-                    let outcome = await ExemplarRecordingContext.withGrant(exemplarGrant) {
+                    let outcome = await RoutingHabitRecordingContext.withGrant(routingHabitGrant) {
                         await dispatcher.dispatch(
                             name: call.name, argumentsJSON: call.argumentsJSON,
                             runID: call.id)

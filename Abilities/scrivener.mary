@@ -79,7 +79,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "compose" : [
           "add this as a new scene under the current folder"
         ],
@@ -132,7 +132,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "e3b1940bd7a979d2c4cf5eadfea55364ea6e5c42d034d429f41248231963a56e"
+    "digest" : "d5986ceba5cc01a3484cd49b660981538dead3cc05b97abfe8ca3724bec91d26"
   },
   "interactions" : [
 

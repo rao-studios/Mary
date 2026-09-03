@@ -133,7 +133,7 @@ extension MaryBrain {
         // asked its own question of the same words with its own eighteen
         // question-openers and thirteen sight-words. The route already
         // classifies perception from every package's authored `perceive`
-        // exemplars; a parallel word list could only disagree with it.
+        // habits; a parallel word list could only disagree with it.
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
            routeIntent == .perceive {
             let sight = await OwnActCollector.$current.withValue(ownActs) {

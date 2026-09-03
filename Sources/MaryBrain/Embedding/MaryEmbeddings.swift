@@ -20,16 +20,16 @@ import os
 ///
 /// ## Brain — routing corpora (built at registry reload, off the turn path)
 /// Built together in `AbilityLibrary+PackageLifecycle.reload()`.
-/// - `SemanticIntentIndex` — package `intentExemplars` → the turn's intent.
-/// - `SemanticAbilityRequestIndex` — triggers/aliases/exemplars/fixtures →
+/// - `SemanticIntentIndex` — package `intentSeeds` → the turn's intent.
+/// - `SemanticAbilityRequestIndex` — triggers/aliases/habits/fixtures →
 ///   which Abilities the words ask for, and (via `discipline(in:)`) which craft.
 /// - `SemanticSkillRequestIndex` — per-Skill corpus → skill affinities and the
 ///   no-model confidence dispatch.
 /// - `SemanticSeedFamilyIndex` — `seedFamilies` → the transform/offer family.
 ///
 /// ## Brain — the learning loop
-/// - `RoutingExemplarStore` re-scores text recalled from personal Totem memory
-///   (`RoutingExemplarMemory`). Totem ranks in ITS space; the recalled text is
+/// - `RoutingHabitStore` re-scores text recalled from personal Totem memory
+///   (`RoutingHabitMemory`). Totem ranks in ITS space; the recalled text is
 ///   re-vectorized here so it can be compared against the corpora above.
 ///
 /// ## Ambient — what is on screen (installed in `MaryRuntime`)

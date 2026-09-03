@@ -66,7 +66,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "operate" : [
           "put something on in Apple Music",
           "skip this track in the music app",
@@ -115,7 +115,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "0ed2b7940155ff40405c30bc34f5ba5144fe07a7b4bb6334b4212abc93c6dfbb"
+    "digest" : "3cf939457442fc0b0c3199e28e0be128dc099f7d75036d7957bef24467b8ae7f"
   },
   "interactions" : [
 

@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Embedding recall one tier down — which Skill the query is about.
-//  IN:   Skill trigger corpus + settled exemplars
+//  IN:   Skill trigger corpus + settled habits
 //  OUT:  affinities for the arbitrator
 //  PIN:  Tokens seed the corpus; they are not a second matcher.
 //
@@ -76,7 +76,7 @@ public struct SemanticSkillRequestIndex: Sendable {
         guard !entries.isEmpty else { return nil }
         let dim = entries.first?.positives.first?.count ?? 0
         MaryBrain.turnLog.info(
-            "embed generate — skills=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) exemplars=\(RoutingExemplarStore.shared.count, privacy: .public)")
+            "embed generate — skills=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) habits=\(RoutingHabitStore.shared.count, privacy: .public)")
         return SemanticSkillRequestIndex(
             entries: entries, vectorizer: vectorizer, threshold: threshold)
     }
@@ -90,19 +90,19 @@ public struct SemanticSkillRequestIndex: Sendable {
     }
 
     /// Best similarity per Skill, for every Skill that clears the floor.
-    /// Exemplars join the authored positives (ok) or suppress (not ok).
+    /// Habits join the authored positives (ok) or suppress (not ok).
     public func affinities(
         in utterance: String,
-        exemplars: RoutingExemplarStore = .shared
+        habits: RoutingHabitStore = .shared
     ) -> [SkillID: Float] {
         guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
         let query = Self.normalized(raw)
         var affinities: [SkillID: Float] = [:]
         for entry in entries {
             let positives = entry.positives
-                + exemplars.vectors(skillID: entry.skillID.rawValue, ok: true, vectorizer: vectorizer)
+                + habits.vectors(skillID: entry.skillID.rawValue, ok: true, vectorizer: vectorizer)
             let best = positives.map { Self.dot($0, query) }.max() ?? -1
-            let negatives = exemplars.vectors(
+            let negatives = habits.vectors(
                 skillID: entry.skillID.rawValue, ok: false, vectorizer: vectorizer)
             let bestNegative = negatives.map { Self.dot($0, query) }.max() ?? -1
             if bestNegative >= 0,

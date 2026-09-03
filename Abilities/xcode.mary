@@ -69,7 +69,7 @@
       "intentAliases" : [
 
       ],
-      "intentExemplars" : {
+      "intentSeeds" : {
         "operate" : [
           "build and run the current scheme"
         ],
@@ -125,7 +125,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "897e572b86a71ee8465369a96d53f6ada114dc9dd036b99085fa078d7843d4b3"
+    "digest" : "be5e5081bda2a5214b0cddcd1572d16c5462554b16c61e790452514a19f9ab9d"
   },
   "interactions" : [
 

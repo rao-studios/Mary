@@ -84,7 +84,13 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
     /// Authored sentences for `SemanticIntentIndex`, keyed by `AmbientIntent.rawValue`
     /// ("operate", "perceive", "compose", "ask", "converse"). MaryFoundation cannot
     /// see `AmbientIntent` — the key is validated where it is consumed.
-    public var intentExemplars: [String: [String]]
+    ///
+    /// SEEDS, NOT HABITS. These are authored once and frozen until the author
+    /// edits them; a habit is learned from use and decays. The intent index
+    /// takes both — these as its corpus, `RoutingHabitStore` on top — so the
+    /// two must not share a word. `seedFamilies` below is the same kind of
+    /// thing for families rather than intents.
+    public var intentSeeds: [String: [String]]
 
     /// Authored sentences for named SEED FAMILIES — the shapes of speech that
     /// are not an intent and not a Skill, but that the turn body still has to
@@ -101,20 +107,27 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
         phrases: [String] = [],
         negativeTokens: [String] = [],
         intentAliases: [String] = [],
-        intentExemplars: [String: [String]] = [:],
+        intentSeeds: [String: [String]] = [:],
         seedFamilies: [String: [String]] = [:]
     ) {
         self.tokens = tokens
         self.phrases = phrases
         self.negativeTokens = negativeTokens
         self.intentAliases = intentAliases
-        self.intentExemplars = intentExemplars
+        self.intentSeeds = intentSeeds
         self.seedFamilies = seedFamilies
     }
 
     private enum CodingKeys: String, CodingKey {
-        case tokens, phrases, negativeTokens, intentAliases, intentExemplars
+        case tokens, phrases, negativeTokens, intentAliases, intentSeeds
         case seedFamilies
+        /// RETIRED SPELLING, STILL READ. `intentSeeds` was `intentExemplars`
+        /// until the routing vocabulary was split into authored seeds and
+        /// learned habits. This decodes tolerantly and does NOT reject unknown
+        /// keys, so dropping the old name would leave a package sealed before
+        /// the rename with an EMPTY intent corpus and no error to show for it —
+        /// intent classification would quietly stop working for that package.
+        case intentExemplars
     }
 
     /// Tolerant decode — a package sealed before this field existed must
@@ -127,9 +140,28 @@ public struct AbilityTriggerSchema: Codable, Hashable, Sendable {
             [String].self, forKey: .negativeTokens) ?? []
         intentAliases = try container.decodeIfPresent(
             [String].self, forKey: .intentAliases) ?? []
-        intentExemplars = try container.decodeIfPresent(
-            [String: [String]].self, forKey: .intentExemplars) ?? [:]
+        // New spelling wins; the retired one answers for packages sealed
+        // before the rename.
+        intentSeeds = try container.decodeIfPresent(
+            [String: [String]].self, forKey: .intentSeeds)
+            ?? container.decodeIfPresent(
+                [String: [String]].self, forKey: .intentExemplars)
+            ?? [:]
         seedFamilies = try container.decodeIfPresent(
             [String: [String]].self, forKey: .seedFamilies) ?? [:]
+    }
+
+    /// READ THE OLD SPELLING, WRITE ONLY THE NEW ONE. Encoding is explicit
+    /// because `CodingKeys` carries a retired case with no property behind it,
+    /// which nothing can synthesize. It also makes resealing a migration: a
+    /// package loaded with `intentExemplars` is written back as `intentSeeds`.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tokens, forKey: .tokens)
+        try container.encode(phrases, forKey: .phrases)
+        try container.encode(negativeTokens, forKey: .negativeTokens)
+        try container.encode(intentAliases, forKey: .intentAliases)
+        try container.encode(intentSeeds, forKey: .intentSeeds)
+        try container.encode(seedFamilies, forKey: .seedFamilies)
     }
 }

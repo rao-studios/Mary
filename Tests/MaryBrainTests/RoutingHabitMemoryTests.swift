@@ -1,5 +1,5 @@
 //
-//  ExemplarMemoryTests.swift
+//  RoutingHabitMemoryTests.swift
 //  MaryBrainTests
 //
 //  WHAT: The learning loop as PERSONAL MEMORY — taught once, recalled by
@@ -14,16 +14,16 @@ import Testing
 @testable import MaryAmbient
 @testable import MaryBrain
 
-@Suite struct ExemplarMemoryTests {
+@Suite struct RoutingHabitMemoryTests {
 
     /// A LESSON GOES TO MEMORY, not to a file. The store keeps it for the rest
     /// of this turn as well, so a turn that dispatches twice sees the first
-    /// lesson on its second read.
+    /// habit on its second read.
     @Test func recordingTeachesTheBackend() async {
         let memory = RecordingMemory()
-        let store = RoutingExemplarStore(memory: memory)
+        let store = RoutingHabitStore(memory: memory)
 
-        store.record(RoutingExemplar(
+        store.record(RoutingHabit(
             query: "the usual rao mix",
             skillID: "multimedia.play-playlist",
             intent: AmbientIntent.operate.rawValue,
@@ -37,14 +37,14 @@ import Testing
 
     /// A RECALL IS THE TURN'S WHOLE VIEW. Whatever memory returns is what the
     /// synchronous readers see — no accumulation across turns, because the
-    /// lessons live in memory, not here.
+    /// habits live in memory, not here.
     @Test func recallReplacesTheTurnsView() async {
         let memory = RecordingMemory(recalled: [
-            RoutingExemplar(
+            RoutingHabit(
                 query: "put the running mix on", skillID: "multimedia.play-playlist",
                 intent: AmbientIntent.operate.rawValue, ok: true),
         ])
-        let store = RoutingExemplarStore(memory: memory)
+        let store = RoutingHabitStore(memory: memory)
 
         await store.recall(near: "play my running mix")
         #expect(store.queries(skillID: "multimedia.play-playlist", ok: true)
@@ -57,20 +57,20 @@ import Testing
     }
 
     /// THE HORIZON SURVIVES THE MOVE. Totem has no expiry of its own, so a
-    /// lesson older than the horizon must be dropped on the way in — the
+    /// habit older than the horizon must be dropped on the way in — the
     /// store's own PIN is that a bad night must not pin a centroid, and a
     /// backend that remembers forever would make that permanent.
     @Test func recallDropsLessonsPastTheHorizon() async {
-        let stale = Date().addingTimeInterval(-(RoutingExemplarStore.horizon + 60))
+        let stale = Date().addingTimeInterval(-(RoutingHabitStore.horizon + 60))
         let memory = RecordingMemory(recalled: [
-            RoutingExemplar(
+            RoutingHabit(
                 query: "ancient phrasing", skillID: "s",
                 intent: AmbientIntent.operate.rawValue, ok: true, storedAt: stale),
-            RoutingExemplar(
+            RoutingHabit(
                 query: "recent phrasing", skillID: "s",
                 intent: AmbientIntent.operate.rawValue, ok: true),
         ])
-        let store = RoutingExemplarStore(memory: memory)
+        let store = RoutingHabitStore(memory: memory)
 
         await store.recall(near: "some phrasing")
         #expect(store.queries(skillID: "s", ok: true) == ["recent phrasing"])
@@ -80,7 +80,7 @@ import Testing
     /// slower than the turn budget: the turn routes on its authored corpus,
     /// exactly as a fresh install does.
     @Test func anEmptyMemoryLeavesTheTurnOnItsCorpus() async {
-        let store = RoutingExemplarStore(memory: EmptyRoutingExemplarMemory())
+        let store = RoutingHabitStore(memory: EmptyRoutingHabitMemory())
 
         await store.recall(near: "play my running mix")
 
@@ -94,11 +94,11 @@ import Testing
     /// vectorizer the recalled TEXT rather than trusting a foreign score.
     @Test func recalledTextIsVectorizedByTheCallersVectorizer() async {
         let memory = RecordingMemory(recalled: [
-            RoutingExemplar(
+            RoutingHabit(
                 query: "put the running mix on", skillID: "s",
                 intent: AmbientIntent.operate.rawValue, ok: true),
         ])
-        let store = RoutingExemplarStore(memory: memory)
+        let store = RoutingHabitStore(memory: memory)
         await store.recall(near: "play my running mix")
 
         let vectorizer = AskedVectorizer()
@@ -110,14 +110,14 @@ import Testing
 
     // MARK: - Fixture
 
-    private actor RecordingMemory: RoutingExemplarMemory {
-        private(set) var remembered: [RoutingExemplar] = []
-        private let recalled: [RoutingExemplar]
+    private actor RecordingMemory: RoutingHabitMemory {
+        private(set) var remembered: [RoutingHabit] = []
+        private let recalled: [RoutingHabit]
 
-        init(recalled: [RoutingExemplar] = []) { self.recalled = recalled }
+        init(recalled: [RoutingHabit] = []) { self.recalled = recalled }
 
-        func remember(_ exemplar: RoutingExemplar) async { remembered.append(exemplar) }
-        func recall(near _: String, limit _: Int) async -> [RoutingExemplar] { recalled }
+        func remember(_ habit: RoutingHabit) async { remembered.append(habit) }
+        func recall(near _: String, limit _: Int) async -> [RoutingHabit] { recalled }
 
         /// `record` teaches without waiting, so a test must.
         func settle() async {

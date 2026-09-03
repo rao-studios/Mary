@@ -23,12 +23,35 @@ struct ApplicationProviderSignals: Hashable, Sendable {
     var pinnedApplicationID: String?
     /// The application whose window is frontmost, when it maps to a profile.
     var focusedApplicationID: String?
+    /// WHAT THIS PERSON REACHES FOR, asked per Ability — the rung that fills
+    /// the silence when the words named nothing and no window answers. It is a
+    /// closure rather than a value because the answer depends on which Skill
+    /// is being resolved, and only the habitual pick is offered: a ranking
+    /// with no history behind it is a default, and defaults already have a
+    /// rung (`staticPreference`) below this one.
+    var habitualApplicationID: @Sendable (AbilityID) -> String? = { _ in nil }
+
+    static func == (
+        lhs: ApplicationProviderSignals, rhs: ApplicationProviderSignals
+    ) -> Bool {
+        lhs.namedApplicationIDs == rhs.namedApplicationIDs
+            && lhs.interactionApplicationID == rhs.interactionApplicationID
+            && lhs.pinnedApplicationID == rhs.pinnedApplicationID
+            && lhs.focusedApplicationID == rhs.focusedApplicationID
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(namedApplicationIDs)
+        hasher.combine(interactionApplicationID)
+        hasher.combine(pinnedApplicationID)
+        hasher.combine(focusedApplicationID)
+    }
 }
 
 /// The turn's frozen provider choices, keyed by Skill.
 struct ProviderTurnSelection: Sendable {
     enum Rationale: String, Sendable {
-        case named, interaction, pinned, focused, staticPreference
+        case named, interaction, pinned, focused, habit, staticPreference
     }
 
     struct Choice: Sendable {
@@ -112,7 +135,14 @@ enum ApplicationProviderResolver {
 
             guard candidates.count > 1, distinctApplications.count > 1 else { continue }
             var chosen: (InstalledAdapterBinding, ProviderTurnSelection.Rationale)?
-            for (wanted, rationale) in rungs where !wanted.isEmpty {
+            // The turn's own rungs first, then the habit — posture beats a
+            // remembered preference, and a remembered preference beats the
+            // packages' declared order.
+            let habitRung: [(Set<String>, ProviderTurnSelection.Rationale)] =
+                signals.habitualApplicationID(runtime.ability.id).map {
+                    [(resolveIDs($0, in: known), .habit)]
+                } ?? []
+            for (wanted, rationale) in rungs + habitRung where !wanted.isEmpty {
                 let matchedApplications = distinctApplications.intersection(wanted)
                 // Exactly one application answers this rung. Two named apps
                 // both providing is a genuine ambiguity — fall through and
