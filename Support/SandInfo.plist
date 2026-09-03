@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- ITS OWN IDENTITY, NOT MARY'S. Sand asks for Accessibility under its
+	     own bundle id so granting the bench never grants the assistant, and
+	     revoking one does not silence the other. -->
+	<key>CFBundleIdentifier</key>
+	<string>nyc.rao.sand</string>
+	<key>CFBundleExecutable</key>
+	<string>Sand</string>
+	<key>CFBundleName</key>
+	<string>Sand</string>
+	<key>CFBundleDisplayName</key>
+	<string>Sand</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>26.0</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Sand runs the abilities you taught Mary so you can watch what they do — the same menu presses and window reads Mary performs, one step at a time.</string>
+</dict>
+</plist>

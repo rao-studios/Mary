@@ -2,6 +2,7 @@
 // WHAT: One SwiftPM package. Targets under Sources/, layered by name.
 // OUT:  MaryFoundation → MaryAmbient → MaryComputerUse → MaryPlugin
 //            → MaryVoice / MaryBrain → MaryTotem → MaryRuntime → Mary
+//       Sand is a second app on the same stack: MaryBrain and below.
 // PIN:  Layering is enforced by reading this file as text
 //       (PackageLayeringTests). Plugin = Abilities/*.mary; adapters live in
 //       MaryPlugin, and the machine they drive lives in MaryComputerUse —
@@ -246,6 +247,39 @@ let package = Package(
                     "-Xlinker", "__TEXT",
                     "-Xlinker", "__info_plist",
                     "-Xlinker", "Support/Info.plist",
+                ]),
+            ]
+        ),
+
+        // MARK: - Sand — Mary's companion bench: a live accessibility wireframe
+        // of a chosen application, and a runtime that dispatches one taught
+        // Skill through the real AbilityRuntime so the route it takes into
+        // MaryComputerUse is watchable act by act.
+        // PIN: Sand NEVER touches the machine itself. It reads the tree and
+        //      asks the runtime; every act belongs to MaryComputerUse's hands,
+        //      which is what makes the monitor's trace the whole truth.
+        //      Own bundle id (nyc.rao.sand, Support/SandInfo.plist) so its
+        //      Accessibility grant is independent of Mary's — a bench whose
+        //      hands are refused looks identical to a quiet one.
+        //      Off the Granite/Conduit graphs on purpose: MaryBrain is here for
+        //      AbilityRuntime, and no model is ever loaded.
+        .executableTarget(
+            name: "Sand",
+            dependencies: [
+                "MaryFoundation",
+                "MaryAmbient",
+                "MaryComputerUse",
+                "MaryPlugin",
+                "MaryBrain",
+            ],
+            path: "Sources/SandApp",
+            swiftSettings: [.swiftLanguageMode(.v5)],
+            linkerSettings: [
+                .unsafeFlags([
+                    "-Xlinker", "-sectcreate",
+                    "-Xlinker", "__TEXT",
+                    "-Xlinker", "__info_plist",
+                    "-Xlinker", "\(Context.packageDirectory)/Support/SandInfo.plist",
                 ]),
             ]
         ),

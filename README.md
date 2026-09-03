@@ -50,6 +50,8 @@ swift test
 ./scripts/dev.sh          # build, stable-sign, run
 CONFIG=release ./scripts/dev.sh
 ./scripts/make-app.sh     # build/Mary.app
+./scripts/sand.sh         # the wireframe + ability bench (its own TCC identity)
+./scripts/sand.sh --target com.apple.TextEdit   # open straight onto one app
 ```
 
 **Use `./scripts/dev.sh`, not `swift run`.** SwiftPM signs the built binary
@@ -83,6 +85,7 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 | `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |
 | `MaryRuntime` | The composition root, long-lived actors, and Granite services. |
 | `Mary` | The SwiftUI app. |
+| `Sand` | The bench: a live accessibility wireframe of any running app, and one taught ability dispatched through the real `AbilityRuntime` so the route it takes into `MaryComputerUse` is watchable act by act. Its own bundle id, so its Accessibility grant is independent of Mary's. `./scripts/sand.sh` to run it. |
 
 Those rules are not conventions — `Tests/MaryFoundationTests/PackageLayeringTests.swift`
 reads `Package.swift` as text and fails the build when an edge appears that

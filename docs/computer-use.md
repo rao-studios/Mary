@@ -96,7 +96,24 @@ process lane reports a tool name and an argument count, never the arguments.
 swift run mary-ax-probe --watch          # tail the running app's acts
 swift run mary-ax-probe --watch --self   # subscribe in-process, see the stream API
 swift run mary-ax-probe --app TextEdit   # a live walk, then the monitor snapshot
+./scripts/sand.sh                        # the bench: run an ability, watch the lanes
 ```
+
+`Sand` (`Sources/SandApp`) is the visual counterpart of `--watch --self`. It
+hosts its own `AbilityRuntime` in-process, so dispatching one taught Skill puts
+that Skill's acts and refusals on a timeline beside a live wireframe of the app
+they landed in — and because the runtime is real, the route is the route.
+Its "Observe" toggle tails the log mirror as well, which is how it watches a
+separately running Mary.
+
+```sh
+./scripts/sand.sh --target com.apple.iCal
+./scripts/sand.sh --target com.apple.iCal --run calendar_go_today
+```
+
+`--target` opens straight onto one application; `--run` also dispatches one
+ability, so a run is repeatable from a script. `--run` performs the ability for
+real — it is opt-in for that reason, and never implied by `--target`.
 
 **The monitor is process-local.** `ComputerUseMonitor.shared` remembers what
 *its own* process did, so a probe cannot subscribe to the running app's
