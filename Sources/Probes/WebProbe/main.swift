@@ -4,8 +4,12 @@
 //
 //  WHAT: The browser lane against a live browser: shell by Accessibility, page by
 //        sight, playback driven and PUT BACK.
-//  OUT:  CLI: mary-web-probe [--browser safari|chrome] [--perceive]
-//             [--media toggle|play|pause|mute|unmute|fullscreen|seek=0.5] [--open URL]
+//  OUT:  CLI: mary-web-probe [--browser safari|chrome] [--perceive] [--map]
+//             [--media toggle|play|pause|mute|unmute|fullscreen|seek=0.5|volume=0.3] [--open URL]
+//             [--search "<query>"] [--open-result "<phrase>"] [--click "<phrase>"]
+//             [--fill "<field>" --text "<what>" [--submit]] [--adjust "<slider>=0.4"]
+//             [--scroll-to "<phrase>"] [--plan <file.json>]
+//             [--roundtrip "<phrase>"] [--roundtrip-search "<query>" [--open-result "…"]]
 //             [--dry-run] [--watch] [--save <path.png>] [--settle ms] [--hover-at x,y]
 //        The shell read always runs — it is what everything else is aimed with.
 //  PIN:  Run signed (scripts/dev.sh or sign-binary.sh); an ad-hoc build loses both the
@@ -215,6 +219,8 @@ if let requested = value("--media") {
     let action: MediaAction?
     if requested.hasPrefix("seek=") {
         action = Double(requested.dropFirst(5)).map { MediaAction.seek(fraction: $0) }
+    } else if requested.hasPrefix("volume=") {
+        action = Double(requested.dropFirst(7)).map { MediaAction.volume(fraction: $0) }
     } else {
         switch requested {
         case "toggle": action = .toggle
@@ -227,7 +233,7 @@ if let requested = value("--media") {
         }
     }
     guard let action else {
-        print("  ✗  unknown action \"\(requested)\" — toggle|play|pause|mute|unmute|fullscreen|seek=0.5")
+        print("  ✗  unknown action \"\(requested)\" — toggle|play|pause|mute|unmute|fullscreen|seek=0.5|volume=0.3")
         exit(1)
     }
 
@@ -245,9 +251,9 @@ if let requested = value("--media") {
         case .pause: reverse = .play
         case .mute: reverse = .unmute
         case .unmute: reverse = .mute
-        // A seek cannot be undone without knowing where it was; say so rather than
-        // guessing a position back.
-        case .seek, .fullscreen: reverse = nil
+        // A seek or a volume cannot be undone without knowing where it was; say so
+        // rather than guessing a position back.
+        case .seek, .fullscreen, .volume: reverse = nil
         }
         if let reverse {
             let restored = await engine.controlMedia(reverse, in: target)
@@ -283,6 +289,176 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
         _ = CGImageDestinationFinalize(destination)
         check(true, "hovered and captured",
               "(\(Int(parts[0])), \(Int(parts[1]))) → hover-at.png")
+    }
+}
+
+// MARK: - The page
+
+if flag("--map") {
+    heading("the page, as a map")
+    let outcome = await engine.readPage(in: target, query: value("--map-query"))
+    check(outcome.ok, "the page was read", "\(outcome.elements.count) rows")
+    if let map = outcome.map {
+        let named = outcome.elements.filter {
+            map.annotation(forOrdinal: $0.ordinal)?.labelSource.isReal == true
+        }.count
+        check(
+            !outcome.elements.isEmpty, "rows carry names something wrote",
+            "\(named)/\(outcome.elements.count) named · \(map.groups.count) groups")
+        if let overlay = map.overlay {
+            check(true, "something is covering the page", overlay.title ?? "a dialog")
+        }
+        // What the model would be shown, verbatim.
+        for line in outcome.spoken.split(separator: "\n") { print("      \(line)") }
+        // And where each name came from, which is the number that says whether the map
+        // is working on this page.
+        var sources: [String: Int] = [:]
+        for element in outcome.elements {
+            let source = map.annotation(forOrdinal: element.ordinal)?.labelSource.rawValue
+                ?? "none"
+            sources[source, default: 0] += 1
+        }
+        print("      label sources: "
+            + sources.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }
+                .joined(separator: ", "))
+    }
+}
+
+// MARK: - One whole act, timed
+
+/// PIN: THE ROUND TRIP IS THE NUMBER THAT MATTERS, and no lane benchmark contains it.
+/// A page read is 250ms and a click is instant, but the act a person waits for is
+/// resolve-the-browser → read-the-shell → claim-the-stage → look → resolve-the-phrase →
+/// press → wait-for-the-shell → look again → judge. The engine already emits an event at
+/// every one of those boundaries, so timestamping the stream costs nothing and describes
+/// the whole thing rather than a stage of it.
+if value("--roundtrip") != nil || value("--roundtrip-search") != nil {
+    let phrase = value("--roundtrip")
+    let searched = value("--roundtrip-search")
+    heading(searched == nil ? "one whole act, timed" : "a whole search, timed")
+    let stream = await engine.events()
+    let started = ContinuousClock.now
+    let timeline = Task { () -> [(String, Duration)] in
+        var marks: [(String, Duration)] = []
+        for await event in stream {
+            let at = started.duration(to: ContinuousClock.now)
+            switch event {
+            case .resolved(let browser, _): marks.append(("resolved \(browser)", at))
+            case .shellRead(let title, _, _):
+                marks.append(("read the shell — \(title ?? "untitled")", at))
+            case .read(let rows, let named, let groups):
+                marks.append(("looked — \(rows) rows, \(named) named, \(groups) groups", at))
+            case .matched(let phrase, let label):
+                marks.append(("matched \"\(phrase)\" → \"\(label)\"", at))
+            case .acted(let what): marks.append((what, at))
+            case .receipt(let receipt): marks.append(("receipt — \(receipt.spoken)", at))
+            case .verified(let what): marks.append(("verified \(what)", at))
+            case .refused(let refusal): marks.append(("refused — \(refusal.summary)", at))
+            case .perceived(let controls, let playback, _):
+                marks.append(("perceived \(controls) controls · \(playback)", at))
+            }
+        }
+        return marks
+    }
+
+    let outcome: BrowserOutcome
+    if let searched {
+        outcome = await engine.searchWeb(
+            searched, in: target, open: value("--open-result"))
+    } else {
+        outcome = await engine.pressOnPage(phrase ?? "", in: target)
+    }
+    let total = started.duration(to: ContinuousClock.now)
+    // Let the last events land, then close the stream so the collector returns.
+    try? await Task.sleep(for: .milliseconds(120))
+    await engine.closeObservers()
+    let marks = await timeline.value
+
+    func milliseconds(_ duration: Duration) -> Double {
+        let parts = duration.components
+        return Double(parts.seconds) * 1_000 + Double(parts.attoseconds) / 1e15
+    }
+
+    var previous = Duration.zero
+    for (label, at) in marks {
+        let step = milliseconds(at) - milliseconds(previous)
+        print(String(format: "  %7.0fms  +%6.0fms  %@",
+                     milliseconds(at), step, label as NSString))
+        previous = at
+    }
+    print(String(format: "  %7.0fms  ── whole act", milliseconds(total)))
+    check(outcome.ok, "the act was delivered", outcome.receipts.first?.spoken ?? outcome.spoken)
+    if searched != nil {
+        // A SEARCH LANDS WHEN IT SEARCHED. Whether the result it then pressed did
+        // anything is a separate claim, and its own receipt says so.
+        check(outcome.landed, "the search landed")
+        if let receipt = outcome.receipts.first {
+            check(receipt.landed, "and the result it opened was proved", receipt.spoken)
+        }
+    } else {
+        check(outcome.landed, "and its effect was proved")
+    }
+}
+
+if let query = value("--search") {
+    heading("searching the web")
+    let outcome = await engine.searchWeb(
+        query, in: target, open: value("--open-result"))
+    check(outcome.ok, "the search ran", outcome.spoken)
+    check(outcome.landed, "and it landed somewhere provable")
+}
+
+if let phrase = value("--click") {
+    heading("pressing something on the page")
+    let outcome = await engine.pressOnPage(phrase, in: target)
+    check(outcome.ok, "the press was delivered", outcome.spoken)
+    check(outcome.landed, "and its effect was proved",
+          outcome.receipts.first?.spoken ?? "no receipt")
+}
+
+if let phrase = value("--fill") {
+    heading("typing into the page")
+    guard let text = value("--text") else {
+        check(false, "--fill needs --text"); exit(1)
+    }
+    let outcome = await engine.fillOnPage(
+        phrase, text: text, submit: flag("--submit"), in: target)
+    check(outcome.ok, "the text was delivered", outcome.spoken)
+    check(outcome.landed, "and its effect was proved",
+          outcome.receipts.first?.spoken ?? "no receipt")
+}
+
+if let phrase = value("--scroll-to") {
+    heading("scrolling to something")
+    let outcome = await engine.scrollToOnPage(phrase, in: target)
+    check(outcome.ok, "it was found", outcome.spoken)
+}
+
+if let request = value("--adjust") {
+    heading("setting a slider")
+    let parts = request.split(separator: "=", maxSplits: 1).map(String.init)
+    guard parts.count == 2, let fraction = Double(parts[1]) else {
+        check(false, "--adjust takes \"name=0.4\""); exit(1)
+    }
+    let outcome = await engine.adjustOnPage(parts[0], fraction: fraction, in: target)
+    check(outcome.ok, "the slider was set", outcome.spoken)
+}
+
+if let path = value("--plan") {
+    heading("a whole plan")
+    let json = (try? String(contentsOfFile: path, encoding: .utf8)) ?? ""
+    switch PageInteractionPlanValidator.validate(planJSON: json) {
+    case .invalid(let issues):
+        check(false, "the plan was admitted", issues.map(\.spoken).joined(separator: "; "))
+    case .valid(let plan):
+        check(true, "the plan was admitted", "\(plan.commands.count) commands")
+        let outcome = await engine.act(plan, in: target)
+        for receipt in outcome.receipts {
+            check(
+                receipt.landed || receipt.delivery == .delivered,
+                "step \(receipt.sourceIndex + 1)", receipt.spoken)
+        }
+        check(outcome.landed, "the plan landed", outcome.spoken)
     }
 }
 

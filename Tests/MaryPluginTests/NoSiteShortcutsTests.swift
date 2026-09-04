@@ -93,8 +93,14 @@ final class NoSiteShortcutsTests: XCTestCase {
                     continue
                 }
                 if window.contains("modifiers: [])") {
-                    // Return and Escape carry no modifier and are not site shortcuts.
-                    let allowed = ["key: .return", "key: .escape", "key: .tab"]
+                    // Return, Escape and Tab carry no modifier and are not site
+                    // shortcuts. Nor is forward-delete: it is a text-editing key, used
+                    // inside a field the lane has just typed into, to remove the inline
+                    // completion a browser added before Return accepts it. Measured
+                    // live — a typed query opened a history entry instead of searching.
+                    let allowed = [
+                        "key: .return", "key: .escape", "key: .tab", "key: .forwardDelete",
+                    ]
                     if !allowed.contains(where: { window.contains($0) }) {
                         offences.append("\(file.path):\(index + 1) presses an unmodified key")
                     }

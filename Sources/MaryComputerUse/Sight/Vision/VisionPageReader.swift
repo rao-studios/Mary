@@ -41,8 +41,11 @@ public enum VisionPageReader {
         public var pageFrame: CGRect
         public var pixelsPerPoint: Double
         public var duration: Duration
-        /// Whether a role classifier ran. False means every element is an unnamed box.
+        /// Whether a role classifier ran. False means the roles are shape and position
+        /// rather than a model's word — NOT that the reading is empty.
         public var classified: Bool
+        /// What the map said about each row, keyed by ordinal.
+        public var map: PageMapSummary
 
         public init(
             elements: [AXScreenElement] = [],
@@ -50,7 +53,8 @@ public enum VisionPageReader {
             pageFrame: CGRect,
             pixelsPerPoint: Double,
             duration: Duration = .zero,
-            classified: Bool = false
+            classified: Bool = false,
+            map: PageMapSummary = PageMapSummary()
         ) {
             self.elements = elements
             self.media = media
@@ -58,6 +62,7 @@ public enum VisionPageReader {
             self.pixelsPerPoint = pixelsPerPoint
             self.duration = duration
             self.classified = classified
+            self.map = map
         }
     }
 
@@ -109,11 +114,11 @@ public enum VisionPageReader {
                 reason: .visionUnavailable(detail))
             throw Failure.visionUnavailable(detail)
         }
-        if intent == .elements, session.classifier == nil {
-            ComputerUseMonitor.shared.note(
-                lane: .sight, refused: "perceive", pid: pid, reason: .classifierUnavailable)
-            throw Failure.classifierUnavailable
-        }
+        // NO CLASSIFIER IS NOT NO ANSWER, AND THIS USED TO REFUSE. The map is built
+        // from edges, recognized words and geometry; a model names roles, it does not
+        // supply the rows. A machine without one still reads a page of results — it
+        // just calls a text field "field 2" instead of naming it — so the reading says
+        // `classified: false` and carries on rather than throwing away the page.
 
         // MEDIA NEEDS TWO FRAMES, AND THEY MUST BE THE SAME WINDOW. A capture between
         // them that landed on a different window would report the difference between
@@ -164,13 +169,20 @@ public enum VisionPageReader {
         let media = scene.media.map {
             reading(from: $0, scene: scene, pageFrame: pageFrame, capturedAt: scene.capturedAt)
         }
-        let elements = intent == .elements
-            ? rows(from: scene, pid: pid, appName: appName, windowTitle: windowTitle)
-            : []
+        var elements: [AXScreenElement] = []
+        var summary = PageMapSummary()
+        if intent == .elements {
+            (elements, summary) = rows(
+                from: scene, pid: pid, appName: appName, windowTitle: windowTitle)
+        }
 
         ComputerUseMonitor.shared.note(
             lane: .sight, act: "perceive", pid: pid,
             detail: "\(intent.rawValue) \(elements.count) elements"
+                + (intent == .elements
+                    ? " · \(Int((summary.labeledFraction * 100).rounded()))% named"
+                        + " · \(summary.groups.count) groups"
+                    : "")
                 + (media.map { " · \($0.others.count) controls · \($0.playback.rawValue)" } ?? "")
                 + " · \(elapsed)")
         return Reading(
@@ -179,7 +191,8 @@ public enum VisionPageReader {
             pageFrame: pageFrame,
             pixelsPerPoint: frame.pixelsPerPoint,
             duration: elapsed,
-            classified: classifier != nil)
+            classified: classifier != nil,
+            map: summary)
     }
 
     private static func capture(
@@ -226,6 +239,10 @@ public enum VisionPageReader {
                 MediaControlReading.Progress(
                     frame: scene.projection.screenRect($0.frame), fraction: $0.fraction)
             },
+            volumeTrack: detection.volumeTrack.map {
+                MediaControlReading.Progress(
+                    frame: scene.projection.screenRect($0.frame), fraction: $0.fraction)
+            },
             elapsed: detection.elapsed,
             duration: detection.duration,
             capturedAt: capturedAt)
@@ -260,27 +277,90 @@ public enum VisionPageReader {
         }
     }
 
-    private static func rows(
-        from scene: VisionScene, pid: pid_t, appName: String, windowTitle: String
-    ) -> [AXScreenElement] {
-        scene.roster(pid: pid, appName: appName, windowTitle: windowTitle).map { row in
-            AXScreenElement(
-                ordinal: row.ordinal,
-                id: AXNodeID(raw: row.id.raw),
+    /// The map's elements as Mary's rows, in reading order, in screen points.
+    ///
+    /// PIN: THE MAP, NOT THE ROSTER. `VisionScene.roster` drops any node the classifier
+    /// did not name and any node with no words inside it — which on a page of search
+    /// results is nearly all of them. Measured: a results page read as four chrome
+    /// buttons. The map keeps those rows and says how sure their names are instead, and
+    /// this crossing carries that judgement over as `PageMapSummary` rather than
+    /// throwing it away at the door.
+    static func rows(
+        from scene: VisionScene, pid: pid_t, appName: String, windowTitle: String,
+        limit: Int = 160
+    ) -> ([AXScreenElement], PageMapSummary) {
+        let map = scene.pageMap()
+        var rows: [AXScreenElement] = []
+        var annotations: [Int: SeenElementAnnotation] = [:]
+        var ordinalByID: [UInt: Int] = [:]
+
+        for element in map.elements.prefix(limit) {
+            let ordinal = rows.count + 1
+            let role = element.role
+                ?? (element.affordance == .press ? "AXLink" : "AXStaticText")
+            let group = map.group(element.groupID)
+            rows.append(AXScreenElement(
+                ordinal: ordinal,
+                id: AXNodeID(raw: element.id.raw),
                 pid: pid,
                 appName: appName,
-                windowID: AXNodeID(raw: row.windowID.raw),
+                windowID: AXNodeID(raw: 1),
                 windowTitle: windowTitle,
-                role: row.role,
-                subrole: row.subrole,
-                category: AXNodeCategory.category(role: row.role, subrole: row.subrole),
-                label: row.label,
-                frame: row.frame,
-                isEnabled: row.isEnabled,
-                isFocused: row.isFocused,
+                role: role,
+                subrole: element.subrole,
+                category: AXNodeCategory.category(role: role, subrole: element.subrole),
+                label: element.label,
+                frame: scene.projection.screenRect(element.frame),
+                isEnabled: element.isEnabled,
+                isFocused: false,
+                // THE GROUP IS THE ROW'S CONTEXT, and it is what lets a listing say
+                // which of four "Watch" buttons is meant.
+                containerTrail: [group?.title, group.map { $0.kind.rawValue }]
+                    .compactMap { $0 }
+                    .filter { !$0.isEmpty },
                 // SEEN, NOT WALKED. There is no element behind this row to press by
                 // name — only a place on screen to click.
-                provenance: .seen)
+                provenance: .seen))
+            annotations[ordinal] = SeenElementAnnotation(
+                affordance: affordance(element.affordance),
+                labelSource: labelSource(element.labelSource),
+                hints: element.hints,
+                groupID: element.groupID)
+            ordinalByID[element.id.raw] = ordinal
+        }
+
+        let groups = map.groups.map { group in
+            SeenGroup(
+                id: group.id,
+                kind: group.kind.rawValue,
+                title: group.title,
+                memberOrdinals: group.memberIDs.compactMap { ordinalByID[$0.raw] }.sorted())
+        }
+        return (rows, PageMapSummary(
+            groups: groups, annotations: annotations,
+            labeledFraction: map.labeledFraction))
+    }
+
+    /// Vocabulary conversions, spelled out for the same reason the glyph one is: both
+    /// sides are string-backed, so a rawValue hop would compile and answer wrongly the
+    /// day either is extended.
+    private static func affordance(_ value: PageAffordance) -> SeenAffordance {
+        switch value {
+        case .press: return .press
+        case .fill: return .fill
+        case .adjust: return .adjust
+        case .scroll: return .scroll
+        case .none: return .none
+        }
+    }
+
+    private static func labelSource(_ value: PageLabelSource) -> SeenLabelSource {
+        switch value {
+        case .classifier: return .classifier
+        case .textInside: return .textInside
+        case .textAdjacent: return .textAdjacent
+        case .icon: return .icon
+        case .synthesized: return .synthesized
         }
     }
 }

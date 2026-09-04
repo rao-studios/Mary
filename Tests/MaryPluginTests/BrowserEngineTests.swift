@@ -13,7 +13,8 @@
 import CoreGraphics
 import Foundation
 import Testing
-@testable import MaryComputerUse
+@testable import MaryAmbient
+import MaryComputerUse
 @testable import MaryFoundation
 @testable import MaryPlugin
 
@@ -47,10 +48,18 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
     var readings: [MediaControlReading?]
     var failure: VisionPageReader.Failure?
     var reads = 0
+    /// Rosters served to `.elements`, one per read; the last one repeats.
+    var pages: [(elements: [AXScreenElement], map: PageMapSummary)] = []
+    var elementReads = 0
 
     init(_ readings: [MediaControlReading?], failure: VisionPageReader.Failure? = nil) {
         self.readings = readings
         self.failure = failure
+    }
+
+    convenience init(pages: [(elements: [AXScreenElement], map: PageMapSummary)]) {
+        self.init([nil])
+        self.pages = pages
     }
 
     func read(
@@ -60,6 +69,15 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
     ) async throws -> VisionPageReader.Reading {
         if let failure { throw failure }
         reads += 1
+        if intent == .elements {
+            let index = min(elementReads, max(0, pages.count - 1))
+            elementReads += 1
+            let page: (elements: [AXScreenElement], map: PageMapSummary) =
+                pages.isEmpty ? (elements: [], map: PageMapSummary()) : pages[index]
+            return VisionPageReader.Reading(
+                elements: page.elements, pageFrame: pageFrame, pixelsPerPoint: 1,
+                classified: true, map: page.map)
+        }
         let media = readings.count > 1 ? readings.removeFirst() : readings.first ?? nil
         return VisionPageReader.Reading(
             media: media, pageFrame: pageFrame, pixelsPerPoint: 1)
@@ -69,19 +87,50 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
 final class FakeHands: BrowserHands, @unchecked Sendable {
     var clicks: [CGPoint] = []
     var hovers: [CGPoint] = []
+    var glides: [CGPoint] = []
+    var drags: [(CGPoint, CGPoint)] = []
+    var scrolls: [Double] = []
     var restored: [CGPoint?] = []
 
     func move(to point: CGPoint, pid: pid_t) async {}
-    func click(at point: CGPoint, pid: pid_t) async { clicks.append(point) }
-    func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async {}
+    func click(
+        at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t
+    ) async {
+        clicks.append(point)
+    }
+    func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async {
+        scrolls.append(delta)
+    }
     func hover(at point: CGPoint, pid: pid_t) async { hovers.append(point) }
+    func glide(to point: CGPoint, pid: pid_t) async { glides.append(point) }
+    func drag(from: CGPoint, to: CGPoint, duration: Double, pid: pid_t) async {
+        drags.append((from, to))
+    }
     func cursorLocation() async -> CGPoint? { CGPoint(x: 5, y: 5) }
     func restoreCursor(to point: CGPoint?) async { restored.append(point) }
 }
 
+final class FakeKeys: BrowserKeys, @unchecked Sendable {
+    var typed: [String] = []
+    var pressed: [PageInteractionKey] = []
+    var typeSucceeds = true
+
+    func type(_ text: String, targetPrefix: String) async -> Bool {
+        typed.append(text)
+        return typeSucceeds
+    }
+
+    func press(_ key: PageInteractionKey) async -> Bool {
+        pressed.append(key)
+        return true
+    }
+}
+
 struct FakeStage: BrowserStaging {
     var succeeds = true
+    var keepsFocus = true
     func bringForward(pid: pid_t) async -> Bool { succeeds }
+    func holdsFocus(pid: pid_t) async -> Bool { keepsFocus }
 }
 
 // MARK: - Support
@@ -134,17 +183,56 @@ enum BrowsingFixtures {
                 frame: CGRect(x: 110, y: 680, width: 780, height: 4), fraction: fraction))
     }
 
+    /// One page's worth of rows, with the map that describes them.
+    static func page(
+        _ rows: [(role: String, label: String, affordance: SeenAffordance)],
+        group: (kind: String, title: String?)? = nil
+    ) -> (elements: [AXScreenElement], map: PageMapSummary) {
+        var elements: [AXScreenElement] = []
+        var annotations: [Int: SeenElementAnnotation] = [:]
+        for (index, row) in rows.enumerated() {
+            let ordinal = index + 1
+            elements.append(AXScreenElement(
+                ordinal: ordinal,
+                id: AXNodeID(raw: UInt(ordinal)),
+                pid: 1234,
+                appName: "A Browser",
+                windowID: AXNodeID(raw: 1),
+                windowTitle: "A Page",
+                role: row.role,
+                category: AXNodeCategory.category(role: row.role),
+                label: row.label,
+                frame: CGRect(
+                    x: 140, y: 240 + CGFloat(index) * 60, width: 400, height: 40),
+                containerTrail: group.map { [$0.title, $0.kind].compactMap { $0 } } ?? [],
+                provenance: .seen))
+            annotations[ordinal] = SeenElementAnnotation(
+                affordance: row.affordance, labelSource: .textInside)
+        }
+        let groups = group.map { described in
+            [SeenGroup(
+                id: 0, kind: described.kind, title: described.title,
+                memberOrdinals: Array(1 ... max(1, rows.count)))]
+        } ?? []
+        return (elements, PageMapSummary(
+            groups: groups, annotations: annotations, labeledFraction: 1))
+    }
+
     /// PIN: THE CLOCK IS A FAKE TOO. The settle loop polls until a deadline, so a real
     /// `Date()` makes the stalled-navigation test wait the whole budget — ten seconds of
     /// a suite spent proving something arithmetic. This advances a second per reading.
     static func engine(
         shell: FakeShell, page: FakePage, hands: FakeHands = FakeHands(),
-        stage: FakeStage = FakeStage(), dryRun: Bool = false
+        keys: FakeKeys = FakeKeys(), stage: FakeStage = FakeStage(), dryRun: Bool = false
     ) -> BrowserEngine {
         let clock = Clock()
         return BrowserEngine(
             seams: .init(
-                shell: shell, page: page, hands: hands, stage: stage,
+                shell: shell, page: page, hands: hands, keys: keys, stage: stage,
+                // ITS OWN SLATE. The suite runs in parallel and the shared one is
+                // process-wide, so two engines publishing into it answered each other's
+                // questions — a failure that appeared and vanished with test order.
+                slate: AmbientElementIndexStore(),
                 sleep: { _ in clock.advance(1) }, now: { clock.now }),
             dryRun: dryRun)
     }
@@ -377,6 +465,9 @@ enum BrowsingFixtures {
                 case .shellRead: names.append("shellRead")
                 case .perceived: names.append("perceived")
                 case .acted: names.append("acted")
+                case .read: names.append("read")
+                case .matched: names.append("matched")
+                case .receipt: names.append("receipt")
                 case .verified: names.append("verified")
                 case .refused: names.append("refused")
                 }

@@ -38,16 +38,36 @@ public protocol PagePerceiving: Sendable {
 /// The pointer.
 public protocol BrowserHands: Sendable {
     func move(to point: CGPoint, pid: pid_t) async
-    func click(at point: CGPoint, pid: pid_t) async
+    func click(at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t) async
     func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async
-    /// Put the pointer itself over a point. See PointerDriver.hover.
+    /// Put the pointer itself over a point. See PointerDriver.hover — a long approach,
+    /// which is what wakes a player's transport.
     func hover(at point: CGPoint, pid: pid_t) async
+    /// A short travel from where the pointer already is, disturbing nothing on the way.
+    func glide(to point: CGPoint, pid: pid_t) async
+    func drag(from: CGPoint, to: CGPoint, duration: Double, pid: pid_t) async
     /// Where the pointer was before any of this, so it can be put back.
     func cursorLocation() async -> CGPoint?
     func restoreCursor(to point: CGPoint?) async
 }
 
+/// The keys a page may be sent.
+///
+/// PIN: THREE KEYS AND TYPING, AND NOTHING ELSE. A modified chord inside a page is a
+/// BROWSER command and an unmodified letter is a SITE shortcut — the two things this
+/// discipline exists not to use. `NoSiteShortcutsTests` reads this file expecting the
+/// presses below to be literal and unmodified.
+public protocol BrowserKeys: Sendable {
+    func type(_ text: String, targetPrefix: String) async -> Bool
+    func press(_ key: PageInteractionKey) async -> Bool
+}
+
 public extension BrowserHands {
+    /// One ordinary left click.
+    func click(at point: CGPoint, pid: pid_t) async {
+        await click(at: point, button: .left, count: 1, pid: pid)
+    }
+
     /// Wake a player's transport by moving the pointer ACROSS its picture.
     ///
     /// PIN: TWO POINTS, NOT ONE. A player reveals its controls on mouse MOVEMENT, and a
@@ -81,6 +101,9 @@ public extension BrowserHands {
 /// Who holds the machine.
 public protocol BrowserStaging: Sendable {
     func bringForward(pid: pid_t) async -> Bool
+    /// Is this still the process in front? A plan that keeps pressing into whatever
+    /// came forward is worse than one that stops and says where it got to.
+    func holdsFocus(pid: pid_t) async -> Bool
 }
 
 // MARK: - Live
@@ -107,6 +130,16 @@ struct LiveBrowserShell: BrowserShellReading {
         // half a URL in the field, and pressing Return then navigates somewhere nobody
         // asked for — worse than not navigating at all.
         guard case .completed = typed else { return false }
+        // AND THE COMPLETION THE BROWSER ADDED MUST BE REMOVED BEFORE RETURN.
+        //
+        // PIN: BOTH OMNIBOXES FINISH YOUR SENTENCE, and Return accepts what they wrote
+        // rather than what was typed. Measured live: "swift concurrency" typed into
+        // Chrome opened YouTube, because a history entry was inline-completed and
+        // selected. Forward-delete removes a selected completion and does nothing at all
+        // when there is none, which is exactly the shape of fix this needs — it cannot
+        // damage the honest case. It is a text-editing key inside a text field, not a
+        // page shortcut; see NoSiteShortcutsTests, which admits it for that reason.
+        _ = KeyChordPress.press(key: .forwardDelete, modifiers: [])
         return KeyChordPress.press(key: .return, modifiers: [])
     }
 
@@ -172,8 +205,10 @@ public struct LiveBrowserHands: BrowserHands {
     /// The engine puts the pointer ON the control first, so the press goes exactly where
     /// the user can see the pointer sitting; that is what bounds a global tap's risk
     /// here. Browser CHROME is still pressed through Accessibility, which does work.
-    public func click(at point: CGPoint, pid: pid_t) async {
-        PointerDriver.clickThroughHID(at: point, button: .left, count: 1)
+    public func click(
+        at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t
+    ) async {
+        PointerDriver.clickThroughHID(at: point, button: button, count: count)
     }
 
     public func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async {
@@ -184,9 +219,42 @@ public struct LiveBrowserHands: BrowserHands {
         PointerDriver.hover(at: point, pid: pid)
     }
 
+    public func glide(to point: CGPoint, pid: pid_t) async {
+        PointerDriver.glideThroughHID(to: point)
+    }
+
+    /// PIN: THROUGH THE HARDWARE TAP, like the click and for the same measured reason —
+    /// a pid-posted drag is invisible to rendered content, so a slider dragged that way
+    /// reports success and moves nothing.
+    public func drag(from: CGPoint, to: CGPoint, duration: Double, pid: pid_t) async {
+        PointerDriver.dragThroughHID(from: from, to: to, duration: duration)
+    }
+
     public func cursorLocation() async -> CGPoint? { PointerDriver.location }
 
     public func restoreCursor(to point: CGPoint?) async { PointerDriver.restore(to: point) }
+}
+
+public struct LiveBrowserKeys: BrowserKeys {
+    public init() {}
+
+    public func type(_ text: String, targetPrefix: String) async -> Bool {
+        // A PARTIAL STRING MUST NOT BE COMMITTED — the same rule the address bar keeps.
+        // Losing focus halfway leaves half a phrase somewhere nobody asked for.
+        guard case .completed = await KeyboardTyper.type(text, targetPrefix: targetPrefix)
+        else { return false }
+        return true
+    }
+
+    /// Written as literal cases on purpose: the source scan that forbids site shortcuts
+    /// reads these lines, and a press assembled from a variable would tell it nothing.
+    public func press(_ key: PageInteractionKey) async -> Bool {
+        switch key {
+        case .return: return KeyChordPress.press(key: .return, modifiers: [])
+        case .escape: return KeyChordPress.press(key: .escape, modifiers: [])
+        case .tab: return KeyChordPress.press(key: .tab, modifiers: [])
+        }
+    }
 }
 
 public struct LiveBrowserStaging: BrowserStaging {
@@ -194,5 +262,11 @@ public struct LiveBrowserStaging: BrowserStaging {
 
     public func bringForward(pid: pid_t) async -> Bool {
         await VerifiedActivation.bringForward(pid: pid).succeeded
+    }
+
+    public func holdsFocus(pid: pid_t) async -> Bool {
+        await MainActor.run {
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
+        }
     }
 }

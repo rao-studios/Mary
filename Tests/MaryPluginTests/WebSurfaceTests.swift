@@ -175,3 +175,49 @@ import Testing
         #expect(SiteName.spoken(url: "about:blank") == nil)
     }
 }
+
+/// THE BROWSER ARM OF THE AFFORDANCE LANE IS A DELEGATION, NOT A SECOND IMPLEMENTATION.
+///
+/// PIN: `act_on_screen` on a browser IS `click_on_page`. This suite reads the source
+/// rather than driving it, because the thing worth protecting is structural: the day
+/// somebody adds pressing code to the browser arm, there are two resolution ladders,
+/// two receipt rules and two sets of refusals, and they part company the first time
+/// either is fixed.
+@Suite struct AffordanceBrowserArmTests {
+
+    static func source(_ path: String) throws -> String {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent(path)
+        return try String(contentsOf: url, encoding: .utf8)
+    }
+
+    /// The refusal is gone, and the arm that replaced it delegates.
+    @Test func theBrowserArmDelegatesToTheEngine() throws {
+        let body = try Self.source(
+            "Sources/MaryPlugin/Adapters/Affordances/AffordanceRecipes.swift")
+        #expect(!body.contains("I can't press things on one yet"))
+        #expect(body.contains("case browser(BrowserTarget)"))
+        #expect(body.contains("BrowserEngine.live.pressOnPage"))
+        // Nothing in that file presses a page itself.
+        #expect(!body.contains("clickThroughHID"))
+    }
+
+    /// The typer's browser refusal names a tool that exists.
+    @Test func theTyperPointsAtARealTool() throws {
+        let body = try Self.source(
+            "Sources/MaryPlugin/Adapters/Typer/TyperPlugin+SkillBindings.swift")
+        #expect(!body.contains("type_in_web_page"))
+        #expect(body.contains("fill_in_page"))
+    }
+
+    /// The adapter no longer refuses what it now does.
+    @Test func theAdapterDoesNotRefuseWhatItOffers() throws {
+        let body = try Self.source("Sources/MaryPlugin/WebSurface/WebSurfaceAdapter.swift")
+        #expect(!body.contains("I can't press things inside a page by name yet"))
+        #expect(body.contains("read_page"))
+        #expect(body.contains("search_web"))
+    }
+}

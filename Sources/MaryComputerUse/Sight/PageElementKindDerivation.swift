@@ -38,7 +38,10 @@ public enum PageElementKindDerivation {
         "read more", "see more", "view", "open", "next", "continue",
     ]
 
-    static func isCallToAction(_ label: String) -> Bool {
+    /// Public because the browsing lane admits results with it: a page's "Watch" button
+    /// carries a real destination and is not a result, and that judgement must be made
+    /// the same way in both places.
+    public static func isCallToAction(_ label: String) -> Bool {
         callToActionLabels.contains(
             label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
     }

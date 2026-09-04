@@ -30,7 +30,7 @@ MaryFoundation → MaryAmbient → MaryComputerUse → MaryPlugin → MaryBrain 
 |---|---|
 | `Accessibility/` | **Tier 0.** One bounded walk of a process's accessibility tree into plain Sendable values: `AXTreeWalker` → `AXSnapshotBuilder` → `AXAppSnapshot` → `AXElementRoster` → `AXAmbientContext`. Read-only, one-shot, no streamer — Mary polls. |
 | `Sight/` | Derived reads over that tree — page elements, the declared text surface, the last-acted element — plus `WindowPixels` (the one capture path, with a MEASURED scale) and `ScreenRegionCapture`, the ephemeral look. |
-| `Sight/Vision/` | What a page looks like, through VisionAX: `VisionPageReader` (the only importer of that module), `MediaControlReading`, and `PagePerceptionPipeline`, where a second perception lane will join. See [browser-engine.md](browser-engine.md). |
+| `Sight/Vision/` | What a page looks like, through VisionAX: `VisionPageReader` (the only importer of that module), `MediaControlReading`, `PageMapSummary` — which rows a page offers, what each affords, and where its name came from — and `PagePerceptionPipeline`, where a second perception lane will join. See [browser-engine.md](browser-engine.md). |
 | `Hands/` | The acts, by instrument: `Keyboard/` (chords, typing), `Pointer/` (move, click, drag, scroll, anchor capture, and the two acts that reach the whole machine — `hover` and `clickThroughHID`, each carrying the measurement that earned it), `Elements/` (press, set, focus), `Windows/` (raise, full screen, restore), `Menus/`, `MediaKeys/`. |
 | `Stage/` | Who holds the machine and proof that they do: verified activation, arbitration between observers, bounded waits, single-poller claims. |
 | `Process/` | `Subprocess`. Mary-owned tools only, never a shell. |

@@ -24,6 +24,7 @@
 
 import CoreGraphics
 import Foundation
+import MaryAmbient
 import MaryComputerUse
 import MaryFoundation
 import os
@@ -36,7 +37,16 @@ public actor BrowserEngine {
         public var shell: any BrowserShellReading
         public var page: any PagePerceiving
         public var hands: any BrowserHands
+        public var keys: any BrowserKeys
         public var stage: any BrowserStaging
+        /// Where a page read publishes what the screen is offering.
+        ///
+        /// PIN: A SEAM, NOT `.shared` REACHED FOR IN PLACE. The slate is process-wide in
+        /// production — one machine, one screen — but reaching for the global directly
+        /// made the engine's answers depend on whatever else had published recently,
+        /// which is unprovable in a test and, in a suite that runs in parallel, silently
+        /// wrong.
+        public var slate: AmbientElementIndexStore
         public var sleep: @Sendable (Duration) async -> Void
         public var now: @Sendable () -> Date
 
@@ -44,14 +54,18 @@ public actor BrowserEngine {
             shell: any BrowserShellReading,
             page: any PagePerceiving,
             hands: any BrowserHands,
+            keys: any BrowserKeys = LiveBrowserKeys(),
             stage: any BrowserStaging,
+            slate: AmbientElementIndexStore = .shared,
             sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) },
             now: @escaping @Sendable () -> Date = { Date() }
         ) {
             self.shell = shell
             self.page = page
             self.hands = hands
+            self.keys = keys
             self.stage = stage
+            self.slate = slate
             self.sleep = sleep
             self.now = now
         }
@@ -61,6 +75,7 @@ public actor BrowserEngine {
                 shell: LiveBrowserShell(),
                 page: LivePagePerception(),
                 hands: LiveBrowserHands(),
+                keys: LiveBrowserKeys(),
                 stage: LiveBrowserStaging())
         }
     }
@@ -86,12 +101,12 @@ public actor BrowserEngine {
 
     // MARK: - State
 
-    private let seams: Seams
-    private let dryRun: Bool
+    let seams: Seams
+    let dryRun: Bool
     private let startedAt: Date
     private var lastBrowser: String?
-    private var lastChrome: WebSurfaceAX.Reading?
-    private var lastMedia: MediaControlReading?
+    var lastChrome: WebSurfaceAX.Reading?
+    var lastMedia: MediaControlReading?
     private var lastRefusal: BrowserRefusal?
     private var acts = 0
     private var refusals = 0
@@ -141,7 +156,14 @@ public actor BrowserEngine {
 
     private func removeObserver(_ id: UUID) { observers[id] = nil }
 
-    private func emit(_ event: BrowserEngineEvent) {
+    /// End every open `events()` stream. For a probe that wants its collector to finish
+    /// and report — a watcher that runs for the life of a process never needs this.
+    public func closeObservers() {
+        for continuation in observers.values { continuation.finish() }
+        observers.removeAll()
+    }
+
+    func emit(_ event: BrowserEngineEvent) {
         for continuation in observers.values { continuation.yield(event) }
         let line: String
         switch event {
@@ -151,6 +173,13 @@ public actor BrowserEngine {
         case .perceived(let controls, let playback, let duration):
             perceptions += 1
             line = "perceived \(controls) controls · \(playback) · \(duration)"
+        case .read(let rows, let named, let groups):
+            perceptions += 1
+            line = "read \(rows) rows · \(named) named · \(groups) groups"
+        case .matched(let phrase, let label):
+            line = "matched \"\(phrase)\" → \"\(label)\""
+        case .receipt(let receipt):
+            line = "receipt \(receipt.spoken)"
         case .acted(let what):
             acts += 1
             line = "acted \(what)"
@@ -165,7 +194,7 @@ public actor BrowserEngine {
         Self.log.info("\(line, privacy: .public)")
     }
 
-    private func refuse(_ refusal: BrowserRefusal) -> BrowserOutcome {
+    func refuse(_ refusal: BrowserRefusal) -> BrowserOutcome {
         emit(.refused(refusal))
         return .refused(refusal)
     }
@@ -203,7 +232,7 @@ public actor BrowserEngine {
     // MARK: - The page
 
     /// Look at the page, revealing the transport first when the intent needs it.
-    private func perceive(
+    func perceive(
         _ target: BrowserTarget,
         shell: WebSurfaceAX.Reading,
         intent: VisionPageReader.Intent,
@@ -258,7 +287,7 @@ public actor BrowserEngine {
     /// How many extra tries the reveal gets before the answer is "no transport".
     static var revealAttempts: Int { revealDepths.count }
 
-    private func lookOnce(
+    func lookOnce(
         _ target: BrowserTarget,
         shell: WebSurfaceAX.Reading,
         pageFrame: CGRect,
@@ -356,7 +385,7 @@ public actor BrowserEngine {
     private func drove(
         _ action: MediaAction, in target: BrowserTarget, shell: WebSurfaceAX.Reading
     ) async -> BrowserOutcome {
-        let before: MediaControlReading
+        var before: MediaControlReading
         switch await perceive(target, shell: shell, intent: .media, reveal: true) {
         case .failure(let refusal): return refuse(refusal)
         case .success(let reading):
@@ -371,6 +400,26 @@ public actor BrowserEngine {
         // was asked for — the most annoying possible way to be wrong.
         if let settled = Self.alreadySatisfied(action, by: before) {
             return BrowserOutcome(ok: true, spoken: settled, shell: shell, media: before)
+        }
+
+        if case .volume = action {
+            // REVEAL THE SLIDER FIRST. A player draws its volume track only while the
+            // pointer is over the volume control, so the first reading has no track to
+            // aim at — that is not the control being absent, it is the slider not being
+            // asked for yet.
+            guard let control = before.volume else {
+                return refuse(.controlNotFound("volume"))
+            }
+            await seams.hands.glide(to: control.clickPoint, pid: target.processIdentifier)
+            await seams.sleep(Self.revealSettle)
+            switch await perceive(target, shell: shell, intent: .media, reveal: false) {
+            case .failure(let refusal): return refuse(refusal)
+            case .success(let reading):
+                guard let media = reading.media, media.volumeTrack != nil else {
+                    return refuse(.controlNotFound("volume slider"))
+                }
+                before = media
+            }
         }
 
         guard let (point, what) = Self.target(for: action, in: before) else {
@@ -391,9 +440,24 @@ public actor BrowserEngine {
         await seams.sleep(Self.actSettle)
 
         // Keep the pointer over the page so the transport stays up for the second look.
+        //
+        // THE VOLUME IS THE EXCEPTION, AND IT HAS TO BE. Its track exists only while the
+        // pointer is on the volume control, so a second look taken with the pointer back
+        // over the middle of the picture finds no slider — or worse, finds some other
+        // thin run and reports the progress bar's fraction as the volume. Measured: a
+        // press that had worked reported "still at 4%".
+        if case .volume = action, let control = before.volume {
+            await seams.hands.glide(to: control.clickPoint, pid: target.processIdentifier)
+            await seams.sleep(Self.pressSettle)
+        }
         let after: MediaControlReading
         switch await perceive(
-            target, shell: shell, intent: .media, reveal: true, previous: before
+            target, shell: shell, intent: .media,
+            reveal: {
+                if case .volume = action { return false }
+                return true
+            }(),
+            previous: before
         ) {
         case .failure(let refusal): return refuse(refusal)
         case .success(let reading):
@@ -475,7 +539,7 @@ public actor BrowserEngine {
     }
 
     /// Wait for the address or the title to change, and stay changed.
-    private func settle(
+    func settle(
         _ target: BrowserTarget, from before: WebSurfaceAX.Reading, saying verb: String
     ) async -> BrowserOutcome {
         var stable = 0
@@ -544,6 +608,12 @@ public actor BrowserEngine {
         case .seek(let fraction):
             guard let point = media.seekPoint(fraction: fraction) else { return nil }
             return (point, "the progress bar")
+        case .volume(let fraction):
+            // THE TRACK ONLY EXISTS WHILE THE POINTER IS ON THE CONTROL, so this is nil
+            // on a first read and found on the second — see `drove`, which hovers the
+            // volume glyph and looks again before asking.
+            guard let point = media.volumePoint(fraction: fraction) else { return nil }
+            return (point, "the volume slider")
         }
     }
 
@@ -551,6 +621,7 @@ public actor BrowserEngine {
         switch action {
         case .play, .pause, .toggle: return "play"
         case .mute, .unmute: return "volume"
+        case .volume: return "volume slider"
         case .fullscreen: return "full screen"
         case .seek: return "progress"
         }
@@ -594,6 +665,11 @@ public actor BrowserEngine {
             // that the transport moved to the bottom of a much larger frame.
             guard let beforeBar = before.bar, let afterBar = after.bar else { return nil }
             return afterBar.height > beforeBar.height * 1.2 ? "the player grew" : nil
+        case .volume(let fraction):
+            guard let now = after.volumeTrack?.fraction else { return nil }
+            if abs(now - fraction) <= 0.08 { return "the volume is where it was asked for" }
+            guard let was = before.volumeTrack?.fraction else { return nil }
+            return abs(now - was) > 0.03 ? "the volume moved" : nil
         case .seek(let fraction):
             guard let now = after.progress?.fraction else { return nil }
             if abs(now - fraction) <= 0.05 { return "the position is where it was asked for" }
@@ -611,6 +687,7 @@ public actor BrowserEngine {
         case .unmute: return "unmuted"
         case .fullscreen: return "full screen"
         case .seek(let fraction): return "\(Int((fraction * 100).rounded()))% through"
+        case .volume(let fraction): return "the volume at \(Int((fraction * 100).rounded()))%"
         }
     }
 
@@ -625,6 +702,11 @@ public actor BrowserEngine {
         case .seek:
             guard let fraction = media.progress?.fraction else { return "unreadable" }
             return "\(Int((fraction * 100).rounded()))% through"
+        case .volume:
+            guard let fraction = media.volumeTrack?.fraction else {
+                return "a slider I can't see"
+            }
+            return "the volume at \(Int((fraction * 100).rounded()))%"
         case .fullscreen:
             return "the same size"
         default:

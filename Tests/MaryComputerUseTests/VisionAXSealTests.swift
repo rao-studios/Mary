@@ -91,6 +91,10 @@ final class VisionAXSealTests: XCTestCase {
             "VisionScene", "VisionDetection", "VisionEngine", "VisionLanes",
             "MediaControlDetection", "ScreenProjection", "RegionClassifier",
             "MediaGlyph", "TextRun", "CannyOptions",
+            // The map's vocabulary. Mary's twins are PageMapSummary, SeenAffordance
+            // and SeenLabelSource — same facts, this module's names.
+            "PageMap", "PageMapElement", "PageMapGroup", "PageAffordance",
+            "PageLabelSource", "PageAffordanceSource", "TextLine", "IconGlyph",
         ]
         var breaches: [String] = []
         for url in try Self.swiftFiles()

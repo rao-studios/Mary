@@ -42,7 +42,7 @@ extension TyperPlugin {
                            AmbientPlaceResolver.isBrowser(bundleID: front) {
                             return SkillOutcome(
                                 ok: false,
-                                summary: "That's a browser page — I write there with type_in_web_page, which pastes at the page's cursor. Call type_in_web_page with the same text.")
+                                summary: "That's a browser page — I type there with fill_in_page, which names the field first. Call fill_in_page with the same text.")
                         }
                         return SkillOutcome(
                             ok: false,

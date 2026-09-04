@@ -26,8 +26,14 @@ enum AffordanceRecipes {
 
     /// Frontmost surface. Not the browser ladder (that can pick a background browser).
     enum Surface {
-        // PIN: no browser arm — page-interaction lane owns web presses (deferred).
         case application(pid: pid_t, name: String, place: AmbientPlace)
+        // PIN: A BROWSER IS A SURFACE LIKE ANY OTHER NOW, and it delegates rather than
+        // reimplementing. Pressing something on a page IS `click_on_page` — the same
+        // resolution ladder over the same published slate, the same receipt, the same
+        // refusals — so this arm hands the goal straight to the browsing engine. A
+        // second pressing path here would be a second set of rules about all of that,
+        // and the two would part company the first time either was fixed.
+        case browser(BrowserTarget)
         case failure(SkillOutcome)
     }
 
@@ -39,9 +45,15 @@ enum AffordanceRecipes {
                 summary: "I can't tell which application is in front, so there's nothing for me to act on."))
         }
         if AmbientPlaceResolver.isBrowser(bundleID: bundleID) {
-            return .failure(SkillOutcome(
-                ok: false,
-                summary: "That's a web page, and I can't press things on one yet."))
+            guard let (registration, pid) = WebSurfaceSupport.shared.resolve(nil) else {
+                // The browser is in front but no package declares it, so nothing here
+                // knows where its page even is.
+                return .failure(SkillOutcome(
+                    ok: false,
+                    summary: "That's a web page from a browser I haven't been taught."))
+            }
+            return .browser(
+                BrowserTarget(registration: registration, processIdentifier: pid))
         }
         return .application(
             pid: front.processIdentifier,
@@ -60,6 +72,15 @@ enum AffordanceRecipes {
         switch await surface() {
         case .failure(let outcome):
             return outcome
+        case .browser(let target):
+            let outcome = await BrowserEngine.live.pressOnPage(goal, in: target)
+            return SkillOutcome(
+                ok: outcome.ok,
+                summary: outcome.spoken,
+                foundNothing: outcome.refusal.map(WebSurfaceAdapter.isMiss) ?? false,
+                landed: outcome.landed,
+                adapterTrail: ["web-surface"],
+                applicationID: target.applicationID)
         case .application(let pid, let name, let place):
             return await act(goal: goal, pid: pid, name: name, place: place)
         }

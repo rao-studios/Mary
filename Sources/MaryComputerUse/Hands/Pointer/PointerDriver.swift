@@ -233,6 +233,93 @@ public enum PointerDriver {
             detail: "\(describe(point)) \(button.rawValue)×\(clicks)")
     }
 
+    /// A short travel to a point, the way a hand arrives at one.
+    ///
+    /// PIN: `hover` STARTS 180 POINTS AWAY, AND SOMETIMES THAT IS THE PROBLEM. Its long
+    /// approach is what wakes a video's transport, but the same approach sweeps across
+    /// whatever lies between — measured on a player, where reaching the volume control
+    /// from the far side passed over the picture and dismissed the very slider the move
+    /// was for. This one starts where the pointer already is, so it disturbs nothing on
+    /// the way, and it is still real movement rather than a jump.
+    @discardableResult
+    public static func glideThroughHID(to point: CGPoint, steps: Int = 8) -> Bool {
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            return report("glide", false, pid: 0, detail: describe(point))
+        }
+        source.localEventsSuppressionInterval = 0
+        source.setLocalEventsFilterDuringSuppressionState(
+            [.permitLocalMouseEvents, .permitLocalKeyboardEvents, .permitSystemDefinedEvents],
+            state: .eventSuppressionStateSuppressionInterval)
+        let from = location ?? point
+        let count = max(2, steps)
+        for step in 1...count {
+            let progress = Double(step) / Double(count)
+            let eased = progress * progress * (3 - 2 * progress)
+            let here = CGPoint(
+                x: from.x + (point.x - from.x) * eased,
+                y: from.y + (point.y - from.y) * eased)
+            guard let event = CGEvent(
+                mouseEventSource: source, mouseType: .mouseMoved,
+                mouseCursorPosition: here, mouseButton: .left)
+            else { return report("glide", false, pid: 0, detail: describe(point)) }
+            event.post(tap: .cghidEventTap)
+            usleep(16_000)
+        }
+        return report("glide", true, pid: 0, detail: describe(point))
+    }
+
+    /// A press, a travel, and a release — through the same tap the hardware uses.
+    ///
+    /// PIN: A PID-POSTED DRAG IS INVISIBLE TO A PAGE, exactly as a pid-posted click is,
+    /// and for the same reason: rendered content hit-tests against the real pointer.
+    /// A slider dragged that way reports success and moves nothing. The pointer is put
+    /// on the handle first, so the gesture is where it can be seen happening.
+    /// THE MOVE IS IN STEPS, because a control that follows the pointer needs to be
+    /// told where it went, not merely where it ended up.
+    @discardableResult
+    public static func dragThroughHID(
+        from: CGPoint, to: CGPoint, duration: Double = 0.22
+    ) -> Bool {
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            return report("dragHID", false, pid: 0, detail: describe(to))
+        }
+        source.localEventsSuppressionInterval = 0
+        source.setLocalEventsFilterDuringSuppressionState(
+            [.permitLocalMouseEvents, .permitLocalKeyboardEvents, .permitSystemDefinedEvents],
+            state: .eventSuppressionStateSuppressionInterval)
+
+        func post(_ type: CGEventType, _ point: CGPoint) -> Bool {
+            guard let event = CGEvent(
+                mouseEventSource: source, mouseType: type,
+                mouseCursorPosition: point, mouseButton: .left)
+            else { return false }
+            event.setIntegerValueField(.mouseEventClickState, value: 1)
+            event.post(tap: .cghidEventTap)
+            return true
+        }
+
+        guard post(.mouseMoved, from), post(.leftMouseDown, from) else {
+            return report("dragHID", false, pid: 0, detail: describe(to))
+        }
+        let steps = max(2, Int((duration * 60).rounded()))
+        for step in 1...steps {
+            let progress = Double(step) / Double(steps)
+            let eased = progress * progress * (3 - 2 * progress)
+            let here = CGPoint(
+                x: from.x + (to.x - from.x) * eased,
+                y: from.y + (to.y - from.y) * eased)
+            guard post(.leftMouseDragged, here) else {
+                // A BUTTON LEFT DOWN IS WORSE THAN A FAILED DRAG. Release wherever the
+                // gesture got to before reporting.
+                _ = post(.leftMouseUp, here)
+                return report("dragHID", false, pid: 0, detail: describe(to))
+            }
+            usleep(UInt32(duration * 1_000_000 / Double(steps)))
+        }
+        let released = post(.leftMouseUp, to)
+        return report("dragHID", released, pid: 0, detail: "\(describe(from)) → \(describe(to))")
+    }
+
     @discardableResult
     public static func drag(from: CGPoint, to: CGPoint, pid: pid_t) -> Bool {
         let ok = postMouse(type: .leftMouseDown, at: from, button: .left, pid: pid)

@@ -71,6 +71,9 @@ public struct MediaControlReading: Sendable, Equatable {
     public var centerGlyph: Control?
     public var others: [Control]
     public var progress: Progress?
+    /// The short track beside the volume control. Present only while the pointer is
+    /// over that control, so nil usually means "not revealed" rather than "not there".
+    public var volumeTrack: Progress?
     public var elapsed: TimeInterval?
     public var duration: TimeInterval?
     public var capturedAt: Date
@@ -86,6 +89,7 @@ public struct MediaControlReading: Sendable, Equatable {
         centerGlyph: Control? = nil,
         others: [Control] = [],
         progress: Progress? = nil,
+        volumeTrack: Progress? = nil,
         elapsed: TimeInterval? = nil,
         duration: TimeInterval? = nil,
         capturedAt: Date = Date()
@@ -100,6 +104,7 @@ public struct MediaControlReading: Sendable, Equatable {
         self.centerGlyph = centerGlyph
         self.others = others
         self.progress = progress
+        self.volumeTrack = volumeTrack
         self.elapsed = elapsed
         self.duration = duration
         self.capturedAt = capturedAt
@@ -123,6 +128,17 @@ public struct MediaControlReading: Sendable, Equatable {
         guard let progress else { return nil }
         return PageElementActions.screenPoint(
             forFraction: fraction, in: progress.frame, orientation: .horizontal)
+    }
+
+    /// Where to click on the volume track to land at `fraction`.
+    ///
+    /// PIN: THE TRACK IS ONLY THERE WHILE THE POINTER IS. A player draws its volume
+    /// slider on hover and takes it away again, so a caller reads, hovers the volume
+    /// control, reads AGAIN, and only then has a track to aim at.
+    public func volumePoint(fraction: Double) -> CGPoint? {
+        guard let volumeTrack else { return nil }
+        return PageElementActions.screenPoint(
+            forFraction: fraction, in: volumeTrack.frame, orientation: .horizontal)
     }
 
     /// The sentence a skill and the probe both say, so the two never drift.

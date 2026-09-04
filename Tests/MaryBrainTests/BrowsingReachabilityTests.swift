@@ -26,6 +26,10 @@ import Testing
         "browsing.control-media", "browsing.open-location", "browsing.navigate-back",
         "browsing.navigate-forward", "browsing.reload-page", "browsing.scroll-page",
         "browsing.new-tab",
+        // The page itself — read it, then act on what it named.
+        "browsing.read-page", "browsing.click-on-page", "browsing.fill-in-page",
+        "browsing.scroll-to-on-page", "browsing.adjust-on-page", "browsing.search-web",
+        "browsing.interact-with-page",
     ]
 
     @Test func everyBrowsingSkillIsDeclaredAndExposed() throws {
@@ -98,6 +102,18 @@ import Testing
         #expect(perception.ownership == .observed)
         #expect(perception.freshnessSeconds <= 10)
         #expect(perception.valueType == "browsing.page-report")
+    }
+
+    /// THE LISTING IS EXHAUSTIVE. A verb added to the package and not to this list is a
+    /// verb nothing here is checking, which is how the browsing lane grew a skill that
+    /// was declared, unexposed, and unreachable for a week.
+    @Test func nothingShipsUnlisted() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let package = try load("browsing")
+        let unlisted = package.ability.skills.filter { !Self.shipped.contains($0) }
+        #expect(
+            unlisted.isEmpty,
+            "browsing ships \(unlisted.map(\.rawValue).sorted()) which this test does not check")
     }
 
     private func load(_ name: String) throws -> MaryAbilityPackage {

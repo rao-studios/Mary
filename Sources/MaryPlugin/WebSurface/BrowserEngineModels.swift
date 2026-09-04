@@ -13,6 +13,7 @@
 import CoreGraphics
 import Foundation
 import MaryComputerUse
+import MaryFoundation
 
 /// The browser a request is aimed at.
 public struct BrowserTarget: Sendable, Equatable {
@@ -40,6 +41,8 @@ public enum MediaAction: Sendable, Equatable {
     case fullscreen
     /// Jump to a proportion of the video.
     case seek(fraction: Double)
+    /// Set the sound to a proportion of the volume track.
+    case volume(fraction: Double)
 
     public var spokenPast: String {
         switch self {
@@ -50,6 +53,8 @@ public enum MediaAction: Sendable, Equatable {
         case .unmute: return "Unmuted"
         case .fullscreen: return "Went full screen"
         case .seek(let fraction): return "Skipped to \(Int((fraction * 100).rounded()))%"
+        case .volume(let fraction):
+            return "Set the volume to \(Int((fraction * 100).rounded()))%"
         }
     }
 }
@@ -80,6 +85,18 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     case navigationDidNotSettle
     case addressFieldNotFound
     case elementNotFound(String)
+    /// Several things answer to that phrase. Carries the rivals so the refusal names them.
+    case ambiguousElement(phrase: String, rivals: [String])
+    /// A plan the model wrote that the grammar would not take.
+    case planInvalid([String])
+    /// Somebody touched the machine while a plan was running.
+    case interrupted(atCommand: Int)
+    /// A search was typed and the browser went somewhere that is not results for it.
+    case searchCompletedElsewhere
+    /// A named thing that is not the kind the command needs.
+    case notFillable(String)
+    case notAdjustable(String)
+    case outOfTime
     case activationRefused(String)
     case notImplemented(String)
     /// The engine was asked to observe, not act.
@@ -109,12 +126,126 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
             return "I couldn't find the address bar."
         case .elementNotFound(let phrase):
             return "I couldn't find \"\(phrase)\" on the page."
+        case .ambiguousElement(let phrase, let rivals):
+            let named = rivals.prefix(3).map { "\"\($0)\"" }.joined(separator: ", ")
+            return "There's more than one \"\(phrase)\" on this page — \(named). Which one?"
+        case .planInvalid(let problems):
+            return "I can't run that: \(problems.prefix(3).joined(separator: "; "))."
+        case .interrupted(let index):
+            return "Something else took over at step \(index + 1), so I stopped there."
+        case .searchCompletedElsewhere:
+            return "The browser went somewhere else instead of showing results for that."
+        case .notFillable(let phrase):
+            return "\"\(phrase)\" isn't something I can type into."
+        case .notAdjustable(let phrase):
+            return "\"\(phrase)\" isn't a slider, so there's nothing to set."
+        case .outOfTime:
+            return "That was taking too long, so I stopped partway."
         case .activationRefused(let name):
             return "\(name) wouldn't come forward."
         case .notImplemented(let what):
             return "I can't \(what) yet."
         case .dryRun(let what):
             return "Dry run — I would have \(what)."
+        }
+    }
+}
+
+/// The evidence that an act did something.
+///
+/// PIN: RANKED, AND THE RANK IS THE HONESTY. A page repaints on its own — adverts
+/// rotate, lazy images arrive — so "something changed" is the weakest thing that can be
+/// said and it is not proof. Only the top three carry `landed`; the rest are reported as
+/// delivered with the effect unverified, which is a different sentence and a different
+/// decision for whatever reads it.
+public enum PageEffectEvidence: Sendable, Equatable {
+    /// The strongest: the browser went somewhere and stayed there.
+    case navigation(title: String)
+    /// The thing itself changed — its words, or it is gone.
+    case targetChanged(before: String, after: String)
+    /// The typed text is now in the field.
+    case textAppeared(in: String)
+    /// The page's rows differ. Weak on its own.
+    case rosterChanged(added: Int, removed: Int)
+    /// The player moved. The media lane's own witness.
+    case mediaState(String)
+
+    public var spoken: String {
+        switch self {
+        case .navigation(let title): return "the page became \(title)"
+        case .targetChanged(_, let after):
+            return after.isEmpty ? "it is gone from the page" : "it now says \(after)"
+        case .textAppeared(let field): return "the text is in \(field)"
+        case .rosterChanged(let added, let removed):
+            return "the page changed (\(added) new, \(removed) gone)"
+        case .mediaState(let what): return what
+        }
+    }
+
+    /// Whether this is proof, or only a sign.
+    public var isProof: Bool {
+        switch self {
+        case .navigation, .targetChanged, .textAppeared, .mediaState: return true
+        case .rosterChanged: return false
+        }
+    }
+}
+
+/// Whether a command reached the machine.
+public enum PageDeliveryState: Sendable, Equatable {
+    case delivered
+    case refused(BrowserRefusal)
+    /// An earlier command stopped the plan before this one ran.
+    case notAttempted
+    case interrupted
+}
+
+/// Whether it did anything.
+public enum PageEffectState: Sendable, Equatable {
+    case verified(PageEffectEvidence)
+    case weak(PageEffectEvidence)
+    case unverified
+}
+
+/// One command's whole story.
+public struct PageCommandReceipt: Sendable, Equatable {
+    public var sourceIndex: Int
+    public var kind: PageInteractionCommandKind
+    public var target: String?
+    public var delivery: PageDeliveryState
+    public var effect: PageEffectState
+
+    public init(
+        sourceIndex: Int, kind: PageInteractionCommandKind, target: String? = nil,
+        delivery: PageDeliveryState, effect: PageEffectState = .unverified
+    ) {
+        self.sourceIndex = sourceIndex
+        self.kind = kind
+        self.target = target
+        self.delivery = delivery
+        self.effect = effect
+    }
+
+    /// Proof, not a sign — what `SkillOutcome.landed` is allowed to rest on.
+    public var landed: Bool {
+        guard case .delivered = delivery else { return false }
+        if case .verified = effect { return true }
+        return false
+    }
+
+    public var spoken: String {
+        let named = target.map { " \"\($0)\"" } ?? ""
+        switch delivery {
+        case .refused(let refusal): return refusal.summary
+        case .notAttempted: return "didn't get to \(kind.rawValue)\(named)"
+        case .interrupted: return "stopped during \(kind.rawValue)\(named)"
+        case .delivered:
+            switch effect {
+            case .verified(let evidence), .weak(let evidence):
+                return "\(kind.rawValue)\(named) — \(evidence.spoken)"
+            case .unverified:
+                return "\(kind.rawValue)\(named) — no sign it did anything"
+            }
         }
     }
 }
@@ -128,11 +259,20 @@ public struct BrowserOutcome: Sendable {
     public var media: MediaControlReading?
     /// Rows the page read published, when one ran.
     public var elements: [AXScreenElement]
+    /// What the map said about those rows.
+    public var map: PageMapSummary?
+    /// One per command, in authored order.
+    public var receipts: [PageCommandReceipt]
+    /// PROVEN, not merely attempted. The continuation nudge reads this to decide whether
+    /// the asked-for change actually happened, so a hopeful `true` here is how a turn
+    /// closes on work it did not do.
+    public var landed: Bool
 
     public init(
         ok: Bool, spoken: String, refusal: BrowserRefusal? = nil,
         shell: WebSurfaceAX.Reading? = nil, media: MediaControlReading? = nil,
-        elements: [AXScreenElement] = []
+        elements: [AXScreenElement] = [], map: PageMapSummary? = nil,
+        receipts: [PageCommandReceipt] = [], landed: Bool = false
     ) {
         self.ok = ok
         self.spoken = spoken
@@ -140,6 +280,9 @@ public struct BrowserOutcome: Sendable {
         self.shell = shell
         self.media = media
         self.elements = elements
+        self.map = map
+        self.receipts = receipts
+        self.landed = landed
     }
 
     static func refused(_ refusal: BrowserRefusal) -> BrowserOutcome {
@@ -152,6 +295,11 @@ public enum BrowserEngineEvent: Sendable {
     case resolved(browser: String, pid: pid_t)
     case shellRead(title: String?, site: String?, pageFrame: CGRect?)
     case perceived(controls: Int, playback: String, duration: Duration)
+    case read(rows: Int, named: Int, groups: Int)
+    /// A phrase became one row. Named `matched` because `resolved` already means
+    /// "which browser" on this stream.
+    case matched(phrase: String, to: String)
+    case receipt(PageCommandReceipt)
     case acted(String)
     case verified(String)
     case refused(BrowserRefusal)

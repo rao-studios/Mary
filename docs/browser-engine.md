@@ -61,8 +61,178 @@ clicks the control and re-perceives to prove the state moved.
 
 **Stage 3 — Accessibility page-element extraction.** DEFERRED. See below.
 
-**Stage 4 — pressing page elements by name.** Not started. It needs stage 3 for labels,
-or an OCR-labelled roster from the vision lane.
+**Stage 4 — the page map, and one grammar over it.** Done. VisionAX assembles the page
+into rows that can be acted on, grouped and in reading order, and Mary resolves a phrase
+against them with the same ladder every other surface uses, acts through one executor,
+and proves the effect by looking again. See below.
+
+## Stage 4 — the page map, and one grammar over it
+
+The problem this solves is not "press a button on a page". It is that every *other*
+interaction — a search box, the first result, a video, a volume slider, a consent wall —
+would otherwise be one more condition in the web-surface layer, and the layer would grow
+a rule per site per widget forever.
+
+### What VisionAX hands over
+
+A **page map**: rows, each with a frame, a role, what it affords (press, fill, adjust,
+scroll), a label, and *where that label came from*. Built from three sources joined
+before anything is classified:
+
+| Source | What it contributes |
+|---|---|
+| Canny regions | Boxes with an edge — buttons, fields, cards, images |
+| **Text lines** | Boxes with no edge at all — a result title is an anchor around a heading, invisible to an edge detector and perfectly legible to recognition |
+| Geometry | Which of those rows belong together, and in what order |
+
+The text-line union is the change that matters most. It runs in `perceive` *before* the
+classifier, and at harvest time through the same function (`TextLines.proposals`), so the
+model is trained on the proposals it will be asked about.
+
+**Grouping is geometry, never markup.** Bands of boxes that share a line, merged with
+whatever sits close under them, then compared with their neighbours: a run of similar
+bands at a regular pitch is a list, and that is what makes "the first result" mean
+anything. Cards, forms, toolbars and overlays fall out of the same pass. A dialog — a box
+inset from every edge holding several things to press — is reported first, because
+nothing behind it can be reached while it is up.
+
+**Every row keeps a name, and says where it got it.** Classifier label, then words inside
+the box, then the label beside it (fields only — a button labels itself), then a drawn
+icon, then `"button 3"`. Nothing is dropped for lacking a name, which is what the old
+roster did and why a page of search results read as four chrome buttons.
+
+### What Mary does with it
+
+One resolver, one executor, six verbs and a grammar:
+
+- `read_page` lists what is there, numbered *within its kind* — the same counting the
+  resolver uses, so what is spoken is what resolves.
+- `click_on_page`, `fill_in_page`, `scroll_to_on_page`, `adjust_on_page` each build a
+  one-command plan.
+- `search_web` types the query into the browser's own address bar, so it uses whichever
+  search the person set up, and no address is written for them.
+- `interact_with_page` takes a bounded JSON plan for sequences that genuinely belong
+  together.
+
+All of them go through `PageActor`, which re-reads the page before every command,
+resolves the phrase with `ScreenElementResolver` and then the embedding gate over the
+slate that read just published, acts, restores the pointer, and judges the effect.
+
+### Receipts, ranked
+
+`landed` is set only by the top three. A page repaints on its own, so "the rows differ"
+is a sign and never proof.
+
+| Rank | Evidence | Lands? |
+|---|---|---|
+| 1 | The browser went somewhere and stayed | yes |
+| 2 | The target itself changed, or is gone | yes |
+| 3 | The typed text is in the field | yes |
+| 4 | The page's rows differ (tooltips near the pointer excluded) | no — "the page changed" |
+| 5 | Nothing | no — delivered, effect unverified |
+
+### The grammar's bounds
+
+Sixteen commands, 32 KiB, targets under 512 bytes, text under 4 KiB, scroll ±2000, waits
+under two seconds, one to three clicks, an event budget of 4096, no plan ending on a
+hover, and **keys limited to return, escape and tab**. A modified chord inside a page is
+a browser command and an unmodified letter is a site shortcut; both are what this
+discipline exists not to use, and the validator enforces on model-authored plans what
+`NoSiteShortcutsTests` enforces on the source.
+
+### What was measured
+
+Proposal recall — the ceiling on everything downstream, since a box nobody proposed can
+never be named or pressed:
+
+| Corpus | Canny alone | With text lines |
+|---|---|---|
+| Synthetic pages (2,000) | 75.7% | 83.5% |
+| Real pages (150 harvested samples) | 62.1% | 72.7% |
+
+List rows went from **0 of 1,736 matched** to 2,207 proposals in the corpus, because a
+list item that holds something to press is now emitted as `AXRow` ground truth.
+
+Offering one word-level proposal per text RUN as well as per line was tried and thrown
+away: it moved real recall from 0.727 to 0.728 for roughly twice the proposals.
+
+Three defects only a live page could show, each fixed:
+
+- **813 "actionable" rows on one watch page.** Every unnamed box in a row of unnamed
+  boxes was being offered as pressable, and hundreds of them were 8×8 fragments of
+  letterforms. A box now has to be at least 16 points on both sides, and an unnamed one
+  is only pressable when the icon bank recognized the shape drawn in it.
+- **Fast text recognition returned nine runs for a whole page**, spelled "Sub8cribe" and
+  "23M vlew8". The page lane now reads accurately; the media clock keeps the fast pass,
+  where the strip is magnified first and the answer is four digits.
+- **The icon bank named two dozen patches of video picture.** The floor moved from 0.55
+  to 0.72, which sits above picture noise and below every icon the fixture draws.
+
+### Two the media lane had been hiding
+
+Driving a live player turned up defects the fixtures could not, because both depend on a
+crop of a real window:
+
+- **A shape cut off by the crop's edge was being read as the transport.** The left edge
+  sliced the player's chrome into a 31-pixel fragment at x=0 which matched `pause` at
+  0.45 — enough to become the leftmost control, and therefore the transport, while the
+  real play button sat 25 pixels along matching `play` at 0.72. Everything downstream
+  then reasoned from the fragment: the reading said "playing" about a paused video, and a
+  press that had actually worked was reported as having done nothing. Controls touching
+  the frame's edge are now rejected — a shape that is cut off is not a shape.
+- **The volume slider was verified with the pointer in the wrong place.** Its track exists
+  only while the pointer is on the volume control, so the second look — taken with the
+  pointer back over the middle of the picture, which is what keeps a transport visible —
+  found some other thin run and reported the progress bar's fraction as the volume. The
+  volume act now holds the pointer on its own control for the second look.
+
+### Verified live
+
+On Safari, driven only by `mary-web-probe`:
+
+- Typing a query into the address bar reached the person's own search engine, and the
+  settled address was checked against the query as evidence and never spoken.
+- A results page read as 89 rows, 81 of them carrying a name something had written,
+  19 pressable, in reading order.
+- `--click "languages"` resolved the phrase, pressed it, and proved the effect by the
+  control's own label changing.
+- A four-step plan — click the search control, wait, type "ski mountaineering", submit —
+  ran with a receipt per step and ended on the page it asked for.
+- Playback toggled and was put back, each direction proved by re-perceiving, and the
+  volume was set to 35% and verified against the track's own fill.
+- The same acts on **Chrome**: a page read, a control pressed by name and proved, and a
+  web search that opened a real result.
+
+### Two the live search found
+
+- **Both omniboxes finish your sentence.** "swift concurrency" typed into Chrome opened
+  YouTube, because a history entry was inline-completed and Return accepted it. The
+  receipt caught it — `searchCompletedElsewhere`, refused rather than reported as a
+  search — and the lane now presses forward-delete before Return, which removes a
+  selected completion and does nothing when there is none.
+- **A results page shows you your own query, in its own search box.** That row is
+  pressable, well named and the right length, so it looked exactly like the top result
+  and got opened. A real title contains the query and says more; the echo says the query
+  and stops, so what is left after removing it is the test.
+
+### What is still weak
+
+- Icon naming is a bank of twenty-two drawn silhouettes compared by blurred correlation.
+  It is a fallback rung: an unnamed icon is still "button 4" and still pressable.
+- A slider read from pixels has no value and no step, only a track — so `adjust` supports
+  minimum, maximum and a fraction, and nothing else.
+- Orientation for a track is inferred from its aspect ratio. Stated in the receipt as the
+  guess it is.
+- **The classifier used to call body text `AXLink`** — a dozen sentences offered as
+  links on any article. It had been trained before text lines were proposals, so it had
+  never been asked about one. Retrained on the expanded corpus its link precision went
+  from 0.49 to 0.941, and that article page went from 16 pressable rows to 3 real
+  controls. The trade was recall: some genuine controls stopped being named at all, which
+  is why the resolver now reaches past what the map offers when a person names something
+  exactly. Numbers in VisionAX's README.
+- A field whose border the detector never finds cannot be filled by name. The generic
+  answer already works: press the control that opens it, then type where the focus is,
+  which is one plan and needs nothing site-specific.
 
 ## Stage 3, and why it is not here yet
 
@@ -174,9 +344,15 @@ test in `MediaFixtureTests`, so the next change to the detector has to keep it w
 
 ## One thing that changed elsewhere
 
-The moment `browsing.mary` ships, the affordance slate goes dark for browsers:
-`AmbientSurfaceObserver` retracts it whenever `AmbientPlaceResolver.isBrowser` is true,
-which until now was never. Generic "press Reload" on a browser's own toolbar stops
-working, and `navigate_back`, `navigate_forward`, `reload_page` and `list_tabs` are the
-replacement. That is a deliberate trade: the browsing skills know which control they are
-pressing and prove the page moved, and the affordance slate did neither.
+The moment `browsing.mary` ships, the ambient observer stops publishing an affordance
+slate for browsers: it retracts whenever `AmbientPlaceResolver.isBrowser` is true, which
+until now was never. Generic "press Reload" on a browser's own toolbar stops coming from
+the poll, and `navigate_back`, `navigate_forward`, `reload_page` and `list_tabs` are the
+replacement for the shell.
+
+For the PAGE, the slate came back — published by a page read rather than by a poll, which
+is the doctrine holding: pixels are read when a skill asks and at no other time. So
+`act_on_screen` works on a browser again, and it works by *being* `click_on_page`: the
+browser arm of `AffordanceRecipes` delegates to the engine rather than pressing anything
+itself. The slate is retracted the moment a verified navigation makes every row in it
+wrong.

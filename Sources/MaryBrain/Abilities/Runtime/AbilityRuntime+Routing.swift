@@ -267,6 +267,10 @@ extension AbilityRuntime {
         MaryEmbeddings.endTurn()
         // Surface referent for this turn — same lifetime as the other memos.
         surfaceReferent.withLock { $0 = .currentLiveSelection }
+        // WHERE THIS TURN'S SEARCHES ALREADY LANDED. Same lifetime, same reason: a page
+        // is not still the page it was, and a search repeated within one turn cannot
+        // prove itself because nothing about the browser changes the second time.
+        BrowserTurnMemo.shared.beginTurn()
         // Demoted, not dropped — see `TurnOfferLedger`. Detached routines dispatch across this boundary.
         offerLedger.withLock {
             $0.previous = $0.current

@@ -43,9 +43,14 @@ public struct WebSurfaceAdapter: MaryAdapter {
     public var promptFragment: String? {
         """
         The browser's own controls are read through Accessibility; what is INSIDE the \
-        page is read from pixels. Say the site, never the address. Drive a video with \
-        control_media — never a site's keyboard shortcut, and never the system media \
-        keys, which reach whatever holds now-playing rather than this tab.
+        page is read from pixels. Say the site, never the address. READ THE PAGE BEFORE \
+        NAMING SOMETHING ON IT — read_page lists what is there, numbered, and \
+        click_on_page, fill_in_page and scroll_to_on_page take those words back. To \
+        search the web use search_web, which types the query into the browser's own \
+        address bar; to search WITHIN a site, open it and fill_in_page its search box \
+        with submit. Drive a video with control_media — never a site's keyboard \
+        shortcut, and never the system media keys, which reach whatever holds \
+        now-playing rather than this tab.
         """
     }
 
@@ -54,12 +59,14 @@ public struct WebSurfaceAdapter: MaryAdapter {
     }
 
     public var refusals: [String] {
-        ["I can't press things inside a page by name yet — only the player's controls."]
+        ["I can't fill in a page that shows me no field to type into."]
     }
 
     public var skillBindings: [SkillBinding] {
         [currentPage, listTabs, describeMedia, controlMedia,
-         openLocation, navigateBack, navigateForward, reloadPage, scrollPage]
+         openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
+         readPage, clickOnPage, fillInPage, scrollToOnPage, adjustOnPage,
+         searchWeb, interactWithPage]
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -103,10 +110,30 @@ public struct WebSurfaceAdapter: MaryAdapter {
                           input: "browsing.browser-query", output: "browsing.page-report"),
                 operation("scroll_page", capability: "browser.page.act",
                           input: "browsing.media-request", output: "browsing.operation-result"),
+                operation("read_page", capability: "browser.page.read",
+                          input: "browsing.page-query", output: "browsing.page-listing"),
+                operation("click_on_page", capability: "browser.page.press",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
+                operation("fill_in_page", capability: "browser.page.fill",
+                          input: "browsing.page-fill", output: "browsing.operation-result"),
+                operation("scroll_to_on_page", capability: "browser.page.act",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
+                operation("adjust_on_page", capability: "browser.page.act",
+                          input: "browsing.page-fill", output: "browsing.operation-result"),
+                operation("search_web", capability: "browser.page.search",
+                          input: "browsing.search-query", output: "browsing.page-listing"),
+                operation("interact_with_page", capability: "browser.page.act",
+                          input: "browsing.page-plan", output: "browsing.operation-result"),
             ],
             providesPerceptions: ["perception.page-context"],
             supportedValueTypes: [
                 "browsing.browser-query",
+                "browsing.page-query",
+                "browsing.page-listing",
+                "browsing.page-target",
+                "browsing.page-fill",
+                "browsing.page-plan",
+                "browsing.search-query",
                 "browsing.page-report",
                 "browsing.media-report",
                 "browsing.media-request",
@@ -181,19 +208,22 @@ public struct WebSurfaceAdapter: MaryAdapter {
         SkillBinding(
             name: "control_media",
             description: """
-                Play, pause, mute, unmute, go full screen, or skip to a position in the \
-                video on the page the browser is showing. Use for "pause the video", \
-                "mute this", "skip to halfway".
+                Play, pause, mute, unmute, go full screen, set the volume, or skip to a \
+                position in the video on the page the browser is showing. Use for \
+                "pause the video", "mute this", "skip to halfway", "turn it down".
                 """,
             parameters: [
                 .init(
                     name: "action", type: "string",
                     description: "What to do to the player.",
                     required: true,
-                    enumValues: ["play", "pause", "toggle", "mute", "unmute", "fullscreen", "seek"]),
+                    enumValues: [
+                        "play", "pause", "toggle", "mute", "unmute", "fullscreen",
+                        "seek", "volume",
+                    ]),
                 .init(
                     name: "position", type: "string",
-                    description: "For seek: how far through, 0 to 1 (0.5 is halfway).",
+                    description: "For seek, how far through; for volume, how loud. 0 to 1.",
                     required: false),
                 browserParameter,
             ],
@@ -210,6 +240,17 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 case "mute": action = .mute
                 case "unmute": action = .unmute
                 case "fullscreen": action = .fullscreen
+                case "volume":
+                    // A VOLUME WITHOUT A LEVEL IS NOT A SETTING. Choosing one would put
+                    // somebody's sound where nobody asked for it.
+                    guard let fraction = arguments["position"].flatMap(Double.init),
+                          (0 ... 1).contains(fraction)
+                    else {
+                        return SkillOutcome(
+                            ok: false,
+                            summary: "Tell me how loud — halfway, or a quarter.")
+                    }
+                    action = .volume(fraction: fraction)
                 case "seek":
                     // A SEEK WITHOUT A POSITION IS NOT A SEEK. Picking one would move
                     // somebody's video to a place nobody asked for.
@@ -250,12 +291,21 @@ public struct WebSurfaceAdapter: MaryAdapter {
             // judge the turn unfinished and navigate a second time — off the page it
             // had just opened.
             access: .tweak,
-            backing: .native { arguments, _ in
+            backing: .native { arguments, context in
                 guard let address = arguments["address"], !address.isEmpty else {
                     return SkillOutcome(ok: false, summary: "Tell me where to go.")
                 }
+                // A DEEP LINK THE MODEL WROTE IS A CLAIM ABOUT SOMEBODY ELSE'S DATABASE.
+                // A host it may hold; an identifier it can only have invented, unless
+                // the person said it. See SpokenAddress.
+                guard let admitted = SpokenAddress.admit(
+                    address, spokenIn: context.utterance)
+                else {
+                    return SkillOutcome(
+                        ok: false, summary: SpokenAddress.refusal(for: address))
+                }
                 return await self.run(arguments["app"]) { target in
-                    await self.engine.navigate(.open(address), in: target)
+                    await self.engine.navigate(.open(admitted), in: target)
                 }
             },
             stage: true,
@@ -309,6 +359,215 @@ public struct WebSurfaceAdapter: MaryAdapter {
             stage: true)
     }
 
+    // MARK: - The page
+
+    private var readPage: SkillBinding {
+        SkillBinding(
+            name: "read_page",
+            description: """
+                Look at the page the browser is showing and list what can be acted on — \
+                results, links, videos, fields and buttons, numbered. Do this before \
+                naming something on a page you have not read this turn.
+                """,
+            parameters: [
+                .init(name: "query", type: "string",
+                      description: "Narrow the listing to things matching these words.",
+                      required: false),
+                browserParameter,
+            ],
+            access: .read,
+            backing: .native { arguments, _ in
+                await self.run(arguments["app"]) { target in
+                    await self.engine.readPage(in: target, query: arguments["query"])
+                }
+            },
+            // READING A PAGE MEANS READING ITS PIXELS, and pixels of a window behind
+            // another window are the other window's.
+            stage: true)
+    }
+
+    private var clickOnPage: SkillBinding {
+        SkillBinding(
+            name: "click_on_page",
+            description: """
+                Press something inside the page by name — a result, a link, a video, a \
+                button. Use the words from read_page, or the person's own words.
+                """,
+            parameters: [
+                .init(name: "target", type: "string",
+                      description: "What to press, in words — \"the first result\", \"Accept all\".",
+                      required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let phrase = arguments["target"], !phrase.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to press.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.pressOnPage(
+                        phrase, in: target, deadline: context.deadline)
+                }
+            },
+            stage: true)
+    }
+
+    private var fillInPage: SkillBinding {
+        SkillBinding(
+            name: "fill_in_page",
+            description: """
+                Type into a field inside the page — a search box, a form. Set submit to \
+                press Return afterwards, which is how you search within a site.
+                """,
+            parameters: [
+                .init(name: "target", type: "string",
+                      description: "Which field. Omit to type where the cursor already is.",
+                      required: false),
+                .init(name: "text", type: "string",
+                      description: "What to type.", required: true),
+                .init(name: "submit", type: "string",
+                      description: "\"true\" to press Return after typing.",
+                      required: false, enumValues: ["true", "false"]),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let text = arguments["text"], !text.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to type.")
+                }
+                let submit = arguments["submit"]?.lowercased() == "true"
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.fillOnPage(
+                        arguments["target"], text: text, submit: submit,
+                        in: target, deadline: context.deadline)
+                }
+            },
+            stage: true)
+    }
+
+    private var scrollToOnPage: SkillBinding {
+        SkillBinding(
+            name: "scroll_to_on_page",
+            description: """
+                Scroll the page until something is on screen. Use when what was asked \
+                for is further down than the page currently shows.
+                """,
+            parameters: [
+                .init(name: "target", type: "string",
+                      description: "What to bring into view.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let phrase = arguments["target"], !phrase.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to look for.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.scrollToOnPage(
+                        phrase, in: target, deadline: context.deadline)
+                }
+            },
+            stage: true)
+    }
+
+    private var adjustOnPage: SkillBinding {
+        SkillBinding(
+            name: "adjust_on_page",
+            description: """
+                Set a slider on the page to a position — a volume control, a progress \
+                bar, a range. Position is 0 to 1.
+                """,
+            parameters: [
+                .init(name: "target", type: "string",
+                      description: "Which slider.", required: true),
+                .init(name: "position", type: "string",
+                      description: "How far along, 0 to 1.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let phrase = arguments["target"], !phrase.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me which slider.")
+                }
+                guard let fraction = arguments["position"].flatMap(Double.init),
+                      (0 ... 1).contains(fraction)
+                else {
+                    return SkillOutcome(
+                        ok: false, summary: "Tell me how far along to set it — halfway, or a third.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.adjustOnPage(
+                        phrase, fraction: fraction, in: target, deadline: context.deadline)
+                }
+            },
+            stage: true)
+    }
+
+    private var searchWeb: SkillBinding {
+        SkillBinding(
+            name: "search_web",
+            description: """
+                Search the web for something and show the results, opening one when the \
+                person named which. The query goes into the browser's own address bar, \
+                so it uses whichever search they have set up.
+                """,
+            parameters: [
+                .init(name: "query", type: "string",
+                      description: "What to search for.", required: true),
+                .init(name: "open", type: "string",
+                      description: "Which result to open — \"the first one\", or words from its title.",
+                      required: false),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let query = arguments["query"], !query.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to search for.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.searchWeb(
+                        query, in: target, open: arguments["open"],
+                        deadline: context.deadline)
+                }
+            },
+            stage: true,
+            preparesSurface: true)
+    }
+
+    private var interactWithPage: SkillBinding {
+        SkillBinding(
+            name: "interact_with_page",
+            description: """
+                Carry out a short sequence of page gestures in one go, as a JSON array \
+                of commands: click, hover, drag, keyChord, typeText, adjust, scroll, \
+                wait. Name targets with words from a read_page you have already done. \
+                Prefer the single verbs unless the steps genuinely belong together.
+                """,
+            parameters: [
+                .init(name: "plan", type: "string",
+                      description: "The commands, as one JSON array.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, context in
+                guard let json = arguments["plan"], !json.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what the steps are.")
+                }
+                switch PageInteractionPlanValidator.validate(planJSON: json) {
+                case .invalid(let issues):
+                    // REFUSED BEFORE ANYTHING MOVES, and named so it can be fixed.
+                    return SkillOutcome(
+                        ok: false,
+                        summary: BrowserRefusal.planInvalid(issues.map(\.spoken)).summary)
+                case .valid(let plan):
+                    return await self.run(arguments["app"]) { target in
+                        await self.engine.act(plan, in: target, deadline: context.deadline)
+                    }
+                }
+            },
+            stage: true)
+    }
+
     // MARK: - Shared
 
     private var browserParameter: ModelSkillSchema.Parameter {
@@ -344,6 +603,10 @@ public struct WebSurfaceAdapter: MaryAdapter {
             // A REFUSAL THAT FOUND NOTHING IS A MISS, NOT A FAILURE — no player on the
             // page is an answer, and a turn that says so beats one reporting an error.
             foundNothing: outcome.refusal.map(Self.isMiss) ?? false,
+            // PROVEN, NEVER MERELY ATTEMPTED. The continuation nudge reads this to
+            // decide whether the asked-for change happened; a hopeful `true` is how a
+            // turn closes on work it did not do.
+            landed: outcome.landed,
             adapterTrail: ["web-surface"],
             // THE PROFILE ID, NEVER THE LOGICAL PLACE. Evidence of where the act landed
             // has to name the process that served it, or the habit ledger learns
@@ -355,7 +618,7 @@ public struct WebSurfaceAdapter: MaryAdapter {
     static func isMiss(_ refusal: BrowserRefusal) -> Bool {
         switch refusal {
         case .noBrowser, .ambiguousBrowser, .controlsNotFound, .controlNotFound,
-             .elementNotFound:
+             .elementNotFound, .ambiguousElement, .notFillable, .notAdjustable:
             return true
         default:
             return false
