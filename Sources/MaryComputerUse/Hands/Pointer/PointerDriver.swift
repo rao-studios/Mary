@@ -87,6 +87,83 @@ public enum PointerDriver {
                pid: pid, detail: describe(point))
     }
 
+    /// Where the pointer actually is right now.
+    public static var location: CGPoint? {
+        CGEvent(source: nil)?.location
+    }
+
+    /// Put the POINTER ITSELF over a point, so what is under it knows.
+    ///
+    /// PIN: A REAL MOVE, THROUGH THE SAME TAP A MOUSE USES, and it is the only act here
+    /// that does not go to a single pid. Both cheaper ways were measured and both fail:
+    /// a `mouseMoved` posted to the process leaves the cursor where it was, so a page
+    /// asking the window server where the pointer is still says "not over the video" and
+    /// keeps a video's controls hidden; and `CGWarpMouseCursorPosition` moves the cursor
+    /// but GENERATES NO EVENT, so the page is never told it moved and reveals nothing
+    /// until something else wakes it — which is why the two together worked
+    /// intermittently and unpredictably.
+    ///
+    /// The blast radius is a POINTER MOVE, not a click: nothing is pressed, the movement
+    /// is exactly what the user would do with their own hand, and it is visible on
+    /// screen while it happens. The caller puts it back — see `restore(to:)`.
+    @discardableResult
+    public static func hover(at point: CGPoint, pid: pid_t) -> Bool {
+        // A TRAVEL, SPREAD OVER TIME — not a jump, and not a burst.
+        //
+        // PIN: THE PAUSES BETWEEN STEPS ARE THE POINT. Events posted in the same instant
+        // are coalesced by the window server into a single move, and a page that hides a
+        // video's controls on a timer treats one move at a position the pointer is
+        // already at as nothing happening — measured: the cursor read the same before and
+        // after a three-step reveal, and the transport stayed hidden. Real movement
+        // arrives spread across frames, so this does too.
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            return report("hover", false, pid: pid, detail: describe(point))
+        }
+        // PIN: SUPPRESSION OFF, OR THE MOVES ARRIVE AND CHANGE NOTHING. After a posted
+        // mouse event, the window server suppresses local mouse handling for a quarter
+        // of a second by default — which is most of the time a reveal has, so a page
+        // that decides to show a video's controls from pointer movement never sees the
+        // movement it was sent. This is the setting that makes a synthetic hover behave
+        // like a hand.
+        source.localEventsSuppressionInterval = 0
+        source.setLocalEventsFilterDuringSuppressionState(
+            [.permitLocalMouseEvents, .permitLocalKeyboardEvents, .permitSystemDefinedEvents],
+            state: .eventSuppressionStateSuppressionInterval)
+
+        let travel = 180.0
+        let count = 22
+        var ok = true
+        for step in 0...count {
+            let progress = Double(step) / Double(count)
+            let eased = progress * progress * (3 - 2 * progress)
+            let here = CGPoint(
+                x: point.x - travel * (1 - eased),
+                y: point.y - travel * 0.45 * (1 - eased))
+            guard let event = CGEvent(
+                mouseEventSource: source, mouseType: .mouseMoved,
+                mouseCursorPosition: here, mouseButton: .left)
+            else { ok = false; break }
+            event.post(tap: .cghidEventTap)
+            // One display frame between steps.
+            usleep(16_000)
+        }
+        return report("hover", ok, pid: pid, detail: describe(point))
+    }
+
+    /// Put the cursor back where it was found. Nil is a no-op — a caller that could not
+    /// read the position must not invent one.
+    public static func restore(to point: CGPoint?) {
+        guard let point else { return }
+        guard let source = CGEventSource(stateID: .hidSystemState),
+              let event = CGEvent(
+                mouseEventSource: source, mouseType: .mouseMoved,
+                mouseCursorPosition: point, mouseButton: .left)
+        else { return }
+        event.post(tap: .cghidEventTap)
+        ComputerUseMonitor.shared.note(
+            lane: .pointer, act: "restoreCursor", detail: describe(point))
+    }
+
     /// `count` down/up pairs, each carrying its click index so the target sees
     /// a real double-click rather than two singles.
     @discardableResult
@@ -104,6 +181,55 @@ public enum PointerDriver {
         }
         return report(
             "click", true, pid: pid,
+            detail: "\(describe(point)) \(button.rawValue)×\(clicks)")
+    }
+
+    /// A click delivered the way the hardware delivers one.
+    ///
+    /// PIN: THE ONE EXCEPTION TO "NEVER A GLOBAL TAP", AND IT IS EARNED BY MEASUREMENT.
+    /// A pid-posted click is invisible to a rendered web page's hit testing — measured
+    /// on YouTube, where a correctly aimed press reported success and moved nothing,
+    /// repeatedly. The cursor is warped onto the target first, so the event lands where
+    /// the pointer already visibly is; that is what bounds the risk a global tap
+    /// otherwise carries, because the click goes exactly where the user can see it go.
+    /// Everything that CAN be driven by a pid-posted event still is: this is for page
+    /// content and nothing else.
+    @discardableResult
+    public static func clickThroughHID(
+        at point: CGPoint, button: PluginPointerButton, count: Int
+    ) -> Bool {
+        let clicks = max(1, min(count, 3))
+        let cgButton: CGMouseButton = button == .right ? .right : .left
+        let down: CGEventType = button == .right ? .rightMouseDown : .leftMouseDown
+        let up: CGEventType = button == .right ? .rightMouseUp : .leftMouseUp
+        guard let source = CGEventSource(stateID: .hidSystemState) else {
+            return report("clickHID", false, pid: 0, detail: describe(point))
+        }
+        // Same suppression release as `hover`, and for the same measured reason: without
+        // it the window server ignores local mouse handling for a quarter second after a
+        // posted event, which is exactly the window a press lands in.
+        source.localEventsSuppressionInterval = 0
+        source.setLocalEventsFilterDuringSuppressionState(
+            [.permitLocalMouseEvents, .permitLocalKeyboardEvents, .permitSystemDefinedEvents],
+            state: .eventSuppressionStateSuppressionInterval)
+        for n in 1...clicks {
+            guard let downEvent = CGEvent(
+                    mouseEventSource: source, mouseType: down,
+                    mouseCursorPosition: point, mouseButton: cgButton),
+                  let upEvent = CGEvent(
+                    mouseEventSource: source, mouseType: up,
+                    mouseCursorPosition: point, mouseButton: cgButton)
+            else { return report("clickHID", false, pid: 0, detail: describe(point)) }
+            downEvent.setIntegerValueField(.mouseEventClickState, value: Int64(n))
+            upEvent.setIntegerValueField(.mouseEventClickState, value: Int64(n))
+            downEvent.post(tap: .cghidEventTap)
+            // A real press has a duration. A down and an up in the same instant is
+            // something no hand produces, and some pages treat it as neither.
+            usleep(40_000)
+            upEvent.post(tap: .cghidEventTap)
+        }
+        return report(
+            "clickHID", true, pid: 0,
             detail: "\(describe(point)) \(button.rawValue)×\(clicks)")
     }
 

@@ -17,7 +17,8 @@ public enum MaryAdapterCatalog {
     public static func adapters() -> [any MaryAdapter] {
         [ApplicationsAdapter(), AwarenessAdapter(), CodeSurfaceAdapter(), MediaSurfaceAdapter(),
          ProjectCorpusAdapter(), ProjectGitAdapter(), ProjectBuildAdapter(), ProjectQuirksAdapter(),
-         EventKitAdapter(), ProseSurfaceAdapter(), TyperPlugin(), WindowManagementPlugin()]
+         EventKitAdapter(), ProseSurfaceAdapter(), TyperPlugin(), WebSurfaceAdapter(),
+         WindowManagementPlugin()]
     }
 
     /// Compiled providers with senses. Ungated: faculties, not app toggles.

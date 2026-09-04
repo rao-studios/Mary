@@ -65,6 +65,10 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
     /// Transport coordinates. See PluginMediaSurfaceSchema.
     public var mediaSurface: PluginMediaSurfaceSchema?
 
+    /// Browser chrome coordinates. The page inside needs no declaration — it is read
+    /// from pixels. See PluginWebSurfaceSchema.
+    public var webSurface: PluginWebSurfaceSchema?
+
     /// Project-on-disk shape. Evidence half of workspace eyes. See PluginCorpusSchema.
     public var corpus: PluginCorpusSchema?
 
@@ -94,6 +98,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         proseSurface: PluginProseSurfaceSchema? = nil,
         codeSurface: PluginCodeSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
+        webSurface: PluginWebSurfaceSchema? = nil,
         corpus: PluginCorpusSchema? = nil
     ) {
         self.init(
@@ -107,6 +112,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             proseSurface: proseSurface,
             codeSurface: codeSurface,
             mediaSurface: mediaSurface,
+            webSurface: webSurface,
             corpus: corpus)
     }
 
@@ -121,6 +127,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         proseSurface: PluginProseSurfaceSchema? = nil,
         codeSurface: PluginCodeSurfaceSchema? = nil,
         mediaSurface: PluginMediaSurfaceSchema? = nil,
+        webSurface: PluginWebSurfaceSchema? = nil,
         corpus: PluginCorpusSchema? = nil
     ) {
         self.id = id
@@ -133,6 +140,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         self.proseSurface = proseSurface
         self.codeSurface = codeSurface
         self.mediaSurface = mediaSurface
+        self.webSurface = webSurface
         self.corpus = corpus
     }
 
@@ -148,6 +156,7 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         case proseSurface
         case codeSurface
         case mediaSurface
+        case webSurface
         case corpus
     }
 
@@ -172,6 +181,8 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
             PluginCodeSurfaceSchema.self, forKey: .codeSurface)
         mediaSurface = try container.decodeIfPresent(
             PluginMediaSurfaceSchema.self, forKey: .mediaSurface)
+        webSurface = try container.decodeIfPresent(
+            PluginWebSurfaceSchema.self, forKey: .webSurface)
         corpus = try container.decodeIfPresent(
             PluginCorpusSchema.self, forKey: .corpus)
     }
@@ -199,6 +210,9 @@ public struct PluginSchema: Codable, Hashable, Sendable, Identifiable {
         }
         if let mediaSurface {
             try container.encode(mediaSurface, forKey: .mediaSurface)
+        }
+        if let webSurface {
+            try container.encode(webSurface, forKey: .webSurface)
         }
         if let corpus {
             try container.encode(corpus, forKey: .corpus)

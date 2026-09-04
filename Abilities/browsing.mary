@@ -1,0 +1,1342 @@
+{
+  "ability" : {
+    "aliases" : [
+      "browsing",
+      "the browser",
+      "the web"
+    ],
+    "applications" : [
+
+    ],
+    "id" : "browsing",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "window-management"
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "Say the site, never the address — a URL read aloud is unusable as speech.",
+        "Drive a page's player by pressing the control the page draws, never a site's keyboard shortcut and never the system media keys, which reach whatever holds now-playing rather than this tab.",
+        "Revealing a player's controls moves the pointer over the page; put it back.",
+        "Prove a navigation by the page's own address or title changing, never by the act returning.",
+        "Two browsers open and nothing said is a question, not a coin flip."
+      ],
+      "phases" : [
+        "resolve-browser",
+        "read-shell",
+        "perceive-page",
+        "act-once",
+        "verify-outcome"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "no browser running",
+        "permission denial"
+      ],
+      "successSignals" : [
+        "the page's address or title changed",
+        "the player's state moved the way it was asked to"
+      ]
+    },
+    "paradigm" : "discipline",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "eligibility" : {
+        "children" : [
+          {
+            "children" : [
+
+            ],
+            "kind" : "targetClass",
+            "value" : "web-page"
+          }
+        ],
+        "kind" : "any"
+      },
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 200
+    },
+    "skills" : [
+      "browsing.control-media",
+      "browsing.current-page",
+      "browsing.describe-media",
+      "browsing.list-tabs",
+      "browsing.navigate-back",
+      "browsing.navigate-forward",
+      "browsing.new-tab",
+      "browsing.open-location",
+      "browsing.reload-page",
+      "browsing.scroll-page"
+    ],
+    "summary" : "Browsing: which page you are on, going somewhere else, and the page's own video player.",
+    "tint" : "#1A73E8",
+    "title" : "Browsing",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "ask" : [
+          "what is this page",
+          "which tab am I on"
+        ],
+        "operate" : [
+          "pause the video",
+          "play the video",
+          "mute this",
+          "unmute it",
+          "skip to the middle",
+          "go full screen",
+          "open youtube",
+          "go to this site",
+          "go back",
+          "reload the page",
+          "scroll down",
+          "open a new tab",
+          "switch to the other tab"
+        ],
+        "perceive" : [
+          "what page am I on",
+          "what are my tabs",
+          "is the video still playing",
+          "how far through is it",
+          "what site is this"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "this page",
+        "this tab",
+        "in the browser",
+        "on this site",
+        "the video"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "browser",
+        "tab",
+        "page",
+        "site",
+        "video",
+        "url",
+        "web"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "read",
+      "id" : "browser.page.read",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.page-report",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the browser's own address field and window through Accessibility."
+        }
+      ],
+      "summary" : "Report which page a browser is showing.",
+      "title" : "Read the Page's Identity",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "read",
+      "id" : "browser.tabs.read",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.page-report",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Read the browser's tab strip through Accessibility."
+        }
+      ],
+      "summary" : "List a browser's open tabs.",
+      "title" : "Read the Tabs",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.tabs.open",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own new-tab command."
+        }
+      ],
+      "summary" : "Open a new tab.",
+      "title" : "Open a Tab",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.navigate",
+      "inputType" : "browsing.address",
+      "outputType" : "browsing.page-report",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Type into the browser's address field and press its own controls."
+        }
+      ],
+      "summary" : "Take a browser to another page.",
+      "title" : "Navigate",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "read",
+      "id" : "browser.media.read",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.media-report",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Move the pointer over the page so the player shows its controls."
+        },
+        {
+          "kind" : "screenRecording",
+          "reason" : "Read what is inside the page from its pixels; nothing is kept."
+        }
+      ],
+      "summary" : "Report what the page's video player is doing.",
+      "title" : "Read the Player",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.media.control",
+      "inputType" : "browsing.media-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Click the control the page draws, at the place it was seen."
+        },
+        {
+          "kind" : "screenRecording",
+          "reason" : "Read what is inside the page from its pixels; nothing is kept."
+        }
+      ],
+      "summary" : "Press the page's own player controls.",
+      "title" : "Control the Player",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.page.act",
+      "inputType" : "browsing.media-request",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Scroll the page under the pointer."
+        }
+      ],
+      "summary" : "Scroll the page.",
+      "title" : "Act on the Page",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+
+  ],
+  "fixtures" : [
+
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "40452c8788e44ae37c1eacb403c454a52d5d8bc27d34db04738dbc556add419a"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "browsing",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "The browsing craft: the browser's own controls through Accessibility, and the page inside it through sight.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+    {
+      "freshnessSeconds" : 4,
+      "id" : "perception.page-context",
+      "ownership" : "observed",
+      "privacy" : "private",
+      "summary" : "The page a browser is showing: its title and its site, never its address.",
+      "title" : "Page Context",
+      "valueType" : "browsing.page-report",
+      "version" : "1.0.0"
+    }
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "control_media",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.control-media",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "control_media",
+        "parameters" : [
+          {
+            "enumValues" : [
+              "play",
+              "pause",
+              "toggle",
+              "mute",
+              "unmute",
+              "fullscreen",
+              "seek"
+            ],
+            "name" : "action",
+            "required" : true,
+            "requiresComposition" : false,
+            "summary" : "What to do to the player.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "position",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "For seek: how far through, 0 to 1.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.media.control"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 225
+      },
+      "summary" : "Play, pause, mute, go full screen or skip to a position in the page's video.",
+      "title" : "Control the Page's Player",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "current_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.current-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "current_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.page.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 220
+      },
+      "summary" : "Report which page the browser is on and which site it belongs to.",
+      "title" : "Say What Page",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "describe_media",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.describe-media",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "describe_media",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.media.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 215
+      },
+      "summary" : "Report whether the page's video is playing and how far through it is.",
+      "title" : "Say What the Player Is Doing",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "list_tabs",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.list-tabs",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "list_tabs",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.tabs.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "List the browser's open tabs by name.",
+      "title" : "List the Tabs",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "navigate_back",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.navigate-back",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "navigate_back",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Go back to the previous page.",
+      "title" : "Go Back",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "navigate_forward",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.navigate-forward",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "navigate_forward",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 205
+      },
+      "summary" : "Go forward again.",
+      "title" : "Go Forward",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.new-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "new_tab",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.tabs.open"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Open a new, empty tab in the browser.",
+      "title" : "Open a New Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "open_location",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.open-location",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "open_location",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "address",
+            "required" : true,
+            "requiresComposition" : false,
+            "summary" : "The address to open, including https://.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 210
+      },
+      "summary" : "Open a web address in the browser.",
+      "title" : "Go to an Address",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "reload_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.reload-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "reload_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.navigate"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Reload the page the browser is showing.",
+      "title" : "Reload the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "scroll_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.scroll-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "scroll_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+              "down",
+              "up"
+            ],
+            "name" : "direction",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which way.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.page.act"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 195
+      },
+      "summary" : "Scroll the page up or down.",
+      "title" : "Scroll the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.browser-query",
+      "shape" : "string",
+      "summary" : "Which browser a question addresses.",
+      "title" : "Browser Query",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.page-report",
+      "shape" : "string",
+      "summary" : "Which page a browser is showing.",
+      "title" : "Page Report",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.media-report",
+      "shape" : "string",
+      "summary" : "What the page's player is doing.",
+      "title" : "Media Report",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.media-request",
+      "shape" : "string",
+      "summary" : "What to do to the page's player.",
+      "title" : "Media Request",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.address",
+      "shape" : "string",
+      "summary" : "A web address to open.",
+      "title" : "Address",
+      "version" : "1.0.0"
+    },
+    {
+      "enumValues" : [
+
+      ],
+      "fields" : [
+
+      ],
+      "id" : "browsing.operation-result",
+      "shape" : "string",
+      "summary" : "What an act on the page did.",
+      "title" : "Operation Result",
+      "version" : "1.0.0"
+    }
+  ]
+}

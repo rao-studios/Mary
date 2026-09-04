@@ -3,7 +3,7 @@
 //  AXProbe
 //
 //  WHAT: What Mary actually sees — real AXEngine.ambientContext walk.
-//  OUT:  CLI: swift run mary-ax-probe [--app|--pid|--json|--watch]
+//  OUT:  CLI: swift run mary-ax-probe [--app|--pid|--json|--tree|--watch]
 //  PIN:  Run signed (scripts/dev.sh); ad-hoc AX grant dies on rebuild.
 //
 
@@ -163,6 +163,34 @@ if let record = ActedElementReader.focusedElement(pid: pid) {
     }
 } else {
     print("\n  acted-element record — none (nothing focused)")
+}
+
+// THE RAW TREE, for measuring an application's chrome before writing a package that
+// names its controls. The roster above publishes only what Mary would OFFER; a
+// declaration has to be written against what is actually there, including the
+// containers and the unlabeled nodes the roster drops.
+if flag("--tree"), let snapshot = AXEngine.snapshot(
+    pid: application.processIdentifier, options: .exhaustive) {
+    print("\n  ── tree ──────────────────────────────────────")
+    let match = value("--role")?.lowercased()
+    for window in snapshot.windows {
+        print("  window \"\(window.title)\" \(window.frame.map(describe) ?? "")")
+        guard let root = window.root else { continue }
+        root.forEachNode(withAncestors: { node, ancestors in
+            let depth = ancestors.count
+            if let match, !node.role.lowercased().contains(match),
+               !(node.label?.lowercased().contains(match) ?? false) { return }
+            let indent = String(repeating: "  ", count: min(depth, 12) + 1)
+            let label = node.label.map { " \"\($0)\"" } ?? ""
+            let subrole = node.subrole.map { " <\($0)>" } ?? ""
+            print("\(indent)\(node.role)\(subrole)\(label) \(node.frame.map(describe) ?? "")")
+        })
+        if snapshot.windows.count > 1 { print("") }
+    }
+}
+
+func describe(_ frame: CGRect) -> String {
+    "(\(Int(frame.minX)), \(Int(frame.minY))  \(Int(frame.width))×\(Int(frame.height)))"
 }
 
 // What this walk cost the machine layer, and anything it refused along the way.

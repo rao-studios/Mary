@@ -143,28 +143,54 @@ import Testing
         #expect(declared.first?.contains("MaryFoundation") == true)
     }
 
-    /// THE MACHINE LAYER STANDS ON THE PARADIGM AND NOTHING ELSE.
+    /// THE MACHINE LAYER STANDS ON THE PARADIGM, AND ON THE ENGINE THAT READS PIXELS.
     ///
     /// MaryComputerUse is the only target that posts an input event, performs
     /// an Accessibility action, or captures pixels. That claim is only worth
     /// making while the layer itself is cheap to reason about: the schema, the
-    /// ambient vocabulary it publishes into, and the Mac. An edge to MaryPlugin
+    /// ambient vocabulary it publishes into, the Mac — and VisionAX, which is
+    /// where captured pixels become something nameable. An edge to MaryPlugin
     /// would invert the stack — adapters are written against the machine, not
     /// the other way round — and an edge to anything above it would put a model
     /// runtime behind a keystroke.
-    @Test func computerUseDependsOnFoundationAndAmbientOnly() throws {
+    ///
+    /// VisionAX belongs HERE rather than in a target of its own for two reasons.
+    /// It consumes the pixels only this layer may capture, so any other home
+    /// would have to reach back through this one anyway. And it replicates this
+    /// layer's AX vocabulary BY NAME — AXNodeSnapshot, AXScreenElement — so a
+    /// second importer makes those names ambiguous at every use;
+    /// `VisionAXSealTests` holds that line inside the module, and the rule
+    /// below holds it in the manifest.
+    @Test func computerUseDependsOnFoundationAmbientAndVisionAXOnly() throws {
         let manifest = try Self.manifest()
         guard let target = Self.targetBlock(manifest, named: "MaryComputerUse") else { return }
         let declared = Self.dependencyNames(target)
 
         #expect(
-            declared.count == 2,
+            declared.count == 3,
             """
             MaryComputerUse declares \(declared.count) dependencies: \(declared). \
-            It must declare exactly two — MaryFoundation and MaryAmbient.
+            It must declare exactly three — MaryFoundation, MaryAmbient and VisionAX.
             """)
         #expect(declared.contains { $0.contains("MaryFoundation") })
         #expect(declared.contains { $0.contains("MaryAmbient") })
+        #expect(declared.contains { $0.contains("VisionAX") })
+    }
+
+    /// ONLY MARYCOMPUTERUSE NAMES VISIONAX.
+    ///
+    /// The outer half of the seal: the manifest edge exists in exactly one place,
+    /// so no other target can reach the module whose type names collide with ours.
+    /// The inner half — that only one DIRECTORY imports it — is
+    /// `Tests/MaryComputerUseTests/VisionAXSealTests.swift`.
+    @Test func onlyComputerUseNamesVisionAX() throws {
+        let manifest = try Self.manifest()
+        for name in Self.plannedTargets where name != "MaryComputerUse" {
+            guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            #expect(
+                !target.contains("VisionAX"),
+                "\(name)'s target block names VisionAX — only MaryComputerUse may hold that edge.")
+        }
     }
 
     /// ADAPTERS ARE WRITTEN AGAINST THE MACHINE LAYER.
@@ -229,6 +255,14 @@ import Testing
         let manifest = try Self.manifest()
         for name in ["MaryAmbient", "MaryComputerUse", "MaryPlugin", "MaryVoice"] {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            if name != "MaryComputerUse" {
+                #expect(
+                    !target.contains("VisionAX"),
+                    "\(name)'s target block names VisionAX — that edge is MaryComputerUse's alone.")
+            }
+            // VisionAX is deliberately NOT in this list for MaryComputerUse's sake —
+            // `onlyComputerUseNamesVisionAX` polices it instead, because one target is
+            // supposed to have the edge.
             for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC", "Fleet"] {
                 #expect(
                     !target.contains(forbidden),

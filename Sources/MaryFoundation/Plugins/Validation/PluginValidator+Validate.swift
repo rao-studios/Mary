@@ -182,15 +182,20 @@ extension PluginValidator {
                 "Target class \(duplicate) appears more than once.")
         }
         validateInsets(application.contentInsets, path: "\(root).application.contentInsets", error: error)
-        // Workspace claim needs a Mary observation channel: prose, code, media, or corpus.
+        // Workspace claim needs a Mary observation channel: prose, code, media, web, or
+        // corpus.
         // PIN: code is read-only; do not require proseSurface for a code-only package.
+        //      A webSurface counts because the browser lane observes through it —
+        //      chrome by Accessibility, page by sight — and a browser that could not
+        //      claim to be a workspace would be the one application Mary watches
+        //      without admitting she watches it.
         if application.perception?.kind == .workspace,
            plugin.proseSurface == nil, plugin.codeSurface == nil,
-           plugin.mediaSurface == nil, plugin.corpus == nil {
+           plugin.mediaSurface == nil, plugin.webSurface == nil, plugin.corpus == nil {
             error(
                 "unsupported-workspace-perception",
                 "\(root).application.perception.kind",
-                "A workspace perception claim requires a proseSurface, a codeSurface, a mediaSurface or a corpus: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
+                "A workspace perception claim requires a proseSurface, a codeSurface, a mediaSurface, a webSurface or a corpus: one of Mary's observation adapters is the only channel a Plugin may be observed through.")
         }
 
         if plugin.adapters.isEmpty {

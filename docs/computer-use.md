@@ -29,8 +29,9 @@ MaryFoundation → MaryAmbient → MaryComputerUse → MaryPlugin → MaryBrain 
 | Lane | What lives there |
 |---|---|
 | `Accessibility/` | **Tier 0.** One bounded walk of a process's accessibility tree into plain Sendable values: `AXTreeWalker` → `AXSnapshotBuilder` → `AXAppSnapshot` → `AXElementRoster` → `AXAmbientContext`. Read-only, one-shot, no streamer — Mary polls. |
-| `Sight/` | Derived reads over that tree — page elements, the declared text surface, the last-acted element — plus `ScreenRegionCapture`, the one pixel read. |
-| `Hands/` | The acts, by instrument: `Keyboard/` (chords, typing), `Pointer/` (move, click, drag, scroll, anchor capture), `Elements/` (press, set, focus), `Windows/` (raise, full screen, restore), `Menus/`, `MediaKeys/`. |
+| `Sight/` | Derived reads over that tree — page elements, the declared text surface, the last-acted element — plus `WindowPixels` (the one capture path, with a MEASURED scale) and `ScreenRegionCapture`, the ephemeral look. |
+| `Sight/Vision/` | What a page looks like, through VisionAX: `VisionPageReader` (the only importer of that module), `MediaControlReading`, and `PagePerceptionPipeline`, where a second perception lane will join. See [browser-engine.md](browser-engine.md). |
+| `Hands/` | The acts, by instrument: `Keyboard/` (chords, typing), `Pointer/` (move, click, drag, scroll, anchor capture, and the two acts that reach the whole machine — `hover` and `clickThroughHID`, each carrying the measurement that earned it), `Elements/` (press, set, focus), `Windows/` (raise, full screen, restore), `Menus/`, `MediaKeys/`. |
 | `Stage/` | Who holds the machine and proof that they do: verified activation, arbitration between observers, bounded waits, single-poller claims. |
 | `Process/` | `Subprocess`. Mary-owned tools only, never a shell. |
 | `Monitor/` | `ComputerUseMonitor` — the snapshot and event stream every lane reports into. |
@@ -48,6 +49,13 @@ about or tested without them. The one exception is the monitor, which a walk
 reports its cost to. When a dependency runs the wrong way, invert it — the
 window-list read moved down into `AXWindowRoster` and `AccessibilityWindowCore`
 now forwards to it, rather than tier 0 calling up into `Hands/Windows/`.
+
+VisionAX is a dependency of this target and of no other, and only `Sight/Vision/` imports
+it. That is not tidiness: VisionAX replicates this layer's AX vocabulary by name —
+`AXNodeSnapshot`, `AXScreenElement`, `AXNodeCategory` — deliberately, so its trees are
+shaped like ours, and a second importer would make every use of those names ambiguous at
+the use site rather than at the import. `Tests/MaryComputerUseTests/VisionAXSealTests.swift`
+holds the line inside the module; `PackageLayeringTests` holds it in the manifest.
 
 **No target above MaryComputerUse posts an input event, performs an
 accessibility action, or captures pixels.** Reads are fine: asking

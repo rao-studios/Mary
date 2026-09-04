@@ -47,6 +47,19 @@ public enum ComputerUseRefusalReason: Sendable, Codable, Equatable {
     case notRunning(String)
     case activationRefused(String)
     case targetLostFocus(String?)
+    /// The vision engine could not be created or a lane failed inside it.
+    case visionUnavailable(String)
+    /// The region classifier is not on this machine — a configuration, not a fault.
+    /// The media lane never asks for it; the element lane cannot proceed without it.
+    case classifierUnavailable
+    /// Nothing to read pixels from: no window on screen, or the page has no frame.
+    case pageNotVisible
+    /// No transport was found at all. The controls are usually hidden, not absent.
+    case mediaControlsNotFound
+    /// A transport was found but not the control the act needed.
+    case mediaControlNotFound(String)
+    /// The act landed and the state did not move — the receipt that failed.
+    case mediaStateUnchanged(String)
     case cancelled
     case processLaunchFailed(String)
     case processTimedOut(seconds: Double)
@@ -71,6 +84,12 @@ public enum ComputerUseRefusalReason: Sendable, Codable, Equatable {
         case .notRunning(let app): return "\(app) is not running"
         case .activationRefused(let app): return "\(app) did not come forward"
         case .targetLostFocus(let now): return "target lost focus (frontmost: \(now ?? "none"))"
+        case .visionUnavailable(let detail): return "vision unavailable: \(detail)"
+        case .classifierUnavailable: return "no region classifier is installed"
+        case .pageNotVisible: return "the page is not visible to capture"
+        case .mediaControlsNotFound: return "no media transport was found"
+        case .mediaControlNotFound(let what): return "no \(what) control in the transport"
+        case .mediaStateUnchanged(let what): return "\(what) did not change"
         case .cancelled: return "cancelled"
         case .processLaunchFailed(let tool): return "could not launch \(tool)"
         case .processTimedOut(let seconds): return "timed out after \(seconds)s"

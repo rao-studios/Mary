@@ -135,6 +135,10 @@ extension MaryRuntime {
         // Transports — a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(
             load.snapshot.mediaSurfaceRegistrations())
+        // Browsers — the shell coordinates each one publishes. Without this the browsing
+        // adapter answers "there's no browser running" for a browser plainly running.
+        WebSurfaceSupport.shared.reconcile(
+            load.snapshot.webSurfaceRegistrations())
 
         // 4. Brain providers.
         let deps = FocusResolutionContext(observers: observers)
@@ -150,8 +154,9 @@ extension MaryRuntime {
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }
-            // Declared perception — dispatch asks what Mary observes now.
+            // Declared perceptions — dispatch asks what Mary observes now.
             publishPlayerTransportPerception()
+            publishPageContextPerception()
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)

@@ -1,6 +1,7 @@
 #!/bin/bash
 # WHAT: Assemble Mary.app from a release build with its own TCC identity.
-# OUT:  build/Mary.app — binary, mlx.metallib, Info.plist, Abilities, Kokoro bundle.
+# OUT:  build/Mary.app — binary, mlx.metallib, Info.plist, Abilities, Kokoro and
+#       VisionAX resource bundles.
 # PIN:  Stable codesign (same as sign-binary.sh). Ad-hoc cdhash breaks TCC.
 #       metallib is required; omitting it dies at first GPU use.
 #
@@ -14,8 +15,10 @@ CONFIG=release
 
 cd "$REPO_ROOT"
 
-echo "▸ swift build -c $CONFIG"
-swift build -c $CONFIG
+echo "▸ swift build -c $CONFIG --product Mary"
+# --product, not the whole package: every probe and the bench link OpenCV and ONNX
+# Runtime through MaryComputerUse now, and this script needs exactly one binary.
+swift build -c $CONFIG --product Mary
 
 # Required — not optional. GPU load needs mlx.metallib next to the binary.
 echo "▸ mlx.metallib"
@@ -41,6 +44,17 @@ if [ -d "$BUNDLE_SRC" ]; then
     cp -R "$BUNDLE_SRC" "$APP_DIR/Contents/Resources/"
 else
     echo "warning: $BUNDLE_SRC not found — Kokoro assets missing from the app"
+fi
+
+# VisionAX's region classifier. Same reason as Kokoro: SwiftPM puts the resource
+# bundle beside the executable, which is not where a bundled app looks. Without this
+# the page-element lane has no model — the media lane still works, since its glyphs
+# are drawn rather than learned.
+VISION_BUNDLE=".build/$CONFIG/VisionAX_VisionAX.bundle"
+if [ -d "$VISION_BUNDLE" ]; then
+    cp -R "$VISION_BUNDLE" "$APP_DIR/Contents/Resources/"
+else
+    echo "warning: $VISION_BUNDLE not found — the page classifier is missing from the app"
 fi
 
 IDENTITY="$(security find-identity -v -p codesigning 2>/dev/null \

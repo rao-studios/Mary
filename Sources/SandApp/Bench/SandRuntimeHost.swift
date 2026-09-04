@@ -213,6 +213,7 @@ final class SandRuntimeHost: ObservableObject {
         AmbientApplicationBridge.install(
             profiles: nativeProfiles + snapshot.plugins.applicationProfiles)
         MediaSurfaceSupport.shared.reconcile(snapshot.mediaSurfaceRegistrations())
+        WebSurfaceSupport.shared.reconcile(snapshot.webSurfaceRegistrations())
         ProseSurfaceSupport.shared.reconcile(snapshot.proseSurfaceRegistrations())
         CodeSurfaceSupport.shared.reconcile(snapshot.codeSurfaceRegistrations())
     }

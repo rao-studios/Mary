@@ -4,14 +4,17 @@
 //
 //  WHAT: One ephemeral pixel read of the attended region.
 //  IN:   AX focus / web / window  OUT: in-memory JPEG
-//  PIN:  Ambient perception is AX only. Screen Recording: minimap,
-//        take_screenshot, and this look — never watchers.
+//  PIN:  Ambient perception is AX only. Screen Recording has four sanctioned uses:
+//        the minimap, take_screenshot, this look, and the page read a browsing Skill
+//        asked for (Sight/Vision) — on demand, never a watcher.
+//        The pixels come from WindowPixels, which MEASURES the density. This file used
+//        to request width * 2 and believe it; on a 1x display that cropped the wrong
+//        half of every window.
 
 import AppKit
 import ApplicationServices
 import Foundation
 import MaryAmbient
-import ScreenCaptureKit
 
 public enum ScreenRegionCapture {
 
@@ -292,22 +295,6 @@ public enum ScreenRegionCapture {
         rect.insetBy(dx: -regionPadding, dy: -regionPadding).intersection(window)
     }
 
-    /// Maps a global-points content rect into pixel coordinates of a
-    /// window-sized image, clamped to the image bounds.
-    static func clampedCrop(content: CGRect, window: CGRect, imageSize: CGSize) -> CGRect {
-        guard window.width > 0, window.height > 0 else {
-            return CGRect(origin: .zero, size: imageSize)
-        }
-        let scaleX = imageSize.width / window.width
-        let scaleY = imageSize.height / window.height
-        let crop = CGRect(
-            x: (content.origin.x - window.origin.x) * scaleX,
-            y: (content.origin.y - window.origin.y) * scaleY,
-            width: content.width * scaleX,
-            height: content.height * scaleY)
-        return crop.intersection(CGRect(origin: .zero, size: imageSize))
-    }
-
     /// Proportional downscale so the long edge fits the cap; never upscales.
     static func downscaledSize(_ size: CGSize, longEdgeCap: CGFloat) -> CGSize {
         let longEdge = max(size.width, size.height)
@@ -472,40 +459,24 @@ public enum ScreenRegionCapture {
         contentRect: CGRect,
         profile: CaptureProfile = .fast
     ) async throws -> Data {
-        let content: SCShareableContent
+        let frame: WindowPixels.Frame
         do {
-            content = try await SCShareableContent.excludingDesktopWindows(
-                false, onScreenWindowsOnly: true)
-        } catch {
-            throw Failure.screenRecordingUnavailable(error.localizedDescription)
+            frame = try await WindowPixels.capture(
+                pid: processIdentifier, windowID: windowID, matching: windowRect)
+        } catch let failure as WindowPixels.Failure {
+            switch failure {
+            case .screenRecordingUnavailable(let reason):
+                throw Failure.screenRecordingUnavailable(reason)
+            case .windowNotVisible:
+                throw Failure.screenRecordingUnavailable(
+                    "the focused window is not visible to screen capture")
+            case .oddScale:
+                // A fitted capture still shows the right picture; only rects derived
+                // from it drift, and a described glance derives none.
+                throw Failure.screenRecordingUnavailable(failure.localizedDescription)
+            }
         }
-        let window = content.windows.first { candidate in
-            if let windowID { return candidate.windowID == windowID }
-            return candidate.owningApplication?.processID == processIdentifier
-                && abs(candidate.frame.origin.x - windowRect.origin.x) < 2
-                && abs(candidate.frame.origin.y - windowRect.origin.y) < 2
-        }
-        guard let window else {
-            throw Failure.screenRecordingUnavailable(
-                "the focused window is not visible to screen capture")
-        }
-        let filter = SCContentFilter(desktopIndependentWindow: window)
-        let configuration = SCStreamConfiguration()
-        configuration.width = Int(window.frame.width) * 2
-        configuration.height = Int(window.frame.height) * 2
-        configuration.showsCursor = false
-        let image: CGImage
-        do {
-            image = try await SCScreenshotManager.captureImage(
-                contentFilter: filter, configuration: configuration)
-        } catch {
-            throw Failure.screenRecordingUnavailable(error.localizedDescription)
-        }
-        let crop = clampedCrop(
-            content: contentRect,
-            window: window.frame,
-            imageSize: CGSize(width: image.width, height: image.height))
-        let cropped = image.cropping(to: crop) ?? image
+        let cropped = WindowPixels.crop(frame, to: contentRect) ?? frame.image
 
         var lastEncoded: Data?
         for rung in profile.ladder {

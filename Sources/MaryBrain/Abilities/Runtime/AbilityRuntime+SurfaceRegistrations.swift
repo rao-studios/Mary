@@ -2,7 +2,7 @@
 //  AbilityRuntime+SurfaceRegistrations.swift
 //  MaryBrain
 //
-//  WHAT: The declared surfaces in this activation — players, prose, code.
+//  WHAT: The declared surfaces in this activation — players, prose, code, browsers.
 //  IN:   the activated snapshot's package records
 //  OUT:  MediaSurfaceSupport / ProseSurfaceSupport / CodeSurfaceSupport
 //  PIN:  A TAUGHT APPLICATION IS NOT A PLAYER UNTIL ITS DECLARATION IS
@@ -33,6 +33,25 @@ public extension AbilityRuntime.Snapshot {
                   let surface = plugin.mediaSurface
             else { return nil }
             return MediaSurfaceRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
+                displayName: plugin.application.title,
+                schema: surface)
+        }
+    }
+
+    /// Declared browsers — every package that carries a `webSurface`.
+    ///
+    /// The block describes the browser's CHROME only. What is inside the page needs no
+    /// declaration, because it is read from pixels.
+    func webSurfaceRegistrations() -> [WebSurfaceRegistration] {
+        records.compactMap { record -> WebSurfaceRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  let surface = plugin.webSurface
+            else { return nil }
+            return WebSurfaceRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,

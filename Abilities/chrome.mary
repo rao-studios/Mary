@@ -51,7 +51,7 @@
       "preference" : 120
     },
     "skills" : [
-      "chrome.new-tab"
+
     ],
     "summary" : "Google Chrome: web pages, tabs, articles and site content in the browser.",
     "tint" : "#1A73E8",
@@ -91,31 +91,14 @@
     "version" : "1.0.0"
   },
   "capabilities" : [
-    {
-      "constraints" : [
-        {
-          "kind" : "requiresStage",
-          "value" : "true"
-        },
-        {
-          "kind" : "allowedTargetClass",
-          "value" : "web-page"
-        }
-      ],
-      "effect" : "reversibleMutation",
-      "id" : "chrome.tab-new",
-      "permissions" : [
-        {
-          "kind" : "accessibility",
-          "reason" : "Press Command-T while Chrome owns the stage."
-        }
-      ],
-      "summary" : "Press Command-T while Chrome owns the stage.",
-      "title" : "New Tab",
-      "version" : "1.0.0"
-    }
+
   ],
   "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "browsing"
+    },
     {
       "minimumVersion" : "1.0.0",
       "optional" : true,
@@ -129,7 +112,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "02c4b1d949f667b754611ba4e5688add0c5dbfb5681c3ebe2efc69b26a5c5efc"
+    "digest" : "a18a69b7026a1b82dd16bf6d0df5f56d046a73278d3be94f30920ead00765d44"
   },
   "interactions" : [
 
@@ -160,6 +143,7 @@
         "chrome",
         "google chrome"
       ],
+      "bundleIdentifierPrefix" : "com.google.Chrome",
       "bundleIdentifiers" : [
         "com.google.Chrome"
       ],
@@ -174,7 +158,7 @@
       },
       "id" : "chrome",
       "perception" : {
-        "kind" : "perceptionOnly"
+        "kind" : "workspace"
       },
       "targetClasses" : [
         "document-window",
@@ -212,79 +196,36 @@
       {
         "operation" : "chrome_new_tab",
         "preference" : 260,
-        "skillID" : "chrome.new-tab",
+        "skillID" : "browsing.new-tab",
         "targetClasses" : [
           "web-page"
         ]
       }
     ],
     "title" : "Chrome",
-    "version" : "1.0.0"
+    "version" : "1.0.0",
+    "webSurface" : {
+      "addressFieldLabel" : "Address and search bar",
+      "addressFocusKey" : "l",
+      "addressFocusModifiers" : [
+        "command"
+      ],
+      "backLabel" : "Back",
+      "forwardLabel" : "Forward",
+      "pageFrameSource" : "windowBelowToolbar",
+      "reloadLabel" : "Reload",
+      "tabLabelSuffixSeparator" : " - Memory usage - ",
+      "tabRole" : "AXRadioButton",
+      "urlSource" : "addressField",
+      "watch" : {
+        "activeSeconds" : 3,
+        "idleSeconds" : 15
+      },
+      "windowTitleSuffix" : " - Google Chrome"
+    }
   },
   "skills" : [
-    {
-      "access" : "reversible",
-      "execution" : {
-        "bindings" : [
 
-        ],
-        "kind" : "binding",
-        "realizationPolicy" : "pluginRealizations",
-        "steps" : [
-
-        ]
-      },
-      "id" : "chrome.new-tab",
-      "inputs" : [
-
-      ],
-      "kind" : "effectful",
-      "modelExposure" : {
-        "enabled" : true,
-        "inheritsBindingContract" : true,
-        "invocationName" : "chrome_new_tab",
-        "parameters" : [
-
-        ]
-      },
-      "outputs" : [
-
-      ],
-      "requirements" : {
-        "capabilities" : [
-          "chrome.tab-new"
-        ],
-        "interactions" : [
-
-        ],
-        "optionalInteractions" : [
-
-        ],
-        "optionalPerceptions" : [
-
-        ],
-        "perceptions" : [
-
-        ],
-        "supportingAbilities" : [
-
-        ]
-      },
-      "routing" : {
-        "conflictPolicy" : "preferFocusedWorkspace",
-        "excludes" : [
-
-        ],
-        "fallbacks" : [
-
-        ],
-        "preference" : 200
-      },
-      "summary" : "Press Command-T while Chrome owns the stage.",
-      "title" : "New Tab",
-      "usesStage" : true,
-      "version" : "1.0.0"
-    }
   ],
   "totemProjections" : [
 

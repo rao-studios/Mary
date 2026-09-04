@@ -8,6 +8,9 @@
 //       MaryPlugin, and the machine they drive lives in MaryComputerUse —
 //       nothing above it posts an event or performs an AX action.
 //       AX is tier 0 (MaryAmbient → MaryFoundation only).
+//       VisionAX joins ONLY MaryComputerUse: it consumes the pixels only this layer
+//       may capture, and it replicates the AXNode/AXScreenElement type names, so a
+//       second importer would face an ambiguity on every use (VisionAXSealTests).
 //       Platform is macOS "26.0" (string, not .v26) for SpeechAnalyzer.
 //       No module aliases. Frigate only through MaryBrain.
 
@@ -29,6 +32,7 @@ let package = Package(
         .executable(name: "mary-life-probe", targets: ["LifeProbe"]),
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
+        .executable(name: "mary-web-probe", targets: ["WebProbe"]),
     ],
     dependencies: [
         // Frigate: only MaryBrain (onlyBrainNamesFrigate). No alias map.
@@ -37,6 +41,8 @@ let package = Package(
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
         .package(path: "../Fleet"),
+        // VisionAX: the pixel perception engine. MaryComputerUse only.
+        .package(path: "../VisionAX"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
@@ -74,7 +80,11 @@ let package = Package(
         //      input event, performs an AX action, or captures pixels.
         .target(
             name: "MaryComputerUse",
-            dependencies: ["MaryFoundation", "MaryAmbient"],
+            dependencies: [
+                "MaryFoundation",
+                "MaryAmbient",
+                .product(name: "VisionAX", package: "VisionAX"),
+            ],
             path: "Sources/MaryComputerUse",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
@@ -320,6 +330,13 @@ let package = Package(
             name: "MediaProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryFoundation"],
             path: "Sources/Probes/MediaProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Live browser: AX chrome, the page read through VisionAX, media driven.
+        .executableTarget(
+            name: "WebProbe",
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/WebProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
