@@ -46,7 +46,7 @@ enum CodeSurfaceProbe {
             print("      ! \(issue.code): \(issue.message)")
         }
 
-        let registrations = MaryRuntime.codeSurfaceRegistrations(from: load.snapshot)
+        let registrations = load.snapshot.codeSurfaceRegistrations()
         CodeSurfaceSupport.shared.reconcile(registrations)
         check(registrations.contains { $0.applicationID == "xcode" },
               "xcode.mary declares a codeSurface",

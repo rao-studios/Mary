@@ -32,6 +32,10 @@ struct SandBenchView: View {
     /// `--run` fires once, after the graph has loaded and a target is on the
     /// stage. Guarded so a re-render never runs an ability twice.
     @State private var autoRan = false
+    /// Lane ids the person folded away. Seeded from each lane's own default
+    /// (supporting lanes start closed) the first time a package is shown.
+    @State private var collapsedLanes: Set<String> = []
+    @State private var seededCollapseFor: PackageID?
 
     private var package: SandPackage? {
         guard let selectedPackage else { return host.package(forBundleID: targetBundleID) }
@@ -59,6 +63,7 @@ struct SandBenchView: View {
                 }
                 .padding(12)
             }
+            .layoutPriority(1)
             Divider()
             VStack(alignment: .leading, spacing: 8) {
                 runControls
@@ -67,13 +72,26 @@ struct SandBenchView: View {
             }
             .padding(12)
             Divider()
+            // THE LIST IS THE LONGER OF THE TWO. A discipline like writing
+            // lends thirty-one skills, and a fixed 200pt timeline left three of
+            // them visible. The timeline keeps enough height to read a run and
+            // yields the rest to what there is to pick from.
             SandTimelineView(trace: trace)
-                .frame(minHeight: 200)
+                .frame(minHeight: 140, maxHeight: 260)
         }
         .frame(minWidth: 380)
         .background(.background)
-        .onChange(of: host.packages.count) { _, _ in runIfAsked() }
-        .onAppear { runIfAsked() }
+        .onChange(of: host.packages.count) { _, _ in runIfAsked(); seedCollapse() }
+        .onChange(of: package?.id) { _, _ in seedCollapse() }
+        .onAppear { runIfAsked(); seedCollapse() }
+    }
+
+    /// Fold the lanes each package says start folded, once per package.
+    private func seedCollapse() {
+        guard let package, seededCollapseFor != package.id else { return }
+        seededCollapseFor = package.id
+        collapsedLanes = Set(
+            package.lanes.filter(\.isCollapsedByDefault).map(\.id))
     }
 
     /// `--run <invocation>` — the same press the Run button makes, so a
@@ -180,15 +198,53 @@ struct SandBenchView: View {
     @ViewBuilder
     private var runnableList: some View {
         if let package {
-            if package.runnables.isEmpty {
-                Text("This package carries no recipes and exposes no skills of its own.")
+            if package.lanes.isEmpty {
+                Text("This package carries no recipes and realizes no skills.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(package.runnables) { item in
-                        runnableRow(item, isSelected: item.id == runnable?.id)
-                    }
+                ForEach(package.lanes) { lane in
+                    laneSection(lane)
+                }
+            }
+        }
+    }
+
+    /// One lane: the package's own recipes, a discipline it extends, or
+    /// something it optionally supports. Supporting lanes start collapsed —
+    /// window management is on hand for most expertises and would otherwise be
+    /// the longest list on screen.
+    @ViewBuilder
+    private func laneSection(_ lane: SandLane) -> some View {
+        let isCollapsed = collapsedLanes.contains(lane.id)
+        VStack(alignment: .leading, spacing: 3) {
+            Button {
+                if isCollapsed { collapsedLanes.remove(lane.id) }
+                else { collapsedLanes.insert(lane.id) }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: isCollapsed ? "chevron.right" : "chevron.down")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                    Circle()
+                        .fill(Color.sandTint(lane.tint))
+                        .frame(width: 7, height: 7)
+                    Text(lane.title).font(.caption.bold())
+                    Text(lane.note)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                    Spacer()
+                    Text("\(lane.runnables.count)")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            if !isCollapsed {
+                ForEach(lane.runnables) { item in
+                    runnableRow(item, isSelected: item.id == runnable?.id)
                 }
             }
         }
@@ -203,18 +259,29 @@ struct SandBenchView: View {
                 HStack(spacing: 6) {
                     Text(item.title).fontWeight(isSelected ? .semibold : .regular)
                     Spacer()
-                    if !host.isDispatchable(item.invocation) {
-                        Text("not on the roster")
-                            .font(.system(size: 9))
-                            .foregroundStyle(.orange)
-                    }
-                    Text(kindWord(item))
+                    readinessChip(item)
+                    Text(stepsWord(item))
                         .font(.system(size: 9, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
-                Text(item.invocation)
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    Text(item.invocation.isEmpty ? "—" : item.invocation)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                    Text(item.realizationWord)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
+                if !item.natureWord.isEmpty {
+                    Text(item.natureWord)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.tertiary)
+                }
+                if let reason = item.unrunnableReason {
+                    Text(reason)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                }
             }
             .padding(.vertical, 3).padding(.horizontal, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -227,11 +294,26 @@ struct SandBenchView: View {
         .buttonStyle(.plain)
     }
 
-    private func kindWord(_ item: SandRunnable) -> String {
-        switch item.kind {
-        case .recipe: return "\(item.steps.count) steps"
-        case .skill: return "skill"
+    /// Green/orange/red, with the runtime's own reasons behind it. Readiness is
+    /// the difference between "this will act" and "no adapter satisfies it".
+    @ViewBuilder
+    private func readinessChip(_ item: SandRunnable) -> some View {
+        if let readiness = item.readiness {
+            let color: Color = switch readiness {
+            case .ready: .green
+            case .partial: .orange
+            case .blocked: .red
+            }
+            Text(readiness.rawValue)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(color)
+                .help(host.availabilityReasons(forSkillNamed: item.invocation)
+                        .joined(separator: "\n"))
         }
+    }
+
+    private func stepsWord(_ item: SandRunnable) -> String {
+        item.steps.isEmpty ? "" : "\(item.steps.count) steps"
     }
 
     // MARK: - Arguments
@@ -256,8 +338,8 @@ struct SandBenchView: View {
                             name: parameter.name,
                             required: parameter.required,
                             options: parameter.enumValues,
-                            placeholder: parameter.summary.isEmpty
-                                ? parameter.type : parameter.summary)
+                            placeholder: parameter.description.isEmpty
+                                ? parameter.type : parameter.description)
                     }
                 }
             }
@@ -273,6 +355,9 @@ struct SandBenchView: View {
                 .font(.system(size: 11, design: .monospaced))
                 .frame(width: 110, alignment: .leading)
             if let options, !options.isEmpty {
+                // A PICKER, NOT A TEXT FIELD, wherever the roster declares the
+                // values: `action` on control_playback is the difference
+                // between testing "next" in one click and mistyping it.
                 Picker("", selection: binding(name)) {
                     Text("—").tag("")
                     ForEach(options, id: \.self) { Text($0).tag($0) }
@@ -282,6 +367,17 @@ struct SandBenchView: View {
                 TextField(placeholder, text: binding(name))
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 11))
+                // `app` LEFT EMPTY ON PURPOSE. The runtime fills it from the
+                // expertise it resolves for the lead, and watching THAT is the
+                // point; this button is for pinning it deliberately.
+                if name == "app", let package, !package.applicationID.isEmpty {
+                    Button("use \(package.applicationID)") {
+                        arguments[name] = package.applicationID
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.blue)
+                }
             }
         }
     }
@@ -358,6 +454,15 @@ struct SandBenchView: View {
 
     @ViewBuilder
     private var stepList: some View {
+        if trace.steps.isEmpty, let runnable, trace.isRunning || trace.lastOutcome != nil {
+            // NO STEPS IS NOT AN EMPTY RECIPE. An adapter-realized skill has no
+            // authored steps at all, and printing a blank list would read like
+            // a recipe that failed to compile.
+            Divider()
+            Text("realized by \(runnable.realizationWord) — the acts below are its own")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+        }
         if !trace.steps.isEmpty {
             Divider()
             HStack {
@@ -401,5 +506,21 @@ struct SandBenchView: View {
                 .foregroundStyle(.red)
                 .multilineTextAlignment(.trailing)
         }
+    }
+}
+
+// MARK: - Tint
+
+extension Color {
+    /// A package's authored tint ("#8ECAE6"). Anything unparseable falls back
+    /// to the accent color rather than to a wrong color that reads as authored.
+    static func sandTint(_ hex: String) -> Color {
+        var text = hex.trimmingCharacters(in: .whitespaces)
+        if text.hasPrefix("#") { text.removeFirst() }
+        guard text.count == 6, let value = UInt32(text, radix: 16) else { return .accentColor }
+        return Color(
+            red: Double((value >> 16) & 0xFF) / 255,
+            green: Double((value >> 8) & 0xFF) / 255,
+            blue: Double(value & 0xFF) / 255)
     }
 }

@@ -92,9 +92,16 @@ struct SandTimelineView: View {
     @ViewBuilder
     private func content(_ entry: SandTraceEntry) -> some View {
         switch entry.kind {
-        case .runBegan(let invocation, let runID):
-            Text("dispatch \(invocation)  ·  run \(runID.prefix(8))")
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+        case .runBegan(let invocation, let runID, let realization):
+            VStack(alignment: .leading, spacing: 1) {
+                Text("dispatch \(invocation)  ·  run \(runID.prefix(8))")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                if !realization.isEmpty {
+                    Text("via \(realization)")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                }
+            }
         case .act(let act):
             HStack(spacing: 6) {
                 Text("#\(act.sequence)")

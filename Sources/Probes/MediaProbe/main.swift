@@ -60,7 +60,7 @@ for runtime in load.snapshot.skills
           "\(name) is ready", "\(runtime.availability.readiness)")
 }
 
-let registrations = MaryRuntime.mediaSurfaceRegistrations(from: load.snapshot)
+let registrations = load.snapshot.mediaSurfaceRegistrations()
 MediaSurfaceSupport.shared.reconcile(registrations)
 check(!registrations.isEmpty, "a package declares a transport",
       registrations.map { $0.applicationID }.joined(separator: ", "))

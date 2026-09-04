@@ -94,9 +94,9 @@ extension MaryRuntime {
                 // Ambient roster, prose, code, observer — same event so next turn sees them.
                 AmbientApplicationBridge.install(profiles: profiles)
                 ProseSurfaceSupport.shared.reconcile(
-                    proseSurfaceRegistrations(from: snapshot))
+                    snapshot.proseSurfaceRegistrations())
                 CodeSurfaceSupport.shared.reconcile(
-                    codeSurfaceRegistrations(from: snapshot))
+                    snapshot.codeSurfaceRegistrations())
                 AmbientApplicationObserver.shared.activate()
             }
         }

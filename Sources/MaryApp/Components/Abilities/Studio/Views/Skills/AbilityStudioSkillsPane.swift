@@ -21,7 +21,7 @@ struct AbilityStudioSkillsPane: View {
 
     private var bench: AbilityStudioSkillBench {
         AbilityStudioSkillBench(
-            draft: package,
+            package: package,
             snapshot: model.snapshot,
             selectedRecipe: model.selectedRecipe)
     }

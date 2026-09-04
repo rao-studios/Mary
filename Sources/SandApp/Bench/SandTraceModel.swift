@@ -27,7 +27,7 @@ import MaryPlugin
 /// One row of the timeline.
 struct SandTraceEntry: Identifiable {
     enum Kind {
-        case runBegan(invocation: String, runID: String)
+        case runBegan(invocation: String, runID: String, realization: String)
         case act(ComputerUseAct)
         case refusal(ComputerUseRefusal)
         case record(BehavioralActionRecord)
@@ -148,11 +148,17 @@ final class SandTraceModel: ObservableObject {
                 spelling: Self.spelling(of: step),
                 status: .pending)
         }
-        append(.runBegan(invocation: runnable.invocation, runID: runID))
+        // WHAT WAS EXPECTED, BEFORE ANYTHING ARRIVES. Naming the hands up
+        // front is what makes an empty timeline legible: no acts under "via
+        // Media Surface" means the adapter refused, not that nothing ran.
+        append(.runBegan(
+            invocation: runnable.invocation,
+            runID: runID,
+            realization: runnable.realizationWord))
         if runnable.steps.isEmpty, case .skill = runnable.kind {
             append(.note(
-                "No recipe steps — this Skill is an adapter's work, so the acts "
-                + "below are whatever it reached for."))
+                "No authored steps — this Skill's hands are its adapter's, so the "
+                + "acts below are whatever it reached for."))
         }
     }
 

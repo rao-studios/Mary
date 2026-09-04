@@ -50,7 +50,7 @@ enum AwarenessProbe {
         let awareness = MaryRuntime.awarenessRegistrations(from: load.snapshot)
         AwarenessSupport.shared.reconcile(awareness)
         CodeSurfaceSupport.shared.reconcile(
-            MaryRuntime.codeSurfaceRegistrations(from: load.snapshot))
+            load.snapshot.codeSurfaceRegistrations())
         CorpusSupport.shared.reconcile(
             MaryRuntime.corpusRegistrations(from: load.snapshot))
         let profiles = adapters.map(\.applicationProfile)

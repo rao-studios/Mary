@@ -120,10 +120,10 @@ extension MaryRuntime {
         }
         // Prose surfaces — re-installed every activation (import/edit changes the set).
         ProseSurfaceSupport.shared.reconcile(
-            proseSurfaceRegistrations(from: load.snapshot))
+            load.snapshot.proseSurfaceRegistrations())
         // Code surfaces — same reconcile; buffer coordinates as of last activation.
         CodeSurfaceSupport.shared.reconcile(
-            codeSurfaceRegistrations(from: load.snapshot))
+            load.snapshot.codeSurfaceRegistrations())
         // Corpora — one roster for style crawl and project lane (lane filters on `structure`).
         CorpusSupport.shared.reconcile(corpusRegistrations(from: load.snapshot))
         // Awareness — the applications that asked to be followed, with the
@@ -134,7 +134,7 @@ extension MaryRuntime {
         installCorpusPipeline()
         // Transports — a package that stops declaring a player must stop having one.
         MediaSurfaceSupport.shared.reconcile(
-            mediaSurfaceRegistrations(from: load.snapshot))
+            load.snapshot.mediaSurfaceRegistrations())
 
         // 4. Brain providers.
         let deps = FocusResolutionContext(observers: observers)
@@ -301,57 +301,5 @@ extension MaryRuntime {
             }
         }
         return nil
-    }
-
-    /// Declared transports in this activation. Twin of proseSurfaceRegistrations.
-    package static func mediaSurfaceRegistrations(
-        from snapshot: AbilityRuntime.Snapshot
-    ) -> [MediaSurfaceRegistration] {
-        snapshot.records.compactMap { record -> MediaSurfaceRegistration? in
-            guard record.validation.isValid,
-                  let plugin = record.package.plugin,
-                  let surface = plugin.mediaSurface
-            else { return nil }
-            return MediaSurfaceRegistration(
-                applicationID: plugin.application.id,
-                bundleIdentifiers: plugin.application.bundleIdentifiers,
-                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
-                displayName: plugin.application.title,
-                schema: surface)
-        }
-    }
-
-    package static func proseSurfaceRegistrations(
-        from snapshot: AbilityRuntime.Snapshot
-    ) -> [ProseSurfaceRegistration] {
-        snapshot.records.compactMap { record -> ProseSurfaceRegistration? in
-            guard record.validation.isValid,
-                  let plugin = record.package.plugin,
-                  let surface = plugin.proseSurface
-            else { return nil }
-            return ProseSurfaceRegistration(
-                applicationID: plugin.application.id,
-                bundleIdentifiers: plugin.application.bundleIdentifiers,
-                displayName: plugin.application.title,
-                schema: surface)
-        }
-    }
-
-    /// Read-only sibling of proseSurfaceRegistrations.
-    package static func codeSurfaceRegistrations(
-        from snapshot: AbilityRuntime.Snapshot
-    ) -> [CodeSurfaceRegistration] {
-        snapshot.records.compactMap { record -> CodeSurfaceRegistration? in
-            guard record.validation.isValid,
-                  let plugin = record.package.plugin,
-                  let surface = plugin.codeSurface
-            else { return nil }
-            return CodeSurfaceRegistration(
-                applicationID: plugin.application.id,
-                bundleIdentifiers: plugin.application.bundleIdentifiers,
-                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
-                displayName: plugin.application.title,
-                schema: surface)
-        }
     }
 }

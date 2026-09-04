@@ -78,7 +78,7 @@ for issue in load.issues where issue.severity == .error {
     print("      ! \(issue.code): \(issue.message)")
 }
 
-let registrations = MaryRuntime.proseSurfaceRegistrations(from: load.snapshot)
+let registrations = load.snapshot.proseSurfaceRegistrations()
 ProseSurfaceSupport.shared.reconcile(registrations)
 AmbientApplicationBridge.install(
     profiles: adapters.map(\.applicationProfile)

@@ -85,7 +85,7 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 | `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |
 | `MaryRuntime` | The composition root, long-lived actors, and Granite services. |
 | `Mary` | The SwiftUI app. |
-| `Sand` | The bench: a live accessibility wireframe of any running app, and one taught ability dispatched through the real `AbilityRuntime` so the route it takes into `MaryComputerUse` is watchable act by act. Its own bundle id, so its Accessibility grant is independent of Mary's. `./scripts/sand.sh` to run it. |
+| `Sand` | The bench: a live accessibility wireframe of any running app, and one taught ability — its own recipes, or any skill it realizes for a discipline it extends — dispatched through the real `AbilityRuntime` so the route it takes into `MaryComputerUse` is watchable act by act. Its own bundle id, so its Accessibility grant is independent of Mary's. `./scripts/sand.sh` to run it. |
 
 Those rules are not conventions — `Tests/MaryFoundationTests/PackageLayeringTests.swift`
 reads `Package.swift` as text and fails the build when an edge appears that

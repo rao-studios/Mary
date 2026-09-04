@@ -46,7 +46,7 @@ enum CodeSurfaceWriteProbe {
             print("      ! \(issue.code): \(issue.message)")
         }
 
-        let registrations = MaryRuntime.codeSurfaceRegistrations(from: load.snapshot)
+        let registrations = load.snapshot.codeSurfaceRegistrations()
         CodeSurfaceSupport.shared.reconcile(registrations)
         let profiles = adapters.map(\.applicationProfile)
             + load.snapshot.plugins.applicationProfiles

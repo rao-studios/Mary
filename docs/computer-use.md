@@ -115,6 +115,19 @@ separately running Mary.
 ability, so a run is repeatable from a script. `--run` performs the ability for
 real — it is opt-in for that reason, and never implied by `--target`.
 
+The bench lists an expertise in lanes, because an expertise usually owns
+nothing: Apple Music carries one recipe and *realizes* the nine skills the
+`multimedia` discipline declares, which the compiled `media-surface` adapter
+carries out. Each row says who its hands are — `hands here · <operation>` for a
+recipe this package realizes, the adapter's name otherwise — so a run that
+produces no acts can be read against what was supposed to act. The derivation is
+`AbilitySkillBench` in MaryBrain, the same one Ability Studio's Skills pane
+lays out.
+
+```sh
+./scripts/sand.sh --target com.apple.Music --run control_playback --arg action=pause
+```
+
 **The monitor is process-local.** `ComputerUseMonitor.shared` remembers what
 *its own* process did, so a probe cannot subscribe to the running app's
 instance. Every report site also writes one public line to
