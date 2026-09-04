@@ -270,6 +270,10 @@ let package = Package(
                 "MaryAmbient",
                 "MaryComputerUse",
                 "MaryPlugin",
+                // MaryVoice for BrainEvent alone: the turn's events are spoken
+                // in the voice layer's vocabulary, because that is the seam a
+                // LanguageResponder answers on. No microphone is opened.
+                "MaryVoice",
                 "MaryBrain",
             ],
             path: "Sources/SandApp",

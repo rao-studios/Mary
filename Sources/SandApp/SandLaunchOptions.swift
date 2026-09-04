@@ -13,6 +13,8 @@
 //
 //    ./scripts/sand.sh --target com.apple.iCal
 //    ./scripts/sand.sh --target com.apple.iCal --run calendar_go_today
+//    ./scripts/sand.sh --target com.apple.Music --say "pause the music"
+//    ./scripts/sand.sh --target com.apple.Music --say "play a playlist" --auto
 //    ./scripts/sand.sh --target com.apple.TextEdit --run textedit_save_document \
 //        --arg app=textedit
 //
@@ -23,6 +25,14 @@ struct SandLaunchOptions {
     var targetBundleID: String?
     /// Invocation to dispatch once the target is on the stage. Opt-in.
     var run: String?
+    /// An utterance to run through the real turn loop. Opt-in, like `--run`:
+    /// a turn dispatches for real if routing decides it should.
+    var say: String?
+    /// Answer the model's round automatically with the first offered skill and
+    /// no arguments. Only meaningful with `--say`, and deliberately separate:
+    /// asking Mary something is not the same as agreeing in advance to
+    /// whatever she proposes.
+    var auto = false
     var arguments: [String: String] = [:]
 
     static let current = SandLaunchOptions(CommandLine.arguments)
@@ -39,6 +49,12 @@ struct SandLaunchOptions {
             case "--run":
                 run = value
                 index += 2
+            case "--say":
+                say = value
+                index += 2
+            case "--auto":
+                auto = true
+                index += 1
             case "--arg":
                 // name=value. A value containing "=" keeps it: only the first
                 // separator is structural.

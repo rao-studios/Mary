@@ -133,6 +133,33 @@ final class SandTraceModel: ObservableObject {
 
     // MARK: - One run
 
+    /// A run the TURN started. There is no `SandRunnable` behind it — the
+    /// brain chose the name — so there are no authored steps to attribute
+    /// against, and the timeline says who was expected to act instead.
+    func beginRun(invocation: String, realization: String, runID: String) {
+        runStartedAt = Date()
+        currentRunID = runID
+        pendingStepIndex = 0
+        isRunning = true
+        lastOutcome = nil
+        marks = []
+        steps = []
+        append(.runBegan(invocation: invocation, runID: runID, realization: realization))
+    }
+
+    /// The ledger row the brain handed back. The turn lane never has a
+    /// `SkillOutcome` of its own — the brain consumed it — so the record is
+    /// both the outcome and the evidence.
+    func endRun(record: BehavioralActionRecord) {
+        isRunning = false
+        let ok = record.disposition == .succeeded
+        lastOutcome = (ok, record.summary)
+        append(.runEnded(summary: record.summary, ok: ok))
+        append(.record(record))
+        if let mark = Self.mark(for: record) { add(mark) }
+        currentRunID = nil
+    }
+
     func beginRun(_ runnable: SandRunnable, runID: String) {
         runStartedAt = Date()
         currentRunID = runID

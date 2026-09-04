@@ -126,7 +126,19 @@ lays out.
 
 ```sh
 ./scripts/sand.sh --target com.apple.Music --run control_playback --arg action=pause
+./scripts/sand.sh --target com.apple.Music --say "play a playlist"
 ```
+
+The bench has two lanes. **Direct** calls a skill by name, which bypasses
+routing and the offer ledger — useful for exercising hands, honest about what it
+skips. **Turn** runs Mary's real turn: Sand hosts a `MaryBrain` whose inference
+engine is a seat for a person, so the utterance is published, its vector warmed,
+the route resolved and the roster projected exactly as in the app, and the model
+round hands you the same skill list the model would receive. What a turn offers
+is what the words earned: "what is playing right now" offers one skill, "play a
+playlist" offers five, and the roster pane names the disposition and reason for
+every skill it did not offer. A turn that acts without ever asking for a round
+took the confidence lane, and says so.
 
 **The monitor is process-local.** `ComputerUseMonitor.shared` remembers what
 *its own* process did, so a probe cannot subscribe to the running app's

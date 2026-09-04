@@ -403,6 +403,9 @@ struct SandBenchView: View {
                     .disabled(trace.isRunning)
                 Spacer()
             }
+            Text("bypasses routing and the offer ledger — the turn lane is the honest roster")
+                .font(.system(size: 9))
+                .foregroundStyle(.tertiary)
             if trace.snapshot?.accessibilityTrusted == false {
                 Label(
                     "Sand has no Accessibility grant — the hands will refuse before they act.",

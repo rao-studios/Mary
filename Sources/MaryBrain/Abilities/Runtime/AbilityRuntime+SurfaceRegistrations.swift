@@ -10,9 +10,12 @@
 //        knows what "Next" is called only because a package said so — so a host
 //        that loads the graph and dispatches without reconciling these gets
 //        "that isn't running" for an app that plainly is.
-//        HERE RATHER THAN IN THE COMPOSITION ROOT because three hosts need
-//        them: the app, the probes, and Sand's bench. Corpus and awareness
-//        stay in MaryRuntime — they consult inheritance and habits, and they
+//        IN MARYBRAIN BECAUSE SAND CANNOT REACH MARYRUNTIME. These were
+//        `package static` on MaryRuntime, which the app and the probes link and
+//        Sand's bench deliberately does not — it wants the ability graph and
+//        the hands, not Granite, Totem or a model. They read nothing but the
+//        snapshot's own records, so they belong beside it. Corpus and awareness
+//        stay in MaryRuntime: they consult inheritance and habits, and they
 //        start crawls.
 //
 

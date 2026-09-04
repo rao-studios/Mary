@@ -13,9 +13,13 @@
 //        its optional ones are on hand when a route calls for them, and
 //        `plugin.realizations` says which of those skills THIS package's own
 //        hands carry out.
-//        PURE, AND IN THE BRAIN RATHER THAN THE APP, because two surfaces read
-//        it — the Studio's Skills pane and Sand's bench — and a second copy
-//        would drift from the one the authoring tool shows.
+//        IN MARYBRAIN BECAUSE TWO APPS READ IT. This lived in MaryApp, where
+//        Ability Studio's Skills pane lays it out. Sand's bench RUNS the same
+//        lanes, and one executable target cannot import another — MaryBrain is
+//        the highest layer both stand on, so the derivation moved here and the
+//        Studio kept its old names as typealiases. A copy in Sand would drift
+//        from the one the authoring tool shows, which is the one that decides
+//        what an author believes their package can do.
 //
 
 import Foundation

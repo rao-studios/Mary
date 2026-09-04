@@ -24,7 +24,22 @@ struct SandRootView: View {
     @StateObject private var model = WireframeViewModel()
     @StateObject private var host = SandRuntimeHost()
     @StateObject private var trace = SandTraceModel()
+    @StateObject private var turn = SandTurnHost()
     @State private var showBench = true
+    /// `--run` names a skill outright, which is the direct lane's gesture;
+    /// `--say` is a turn. Opening on the wrong one made `--run` look broken.
+    @State private var lane: Lane =
+        SandLaunchOptions.current.run != nil ? .direct : .turn
+
+    /// TWO WAYS TO REACH THE HANDS, and the difference is the point. The turn
+    /// lane goes through Mary's own routing, so what may be called is what the
+    /// utterance earned. The direct lane calls a name outright — useful for
+    /// exercising hands, honest about skipping the roster.
+    private enum Lane: String, CaseIterable, Identifiable {
+        case turn = "Turn"
+        case direct = "Direct"
+        var id: String { rawValue }
+    }
 
     var body: some View {
         Group {
@@ -33,6 +48,13 @@ struct SandRootView: View {
                 AccessibilityTrustGate {
                     host.start()
                     trace.start()
+                    turn.start(runtimeHost: host, trace: trace)
+                    // The turn's ambient surface comes from the walk the stage
+                    // already made — no second lane of AX reads.
+                    turn.stagedSurface = { [weak model] in
+                        guard let snapshot = model?.latest else { return nil }
+                        return (snapshot, snapshot.bundleID)
+                    }
                     phase = .picking
                     autoPickIfAsked()
                 }
@@ -71,9 +93,24 @@ struct SandRootView: View {
                         WireframeStageView(model: model, trace: trace)
                             .frame(minWidth: 420)
                         if showBench {
-                            SandBenchView(
-                                host: host, trace: trace, model: model,
-                                targetBundleID: row.bundleID)
+                            VStack(spacing: 0) {
+                                Picker("Lane", selection: $lane) {
+                                    ForEach(Lane.allCases) { Text($0.rawValue).tag($0) }
+                                }
+                                .pickerStyle(.segmented)
+                                .labelsHidden()
+                                .padding(.horizontal, 10)
+                                .padding(.top, 8)
+                                switch lane {
+                                case .turn:
+                                    SandTurnView(host: turn, runtimeHost: host)
+                                        .frame(minWidth: 380)
+                                case .direct:
+                                    SandBenchView(
+                                        host: host, trace: trace, model: model,
+                                        targetBundleID: row.bundleID)
+                                }
+                            }
                         }
                     }
                 }

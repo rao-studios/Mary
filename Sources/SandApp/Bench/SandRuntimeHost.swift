@@ -141,7 +141,11 @@ final class SandRuntimeHost: ObservableObject {
     /// the bench's own memory.
     let executionLog = AbilityExecutionLog()
 
-    private var runtime: AbilityRuntime?
+    /// The runtime the turn host hands to the brain as its dispatcher, and the
+    /// same one the direct lane dispatches into.
+    private(set) var runtime: AbilityRuntime?
+    /// The compiled adapters, kept for the system prompt the brain builds.
+    private(set) var adapters: [any MaryAdapter] = []
     private var snapshot: AbilityRuntime.Snapshot = .empty
     private var libraryTask: Task<Void, Never>?
     /// The application id the stage is showing, read by `focusProvider` on
@@ -159,6 +163,7 @@ final class SandRuntimeHost: ObservableObject {
         guard runtime == nil else { return }
         let adapters = MaryAdapterCatalog.adapters()
         let observers = MaryAdapterCatalog.observers()
+        self.adapters = adapters
         nativeProfiles = adapters.map(\.applicationProfile)
         // The package graph. `AbilityLibrary.defaultLocations` walks up from
         // its own source file to find this checkout's `Abilities/`, and honors
@@ -382,21 +387,17 @@ final class SandRuntimeHost: ObservableObject {
         return packages.first { $0.bundleIdentifiers.contains(bundleID) }
     }
 
-    /// The parameters the MODEL would be shown for this name, taken from the
-    /// roster projection rather than the package.
+    /// The parameters this Skill declares, from the package.
     ///
-    /// PIN: THE ROSTER KNOWS THINGS THE PACKAGE DOES NOT. `control_playback`'s
-    /// `action` carries its enum (play/pause/next/previous/…) because the
-    /// compiled adapter declares it; multimedia's own file says only "string".
-    /// Reading the projection is what turns that field into a picker, and it is
-    /// the same list the model gets — which is the point of a bench.
+    /// PIN: THE PACKAGE, NOT `runtime.schemas`. Reading the projection here is
+    /// what made this lane unpredictable: `schemas` calls `projectRoster()`,
+    /// which ARMS THE OFFER LEDGER, so a SwiftUI re-render landing mid-dispatch
+    /// decided whether the next skill counted as offered. The same press
+    /// succeeded or was refused depending on which won the race. The package's
+    /// own declaration is stable, and the turn lane is where a real roster —
+    /// with the enum values the compiled adapter adds — actually belongs.
     func parameters(forInvocation name: String) -> [ModelSkillSchema.Parameter] {
-        if let projected = runtime?.schemas.first(where: { $0.name == name }) {
-            return projected.parameters
-        }
-        // Off the roster this turn (scoped out, or blocked): fall back to what
-        // the package declares, so the form still shows what it would take.
-        return (snapshot.skill(invocationName: name)?.skill.modelExposure.parameters ?? [])
+        (snapshot.skill(invocationName: name)?.skill.modelExposure.parameters ?? [])
             .map { declared in
                 ModelSkillSchema.Parameter(
                     name: declared.name,
@@ -413,22 +414,11 @@ final class SandRuntimeHost: ObservableObject {
         snapshot.skill(invocationName: name)?.availability.reasons ?? []
     }
 
-    /// Whether this turn's roster offers the name.
+    /// Whether the runtime would accept this name at all.
     ///
-    /// PIN: USED FOR PARAMETERS, NEVER AS A VERDICT. Read with no turn in
-    /// flight this answers about a roster nobody asked for: `control_playback`
-    /// reads "off roster" here and then dispatches, acts and succeeds, because
-    /// the gates that dropped it are re-evaluated against the route the
-    /// dispatch itself opens. Showing that as a warning said "this will not
-    /// run" about a skill that runs.
-    func isOnRoster(_ name: String) -> Bool {
-        runtime?.schemas.contains { $0.name == name } ?? false
-    }
-
-    /// Whether the runtime would actually accept this name right now. A recipe
-    /// whose package failed validation, or whose adapter is missing, is not on
-    /// the roster — and saying so before the run beats a refusal that reads
-    /// like a machine-layer failure.
+    /// PIN: `knownSkillNames`, which reads the snapshot and the bindings — it
+    /// does NOT project a roster, so asking is free of side effects. Whether a
+    /// name is OFFERED is a different question, and only a turn can answer it.
     func isDispatchable(_ name: String) -> Bool {
         runtime?.knownSkillNames.contains(name) ?? false
     }
