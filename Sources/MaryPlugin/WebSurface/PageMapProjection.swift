@@ -218,11 +218,28 @@ public enum PageMapProjection {
     /// about a photograph; without its age nobody can tell a live page from a page that
     /// closed a minute ago.
     public static func caption(for roster: PageRoster, at now: Date = Date()) -> String {
-        let named = roster.elements.filter {
-            roster.annotation(for: $0)?.labelSource.isReal ?? false
-        }.count
+        let named = roster.rows.filter(\.isNamed).count
         let age = max(0, now.timeIntervalSince(roster.capturedAt))
-        let stale = age > horizon ? " · STALE" : ""
-        return "\(roster.elements.count) rows · \(named) named · \(Int(age.rounded()))s ago\(stale)"
+        var caption = "\(roster.rows.count) rows · \(named) named"
+        // WHAT THE READ COST. ~220ms is the documented page budget, and the
+        // reading already measured it — a bench that has the number and does not
+        // show it is asking a person to time it by hand.
+        if let duration = roster.readDuration {
+            caption += " · \(duration.milliseconds)ms"
+        }
+        caption += " · \(Int(age.rounded()))s ago"
+        if age > horizon { caption += " · STALE" }
+        // AND THE ONE FINDING A BAD PAGE LOOKS EXACTLY LIKE. Said last and said
+        // plainly, because every other number on this line is explained by it.
+        if !roster.classified { caption += " · NO CLASSIFIER" }
+        return caption
+    }
+}
+
+private extension Duration {
+    /// Whole milliseconds, for a caption that has one line to say it in.
+    var milliseconds: Int {
+        let parts = components
+        return Int(parts.seconds * 1_000 + parts.attoseconds / 1_000_000_000_000_000)
     }
 }

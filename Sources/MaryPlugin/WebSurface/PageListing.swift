@@ -50,6 +50,20 @@ public struct PageRoster: Sendable {
     public var pageFrame: CGRect
     public var capturedAt: Date
 
+    /// WHETHER A ROLE CLASSIFIER RAN.
+    ///
+    /// PIN: FALSE IS NOT "THE PAGE IS EMPTY", AND A BENCH THAT CANNOT TELL THEM
+    /// APART IS NO USE. Without the model installed the map still reads a page —
+    /// edges, words and geometry are the rows — but every role is a shape's best
+    /// guess, so names get thinner, affordances get less certain, and the page
+    /// simply looks BAD. That is the one failure a person checking "is VisionAX
+    /// doing its job" must not mistake for a hard page, and it was dropped at the
+    /// engine's read and never reached anybody.
+    public var classified: Bool
+    /// What the read cost. ~220ms is the documented page budget; several seconds
+    /// is a finding, and the number is free — the reading already measured it.
+    public var readDuration: Duration?
+
     /// The real one: a reading's own rows, facts already derived.
     public init(
         rows: [PageRow],
@@ -57,8 +71,12 @@ public struct PageRoster: Sendable {
         elements: [AXScreenElement] = [],
         map: PageMapSummary = PageMapSummary(),
         pageFrame: CGRect = .zero,
-        capturedAt: Date = Date()
+        capturedAt: Date = Date(),
+        classified: Bool = true,
+        readDuration: Duration? = nil
     ) {
+        self.classified = classified
+        self.readDuration = readDuration
         // NO ROWS BUT ELEMENTS IS THE SHIM CASE, whoever built it. A reading
         // that filled only the AX-shaped pair — a fake in a suite, a recorded
         // fixture, an older caller — has no rows to keep, and storing its empty
@@ -81,10 +99,14 @@ public struct PageRoster: Sendable {
         elements: [AXScreenElement],
         map: PageMapSummary = PageMapSummary(),
         pageFrame: CGRect = .zero,
-        capturedAt: Date = Date()
+        capturedAt: Date = Date(),
+        classified: Bool = true,
+        readDuration: Duration? = nil
     ) {
         self.storedRows = nil
         self.storedGroups = nil
+        self.classified = classified
+        self.readDuration = readDuration
         self.elements = elements
         self.map = map
         self.pageFrame = pageFrame

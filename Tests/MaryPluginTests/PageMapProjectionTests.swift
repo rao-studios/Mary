@@ -236,6 +236,48 @@ import Testing
         #expect(drawn.map(\.id) == page.rows.map(\.ordinal))
     }
 
+    // MARK: - Was the reading any good
+
+    /// THE ONE FINDING A BAD PAGE LOOKS EXACTLY LIKE. Without the model installed
+    /// the map still reads a page — edges, words and geometry are the rows — but
+    /// every role is a shape's best guess, so the page simply looks BAD. A bench
+    /// that cannot tell that from a hard page is no use for "is VisionAX doing
+    /// its job", and this was dropped at the engine's read and reached nobody.
+    @Test func theCaptionSaysWhenNoClassifierRan() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+        ])
+        var unclassified = page
+        unclassified.classified = false
+        #expect(!PageMapProjection.caption(for: page).contains("NO CLASSIFIER"))
+        #expect(PageMapProjection.caption(for: unclassified).contains("NO CLASSIFIER"))
+    }
+
+    /// AND WHAT THE READ COST, because the reading already measured it and a bench
+    /// that has the number and hides it asks a person to time it by hand.
+    @Test func theCaptionSaysWhatTheReadCost() {
+        var page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+        ])
+        page.readDuration = .milliseconds(224)
+        #expect(PageMapProjection.caption(for: page).contains("224ms"))
+        // A roster with no measurement says nothing rather than "0ms".
+        var unmeasured = page
+        unmeasured.readDuration = nil
+        #expect(!PageMapProjection.caption(for: unmeasured).contains("ms"))
+    }
+
+    /// THE CAPTION COUNTS THE ROWS THE OVERLAY DRAWS. It counted `elements` and
+    /// re-derived "named" from the side-car, which is the third place in this file
+    /// that read the page through the shim rather than through its rows.
+    @Test func theCaptionCountsTheSameRowsTheOverlayDraws() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+            (role: "AXTextField", label: "Search", affordance: .fill),
+        ])
+        #expect(PageMapProjection.caption(for: page).hasPrefix("2 rows · 2 named"))
+    }
+
     private static func row(_ ordinal: Int, _ label: String) -> PageRow {
         PageRow(
             ordinal: ordinal,

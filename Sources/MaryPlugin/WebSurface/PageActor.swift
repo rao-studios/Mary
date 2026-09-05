@@ -376,7 +376,11 @@ extension BrowserEngine {
                 groups: reading.groups,
                 elements: reading.elements,
                 map: reading.map,
-                pageFrame: reading.pageFrame)
+                pageFrame: reading.pageFrame,
+                // WHAT THE READ WAS, carried so a bench can tell a hard page from
+                // a machine with no classifier installed.
+                classified: reading.classified,
+                readDuration: reading.duration)
             emit(.read(
                 rows: roster.elements.count,
                 named: roster.elements.count - roster.elements.filter {

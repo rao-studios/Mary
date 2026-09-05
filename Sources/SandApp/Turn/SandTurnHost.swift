@@ -128,13 +128,19 @@ final class SandTurnHost: ObservableObject {
                 MaryPrompts.system(plugins: adapters, projects: [:])
             }
             // The turn's own preparer. Mary refreshes its observers here; Sand
-            // publishes the one surface it already walked — and the same two declared
-            // perceptions, so a turn about a player or a page is arbitrated with the
-            // evidence Mary would have had. Accessibility only: no pixels on a turn's
-            // own schedule.
+            // publishes the one surface it already walked — and whatever the
+            // adapters declare they perceive, so a turn about a player or a page is
+            // arbitrated with the evidence Mary would have had. Accessibility only:
+            // no pixels on a turn's own schedule.
+            //
+            // PIN: SAND'S OWN ADAPTERS, NOT THE CATALOG'S. This bench dispatches
+            // through `MaryAdapterCatalog.adapters() + [AffordancePlugin()]`, and a
+            // preparer that published from the catalog alone would arbitrate a turn
+            // with evidence from a different set than the one that answers it — the
+            // exact way a bench stops being a rehearsal.
             await brain.setTurnContextPreparer { [weak self] in
                 await self?.publishStagedSurface()
-                await TurnPerceptionPublisher.publishAll()
+                await TurnPerceptionPublisher.publishAll(adapters: adapters)
             }
             // THE ROSTER THE TURN USED, not one arbitrated afterwards. See
             // `refreshRouteAndTrace`, which now reads only the route.
