@@ -288,23 +288,25 @@ extension MaryRuntime {
             // dependency would otherwise have donated. `browsing.mary` declares
             // none today, but inheritance is a graph rule and a future donor
             // must not be able to point a project crawl at the web.
+            // PIN: THE RULE IS THE TYPE'S NOW. `.page` carries no corpus, so
+            // the `isPage ? nil : …` guard this line used to need cannot be
+            // forgotten here or in the snapshot's own derivation.
             // PIN: THE PAGE HALF ALSO EXISTS ON THE SNAPSHOT, as
             // `awarenessPageRegistrations()`, so a bench that cannot link
             // MaryRuntime still follows a page. This derivation stays the whole
             // answer for the app — it is the one that consults inheritance.
-            let isPage = plugin.webSurface != nil
+            let surface: AwarenessRegistration.Surface = plugin.webSurface != nil
+                ? .page
+                : .document(corpus: plugin.corpus
+                    ?? Self.inheritedCorpus(for: record.package, activated: activated))
             return AwarenessRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
-                corpus: isPage
-                    ? nil
-                    : (plugin.corpus
-                        ?? Self.inheritedCorpus(for: record.package, activated: activated)),
+                surface: surface,
                 hasCodeSurface: plugin.codeSurface != nil,
-                hasProseSurface: plugin.proseSurface != nil,
-                hasWebSurface: isPage)
+                hasProseSurface: plugin.proseSurface != nil)
         }
     }
 

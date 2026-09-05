@@ -59,6 +59,10 @@ import Testing
         #expect(registrations.count == 1)
         #expect(registrations[0].hasWebSurface, "it shows pages")
         #expect(registrations[0].corpus == nil, "and the web is never a project")
+        // AND THE RULE IS THE TYPE'S, not this derivation's discipline: the page
+        // case carries no corpus, so neither derivation can hand one over even
+        // by mistake.
+        #expect(registrations[0].surface == .page)
     }
 
     /// A required edge is the same request, stated more strongly.

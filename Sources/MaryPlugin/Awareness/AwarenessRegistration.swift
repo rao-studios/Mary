@@ -33,16 +33,41 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
     /// What the user calls it.
     public let displayName: String
 
-    /// The project grammar awareness walks: the application's own corpus, else
-    /// the one it inherits from a discipline it depends on. NIL IS A REAL
-    /// STATE — an application can ask for awareness of a live surface without
-    /// having a project on disk to trace through, and the honest answer to
-    /// "who calls this" is then that there is nothing to search.
+    /// WHAT KIND OF WORLD THIS IS, and what a walk of it may read.
     ///
-    /// ALWAYS NIL FOR A PAGE, and that is a decision rather than an omission:
-    /// the web is not a project, nothing here crawls or indexes it, and the
-    /// page brief is built from what a read already found.
-    public let corpus: PluginCorpusSchema?
+    /// PIN: A RULE NOTHING HAS TO REMEMBER. "A page never carries a corpus" was
+    /// true, load-bearing, and enforced by hand in BOTH derivations — one
+    /// passing `corpus: nil` as a literal, the other guarding with
+    /// `isPage ? nil : …`. Two places that must agree eventually disagree, and
+    /// the failure would be silent: a discipline donor pointing a crawl at the
+    /// web. Here the page case HAS no corpus to give, so the rule holds by
+    /// construction and neither derivation can get it wrong.
+    public enum Surface: Sendable, Equatable {
+        /// Files on disk, and the grammar for walking them. NIL CORPUS IS A REAL
+        /// STATE — an application can ask for awareness of a live surface
+        /// without having a project to trace through, and the honest answer to
+        /// "who calls this" is then that there is nothing to search.
+        case document(corpus: PluginCorpusSchema?)
+
+        /// PAGES, AND THE THIRD KIND OF WORLD. A code surface has a buffer and a
+        /// prose surface has a document; a browser has neither, and the document
+        /// road (`AwarenessSiteResolver.resolve`) bails on exactly that — no
+        /// text, no site, no brief. A page is still plainly the work in front of
+        /// someone, so it takes its own road (`AwarenessPageSite`). The web is
+        /// not a project and nothing here crawls or indexes it.
+        case page
+    }
+
+    public let surface: Surface
+
+    /// The project grammar awareness walks. Nil for a page, by construction.
+    public var corpus: PluginCorpusSchema? {
+        guard case .document(let corpus) = surface else { return nil }
+        return corpus
+    }
+
+    /// Whether this application shows PAGES rather than documents on disk.
+    public var hasWebSurface: Bool { surface == .page }
 
     /// Whether the application declares a live code channel — the buffer,
     /// including unsaved edits — rather than only files on disk.
@@ -51,34 +76,22 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
     /// The prose twin of `hasCodeSurface`.
     public let hasProseSurface: Bool
 
-    /// Whether this application shows PAGES rather than documents on disk.
-    ///
-    /// PIN: THE THIRD KIND OF WORLD, AND IT HAS NO FILE. A code surface has a
-    /// buffer and a prose surface has a document; a browser has neither, and the
-    /// document road (`AwarenessSiteResolver.resolve`) bails on exactly that —
-    /// no text, no site, no brief. A page is still plainly the work in front of
-    /// someone. It takes its own road, `AwarenessPageSite`, and NEVER a corpus:
-    /// see `corpus` above.
-    public let hasWebSurface: Bool
-
     public init(
         applicationID: String,
         bundleIdentifiers: [String],
         bundleIdentifierPrefix: String? = nil,
         displayName: String,
-        corpus: PluginCorpusSchema?,
+        surface: Surface,
         hasCodeSurface: Bool,
-        hasProseSurface: Bool,
-        hasWebSurface: Bool = false
+        hasProseSurface: Bool
     ) {
         self.applicationID = applicationID
         self.bundleIdentifiers = bundleIdentifiers
         self.bundleIdentifierPrefix = bundleIdentifierPrefix
         self.displayName = displayName
-        self.corpus = corpus
+        self.surface = surface
         self.hasCodeSurface = hasCodeSurface
         self.hasProseSurface = hasProseSurface
-        self.hasWebSurface = hasWebSurface
     }
 
     /// Whether this registration claims the given process. Exact first, then

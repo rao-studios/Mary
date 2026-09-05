@@ -30,10 +30,9 @@ import Testing
             applicationID: "test-browser",
             bundleIdentifiers: ["com.example.browser"],
             displayName: "Test Browser",
-            corpus: nil,
+            surface: page ? .page : .document(corpus: nil),
             hasCodeSurface: false,
-            hasProseSurface: false,
-            hasWebSurface: page)
+            hasProseSurface: false)
     }
 
     private static func shell(

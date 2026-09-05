@@ -64,10 +64,11 @@ public extension AbilityRuntime.Snapshot {
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
-                corpus: nil,
+                // A PAGE HAS NO CORPUS TO GIVE — the case carries none, so the
+                // rule this comment used to assert is now the type's.
+                surface: .page,
                 hasCodeSurface: plugin.codeSurface != nil,
-                hasProseSurface: plugin.proseSurface != nil,
-                hasWebSurface: true)
+                hasProseSurface: plugin.proseSurface != nil)
         }
     }
 

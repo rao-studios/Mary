@@ -27,7 +27,8 @@ import Testing
                     applicationID: "tests.editor",
                     bundleIdentifiers: ["com.example.testeditor"],
                     displayName: "Test Editor",
-                    corpus: PluginCorpusSchema(include: ["swift"], notation: "swift"),
+                    surface: .document(
+                        corpus: PluginCorpusSchema(include: ["swift"], notation: "swift")),
                     hasCodeSurface: true,
                     hasProseSurface: false),
             ])

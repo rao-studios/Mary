@@ -27,6 +27,22 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
     public static let activeInterval: TimeInterval = 10
     public static let idleInterval: TimeInterval = 45
 
+    /// HOW OFTEN THE STANDING SWEEP RUNS — the idle cadence, deliberately not a
+    /// new number. The frontmost window is polled every 10s because it is what
+    /// the person is looking at; a taught application BEHIND it changes slowly
+    /// and is worth a walk only occasionally.
+    public static let sweepInterval: TimeInterval = idleInterval
+
+    /// HOW MANY BACKGROUND APPLICATIONS ONE SWEEP MAY WALK.
+    ///
+    /// PIN: BOUNDED BY THE REGISTRY AND THEN BY THIS. Only SIGHTED registrations
+    /// are eligible — never a random running process — but a machine with a
+    /// dozen taught applications open would still pay a dozen exhaustive AX
+    /// walks in one tick, which is exactly the cost this layer is careful
+    /// about. Four is two more than anyone has led recently and cheap enough to
+    /// disappear inside a 45s window.
+    public static let sweepLimit = 4
+
     static let log = Logger(subsystem: "nyc.rao.mary", category: "surface")
 
     /// Frontmost target worth reading. Public for `--probe-ambient-surface`.
@@ -58,6 +74,11 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
         OSAllocatedUnfairLock<(pid: pid_t, context: AXAmbientContext)?>(initialState: nil)
     /// Lane whose surface this observer last noted — deactivate teardown.
     private let lastPlaceBox = OSAllocatedUnfairLock<AmbientPlace?>(initialState: nil)
+    /// When the standing sweep last ran. Its own clock, because the poll is
+    /// coalesced and re-entrant and the sweep must not ride every poke.
+    private let lastSweepBox = OSAllocatedUnfairLock<Date?>(initialState: nil)
+    /// Places the sweep has noted, so `deactivate` can put them all back.
+    private let sweptPlacesBox = OSAllocatedUnfairLock<Set<AmbientPlace>>(initialState: [])
 
     public convenience init() {
         self.init(
@@ -131,6 +152,14 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
             return place
         }
         if let place { store.forgetSurface(place: place) }
+        // AND EVERYTHING THE SWEEP NOTED. An observer never claims sight it no
+        // longer maintains — the same rule the frontmost lane above keeps.
+        let swept = sweptPlacesBox.withLock { places -> Set<AmbientPlace> in
+            defer { places = [] }
+            return places
+        }
+        for place in swept { store.forgetSurface(place: place) }
+        lastSweepBox.withLock { $0 = nil }
         lastContextBox.withLock { $0 = nil }
     }
 
@@ -207,7 +236,55 @@ public final class AmbientSurfaceObserver: MaryObserver, @unchecked Sendable {
             place: AmbientPlaceResolver.applicationPlace(forBundleID: process.bundleID))
     }
 
+    /// EVERY TAUGHT APPLICATION THAT IS RUNNING BUT NOT IN FRONT, once a sweep.
+    ///
+    /// PIN: A MACHINE IS NOT ONE WINDOW. The surface store has always been
+    /// plural — one `AmbientSurface` per place — and only ever held one, because
+    /// the only thing ever walked was whatever was frontmost. So "what is open
+    /// on this Mac" could not be answered for anything the person was not
+    /// looking at, and an application they had just left had no standing
+    /// description at all.
+    /// SIGHTED REGISTRATIONS ONLY, and that is the blast radius. A package that
+    /// asked to be watched is one that declared how; nothing else is walked,
+    /// ever, and `sweepLimit` bounds even that.
+    /// SURFACES ONLY, NEVER A SLATE. The affordance slate is one-at-a-time by
+    /// construction (`publishedBox`), and it belongs to whatever the person is
+    /// actually looking at — a background window publishing offers would let
+    /// `act_on_screen` reach a control nobody can see.
+    func sweepStandingSurfaces(at now: Date, frontmostPID: pid_t?) {
+        let due = lastSweepBox.withLock { last -> Bool in
+            guard let last, now.timeIntervalSince(last) < Self.sweepInterval
+            else { last = now; return true }
+            return false
+        }
+        guard due else { return }
+
+        let running = standingRunning()
+        let claims = standingClaims().filter(\.hasEyes)
+        var walked = 0
+        for claim in claims {
+            guard walked < Self.sweepLimit else { break }
+            guard let process = running.first(where: { claim.owns(bundleID: $0.bundleID) }),
+                  process.pid != frontmostPID,
+                  process.bundleID != maryBundleID
+            else { continue }
+            guard let context = capture(process.pid) else { continue }
+            let place = AmbientPlaceResolver.applicationPlace(
+                forBundleID: process.bundleID)
+            store.noteSurface(
+                AmbientBridge.surface(from: context, place: place), at: now)
+            sweptPlacesBox.withLock { $0.insert(place) }
+            walked += 1
+        }
+        if walked > 0 {
+            Self.log.debug("standing sweep walked \(walked, privacy: .public) application(s)")
+        }
+    }
+
     public func pollOnce(at now: Date = Date()) {
+        // The sweep runs on its own clock whether or not anything is frontmost:
+        // a machine with Mary in front still has the person's work behind her.
+        sweepStandingSurfaces(at: now, frontmostPID: frontmost()?.pid)
         guard let target = target() else {
             // Nothing readable: retract the slate. Surfaces expire on their own.
             retractAffordances()
