@@ -34,6 +34,7 @@ struct AmbientInspectorView: View {
     /// exceed the window at Sand's minimum size.
     var availableHeight: CGFloat
     @State private var jsonSheetElement: AXNodeID?
+    @State private var showsTurnedDown = false
 
     /// Room left for the roster after the header/focus rows and the
     /// window's own chrome (breadcrumb, toolbar) — a floor keeps a very
@@ -44,7 +45,7 @@ struct AmbientInspectorView: View {
     /// page offers — the half worth reading for a browser — off the bottom of the
     /// window entirely.
     private var rosterBudget: CGFloat {
-        max(120, availableHeight - (model.targetIsBrowser ? 420 : 220))
+        max(120, availableHeight - (model.targetIsBrowser ? 560 : 220))
     }
 
     var body: some View {
@@ -59,6 +60,7 @@ struct AmbientInspectorView: View {
             }
             if model.targetIsBrowser {
                 pageOffers
+                pageRoute
             }
         }
         .font(.system(size: 11, design: .monospaced))
@@ -140,10 +142,15 @@ struct AmbientInspectorView: View {
         Divider()
         if let roster = model.browserRoster {
             let offers = PageMapProjection.offerLines(for: roster)
+            let candidates = PageMapProjection.candidateLines(for: roster)
             HStack {
                 Text("Page offers").foregroundStyle(.secondary)
                 Spacer()
-                Text("\(offers.count) of \(roster.elements.count) rows")
+                // THE GAP IS THE DIAGNOSIS. A results page offering four icons while
+                // sixty rows carry real names is the failure this pane exists to show,
+                // and the router reaches the second number where nothing else could.
+                Text("\(offers.count) of \(roster.elements.count) rows"
+                    + (candidates.isEmpty ? "" : " · \(candidates.count) named"))
             }
             Text(PageMapProjection.caption(for: roster))
                 .font(.system(size: 9, design: .monospaced))
@@ -163,7 +170,7 @@ struct AmbientInspectorView: View {
                         }
                     }
                 }
-                .frame(maxHeight: max(100, availableHeight - 480))
+                .frame(maxHeight: max(80, availableHeight - 620))
             }
         } else {
             HStack {
@@ -172,6 +179,71 @@ struct AmbientInspectorView: View {
                 Text("no page read yet").foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// WHY THAT ROW AND NOT ANOTHER — the page's answer to the question the ability
+    /// roster's pane answers for Skills. Selected first, then anything it could not be
+    /// separated from, then every row it turned down with the sentence saying why.
+    ///
+    /// PIN: THE ROUTE THE LANE ACTUALLY USED, pulled from the engine's own snapshot
+    /// beside the roster it was computed against. Nothing here re-runs the router: a
+    /// pane that arbitrated for itself would be explaining a decision nobody made.
+    @ViewBuilder
+    private var pageRoute: some View {
+        if let route = model.browserRoute, !route.decisions.isEmpty {
+            let lines = PageMapProjection.routeLines(for: route)
+            let chosen = lines.filter {
+                $0.disposition == .selected || $0.disposition == .clarificationRequired
+            }
+            Divider()
+            HStack {
+                Text("Page route").foregroundStyle(.secondary)
+                Spacer()
+                Text("\(route.selected.count) of \(route.eligibleCount) eligible")
+            }
+            Text("\"\(route.goal.isEmpty ? "(no words)" : route.goal)\" · \(route.verb)"
+                + (route.goalUnmatched ? " · unmatched" : ""))
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.secondary)
+            ForEach(chosen) { routeRow($0) }
+            if lines.count > chosen.count {
+                Button {
+                    showsTurnedDown.toggle()
+                } label: {
+                    Text(showsTurnedDown
+                         ? "hide the \(lines.count - chosen.count) not chosen"
+                         : "show the \(lines.count - chosen.count) not chosen")
+                        .font(.system(size: 9))
+                        .foregroundStyle(.blue)
+                }
+                .buttonStyle(.plain)
+                if showsTurnedDown {
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 2) {
+                            ForEach(lines.filter {
+                                $0.disposition != .selected
+                                    && $0.disposition != .clarificationRequired
+                            }) { routeRow($0) }
+                        }
+                    }
+                    .frame(maxHeight: 160)
+                }
+            }
+        }
+    }
+
+    private func routeRow(_ line: PageRouteLine) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(line.text)
+                .foregroundStyle(
+                    line.disposition == .selected ? AnyShapeStyle(.green)
+                        : line.disposition == .clarificationRequired
+                            ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
+            Text(line.reason)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     /// TWO SIBLING BUTTONS, DELIBERATELY NOT ONE NESTED IN THE OTHER. A

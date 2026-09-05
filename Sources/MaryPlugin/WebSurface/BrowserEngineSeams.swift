@@ -113,34 +113,75 @@ struct LiveBrowserShell: BrowserShellReading {
         WebSurfaceAX.read(pid: pid, registration: registration)
     }
 
+    /// Once, then verified. `openLocation` retries this whole exchange rather than
+    /// trusting a single run.
+    static let addressTypingAttempts = 3
+    /// How long the field needs after the last keystroke before its own value can be
+    /// trusted — not measured, chosen to sit above `KeyboardTyper`'s 25ms inter-chunk
+    /// gap with headroom for the omnibox's own reflow.
+    static let addressVerifySettle = Duration.milliseconds(150)
+
     /// Focus the address field, replace what is in it, and commit.
     ///
     /// PIN: THE FULL ADDRESS IS TYPED, SCHEME AND ALL. Both omniboxes autocomplete
     /// inline as you type, and a bare host can be completed to a different address
     /// between the last character and Return.
+    /// PIN: TYPED, THEN PROVED, BEFORE IT IS TRUSTED. Measured live: "Let's watch a
+    /// fred again video on youtube" landed as "red again video on youtube". Chunk one —
+    /// `KeyboardTyper` posts at most 16 UTF-16 units per synthetic keystroke, 25ms apart
+    /// — is "Let's watch a fr"; the omnibox inline-autocompletes and SELECTS a
+    /// suggestion reacting to it before chunk two arrives, and chunk two's keystroke
+    /// then REPLACES that selection instead of appending, wiping chunk one whole. A
+    /// query longer than one chunk is not a rare shape — the whole request sentence
+    /// lands here whenever nothing upstream stripped its preamble — so this is
+    /// reachable on an ordinary sentence, not an edge case. `KeyboardTyper` cannot fix
+    /// this from inside a chunk (each chunk completes honestly; the corruption is
+    /// between them), so the field is READ BACK and RETYPED here until it agrees with
+    /// what was meant, the same "prove it by looking again" rule the rest of this file
+    /// already lives by.
     func openLocation(
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration
     ) async -> Bool {
         guard await focusAddressField(pid: pid, registration: registration) else { return false }
-        // Select all, so typing replaces rather than appends.
-        guard KeyChordPress.press(key: .a, modifiers: [.command]) else { return false }
-        let typed = await KeyboardTyper.type(
-            address, targetPrefix: registration.bundleIdentifiers.first ?? "")
-        // A PARTIAL ADDRESS MUST NOT BE COMMITTED. Losing focus halfway through leaves
-        // half a URL in the field, and pressing Return then navigates somewhere nobody
-        // asked for — worse than not navigating at all.
-        guard case .completed = typed else { return false }
-        // AND THE COMPLETION THE BROWSER ADDED MUST BE REMOVED BEFORE RETURN.
-        //
-        // PIN: BOTH OMNIBOXES FINISH YOUR SENTENCE, and Return accepts what they wrote
-        // rather than what was typed. Measured live: "swift concurrency" typed into
-        // Chrome opened YouTube, because a history entry was inline-completed and
-        // selected. Forward-delete removes a selected completion and does nothing at all
-        // when there is none, which is exactly the shape of fix this needs — it cannot
-        // damage the honest case. It is a text-editing key inside a text field, not a
-        // page shortcut; see NoSiteShortcutsTests, which admits it for that reason.
-        _ = KeyChordPress.press(key: .forwardDelete, modifiers: [])
-        return KeyChordPress.press(key: .return, modifiers: [])
+        for attempt in 1...Self.addressTypingAttempts {
+            // Select all, so typing replaces rather than appends.
+            guard KeyChordPress.press(key: .a, modifiers: [.command]) else { return false }
+            let typed = await KeyboardTyper.type(
+                address, targetPrefix: registration.bundleIdentifiers.first ?? "")
+            // A PARTIAL ADDRESS MUST NOT BE COMMITTED. Losing focus halfway through
+            // leaves half a URL in the field, and pressing Return then navigates
+            // somewhere nobody asked for — worse than not navigating at all.
+            guard case .completed = typed else { return false }
+            try? await Task.sleep(for: Self.addressVerifySettle)
+            let landed = Self.addressLanded(
+                intended: address,
+                fieldValue: WebSurfaceAX.addressFieldValue(pid: pid, registration: registration))
+            guard landed else {
+                if attempt == Self.addressTypingAttempts { return false }
+                continue
+            }
+            // AND THE COMPLETION THE BROWSER ADDED MUST BE REMOVED BEFORE RETURN.
+            //
+            // PIN: BOTH OMNIBOXES FINISH YOUR SENTENCE, and Return accepts what they
+            // wrote rather than what was typed. Measured live: "swift concurrency"
+            // typed into Chrome opened YouTube, because a history entry was
+            // inline-completed and selected. Forward-delete removes a selected
+            // completion and does nothing at all when there is none, which is exactly
+            // the shape of fix this needs — it cannot damage the honest case. It is a
+            // text-editing key inside a text field, not a page shortcut; see
+            // NoSiteShortcutsTests, which admits it for that reason.
+            _ = KeyChordPress.press(key: .forwardDelete, modifiers: [])
+            return KeyChordPress.press(key: .return, modifiers: [])
+        }
+        return false
+    }
+
+    /// Did the field actually receive what was typed? A trailing autocomplete
+    /// suggestion is expected and ignored — only the FRONT of the field is proof,
+    /// because that is exactly the part a chunk-boundary race wipes.
+    static func addressLanded(intended: String, fieldValue: String?) -> Bool {
+        guard let fieldValue else { return false }
+        return fieldValue.hasPrefix(intended)
     }
 
     private func focusAddressField(

@@ -108,10 +108,13 @@
           "click sign in",
           "click the first one",
           "close that banner",
+          "find me a video on youtube",
           "go back",
           "go full screen",
+          "go to a video on youtube",
           "go to this site",
           "look that up",
+          "look up a video on the web",
           "mute this",
           "open a new tab",
           "open the first result",
@@ -134,7 +137,8 @@
           "turn the volume down",
           "turn the volume up",
           "type that into the search box",
-          "unmute it"
+          "unmute it",
+          "watch a video on youtube"
         ],
         "perceive" : [
           "how far through is it",
@@ -152,9 +156,16 @@
 
       ],
       "phrases" : [
+        "find me",
+        "go to",
         "in the browser",
+        "look up",
         "on the page",
         "on this site",
+        "pull up",
+        "search for",
+        "search the web for",
+        "take me to",
         "the first result",
         "the search box",
         "the video",
@@ -177,6 +188,7 @@
         "tab",
         "url",
         "video",
+        "watch",
         "web"
       ]
     },
@@ -430,13 +442,172 @@
 
   ],
   "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "find-a-video-on-youtube",
+      "interactions" : [
 
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a fireplace video on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "pull-up-a-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pull up a fred again video on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "look-up-on-the-web",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Look up alpine touring boots on the web."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "search-the-web-for",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search the web for the tallest bridge in Europe."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "find-a-cat-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a video of a cat on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.open-location",
+      "id" : "go-to-a-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Go to youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.open-location",
+      "id" : "take-me-to-a-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Take me to wikipedia."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.open-location",
+      "id" : "open-a-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Open the bbc site."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.fill-in-page",
+      "id" : "search-this-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search this site for fred again."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.fill-in-page",
+      "id" : "type-into-the-search-box",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Type fred again into the search box and press return."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "open-the-first-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Open the first video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-the-first-result",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Click the first result."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "press-accept-all",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Press accept all."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "what-can-i-click",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What can I click on here?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "read-the-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Read me what's on this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "watch-a-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Watch a fireplace video on youtube."
+    }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3d37452e447d1d26b55bac52e96967aaf833eec2117214b926403e2753110026"
+    "digest" : "f6724d134f3e86ce754c845506d30899749891c9cd42c606d3e0a1b28e29420b"
   },
   "interactions" : [
 

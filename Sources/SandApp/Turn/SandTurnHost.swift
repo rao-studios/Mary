@@ -183,6 +183,12 @@ final class SandTurnHost: ObservableObject {
         engine?.answer(answer, for: round.id)
     }
 
+    /// A line the bench itself puts on the story — `--auto` declining a round it cannot
+    /// answer honestly, for instance. Same lane as the turn's own notes, so it reads in order.
+    func note(_ text: String) {
+        append(.note(text))
+    }
+
     private func receive(_ event: BrainEvent) {
         switch event {
         case .turnBegan:

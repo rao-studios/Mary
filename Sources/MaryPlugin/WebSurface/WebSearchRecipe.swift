@@ -14,9 +14,15 @@
 //        field navigates anything that looks like an address and searches everything
 //        else, so the one thing worth checking is whether what came back is actually
 //        about the query. Held, compared, discarded.
-//        THE RANKING NEVER RETURNS NOTHING FOR A PAGE THAT HAS RESULTS. Name, then
-//        meaning, then the order the page put them in — because "open the first one" is
-//        a real request and a refusal to choose is a worse answer than the top result.
+//        THE RANKING IS THE ROUTER'S, NOT THIS FILE'S. Which row on a results page
+//        answers "the first video" is the same question as which row answers "accept all"
+//        on a consent wall, asked of the same read with the same evidence — so it is asked
+//        in one place. What survives here is what is particular to SEARCHING: typing the
+//        query into the browser's own field, proving the browser actually searched for it,
+//        and remembering where the turn already landed.
+//        AND IT STILL NEVER RETURNS NOTHING FOR A PAGE THAT HAS RESULTS. "Open the first
+//        one" is a real request; a pick that matches nothing falls back to the page's own
+//        first answer and SAYS SO, rather than refusing to choose.
 //        ONE SEARCH PER TURN PER QUERY. The second identical search cannot even prove
 //        itself: the address and the title do not change, so it reports failure for work
 //        that already succeeded.
@@ -74,16 +80,21 @@ public enum WebSearchRecipe {
             elements: read.elements, map: read.map ?? PageMapSummary(),
             pageFrame: read.shell?.pageFrame ?? .zero)
 
-        let results = admitted(in: roster, forQuery: asked)
-        guard !results.isEmpty else {
+        let routed = await engine.arbitrate(
+            pick ?? "", verb: .openResult(query: asked), in: roster)
+        guard let choice = routed.winner else {
+            if let refusal = routed.refusal, case .ambiguousElement = refusal {
+                return await engine.refusing(refusal)
+            }
             return BrowserOutcome(
                 ok: true, spoken: "I searched for \(asked), but I can't make out any results.",
                 shell: read.shell, elements: read.elements, map: read.map, landed: true)
         }
-        guard let choice = choose(pick, among: results, in: roster) else {
-            // Cannot happen for a non-empty pool; the ladder's last rung is page order.
-            return read
-        }
+        // A PICK THAT MATCHED NOTHING IS SAID OUT LOUD. The page's first answer is a
+        // better outcome than a refusal, and pretending it was what they named is not.
+        let unmatched = routed.trace.goalUnmatched
+            ? "I couldn't match \"\(pick ?? "")\", so I opened the first result. "
+            : ""
 
         let pressed = await engine.pressOnPage(choice.label, in: target, deadline: deadline)
         guard pressed.landed, let destination = pressed.shell?.title ?? pressed.shell?.siteName
@@ -91,100 +102,16 @@ public enum WebSearchRecipe {
             let listing = PageListing.tail(roster)
             return BrowserOutcome(
                 ok: true,
-                spoken: "I searched for \(asked). \(listing)",
+                spoken: "\(unmatched)I searched for \(asked). \(listing)",
                 shell: read.shell, elements: read.elements, map: read.map,
                 receipts: pressed.receipts,
                 landed: true)
         }
         memo.record(query: asked, destination: destination)
-        return pressed
-    }
-
-    // MARK: - The results
-
-    /// Rows that could be a result: something to press, with a name long enough to be
-    /// one, and not the page's own chrome.
-    public static func admitted(
-        in roster: PageRoster, forQuery query: String = ""
-    ) -> [AXScreenElement] {
-        roster.actionable.filter { element in
-            guard element.isEnabled else { return false }
-            guard element.label.count >= minimumResultLabel else { return false }
-            guard roster.annotation(for: element)?.labelSource.isReal != false else { return false }
-            guard !PageElementKindDerivation.isCallToAction(element.label) else { return false }
-            return !isTheQueryItself(element.label, query: query)
-        }
-    }
-
-    /// Is this row just the query, echoed back?
-    ///
-    /// PIN: A RESULTS PAGE SHOWS YOU WHAT YOU ASKED FOR, in its own search box, and that
-    /// row is pressable, well named and the right length — it looks exactly like the top
-    /// result to every test above. Measured live: a search for "swift concurrency"
-    /// opened the search field, whose label read "swift concurrency Q" with the
-    /// magnifier recognized as a letter. A real title CONTAINS the query and says more;
-    /// this one says the query and stops, so what is left after removing it is the test.
-    static func isTheQueryItself(_ label: String, query: String) -> Bool {
-        let folded = fold(label).replacingOccurrences(of: " ", with: "")
-        let asked = fold(query).replacingOccurrences(of: " ", with: "")
-        guard !asked.isEmpty, folded.contains(asked) else { return false }
-        return folded.count - asked.count < queryEchoSlack
-    }
-
-    /// How much more than the query a row must say to be a result rather than the box
-    /// the query was typed into. Two characters covers a recognized magnifier or a
-    /// trailing punctuation mark.
-    static let queryEchoSlack = 3
-
-    /// Which one to open.
-    ///
-    /// PIN: THREE RUNGS, AND THE LAST ONE ALWAYS ANSWERS. A phrase names it; failing
-    /// that, the kind it named narrows the pool ("the first video" among videos); failing
-    /// that, the page's own order decides. Promoted rows sort after organic ones — read
-    /// off the page's own marker, never a list of sites.
-    public static func choose(
-        _ pick: String?, among results: [AXScreenElement], in roster: PageRoster
-    ) -> AXScreenElement? {
-        let ordered = organicFirst(results, in: roster)
-        guard let pick, !pick.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return ordered.first
-        }
-        // 1 — the words.
-        if case .one(let element) = ScreenElementResolver.resolve(
-            phrase: pick, in: ordered, preferShortestOnTie: false) {
-            return element
-        }
-        // 2 — the kind the phrase named, in page order.
-        if let kind = PageElementKindDerivation.offeredKind(
-            namedIn: pick, offering: Set(ordered.compactMap(\.spokenKind))) {
-            let ofKind = ordered.filter { $0.spokenKind == kind }
-            if let element = at(SpokenOrdinal.value(in: pick), in: ofKind) { return element }
-            if let first = ofKind.first { return first }
-        }
-        // 3 — the order the page put them in.
-        if let element = at(SpokenOrdinal.value(in: pick), in: ordered) { return element }
-        return ordered.first
-    }
-
-    /// A spoken position, counted over a pool. "The last one" counts from the end.
-    static func at(_ ordinal: Int?, in pool: [AXScreenElement]) -> AXScreenElement? {
-        guard let ordinal, !pool.isEmpty else { return nil }
-        if ordinal == -1 { return pool.last }
-        guard ordinal >= 1, ordinal <= pool.count else { return nil }
-        return pool[ordinal - 1]
-    }
-
-    /// Promoted rows after organic ones, each keeping the page's own order.
-    static func organicFirst(
-        _ results: [AXScreenElement], in roster: PageRoster
-    ) -> [AXScreenElement] {
-        let promoted = Set(["sponsored", "ad", "ads", "promoted", "advertisement"])
-        let marked = results.filter { element in
-            (roster.annotation(for: element)?.hints ?? []).contains { promoted.contains($0) }
-        }
-        guard !marked.isEmpty else { return results }
-        let markedIDs = Set(marked.map(\.ordinal))
-        return results.filter { !markedIDs.contains($0.ordinal) } + marked
+        guard !unmatched.isEmpty else { return pressed }
+        var spoken = pressed
+        spoken.spoken = unmatched + pressed.spoken
+        return spoken
     }
 
     // MARK: - The receipt
@@ -213,11 +140,9 @@ public enum WebSearchRecipe {
         return found * 2 >= words.count
     }
 
-    static func fold(_ value: String) -> String {
-        String(value.lowercased().map { $0.isLetter || $0.isNumber ? $0 : " " })
-            .split(separator: " ")
-            .joined(separator: " ")
-    }
+    /// The one folding this lane compares with — the router's, so a query judged a
+    /// match here and an echo there cannot disagree about what the words were.
+    static func fold(_ value: String) -> String { PageRouter.fold(value) }
 }
 
 extension BrowserEngine {

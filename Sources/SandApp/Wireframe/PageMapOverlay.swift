@@ -45,13 +45,19 @@ enum PageMapOverlay {
             let color = color(for: row.affordance)
             // A ROW WITHOUT A REAL NAME IS DASHED. Nothing can be asked for by a name
             // the reading invented, so it must not look like the rows that can.
+            // AND THE ROW A ROUTE CHOSE IS DRAWN HEAVIER, its rivals dashed beside it —
+            // which of several answering rows was taken is the whole question a route
+            // pane exists to answer, and on the page itself it is one glance.
+            let dashed = !row.isNamed || row.routeDisposition == .clarificationRequired
             context.stroke(
                 Path(roundedRect: row.rect, cornerRadius: 2),
                 with: .color(color.opacity(row.isNamed ? 0.9 : 0.45)),
-                style: StrokeStyle(lineWidth: 1, dash: row.isNamed ? [] : [3, 2]))
+                style: StrokeStyle(
+                    lineWidth: row.routeDisposition == .selected ? 2 : 1,
+                    dash: dashed ? [3, 2] : []))
             context.fill(
                 Path(roundedRect: row.rect, cornerRadius: 2),
-                with: .color(color.opacity(0.07)))
+                with: .color(color.opacity(row.routeDisposition == .selected ? 0.18 : 0.07)))
             drawLabel(row, color: color, in: &context)
         }
         guard let caption else { return }

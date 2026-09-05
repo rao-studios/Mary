@@ -60,22 +60,42 @@ struct SandTurnView: View {
         host.run(wanted)
     }
 
-    /// `--auto`: answer as the model would, with the roster's first offer.
+    /// `--auto`: answer as the model would, with the roster's first offer it can answer.
     ///
     /// PIN: `--arg` REACHES THIS LANE TOO, filtered to what the chosen skill actually
     /// declares. Sending a name the schema does not carry is how a scripted turn ends in
     /// an argument refusal that has nothing to do with what was being tested — and a
     /// turn that needs a query ("search for X") could not be scripted at all without it.
+    /// AND A REQUIRED ARGUMENT NOBODY SUPPLIED IS NOT AN ANSWER. Invoking anyway is how the
+    /// bench dispatched `act_on_screen {}` and read the binding's "what would you like me
+    /// to do?" as a permission failure. The first offer whose required parameters are all
+    /// in hand answers; when none is, the round stays parked and the story says why.
     private func answerIfAsked() {
-        guard SandLaunchOptions.current.auto,
-              let round = host.round, let first = round.skills.first
-        else { return }
-        let declared = Set(first.parameters.map(\.name))
+        guard SandLaunchOptions.current.auto, let round = host.round else { return }
         let supplied = SandLaunchOptions.current.arguments
-            .filter { declared.contains($0.key) }
+        guard let chosen = round.skills.first(where: {
+            Self.requiredArgumentsSatisfied($0, by: supplied)
+        }) else {
+            host.note("--auto: no offered skill has every required argument in --arg — not invoking")
+            return
+        }
+        let declared = Set(chosen.parameters.map(\.name))
         host.answer(.invoke(
-            name: first.name,
-            argumentsJSON: SandRuntimeHost.argumentsJSON(supplied)))
+            name: chosen.name,
+            argumentsJSON: SandRuntimeHost.argumentsJSON(
+                supplied.filter { declared.contains($0.key) })))
+    }
+
+    /// Every required parameter present and non-blank — the one rule both the Invoke
+    /// button and `--auto` read, so a scripted turn and a hand-driven one refuse the same
+    /// incomplete call.
+    static func requiredArgumentsSatisfied(
+        _ schema: ModelSkillSchema, by arguments: [String: String]
+    ) -> Bool {
+        schema.parameters.filter(\.required).allSatisfy { parameter in
+            !(arguments[parameter.name] ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
     }
 
     // MARK: - Asking
@@ -152,6 +172,9 @@ struct SandTurnView: View {
                         argumentsJSON: SandRuntimeHost.argumentsJSON(arguments)))
                 }
                 .buttonStyle(.borderedProminent)
+                // A required field left blank is dropped by `argumentsJSON`, and the
+                // binding then asks for it — so the button waits until it is filled.
+                .disabled(!Self.requiredArgumentsSatisfied(schema, by: arguments))
             }
 
             HStack(spacing: 6) {

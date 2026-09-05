@@ -105,8 +105,8 @@ public extension BrowserEngine {
                 await seams.hands.restoreCursor(to: cursor)
                 return refuse(refusal)
             case .success(let roster):
-                if case .success(let element) = resolveGoal(
-                    phrase, in: roster, requiring: nil) {
+                if case .success(let element) = route(
+                    phrase, verb: .reveal, in: roster) {
                     await seams.hands.restoreCursor(to: cursor)
                     let visible = roster.pageFrame.intersects(element.frame)
                     return BrowserOutcome(

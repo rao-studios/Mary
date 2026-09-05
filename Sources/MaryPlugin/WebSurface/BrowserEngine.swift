@@ -110,6 +110,12 @@ public actor BrowserEngine {
     /// The page as the last read saw it. Set and cleared with the slate, by
     /// `publishSlate` / `retractSlate` — see the PIN on those.
     var lastRoster: PageRoster?
+    /// The last goal this engine routed, and what it made of every row.
+    ///
+    /// PIN: CLEARED WITH THE SLATE, for the slate's own reason. A route is a verdict
+    /// about rows that no longer exist the moment the page changes, and a debugger still
+    /// showing it would be explaining a decision about a screen that is gone.
+    var lastRoute: PageRouteTrace?
     private var lastRefusal: BrowserRefusal?
     private var acts = 0
     private var refusals = 0
@@ -139,6 +145,7 @@ public actor BrowserEngine {
             lastChrome: lastChrome,
             lastMedia: lastMedia,
             lastRoster: lastRoster,
+            lastRoute: lastRoute,
             lastRefusal: lastRefusal,
             acts: acts,
             refusals: refusals,
@@ -159,6 +166,7 @@ public actor BrowserEngine {
 
     func retractSlate() {
         lastRoster = nil
+        lastRoute = nil
         AffordanceSlatePublisher.retract(store: seams.slate)
     }
 
@@ -196,6 +204,10 @@ public actor BrowserEngine {
         case .read(let rows, let named, let groups):
             perceptions += 1
             line = "read \(rows) rows · \(named) named · \(groups) groups"
+        case .routed(let trace):
+            line = "routed \"\(trace.goal)\" → "
+                + (trace.selected.first?.label ?? "nothing")
+                + " (\(trace.eligibleCount) of \(trace.decisions.count) eligible)"
         case .matched(let phrase, let label):
             line = "matched \"\(phrase)\" → \"\(label)\""
         case .receipt(let receipt):

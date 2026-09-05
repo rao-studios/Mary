@@ -37,6 +37,71 @@ import Testing
             pageFrame: BrowsingFixtures.pageFrame, capturedAt: capturedAt)
     }
 
+    // MARK: - The route, as somebody reads it
+
+    /// SELECTED FIRST, THEN THE RIVALS, THEN EVERYTHING TURNED DOWN. The pane answers
+    /// "why that row and not another", so the row it chose must not be somewhere down a
+    /// list of eighty.
+    @Test func routeLinesPutTheChosenRowFirst() {
+        let page = roster([
+            (role: "AXLink", label: "Terms of service", affordance: .press),
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+        ])
+        let routed = PageRouter.arbitrate(
+            goal: "alpine touring boots reviewed", verb: .press, roster: page)
+        let lines = PageMapProjection.routeLines(for: routed.trace)
+
+        #expect(lines.count == 2)
+        #expect(lines.first?.id == 2)
+        #expect(lines.first?.disposition == .selected)
+        #expect(lines.first?.text.contains("Alpine touring boots reviewed") == true)
+        // The sentence is the half a person learns the rules from.
+        #expect(lines.allSatisfy { !$0.reason.isEmpty })
+    }
+
+    /// A ROW CARRIES WHAT THE ROUTE MADE OF IT, so the stage can draw the chosen one
+    /// heavier and its rivals dashed without deciding anything itself.
+    @Test func drawnRowsCarryTheRouteDisposition() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+            (role: "AXLink", label: "Terms of service", affordance: .press),
+        ])
+        let routed = PageRouter.arbitrate(
+            goal: "alpine touring boots reviewed", verb: .press, roster: page)
+        let rows = PageMapProjection.rows(
+            for: page, plane: plane, size: size, route: routed.trace)
+
+        #expect(rows.first(where: { $0.id == 1 })?.routeDisposition == .selected)
+        #expect(rows.first(where: { $0.id == 2 })?.routeDisposition != .selected)
+    }
+
+    /// AND WITH NO ROUTE THE STAGE DRAWS THE PAGE AND CLAIMS NOTHING.
+    @Test func withNoRouteNoRowClaimsADisposition() {
+        let rows = PageMapProjection.rows(
+            for: roster([(role: "AXLink", label: "Anything at all", affordance: .press)]),
+            plane: plane, size: size)
+        #expect(rows.allSatisfy { $0.routeDisposition == nil })
+    }
+
+    /// THE GAP THE PANEL EXISTS TO SHOW: what the map offered, beside what it merely
+    /// named. A results page offering four icons while sixty rows carry real names is the
+    /// whole diagnosis, and both numbers come from the same read.
+    @Test func offersAndCandidatesAreCountedApart() {
+        let page = roster([
+            (role: "AXTextField", label: "Search this site", affordance: .fill),
+            (role: "AXLink", label: "Alpine touring boots reviewed",
+             affordance: SeenAffordance.none),
+            (role: "AXLink", label: "How to choose touring boots",
+             affordance: SeenAffordance.none),
+        ])
+        let offers = PageMapProjection.offerLines(for: page)
+        let candidates = PageMapProjection.candidateLines(for: page)
+
+        #expect(offers.map(\.text) == ["1 · field · Search this site"])
+        #expect(candidates.count == 2)
+        #expect(candidates.allSatisfy { $0.text.contains("link") })
+    }
+
     @Test func everyRowIsDrawnWhereTheReadingSawIt() {
         let rows = PageMapProjection.rows(
             for: roster([

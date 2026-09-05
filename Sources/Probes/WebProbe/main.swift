@@ -10,6 +10,8 @@
 //             [--fill "<field>" --text "<what>" [--submit]] [--adjust "<slider>=0.4"]
 //             [--scroll-to "<phrase>"] [--plan <file.json>]
 //             [--roundtrip "<phrase>"] [--roundtrip-search "<query>" [--open-result "…"]]
+//             [--route "<goal>" [--verb press|fill|adjust|reveal|result] [--query "<q>"]]
+//             [--save-roster <path.json>] [--fixture <path.json>]
 //             [--dry-run] [--watch] [--save <path.png>] [--settle ms] [--hover-at x,y]
 //        The shell read always runs — it is what everything else is aimed with.
 //  PIN:  Run signed (scripts/dev.sh or sign-binary.sh); an ad-hoc build loses both the
@@ -41,12 +43,91 @@ func heading(_ text: String) {
     print(String(repeating: "─", count: max(text.count, 30)))
 }
 
+/// The verb a `--route` is asking about. `result` needs the query it searched for,
+/// because what tells a title from the box it was typed into is the words that were typed.
+func routeVerb(_ named: String?, query: String) -> PageRouteVerb {
+    switch named {
+    case "fill": return .fill
+    case "adjust": return .adjust
+    case "reveal": return .reveal
+    case "result": return .openResult(query: query)
+    default: return .press
+    }
+}
+
+/// The whole verdict, as a table — selected first, then the rivals, then everything the
+/// router turned down and the sentence it gave each one.
+func printRoute(_ arbitration: PageRouteArbitration) {
+    let trace = arbitration.trace
+    heading("the route")
+    print("  goal \"\(trace.goal)\" · verb \(trace.verb)"
+          + " · \(trace.eligibleCount) of \(trace.decisions.count) eligible"
+          + (trace.goalUnmatched ? " · UNMATCHED" : ""))
+    print(String(format: "  %-4@ %-22@ %5@ %5@ %5@ %5@ %5@  %@",
+                 "row" as NSString, "disposition" as NSString, "lex" as NSString,
+                 "sem" as NSString, "str" as NSString, "aff" as NSString,
+                 "prv" as NSString, "label / why" as NSString))
+    let ordered = trace.selected + trace.rivals + trace.decisions.filter {
+        $0.disposition != .selected && $0.disposition != .clarificationRequired
+    }
+    for decision in ordered {
+        let evidence = decision.evidence
+        print(String(format: "  %-4d %-22@ %5d %5d %5d %5d %5d  %@",
+                     decision.ordinal,
+                     decision.disposition.rawValue as NSString,
+                     evidence.lexical, evidence.semantic, evidence.structure,
+                     evidence.affordance, evidence.provenance,
+                     decision.label as NSString))
+        print(String(format: "  %-4@ %@", "" as NSString, "└ \(decision.reason)" as NSString))
+    }
+    if let winner = arbitration.winner {
+        check(true, "it reached one row", winner.label)
+    } else {
+        check(false, "it reached one row",
+              arbitration.refusal?.summary ?? "nothing, and no reason given")
+    }
+}
+
 let arguments = Array(CommandLine.arguments.dropFirst())
 func flag(_ name: String) -> Bool { arguments.contains(name) }
 func value(_ name: String) -> String? {
     guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
     else { return nil }
     return arguments[index + 1]
+}
+
+// MARK: - Offline: a recorded page, re-argued
+//
+// A ROUTE IS A PURE FUNCTION OF A READ, so it can be replayed with no browser, no grant
+// and no screen. This is the loop a routing rule is tuned in: capture once with
+// --save-roster, then argue with it until the trace says what it should.
+if let path = value("--fixture") {
+    guard let data = FileManager.default.contents(atPath: path),
+          let fixture = try? JSONDecoder().decode(PageRosterFixture.self, from: data)
+    else {
+        print("  ✗  could not read a page from \(path)")
+        exit(1)
+    }
+    let roster = fixture.roster()
+    heading("a recorded page")
+    print("  \(roster.elements.count) rows · \(roster.map.groups.count) groups"
+          + " · \(PageMapProjection.offerLines(for: roster).count) offered"
+          + " · \(PageMapProjection.candidateLines(for: roster).count) named")
+    guard let goal = value("--route") ?? value("--query") else {
+        print("  (--route \"<goal>\" to argue with it)")
+        exit(0)
+    }
+    // MEANING NEEDS A MODEL HERE TOO — the offline loop must argue with the same
+    // evidence the live one does, or it is tuning a different router.
+    if let vectorizer = NLAmbientTextVectorizer.shared {
+        AmbientElementIndexStore.shared.installVectorizer(vectorizer)
+    }
+    AffordanceSlatePublisher.publish(roster)
+    printRoute(PageRouter.arbitrate(
+        goal: value("--route") ?? "",
+        verb: routeVerb(value("--verb"), query: value("--query") ?? goal),
+        roster: roster))
+    exit(0)
 }
 
 guard AXIsProcessTrusted() else {
@@ -62,6 +143,13 @@ guard AXIsProcessTrusted() else {
 }
 
 // MARK: - The graph
+
+// MEANING NEEDS A MODEL. Without a vectorizer installed every semantic term is zero and
+// the router falls back to names alone — which is a real mode (a Mac with no English
+// embedding asset runs in it) and a misleading one to debug in.
+if let vectorizer = NLAmbientTextVectorizer.shared {
+    AmbientElementIndexStore.shared.installVectorizer(vectorizer)
+}
 
 heading("the roster")
 
@@ -321,6 +409,31 @@ if flag("--map") {
         print("      label sources: "
             + sources.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }
                 .joined(separator: ", "))
+        // WHAT THE MAP NAMED AND DID NOT OFFER — the other half of the picture, and the
+        // one a search lives or dies on. A results page whose titles are all named and
+        // none of them pressable reads as an empty page to anything that trusts the
+        // offered set, and the group each row sits in is what tells a result from the
+        // furniture around it.
+        let offered = Set(PageRoster(
+            elements: outcome.elements, map: map,
+            pageFrame: outcome.shell?.pageFrame ?? .zero).actionable.map(\.ordinal))
+        let groupKind = Dictionary(
+            map.groups.flatMap { group in group.memberOrdinals.map { ($0, group.kind) } },
+            uniquingKeysWith: { first, _ in first })
+        let unoffered = outcome.elements.filter {
+            !offered.contains($0.ordinal)
+                && map.annotation(forOrdinal: $0.ordinal)?.labelSource.isReal == true
+        }
+        if !unoffered.isEmpty {
+            print("      named but not offered — \(unoffered.count) rows:")
+            for element in unoffered.prefix(24) {
+                let kind = groupKind[element.ordinal] ?? "—"
+                let label = element.label.count > 76
+                    ? String(element.label.prefix(76)) + "…"
+                    : element.label
+                print("        [\(kind)] \(label)")
+            }
+        }
     }
 }
 
@@ -445,6 +558,38 @@ if let path = value("--plan") {
                 "step \(receipt.sourceIndex + 1)", receipt.spoken)
         }
         check(outcome.landed, "the plan landed", outcome.spoken)
+    }
+}
+
+// MARK: - Routing, against the live page
+
+if value("--route") != nil || value("--save-roster") != nil {
+    let read = await engine.readPage(in: target)
+    guard read.ok, let map = read.map else {
+        check(false, "the page was read", read.spoken)
+        exit(1)
+    }
+    let roster = PageRoster(
+        elements: read.elements, map: map,
+        pageFrame: read.shell?.pageFrame ?? .zero)
+    if let path = value("--save-roster") {
+        heading("recording the page")
+        do {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+            let data = try encoder.encode(PageRosterFixture(roster: roster))
+            try data.write(to: URL(fileURLWithPath: path), options: .atomic)
+            check(true, "saved the page",
+                  "\(roster.elements.count) rows · \(data.count) bytes → \(path)")
+        } catch {
+            check(false, "saved the page", "\(error)")
+        }
+    }
+    if let goal = value("--route") {
+        printRoute(PageRouter.arbitrate(
+            goal: goal,
+            verb: routeVerb(value("--verb"), query: value("--query") ?? goal),
+            roster: roster))
     }
 }
 

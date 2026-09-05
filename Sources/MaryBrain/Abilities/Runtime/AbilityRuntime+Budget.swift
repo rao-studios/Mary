@@ -163,13 +163,25 @@ extension AbilityRuntime {
     }
 
     /// Append `spokenFailureHint` on every failure that does not already contain it.
-    private static func hinted(_ outcome: SkillOutcome, _ binding: SkillBinding) -> SkillOutcome {
+    ///
+    /// A QUESTION IS NOT A FAILURE TO HINT. "What would you like me to do on screen?" is
+    /// the binding asking for the argument it was not given; decorating it with "check
+    /// Accessibility in my Settings" sends the person to a setting that has nothing to do
+    /// with it — measured on the Sand bench, where an empty `goal` read as a permission
+    /// problem. A hint explains why an act failed; a question is not an act that failed.
+    static func hinted(_ outcome: SkillOutcome, _ binding: SkillBinding) -> SkillOutcome {
         guard !outcome.ok,
               let hint = binding.spokenFailureHint,
-              !outcome.summary.contains(hint)
+              !outcome.summary.contains(hint),
+              !isQuestion(outcome.summary)
         else { return outcome }
         var spoken = outcome
         spoken.summary += " — \(hint)"
         return spoken
+    }
+
+    /// The summary asks the person for something rather than reporting what went wrong.
+    static func isQuestion(_ summary: String) -> Bool {
+        summary.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("?")
     }
 }

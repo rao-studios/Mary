@@ -135,8 +135,15 @@ public enum EditIntentClassifier {
     /// POLITE REQUEST FRAMES, peeled as WHOLE PHRASES and never as words. THE BOUND IS THE
     /// POINT. "Can you tighten the intro" is a request, and "what did you replace" is a
     /// question about the past.
+    /// THE SECOND PERSON IS NOT THE ONLY WAY TO ASK. "Can we watch a video" is a
+    /// collaborative request in the same shape as "can you", and a stripper that only
+    /// recognizes "you" hands the whole frame ("can we watch") to whatever reads the
+    /// utterance next as if it were content — measured, where it was typed whole into a
+    /// browser's address field and helped trigger the chunk-boundary race
+    /// `addressLanded` now guards against.
     public static let requestFrames: [[String]] = [
         ["can", "you"], ["could", "you"], ["would", "you"],
+        ["can", "we"], ["could", "we"], ["would", "we"],
     ]
 
     /// The one word allowed to trail a request frame. See `requestFrames`.

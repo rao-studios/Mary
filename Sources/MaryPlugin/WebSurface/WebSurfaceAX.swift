@@ -180,12 +180,35 @@ public enum WebSurfaceAX {
            let url = found.detail.nodes[webArea.id]?.url, !url.isEmpty {
             return url
         }
-        guard let field = nodes.first(where: { registration.isAddressLabel($0.label) }),
-              let found = AXEngine.detail(pid: pid, nodeID: field.id, budget: .probe),
-              let value = found.detail.nodes[field.id]?.textValue,
+        guard let value = addressFieldValue(pid: pid, registration: registration),
               !value.isEmpty
         else { return nil }
         return value
+    }
+
+    /// The address field's OWN text, right now — whatever is actually sitting in it,
+    /// typed or committed. Not `Reading.url`: that is one whole shell read old by the
+    /// time a caller sees it, and the one moment this exists for is proving that a
+    /// synthetic typing run landed before anything is submitted.
+    ///
+    /// PIN: THE SAME LOOKUP `url(...)` USES for a browser with no live web area — this
+    /// is that branch, pulled out so `openLocation` can call it mid-flight rather than
+    /// only ever seeing the address after a whole shell re-read.
+    public static func addressFieldValue(
+        pid: pid_t, registration: WebSurfaceRegistration
+    ) -> String? {
+        guard AXIsProcessTrusted(),
+              let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive),
+              let window = snapshot.windows.first(where: { $0.isMain })
+                ?? snapshot.windows.first,
+              let root = window.root
+        else { return nil }
+        var nodes: [AXNodeSnapshot] = []
+        root.forEachNode { nodes.append($0) }
+        guard let field = nodes.first(where: { registration.isAddressLabel($0.label) }),
+              let found = AXEngine.detail(pid: pid, nodeID: field.id, budget: .probe)
+        else { return nil }
+        return found.detail.nodes[field.id]?.textValue
     }
 
     /// The window's CGWindowID, so a capture takes the window this walk described.

@@ -296,6 +296,9 @@ public enum BrowserEngineEvent: Sendable {
     case shellRead(title: String?, site: String?, pageFrame: CGRect?)
     case perceived(controls: Int, playback: String, duration: Duration)
     case read(rows: Int, named: Int, groups: Int)
+    /// A goal was weighed against every row the read produced. The whole verdict, not
+    /// only its winner — see `PageRouteTrace`.
+    case routed(PageRouteTrace)
     /// A phrase became one row. Named `matched` because `resolved` already means
     /// "which browser" on this stream.
     case matched(phrase: String, to: String)
@@ -325,6 +328,11 @@ public extension BrowserEngineEvent {
             return "perceived \(controls) controls · \(playback)"
         case .read(let rows, let named, let groups):
             return "looked — \(rows) rows, \(named) named, \(groups) groups"
+        case .routed(let trace):
+            let picked = trace.selected.first.map { "\"\($0.label)\"" }
+                ?? (trace.rivals.isEmpty ? "nothing" : "a question")
+            return "routed \"\(trace.goal)\" → \(picked)"
+                + " (\(trace.eligibleCount) of \(trace.decisions.count) eligible)"
         case .matched(let phrase, let label):
             return "matched \"\(phrase)\" → \"\(label)\""
         case .receipt(let receipt):
@@ -360,6 +368,8 @@ public struct BrowserEngineSnapshot: Sendable {
     /// a roster is a photograph and the page has moved on. Nil is the honest answer
     /// whenever the slate is retracted — a navigation makes both wrong at once.
     public var lastRoster: PageRoster?
+    /// The last goal routed against that roster. Cleared with it, for its reason.
+    public var lastRoute: PageRouteTrace?
     public var lastRefusal: BrowserRefusal?
     public var acts: Int
     public var refusals: Int
@@ -370,7 +380,7 @@ public struct BrowserEngineSnapshot: Sendable {
     public init(
         startedAt: Date, dryRun: Bool, lastBrowser: String? = nil,
         lastChrome: WebSurfaceAX.Reading? = nil, lastMedia: MediaControlReading? = nil,
-        lastRoster: PageRoster? = nil,
+        lastRoster: PageRoster? = nil, lastRoute: PageRouteTrace? = nil,
         lastRefusal: BrowserRefusal? = nil, acts: Int = 0, refusals: Int = 0,
         perceptions: Int = 0, recent: [String] = []
     ) {
@@ -380,6 +390,7 @@ public struct BrowserEngineSnapshot: Sendable {
         self.lastChrome = lastChrome
         self.lastMedia = lastMedia
         self.lastRoster = lastRoster
+        self.lastRoute = lastRoute
         self.lastRefusal = lastRefusal
         self.acts = acts
         self.refusals = refusals

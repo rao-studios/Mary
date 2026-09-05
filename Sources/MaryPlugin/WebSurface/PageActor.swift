@@ -241,7 +241,7 @@ extension BrowserEngine {
         let pid = target.processIdentifier
         switch command.action {
         case .click(let click):
-            let placed = place(click.location, in: roster, requiring: nil)
+            let placed = place(click.location, in: roster, verb: .press)
             guard case .success(let (point, element)) = placed else {
                 if case .failure(let refusal) = placed { return .refused(refusal) }
                 return .refused(.pageNotVisible)
@@ -256,7 +256,7 @@ extension BrowserEngine {
             return .ran(resolved: element, point: point, typed: nil, holdPointer: false)
 
         case .hover(let hover):
-            let placed = place(hover.location, in: roster, requiring: nil)
+            let placed = place(hover.location, in: roster, verb: .press)
             guard case .success(let (point, element)) = placed else {
                 if case .failure(let refusal) = placed { return .refused(refusal) }
                 return .refused(.pageNotVisible)
@@ -269,7 +269,7 @@ extension BrowserEngine {
             return .ran(resolved: element, point: point, typed: nil, holdPointer: true)
 
         case .drag(let drag):
-            let placed = place(drag.source, in: roster, requiring: nil)
+            let placed = place(drag.source, in: roster, verb: .press)
             guard case .success(let (from, element)) = placed else {
                 if case .failure(let refusal) = placed { return .refused(refusal) }
                 return .refused(.pageNotVisible)
@@ -301,7 +301,7 @@ extension BrowserEngine {
         case .typeText(let typing):
             var element: AXScreenElement?
             if let phrase = typing.target {
-                switch resolveGoal(phrase, in: roster, requiring: .fill) {
+                switch route(phrase, verb: .fill, in: roster) {
                 case .failure(let refusal): return .refused(refusal)
                 case .success(let found): element = found
                 }
@@ -329,7 +329,7 @@ extension BrowserEngine {
                 resolved: element, point: nil, typed: typing.text, holdPointer: false)
 
         case .adjust(let adjust):
-            switch resolveGoal(adjust.target, in: roster, requiring: .adjust) {
+            switch route(adjust.target, verb: .adjust, in: roster) {
             case .failure(let refusal): return .refused(refusal)
             case .success(let element):
                 guard let to = point(alongTrack: element, fraction: adjust.resolvedFraction)
@@ -382,114 +382,37 @@ extension BrowserEngine {
         }
     }
 
-    // MARK: - Resolving
+    // MARK: - Routing
 
-    /// THE ONE LADDER. A phrase becomes a row here, for every verb and for the
-    /// deterministic affordance press alike: the naming ladder first, strictly, then
-    /// meaning over the slate this read just published.
-    func resolveGoal(
-        _ phrase: String, in roster: PageRoster, requiring affordance: SeenAffordance?
+    /// A phrase becomes a row — the one arbitration, for every verb.
+    ///
+    /// PIN: THE LADDER MOVED OUT, WHOLE. This used to be three rungs and two helpers here
+    /// (a naming pass, a meaning pass over the slate, and an exact-name widening), with a
+    /// second copy of the same idea in the search recipe and a third for native windows.
+    /// They could not be compared and they drifted. `PageRouter` is that arbitration for
+    /// all of them, and it explains itself: what is left here is asking, publishing the
+    /// record, and handing back the row.
+    func route(
+        _ phrase: String, verb: PageRouteVerb, in roster: PageRoster
     ) -> Result<AXScreenElement, BrowserRefusal> {
-        let pool: [AXScreenElement]
-        switch affordance {
-        case .fill: pool = roster.fillable.isEmpty ? roster.actionable : roster.fillable
-        case .adjust: pool = roster.adjustable.isEmpty ? roster.actionable : roster.adjustable
-        default: pool = roster.actionable
+        let arbitration = arbitrate(phrase, verb: verb, in: roster)
+        if let winner = arbitration.winner {
+            emit(.matched(phrase: phrase, to: winner.label))
+            return .success(winner)
         }
-        guard !pool.isEmpty else { return .failure(.elementNotFound(phrase)) }
-
-        // NAMING A REAL THING OF THE WRONG SORT IS A DIFFERENT MISTAKE FROM NAMING
-        // NOTHING, and it deserves the sentence that says so. The narrowed pool answers
-        // first — "the search box" must find the field even when a link says "search" —
-        // and only when it finds nothing does the whole page get asked, so that a hit
-        // there can be refused for what it is rather than reported as missing.
-        if let affordance, pool.count != roster.actionable.count,
-           case .none = ScreenElementResolver.resolve(
-               phrase: phrase, in: pool, preferShortestOnTie: false),
-           case .one = ScreenElementResolver.resolve(
-               phrase: phrase, in: roster.actionable, preferShortestOnTie: false) {
-            return .failure(mismatch(phrase, affordance))
-        }
-
-        switch ScreenElementResolver.resolve(
-            phrase: phrase, in: pool, preferShortestOnTie: false) {
-        case .one(let element):
-            guard let checked = checked(
-                element, phrase: phrase, requiring: affordance, in: roster)
-            else { return .failure(mismatch(phrase, affordance)) }
-            return .success(checked)
-        case .ambiguous(let rivals):
-            // MEANING BREAKS A NAMING TIE, but only when it picks ONE. Two things that
-            // both answer to the phrase stay two things.
-            if let best = bySense(phrase, among: rivals, in: roster) {
-                return .success(best)
-            }
-            return .failure(.ambiguousElement(
-                phrase: phrase,
-                rivals: rivals.prefix(3).map { ScreenElementResolver.shortened($0.label, limit: 40) }))
-        case .none:
-            if let best = bySense(phrase, among: pool, in: roster) {
-                return .success(best)
-            }
-            // A PERSON NAMING SOMETHING IS EVIDENCE THE MAP DOES NOT HAVE.
-            //
-            // PIN: The map offers what it is confident about; a phrase reaches further,
-            // because whoever said it can see the screen. Measured: a retrained
-            // classifier stopped calling body text `AXLink` — the fix that mattered —
-            // and in the same pass stopped calling a real "9 languages" control anything
-            // at all, so a click that had worked live began refusing. Widening to every
-            // row the map holds, but ONLY on an exact naming match and only when nothing
-            // offered fits, restores the act without weakening what is offered. The
-            // receipt still decides whether it did anything.
-            if case .one(let element) = ScreenElementResolver.resolve(
-                phrase: phrase, in: roster.elements, preferShortestOnTie: false),
-               element.isEnabled {
-                emit(.matched(phrase: phrase, to: "\(element.label) (not offered)"))
-                return .success(element)
-            }
-            return .failure(.elementNotFound(phrase))
-        }
+        return .failure(arbitration.refusal ?? .elementNotFound(phrase))
     }
 
-    private func checked(
-        _ element: AXScreenElement, phrase: String, requiring affordance: SeenAffordance?,
-        in roster: PageRoster
-    ) -> AXScreenElement? {
-        guard let affordance else { return element }
-        guard let found = roster.annotation(for: element)?.affordance else { return element }
-        return found == affordance ? element : nil
-    }
-
-    private func mismatch(_ phrase: String, _ affordance: SeenAffordance?) -> BrowserRefusal {
-        switch affordance {
-        case .fill: return .notFillable(phrase)
-        case .adjust: return .notAdjustable(phrase)
-        default: return .elementNotFound(phrase)
-        }
-    }
-
-    /// The embedding rung, over the slate this read published — the same gate a native
-    /// window's affordances go through.
-    private func bySense(
-        _ phrase: String, among pool: [AXScreenElement], in roster: PageRoster
-    ) -> AXScreenElement? {
-        let ranked = AmbientReferenceGate.rank(
-            phrase: phrase, scope: AffordanceSlatePublisher.browserScope,
-            requires: .pressable, store: seams.slate)
-            .filter { AffordanceDistinctiveness.survives($0, phrase: phrase) }
-        guard let best = ranked.first else { return nil }
-        // A GENUINE TIE IS STILL A TIE. The band is the gate's own, so two rivals that
-        // matched on the same basis stay rivals rather than being separated by noise.
-        let tied = ranked.filter { $0.score >= best.score - AffordanceResolver.tieBand }
-        guard tied.count == 1 else { return nil }
-        let byIdentity = Dictionary(
-            pool.map { (AffordanceSlatePublisher.identity(of: $0), $0) },
-            uniquingKeysWith: { first, _ in first })
-        guard let element = byIdentity[best.record.elementID], element.isEnabled else {
-            return nil
-        }
-        emit(.matched(phrase: phrase, to: element.label))
-        return element
+    /// The whole verdict, for a caller that needs more than the row — the search recipe
+    /// reads `goalUnmatched` to say when it fell back to the page's own first answer.
+    func arbitrate(
+        _ phrase: String, verb: PageRouteVerb, in roster: PageRoster
+    ) -> PageRouteArbitration {
+        let arbitration = PageRouter.arbitrate(
+            goal: phrase, verb: verb, roster: roster, store: seams.slate)
+        lastRoute = arbitration.trace
+        emit(.routed(arbitration.trace))
+        return arbitration
     }
 
     // MARK: - Places
@@ -501,13 +424,13 @@ extension BrowserEngine {
     /// calls — and the second answer would then describe a miss that never happened.
     func place(
         _ location: PageInteractionPointerLocation, in roster: PageRoster,
-        requiring affordance: SeenAffordance?
+        verb: PageRouteVerb
     ) -> Result<(CGPoint, AXScreenElement?), BrowserRefusal> {
         switch location {
         case .point(let normalized):
             return .success((point(normalized, in: roster.pageFrame), nil))
         case .target(let phrase):
-            switch resolveGoal(phrase, in: roster, requiring: affordance) {
+            switch route(phrase, verb: verb, in: roster) {
             case .success(let element):
                 return .success((
                     CGPoint(x: element.frame.midX.rounded(), y: element.frame.midY.rounded()),

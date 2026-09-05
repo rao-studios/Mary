@@ -116,6 +116,55 @@ import Testing
             "browsing ships \(unlisted.map(\.rawValue).sorted()) which this test does not check")
     }
 
+    /// THE CORPUS TEACHES EVERY VERB A PAGE NEEDS. A route fixture is the one place a
+    /// package says, in a whole sentence, what a Skill is for — and browsing shipped none,
+    /// so with an embedding index in place no sentence ever cleared the floor for any of
+    /// these: a bench with Chrome on the stage offered "0 selected of 120" for "go to a
+    /// fred again video on youtube". Every fixture names the class the Ability is eligible
+    /// on, because `PackageRoutingFixtureTests` re-checks that gate per fixture.
+    @Test func theSkillsAPageNeedsHaveRouteFixtures() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let package = try load("browsing")
+        let routed = package.fixtures.filter { $0.expectedDisposition == "route" }
+        let taught = Set(routed.compactMap(\.expectedSkill))
+        let needed: [SkillID] = [
+            "browsing.search-web", "browsing.open-location", "browsing.fill-in-page",
+            "browsing.click-on-page", "browsing.read-page",
+        ]
+        for id in needed {
+            #expect(taught.contains(id), "\(id.rawValue) has no route fixture")
+        }
+        for fixture in routed {
+            #expect(
+                fixture.targetClass == "web-page",
+                "fixture \(fixture.id) names no web-page target class")
+        }
+    }
+
+    /// THE VERBS THE CONFIDENCE LANE PEELS. `SpokenArgumentExtractor` strips one leading
+    /// command phrase from the ability's OWN triggers, so a `search_web` dispatched with no
+    /// model round receives "a fred again video on youtube" rather than the whole command.
+    /// The extractor's suite mirrors these inline; this keeps the package and that mirror
+    /// from drifting apart.
+    @Test func theCommandPhrasesTheExtractorPeelsAreDeclared() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let phrases = Set(try load("browsing").ability.triggers.phrases)
+        for verb in ["go to", "take me to", "find me", "look up", "pull up",
+                     "search for", "search the web for"] {
+            #expect(phrases.contains(verb), "\"\(verb)\" is not a browsing trigger phrase")
+        }
+    }
+
+    /// "WATCH" IS A ONE-WORD COMMAND, so it lives among the single-word tokens the
+    /// extractor's stage 3 strips outright, not the multi-word phrases above. Measured
+    /// live: without it, "watch a fred again video on youtube" kept its verb and typed
+    /// the whole sentence into the address bar.
+    @Test func watchIsDeclaredAsALeadingCommandToken() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let tokens = Set(try load("browsing").ability.triggers.tokens)
+        #expect(tokens.contains("watch"), "\"watch\" is not a browsing trigger token")
+    }
+
     private func load(_ name: String) throws -> MaryAbilityPackage {
         guard let abilities = InstalledPackages.installed() else {
             throw CocoaError(.fileNoSuchFile)

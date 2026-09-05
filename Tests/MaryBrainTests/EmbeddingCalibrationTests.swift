@@ -469,6 +469,99 @@ private extension String {
         #expect(!disciplines.contains(AbilityID("xcode")), "an editor is expertise")
     }
 
+    // MARK: - The browsing lane, measured
+
+    /// A REQUEST FOR A PAGE REACHES THE BROWSING LANE. The bench showed "0 selected of 120"
+    /// for "Can you go to a fred again video on youtube" with Chrome on the stage: browsing
+    /// shipped no route fixtures, so no sentence ever cleared the floor for any of its
+    /// verbs, and the only thing left on the model's menu was the roster-bypassing
+    /// `act_on_screen`.
+    ///
+    /// PROBES ARE PARAPHRASES, never the fixtures. The diagnostic index is built with no
+    /// floor so a miss prints WHERE a skill sits — the production index drops everything
+    /// below 0.62 and cannot say. The habit store is fresh, so this measures the corpus and
+    /// not what this machine has learned.
+    @Test func browsingRequestsResolveThroughTheShippedCorpus() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let store = RoutingHabitStore()
+        let vectorizer = try #require(NLUtteranceVectorizer.shared)
+        let diagnostic = try #require(SemanticSkillRequestIndex.build(
+            records: snapshot.records, vectorizer: vectorizer, threshold: 0))
+        let offered = Set(
+            snapshot.skills
+                .filter { $0.skill.modelExposure.enabled }
+                .map(\.reference.invocationName))
+
+        func top(_ utterance: String) -> String {
+            diagnostic.affinities(in: utterance, habits: store)
+                .sorted { $0.value > $1.value }
+                .prefix(6)
+                .map { "\($0.key.rawValue)=\(String(format: "%.2f", $0.value))" }
+                .joined(separator: " ")
+        }
+        func reached(_ verdict: TurnTriage.Verdict) -> [String] {
+            verdict.skillAffinities.keys
+                .compactMap { snapshot.skill(id: $0)?.reference.invocationName }
+                .sorted()
+        }
+
+        // THE DIRECTION THAT ACTS: a search must pick search_web, and nothing else — the
+        // confidence lane dispatches on a unique win, so a tie here costs a model round and
+        // a wrong pick navigates somebody's tab.
+        let searches = [
+            "Can you go to a fred again video on youtube",
+            "find me a fred again clip on youtube",
+            "look up a fireplace video for me",
+            "search the web for alpine boots",
+        ]
+        // THE SITE PATH, REPORTED. Every round of a turn projects the roster from the same
+        // sentence, so the chain (open the site, fill its search box, press the first
+        // video) is only reachable when its verbs are offered together. Printed, not
+        // asserted: a miss here is the argument for a composite verb, not a failing build.
+        let sitePath = [
+            "go to youtube and search there for fred again",
+            "search this site for fred again",
+            "open the first video",
+        ]
+        // A question about the page must not become a search.
+        let questions = ["what is this page", "which tab am I on"]
+
+        var report: [String] = []
+        var wrong: [String] = []
+        for utterance in searches {
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+            let picked = verdict.uniqueSkill?.reference.invocationName
+            report.append(
+                "search [\(utterance)] -> \(picked ?? "none")  \(verdict.intentDescription)  top: \(top(utterance))")
+            if verdict.intent != .operate {
+                wrong.append("[\(utterance)] read as \(verdict.intent?.rawValue ?? "nil"), not operate")
+            }
+            if picked != "search_web" {
+                wrong.append("[\(utterance)] picked \(picked ?? "none"), expected search_web")
+            }
+        }
+        for utterance in sitePath {
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+            report.append(
+                "site   [\(utterance)] -> offered \(reached(verdict).joined(separator: ","))  top: \(top(utterance))")
+        }
+        for utterance in questions {
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+            let names = reached(verdict)
+            report.append(
+                "ask    [\(utterance)] -> \(names.joined(separator: ","))  top: \(top(utterance))")
+            if names.contains("search_web") {
+                wrong.append("[\(utterance)] reached search_web")
+            }
+        }
+        print(report.joined(separator: "\n"))
+        #expect(wrong.isEmpty, "\(wrong)")
+    }
+
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
         let store = RoutingHabitStore()
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)

@@ -37,22 +37,50 @@ public enum SeenLabelSource: String, Sendable, Equatable, Codable, CaseIterable 
     public var isReal: Bool { self != .synthesized }
 }
 
+/// WHY a row carries the affordance it does, weakest last.
+///
+/// PIN: THE OTHER HALF OF `labelSource`, AND IT ARRIVES FOR THE SAME REASON. One says how
+/// sure the reading is of the row's NAME; this says how sure it is that the row can be
+/// acted on at all. "The classifier recognized a button" and "geometry promoted the lead
+/// line of a repeated band" are both `.press`, and anything ranking rows has to be able
+/// to tell them apart — the second is a guess about layout, the first is a recognition.
+public enum SeenAffordanceSource: String, Sendable, Equatable, Codable, CaseIterable {
+    /// The model named the role, and the role says what it affords.
+    case classifier
+    /// Its place in a group said so — the title line of a result row.
+    case grouping
+    /// Its shape said so — a long thin two-tone run is a track.
+    case shape
+    case unknown
+}
+
 /// One row's extra facts.
 public struct SeenElementAnnotation: Sendable, Equatable {
     public var affordance: SeenAffordance
+    public var affordanceSource: SeenAffordanceSource
     public var labelSource: SeenLabelSource
     /// A duration badge, a promotion marker — what the page said around the row.
     public var hints: [String]
     public var groupID: Int?
+    /// How sure the reading is of this row, 0...1. ZERO IS "NOT SAID", NOT "CERTAINLY
+    /// WRONG" — the reader below has not populated it yet, so anything ranking on this
+    /// must degrade to neutral at zero rather than treating it as evidence against.
+    public var confidence: Double
 
     public init(
-        affordance: SeenAffordance, labelSource: SeenLabelSource,
-        hints: [String] = [], groupID: Int? = nil
+        affordance: SeenAffordance,
+        affordanceSource: SeenAffordanceSource = .unknown,
+        labelSource: SeenLabelSource,
+        hints: [String] = [],
+        groupID: Int? = nil,
+        confidence: Double = 0
     ) {
         self.affordance = affordance
+        self.affordanceSource = affordanceSource
         self.labelSource = labelSource
         self.hints = hints
         self.groupID = groupID
+        self.confidence = confidence
     }
 }
 

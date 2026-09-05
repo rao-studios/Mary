@@ -186,7 +186,11 @@ enum BrowsingFixtures {
     /// One page's worth of rows, with the map that describes them.
     static func page(
         _ rows: [(role: String, label: String, affordance: SeenAffordance)],
-        group: (kind: String, title: String?)? = nil
+        group: (kind: String, title: String?)? = nil,
+        source: SeenAffordanceSource = .classifier,
+        labelSource: SeenLabelSource = .textInside,
+        hints: [Int: [String]] = [:],
+        confidence: Double = 0
     ) -> (elements: [AXScreenElement], map: PageMapSummary) {
         var elements: [AXScreenElement] = []
         var annotations: [Int: SeenElementAnnotation] = [:]
@@ -207,7 +211,12 @@ enum BrowsingFixtures {
                 containerTrail: group.map { [$0.title, $0.kind].compactMap { $0 } } ?? [],
                 provenance: .seen))
             annotations[ordinal] = SeenElementAnnotation(
-                affordance: row.affordance, labelSource: .textInside)
+                affordance: row.affordance,
+                affordanceSource: source,
+                labelSource: labelSource,
+                hints: hints[ordinal] ?? [],
+                groupID: group == nil ? nil : 0,
+                confidence: confidence)
         }
         let groups = group.map { described in
             [SeenGroup(
@@ -466,6 +475,7 @@ enum BrowsingFixtures {
                 case .perceived: names.append("perceived")
                 case .acted: names.append("acted")
                 case .read: names.append("read")
+                case .routed: names.append("routed")
                 case .matched: names.append("matched")
                 case .receipt: names.append("receipt")
                 case .verified: names.append("verified")
@@ -481,5 +491,38 @@ enum BrowsingFixtures {
         #expect(names.contains("perceived"))
         #expect(names.contains("acted"))
         #expect(names.last == "verified")
+    }
+}
+
+@Suite struct AddressLandedTests {
+
+    /// THE ORDINARY CASE: what was typed, plus whatever the omnibox appended.
+    @Test func theFullAddressWithATrailingSuggestionLands() {
+        #expect(LiveBrowserShell.addressLanded(
+            intended: "https://youtube.com",
+            fieldValue: "https://youtube.com/results?search_query=old+history+entry"))
+        #expect(LiveBrowserShell.addressLanded(
+            intended: "a fred again video on youtube", fieldValue: "a fred again video on youtube"))
+    }
+
+    /// THE MEASURED FAILURE. A chunk-boundary race replaces the field's own selection
+    /// rather than appending to it, so what survives is a SUFFIX of what was typed —
+    /// never a prefix match against the intended string.
+    @Test func aChunkThatWipedTheFrontDoesNotLand() {
+        #expect(!LiveBrowserShell.addressLanded(
+            intended: "Let's watch a fred again video on youtube",
+            fieldValue: "red again video on youtube"))
+    }
+
+    /// NOTHING READABLE IS NOT PROOF OF ANYTHING.
+    @Test func noFieldValueAtAllDoesNotLand() {
+        #expect(!LiveBrowserShell.addressLanded(intended: "https://youtube.com", fieldValue: nil))
+    }
+
+    /// A SHORTER FIELD THAN INTENDED — focus lost mid-run, or a stale read — is not a
+    /// prefix of itself against the fuller intended string.
+    @Test func aTruncatedTailDoesNotLand() {
+        #expect(!LiveBrowserShell.addressLanded(
+            intended: "a fred again video on youtube", fieldValue: "a fred again vid"))
     }
 }

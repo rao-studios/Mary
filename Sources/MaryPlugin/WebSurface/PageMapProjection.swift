@@ -20,6 +20,7 @@
 
 import CoreGraphics
 import Foundation
+import MaryAmbient
 import MaryComputerUse
 
 /// One drawable row of a page read, already in the view's coordinates.
@@ -35,10 +36,13 @@ public struct PageMapRow: Sendable, Equatable, Identifiable {
     public var isNamed: Bool
     /// The group it belongs to — "Results", "toolbar" — or nil.
     public var caption: String?
+    /// What the last route made of this row, when one has run against this read.
+    public var routeDisposition: PageRouteDisposition?
 
     public init(
         id: Int, rect: CGRect, label: String, affordance: SeenAffordance,
-        isNamed: Bool, caption: String? = nil
+        isNamed: Bool, caption: String? = nil,
+        routeDisposition: PageRouteDisposition? = nil
     ) {
         self.id = id
         self.rect = rect
@@ -46,6 +50,7 @@ public struct PageMapRow: Sendable, Equatable, Identifiable {
         self.affordance = affordance
         self.isNamed = isNamed
         self.caption = caption
+        self.routeDisposition = routeDisposition
     }
 }
 
@@ -60,6 +65,23 @@ public struct PageOfferLine: Sendable, Equatable, Identifiable {
         self.id = id
         self.text = text
         self.isEnabled = isEnabled
+    }
+}
+
+/// One row's line in the route pane.
+public struct PageRouteLine: Sendable, Equatable, Identifiable {
+    public var id: Int
+    public var text: String
+    public var reason: String
+    public var disposition: PageRouteDisposition
+
+    public init(
+        id: Int, text: String, reason: String, disposition: PageRouteDisposition
+    ) {
+        self.id = id
+        self.text = text
+        self.reason = reason
+        self.disposition = disposition
     }
 }
 
@@ -79,9 +101,13 @@ public enum PageMapProjection {
     /// `.none` is the failure this overlay exists to make visible, and drawing nothing
     /// would look exactly like a page with nothing on it.
     public static func rows(
-        for roster: PageRoster, plane: AXDesktopPlane, size: CGSize
+        for roster: PageRoster, plane: AXDesktopPlane, size: CGSize,
+        route: PageRouteTrace? = nil
     ) -> [PageMapRow] {
-        roster.elements.compactMap { element in
+        let dispositions = Dictionary(
+            (route?.decisions ?? []).map { ($0.ordinal, $0.disposition) },
+            uniquingKeysWith: { first, _ in first })
+        return roster.elements.compactMap { element in
             let rect = plane.viewRect(for: element.frame, in: size)
             // A row the plane places outside the stage, or with no area, cannot be
             // pointed at — and a zero-sized stroke is a dot in the corner.
@@ -94,7 +120,8 @@ public enum PageMapProjection {
                 label: named && !element.label.isEmpty ? element.label : unnamed,
                 affordance: annotation?.affordance ?? .none,
                 isNamed: named && !element.label.isEmpty,
-                caption: element.containerTrail.first)
+                caption: element.containerTrail.first,
+                routeDisposition: dispositions[element.ordinal])
         }
     }
 
@@ -108,11 +135,46 @@ public enum PageMapProjection {
     /// reading could not name is a row no phrase can reach — and both sides of that are
     /// in the roster.
     public static func offerLines(for roster: PageRoster) -> [PageOfferLine] {
-        AffordanceSlatePublisher.affordances(from: roster).map {
-            PageOfferLine(
-                id: $0.id,
-                text: "\($0.ordinal) · \($0.roleWord) · \($0.label)",
-                isEnabled: $0.isEnabled)
+        lines(for: roster) { !$0.capabilities.isDisjoint(with: [.pressable, .fillable, .adjustable]) }
+    }
+
+    /// The rows the page NAMED and the map did not offer — reachable by the router,
+    /// invisible to anything that acts without asking.
+    ///
+    /// PIN: THE GAP THIS PANEL EXISTS TO SHOW. A results page where this list is long and
+    /// the offers are four icons is the exact failure that used to read as "nothing on
+    /// this page can be named", and the two lists side by side are the diagnosis.
+    public static func candidateLines(for roster: PageRoster) -> [PageOfferLine] {
+        lines(for: roster) { $0.capabilities.contains(.candidate) }
+    }
+
+    private static func lines(
+        for roster: PageRoster, where admits: (AmbientElementRecord) -> Bool
+    ) -> [PageOfferLine] {
+        PageRowRule.records(for: roster.rows, scope: AffordanceSlatePublisher.browserScope)
+            .filter(admits)
+            .map { record in
+                PageOfferLine(
+                    id: record.elementID,
+                    text: "\(record.elementID.dropFirst()) · \(record.kindWord) · \(record.name ?? record.displaySummary)",
+                    isEnabled: !record.capabilities.isEmpty)
+            }
+    }
+
+    /// One goal's verdict, as lines: what it reached, what it could not separate it from,
+    /// then everything else in the order the page put it.
+    public static func routeLines(for trace: PageRouteTrace) -> [PageRouteLine] {
+        let ordered = trace.selected + trace.rivals
+            + trace.decisions.filter {
+                $0.disposition != .selected && $0.disposition != .clarificationRequired
+            }
+        return ordered.map { decision in
+            PageRouteLine(
+                id: decision.ordinal,
+                text: "\(decision.ordinal) · \(decision.kind) · \(decision.label)"
+                    + " · \(decision.evidence.total) · \(decision.disposition.rawValue)",
+                reason: decision.reason,
+                disposition: decision.disposition)
         }
     }
 

@@ -324,9 +324,11 @@ public enum VisionPageReader {
                 provenance: .seen))
             annotations[ordinal] = SeenElementAnnotation(
                 affordance: affordance(element.affordance),
+                affordanceSource: affordanceSource(element.affordanceSource),
                 labelSource: labelSource(element.labelSource),
                 hints: element.hints,
-                groupID: element.groupID)
+                groupID: element.groupID,
+                confidence: element.confidence)
             ordinalByID[element.id.raw] = ordinal
         }
 
@@ -352,6 +354,17 @@ public enum VisionPageReader {
         case .adjust: return .adjust
         case .scroll: return .scroll
         case .none: return .none
+        }
+    }
+
+    private static func affordanceSource(
+        _ value: PageAffordanceSource
+    ) -> SeenAffordanceSource {
+        switch value {
+        case .classifier: return .classifier
+        case .grouping: return .grouping
+        case .shape: return .shape
+        case .unknown: return .unknown
         }
     }
 

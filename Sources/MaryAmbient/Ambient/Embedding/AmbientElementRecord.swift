@@ -32,6 +32,19 @@ public struct AmbientElementCapabilities: OptionSet, Sendable, Hashable {
     /// which means "carries quotable text": a paragraph is prose and not
     /// fillable; an empty search field is fillable and not prose.
     public static let fillable = AmbientElementCapabilities(rawValue: 1 << 5)
+    /// Has a track that can be set to a position — a volume control, a progress bar.
+    /// Separate from `pressable` because a slider answers a fraction, not a press, and
+    /// a lane asking for one must not be handed the other.
+    public static let adjustable = AmbientElementCapabilities(rawValue: 1 << 6)
+    /// NAMED BY THE WORLD, NOT OFFERED BY IT. A row something wrote a name on which the
+    /// reading could not say was actionable — a result title a classifier declined to
+    /// call a link, a heading that is really a control.
+    ///
+    /// PIN: DELIBERATELY NOT `pressable`. A lane that acts without asking (see
+    /// `AffordanceProbe.confidentFloor`) must never reach one of these: candidacy is a
+    /// claim about the READER's uncertainty, and answering it needs a caller that can
+    /// weigh that uncertainty against everything else it knows.
+    public static let candidate = AmbientElementCapabilities(rawValue: 1 << 7)
 }
 
 /// Which slice of the ambient world a record belongs to — the index is

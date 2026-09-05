@@ -59,6 +59,10 @@ final class WireframeViewModel: ObservableObject {
     /// answer only changes when a skill runs, and would make a debugging app look like
     /// it perceives on its own. Pixels are read when a skill asks.
     @Published private(set) var browserRoster: PageRoster?
+    /// THE LAST GOAL THE BROWSING LANE ROUTED against that read — every row it weighed,
+    /// with the disposition and the sentence it gave each one. Pulled beside the roster
+    /// and for its reason: a route is a verdict about rows, and the two are one fact.
+    @Published private(set) var browserRoute: PageRouteTrace?
     /// Whether the watched target is a browser Mary has been taught. Nil target, or an
     /// app with no registration, means the page overlay has no business being drawn.
     @Published private(set) var targetIsBrowser = false
@@ -203,8 +207,11 @@ final class WireframeViewModel: ObservableObject {
     func refreshBrowserRoster() {
         guard targetIsBrowser else { return }
         Task { [weak self] in
-            let roster = await BrowserEngine.live.snapshot().lastRoster
-            await MainActor.run { self?.browserRoster = roster }
+            let snapshot = await BrowserEngine.live.snapshot()
+            await MainActor.run {
+                self?.browserRoster = snapshot.lastRoster
+                self?.browserRoute = snapshot.lastRoute
+            }
         }
     }
 
@@ -212,6 +219,7 @@ final class WireframeViewModel: ObservableObject {
     /// engine's slate is its business, and a debugger must not retract it.
     func clearBrowserRoster() {
         browserRoster = nil
+        browserRoute = nil
     }
 
     func stop() {

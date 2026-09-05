@@ -101,6 +101,34 @@ the box, then the label beside it (fields only — a button labels itself), then
 icon, then `"button 3"`. Nothing is dropped for lacking a name, which is what the old
 roster did and why a page of search results read as four chrome buttons.
 
+### One router over it
+
+Every verb asks the same question of a page — which row does this goal reach — so it is
+asked in one place. `PageRouter.arbitrate(goal:verb:roster:store:)` is the page's answer to
+`AbilityRosterArbitrator`: a pure function of one read, giving **every row** a disposition,
+a bounded evidence score and one sentence saying why.
+
+| Term | What it is |
+|---|---|
+| lexical | the naming ladder's rung — ordinal 500, exact 400, contained 300, all-words 200, kind-only 100 |
+| semantic | cosine against the goal over the slate this read published, ×1000 |
+| affordance | how well the row's affordance fits the verb |
+| provenance | how sure the reading is — label source, affordance source, and the reader's own confidence |
+| structure | what the row's place says: a result group counts for, a toolbar, a dialog it sits behind, or a "sponsored" marker count against |
+
+They are compared **in that order**, not summed: no pile of small priors can outweigh the
+person having said the row's name. A tie is a question, named back. Nothing is decided by
+page order unless the person spoke a position.
+
+Three call sites, one arbitration: `PageActor.route` for press / fill / adjust, the same for
+`scroll_to_on_page` (`reveal`), and `WebSearchRecipe` for opening a result. What each turned
+down is on `BrowserEngineSnapshot.lastRoute`, on the `routed` event, in Sand's **Page route**
+pane, and in `mary-web-probe --route`.
+
+**A row the map named but did not offer is a candidate**, published to the slate with its own
+capability so the deterministic `act_on_screen` rung can never reach one. A candidate must
+clear a higher floor than a row the reading vouched for.
+
 ### What Mary does with it
 
 One resolver, one executor, six verbs and a grammar:
@@ -215,6 +243,37 @@ On Safari, driven only by `mary-web-probe`:
   and got opened. A real title contains the query and says more; the echo says the query
   and stops, so what is left after removing it is the test.
 
+### What three recorded pages measured
+
+`mary-web-probe --save-roster` writes a read to JSON; `--fixture … --route "…"` argues with
+it offline, with no browser and no grant. Three real pages, recorded and pinned in
+`Tests/MaryPluginTests/Fixtures/PageRoutes/`:
+
+| Page | Rows | Offered | What the reading held |
+|---|---|---|---|
+| A search engine's web results | 80 | 5 | a region picker, a navigation strip, thirteen related searches, the query echoed twice — and the real titles **broken across rows** |
+| A video site's own results | 142 | — | a sponsored card, a knowledge panel, a channel line, and not one video title |
+| The same site's video tab | 34 | 3 | two real titles, both reachable |
+
+So the router refuses the first two and says, per row, which kind of thing each was. That is
+the honest answer: widening the pool and ranking it was tried three ways — page order took
+the navigation strip, query-word cover took "Searches related to …", and admitting bands
+took the region picker. **A pool nothing vouches for is not a weaker pool; it is a different
+page from the one the person is looking at.** The recall belongs in the detector.
+
+Two rules came out of the same measurements and are pinned as tests:
+
+- **A row that is several short names joined by separators is a strip**, not an answer — the
+  site's own tabs, drawn as one row, long and well named.
+- **An ordinal naming a kind the page holds none of is a miss.** "The first video" used to
+  count the rows at large and answer with the first of them; on a page with no video rows it
+  now reaches nothing.
+
+And one measurement worth keeping for whoever tunes the floors: asked for "the search box",
+Apple's `NLEmbedding` scored the site's actual search field **0.548** and a row called
+"Camera lens" **0.544**. Four thousandths apart. No threshold rescues that, which is why
+meaning sits *after* naming in the rank vector rather than replacing it.
+
 ### What is still weak
 
 - Icon naming is a bank of twenty-two drawn silhouettes compared by blurred correlation.
@@ -321,6 +380,9 @@ swift run mary-web-probe --browser safari --perceive --dry-run   # what it WOULD
 swift run mary-web-probe --browser safari --save /tmp/page.png   # the exact pixels it reads
 swift run mary-web-probe --browser safari --media toggle --watch # the engine's events
 swift run mary-web-probe --browser safari --hover-at 450,300     # does a hover reach the page
+swift run mary-web-probe --browser safari --route "the first video" --verb press
+swift run mary-web-probe --browser safari --save-roster /tmp/page.json   # the read, recorded
+swift run mary-web-probe --fixture /tmp/page.json --route "accept all"   # argued offline
 swift run mary-ax-probe --app Safari --tree --role toolbar       # measure a browser's shell
 ```
 

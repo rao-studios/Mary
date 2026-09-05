@@ -431,59 +431,33 @@ import Testing
         #expect(shell.opened.isEmpty)
     }
 
-    /// THE RANKING NEVER RETURNS NOTHING. "The first one" is a real request.
-    @Test func theRankingAlwaysChoosesForANonEmptyPage() {
-        let page = resultsPage()
-        let roster = PageRoster(elements: page.elements, map: page.map)
-        let results = WebSearchRecipe.admitted(in: roster)
-        #expect(results.count == 3)
-        #expect(WebSearchRecipe.choose(nil, among: results, in: roster)?.label
-            == "Alpine touring boots reviewed")
-        #expect(WebSearchRecipe.choose("the second one", among: results, in: roster)?.label
-            == "The best touring boots this year")
-        #expect(WebSearchRecipe.choose("the last one", among: results, in: roster)?.label
-            == "How to choose touring boots")
-        #expect(WebSearchRecipe.choose("how to choose", among: results, in: roster)?.label
-            == "How to choose touring boots")
-        // A phrase matching nothing still opens the top result.
-        #expect(WebSearchRecipe.choose("helicopters", among: results, in: roster)?.label
-            == "Alpine touring boots reviewed")
-    }
-
-    /// PAGE CHROME IS NOT A RESULT — and neither is the query echoed back.
-    @Test func chromeCallsToActionAndTheQueryItselfAreNotResults() {
+    /// NAMING A ROW EXACTLY REACHES IT EVEN WHERE THE MAP OFFERED NOTHING.
+    ///
+    /// The resolver's last rung already reaches past what the map offers when a person
+    /// names something exactly — the map offers what it is confident about, and whoever
+    /// said the words can see the screen. An empty offered set used to refuse before that
+    /// rung ran, so a page the classifier named and offered none of could not be acted on
+    /// at all, however exactly it was named. A search cannot use this (it has a pool to
+    /// rank, not a name to match), which is why it stays a naming rung.
+    @Test func anExactNameReachesARowTheMapDidNotOffer() async {
         let page = BrowsingFixtures.page([
-            (role: "AXLink", label: "Next", affordance: .press),
-            (role: "AXButton", label: "Sign in", affordance: .press),
-            // The search box, showing what was typed into it, with the magnifier
-            // recognized as a letter. Measured live.
-            (role: "AXTextField", label: "alpine touring boots Q", affordance: .press),
-            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+            (role: "AXLink", label: "Fred again.. - Rooftop Live - YouTube",
+             affordance: SeenAffordance.none),
+            (role: "AXLink", label: "Fred again.. tour dates announced",
+             affordance: SeenAffordance.none),
         ])
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage(pages: [page]), hands: hands)
         let roster = PageRoster(elements: page.elements, map: page.map)
-        let admitted = WebSearchRecipe.admitted(
-            in: roster, forQuery: "alpine touring boots")
-        #expect(admitted.map(\.label) == ["Alpine touring boots reviewed"])
-        // A title that CONTAINS the query and says more is still a result.
-        #expect(!WebSearchRecipe.isTheQueryItself(
-            "Alpine touring boots reviewed", query: "alpine touring boots"))
-        #expect(WebSearchRecipe.isTheQueryItself(
-            "alpine touring boots", query: "alpine touring boots"))
-    }
+        #expect(roster.actionable.isEmpty, "the fixture must offer nothing")
 
-    /// A ROW THE PAGE MARKED AS PAID SORTS AFTER THE ORGANIC ONES — read off the page's
-    /// own marker, never a list of sites.
-    @Test func promotedRowsRankAfterOrganicOnes() {
-        var page = BrowsingFixtures.page([
-            (role: "AXLink", label: "A promoted result about boots", affordance: .press),
-            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
-        ])
-        page.map.annotations[1] = SeenElementAnnotation(
-            affordance: .press, labelSource: .textInside, hints: ["sponsored"])
-        let roster = PageRoster(elements: page.elements, map: page.map)
-        let results = WebSearchRecipe.admitted(in: roster)
-        #expect(WebSearchRecipe.choose(nil, among: results, in: roster)?.label
-            == "Alpine touring boots reviewed")
+        let outcome = await engine.pressOnPage(
+            "Fred again.. - Rooftop Live - YouTube", in: BrowsingFixtures.target())
+
+        #expect(outcome.ok, "\(outcome.spoken)")
+        #expect(hands.clicks.first.map { page.elements[0].frame.contains($0) } == true)
     }
 
     /// ONE SEARCH PER TURN PER QUERY. The second cannot even prove itself.

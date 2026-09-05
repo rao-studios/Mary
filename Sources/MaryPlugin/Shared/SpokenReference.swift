@@ -100,6 +100,89 @@ public enum SpokenReference {
         return .none
     }
 
+    // MARK: - Which rung answered
+
+    /// The rung of the ladder that reached a row, for a caller that RANKS rather than
+    /// resolves.
+    public enum Rung: String, Sendable, Equatable, CaseIterable {
+        /// "the third video" — a position the person spoke.
+        case ordinal
+        /// The phrase named only a kind, and these are the rows of it.
+        case kindOnly
+        case exact
+        case contained
+        /// Every spoken word longer than two letters appears in the label.
+        case allWords
+    }
+
+    /// THE SAME LADDER, SAYING WHICH RUNG ANSWERED — and every row that rung reached,
+    /// uncapped.
+    ///
+    /// PIN: NOT A SECOND LADDER. `resolve` answers "which one", which is what a verb
+    /// needs; a router needs "how well did each row answer", because a naming hit is one
+    /// term of an evidence score sitting beside meaning and structure. Both walk the same
+    /// rungs over the same normalization, and `SpokenReferenceTests` pins that the rows
+    /// this reaches are the rows `resolve` picks from — a drift between them would let
+    /// the router rank on a match the resolver would never have made.
+    /// UNCAPPED, because `spokenRivalLimit` is about how many rivals a SENTENCE names,
+    /// and this feeds a table rather than a sentence.
+    public static func reached<Element: SpokenReferable>(
+        phrase rawPhrase: String, among elements: [Element]
+    ) -> (rung: Rung, indices: [Int])? {
+        let phrase = normalized(rawPhrase)
+        guard !phrase.isEmpty, !elements.isEmpty else { return nil }
+
+        let kind = offeredKind(namedIn: rawPhrase, among: elements)
+        // A KIND THE PAGE DOES NOT HOLD IS NOT A POOL TO COUNT.
+        //
+        // PIN: MEASURED. "The first video" on a page whose rows the reading classified as
+        // nothing in particular counted the rows AT LARGE and answered with the first of
+        // them — a search box, as it happened. Naming a category the page has none of is
+        // not a position; it is a miss, and the caller is owed that rather than the top of
+        // an unrelated list. `resolve` keeps the older, more forgiving reading for the
+        // native-window lane, where the roster is an Accessibility tree and its kinds are
+        // told rather than inferred.
+        if kind == nil,
+           PageElementKindDerivation.offeredKind(
+               namedIn: rawPhrase, offering: Set(PageElementKind.allCases)) != nil {
+            return nil
+        }
+        let poolIndices = kind.map { k in
+            elements.indices.filter { elements[$0].spokenKind == k }
+        } ?? Array(elements.indices)
+
+        if let ordinal = SpokenOrdinal.value(in: rawPhrase) {
+            guard !poolIndices.isEmpty else { return nil }
+            if ordinal == -1 { return (.ordinal, [poolIndices[poolIndices.count - 1]]) }
+            guard ordinal >= 1, ordinal <= poolIndices.count else { return nil }
+            return (.ordinal, [poolIndices[ordinal - 1]])
+        }
+
+        let needle = stripped(phrase, of: kind)
+        guard !needle.isEmpty else {
+            return poolIndices.isEmpty ? nil : (.kindOnly, poolIndices)
+        }
+
+        let exact = poolIndices.filter { normalized(elements[$0].spokenLabel) == needle }
+        if !exact.isEmpty { return (.exact, exact) }
+
+        let contained = poolIndices.filter { index in
+            let label = normalized(elements[index].spokenLabel)
+            return label.contains(needle) || needle.contains(label)
+        }
+        if !contained.isEmpty { return (.contained, contained) }
+
+        let words = needle.split(separator: " ").map(String.init).filter { $0.count > 2 }
+        if !words.isEmpty {
+            let covered = poolIndices.filter { index in
+                let label = normalized(elements[index].spokenLabel)
+                return words.allSatisfy { label.contains($0) }
+            }
+            if !covered.isEmpty { return (.allWords, covered) }
+        }
+        return nil
+    }
+
     // MARK: - Spoken outcomes
 
     /// Labels get long; a spoken sentence should not. Ported unchanged from

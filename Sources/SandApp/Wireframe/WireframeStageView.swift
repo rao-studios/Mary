@@ -69,7 +69,8 @@ struct WireframeStageView: View {
                         if showPageMap, let roster = model.browserRoster {
                             PageMapOverlay.draw(
                                 rows: PageMapProjection.rows(
-                                    for: roster, plane: model.focusedPlane, size: size),
+                                    for: roster, plane: model.focusedPlane, size: size,
+                                    route: model.browserRoute),
                                 caption: PageMapProjection.caption(for: roster),
                                 in: &context, size: size)
                         }
