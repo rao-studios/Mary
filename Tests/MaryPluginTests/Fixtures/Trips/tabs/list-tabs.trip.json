@@ -7,7 +7,6 @@
         "budgetMs": 6000
       },
       "routing": {
-        "intent": "ask",
         "skill": "list_tabs"
       },
       "say": "what tabs do I have open",

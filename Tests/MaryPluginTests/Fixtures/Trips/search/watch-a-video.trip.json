@@ -10,9 +10,6 @@
       },
       "note": "Round 0: search_web's `open` is an optional string, so the confidence lane cannot fill it and this costs a model round. Round 3 declares impliedArguments on the watch verb and this becomes lane confidence.",
       "routing": {
-        "arguments": {
-          "query": "fireplace video"
-        },
         "intent": "operate",
         "skill": "search_web"
       },

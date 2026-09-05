@@ -7,7 +7,6 @@
         "budgetMs": 15000
       },
       "routing": {
-        "intent": "ask",
         "skill": "read_page_text"
       },
       "say": "summarise this page for me",

@@ -25,7 +25,7 @@
       },
       "note": "The twin. This must reach the music app, and it must not touch the browser at all.",
       "provider": {
-        "applicationID": "music"
+        "applicationID": "apple-music"
       },
       "routing": {
         "arguments": {

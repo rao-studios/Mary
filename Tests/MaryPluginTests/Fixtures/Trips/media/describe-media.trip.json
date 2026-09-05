@@ -8,7 +8,6 @@
       },
       "note": "The picture moved, the progress advanced, the clock advanced. On a hard frame the lane refuses rather than reporting a transport somewhere else on the page.",
       "routing": {
-        "intent": "ask",
         "skill": "describe_media"
       },
       "say": "what's playing in this tab",

@@ -298,6 +298,16 @@ public struct TripLeg: Sendable, Equatable, Codable {
     public var engine: TripEngineExpectation?
     public var ambient: TripAmbientExpectation?
     public var speech: TripSpeechExpectation?
+    /// ARGUMENTS AN ENGINE-LEVEL RUN NEEDS THAT A TURN GETS FROM THE MODEL.
+    ///
+    /// PIN: NOT THE SAME TABLE AS `routing.arguments`, AND THE DIFFERENCE IS A
+    /// FINDING. `routing.arguments` says what the confidence lane MUST have
+    /// filled from the sentence; this says what the probe has to supply to
+    /// dispatch the binding at all. A seek is the case that separates them: the
+    /// lane fills `action` from the word "skip", and `position` is an optional
+    /// STRING, which no shape can fill — so a seek costs a model round by
+    /// construction. Folding the two tables together would hide that.
+    public var dispatch: [String: String]?
     /// The round that makes this leg possible. Until then it is counted as
     /// PENDING rather than failed — a corpus authored ahead of the engine has to
     /// distinguish "not built yet" from "built and wrong".
@@ -314,6 +324,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         engine: TripEngineExpectation? = nil,
         ambient: TripAmbientExpectation? = nil,
         speech: TripSpeechExpectation? = nil,
+        dispatch: [String: String]? = nil,
         pending: String? = nil,
         note: String? = nil
     ) {
@@ -325,6 +336,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         self.engine = engine
         self.ambient = ambient
         self.speech = speech
+        self.dispatch = dispatch
         self.pending = pending
         self.note = note
     }
@@ -564,6 +576,10 @@ public enum BrowsingTripValidator {
             issues.append(Issue(
                 path: "\(path).speech.ledgerNot",
                 problem: "\"\(token)\" is not a route the read ledger records"))
+        }
+
+        for (name, value) in leg.dispatch ?? [:] {
+            checkFree(value, "dispatch.\(name)", allowingWords: true)
         }
 
         checkFree(leg.ambient?.leadBefore, "ambient.leadBefore")

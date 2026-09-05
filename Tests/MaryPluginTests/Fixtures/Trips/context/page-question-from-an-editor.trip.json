@@ -32,7 +32,7 @@
       },
       "routing": {
         "intent": "ask",
-        "skill": "current_file"
+        "skill": "read_enclosing_unit"
       },
       "say": "what does this function do",
       "speech": {

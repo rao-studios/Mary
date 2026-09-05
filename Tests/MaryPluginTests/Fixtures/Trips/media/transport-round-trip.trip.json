@@ -79,12 +79,19 @@
       "say": "unmute the video"
     },
     {
+      "dispatch": {
+        "position": "0.5"
+      },
       "engine": {
         "budgetMs": 10000,
         "landed": true,
         "receipt": "mediaState"
       },
+      "note": "A seek's position is an optional string, which no confidence shape can fill \u2014 so a seek costs a model round by construction. The lane still has to reach control_media and read \"skip\" as seek.",
       "routing": {
+        "arguments": {
+          "action": "seek"
+        },
         "intent": "operate",
         "skill": "control_media"
       },
