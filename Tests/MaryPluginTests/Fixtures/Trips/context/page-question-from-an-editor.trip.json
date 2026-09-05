@@ -1,0 +1,48 @@
+{
+  "category": "context",
+  "id": "page-question-from-an-editor",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 15000
+      },
+      "note": "Invariant 5. 'this page' is one of chrome's declared phrases, so the browser is named though an editor leads \u2014 and the page read, not the code buffer, is what Mary looks at first.",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "named"
+      },
+      "routing": {
+        "intent": "ask",
+        "skill": "read_page_text"
+      },
+      "say": "what is this page about",
+      "speech": {
+        "ledgerNot": [
+          "chainStalled",
+          "droppedAsRestating"
+        ],
+        "readBack": true,
+        "silence": "forbidden"
+      }
+    },
+    {
+      "note": "And the other way: nothing named a browser, the lead is the editor, so the buffer is what is read.",
+      "provider": {
+        "applicationID": "xcode"
+      },
+      "routing": {
+        "intent": "ask",
+        "skill": "current_file"
+      },
+      "say": "what does this function do",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "xcode",
+    "pageClass": "article"
+  },
+  "summary": "The pre-read follows what the words named, not only what leads."
+}

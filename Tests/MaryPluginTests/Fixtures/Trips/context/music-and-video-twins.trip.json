@@ -1,0 +1,53 @@
+{
+  "category": "context",
+  "id": "music-and-video-twins",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "control-playback and control-media described themselves almost identically and crowded each other out of the confidence lane. Their summaries now name their surfaces.",
+      "provider": {
+        "applicationID": "music"
+      },
+      "routing": {
+        "arguments": {
+          "action": "mute"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_playback"
+      },
+      "say": "mute the music"
+    },
+    {
+      "engine": {
+        "budgetMs": 10000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "Same verb, other surface, with a browser in front and a player in each.",
+      "provider": {
+        "applicationID": "chrome"
+      },
+      "routing": {
+        "arguments": {
+          "action": "mute"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "mute the video"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "musicPlaying": true,
+    "pageClass": "watchPage"
+  },
+  "summary": "Two players, two sentences a word apart \u2014 each lands on its own surface and neither touches the other."
+}

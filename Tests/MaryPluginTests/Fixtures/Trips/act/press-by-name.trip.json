@@ -1,0 +1,34 @@
+{
+  "category": "act",
+  "id": "press-by-name",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "Naming something exactly must reach it even when the reading grouped it as furniture \u2014 the toolbar exclusion that used to refuse a real answer.",
+      "page": {
+        "verb": "press",
+        "winner": {
+          "affordance": "press",
+          "lexicalBasis": "exact"
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "click on images",
+      "sayKey": "namedRow"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "resultsPage"
+  },
+  "summary": "A row named exactly is reached by its own words, wherever the reading filed it."
+}

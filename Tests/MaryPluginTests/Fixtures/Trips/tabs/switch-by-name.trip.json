@@ -1,0 +1,30 @@
+{
+  "category": "tabs",
+  "id": "switch-by-name",
+  "legs": [
+    {
+      "ambient": {
+        "frontContainerChanged": true
+      },
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true
+      },
+      "note": "navigate(.tab) exists as notImplemented. The target resolves through the container roster, like TextEdit's windows.",
+      "pending": "round 3",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "switch_tab"
+      },
+      "say": "switch to the other tab",
+      "sayKey": "namedTab"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "A tab named by what it holds is switched to, through the same roster every other window rides."
+}

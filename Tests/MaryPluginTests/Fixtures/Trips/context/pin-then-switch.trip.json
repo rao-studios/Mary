@@ -1,0 +1,33 @@
+{
+  "category": "context",
+  "id": "pin-then-switch",
+  "legs": [
+    {
+      "ambient": {
+        "frontAfter": "restored",
+        "pinned": "chrome"
+      },
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "Invariant 4. The pinned rung sits above focused on purpose: a correction that loses to whatever came forward is not one.",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "pinned"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "control_media"
+      },
+      "say": "pause the video"
+    }
+  ],
+  "stage": {
+    "front": "textedit",
+    "pageClass": "watchPage",
+    "pin": "chrome"
+  },
+  "summary": "A pin is a correction, so it outranks whatever window happens to be in front."
+}

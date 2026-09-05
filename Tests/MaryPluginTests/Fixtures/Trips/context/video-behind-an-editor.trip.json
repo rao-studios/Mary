@@ -1,0 +1,39 @@
+{
+  "category": "context",
+  "id": "video-behind-an-editor",
+  "legs": [
+    {
+      "ambient": {
+        "frontAfter": "restored",
+        "leadBefore": "xcode"
+      },
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "Invariant 3. Round 0 records frontAfter as browser: the engine restores the cursor and never the frontmost application, so a background mute steals the stage.",
+      "provider": {
+        "applicationID": "chrome"
+      },
+      "routing": {
+        "arguments": {
+          "action": "mute"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "mute the video",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "xcode",
+    "pageClass": "watchPage"
+  },
+  "summary": "The browser is reachable from another surface, and the person's place is given back."
+}

@@ -1,0 +1,75 @@
+{
+  "category": "context",
+  "id": "music-between-two-page-legs",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "search_web"
+      },
+      "say": "look up alpine touring boots on the web"
+    },
+    {
+      "ambient": {
+        "frontAfter": "restored"
+      },
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "The twin. This must reach the music app, and it must not touch the browser at all.",
+      "provider": {
+        "applicationID": "music"
+      },
+      "routing": {
+        "arguments": {
+          "action": "pause"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_playback"
+      },
+      "say": "pause the music"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "note": "Invariant 1: the tab still knows what it is a list of answers to, so this is still openResult and not a bare press.",
+      "page": {
+        "verb": "openResult",
+        "winner": {
+          "facts": [
+            "inResultGroup"
+          ],
+          "factsAbsent": [
+            "echoOfQuery"
+          ],
+          "ordinalWithinKind": 2
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "click_on_page"
+      },
+      "say": "open the second one"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "musicPlaying": true,
+    "pageClass": "any"
+  },
+  "summary": "Another surface's turn between two page legs leaves the page's own state alone."
+}

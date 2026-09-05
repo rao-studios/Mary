@@ -1,0 +1,33 @@
+{
+  "category": "act",
+  "id": "fill-and-submit",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 10000,
+        "landed": true,
+        "receipt": "textAppeared"
+      },
+      "page": {
+        "verb": "fill",
+        "winner": {
+          "affordance": "fill",
+          "factsAbsent": [
+            "behindOverlay"
+          ]
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "fill_in_page"
+      },
+      "say": "type alpine touring boots into the search box and press return"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "siteWithSearchBox"
+  },
+  "summary": "Typing into a field the page drew, and proving the text is in it."
+}

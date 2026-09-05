@@ -17,6 +17,7 @@
 //        something it never said.
 //
 
+import CoreGraphics
 import Foundation
 import MaryComputerUse
 

@@ -1,0 +1,43 @@
+{
+  "category": "tabs",
+  "id": "switch-by-ordinal-and-anaphora",
+  "legs": [
+    {
+      "ambient": {
+        "frontContainerChanged": true
+      },
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true
+      },
+      "pending": "round 3",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "switch_tab"
+      },
+      "say": "go to the second tab"
+    },
+    {
+      "ambient": {
+        "frontContainerChanged": true
+      },
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true
+      },
+      "note": "Anaphora through ReferenceFocus.decide, over container salience \u2014 corrected beats actedOn beats read beats shown.",
+      "pending": "round 3",
+      "routing": {
+        "intent": "operate",
+        "skill": "switch_tab"
+      },
+      "say": "go back to the other one"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "Positions and back-references reach a tab the same way they reach a window."
+}

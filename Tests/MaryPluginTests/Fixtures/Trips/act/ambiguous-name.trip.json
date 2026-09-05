@@ -1,0 +1,31 @@
+{
+  "category": "act",
+  "id": "ambiguous-name",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": false
+      },
+      "note": "A tie is a question. Guessing between two rows a person named once is how a lane presses the wrong one confidently.",
+      "page": {
+        "refusal": "ambiguousElement",
+        "verb": "press"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "click_on_page"
+      },
+      "say": "click the download button",
+      "sayKey": "ambiguousRow",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "resultsPage"
+  },
+  "summary": "Several rows answering to one phrase is a question, named back, and never a guess."
+}

@@ -1,0 +1,116 @@
+{
+  "category": "media",
+  "id": "transport-round-trip",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "The reported defect started here: a proven mute reported landed false, so the turn tried again with a web search.",
+      "provider": {
+        "applicationID": "chrome"
+      },
+      "routing": {
+        "arguments": {
+          "action": "pause"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "pause the video",
+      "speech": {
+        "silence": "forbidden"
+      }
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "routing": {
+        "arguments": {
+          "action": "play"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "play it again"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "A mute is verified by the button CHANGING rather than by what it changed to \u2014 a speaker glyph matches about half the time.",
+      "routing": {
+        "arguments": {
+          "action": "mute"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "mute the video"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "routing": {
+        "arguments": {
+          "action": "unmute"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "unmute the video"
+    },
+    {
+      "engine": {
+        "budgetMs": 10000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "control_media"
+      },
+      "say": "skip to the middle of the video"
+    },
+    {
+      "engine": {
+        "budgetMs": 10000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "routing": {
+        "arguments": {
+          "action": "fullscreen"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "go full screen"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "watchPage"
+  },
+  "summary": "Every transport verb, driven from what was seen, proved by looking again, and put back."
+}

@@ -1,0 +1,24 @@
+{
+  "category": "recovery",
+  "id": "focus-lost-mid-plan",
+  "legs": [
+    {
+      "engine": {
+        "landed": false,
+        "refusal": "interrupted"
+      },
+      "note": "A plan that keeps pressing into whatever came forward is worse than one that stops. Replayed with a stage that stops holding focus.",
+      "pending": "replay only",
+      "routing": {
+        "intent": "operate",
+        "skill": "fill_in_page"
+      },
+      "say": "type alpine touring boots into the search box and press return"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "siteWithSearchBox"
+  },
+  "summary": "Somebody taking the machine mid-plan stops it and says where it got to."
+}

@@ -1,0 +1,25 @@
+{
+  "category": "read",
+  "id": "which-tab",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 6000
+      },
+      "note": "The site is spoken; the address is held. A sentence with a browser word in it reaching search_web is the failure this pins.",
+      "routing": {
+        "intent": "ask",
+        "skill": "current_page"
+      },
+      "say": "which tab am I on",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "A question about where the browser IS must never become a web search."
+}

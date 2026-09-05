@@ -1,0 +1,31 @@
+{
+  "category": "search",
+  "id": "watch-a-video",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 20000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "note": "Round 0: search_web's `open` is an optional string, so the confidence lane cannot fill it and this costs a model round. Round 3 declares impliedArguments on the watch verb and this becomes lane confidence.",
+      "routing": {
+        "arguments": {
+          "query": "fireplace video"
+        },
+        "intent": "operate",
+        "skill": "search_web"
+      },
+      "say": "watch a fireplace video on youtube",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "Search and open in one sentence \u2014 the composite the confidence lane cannot fill until a verb implies its arguments."
+}

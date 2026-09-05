@@ -1,0 +1,71 @@
+{
+  "category": "search",
+  "id": "search-then-open-second",
+  "legs": [
+    {
+      "ambient": {
+        "leadAfter": "browser",
+        "sessionInvalidated": true
+      },
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "focused"
+      },
+      "routing": {
+        "arguments": {
+          "query": "alpine touring boots"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "search_web"
+      },
+      "say": "look up alpine touring boots on the web",
+      "speech": {
+        "silence": "forbidden"
+      }
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "note": "A bare position after a search means the second ANSWER. Routed with openResult, carrying the remembered query as evidence.",
+      "page": {
+        "verb": "openResult",
+        "winner": {
+          "affordance": "press",
+          "facts": [
+            "inResultGroup"
+          ],
+          "factsAbsent": [
+            "echoOfQuery",
+            "separatedStrip",
+            "bareAddress",
+            "promoted"
+          ],
+          "ordinalWithinKind": 2
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "open the second one"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "A search, then the second of its answers \u2014 the page's own list, not its furniture."
+}

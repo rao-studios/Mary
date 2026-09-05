@@ -1,0 +1,27 @@
+{
+  "category": "tabs",
+  "id": "close-tab",
+  "legs": [
+    {
+      "ambient": {
+        "frontContainerChanged": true
+      },
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true
+      },
+      "note": "Media verbs are tweaks \u2014 pausing is undone by pressing the same button. A closed tab is not.",
+      "pending": "round 3",
+      "routing": {
+        "intent": "operate",
+        "skill": "close_tab"
+      },
+      "say": "close this tab"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "Closing a tab is the one write in this lane, so it asks first."
+}

@@ -1,0 +1,47 @@
+{
+  "category": "context",
+  "id": "hand-navigation-invalidates",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "search_web"
+      },
+      "say": "look up alpine touring boots on the web"
+    },
+    {
+      "ambient": {
+        "scopeRetracted": true,
+        "sessionInvalidated": true
+      },
+      "engine": {
+        "budgetMs": 8000
+      },
+      "note": "Invariant 2: the person navigated by hand, so the results this was a list of are gone. It must route as a bare press against the page that is there now, never against the slate that described the old one.",
+      "page": {
+        "verb": "press"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "click_on_page"
+      },
+      "say": "open the second one",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "handNavigateBeforeLeg": 1,
+    "pageClass": "any"
+  },
+  "summary": "Only the browser invalidates the browser \u2014 and a hand on the page does exactly that."
+}

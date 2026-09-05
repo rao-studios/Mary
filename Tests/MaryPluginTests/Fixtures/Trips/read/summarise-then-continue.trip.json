@@ -1,0 +1,42 @@
+{
+  "category": "read",
+  "id": "summarise-then-continue",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 15000
+      },
+      "routing": {
+        "intent": "ask",
+        "skill": "read_page_text"
+      },
+      "say": "summarise this page for me",
+      "speech": {
+        "ledgerNot": [
+          "chainStalled",
+          "droppedAsRestating"
+        ],
+        "readBack": true,
+        "silence": "forbidden"
+      }
+    },
+    {
+      "note": "read_page_text has no continuation: a page longer than the text budget is read once and the rest is unreachable.",
+      "pending": "round 3",
+      "routing": {
+        "intent": "ask",
+        "skill": "read_page_text"
+      },
+      "say": "keep going",
+      "speech": {
+        "readBack": true,
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "article"
+  },
+  "summary": "A long page read in passages, with a second helping on request."
+}

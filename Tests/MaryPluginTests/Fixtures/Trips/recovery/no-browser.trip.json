@@ -1,0 +1,27 @@
+{
+  "category": "recovery",
+  "id": "no-browser",
+  "legs": [
+    {
+      "engine": {
+        "landed": false,
+        "refusal": "noBrowser"
+      },
+      "note": "Rehearsed with no web-page class on the stage: browsing's ability eligibility does not stand, so its skills are never offered.",
+      "pending": "rehearsal only",
+      "routing": {
+        "lane": "none",
+        "skill": "click_on_page"
+      },
+      "say": "open the first result",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "textedit",
+    "pageClass": "blank"
+  },
+  "summary": "With no browser running the lane says so, rather than offering a page verb that cannot fire."
+}

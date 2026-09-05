@@ -1,0 +1,32 @@
+{
+  "category": "search",
+  "id": "first-video-on-a-page-with-none",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": false
+      },
+      "note": "Counting rows at large used to answer with the first of whatever was there. A refusal costs a retry; a wrong press opens somebody's advert.",
+      "page": {
+        "goalUnmatched": true,
+        "minimumEligible": 5,
+        "refusal": "elementNotFound",
+        "verb": "press"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "click_on_page"
+      },
+      "say": "open the first video",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "resultsPage"
+  },
+  "summary": "An ordinal naming a kind the page holds none of reaches nothing, having considered everything."
+}

@@ -1,0 +1,24 @@
+{
+  "category": "recovery",
+  "id": "navigation-stalls",
+  "legs": [
+    {
+      "engine": {
+        "landed": false,
+        "refusal": "navigationDidNotSettle"
+      },
+      "note": "Replayed against a shell that never changes, with the fake clock \u2014 ten seconds of a suite spent proving something arithmetic is not a test.",
+      "pending": "replay only",
+      "routing": {
+        "intent": "operate",
+        "skill": "open_location"
+      },
+      "say": "go to wikipedia"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "A page that never settles is reported as not having finished, not as having arrived."
+}

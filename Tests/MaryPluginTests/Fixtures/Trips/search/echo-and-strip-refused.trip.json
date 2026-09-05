@@ -1,0 +1,36 @@
+{
+  "category": "search",
+  "id": "echo-and-strip-refused",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000
+      },
+      "note": "Read only. What this pins is on the recording: the echo row and the strip row are both present and both refused by their facts.",
+      "page": {
+        "verb": "openResult",
+        "winner": {
+          "factsAbsent": [
+            "echoOfQuery",
+            "separatedStrip",
+            "bareAddress",
+            "inFurnitureBand"
+          ]
+        }
+      },
+      "routing": {
+        "intent": "perceive",
+        "skill": "read_page"
+      },
+      "say": "what can I click on here",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "resultsPage"
+  },
+  "summary": "The query said back, and the site's own tab strip, are never the answer to a search."
+}

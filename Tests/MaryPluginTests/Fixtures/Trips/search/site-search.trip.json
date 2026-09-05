@@ -1,0 +1,51 @@
+{
+  "category": "search",
+  "id": "site-search",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 10000,
+        "landed": true,
+        "receipt": "textAppeared"
+      },
+      "note": "Not search_web: the address bar would leave the site. fill_in_page with submit is the generic answer and needs nothing site-specific.",
+      "page": {
+        "verb": "fill",
+        "winner": {
+          "affordance": "fill"
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "fill_in_page"
+      },
+      "say": "search this site for alpine touring boots"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "page": {
+        "verb": "openResult",
+        "winner": {
+          "facts": [
+            "inResultGroup"
+          ],
+          "factsAbsent": [
+            "echoOfQuery"
+          ],
+          "ordinalWithinKind": 1
+        }
+      },
+      "say": "open the first one"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "siteWithSearchBox"
+  },
+  "summary": "Searching WITHIN a site: its own box, filled and submitted, then one of its answers."
+}

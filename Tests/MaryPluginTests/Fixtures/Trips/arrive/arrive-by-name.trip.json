@@ -1,0 +1,75 @@
+{
+  "category": "arrive",
+  "id": "arrive-by-name",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "note": "The address is typed into the browser's own bar; the receipt is that it went somewhere and stayed.",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "focused"
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "open_location"
+      },
+      "say": "go to wikipedia",
+      "speech": {
+        "silence": "forbidden"
+      }
+    },
+    {
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "noRequiredArguments",
+        "skill": "navigate_back"
+      },
+      "say": "go back"
+    },
+    {
+      "engine": {
+        "budgetMs": 6000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "noRequiredArguments",
+        "skill": "navigate_forward"
+      },
+      "say": "go forward again"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "noRequiredArguments",
+        "skill": "reload_page"
+      },
+      "say": "reload this page"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "blank"
+  },
+  "summary": "Going somewhere by name, and the three shell verbs that come back from it."
+}

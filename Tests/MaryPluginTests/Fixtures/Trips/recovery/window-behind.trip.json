@@ -1,0 +1,31 @@
+{
+  "category": "recovery",
+  "id": "window-behind",
+  "legs": [
+    {
+      "ambient": {
+        "frontAfter": "restored",
+        "leadBefore": "textedit"
+      },
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "A page is read from pixels; reading a covered window reads whatever covers it.",
+      "provider": {
+        "applicationID": "chrome"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "control_media"
+      },
+      "say": "pause the video"
+    }
+  ],
+  "stage": {
+    "front": "textedit",
+    "pageClass": "watchPage"
+  },
+  "summary": "A window behind another is brought forward before it is read, because its pixels are the other window's."
+}

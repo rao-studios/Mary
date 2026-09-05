@@ -1,0 +1,35 @@
+{
+  "category": "act",
+  "id": "press-by-ordinal-within-kind",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "Ordinal is the top rung of the naming ladder \u2014 no pile of structural priors may outweigh the person having said which one.",
+      "page": {
+        "verb": "press",
+        "winner": {
+          "affordance": "press",
+          "kind": "link",
+          "lexicalBasis": "ordinal",
+          "ordinalWithinKind": 3
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "open the third link"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "resultsPage"
+  },
+  "summary": "A position the person spoke beats every prior, and counts within the kind they named."
+}

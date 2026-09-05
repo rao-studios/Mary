@@ -1,0 +1,24 @@
+{
+  "category": "recovery",
+  "id": "two-browsers-running",
+  "legs": [
+    {
+      "note": "BrowserTargetResolution decides this from names, fresh evidence, on-screen windows and what is running \u2014 asserted as a unit rather than by opening two browsers.",
+      "pending": "resolution unit",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "named"
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "control_media"
+      },
+      "say": "pause the video in chrome"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "With two browsers open the named one wins, then the one recently worked in, and otherwise it asks."
+}
