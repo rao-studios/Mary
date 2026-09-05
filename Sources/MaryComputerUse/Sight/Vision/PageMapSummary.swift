@@ -16,43 +16,10 @@
 import CoreGraphics
 import Foundation
 
-/// What a row can have done to it.
-public enum SeenAffordance: String, Sendable, Equatable, Codable, CaseIterable {
-    case press
-    case fill
-    case adjust
-    case scroll
-    case none
-}
-
-/// Where a row's name came from, weakest last.
-public enum SeenLabelSource: String, Sendable, Equatable, Codable, CaseIterable {
-    case classifier
-    case textInside
-    case textAdjacent
-    case icon
-    case synthesized
-
-    /// Did anything actually name this, or is the name a position?
-    public var isReal: Bool { self != .synthesized }
-}
-
-/// WHY a row carries the affordance it does, weakest last.
-///
-/// PIN: THE OTHER HALF OF `labelSource`, AND IT ARRIVES FOR THE SAME REASON. One says how
-/// sure the reading is of the row's NAME; this says how sure it is that the row can be
-/// acted on at all. "The classifier recognized a button" and "geometry promoted the lead
-/// line of a repeated band" are both `.press`, and anything ranking rows has to be able
-/// to tell them apart — the second is a guess about layout, the first is a recognition.
-public enum SeenAffordanceSource: String, Sendable, Equatable, Codable, CaseIterable {
-    /// The model named the role, and the role says what it affords.
-    case classifier
-    /// Its place in a group said so — the title line of a result row.
-    case grouping
-    /// Its shape said so — a long thin two-tone run is a track.
-    case shape
-    case unknown
-}
+// THE THREE VOCABULARY ENUMS MOVED TO `PageRow.swift`, which is where the row
+// they describe now lives. What is left here is the SIDE-CAR shape — an
+// annotation keyed by ordinal, joined back to a row by hand — kept only until
+// the browsing lane reads `PageRow` directly. See `VisionPageReader.legacyMap`.
 
 /// One row's extra facts.
 public struct SeenElementAnnotation: Sendable, Equatable {

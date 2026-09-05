@@ -46,6 +46,39 @@ public enum PageElementKindDerivation {
             label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
     }
 
+    /// THE KIND OF A ROW A PAGE READ PRODUCED — from what the map actually
+    /// knows, which is its affordance, its words and what the page said around it.
+    ///
+    /// PIN: NO ROLE IS AN ANSWER, NOT A GAP TO FILL. The seal used to invent one
+    /// (`AXLink` when a row looked pressable, `AXStaticText` otherwise) purely so
+    /// an AX-shaped type could be filled, and then this function derived the kind
+    /// back OUT of the invention — so every unclassified pressable row became a
+    /// `link` by way of a role nobody had ever named. When a classifier really
+    /// did name a role, that answer is still the best one there is, and the role
+    /// arm below is used unchanged.
+    /// A DURATION BADGE IS A HINT, NOT A LABEL. "12:04" beside a title is what
+    /// the page says about the row; it is the strongest evidence of a video there
+    /// is, and it never appears in the label at all.
+    public static func kind(
+        role: String?,
+        affordance: SeenAffordance,
+        label: String,
+        hints: [String] = []
+    ) -> PageElementKind? {
+        if let role, role != "VXRegion" {
+            return kind(role: role, subrole: nil, url: nil, label: label, frame: .zero)
+        }
+        if hints.contains(where: hasDurationSignature) { return .video }
+        switch affordance {
+        case .fill: return .field
+        case .adjust: return .slider
+        case .press: return looksPlayable(url: nil, label: label) ? .video : .link
+        // NIL IS A REAL ANSWER: a row of prose is reachable and has no kind, and
+        // saying `.link` about it is how a listing came to offer paragraphs.
+        case .scroll, .none: return nil
+        }
+    }
+
     public static func kind(
         role: String,
         subrole: String?,

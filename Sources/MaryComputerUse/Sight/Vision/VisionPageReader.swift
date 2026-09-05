@@ -35,7 +35,17 @@ public enum VisionPageReader {
     }
 
     public struct Reading: Sendable {
+        /// THE PAGE, IN READING ORDER — the one shape everything above the seal
+        /// should read. Screen points, facts already derived.
+        public var rows: [PageRow]
+        /// The groups those rows sit in.
+        public var groups: [PageGroup]
         /// Rows in reading order, screen points, `provenance == .seen`.
+        ///
+        /// PIN: A SHIM WHILE THE BROWSING LANE MOVES TO `rows`. An AX-shaped
+        /// element with an invented role, kept so the old layer compiles; it is
+        /// derived from `rows` rather than read separately, so the two cannot
+        /// describe different pages.
         public var elements: [AXScreenElement]
         public var media: MediaControlReading?
         /// The region that was read, in screen points.
@@ -49,6 +59,8 @@ public enum VisionPageReader {
         public var map: PageMapSummary
 
         public init(
+            rows: [PageRow] = [],
+            groups: [PageGroup] = [],
             elements: [AXScreenElement] = [],
             media: MediaControlReading? = nil,
             pageFrame: CGRect,
@@ -57,6 +69,8 @@ public enum VisionPageReader {
             classified: Bool = false,
             map: PageMapSummary = PageMapSummary()
         ) {
+            self.rows = rows
+            self.groups = groups
             self.elements = elements
             self.media = media
             self.pageFrame = pageFrame
@@ -170,12 +184,19 @@ public enum VisionPageReader {
         let media = scene.media.map {
             reading(from: $0, scene: scene, pageFrame: pageFrame, capturedAt: scene.capturedAt)
         }
-        var elements: [AXScreenElement] = []
-        var summary = PageMapSummary()
+        var rows: [PageRow] = []
+        var groups: [PageGroup] = []
+        var labeledFraction = 0.0
         if intent == .elements {
-            (elements, summary) = rows(
+            (rows, groups, labeledFraction) = Self.rows(
                 from: scene, pid: pid, appName: appName, windowTitle: windowTitle)
         }
+        // THE SHIMS, DERIVED FROM THE ROWS RATHER THAN READ SEPARATELY, so the
+        // old AX-shaped view and the new one cannot describe different pages.
+        let elements = Self.legacyElements(
+            rows, pid: pid, appName: appName, windowTitle: windowTitle)
+        let summary = Self.legacyMap(
+            rows, groups: groups, labeledFraction: labeledFraction)
 
         ComputerUseMonitor.shared.note(
             lane: .sight, act: "perceive", pid: pid,
@@ -187,6 +208,8 @@ public enum VisionPageReader {
                 + (media.map { " · \($0.others.count) controls · \($0.playback.rawValue)" } ?? "")
                 + " · \(elapsed)")
         return Reading(
+            rows: rows,
+            groups: groups,
             elements: elements,
             media: media,
             pageFrame: pageFrame,
@@ -289,59 +312,127 @@ public enum VisionPageReader {
     static func rows(
         from scene: VisionScene, pid: pid_t, appName: String, windowTitle: String,
         limit: Int = 160
-    ) -> ([AXScreenElement], PageMapSummary) {
+    ) -> (rows: [PageRow], groups: [PageGroup], labeledFraction: Double) {
         let map = scene.pageMap()
-        var rows: [AXScreenElement] = []
-        var annotations: [Int: SeenElementAnnotation] = [:]
+        var rows: [PageRow] = []
         var ordinalByID: [UInt: Int] = [:]
 
         for element in map.elements.prefix(limit) {
             let ordinal = rows.count + 1
+            let group = map.group(element.groupID).map {
+                PageGroupRef(id: $0.id, kind: groupKind($0.kind), title: $0.title)
+            }
             let role = element.role
-                ?? (element.affordance == .press ? "AXLink" : "AXStaticText")
-            let group = map.group(element.groupID)
-            rows.append(AXScreenElement(
+            rows.append(PageRow(
                 ordinal: ordinal,
-                id: AXNodeID(raw: element.id.raw),
+                frame: scene.projection.screenRect(element.frame),
+                label: element.label,
+                labelSource: labelSource(element.labelSource),
+                affordance: affordance(element.affordance),
+                affordanceSource: affordanceSource(element.affordanceSource),
+                // THE KIND, FROM WHAT THE MAP ACTUALLY KNOWS. Never from a role
+                // this seal invented for it — see `PageRow.role`.
+                kind: PageElementKindDerivation.kind(
+                    role: role,
+                    affordance: affordance(element.affordance),
+                    label: element.label,
+                    hints: element.hints),
+                role: role,
+                group: group,
+                hints: element.hints,
+                confidence: element.confidence,
+                isEnabled: element.isEnabled,
+                // SEEN, NOT WALKED. There is no element behind this row to press
+                // by name — only a place on screen to click.
+                provenance: .seen))
+            ordinalByID[element.id.raw] = ordinal
+        }
+
+        let groups = map.groups.map { group in
+            PageGroup(
+                id: group.id,
+                kind: groupKind(group.kind),
+                title: group.title,
+                memberOrdinals: group.memberIDs.compactMap { ordinalByID[$0.raw] }.sorted())
+        }
+        // ONE PASS, AT THE SEAL. Every consumer sees the same answers to the same
+        // questions — see `RowFacts`.
+        return (
+            RowFactsDerivation.derive(rows: rows, groups: groups),
+            groups,
+            map.labeledFraction)
+    }
+
+    // MARK: - The shims
+
+    /// `PageRow` as the AX-shaped element the old browsing layer still reads.
+    ///
+    /// PIN: TEMPORARY, AND DERIVED — NOT A SECOND READING. The role is invented
+    /// here exactly as it used to be invented at the seal, but now it is invented
+    /// LAST, out of a row that already knows its own kind, rather than first and
+    /// then mined for one. Deleted with the old layer.
+    static func legacyElements(
+        _ rows: [PageRow], pid: pid_t, appName: String, windowTitle: String
+    ) -> [AXScreenElement] {
+        rows.map { row in
+            let role = row.role
+                ?? (row.affordance == .press ? "AXLink" : "AXStaticText")
+            return AXScreenElement(
+                ordinal: row.ordinal,
+                id: AXNodeID(raw: UInt(row.ordinal)),
                 pid: pid,
                 appName: appName,
                 windowID: AXNodeID(raw: 1),
                 windowTitle: windowTitle,
                 role: role,
-                subrole: element.subrole,
-                category: AXNodeCategory.category(role: role, subrole: element.subrole),
-                label: element.label,
-                frame: scene.projection.screenRect(element.frame),
-                isEnabled: element.isEnabled,
+                subrole: nil,
+                category: AXNodeCategory.category(role: role, subrole: nil),
+                label: row.label,
+                frame: row.frame,
+                isEnabled: row.isEnabled,
                 isFocused: false,
-                // THE GROUP IS THE ROW'S CONTEXT, and it is what lets a listing say
-                // which of four "Watch" buttons is meant.
-                containerTrail: [group?.title, group.map { $0.kind.rawValue }]
+                containerTrail: [row.group?.title, row.group?.kind.rawValue]
                     .compactMap { $0 }
                     .filter { !$0.isEmpty },
-                // SEEN, NOT WALKED. There is no element behind this row to press by
-                // name — only a place on screen to click.
-                provenance: .seen))
-            annotations[ordinal] = SeenElementAnnotation(
-                affordance: affordance(element.affordance),
-                affordanceSource: affordanceSource(element.affordanceSource),
-                labelSource: labelSource(element.labelSource),
-                hints: element.hints,
-                groupID: element.groupID,
-                confidence: element.confidence)
-            ordinalByID[element.id.raw] = ordinal
+                provenance: row.provenance)
         }
+    }
 
-        let groups = map.groups.map { group in
-            SeenGroup(
-                id: group.id,
-                kind: group.kind.rawValue,
-                title: group.title,
-                memberOrdinals: group.memberIDs.compactMap { ordinalByID[$0.raw] }.sorted())
+    /// The side-car the old layer joins by ordinal. Same origin, same answers.
+    static func legacyMap(
+        _ rows: [PageRow], groups: [PageGroup], labeledFraction: Double
+    ) -> PageMapSummary {
+        var annotations: [Int: SeenElementAnnotation] = [:]
+        for row in rows {
+            annotations[row.ordinal] = SeenElementAnnotation(
+                affordance: row.affordance,
+                affordanceSource: row.affordanceSource,
+                labelSource: row.labelSource,
+                hints: row.hints,
+                groupID: row.group?.id,
+                confidence: row.confidence)
         }
-        return (rows, PageMapSummary(
-            groups: groups, annotations: annotations,
-            labeledFraction: map.labeledFraction))
+        return PageMapSummary(
+            groups: groups.map {
+                SeenGroup(
+                    id: $0.id, kind: $0.kind.rawValue, title: $0.title,
+                    memberOrdinals: $0.memberOrdinals)
+            },
+            annotations: annotations,
+            labeledFraction: labeledFraction)
+    }
+
+    /// Vocabulary conversion, spelled out for the reason the others are.
+    private static func groupKind(_ value: PageGroupKind) -> SeenGroupKind {
+        switch value {
+        case .row: return .row
+        case .card: return .card
+        case .list: return .list
+        case .form: return .form
+        case .toolbar: return .toolbar
+        case .overlay: return .overlay
+        case .band: return .band
+        }
     }
 
     /// Vocabulary conversions, spelled out for the same reason the glyph one is: both
