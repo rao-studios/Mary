@@ -134,7 +134,7 @@ final class SandTurnHost: ObservableObject {
             // own schedule.
             await brain.setTurnContextPreparer { [weak self] in
                 await self?.publishStagedSurface()
-                TurnPerceptionPublisher.publishAll()
+                await TurnPerceptionPublisher.publishAll()
             }
             // THE ROSTER THE TURN USED, not one arbitrated afterwards. See
             // `refreshRouteAndTrace`, which now reads only the route.

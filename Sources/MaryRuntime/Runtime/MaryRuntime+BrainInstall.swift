@@ -156,7 +156,7 @@ extension MaryRuntime {
             }
             // Declared perceptions — dispatch asks what Mary observes now. In MaryBrain
             // so the bench publishes the same two (see TurnPerceptionPublisher).
-            TurnPerceptionPublisher.publishAll()
+            await TurnPerceptionPublisher.publishAll(adapters: adapters)
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)
@@ -178,6 +178,10 @@ extension MaryRuntime {
             AbilityRuntime(
                 plugins: adapters,
                 focusProvider: { resolveFocus(deps: deps).leadOwner },
+                // THE PINNED RUNG, FILLED. The tracker's pin is the one user
+                // gesture that already changes routing; the provider ladder
+                // declared a place for it and was handed nil.
+                pinnedProvider: { WorkspaceFocusTracker.shared.pinned()?.applicationID },
                 behavior: brainWiring.behavior
             ) {
                 AbilityExecutionContext(projects: projects)

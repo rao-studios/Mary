@@ -212,6 +212,21 @@ public protocol MaryAdapter: Sendable {
     /// Bindings that answer what the user is looking at, and what surrounds it.
     /// Nil for every provider that is not an awareness faculty.
     var awarenessRead: AwarenessRead? { get }
+
+    /// The declared perceptions this adapter publishes at the TOP of a turn,
+    /// before anything is routed.
+    ///
+    /// PIN: THE ADAPTER SAYS WHAT IT PERCEIVES; THE BRAIN ONLY ASKS. This was
+    /// two hard-coded functions inside MaryBrain that named `MediaSurfaceAX`,
+    /// `WebSurfaceAX`, `BrowserEngine` and two literal type ids — so the brain
+    /// knew what a browser was, and a third surface could not publish without
+    /// editing it. Empty by default: an adapter that perceives nothing says
+    /// nothing and costs nothing.
+    /// A SHELL, NEVER CONTENTS. Whatever is returned here runs on EVERY turn,
+    /// so it must be a cheap read of what is already visible — a player's
+    /// transport, a browser's title. Reading a page means reading pixels, and
+    /// pixels are read when a Skill asks.
+    func turnPerceptions() async -> [DeclaredPerception]
     /// Addressable containers. Nil for a single-document world.
     /// OUT: ReferenceResolver. PIN: ContainerRoster.cached must not spawn.
     var containerRoster: ContainerRoster? { get }
@@ -251,6 +266,7 @@ public extension MaryAdapter {
     var targetedRead: (binding: String, parameter: String)? { nil }
     var readOwnerAliases: [String] { [] }
     var awarenessRead: AwarenessRead? { nil }
+    func turnPerceptions() async -> [DeclaredPerception] { [] }
     var containerRoster: ContainerRoster? { nil }
     var refusals: [String] { [] }
 

@@ -99,6 +99,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     let contextProvider: @Sendable () -> AbilityExecutionContext
     /// Plugin whose Skills hoist to the front of the roster. Nil keeps natural order.
     let focusProvider: (@Sendable () -> String?)?
+    /// THE PLACE THE PERSON PLANTED A FLAG IN, when they planted one.
+    ///
+    /// PIN: INJECTED LIKE `focusProvider`, AND FOR ITS REASON. The provider
+    /// ladder has always spelled `named > interaction > pinned > focused >
+    /// habit`, and the pinned rung was hard-wired nil with a comment saying "no
+    /// pinning surface exists yet" — while `WorkspaceFocusTracker.pin` had been
+    /// the debugger's focus-correction control the whole time. A rung the spec
+    /// declares and nothing fills is a ladder with a hole in it.
+    let pinnedProvider: (@Sendable () -> String?)?
     let pendingStore: PendingSkillStore
     /// Session ledger for real executions — leaves only, so parked confirms stay off it.
     let executionLog: AbilityExecutionLog
@@ -148,6 +157,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         plugins: [any MaryAdapter],
         standalone: [SkillBinding] = [],
         focusProvider: (@Sendable () -> String?)? = nil,
+        pinnedProvider: (@Sendable () -> String?)? = nil,
         executionLog: AbilityExecutionLog = .shared,
         behavior: BehavioralAssembler? = nil,
         world: AmbientWorld = .shared,
@@ -216,6 +226,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         self.servedAttentions = attentions
         self.contextProvider = contextProvider
         self.focusProvider = focusProvider
+        self.pinnedProvider = pinnedProvider
         self.executionLog = executionLog
         self.world = world
         self.passages = passages

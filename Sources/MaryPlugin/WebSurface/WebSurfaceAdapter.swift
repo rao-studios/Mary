@@ -84,6 +84,31 @@ public struct WebSurfaceAdapter: MaryAdapter {
         AwarenessRead(unit: "read_page_text", surroundings: "current_page")
     }
 
+    /// WHICH PAGE THE BROWSER IS ON, every turn.
+    ///
+    /// PIN: THE SHELL, NEVER THE PAGE. Title and site come from Accessibility;
+    /// what is INSIDE the page is pixels, and pixels are read when a Skill asks
+    /// and at no other time. THE SITE, NOT THE ADDRESS — a URL in a transcript
+    /// is both unreadable and more than was asked for.
+    /// The same sentence `current_page` answers with, so the prompt line and
+    /// the spoken answer never drift.
+    public func turnPerceptions() async -> [DeclaredPerception] {
+        guard let (registration, pid) = support.resolve(nil),
+              let reading = WebSurfaceAX.read(pid: pid, registration: registration)
+        else { return [] }
+        return [DeclaredPerception(
+            schemaID: "perception.page-context",
+            value: ValueEnvelope(
+                typeID: "browsing.page-report",
+                value: .string(
+                    BrowserEngine.spoken(reading, browser: registration.displayName)),
+                // Scope = process read. Two browsers hold two readings.
+                scope: SourceScope(
+                    applicationID: registration.applicationID, processID: pid),
+                provenance: .init(operation: "current_page"),
+                privacy: .private))]
+    }
+
     public var refusals: [String] {
         ["I can't fill in a page that shows me no field to type into."]
     }

@@ -2,25 +2,25 @@
 //  TurnPerceptionPublisher.swift
 //  MaryBrain
 //
-//  WHAT: The declared perceptions a turn publishes before anything is routed — what is
-//        playing, and what page a browser is on.
-//  IN:   MediaSurfaceSupport / WebSurfaceSupport (MaryPlugin)
+//  WHAT: The declared perceptions a turn publishes before anything is routed.
+//  IN:   whatever adapters declare `turnPerceptions()`
 //  OUT:  SchemaSignalRuntime.publishPerception
-//  PIN:  IN MARYBRAIN BECAUSE SAND CANNOT REACH MARYRUNTIME. These were `static` on
-//        MaryRuntime, which the app and the probes link and Sand deliberately does not —
-//        it wants the ability graph and the hands, not Granite, Totem or a model. Every
-//        call below is a public MaryPlugin or MaryBrain entry point, so they belong
-//        beside the runtime that consumes them. Same reasoning as
-//        `AbilityRuntime+SurfaceRegistrations`.
-//        A BENCH THAT ROUTES WITHOUT THESE IS NOT ROUTING THE SAME TURN. A browsing
-//        request arbitrated with no page evidence takes a different path from the one
-//        Mary takes, which makes the bench a story rather than a rehearsal.
-//        ACCESSIBILITY ONLY, EVERY TURN. Both read a shell — a player's transport, a
-//        browser's title and address field — and never a page's contents. Reading a page
-//        means reading pixels, and pixels are read when a Skill asks, never on a turn's
-//        own schedule.
-//        THE SITE, NOT THE ADDRESS. What reaches the prompt is "youtube", because a URL
-//        in a transcript is both unreadable and more than was asked for.
+//  PIN:  IT ASKS; IT DOES NOT KNOW. This file used to hold two hard-coded
+//        readers naming `MediaSurfaceSupport`, `MediaSurfaceAX`,
+//        `WebSurfaceSupport`, `WebSurfaceAX`, `BrowserEngine` and four literal
+//        schema ids — so MaryBrain knew what a browser and a music player were,
+//        and a third surface could not publish a perception without editing the
+//        brain. An adapter states what it perceives; this collects.
+//        IN MARYBRAIN BECAUSE SAND CANNOT REACH MARYRUNTIME. Sand wants the
+//        ability graph and the hands, not Granite, Totem or a model, so the
+//        collector lives beside the runtime that consumes it — the same
+//        reasoning as `AbilityRuntime+SurfaceRegistrations`.
+//        A BENCH THAT ROUTES WITHOUT THESE IS NOT ROUTING THE SAME TURN. A
+//        browsing request arbitrated with no page evidence takes a different
+//        path from the one Mary takes, which makes the bench a story rather
+//        than a rehearsal.
+//        THE ADAPTER IT ASKED IS THE ADAPTER IT STAMPS, so a perception can
+//        never be attributed to a provider that did not produce it.
 //
 
 import Foundation
@@ -33,66 +33,31 @@ public enum TurnPerceptionPublisher {
     private static let log = Logger(
         subsystem: "nyc.rao.mary", category: "turn-perception")
 
-    /// Publish everything a turn declares, in one call. What a turn-context preparer
-    /// wants; the two halves stay separate for callers that need only one.
-    public static func publishAll() {
-        publishPlayerTransport()
-        publishPageContext()
-    }
-
-    /// Read the running declared player; record transport. Silent if none.
-    public static func publishPlayerTransport() {
-        guard let (registration, pid) = MediaSurfaceSupport.shared.resolve(nil),
-              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
-        else { return }
-
-        // Same sentence `now_playing` answers with — Perception and Skill must not drift.
-        let summary = MediaSurfaceAdapter.spoken(reading, registration: registration)
-        let envelope = ValueEnvelope(
-            typeID: "multimedia.now-playing-report",
-            value: .string(summary),
-            // Scope = process read. Two players hold two readings.
-            scope: SourceScope(
-                applicationID: registration.applicationID,
-                processID: pid),
-            provenance: .init(operation: "now_playing"),
-            privacy: .private)
-
-        publish(
-            envelope, as: "perception.player-transport",
-            // Adapter that declared and read it (`media-surface`).
-            adapterID: "media-surface", what: "player transport")
-    }
-
-    /// Read the browser in use; record which page it is on. Silent if none.
-    public static func publishPageContext() {
-        guard let (registration, pid) = WebSurfaceSupport.shared.resolve(nil),
-              let reading = WebSurfaceAX.read(pid: pid, registration: registration)
-        else { return }
-
-        // The same sentence `current_page` answers with — Perception and Skill must not
-        // drift, or the prompt line and the spoken answer describe different pages.
-        let summary = BrowserEngine.spoken(reading, browser: registration.displayName)
-        let envelope = ValueEnvelope(
-            typeID: "browsing.page-report",
-            value: .string(summary),
-            // Scope = process read. Two browsers hold two readings.
-            scope: SourceScope(
-                applicationID: registration.applicationID,
-                processID: pid),
-            provenance: .init(operation: "current_page"),
-            privacy: .private)
-
-        publish(
-            envelope, as: "perception.page-context",
-            adapterID: "web-surface", what: "page context")
+    /// Publish everything the installed adapters declare, in one call.
+    ///
+    /// Sequential rather than concurrent on purpose: each reader is a bounded
+    /// Accessibility read of one shell, they run on every turn, and a burst of
+    /// parallel AX walks is exactly the cost this layer is careful about.
+    public static func publishAll(
+        adapters: [any MaryAdapter] = MaryAdapterCatalog.adapters()
+    ) async {
+        for adapter in adapters {
+            let declared = await adapter.turnPerceptions()
+            guard !declared.isEmpty else { continue }
+            let adapterID = AdapterID.normalized(adapter.name)
+            for perception in declared {
+                publish(
+                    perception.value, as: perception.schemaID,
+                    adapterID: adapterID, what: perception.schemaID.rawValue)
+            }
+        }
     }
 
     /// One publish, one refusal shape.
     ///
-    /// An authoring mismatch (wrong type, wrong privacy, undeclared perception) is
-    /// logged rather than swallowed: it means a package and its adapter disagree, which
-    /// is a thing to fix and not a thing to survive quietly.
+    /// An authoring mismatch (wrong type, wrong privacy, undeclared perception)
+    /// is logged rather than swallowed: it means a package and its adapter
+    /// disagree, which is a thing to fix and not a thing to survive quietly.
     private static func publish(
         _ envelope: ValueEnvelope, as schemaID: PerceptionID,
         adapterID: AdapterID, what: String

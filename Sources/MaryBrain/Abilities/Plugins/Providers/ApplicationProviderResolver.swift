@@ -18,8 +18,9 @@ struct ApplicationProviderSignals: Hashable, Sendable {
     /// The application that OWNS this turn's accepted interaction packet —
     /// a selection the route admitted as the referent.
     var interactionApplicationID: String?
-    /// Reserved: no pinning surface exists yet. Always nil until one does,
-    /// kept so the precedence ladder is the spec's, not a subset of it.
+    /// The place the person planted a flag in — `WorkspaceFocusTracker.pin`.
+    /// Above the frontmost window on purpose: a pin is a correction, and a
+    /// correction that loses to whatever came forward is not one.
     var pinnedApplicationID: String?
     /// The application whose window is frontmost, when it maps to a profile.
     var focusedApplicationID: String?

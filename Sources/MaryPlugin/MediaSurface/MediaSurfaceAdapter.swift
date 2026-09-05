@@ -33,6 +33,29 @@ public struct MediaSurfaceAdapter: MaryAdapter {
          listPlaylists, findPlaylist, playPlaylist, shufflePlaylist]
     }
 
+    /// WHAT IS PLAYING, read from the player's own shell, every turn.
+    ///
+    /// PIN: THE SAME SENTENCE `now_playing` ANSWERS WITH, so the prompt line and
+    /// the spoken answer can never drift. Accessibility only — a transport is a
+    /// control the player publishes, and nothing here looks at pixels. This
+    /// lived in MaryBrain as a hard-coded function naming this adapter's own
+    /// types; an adapter says what it perceives and the brain only asks.
+    public func turnPerceptions() async -> [DeclaredPerception] {
+        guard let (registration, pid) = support.resolve(nil),
+              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+        else { return [] }
+        return [DeclaredPerception(
+            schemaID: "perception.player-transport",
+            value: ValueEnvelope(
+                typeID: "multimedia.now-playing-report",
+                value: .string(Self.spoken(reading, registration: registration)),
+                // Scope = process read. Two players hold two readings.
+                scope: SourceScope(
+                    applicationID: registration.applicationID, processID: pid),
+                provenance: .init(operation: "now_playing"),
+                privacy: .private))]
+    }
+
     /// WHAT THIS ADAPTER REACHES, SAID ONCE — because the only sentence in the
     /// whole system prompt about pausing anything used to be the browsing
     /// adapter's, and it told the model not to do this.
