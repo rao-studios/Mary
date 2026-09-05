@@ -73,7 +73,7 @@ func printRoute(_ arbitration: PageRouteArbitration) {
     for decision in ordered {
         let evidence = decision.evidence
         print(String(format: "  %-4d %-22@ %5d %5d %5d %5d %5d  %@",
-                     decision.ordinal,
+                     decision.id,
                      decision.disposition.rawValue as NSString,
                      evidence.lexical, evidence.semantic, evidence.structure,
                      evidence.affordance, evidence.provenance,

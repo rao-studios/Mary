@@ -140,9 +140,9 @@ public enum WebSearchRecipe {
         return found * 2 >= words.count
     }
 
-    /// The one folding this lane compares with — the router's, so a query judged a
+    /// The one folding this lane compares with — the SEAL's, so a query judged a
     /// match here and an echo there cannot disagree about what the words were.
-    static func fold(_ value: String) -> String { PageRouter.fold(value) }
+    static func fold(_ value: String) -> String { RowFactsDerivation.folded(value) }
 }
 
 extension BrowserEngine {

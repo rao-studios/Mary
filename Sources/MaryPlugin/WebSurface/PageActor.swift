@@ -368,8 +368,14 @@ extension BrowserEngine {
         switch await perceive(target, shell: shell, intent: .elements, reveal: false) {
         case .failure(let refusal): return .failure(refusal)
         case .success(let reading):
+            // THE READING'S OWN ROWS, whose facts were decided once at the seal.
+            // The AX-shaped pair rides along for the parts of this lane that
+            // still read it, and goes with them.
             let roster = PageRoster(
-                elements: reading.elements, map: reading.map,
+                rows: reading.rows,
+                groups: reading.groups,
+                elements: reading.elements,
+                map: reading.map,
                 pageFrame: reading.pageFrame)
             emit(.read(
                 rows: roster.elements.count,
@@ -398,7 +404,12 @@ extension BrowserEngine {
         let arbitration = arbitrate(phrase, verb: verb, in: roster)
         if let winner = arbitration.winner {
             emit(.matched(phrase: phrase, to: winner.label))
-            return .success(winner)
+            // THE ROUTER ANSWERS IN ROWS; the executor and its receipts still
+            // speak the AX-shaped element. Looked up by ordinal, which is the one
+            // identity both views share. Both halves go with the shim.
+            if let element = roster.elements.first(where: { $0.ordinal == winner.ordinal }) {
+                return .success(element)
+            }
         }
         return .failure(arbitration.refusal ?? .elementNotFound(phrase))
     }

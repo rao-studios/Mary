@@ -22,19 +22,113 @@ import MaryComputerUse
 
 /// One page read, ready to be spoken about.
 public struct PageRoster: Sendable {
+    /// THE PAGE, IN READING ORDER — the one shape the router and the slate read.
+    ///
+    /// PIN: STORED WHEN A READING PRODUCED IT, DERIVED WHEN ONLY THE SHIM EXISTS.
+    /// A real read hands over rows whose facts were decided once at the seal, and
+    /// those are kept as they are. A roster built from the AX-shaped pair — a
+    /// recorded fixture, a test stating a page by hand — has no rows to keep, so
+    /// they are derived on demand from `elements` and `map`, which is what the
+    /// old computed property did and what keeps a caller that EDITS those two
+    /// honest. Both branches go when the shim does.
+    public var rows: [PageRow] {
+        storedRows ?? Self.derivedRows(elements: elements, map: map).rows
+    }
+
+    /// The groups those rows sit in.
+    public var groups: [PageGroup] {
+        storedGroups ?? Self.derivedRows(elements: elements, map: map).groups
+    }
+
+    private var storedRows: [PageRow]?
+    private var storedGroups: [PageGroup]?
+
+    /// The AX-shaped view, for the parts of this lane that still read it.
+    /// PIN: A SHIM, deleted with the old executor.
     public var elements: [AXScreenElement]
     public var map: PageMapSummary
     public var pageFrame: CGRect
     public var capturedAt: Date
 
+    /// The real one: a reading's own rows, facts already derived.
     public init(
-        elements: [AXScreenElement], map: PageMapSummary = PageMapSummary(),
-        pageFrame: CGRect = .zero, capturedAt: Date = Date()
+        rows: [PageRow],
+        groups: [PageGroup] = [],
+        elements: [AXScreenElement] = [],
+        map: PageMapSummary = PageMapSummary(),
+        pageFrame: CGRect = .zero,
+        capturedAt: Date = Date()
     ) {
+        // NO ROWS BUT ELEMENTS IS THE SHIM CASE, whoever built it. A reading
+        // that filled only the AX-shaped pair — a fake in a suite, a recorded
+        // fixture, an older caller — has no rows to keep, and storing its empty
+        // list would describe a page with nothing on it. Deriving is the honest
+        // answer, and it is the same one the elements-only initializer gives.
+        let hasRows = !rows.isEmpty || elements.isEmpty
+        self.storedRows = hasRows ? rows : nil
+        self.storedGroups = hasRows ? groups : nil
         self.elements = elements
         self.map = map
         self.pageFrame = pageFrame
         self.capturedAt = capturedAt
+    }
+
+    /// THE INVERSE SHIM: an AX-shaped reading, joined back into rows on demand.
+    ///
+    /// PIN: IT REVERSES EXACTLY WHAT `VisionPageReader.legacyElements`/`legacyMap`
+    /// PRODUCED, so a roster built either way describes the same page.
+    public init(
+        elements: [AXScreenElement],
+        map: PageMapSummary = PageMapSummary(),
+        pageFrame: CGRect = .zero,
+        capturedAt: Date = Date()
+    ) {
+        self.storedRows = nil
+        self.storedGroups = nil
+        self.elements = elements
+        self.map = map
+        self.pageFrame = pageFrame
+        self.capturedAt = capturedAt
+    }
+
+    static func derivedRows(
+        elements: [AXScreenElement], map: PageMapSummary
+    ) -> (rows: [PageRow], groups: [PageGroup]) {
+        let groups = map.groups.map { group in
+            PageGroup(
+                id: group.id,
+                kind: SeenGroupKind(rawValue: group.kind) ?? .band,
+                title: group.title,
+                memberOrdinals: group.memberOrdinals)
+        }
+        let groupByOrdinal = Dictionary(
+            groups.flatMap { group in
+                group.memberOrdinals.map {
+                    ($0, PageGroupRef(id: group.id, kind: group.kind, title: group.title))
+                }
+            },
+            uniquingKeysWith: { first, _ in first })
+        let rows = elements.map { element -> PageRow in
+            let annotation = map.annotation(forOrdinal: element.ordinal)
+            return PageRow(
+                ordinal: element.ordinal,
+                frame: element.frame,
+                label: element.label,
+                // NO ANNOTATION IS NOT A GUESSED NAME. A row the map said nothing
+                // about still carries whatever the reading put in its label, and
+                // the fixtures that state pages by hand rely on that.
+                labelSource: annotation?.labelSource ?? .textInside,
+                affordance: annotation?.affordance ?? .none,
+                affordanceSource: annotation?.affordanceSource ?? .unknown,
+                kind: element.spokenKind,
+                role: element.role,
+                group: groupByOrdinal[element.ordinal],
+                hints: annotation?.hints ?? [],
+                confidence: annotation?.confidence ?? 0,
+                isEnabled: element.isEnabled,
+                provenance: element.provenance)
+        }
+        return (RowFactsDerivation.derive(rows: rows, groups: groups), groups)
     }
 
     /// Only what can be acted on. What a phrase is resolved against.

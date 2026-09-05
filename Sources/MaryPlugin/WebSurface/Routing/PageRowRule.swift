@@ -55,7 +55,7 @@ public enum PageRowRule: AmbientElementRuleset {
     }
 
     public static func records(
-        for rows: [PageRosterRow], scope: AmbientElementScope
+        for rows: [PageRow], scope: AmbientElementScope
     ) -> [AmbientElementRecord] {
         rows.compactMap { row in
             let label = row.label.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -69,7 +69,7 @@ public enum PageRowRule: AmbientElementRuleset {
                 embedTexts: [label.lowercased(), "\(kind) labelled \(label.lowercased())"],
                 capabilities: capabilities(
                     for: row.affordance, isEnabled: row.isEnabled),
-                displaySummary: row.groupTitle ?? label)
+                displaySummary: row.group?.title ?? label)
         }
     }
 
@@ -83,85 +83,18 @@ public enum PageRowRule: AmbientElementRuleset {
     /// ever scores the roster it was handed. Identity across reads is
     /// `PageReceipts.relocate`'s job, by name and place, and it stays there.
     public static func identity(ordinal: Int) -> String { "r\(ordinal)" }
+
+    /// …and back. The slate answers by key; the arbitration scores by ordinal.
+    public static func ordinal(fromIdentity identity: String) -> Int? {
+        guard identity.hasPrefix("r") else { return nil }
+        return Int(identity.dropFirst())
+    }
 }
 
-/// One row of a page read, flattened out of the roster.
-///
-/// PIN: FLATTENED ONCE, READ MANY TIMES. The roster keeps rows and their annotations in
-/// two structures joined by ordinal, and the router asks five questions of every row for
-/// every goal. Doing that join per question was the shape that made the old ladders read
-/// `annotation(for:)` in four places and disagree in one of them.
-/// IT IS SPOKEN-REFERABLE, so the naming ladder runs over exactly these rows rather than
-/// over a parallel array that could fall out of step with them.
-public struct PageRosterRow: Sendable, Equatable, SpokenReferable {
-    public var ordinal: Int
-    public var label: String
-    /// Nil when the reading named no kind — a text row, reachable but uncounted.
-    public var kind: PageElementKind?
-    public var affordance: SeenAffordance
-    public var affordanceSource: SeenAffordanceSource
-    public var labelSource: SeenLabelSource
-    /// A duration badge, a promotion marker.
-    public var hints: [String]
-    /// How sure the reading is of this row, 0...1. Zero means "not said".
-    public var confidence: Double
-    public var isEnabled: Bool
-    public var groupTitle: String?
-
-    public init(
-        ordinal: Int,
-        label: String,
-        kind: PageElementKind? = nil,
-        affordance: SeenAffordance = .none,
-        affordanceSource: SeenAffordanceSource = .unknown,
-        labelSource: SeenLabelSource = .textInside,
-        hints: [String] = [],
-        confidence: Double = 0,
-        isEnabled: Bool = true,
-        groupTitle: String? = nil
-    ) {
-        self.ordinal = ordinal
-        self.label = label
-        self.kind = kind
-        self.affordance = affordance
-        self.affordanceSource = affordanceSource
-        self.labelSource = labelSource
-        self.hints = hints
-        self.confidence = confidence
-        self.isEnabled = isEnabled
-        self.groupTitle = groupTitle
-    }
-
-    /// The word a person would say for this row's kind.
-    public var kindWord: String { kind?.spokenWord ?? "text" }
-
-    /// Something wrote this name; the reading did not invent it from a position.
-    public var isNamed: Bool { labelSource.isReal && !label.isEmpty }
-
+/// `PageRow` is spoken-referable, so the naming ladder runs over exactly the
+/// rows the router scores rather than over a parallel array that could fall out
+/// of step with them.
+extension PageRow: SpokenReferable {
     public var spokenLabel: String { label }
     public var spokenKind: PageElementKind? { kind }
-}
-
-public extension PageRoster {
-
-    /// Every row, flattened for the ruleset and the router — in reading order.
-    var rows: [PageRosterRow] {
-        elements.map { element in
-            let annotation = annotation(for: element)
-            return PageRosterRow(
-                ordinal: element.ordinal,
-                label: element.label,
-                kind: element.spokenKind,
-                affordance: annotation?.affordance ?? .none,
-                affordanceSource: annotation?.affordanceSource ?? .unknown,
-                // NO ANNOTATION IS NOT A GUESSED NAME. A row the map said nothing about
-                // still carries whatever the reading put in its label, and the fixtures
-                // that build rosters by hand rely on that reading the same way.
-                labelSource: annotation?.labelSource ?? .textInside,
-                hints: annotation?.hints ?? [],
-                confidence: annotation?.confidence ?? 0,
-                isEnabled: element.isEnabled,
-                groupTitle: element.containerTrail.first)
-        }
-    }
 }

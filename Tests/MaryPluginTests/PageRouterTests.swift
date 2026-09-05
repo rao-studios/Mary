@@ -64,7 +64,7 @@ private func published(
             goal: "alpine touring boots reviewed", verb: .press, roster: page)
 
         #expect(routed.trace.decisions.count == 3)
-        #expect(routed.trace.decisions.map(\.ordinal) == [1, 2, 3])
+        #expect(routed.trace.decisions.map(\.id) == [1, 2, 3])
         #expect(routed.trace.decisions.allSatisfy { !$0.reason.isEmpty })
         #expect(routed.winner?.label == "Alpine touring boots reviewed")
         #expect(routed.trace.selected.first?.disposition == .selected)
@@ -393,7 +393,7 @@ private func published(
 
         #expect(routed.winner == nil, "nothing on this page may be pressed")
         let reasons = Dictionary(
-            uniqueKeysWithValues: routed.trace.decisions.map { ($0.ordinal, $0.reason) })
+            uniqueKeysWithValues: routed.trace.decisions.map { ($0.id, $0.reason) })
         #expect(reasons[1] == "was named but sits in no result group")
         #expect(reasons[2] == "is an address, not a title")
         #expect(reasons[3] == "was named but sits in no result group")
@@ -445,11 +445,11 @@ private func published(
     /// named well enough to look exactly like an answer. A title that happens to carry a
     /// separator has two segments and a long one, so the same test leaves it alone.
     @Test func aRowOfShortNamesJoinedBySeparatorsIsAStrip() {
-        #expect(PageRouter.isSeparatedStrip("News + AI Chat & Images · Videos · Web"))
-        #expect(PageRouter.isSeparatedStrip("Home • About • Contact • Jobs"))
-        #expect(!PageRouter.isSeparatedStrip(
+        #expect(RowFactsDerivation.isSeparatedStrip("News + AI Chat & Images · Videos · Web"))
+        #expect(RowFactsDerivation.isSeparatedStrip("Home • About • Contact • Jobs"))
+        #expect(!RowFactsDerivation.isSeparatedStrip(
             "Fred again.. Boiler Room London · 1:02:33"))
-        #expect(!PageRouter.isSeparatedStrip("Alpine touring boots reviewed"))
+        #expect(!RowFactsDerivation.isSeparatedStrip("Alpine touring boots reviewed"))
     }
 
     /// AND WHERE THE PAGE DOES LAY ITS ANSWERS OUT, the same rows are reachable. The
@@ -558,7 +558,7 @@ private func published(
 
         #expect(routed.winner?.label == "Alpine touring boots reviewed")
         let reasons = Dictionary(
-            uniqueKeysWithValues: routed.trace.decisions.map { ($0.ordinal, $0.reason) })
+            uniqueKeysWithValues: routed.trace.decisions.map { ($0.id, $0.reason) })
         #expect(reasons[1] == "is too short to be a result")
         #expect(reasons[2] == "is a call to action")
         #expect(reasons[3] == "is the query echoed back")

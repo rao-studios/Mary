@@ -105,7 +105,7 @@ public enum PageMapProjection {
         route: PageRouteTrace? = nil
     ) -> [PageMapRow] {
         let dispositions = Dictionary(
-            (route?.decisions ?? []).map { ($0.ordinal, $0.disposition) },
+            (route?.decisions ?? []).map { ($0.id, $0.disposition) },
             uniquingKeysWith: { first, _ in first })
         return roster.elements.compactMap { element in
             let rect = plane.viewRect(for: element.frame, in: size)
@@ -170,8 +170,8 @@ public enum PageMapProjection {
             }
         return ordered.map { decision in
             PageRouteLine(
-                id: decision.ordinal,
-                text: "\(decision.ordinal) · \(decision.kind) · \(decision.label)"
+                id: decision.id,
+                text: "\(decision.id) · \(decision.kind) · \(decision.label)"
                     + " · \(decision.evidence.total) · \(decision.disposition.rawValue)",
                 reason: decision.reason,
                 disposition: decision.disposition)

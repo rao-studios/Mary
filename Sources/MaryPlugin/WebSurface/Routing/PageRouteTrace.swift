@@ -58,18 +58,14 @@ public enum PageRouteVerb: Sendable, Equatable {
 }
 
 /// What became of one row.
-public enum PageRouteDisposition: String, Sendable, Equatable, Codable, CaseIterable {
-    /// The one row this goal reaches.
-    case selected
-    /// Cannot serve this verb at all — the gate's answer, before any ranking.
-    case ineligible
-    /// Eligible, but nothing about it answers the goal.
-    case belowFloor
-    /// Answered, and something answered better.
-    case outranked
-    /// Answered exactly as well as another row. A tie is a question, not a coin flip.
-    case clarificationRequired
-}
+///
+/// PIN: THE ARBITRATION'S OWN VOCABULARY, not a second copy of it. These were
+/// hand-written twins of `ArbitrationDisposition`, `ArbitrationDecision` and
+/// `ArbitrationTrace` — same cases, same fields, same meanings — which is what
+/// let the page's answers and the roster's stop being comparable.
+public typealias PageRouteDisposition = ArbitrationDisposition
+public typealias PageRouteDecision = ArbitrationDecision<Int, PageRouteEvidence>
+public typealias PageRouteTrace = ArbitrationTrace<Int, PageRouteEvidence>
 
 /// Which rung of the naming ladder reached this row.
 public enum PageRouteLexicalBasis: String, Sendable, Equatable, Codable, CaseIterable {
@@ -86,11 +82,12 @@ public enum PageRouteLexicalBasis: String, Sendable, Equatable, Codable, CaseIte
 
 /// The bounded facts that decided one row.
 ///
-/// PIN: `total` IS FOR READING, NOT FOR RANKING. It is the one number a pane can put in a
-/// column; the ranking compares the terms in an order that depends on the verb (see
-/// `PageRouter.rankVector`), because a naming hit must never be outweighed by a pile of
-/// structural priors — the exact mistake that pressed a navigation strip.
-public struct PageRouteEvidence: Sendable, Equatable, Codable {
+/// PIN: `total` IS FOR READING, NOT FOR RANKING. It is the one number a pane can
+/// put in a column; the ranking compares the terms in an order that depends on
+/// the verb (see `PageRouter.rankVector`), because a naming hit must never be
+/// outweighed by a pile of structural priors — the exact mistake that pressed a
+/// navigation strip.
+public struct PageRouteEvidence: ArbitrationEvidence {
     public var lexical: Int
     public var lexicalBasis: PageRouteLexicalBasis
     /// Cosine against the goal, ×1000. Zero when nothing vectorized.
@@ -99,7 +96,8 @@ public struct PageRouteEvidence: Sendable, Equatable, Codable {
     public var affordance: Int
     /// How sure the reading is of this row's name and of its affordance.
     public var provenance: Int
-    /// What the row's place on the page says. Signed: a dialog demotes what is behind it.
+    /// What the row's place on the page says. Signed: a dialog demotes what is
+    /// behind it.
     public var structure: Int
 
     public init(
@@ -120,91 +118,19 @@ public struct PageRouteEvidence: Sendable, Equatable, Codable {
 
     /// The one-number column. Sum of the terms; see the PIN.
     public var total: Int { lexical + semantic + affordance + provenance + structure }
-}
 
-/// One row, and what the router made of it.
-public struct PageRouteDecision: Sendable, Equatable, Codable, Identifiable {
-    /// The row's ordinal in the reading — the number the listing spoke.
-    public var ordinal: Int
-    /// Shortened; a page's labels run to paragraphs.
-    public var label: String
-    /// "video", "link", "field", or "text" when the reading named no kind.
-    public var kind: String
-    public var disposition: PageRouteDisposition
-    public var evidence: PageRouteEvidence
-    /// For an outranked row: which ordinal won instead.
-    public var selectedAlternative: Int?
-    public var reason: String
-
-    public var id: Int { ordinal }
-
-    public init(
-        ordinal: Int,
-        label: String,
-        kind: String,
-        disposition: PageRouteDisposition,
-        evidence: PageRouteEvidence,
-        selectedAlternative: Int? = nil,
-        reason: String
-    ) {
-        self.ordinal = ordinal
-        self.label = label
-        self.kind = kind
-        self.disposition = disposition
-        self.evidence = evidence
-        self.selectedAlternative = selectedAlternative
-        self.reason = reason
-    }
-}
-
-/// The whole verdict for one goal against one read.
-public struct PageRouteTrace: Sendable, Equatable, Codable {
-    public var goal: String
-    public var verb: String
-    /// EVERY row the read produced, in ordinal order. A row missing from here is a row
-    /// the router never saw, which is a different fault from a row it turned down.
-    public var decisions: [PageRouteDecision]
-    /// The goal named something and nothing answered to it, so the verb fell back to what
-    /// it would have done with no goal at all. Said out loud rather than passed off as a
-    /// match.
-    public var goalUnmatched: Bool
-
-    public init(
-        goal: String = "",
-        verb: String = "",
-        decisions: [PageRouteDecision] = [],
-        goalUnmatched: Bool = false
-    ) {
-        self.goal = goal
-        self.verb = verb
-        self.decisions = decisions
-        self.goalUnmatched = goalUnmatched
-    }
-
-    public static let empty = PageRouteTrace()
-
-    public var selected: [PageRouteDecision] {
-        decisions.filter { $0.disposition == .selected }
-    }
-
-    public var rivals: [PageRouteDecision] {
-        decisions.filter { $0.disposition == .clarificationRequired }
-    }
-
-    /// How many rows were still standing when ranking began.
-    public var eligibleCount: Int {
-        decisions.filter { $0.disposition != .ineligible }.count
-    }
+    public static var empty: PageRouteEvidence { PageRouteEvidence() }
 }
 
 /// What the router hands back: the row, or the sentence saying why not, and the record.
 public struct PageRouteArbitration: Sendable {
-    public var winner: AXScreenElement?
+    /// The row this goal reached.
+    public var winner: PageRow?
     public var refusal: BrowserRefusal?
     public var trace: PageRouteTrace
 
     public init(
-        winner: AXScreenElement? = nil,
+        winner: PageRow? = nil,
         refusal: BrowserRefusal? = nil,
         trace: PageRouteTrace
     ) {
