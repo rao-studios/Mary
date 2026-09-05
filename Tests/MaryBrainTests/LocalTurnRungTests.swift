@@ -220,6 +220,90 @@ import MaryVoice
         #expect(!MaryPrompts.isAffordanceNudge(MaryPrompts.continuationNudge))
     }
 
+    // MARK: - A question never ends in silence
+
+    /// THE READ RAN AND THE MODEL SAID NOTHING — the shape of the reported bug.
+    ///
+    /// "What is this page about?" reads the page (1–3s), and a small local model
+    /// then returns an empty round. This exit used to complete with an empty
+    /// `fullText`: the person watched "still working" flip back to "Listening"
+    /// having been told nothing, with the answer sitting in the skill result.
+    /// The passage is in hand, so it is spoken.
+    @Test func aReadThatTheModelDoesNotNarrateIsStillSpoken() async throws {
+        let dispatcher = BrainFakes.StubDispatcher()
+        dispatcher.readOnlyTools = ["read_page_text"]
+        dispatcher.results = ["read_page_text": Self.passage]
+        let engine = BrainFakes.ScriptedEngine(rounds: [
+            .init(calls: [.init(id: "1", name: "read_page_text", argumentsJSON: "{}")]),
+            .init(text: ""),   // the empty retry
+            .init(text: ""),   // and the round after it
+        ])
+        let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
+
+        let events = try await Self.runLocalTurn(
+            brain, "what is this page about?", route: Self.route(action: false))
+
+        let spoken = Self.spokenText(events)
+        #expect(
+            spoken.contains("Ski touring is skiing in the backcountry"),
+            "the turn said: \(spoken.isEmpty ? "(nothing)" : spoken)")
+        // AND THE HEADER IS NOT THE ANSWER — a listing's first line is a label.
+        #expect(!spoken.hasPrefix("The visible part"))
+    }
+
+    /// AND A TURN THAT DID SPEAK IS NOT TALKED OVER. The rung is a last resort,
+    /// not a second voice: whatever the model said stands on its own.
+    @Test func aReadTheModelDoesNarrateIsNotRepeated() async throws {
+        let dispatcher = BrainFakes.StubDispatcher()
+        dispatcher.readOnlyTools = ["read_page_text"]
+        dispatcher.results = ["read_page_text": Self.passage]
+        let engine = BrainFakes.ScriptedEngine(rounds: [
+            .init(calls: [.init(id: "1", name: "read_page_text", argumentsJSON: "{}")]),
+            .init(text: "It's about ski touring."),
+        ])
+        let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
+
+        let events = try await Self.runLocalTurn(
+            brain, "what is this page about?", route: Self.route(action: false))
+
+        let spoken = Self.spokenText(events)
+        #expect(spoken.contains("It's about ski touring."))
+        #expect(!spoken.contains("backcountry"), "the passage was read out over the answer")
+    }
+
+    /// THE PASSAGE ITSELF, as the deterministic voice takes it: header dropped,
+    /// clamped to two breaths, and empty when there is nothing readable to say.
+    @Test func theReadBackTakesThePassageAndNotItsHeader() {
+        let read = MaryBrain.LaneOutcome(
+            skillName: "read_page_text",
+            outcome: SkillOutcome(ok: true, summary: Self.passage))
+        let line = MaryBrain.spokenReadBack(outcomes: [read])
+        #expect(line.hasPrefix("Ski touring"))
+        #expect(!line.contains("The visible part"))
+        #expect(line.count <= MaryBrain.readBackClamp + 1)
+
+        // A MISS IS NOT A PASSAGE, and neither is a failure.
+        let miss = MaryBrain.LaneOutcome(
+            skillName: "read_page_text",
+            outcome: SkillOutcome(
+                ok: true, summary: "I can read nothing on this page.",
+                foundNothing: true))
+        #expect(MaryBrain.spokenReadBack(outcomes: [miss]).isEmpty)
+    }
+
+    private static let passage = """
+        The visible part of Ski touring, top to bottom:
+        Ski touring
+        Ski touring is skiing in the backcountry on unmarked slopes.
+        """
+
+    /// Everything the turn actually said, in order.
+    private static func spokenText(_ events: [BrainEvent]) -> String {
+        events.reduce(into: "") { text, event in
+            if case .token(let token) = event { text += token }
+        }
+    }
+
     // MARK: - Harness
 
     /// The route as the turn loop would have handed it down. `.operate` is what

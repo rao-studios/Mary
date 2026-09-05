@@ -21,7 +21,7 @@ import MaryFoundation
         let name = "code-surface"
         let summary = "A fixture."
         var targetedRead: (binding: String, parameter: String)? { ("read_symbol", "symbol") }
-        var targetedReadAliases: [String] { ["xcode"] }
+        var readOwnerAliases: [String] { ["xcode"] }
         let dispatched: Dispatched
         var extraBindings: [SkillBinding] = []
         var skillBindings: [SkillBinding] {

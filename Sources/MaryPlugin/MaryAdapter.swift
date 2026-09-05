@@ -200,8 +200,15 @@ public protocol MaryAdapter: Sendable {
     /// Binding that reads a named part, plus the phrase parameter.
     /// PIN: brain never learns Skill names; pre-read reuses the model's targeting.
     var targetedRead: (binding: String, parameter: String)? { get }
-    /// Extra owner keys that share this adapter's `targetedRead`.
-    var targetedReadAliases: [String] { get }
+    /// Extra owner keys this adapter answers to — the names a PLACE is spelled
+    /// with when they differ from the adapter's own.
+    ///
+    /// PIN: KEYS EVERY FETCH-FIRST TABLE, not just the targeted read. It was
+    /// named `targetedReadAliases` and fed one of the two; the awareness table
+    /// was keyed by the adapter's name alone, so a browser — which leads as the
+    /// place `"browser"`, never as `"web-surface"` — was reachable through one
+    /// and invisible to the other. See `AbilityRuntime.readOwnerKeys`.
+    var readOwnerAliases: [String] { get }
     /// Bindings that answer what the user is looking at, and what surrounds it.
     /// Nil for every provider that is not an awareness faculty.
     var awarenessRead: AwarenessRead? { get }
@@ -242,7 +249,7 @@ public extension MaryAdapter {
     var applicationAliases: Set<String> { [name] }
     var applicationIdentifiers: Set<String> { [] }
     var targetedRead: (binding: String, parameter: String)? { nil }
-    var targetedReadAliases: [String] { [] }
+    var readOwnerAliases: [String] { [] }
     var awarenessRead: AwarenessRead? { nil }
     var containerRoster: ContainerRoster? { nil }
     var refusals: [String] { [] }

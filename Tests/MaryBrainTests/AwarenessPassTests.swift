@@ -227,6 +227,109 @@ import Testing
         func snapshot() -> [String] { lock.lock(); defer { lock.unlock() }; return names }
     }
 
+    // MARK: - Which faculty serves which world
+
+    /// THE LEAD PLACE CHOOSES THE READ, NOT THE CATALOG'S ORDER.
+    ///
+    /// THE BUG: two adapters declare an awareness read — the code/prose faculty
+    /// and the browsing one — and the owner table was keyed by the ADAPTER'S
+    /// NAME while the lookup asks with a PLACE token. A browser leads as the
+    /// place `"browser"`; its adapter is called `"web-surface"`; the dictionary
+    /// missed every time and `fetchAwareness` fell through to `awarenessReads
+    /// .first`, which is catalog order. So "what is this page about?" pre-read
+    /// the CODE buffer, answered nothing about the page, and the turn spoke
+    /// with nothing in hand.
+    ///
+    /// Both adapters are live here, so a regression to catalog order fails
+    /// rather than passing by luck: the page adapter is deliberately SECOND.
+    @Test func theLeadPlaceChoosesTheAwarenessRead() async {
+        let dispatched = Dispatched()
+        let runtime = AbilityRuntime(
+            plugins: [
+                AwarenessFixture(dispatched: dispatched, surroundings: "callers"),
+                PageAwarenessFixture(dispatched: dispatched),
+            ],
+            focusProvider: { AmbientPlaceResolver.browserApplicationID },
+            world: AmbientWorld(store: AmbientContextStore()),
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+
+        let sight = await Self.underRoute(Self.route(intent: .perceive, deictic: true)) {
+            await runtime.fetchAwareness(query: "what is this page about?")
+        }
+        #expect(sight?.unit == PageAwarenessFixture.pageText)
+        #expect(dispatched.snapshot().contains("read_page_text"))
+        #expect(
+            !dispatched.snapshot().contains("read_enclosing_unit"),
+            "the code faculty answered a question about a page: \(dispatched.snapshot())")
+    }
+
+    /// AND THE OTHER WORLD KEEPS ITS OWN, with the same two adapters installed —
+    /// the repair must not have simply swapped which one always wins.
+    @Test func aCodeLeadStillGetsTheCodeAwarenessRead() async {
+        let dispatched = Dispatched()
+        let runtime = AbilityRuntime(
+            plugins: [
+                AwarenessFixture(dispatched: dispatched, surroundings: "callers"),
+                PageAwarenessFixture(dispatched: dispatched),
+            ],
+            focusProvider: { "awareness" },
+            world: AmbientWorld(store: AmbientContextStore()),
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+
+        let sight = await Self.underRoute(Self.route(intent: .perceive, deictic: true)) {
+            await runtime.fetchAwareness(query: "what do you think about this code?")
+        }
+        #expect(sight?.unit == "func read() -> String {\n    load()\n}")
+        #expect(!dispatched.snapshot().contains("read_page_text"))
+    }
+
+    /// The browsing adapter's own shape: it answers to the PLACE a browser
+    /// leads as, which is not its name.
+    private struct PageAwarenessFixture: MaryAdapter {
+        /// A PASSAGE, NOT A RECEIPT — `dispatchSummary` rejects a short
+        /// single-line summary on purpose, so a fixture that returns one is
+        /// testing the receipt guard rather than the read.
+        static let pageText = """
+            The visible part of Ski touring, top to bottom:
+            Ski touring
+            Ski touring is skiing in the backcountry on unmarked slopes.
+            Contents
+            """
+        let name = "web-surface"
+        let summary = "A fixture."
+        let dispatched: Dispatched
+
+        var readOwnerAliases: [String] { [AmbientPlaceResolver.browserApplicationID] }
+
+        var awarenessRead: AwarenessRead? {
+            AwarenessRead(unit: "read_page_text", surroundings: "current_page")
+        }
+
+        var skillBindings: [SkillBinding] {
+            let dispatched = dispatched
+            return [
+                SkillBinding(
+                    name: "read_page_text",
+                    description: "Read what the page says.",
+                    parameters: [],
+                    access: .read,
+                    backing: .native { _, _ in
+                        dispatched.note("read_page_text")
+                        return SkillOutcome(ok: true, summary: Self.pageText)
+                    }),
+                SkillBinding(
+                    name: "current_page",
+                    description: "Which page.",
+                    parameters: [],
+                    access: .read,
+                    backing: .native { _, _ in
+                        dispatched.note("current_page")
+                        return SkillOutcome(ok: true, summary: "You're on Example, at example.")
+                    }),
+            ]
+        }
+    }
+
     /// An adapter declaring the awareness pair, answering scripted text.
     private struct AwarenessFixture: MaryAdapter {
         let name = "awareness"

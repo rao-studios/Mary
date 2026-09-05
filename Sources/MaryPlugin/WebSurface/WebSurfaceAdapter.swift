@@ -58,6 +58,19 @@ public struct WebSurfaceAdapter: MaryAdapter {
         (binding: "current_page", parameter: "app")
     }
 
+    /// THE PLACE A BROWSER LEADS AS, which is not this adapter's name.
+    ///
+    /// PIN: EVERY BROWSER COLLAPSES TO ONE WORKSPACE — `AmbientPlaceResolver`
+    /// resolves Safari, Chrome and every Chromium variant to the single logical
+    /// application `"browser"`, deliberately. Fetch-first looks a read up by the
+    /// LEAD PLACE'S token, so without this the browsing reads were addressed by
+    /// a name no place is ever spelled with, and `fetchAwareness` fell through
+    /// to catalog order — pre-reading the code buffer for a question about a
+    /// page. See `AbilityRuntime.readOwnerKeys`.
+    public var readOwnerAliases: [String] {
+        [AmbientPlaceResolver.browserApplicationID]
+    }
+
     /// MARY'S OWN READ OF A PAGE, before either lane speaks.
     ///
     /// PIN: THE BROWSING HALF OF THE FETCH-FIRST LANE, which existed only for

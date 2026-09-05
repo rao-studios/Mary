@@ -34,6 +34,10 @@ public enum ReadRoute: String, Sendable, Equatable, CaseIterable {
     case supersededToTranscript
     /// THE FOLLOW-UP CHAIN GAVE WAY. Either a chain entry stopped waiting for a wedged predecessor
     case chainStalled
+    /// THE DETERMINISTIC LINE WAS JUDGED A RESTATEMENT AND DROPPED. Correct for
+    /// an act's receipt, and the shape of a turn that ends in silence when it
+    /// is wrong — so it is a ROW rather than a log line nobody reads.
+    case droppedAsRestating
 
     public var displayName: String {
         switch self {
@@ -49,6 +53,8 @@ public enum ReadRoute: String, Sendable, Equatable, CaseIterable {
             return "superseded read → transcript only (not spoken)"
         case .chainStalled:
             return "follow-up chain stalled — the queue moved on without it"
+        case .droppedAsRestating:
+            return "follow-up dropped — judged a restatement of what was said"
         }
     }
 

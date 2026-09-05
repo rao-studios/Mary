@@ -268,6 +268,32 @@ extension MaryBrain {
                         return
                     }
                     var reply = roundText
+                    // A QUESTION NEVER ENDS IN SILENCE.
+                    //
+                    // PIN: THE READ RAN; ONLY THE SENTENCE ABOUT IT IS MISSING.
+                    // A non-action turn streams the model's prose as it arrives,
+                    // so an empty round here means the model read the page (or
+                    // the buffer) and then said nothing — and this exit would
+                    // complete with an empty `fullText`, leaving the person
+                    // looking at "Listening" with their question unanswered.
+                    // The passage is in hand and is the honest answer, so it is
+                    // spoken rather than dropped. The one round the empty-retry
+                    // above already spent is what makes this the last resort
+                    // rather than the first.
+                    if fullText.isEmpty, reply.isEmpty, !outcomes.isEmpty {
+                        let readBack = Self.spokenReadBack(outcomes: outcomes)
+                        if !readBack.isEmpty {
+                            reply = readBack
+                            fullText += readBack
+                            continuation.yield(.token(readBack))
+                            Self.laneLog.info(
+                                "local turn read and said nothing — speaking the passage")
+                            readLedger.record(ReadDelivery(
+                                route: .spokenDetached,
+                                detail: outcomes.map(\.skillName).joined(separator: ", "),
+                                characters: readBack.count))
+                        }
+                    }
                     if let sentence = revisionReport(
                         intent: editIntent, target: target,
                         writingTarget: writingTarget,

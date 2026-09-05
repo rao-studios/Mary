@@ -329,7 +329,19 @@ extension MaryBrain {
         var orchestratorLane: OrchestratorLaneResult?
         var laneStalled = false
         if let laneTask, let laneSignal {
-            if seerLane.failed, spokenText.isEmpty {
+            // NOTHING WAS SAID, SO THERE IS NOTHING TO DETACH FROM.
+            //
+            // PIN: DETACHING EXISTS TO LET A LANE WORK WHILE THE VOICE CARRIES
+            // THE TURN. When the voice carried NOTHING, detaching after 250ms
+            // leaves the person with silence and a spinner, and the answer then
+            // depends on the follow-up chain surviving — which it does not
+            // always do. Measured: "what is this page about?" spoke in Lane A
+            // with nothing in hand, Lane B took 1–3s to read the page, the turn
+            // detached, and a follow-up that timed out or read as restating was
+            // dropped, ending on "Listening" having said nothing at all.
+            // AN ACTION TURN IS THE DELIBERATE EXCEPTION: Lane A is skipped
+            // there on purpose and the Skill chips are the reply.
+            if spokenText.isEmpty, seerLane.failed || !actionTurn {
                 orchestratorLane = await bounded(attachedLaneBudget) { await laneTask.value }
                 laneStalled = orchestratorLane == nil
             } else if await laneFinished(

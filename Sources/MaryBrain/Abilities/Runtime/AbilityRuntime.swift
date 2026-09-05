@@ -180,13 +180,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 attentions[plugin.name] = served
             }
             if let targeted = plugin.targetedRead {
-                reads[plugin.name] = targeted
-                if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
-                    reads[served.pluginOwner] = targeted
-                }
-                for alias in plugin.targetedReadAliases where alias != plugin.name {
-                    reads[alias] = targeted
-                }
+                for key in Self.readOwnerKeys(for: plugin) { reads[key] = targeted }
             }
             // Both halves or neither: verb without backing cannot locate; backing without verb cannot send.
             if let verb = plugin.targetedEdit {
@@ -194,17 +188,28 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             }
         }
         self.awarenessReads = plugins.compactMap(\.awarenessRead)
-        // WHICH FACULTY SERVES WHICH WORLD. Two adapters now declare an
-        // awareness read — the code/prose one and the browsing one — and
-        // `fetchAwareness` took whichever came first in the catalog, which is
-        // an ordering accident rather than an answer about the work in front of
-        // someone. Keyed by the plugin's own owner name, the same key
-        // `targetedReads` and `focusProvider` already speak.
-        self.awarenessReadsByOwner = Dictionary(
-            plugins.compactMap { plugin in
-                plugin.awarenessRead.map { (plugin.name, $0) }
-            },
-            uniquingKeysWith: { first, _ in first })
+        // WHICH FACULTY SERVES WHICH WORLD. Two adapters declare an awareness
+        // read — the code/prose one and the browsing one — and `fetchAwareness`
+        // took whichever came first in the catalog, which is an ordering
+        // accident rather than an answer about the work in front of someone.
+        //
+        // PIN: THE SAME KEYS THE TARGETED TABLE USES, and that is the whole
+        // repair. This was keyed by the plugin's NAME ALONE while `targetedReads`
+        // was keyed by name, served attention and declared aliases — so the
+        // lookup, which asks with a PLACE token, could never hit for an adapter
+        // whose place is spelled differently from its name. Measured: a browser
+        // leads as `"browser"`, the browsing adapter is called `"web-surface"`,
+        // the dictionary missed every time, and "what is this page about?" fell
+        // through to catalog order and pre-read the CODE buffer — which answers
+        // nothing about a page, so the turn spoke with nothing in hand.
+        var awarenessByOwner: [String: AwarenessRead] = [:]
+        for plugin in plugins {
+            guard let read = plugin.awarenessRead else { continue }
+            for key in Self.readOwnerKeys(for: plugin) where awarenessByOwner[key] == nil {
+                awarenessByOwner[key] = read
+            }
+        }
+        self.awarenessReadsByOwner = awarenessByOwner
         self.targetedReads = reads
         self.targetedEdits = edits
         self.passageBackings = backings
@@ -217,6 +222,24 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         self.containers = containers
         self.applicationsOverride = applications
         self.pendingStore = PendingSkillStore()
+    }
+
+    /// EVERY NAME AN ADAPTER ANSWERS TO, as a fetch-first owner key.
+    ///
+    /// PIN: ONE LIST, BOTH TABLES, BECAUSE THEY ARE ASKED THE SAME QUESTION.
+    /// `readNamedPart` and `fetchAwareness` both look up the LEAD PLACE'S token
+    /// — `world.store.referent()?.place.memoryToken ?? focusProvider()` — so the
+    /// key is a place's spelling, not an adapter's. An adapter whose place is
+    /// named differently from itself must be registered under both, or it is
+    /// unreachable through whichever table forgot. Kept as one function so the
+    /// two can never disagree again.
+    static func readOwnerKeys(for plugin: any MaryAdapter) -> [String] {
+        var keys = [plugin.name]
+        if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
+            keys.append(served.pluginOwner)
+        }
+        keys.append(contentsOf: plugin.readOwnerAliases.filter { $0 != plugin.name })
+        return keys
     }
 
     /// The user-facing ceiling for one ordinary dispatch. See

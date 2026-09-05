@@ -110,6 +110,35 @@ extension MaryBrain {
         return nil
     }
 
+    /// HOW MUCH OF A PASSAGE THE DETERMINISTIC VOICE READS BACK. Two breaths:
+    /// enough to be an answer, short enough that nobody is read a whole page.
+    static let readBackClamp = 320
+
+    /// A READ'S OWN WORDS, as the voice says them when no composer was available.
+    ///
+    /// PIN: THE PASSAGE, NOT A RECEIPT. `fallbackFollowUpLine` answers "did that
+    /// go through", which is right for an ACT and wrong for a READ: the passage
+    /// IS the answer, and "That's done — The visible part of Ski touring, top to
+    /// bottom:" tells the person nothing they asked for. A listing puts a header
+    /// line first, so that line is skipped when there is prose behind it.
+    /// Returns "" when there is nothing readable, so the caller can fall back.
+    static func spokenReadBack(outcomes: [LaneOutcome]) -> String {
+        guard unrecoveredFailure(in: outcomes) == nil,
+              let read = outcomes.last(where: { $0.ok && !$0.foundNothing })
+        else { return "" }
+        var lines = read.summary
+            .split(separator: "\n", omittingEmptySubsequences: true)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        // A HEADER IS NOT AN ANSWER — "The visible part of X, top to bottom:".
+        if lines.count > 1, lines[0].hasSuffix(":") { lines.removeFirst() }
+        let passage = lines.joined(separator: " ")
+        guard !passage.isEmpty else { return "" }
+        return passage.count > readBackClamp
+            ? String(passage.prefix(readBackClamp)) + "…"
+            : passage
+    }
+
     static func fallbackFollowUpLine(outcomes: [LaneOutcome]) -> String {
         if let failure = unrecoveredFailure(in: outcomes) {
             return "That didn't go through — \(spokenBrief(failure.summary))"
