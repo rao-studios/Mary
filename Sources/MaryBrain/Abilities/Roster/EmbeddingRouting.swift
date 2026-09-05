@@ -67,10 +67,14 @@ public enum EmbeddingRouting {
     /// Two shapes qualify. A Skill needing NO required argument is the safest
     /// case there is — there is no span to mis-extract — and it was excluded
     /// only because the rule was written when every shortcut carried a title.
-    /// A Skill needing exactly one plain string still qualifies: no enum
-    /// (that is structured data, not a spoken span) and not opted out via
-    /// `requiresComposition` (a commit message, replacement prose, a computed
-    /// value — content only a model round can produce).
+    /// A Skill needing exactly one plain string still qualifies, as long as it
+    /// is not opted out via `requiresComposition` (a commit message, replacement
+    /// prose, a computed value — content only a model round can produce).
+    /// AND ONE ENUM QUALIFIES TOO, when the sentence names exactly one of its
+    /// declared values. This comment used to say an enum was excluded because
+    /// "structured data is not a spoken span"; that was true of the SPAN and
+    /// wrong about the VALUE — "pause" IS the member, said out loud. See
+    /// `.singleEnum` and `SpokenEnumExtractor`.
     public static func confidenceShape(
         of skill: AbilityRuntimeSkill,
         utterance: String = ""

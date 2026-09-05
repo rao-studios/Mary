@@ -419,6 +419,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "mute-the-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Mute the music."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.open-player",
       "id" : "open-the-player",
       "interactions" : [
@@ -552,7 +562,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "8677b400048c6d5ed1142f57552ef9a6ba365350c7f5ea8db410816df749dff1"
+    "digest" : "35597c508964a4894c383c0cc0d495d2678832f0d4d3bdb7c528a7ae8d0b7863"
   },
   "interactions" : [
 

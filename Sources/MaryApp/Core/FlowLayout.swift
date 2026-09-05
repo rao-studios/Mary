@@ -6,12 +6,13 @@
 //  OUT:  AbilityBadgeRow / MaryChip. Part of the responsive-layout standard —
 //        see Paper+Layout.swift — for rows that must wrap rather than clip.
 //  PIN:  Not LazyVGrid adaptive (mid-word wraps).
-//        EVERY PLACEMENT LANDS ON A WHOLE POINT. A row mixes chip heights — one
-//        carrying a realization badge is taller than one without — and centring
-//        each chip in the row costs HALF the difference between two
-//        text-measured heights, which is almost never a whole number. Text drawn
-//        from a fractional origin is resampled rather than hinted, which reads
-//        as blurry at the 10pt the chips use. See `snapped`.
+//        EVERY PLACEMENT LANDS ON A WHOLE POINT. Centring a shorter chip inside
+//        a taller row's height costs half the difference between two
+//        text-measured sizes, which is not guaranteed to be a whole number
+//        whenever a row mixes chip shapes (a realization badge, a running
+//        pulse) that measure to different heights. A fractional origin is a
+//        real risk for small text even where it happens not to bite today —
+//        see `snapped`.
 //
 
 import SwiftUI

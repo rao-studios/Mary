@@ -702,7 +702,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "0417c9030b742066af7e9cc9570cc6e7f74beb70862f5e9e4b6bb8c56d7f2a18"
+    "digest" : "7841fb4d26205d41a550348e709e39f4429834edda27df8be0665995abea7fb6"
   },
   "interactions" : [
 
@@ -978,7 +978,11 @@
               ],
               "mute" : [
                 "mute",
-                "silence"
+                "shut it up",
+                "silence",
+                "silence it",
+                "sound off",
+                "turn the sound off"
               ],
               "pause" : [
                 "pause",
@@ -999,8 +1003,11 @@
                 "play pause"
               ],
               "unmute" : [
-                "unmute",
-                "sound on"
+                "sound back on",
+                "sound on",
+                "turn the sound back on",
+                "turn the sound on",
+                "unmute"
               ],
               "volume" : [
                 "volume",

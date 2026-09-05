@@ -188,26 +188,30 @@ struct UtteranceView: View {
 /// History fade/blur. The padding pair keeps the Gaussian's bleed from
 /// hard-clipping at the row's edge.
 ///
-/// A BLUR OF ZERO IS NOT A NO-OP, and believing it was is what made the focal
-/// row soft. This modifier was deliberately made unconditional after an
+/// THE FOCAL ROW SKIPS `.blur` ENTIRELY RATHER THAN CALLING IT AT RADIUS 0.
+/// This modifier was deliberately made unconditional after an
 /// `if blurRadius > 0 { …drawingGroup() }` version blanked the wall — see
-/// below — on the reasoning that "a blur radius of 0 is already a no-op on the
-/// focal rows". It is not. `.blur` installs an offscreen filter pass whatever
-/// its radius, and a rasterized pass costs two things that show on small text:
-/// it drops subpixel antialiasing for grayscale, and it resamples if the layer
-/// lands on a fractional origin — which the newest row always does, because
-/// the rows above it are text-measured and stack to fractional heights. The
-/// 10pt chips are the first place a person notices it, on the one row that is
-/// supposed to be perfectly crisp.
+/// below — on the reasoning that "a blur radius of 0 is already a no-op on
+/// the focal rows". Mathematically it is; at the compositing level it is not
+/// guaranteed to be: `.blur` is a documented case of a SwiftUI/AppKit modifier
+/// that can force its subtree onto an offscreen, layer-backed pass regardless
+/// of the radius argument, and that pass is not guaranteed to rasterize at the
+/// display's native backing scale — a widely reported class of bug ("blur(0)
+/// still looks soft") distinct from a real Gaussian at a real radius. Small
+/// monospaced text, which is exactly what the ability/skill chips are, is
+/// where a scale mismatch like that shows first. Branching around the call
+/// when there is nothing to blur removes the risk instead of trusting the
+/// argument to be inert.
 ///
-/// THE OLD HAZARD DOES NOT COME BACK WITH IT. What blanked was not the branch,
-/// it was `.drawingGroup()`: crossing the threshold tore the subtree down and
-/// rebuilt it inside a brand-new Metal layer, and a layer that has not
-/// rasterized yet draws nothing until a scroll forces it. There is no
-/// `.drawingGroup()` here any more — a plain `.blur` branch rebuilds a row that
-/// draws immediately. The row's own `@State` is untouched either way: it lives
-/// on `UtteranceView`, outside this modifier. And the branch is crossed only as
-/// a row passes depth 2, by which point it is already faded and scrolling away.
+/// THE OLD HAZARD DOES NOT COME BACK WITH IT. What blanked the wall was not
+/// this branch, it was `.drawingGroup()`: crossing the threshold tore the
+/// subtree down and rebuilt it inside a brand-new Metal layer, and a layer
+/// that has not rasterized yet draws nothing until a scroll forces it. There
+/// is no `.drawingGroup()` here — a plain `.blur` branch rebuilds a row that
+/// draws immediately, and the branch is crossed only as a row passes depth 2,
+/// by which point it is already faded and scrolling out of focus, not sitting
+/// on the wall the way the newest row does.
+///
 struct HistoryDepth: ViewModifier {
     let inkOpacity: Double
     let blurRadius: CGFloat

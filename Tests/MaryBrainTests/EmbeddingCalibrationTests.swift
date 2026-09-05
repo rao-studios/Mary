@@ -675,6 +675,208 @@ private extension String {
         print("       peeled: \(filled.stages.joined(separator: " | "))")
     }
 
+    /// THE VIDEO'S OWN TRANSPORT, ACROSS EVERY VERB IT DECLARES.
+    ///
+    /// THE REPORTED BUG: "mute the video" ran a WEB SEARCH. `theTransportTwins`
+    /// above only ever measured PAUSE, and pause is the one verb
+    /// `browsing.control-media` had fixtures for — the corpus said "Go full
+    /// screen", "Pause the video", "Pause the video in this tab" and nothing
+    /// about mute, sound, volume or skipping. Meanwhile `search_web` carries
+    /// seven fixtures that all say "video", and `multimedia.control-playback`
+    /// carries eight that include "Turn it down a bit". So a sentence naming
+    /// any OTHER page-player verb had a corpus full of rivals and none of its
+    /// own, no unique winner, and a model round that read "video" and searched.
+    ///
+    /// EVERY DECLARED ENUM VALUE IS A SENTENCE SOMEBODY SAYS. The assertion is
+    /// per-verb rather than per-skill for that reason: a transport that answers
+    /// to "pause" and not to "mute" is not a transport.
+    ///
+    /// Probes are PARAPHRASES, never the fixtures themselves.
+    @Test func everyPageTransportVerbReachesTheVideo() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let store = RoutingHabitStore()
+        let vectorizer = try #require(NLUtteranceVectorizer.shared)
+        let diagnostic = try #require(SemanticSkillRequestIndex.build(
+            records: snapshot.records, vectorizer: vectorizer, threshold: 0))
+        let offered = Set(
+            snapshot.skills
+                .filter { $0.skill.modelExposure.enabled }
+                .map(\.reference.invocationName))
+
+        let video = SkillID("browsing.control-media")
+        let music = SkillID("multimedia.control-playback")
+
+        // (sentence, the skill it must reach, the enum value it must carry)
+        let cases: [(String, SkillID, String?)] = [
+            ("mute the video", video, "mute"),
+            ("unmute the video", video, "unmute"),
+            ("turn the sound off on the video", video, "mute"),
+            ("mute this video", video, "mute"),
+            ("skip to the middle of the video", video, "seek"),
+            ("play the video", video, "play"),
+            // THE OTHER SURFACE MUST NOT MOVE. Every repair below is corpus
+            // work on the video side, and corpus work is exactly what can
+            // steal a sentence that was already answered correctly.
+            ("mute the music", music, "mute"),
+            ("pause the music", music, "pause"),
+            ("can you pause the music", music, "pause"),
+        ]
+
+        var report: [String] = []
+        var wrong: [String] = []
+        for (utterance, wanted, wantedValue) in cases {
+            let scores = diagnostic.affinities(in: utterance, habits: store)
+            let top = scores.sorted { $0.value > $1.value }.prefix(4)
+                .map { "\($0.key.rawValue)=\(String(format: "%.2f", $0.value))" }
+                .joined(separator: " ")
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+            let winner = verdict.uniqueSkill
+            let shape = winner.flatMap {
+                EmbeddingRouting.confidenceShape(of: $0, utterance: utterance)
+            }
+            let filled = winner.map {
+                EmbeddingRouting.filledArguments(
+                    for: $0, utterance: utterance, applicationID: nil).json
+            } ?? "—"
+            report.append(String(
+                format: "verb   [%@] -> %@  shape=%@ args=%@  top: %@",
+                utterance,
+                winner?.skill.id.rawValue ?? "none",
+                shape.map { "\($0)" } ?? "nil",
+                filled,
+                top))
+
+            guard let winner else {
+                wrong.append("[\(utterance)] had no unique winner")
+                continue
+            }
+            if winner.skill.id != wanted {
+                wrong.append(
+                    "[\(utterance)] picked \(winner.skill.id.rawValue), expected \(wanted.rawValue)")
+                continue
+            }
+            // AND THE SHORTCUT MUST BE ABLE TO SEND IT. Reaching the skill and
+            // then paying for a model round to fill one spoken enum value is
+            // the same latency the whole confidence lane exists to remove.
+            if let wantedValue {
+                if shape != .singleEnum {
+                    wrong.append("[\(utterance)] shape \(shape.map { "\($0)" } ?? "nil"), expected singleEnum")
+                } else if !filled.contains("\"\(wantedValue)\"") {
+                    wrong.append("[\(utterance)] filled \(filled), expected action \(wantedValue)")
+                }
+            }
+        }
+        print(report.joined(separator: "\n"))
+        #expect(wrong.isEmpty, "\(wrong)")
+    }
+
+    /// "MUTE THE VIDEO" THROUGH EVERY GATE THE TURN LOOP APPLIES, with a browser
+    /// in front — the twin of `pausingTheMusicDispatchesWithNoModelRound`.
+    ///
+    /// The corpus measurement above says the skill tier is not the fault: the
+    /// sentence reaches `browsing.control-media` at 0.77 outright. So this walks
+    /// the rest — the ROSTER (is the skill even offered with a browser on the
+    /// stage), the INTENT (the confidence lane fires only on `.operate`), the
+    /// unique winner among the OFFERED names, and the arguments — because the
+    /// reported failure was a WEB SEARCH, which is what a model round does with
+    /// a sentence containing "video" when the deterministic lane declined.
+    @Test func mutingTheVideoDispatchesWithNoModelRound() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let store = RoutingHabitStore()
+
+        var report: [String] = []
+        var wrong: [String] = []
+        for utterance in ["mute the video", "unmute the video", "pause the video"] {
+            let arbitration = AbilityRosterRehearsal.arbitration(
+                snapshot: snapshot,
+                utterance: utterance,
+                targetClasses: ["web-page", "document-window"],
+                habits: store)
+            let offered = Set(arbitration.trace.selected.map(\.reference.invocationName))
+            let browsing = arbitration.trace.election.first {
+                $0.abilityID.rawValue == "browsing"
+            }
+            let verdict = TurnTriage.verdict(
+                query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+            let winner = verdict.uniqueSkill
+            let shape = winner.flatMap {
+                EmbeddingRouting.confidenceShape(of: $0, utterance: utterance)
+            }
+            report.append(String(
+                format: "gates  [%@] intent=%@ offered=%d control_media=%@ browsing=%@ -> %@ shape=%@",
+                utterance,
+                verdict.intent?.rawValue ?? "nil",
+                offered.count,
+                offered.contains("control_media") ? "yes" : "NO",
+                browsing?.isActive == true ? "stands" : "struck: \(browsing?.reason ?? "no row")",
+                winner?.skill.id.rawValue ?? "none",
+                shape.map { "\($0)" } ?? "nil"))
+
+            // THE FOUR GATES, each named so a failure says which one.
+            if !offered.contains("control_media") {
+                wrong.append("[\(utterance)] control_media was not offered")
+            }
+            // The confidence lane runs only on an ACTION turn. An `.ask` here
+            // is a model round, and a model round with "video" in the sentence
+            // is where the reported web search came from.
+            if verdict.intent != .operate {
+                wrong.append("[\(utterance)] read as \(verdict.intent?.rawValue ?? "nil"), not operate")
+            }
+            if winner?.skill.id != SkillID("browsing.control-media") {
+                wrong.append("[\(utterance)] picked \(winner?.skill.id.rawValue ?? "none")")
+            }
+            if shape != .singleEnum {
+                wrong.append("[\(utterance)] shape \(shape.map { "\($0)" } ?? "nil")")
+            }
+        }
+        print(report.joined(separator: "\n"))
+        #expect(wrong.isEmpty, "\(wrong)")
+    }
+
+    /// WHAT THE ROSTER OFFERS WHEN THE BROWSER IS NOT THE LEAD — the situation
+    /// the reported bug actually describes. A video plays in a background tab;
+    /// the person is in another window, or looking at Mary; they say "mute the
+    /// video". `browsing`'s Ability eligibility is `targetClass: web-page`, and
+    /// a lead that is not a browser does not supply it.
+    ///
+    /// REPORTED, NOT ASSERTED, for the classes it cannot decide: what this has
+    /// to show is WHICH skills survive, because a roster that keeps `search_web`
+    /// while dropping `control_media` is precisely a sentence about a video
+    /// arriving at a model with only a search to answer it.
+    @Test func theTransportSurvivesALeadThatIsNotTheBrowser() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let store = RoutingHabitStore()
+
+        let stages: [(String, [String])] = [
+            ("browser in front", ["web-page", "document-window"]),
+            ("an editor in front", ["document-window", "source-file"]),
+            ("nothing named", []),
+        ]
+        var report: [String] = []
+        for (label, classes) in stages {
+            for utterance in ["mute the video", "pause the video", "mute the music"] {
+                let arbitration = AbilityRosterRehearsal.arbitration(
+                    snapshot: snapshot, utterance: utterance,
+                    targetClasses: Set(classes), habits: store)
+                let offered = arbitration.trace.selected
+                    .map(\.reference.invocationName).sorted()
+                let verdict = TurnTriage.verdict(
+                    query: utterance, registry: snapshot,
+                    offeredNames: Set(offered), habits: store)
+                report.append(String(
+                    format: "stage  [%@ / %@] offered=%@ -> %@",
+                    label, utterance,
+                    offered.isEmpty ? "none" : offered.joined(separator: ","),
+                    verdict.uniqueSkill?.skill.id.rawValue ?? "none"))
+            }
+        }
+        print(report.joined(separator: "\n"))
+    }
+
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
         let store = RoutingHabitStore()
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)

@@ -368,15 +368,21 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
     let point = CGPoint(x: pageFrame.minX + parts[0], y: pageFrame.minY + parts[1])
     PointerDriver.hover(at: point, pid: pid)
     try? await Task.sleep(for: .milliseconds(600))
+    // WHERE IT LANDS IS THE CALLER'S, with a temp-directory default. A path
+    // baked in here was one machine's scratch directory from the session that
+    // wrote this block, and it fails on every other machine.
+    let hoverPath = value("--save")
+        ?? URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("mary-hover-at.png").path
     if let captured = try? await WindowPixels.capture(pid: pid, windowID: shell.windowID),
        let cropped = WindowPixels.crop(captured, to: pageFrame),
        let destination = CGImageDestinationCreateWithURL(
-        URL(fileURLWithPath: "/private/tmp/claude-501/-Users-ritesh-Documents-rao-repositories-Mary/ba4bc841-f15c-4595-bdbf-ccdc3e8459f9/scratchpad/hover-at.png") as CFURL,
+        URL(fileURLWithPath: hoverPath) as CFURL,
         "public.png" as CFString, 1, nil) {
         CGImageDestinationAddImage(destination, cropped, nil)
         _ = CGImageDestinationFinalize(destination)
         check(true, "hovered and captured",
-              "(\(Int(parts[0])), \(Int(parts[1]))) → hover-at.png")
+              "(\(Int(parts[0])), \(Int(parts[1]))) → \(hoverPath)")
     }
 }
 
