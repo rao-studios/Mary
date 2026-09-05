@@ -34,6 +34,8 @@ public actor TripRunner {
         public var round: String
         /// `probe` (the bindings directly) or `turn` (a whole turn).
         public var runner: String
+        /// The registration's own id — see `TripRecording.browser`, and the
+        /// reason there is no default.
         public var browser: String
         /// Skip the legs whose stage needs a person — a hand navigation, a
         /// second window, music playing.
@@ -42,7 +44,7 @@ public actor TripRunner {
         public var onlyLeg: Int?
 
         public init(
-            round: String = "0", runner: String = "probe", browser: String = "chrome",
+            round: String = "0", runner: String = "probe", browser: String = "",
             staged: Bool = false, onlyLeg: Int? = nil
         ) {
             self.round = round
@@ -147,7 +149,7 @@ public actor TripRunner {
             providerApplicationID: outcome.providerApplicationID,
             providerRationale: providerRationale,
             ambientBefore: before, ambientAfter: after,
-            shells: gathered.shells, pages: gathered.pages, media: gathered.media,
+            shells: gathered.shells, pageReads: gathered.pageReads, media: gathered.media,
             routes: routes, acts: gathered.acts, receipts: receipts,
             ok: outcome.ok, landed: outcome.landed, refusal: outcome.refusal,
             outcomeSpoken: outcome.summary, speech: speech,
@@ -239,5 +241,5 @@ extension TripRecorder {
     func elapsedForTests() -> Int { elapsed }
 
     /// The most recent page read, for the facts a route was argued from.
-    func lastPage() -> PageRosterFixture? { gathered().pages.last?.page }
+    func lastPage() -> PageRosterFixture? { gathered().pageReads.last?.page }
 }

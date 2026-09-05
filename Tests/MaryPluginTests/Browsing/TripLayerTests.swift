@@ -69,7 +69,7 @@ import Testing
     }
 
     static func recording(
-        pages: [RecordedPageRead] = [], routes: [RecordedRoute] = [],
+        pageReads: [RecordedPageRead] = [], routes: [RecordedRoute] = [],
         receipts: [RecordedReceipt] = [], routing: RecordedRouting? = nil,
         provider: (String, String)? = nil,
         before: RecordedAmbient? = nil, after: RecordedAmbient? = nil,
@@ -83,7 +83,7 @@ import Testing
             providerApplicationID: provider?.0,
             providerRationale: provider?.1,
             ambientBefore: before, ambientAfter: after,
-            pages: pages, routes: routes, acts: acts, receipts: receipts,
+            pageReads: pageReads, routes: routes, acts: acts, receipts: receipts,
             ok: refusal == nil, landed: landed, refusal: refusal,
             speech: speech, elapsedMilliseconds: elapsed)
     }
@@ -259,7 +259,7 @@ import Testing
                     verb: .press,
                     winner: TripRowClass(kind: "video", ordinalWithinKind: 1))),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1, kind: "link"), Self.row(2, kind: "link")])],
+                pageReads: [Self.page([Self.row(1, kind: "link"), Self.row(2, kind: "link")])],
                 routes: [Self.route(verb: "press", selected: nil, ordinals: [1, 2])]))
         #expect(judged.layer == .perception)
         #expect(judged.because?.contains("no row in this reading") == true)
@@ -276,7 +276,7 @@ import Testing
                     verb: .press,
                     winner: TripRowClass(kind: "video", ordinalWithinKind: 1))),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1, kind: "link"), Self.row(2, kind: "video")])],
+                pageReads: [Self.page([Self.row(1, kind: "link"), Self.row(2, kind: "video")])],
                 routes: [Self.route(verb: "press", selected: nil, ordinals: [1, 2])]))
         #expect(judged.layer == .pageRouting)
         #expect(judged.because?.contains("reached nothing") == true)
@@ -295,7 +295,7 @@ import Testing
                         facts: ["inResultGroup"],
                         factsAbsent: ["echoOfQuery", "separatedStrip"]))),
             recording: Self.recording(
-                pages: [Self.page([
+                pageReads: [Self.page([
                     Self.row(1, facts: [.inResultGroup, .echoOfQuery]),
                     Self.row(2, facts: [.inResultGroup]),
                 ])],
@@ -323,13 +323,13 @@ import Testing
         let reached = TripLayer.judge(
             leg: leg,
             recording: Self.recording(
-                pages: [page], routes: [Self.route(selected: 3, ordinals: [1, 2, 3])]))
+                pageReads: [page], routes: [Self.route(selected: 3, ordinals: [1, 2, 3])]))
         #expect(reached.verdict == .passed)
 
         let missed = TripLayer.judge(
             leg: leg,
             recording: Self.recording(
-                pages: [page], routes: [Self.route(selected: 2, ordinals: [1, 2, 3])]))
+                pageReads: [page], routes: [Self.route(selected: 2, ordinals: [1, 2, 3])]))
         #expect(missed.layer == .pageRouting)
         #expect(missed.because?.contains("number 1 of its kind, not 2") == true)
     }
@@ -343,7 +343,7 @@ import Testing
                 page: TripPageExpectation(
                     refusal: .elementNotFound, goalUnmatched: true)),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1)])],
+                pageReads: [Self.page([Self.row(1)])],
                 routes: [Self.route(selected: 1, unmatched: false, ordinals: [1])]))
         #expect(judged.layer == .pageRouting)
     }
@@ -356,7 +356,7 @@ import Testing
                 page: TripPageExpectation(
                     refusal: .elementNotFound, minimumEligible: 5)),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1)])],
+                pageReads: [Self.page([Self.row(1)])],
                 routes: [Self.route(selected: nil, eligible: 1, ordinals: [1])],
                 landed: false, refusal: "elementNotFound"))
         #expect(judged.layer == .pageRouting)
@@ -373,7 +373,7 @@ import Testing
                     verb: .press,
                     winner: TripRowClass(lexicalBasis: "ordinal"))),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1)])],
+                pageReads: [Self.page([Self.row(1)])],
                 routes: [Self.route(
                     verb: "press", selected: 1, basis: [1: "contained"], ordinals: [1])]))
         #expect(judged.layer == .pageRouting)
@@ -488,7 +488,7 @@ import Testing
                 page: TripPageExpectation(
                     verb: .openResult, winner: TripRowClass(facts: ["inResultGroup"]))),
             recording: Self.recording(
-                pages: [Self.page([Self.row(1)])],
+                pageReads: [Self.page([Self.row(1)])],
                 routes: [Self.route(selected: 1, ordinals: [1])],
                 provider: ("safari", "focused")))
         #expect(judged.layer == .ambient)

@@ -58,6 +58,16 @@ final class SandTurnHost: ObservableObject {
     @Published private(set) var reply: String = ""
     /// True once a round has been asked for — the turn reached the model.
     @Published private(set) var askedTheModel = false
+    /// WHAT THE TURN ACTUALLY DISPATCHED, in order.
+    ///
+    /// PIN: FOR A MEASUREMENT, NOT FOR THE PANE. The story rows already say this
+    /// to a reader; a browsing trip has to compare it with what it expected, and
+    /// re-deriving "which skill answered" from the rendered entries would be a
+    /// second account of the turn that could disagree with the first.
+    @Published private(set) var dispatchedNames: [String] = []
+    /// The arguments the first dispatch went out with — the confidence lane's
+    /// own filling, when it was the one that answered.
+    @Published private(set) var dispatchedArguments: [String: String] = [:]
 
     /// Which embedding backend decides the roster, printed rather than assumed.
     var engineWord: String {
@@ -161,6 +171,8 @@ final class SandTurnHost: ObservableObject {
         reply = ""
         route = nil
         trace = .empty
+        dispatchedNames = []
+        dispatchedArguments = [:]
         append(.began(utterance: text))
 
         turnTask = Task { [weak self] in
@@ -252,6 +264,13 @@ final class SandTurnHost: ObservableObject {
                 name: reference.invocationName,
                 argumentsJSON: argumentsJSON,
                 runID: runID))
+            dispatchedNames.append(reference.invocationName)
+            if dispatchedArguments.isEmpty,
+               let data = argumentsJSON.data(using: .utf8),
+               let table = try? JSONSerialization.jsonObject(with: data)
+                as? [String: String] {
+                dispatchedArguments = table
+            }
             // Key the act timeline on the brain's own run id, so the acts and
             // the ledger row belong to the same identity.
             trace_?.beginRun(

@@ -31,7 +31,7 @@ public actor TripRecorder {
     private let clock: @Sendable () -> Date
 
     private var shells: [RecordedShell] = []
-    private var pages: [RecordedPageRead] = []
+    private var pageReads: [RecordedPageRead] = []
     private var media: [RecordedMedia] = []
     private var acts: [RecordedAct] = []
     /// The page frame the current leg is aiming at, so a point can be said as a
@@ -47,7 +47,7 @@ public actor TripRecorder {
     public func begin() {
         started = clock()
         shells = []
-        pages = []
+        pageReads = []
         media = []
         acts = []
     }
@@ -63,7 +63,7 @@ public actor TripRecorder {
     }
 
     func notePage(_ roster: PageRoster) {
-        pages.append(RecordedPageRead(
+        pageReads.append(RecordedPageRead(
             page: PageRosterFixture(roster: roster), atMilliseconds: elapsed))
     }
 
@@ -87,10 +87,10 @@ public actor TripRecorder {
     // MARK: - What it hands back
 
     public func gathered() -> (
-        shells: [RecordedShell], pages: [RecordedPageRead],
+        shells: [RecordedShell], pageReads: [RecordedPageRead],
         media: [RecordedMedia], acts: [RecordedAct], elapsed: Int
     ) {
-        (shells, pages, media, acts, elapsed)
+        (shells, pageReads, media, acts, elapsed)
     }
 
     /// The frame the leg aimed at, for a caller turning a fraction back into a

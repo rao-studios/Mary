@@ -66,6 +66,19 @@ public struct PinnedWorld: Sendable, Equatable {
         return PinnedWorld(applicationID: registration.id, focus: focus)
     }
 
+    /// THE SAME GUARD, FROM THE LOGICAL ID. A click gives a bundle id; a
+    /// declaration, a bench or a chip gives the application the graph knows —
+    /// and both have to pass the same two conditions, because `hasEyes` is what
+    /// keeps the pin pinnable-only and the discipline is what it pins TO.
+    public static func from(applicationID: String) -> PinnedWorld? {
+        guard let registration = AmbientApplicationIndexProvider.current
+                  .registration(id: applicationID),
+              registration.hasEyes,
+              let focus = registration.place.focus
+        else { return nil }
+        return PinnedWorld(applicationID: registration.id, focus: focus)
+    }
+
     /// Where the pin points. Resolved through the roster on every read rather
     /// than held, because a pin is a value that outlives an import: a package
     /// can be reinstalled under the same id and the place must follow it.

@@ -64,7 +64,12 @@ public enum TripLayer {
                 because: recording.because ?? "the machine could not be put in this state")
         }
 
-        for check in [routing, ambient, perception, pageRouting, execution, speech, timing] {
+        let checks: [(TripFailureLayer, (TripLeg, TripLegRecording) -> Judgement?)] = [
+            (.abilityRouting, routing), (.ambient, ambient),
+            (.perception, perception), (.pageRouting, pageRouting),
+            (.execution, execution), (.speech, speech), (.timing, timing),
+        ]
+        for (layer, check) in checks where recording.canJudge(layer) {
             if let judgement = check(leg, recording) { return judgement }
         }
         return .passed
@@ -199,7 +204,7 @@ public enum TripLayer {
             .perception,
             "no row in this reading answers the class"
                 + " (\(route.decisions.count) rows read"
-                + (recording.pages.last.map { $0.page.classified == false
+                + (recording.pageReads.last.map { $0.page.classified == false
                     ? ", NO CLASSIFIER" : "" } ?? "")
                 + ") — the recall belongs in the detector")
     }
@@ -341,7 +346,7 @@ public enum TripLayer {
     public static func candidates(
         for wanted: TripRowClass, in recording: TripLegRecording
     ) -> [Int] {
-        guard let page = recording.pages.last?.page else { return [] }
+        guard let page = recording.pageReads.last?.page else { return [] }
         let required = BrowsingTripValidator.facts(named: wanted.facts ?? [])
         let forbidden = BrowsingTripValidator.facts(named: wanted.factsAbsent ?? [])
 
@@ -380,7 +385,7 @@ public enum TripLayer {
         _ wanted: TripRowClass, route: RecordedRoute, recording: TripLegRecording
     ) -> String {
         guard let selected = route.selectedOrdinal,
-              let row = recording.pages.last?.page.rows.first(where: {
+              let row = recording.pageReads.last?.page.rows.first(where: {
                   $0.ordinal == selected
               })
         else { return "is not in the reading at all" }

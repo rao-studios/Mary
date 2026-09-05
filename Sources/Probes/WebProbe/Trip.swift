@@ -147,7 +147,7 @@ enum TripCommand {
             }
             let after = ambient()
 
-            var record = await runner.finishLeg(
+            var record: TripLegRecording = await runner.finishLeg(
                 index: index, say: spoken,
                 outcome: TripRunner.LegOutcome(
                     ok: outcome.ok,
@@ -156,6 +156,7 @@ enum TripCommand {
                     refusal: refusalName(in: outcome),
                     providerApplicationID: outcome.applicationID),
                 before: before, after: after)
+            record.observableLayers = TripLegRecording.probeLayers
             let judged = TripLayer.judge(leg: leg, recording: record)
             record.verdict = judged.verdict
             record.layer = judged.layer

@@ -1,0 +1,233 @@
+//
+//  BrowsingTripReplayTests.swift
+//  MaryPluginTests
+//
+//  WHAT: Recorded trips, re-argued offline — the routing decisions a live round
+//        made, kept arithmetic afterwards.
+//  IN:   Tests/MaryPluginTests/Fixtures/Trips/**/*.recording.json
+//  OUT:  the R2 regression net
+//  PIN:  A ROUTE IS A PURE FUNCTION OF A READ, AND A RECORDING IS THE READ.
+//        Every wrong press this lane has made was made against a live page
+//        nobody could put in a test — the strip that won on page order, the echo
+//        that won on word cover, the region picker that won for being first.
+//        Recorded, each becomes arithmetic. This is `PageRouteFixtureTests`
+//        generalized: instead of three pages somebody remembered to save, every
+//        page a round drove through is replayed with the goal it was actually
+//        given, and the answer compared with the one the live run got.
+//        WHAT IT REPLAYS IS THE ROUTE, NOT THE ACT. A recording is enough to
+//        re-argue a routing decision exactly, because the router reads only the
+//        roster and the goal. It is NOT enough to replay an act: a receipt is a
+//        comparison of two readings taken around a press that a replay does not
+//        perform. So the acts are checked as expectations against what the live
+//        run recorded, and the two recovery cases that genuinely need a fake — a
+//        page that never settles, a stage that stops holding focus — are engine
+//        tests with fakes rather than machinery nothing else uses.
+//        DRIFT IS REPORTED, NOT SILENTLY REPASSED. A recording whose route
+//        changes on identical evidence is the whole signal this file exists for.
+//
+
+import Foundation
+import Testing
+@testable import MaryComputerUse
+@testable import MaryPlugin
+
+@Suite struct BrowsingTripReplayTests {
+
+    static var tripsRoot: URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/Trips", isDirectory: true)
+    }
+
+    /// The verb a recorded route was argued with, back from its own words.
+    static func verb(_ recorded: RecordedRoute) -> PageRouteVerb? {
+        switch recorded.verb {
+        case "press": return .press
+        case "fill": return .fill
+        case "adjust": return .adjust
+        case "reveal": return .reveal
+        case "result": return .openResult(query: recorded.query ?? "")
+        default: return nil
+        }
+    }
+
+    // MARK: - The corpus of recordings
+
+    /// EVERY RECORDING IS ONE WE CAN READ. Same rule as the trips, and the same
+    /// reason: a corpus that silently shrinks always passes.
+    @Test func everyRecordingIsOneWeCanRead() {
+        let found = TripRecording.all(under: Self.tripsRoot)
+        let named = found.unreadable
+            .map { "\($0.url.lastPathComponent): \($0.problem)" }
+            .joined(separator: "; ")
+        #expect(found.unreadable.isEmpty, "\(named)")
+    }
+
+    /// A RECORDED ROUTE ANSWERS THE SAME WAY ON THE SAME EVIDENCE.
+    ///
+    /// PIN: THE CONSTANTS ARE WHAT THIS CATCHES. Move a floor or a structural
+    /// weight in `PageRouter` by hand and a recorded page starts answering
+    /// differently against the identical read — which is the one thing a
+    /// calibration comment cannot notice.
+    @Test func everyRecordedRouteAnswersAsItDid() {
+        let found = TripRecording.all(under: Self.tripsRoot)
+        // NOTHING TO REPLAY IS NOT A PASS TO BE PROUD OF, and it is not a
+        // failure either: recordings arrive with a live round.
+        guard !found.recordings.isEmpty else { return }
+
+        var drift: [String] = []
+        for (url, recording) in found.recordings {
+            for leg in recording.legs {
+                guard let page = leg.pageReads.last?.page else { continue }
+                let roster = page.roster()
+                for recorded in leg.routes {
+                    guard let verb = Self.verb(recorded) else { continue }
+                    let again = PageRouter.arbitrate(
+                        goal: recorded.goal, verb: verb, roster: roster)
+                    let now = again.winner?.ordinal
+                    guard now != recorded.selectedOrdinal else { continue }
+                    drift.append(
+                        "\(url.lastPathComponent) leg \(leg.index) "
+                            + "\"\(recorded.goal)\" (\(recorded.verb)) reached "
+                            + "\(now.map(String.init) ?? "nothing") on replay, "
+                            + "\(recorded.selectedOrdinal.map(String.init) ?? "nothing") when recorded")
+                }
+            }
+        }
+        let named = drift.joined(separator: "\n")
+        #expect(drift.isEmpty, "\(named)")
+    }
+
+    /// AND THE ROW IT REACHES STILL ANSWERS THE TRIP'S CLASS. Drift is one
+    /// signal; the other is the leg's own expectation, re-checked against the
+    /// replayed decision rather than against what the live run happened to do.
+    @Test func everyRecordedLegStillMeetsItsPageExpectation() throws {
+        let recordings = TripRecording.all(under: Self.tripsRoot).recordings
+        guard !recordings.isEmpty else { return }
+        let trips = Dictionary(
+            BrowsingTrip.all(under: Self.tripsRoot).map { ($0.trip.id, $0.trip) },
+            uniquingKeysWith: { first, _ in first })
+
+        var wrong: [String] = []
+        for (url, recording) in recordings {
+            guard let trip = trips[recording.tripID] else {
+                wrong.append("\(url.lastPathComponent) records a trip that is gone")
+                continue
+            }
+            for leg in recording.legs {
+                guard leg.index < trip.legs.count else { continue }
+                let expectation = trip.legs[leg.index]
+                guard expectation.page != nil else { continue }
+                let judged = TripLayer.judge(leg: expectation, recording: leg)
+                guard judged.layer == .pageRouting || judged.layer == .perception
+                else { continue }
+                wrong.append(
+                    "\(recording.tripID)[\(leg.index)] \(judged.layer?.rawValue ?? "") "
+                        + (judged.because ?? ""))
+            }
+        }
+        let named = wrong.joined(separator: "\n")
+        #expect(wrong.isEmpty, "\(named)")
+    }
+
+    /// THE DRIFT RULE MUST BE ABLE TO FAIL, and until a live round commits its
+    /// first recording there is nothing in the repository to prove it with.
+    ///
+    /// PIN: BUILT FROM A PAGE THAT IS ALREADY HERE. `results-page` is the read
+    /// that defeated every ranking, so it is the honest thing to re-argue: a
+    /// recording claiming it reached a row is a recording the replay must
+    /// contradict, because the live router refuses that page entirely.
+    @Test func aRecordingThatDisagreesWithTheRouterIsReportedAsDrift() throws {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Fixtures/PageRoutes/results-page.json")
+        guard let data = FileManager.default.contents(atPath: url.path) else { return }
+        let page = try JSONDecoder().decode(PageRosterFixture.self, from: data)
+
+        let goal = ""
+        let query = "fred again video on youtube"
+        let live = PageRouter.arbitrate(
+            goal: goal, verb: .openResult(query: query), roster: page.roster())
+        // The page the router refuses, which is what makes it a fixture.
+        #expect(live.winner == nil)
+
+        // A recording claiming otherwise, on the identical read.
+        let claimed = RecordedRoute(
+            goal: goal, verb: "result", query: query,
+            eligibleCount: 0, goalUnmatched: true, selectedOrdinal: 7)
+        let again = PageRouter.arbitrate(
+            goal: claimed.goal, verb: try #require(Self.verb(claimed)),
+            roster: page.roster())
+        #expect(
+            again.winner?.ordinal != claimed.selectedOrdinal,
+            "the drift comparison cannot notice a disagreement")
+
+        // AND IT AGREES WITH ITSELF, so the rule is not simply always unhappy.
+        let honest = RecordedRoute(
+            goal: goal, verb: "result", query: query,
+            eligibleCount: 0, goalUnmatched: true, selectedOrdinal: nil)
+        #expect(again.winner?.ordinal == honest.selectedOrdinal)
+    }
+
+    // MARK: - The two cases that need a fake, not a recording
+
+    /// A PAGE THAT NEVER SETTLES IS REPORTED AS NOT HAVING ARRIVED.
+    ///
+    /// PIN: THE `navigation-stalls` TRIP, AND IT CANNOT BE A LIVE ONE. Making a
+    /// real browser fail to load on demand is not something a round can stage,
+    /// and waiting out the ten-second budget against a real clock would spend
+    /// most of a suite proving arithmetic. The fake clock is the trip.
+    @Test func aNavigationThatNeverSettlesIsRefused() async {
+        // The shell never changes, so nothing ever says the page arrived.
+        let shell = FakeShell([BrowsingFixtures.shell(title: "A Page")])
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]))
+
+        let outcome = await engine.navigate(
+            .open("https://example.com/"), in: BrowsingFixtures.target())
+
+        #expect(outcome.ok == false)
+        #expect(outcome.refusal == .navigationDidNotSettle)
+        #expect(outcome.landed == false)
+        // AND IT DID TYPE THE ADDRESS — the refusal is about settling, not about
+        // having refused to try.
+        #expect(shell.opened.count == 1)
+    }
+
+    /// SOMEBODY TAKING THE MACHINE MID-PLAN STOPS IT AND SAYS WHERE IT GOT TO.
+    ///
+    /// PIN: THE `focus-lost-mid-plan` TRIP. A plan that keeps pressing into
+    /// whatever came forward is worse than one that stops — it types somebody's
+    /// query into a window they were reading. Live, this needs a person to click
+    /// away at the right moment; here the stage simply stops holding focus.
+    @Test func aPlanInterruptedByAnotherApplicationStopsAndSaysWhere() async {
+        let page = BrowsingFixtures.page([
+            (role: "AXTextField", label: "Search this site", affordance: .fill),
+            (role: "AXButton", label: "Go", affordance: .press),
+        ])
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage(pages: [page, page, page]),
+            stage: FakeStage(succeeds: true, keepsFocus: false))
+
+        let outcome = await engine.fillOnPage(
+            "search this site", text: "alpine touring boots", submit: true,
+            in: BrowsingFixtures.target())
+
+        #expect(outcome.landed == false)
+        // WHICH STEP IT GOT TO IS THE POINT. "It didn't work" is the answer this
+        // whole receipt ladder exists to stop being given.
+        let stopped = outcome.receipts.contains { receipt in
+            switch receipt.delivery {
+            case .interrupted: return true
+            case .refused(let refusal):
+                if case .interrupted = refusal { return true }
+                return false
+            default: return false
+            }
+        }
+        let said = outcome.receipts.map(\.spoken).joined(separator: " · ")
+        #expect(stopped || outcome.refusal != nil, "\(said)")
+    }
+}

@@ -415,7 +415,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
     public var ambientAfter: RecordedAmbient?
 
     public var shells: [RecordedShell]
-    public var pages: [RecordedPageRead]
+    public var pageReads: [RecordedPageRead]
     public var media: [RecordedMedia]
     public var routes: [RecordedRoute]
     public var acts: [RecordedAct]
@@ -426,6 +426,20 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
     public var refusal: String?
     public var outcomeSpoken: String
     public var speech: RecordedSpeech?
+    /// WHICH LAYERS THIS RUNNER COULD OBSERVE AT ALL.
+    ///
+    /// PIN: A RUNNER THAT CANNOT SEE A LAYER MUST NOT BE READ AS PASSING IT.
+    /// The two runners answer different halves on purpose. The probe dispatches
+    /// the binding, so it knows the receipt, whether the act landed and which
+    /// application answered — and nothing about which skill the words would have
+    /// reached. A turn knows the routing, the lane and what was said — and
+    /// nothing about `landed`, because the brain consumes the outcome and it
+    /// never reaches a `BehavioralActionRecord` (that type says so itself).
+    /// Folding the two into one silent default would let a turn-level run report
+    /// a media leg as passing when nothing checked that it landed, which is the
+    /// exact defect the corpus exists to catch. Nil means "judge everything",
+    /// which is what a hand-written recording in a test wants.
+    public var observableLayers: [TripFailureLayer]?
     /// The engine's own words, timestamped — one vocabulary for every watcher.
     public var timeline: [String]
     public var elapsedMilliseconds: Int
@@ -436,11 +450,12 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
         routing: RecordedRouting? = nil,
         providerApplicationID: String? = nil, providerRationale: String? = nil,
         ambientBefore: RecordedAmbient? = nil, ambientAfter: RecordedAmbient? = nil,
-        shells: [RecordedShell] = [], pages: [RecordedPageRead] = [],
+        shells: [RecordedShell] = [], pageReads: [RecordedPageRead] = [],
         media: [RecordedMedia] = [], routes: [RecordedRoute] = [],
         acts: [RecordedAct] = [], receipts: [RecordedReceipt] = [],
         ok: Bool = false, landed: Bool = false, refusal: String? = nil,
         outcomeSpoken: String = "", speech: RecordedSpeech? = nil,
+        observableLayers: [TripFailureLayer]? = nil,
         timeline: [String] = [], elapsedMilliseconds: Int = 0
     ) {
         self.index = index
@@ -454,7 +469,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
         self.ambientBefore = ambientBefore
         self.ambientAfter = ambientAfter
         self.shells = shells
-        self.pages = pages
+        self.pageReads = pageReads
         self.media = media
         self.routes = routes
         self.acts = acts
@@ -464,9 +479,27 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
         self.refusal = refusal
         self.outcomeSpoken = outcomeSpoken
         self.speech = speech
+        self.observableLayers = observableLayers
         self.timeline = timeline
         self.elapsedMilliseconds = elapsedMilliseconds
     }
+
+    /// Can this recording answer for that layer?
+    public func canJudge(_ layer: TripFailureLayer) -> Bool {
+        observableLayers?.contains(layer) ?? true
+    }
+
+    /// What the probe can answer for: it drives the bindings, so it sees the
+    /// page, the act and the clock — and no turn happened, so it sees no routing.
+    public static let probeLayers: [TripFailureLayer] = [
+        .ambient, .perception, .pageRouting, .execution, .timing,
+    ]
+
+    /// What a whole turn can answer for: which skill the words reached, on which
+    /// lane, where the lead was, and whether anything was said.
+    public static let turnLayers: [TripFailureLayer] = [
+        .abilityRouting, .ambient, .speech, .timing,
+    ]
 
     /// The best receipt this leg produced — the one `landed` rests on.
     public var bestReceipt: String {
@@ -488,13 +521,20 @@ public struct TripRecording: Sendable, Equatable, Codable {
     public var runner: String
     /// The round this was recorded in — `0`, `1`, … See docs/browsing-trips.md.
     public var round: String
+    /// Which browser the round drove, as the registration's own id.
+    ///
+    /// PIN: NO DEFAULT, BECAUSE A DEFAULT WOULD BE A BROWSER'S NAME IN SWIFT.
+    /// The whole lane learns which browsers exist from `safari.mary` and
+    /// `chrome.mary`; a recording that assumed one would be the single place
+    /// this codebase named a browser, and `ApplicationNameTests` caught exactly
+    /// that. The caller has already resolved a registration and passes its id.
     public var browser: String
     public var recordedAt: Date
     public var legs: [TripLegRecording]
 
     public init(
         tripID: String, category: String, runner: String, round: String,
-        browser: String = "chrome", recordedAt: Date = Date(),
+        browser: String = "", recordedAt: Date = Date(),
         legs: [TripLegRecording] = []
     ) {
         self.tripID = tripID

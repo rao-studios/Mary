@@ -20,6 +20,9 @@
 //    ./scripts/sand.sh --target com.google.Chrome --read-page
 //    ./scripts/sand.sh --target com.google.Chrome --read-page \
 //        --say "open the first result" --auto
+//    ./scripts/sand.sh --target com.google.Chrome \
+//        --trip Tests/MaryPluginTests/Fixtures/Trips/read/what-is-this-about.trip.json \
+//        --record /tmp/round0 --round 0
 //
 import Foundation
 
@@ -40,6 +43,17 @@ struct SandLaunchOptions {
     /// like every other verb here: a read claims the stage and moves the pointer, which
     /// is not something opening a bench should do on its own.
     var readPage = false
+    /// A browsing trip to take through the whole turn. See SandTripRunner.
+    var trip: String?
+    /// Where its recording goes. Nothing is written without it.
+    var record: String?
+    /// Which round this run belongs to, written into the recording.
+    var round: String?
+    /// Only this leg — how a round re-runs the one that failed.
+    var leg: Int?
+    /// Skip the legs whose stage needs a person: a hand on the page, a second
+    /// window, music playing. Without it the runner asks for them.
+    var staged = false
     /// `--arg name=value`, applied to BOTH lanes: the direct run's arguments, and the
     /// skill `--auto` answers with (filtered there to what that skill declares).
     var arguments: [String: String] = [:]
@@ -66,6 +80,21 @@ struct SandLaunchOptions {
                 index += 1
             case "--read-page":
                 readPage = true
+                index += 1
+            case "--trip":
+                trip = value
+                index += 2
+            case "--record":
+                record = value
+                index += 2
+            case "--round":
+                round = value
+                index += 2
+            case "--leg":
+                leg = value.flatMap(Int.init)
+                index += 2
+            case "--staged":
+                staged = true
                 index += 1
             case "--arg":
                 // name=value. A value containing "=" keeps it: only the first
