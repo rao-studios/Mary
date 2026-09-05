@@ -558,6 +558,42 @@ import Testing
         #expect(appended.contains("### Round 1"))
     }
 
+    /// A ROUND THAT COULD NOT RUN IS NOT A ROUND THAT PASSED.
+    ///
+    /// PIN: MEASURED ON THE FIRST LIVE RUN. Seven trips came back unstageable
+    /// for want of an address, one leg passed, and the scoreboard reported the
+    /// exit criterion MET. A rate computed over the legs that ran says nothing
+    /// about the ones that could not.
+    @Test func aRoundThatBarelyRanDoesNotMeetTheCriterion() {
+        let board = TripScoreboard.score([
+            TripRecording(
+                tripID: "a", category: "read", runner: "probe", round: "0",
+                legs: [
+                    TripLegRecording(index: 0, say: "x", verdict: .passed),
+                    TripLegRecording(index: 1, say: "y", verdict: .unstageable),
+                    TripLegRecording(index: 2, say: "z", verdict: .unstageable),
+                ]),
+        ])
+        let (met, because) = board.meetsExitCriterion()
+        #expect(!met)
+        #expect(because.contains { $0.contains("unstageable against") })
+        #expect(because.contains { $0.contains("no recordings at all for") })
+        #expect(board.markdown().contains("Exit criterion not met"))
+    }
+
+    /// AND A CATEGORY THAT RAN NOTHING IS NAMED, even when everything else did.
+    @Test func aSilentCategoryIsNamed() {
+        let board = TripScoreboard.score([
+            TripRecording(
+                tripID: "a", category: "read", runner: "probe", round: "0",
+                legs: [TripLegRecording(index: 0, say: "x", verdict: .passed)]),
+            TripRecording(
+                tripID: "b", category: "tabs", runner: "probe", round: "0",
+                legs: [TripLegRecording(index: 0, say: "y", verdict: .pending)]),
+        ])
+        #expect(board.meetsExitCriterion().because.contains { $0.contains("no leg ran in tabs") })
+    }
+
     /// THE EXIT CRITERION IS A CALCULATION, not a feeling about the round.
     @Test func theExitCriterionNamesWhatIsStillWrong() {
         let board = TripScoreboard.score([

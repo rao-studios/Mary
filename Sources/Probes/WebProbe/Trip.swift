@@ -57,6 +57,7 @@ enum TripCommand {
         trip: BrowsingTrip,
         adapter: WebSurfaceAdapter,
         engine: BrowserEngine,
+        target: BrowserTarget,
         runner: TripRunner,
         setup: TripRunner.Setup,
         assumeYes: Bool
@@ -64,6 +65,46 @@ enum TripCommand {
         var recording = TripRecording(
             tripID: trip.id, category: trip.category,
             runner: setup.runner, round: setup.round, browser: setup.browser)
+
+        // THE STAGE IS PART OF THE QUESTION, AND AN UNSTAGED RUN IS A FALSE PASS.
+        // Measured while building this: `what-can-i-click` staged `resultsPage`
+        // and ran against whatever tab happened to be open, then reported a
+        // pass — a verdict about a page the trip was not asking about. A class
+        // the machine has no address for cannot be staged, and saying so is the
+        // honest answer; `any` and `blank` ask for nothing.
+        let wanted = trip.stage.pageClass
+        if wanted != .any, wanted != .blank {
+            guard let seed = TripStaging.seed(for: wanted) else {
+                for (index, leg) in trip.legs.enumerated() {
+                    recording.legs.append(TripRunner.unstageable(
+                        index: index, say: leg.say,
+                        because: TripStaging.missingSeedAdvice(for: wanted)))
+                    print(line(recording.legs[recording.legs.count - 1]))
+                }
+                return recording
+            }
+            guard assumeYes || confirm(
+                "staging \"\(wanted.rawValue)\" navigates the browser you are looking at. Go on?")
+            else {
+                for (index, leg) in trip.legs.enumerated() {
+                    recording.legs.append(TripRunner.unstageable(
+                        index: index, say: leg.say, because: "declined at the prompt"))
+                }
+                print("  ~  not staged")
+                return recording
+            }
+            let staged = await engine.navigate(.open(seed), in: target)
+            guard staged.ok else {
+                for (index, leg) in trip.legs.enumerated() {
+                    recording.legs.append(TripRunner.unstageable(
+                        index: index, say: leg.say,
+                        because: "could not stage \(wanted.rawValue) — \(staged.spoken)"))
+                    print(line(recording.legs[recording.legs.count - 1]))
+                }
+                return recording
+            }
+            print("  staged \(wanted.rawValue)")
+        }
 
         let bindings = Dictionary(
             adapter.skillBindings.map { ($0.name, $0) },

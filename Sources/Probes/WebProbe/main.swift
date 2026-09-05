@@ -261,6 +261,7 @@ if let tripPath {
         trip: trip,
         adapter: adapter,
         engine: engine,
+        target: target,
         runner: runner,
         setup: TripRunner.Setup(
             round: value("--round") ?? "0",

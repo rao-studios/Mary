@@ -104,6 +104,36 @@ public struct TripScoreboard: Sendable {
     /// answers for itself alone.
     public func meetsExitCriterion() -> (met: Bool, because: [String]) {
         var problems: [String] = []
+
+        // A ROUND THAT COULD NOT RUN IS NOT A ROUND THAT PASSED.
+        //
+        // PIN: MEASURED, ON THE FIRST LIVE RUN OF THIS FILE. Seven trips came
+        // back unstageable for want of an address and one leg passed, and this
+        // reported the exit criterion MET — a rate computed over the legs that
+        // ran says nothing about the ones that could not, and "100% of one" is
+        // the same silence as a corpus that shrinks to nothing and stays green.
+        let total = totals
+        let live = total.passed + total.failed
+        if live == 0 {
+            problems.append("nothing ran — every leg was pending or unstageable")
+        } else if total.unstageable > live {
+            problems.append(
+                "\(total.unstageable) leg(s) unstageable against \(live) that ran"
+                    + " — stage the machine before reading this table")
+        }
+        let silent = rows.filter { $0.passed + $0.failed == 0 }.map(\.category)
+        if !silent.isEmpty {
+            problems.append(
+                "no leg ran in " + silent.sorted().joined(separator: ", "))
+        }
+        // AND EVERY CATEGORY THE CORPUS HAS MUST BE IN THE TABLE AT ALL. A round
+        // that never opened a category cannot be compared with one that did.
+        let missing = BrowsingTrip.categories.subtracting(rows.map(\.category))
+        if !missing.isEmpty {
+            problems.append(
+                "no recordings at all for " + missing.sorted().joined(separator: ", "))
+        }
+
         let workingCategories = rows.filter { $0.category != "context" }
         for row in workingCategories where row.rate < 0.9 && (row.passed + row.failed) > 0 {
             problems.append(

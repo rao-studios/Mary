@@ -6,18 +6,7 @@
       "engine": {
         "budgetMs": 8000
       },
-      "note": "Read only. What this pins is on the recording: the echo row and the strip row are both present and both refused by their facts.",
-      "page": {
-        "verb": "openResult",
-        "winner": {
-          "factsAbsent": [
-            "echoOfQuery",
-            "separatedStrip",
-            "bareAddress",
-            "inFurnitureBand"
-          ]
-        }
-      },
+      "note": "A read routes nothing, so what this leg contributes is the RECORDING: the echo row and the strip row are in it, carrying the facts that disqualify them. The refusal itself is argued offline \u2014 by PageRouteFixtureTests on the recorded pages, and by the replay net over this recording once a results page has been staged.",
       "routing": {
         "intent": "perceive",
         "skill": "read_page"
