@@ -277,9 +277,14 @@ if let tripPath {
               : failed.compactMap { $0.layer?.rawValue }.joined(separator: ", "))
 
     if let directory = value("--record") {
-        let destination = URL(fileURLWithPath: directory)
-            .appendingPathComponent(recording.fileName)
+        let folder = URL(fileURLWithPath: directory)
+        let destination = folder.appendingPathComponent(recording.fileName)
         do {
+            // THE DIRECTORY IS PART OF THE ASK. A round names where its evidence
+            // goes; failing after the browsing is done, because a folder was not
+            // there, throws away the only expensive part of the run.
+            try FileManager.default.createDirectory(
+                at: folder, withIntermediateDirectories: true)
             try recording.encoded().write(to: destination, options: .atomic)
             check(true, "recorded", destination.lastPathComponent)
         } catch {
