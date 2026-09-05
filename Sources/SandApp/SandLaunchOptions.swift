@@ -17,6 +17,9 @@
 //    ./scripts/sand.sh --target com.apple.Music --say "play a playlist" --auto
 //    ./scripts/sand.sh --target com.apple.TextEdit --run textedit_save_document \
 //        --arg app=textedit
+//    ./scripts/sand.sh --target com.google.Chrome --read-page
+//    ./scripts/sand.sh --target com.google.Chrome --read-page \
+//        --say "open the first result" --auto
 //
 import Foundation
 
@@ -33,6 +36,12 @@ struct SandLaunchOptions {
     /// asking Mary something is not the same as agreeing in advance to
     /// whatever she proposes.
     var auto = false
+    /// Read the page once the stage is up. Only meaningful for a browser, and opt-in
+    /// like every other verb here: a read claims the stage and moves the pointer, which
+    /// is not something opening a bench should do on its own.
+    var readPage = false
+    /// `--arg name=value`, applied to BOTH lanes: the direct run's arguments, and the
+    /// skill `--auto` answers with (filtered there to what that skill declares).
     var arguments: [String: String] = [:]
 
     static let current = SandLaunchOptions(CommandLine.arguments)
@@ -54,6 +63,9 @@ struct SandLaunchOptions {
                 index += 2
             case "--auto":
                 auto = true
+                index += 1
+            case "--read-page":
+                readPage = true
                 index += 1
             case "--arg":
                 // name=value. A value containing "=" keeps it: only the first

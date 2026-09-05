@@ -61,11 +61,21 @@ struct SandTurnView: View {
     }
 
     /// `--auto`: answer as the model would, with the roster's first offer.
+    ///
+    /// PIN: `--arg` REACHES THIS LANE TOO, filtered to what the chosen skill actually
+    /// declares. Sending a name the schema does not carry is how a scripted turn ends in
+    /// an argument refusal that has nothing to do with what was being tested — and a
+    /// turn that needs a query ("search for X") could not be scripted at all without it.
     private func answerIfAsked() {
         guard SandLaunchOptions.current.auto,
               let round = host.round, let first = round.skills.first
         else { return }
-        host.answer(.invoke(name: first.name, argumentsJSON: "{}"))
+        let declared = Set(first.parameters.map(\.name))
+        let supplied = SandLaunchOptions.current.arguments
+            .filter { declared.contains($0.key) }
+        host.answer(.invoke(
+            name: first.name,
+            argumentsJSON: SandRuntimeHost.argumentsJSON(supplied)))
     }
 
     // MARK: - Asking

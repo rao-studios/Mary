@@ -36,7 +36,7 @@ public extension BrowserEngine {
         }
         let cursor = await seams.hands.cursorLocation()
         // The slate belongs to the page that is there NOW.
-        AffordanceSlatePublisher.retract(store: seams.slate)
+        retractSlate()
         let outcome = await read(target, shell: shell)
         await seams.hands.restoreCursor(to: cursor)
         switch outcome {

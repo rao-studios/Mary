@@ -232,3 +232,23 @@ public struct BehavioralActionRecord: Codable, Hashable, Sendable, Identifiable 
         initiator = try values.decodeIfPresent(ActionInitiator.self, forKey: .initiator) ?? .model
     }
 }
+
+public extension BehavioralActionRecord {
+
+    /// The ledger row's own receipt words — what the record can say that the summary
+    /// cannot. `SkillOutcome.receiptWords`' sibling, and deliberately shorter: the brain
+    /// consumed the outcome, so `landed` and the application never reach a record.
+    ///
+    /// PIN: THE TRAIL IS THE HALF THAT MATTERS HERE. A skill answered by a fallback
+    /// adapter succeeds and reads identically to one answered by its primary — until
+    /// this line names both hops.
+    var receiptWords: String {
+        var parts: [String] = []
+        if foundNothing { parts.append("found nothing") }
+        if !action.adapters.isEmpty {
+            parts.append(action.adapters.map(\.rawValue).joined(separator: " → "))
+        }
+        if let containerKey, !containerKey.isEmpty { parts.append(containerKey) }
+        return parts.joined(separator: "  ·  ")
+    }
+}

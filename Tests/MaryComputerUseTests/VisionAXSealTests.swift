@@ -2,7 +2,7 @@
 //  VisionAXSealTests.swift
 //  MaryComputerUseTests
 //
-//  WHAT: VisionAX stays behind one door, and none of its types cross it.
+//  WHAT: The vision engine stays behind one door, and none of its types cross it.
 //  OUT:  Source-text scan of Sources/
 //  PIN:  This is not tidiness. VisionAX REPLICATES Mary's AX vocabulary — it declares
 //        its own AXNodeSnapshot, AXWindowSnapshot, AXScreenElement and AXNodeCategory
@@ -10,6 +10,12 @@
 //        modules declaring the same names means any file importing both makes every use
 //        of them ambiguous, and the error appears at the USE, far from the import that
 //        caused it. One importing directory is what keeps that from ever happening.
+//        TWO SPELLINGS, ONE DOOR. The engine arrives as Frigate's `FrigateVision`
+//        product, which `@_exported import`s VisionAX — so `import FrigateVision` and
+//        `import VisionAX` BOTH carry the colliding names. SwiftPM also puts every
+//        module in the graph on the search path whether or not a target declared the
+//        edge (measured: a fixture imported VisionAX with no such dependency), so
+//        forbidding one spelling would leave the other as an open window.
 //
 
 import Foundation
@@ -48,26 +54,36 @@ final class VisionAXSealTests: XCTestCase {
     /// The one directory allowed to import it.
     static let door = "Sources/MaryComputerUse/Sight/Vision/"
 
-    func testOnlyTheVisionLaneImportsVisionAX() throws {
+    /// Every way to name the vision engine in an import.
+    static let doorTokens = ["import FrigateVision", "import VisionAX"]
+
+    /// Does this file import the engine, by either spelling?
+    static func importsTheEngine(_ body: String) -> Bool {
+        doorTokens.contains { token in
+            body.range(of: "^\\s*\(token)\\b", options: [.regularExpression]) != nil
+                || body.contains("\n\(token)")
+                || body.hasPrefix(token)
+        }
+    }
+
+    func testOnlyTheVisionLaneImportsTheEngine() throws {
         var breaches: [String] = []
         for url in try Self.swiftFiles() {
             let path = Self.path(url)
             let body = Self.code(try String(contentsOf: url, encoding: .utf8))
-            guard body.range(of: #"^\s*import VisionAX\b"#, options: [.regularExpression]) != nil
-                    || body.contains("\nimport VisionAX")
-                    || body.hasPrefix("import VisionAX")
-            else { continue }
+            guard Self.importsTheEngine(body) else { continue }
             if path.hasPrefix(Self.door) { continue }
             breaches.append(path)
         }
         XCTAssertTrue(
             breaches.isEmpty,
             """
-            These files import VisionAX from outside \(Self.door):
+            These files import the vision engine from outside \(Self.door):
             \(breaches.joined(separator: "\n"))
 
             VisionAX declares AXNodeSnapshot, AXWindowSnapshot, AXScreenElement and \
-            AXNodeCategory under the same names Mary does. A file that imports both \
+            AXNodeCategory under the same names Mary does — and `FrigateVision` \
+            re-exports it, so either spelling carries them. A file that imports both \
             modules makes every use of those names ambiguous, and the compiler reports \
             it at the use rather than at the import. Convert at the seam instead.
             """)
@@ -77,10 +93,10 @@ final class VisionAXSealTests: XCTestCase {
     func testTheVisionLaneExistsAndImportsIt() throws {
         let importers = try Self.swiftFiles()
             .filter { Self.path($0).hasPrefix(Self.door) }
-            .filter { Self.code(try! String(contentsOf: $0, encoding: .utf8)).contains("import VisionAX") }
+            .filter { Self.importsTheEngine(Self.code(try! String(contentsOf: $0, encoding: .utf8))) }
         XCTAssertFalse(
             importers.isEmpty,
-            "nothing under \(Self.door) imports VisionAX — this test is guarding an empty room")
+            "nothing under \(Self.door) imports the vision engine — this test is guarding an empty room")
     }
 
     /// NO VISIONAX TYPE APPEARS IN A PUBLIC SIGNATURE. Everything crosses the seam as

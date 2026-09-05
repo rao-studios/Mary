@@ -11,6 +11,18 @@
 #   ./scripts/sand.sh
 #   CONFIG=release ./scripts/sand.sh
 #
+# Pointed at something, without a click:
+#   ./scripts/sand.sh --target com.google.Chrome
+#   ./scripts/sand.sh --target com.google.Chrome --read-page
+#   ./scripts/sand.sh --target com.apple.Safari --read-page \
+#       --say "open the first result" --auto
+#   ./scripts/sand.sh --target com.google.Chrome \
+#       --say "search for alpine touring boots" --auto --arg query="alpine touring boots"
+#
+# Screenshotting the bench (Sand owns its own windows, not Mary's):
+#   swift scripts/window-id.swift "" Sand
+#   screencapture -o -l<window id> /tmp/sand.png
+#
 set -e
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"

@@ -50,12 +50,22 @@ reports its cost to. When a dependency runs the wrong way, invert it — the
 window-list read moved down into `AXWindowRoster` and `AccessibilityWindowCore`
 now forwards to it, rather than tier 0 calling up into `Hands/Windows/`.
 
-VisionAX is a dependency of this target and of no other, and only `Sight/Vision/` imports
-it. That is not tidiness: VisionAX replicates this layer's AX vocabulary by name —
-`AXNodeSnapshot`, `AXScreenElement`, `AXNodeCategory` — deliberately, so its trees are
-shaped like ours, and a second importer would make every use of those names ambiguous at
-the use site rather than at the import. `Tests/MaryComputerUseTests/VisionAXSealTests.swift`
-holds the line inside the module; `PackageLayeringTests` holds it in the manifest.
+The vision engine is a dependency of this target and of no other, and only
+`Sight/Vision/` imports it. That is not tidiness: VisionAX replicates this layer's AX
+vocabulary by name — `AXNodeSnapshot`, `AXScreenElement`, `AXNodeCategory` — deliberately,
+so its trees are shaped like ours, and a second importer would make every use of those
+names ambiguous at the use site rather than at the import.
+`Tests/MaryComputerUseTests/VisionAXSealTests.swift` holds the line inside the module;
+`PackageLayeringTests` holds it in the manifest.
+
+It arrives **through Frigate**, as the `FrigateVision` product — Frigate hosts the ML
+surfaces this repository takes, and pixel perception is one of them. That changes nothing
+about the layer: the vision product re-exports VisionAX and depends on no MLX target, so
+there is still no model runtime behind a keystroke, and `frigateInferenceOnlyThroughBrain`
+polices the split per product. It does mean the seal watches **two spellings** — `import
+FrigateVision` and `import VisionAX` both carry the colliding names, because a re-export
+carries everything and SwiftPM puts every module in the graph on the search path whether
+or not a target declared the edge.
 
 **No target above MaryComputerUse posts an input event, performs an
 accessibility action, or captures pixels.** Reads are fine: asking
@@ -147,6 +157,43 @@ is what the words earned: "what is playing right now" offers one skill, "play a
 playlist" offers five, and the roster pane names the disposition and reason for
 every skill it did not offer. A turn that acts without ever asking for a round
 took the confidence lane, and says so.
+
+### A browser on the bench
+
+A browser is the one target whose Accessibility tree does not describe what is
+on the screen: the tabs, the address field and the toolbar are all it has, and
+everything a page offers is drawn inside a hole. Sand shows both readings at
+once — the AX wireframe underneath, and the page as VisionAX read it on top.
+
+```sh
+./scripts/sand.sh --target com.google.Chrome --read-page
+./scripts/sand.sh --target com.apple.Safari --read-page \
+    --say "open the first result" --auto
+```
+
+**Read page** dispatches `read_page` through the runtime, exactly as a turn
+would; `--read-page` is the same press from a script. Nothing perceives on its
+own — pixels are read when a skill asks — so the overlay is empty until a read
+happens and says how old the one it is drawing is. Rows are coloured by what
+they afford (green presses, blue fills, orange adjusts, grey nothing) and a row
+whose name the reading had to invent is dashed and reads `(unnamed)`: nothing
+can be asked for by a name the page never wrote. The ambient inspector says the
+same thing in text — the AX rows are labelled **Shell**, and **Page offers**
+lists what a phrase could actually reach, "3 of 27 rows" being the whole
+diagnosis when a read goes badly.
+
+The timeline carries the browsing engine's own stream beside the machine
+layer's: `resolved Chrome`, `read the shell`, `looked — 27 rows, 21 named`,
+`matched "the first one" → "Alpine touring boots"`, then the click the hands
+report, then `receipt` and `verified`. A browsing turn is mostly decisions, and
+none of them are acts — a timeline with only pointer events shows a click in the
+middle of nowhere. Result rows print the receipt words behind the summary:
+`landed`, `found nothing`, the application that answered, and the adapter trail.
+
+```sh
+swift scripts/window-id.swift "" Sand    # Sand owns its own windows, not Mary's
+screencapture -o -l<window id> /tmp/sand.png
+```
 
 **The monitor is process-local.** `ComputerUseMonitor.shared` remembers what
 *its own* process did, so a probe cannot subscribe to the running app's

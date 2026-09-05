@@ -341,22 +341,8 @@ if value("--roundtrip") != nil || value("--roundtrip-search") != nil {
     let timeline = Task { () -> [(String, Duration)] in
         var marks: [(String, Duration)] = []
         for await event in stream {
-            let at = started.duration(to: ContinuousClock.now)
-            switch event {
-            case .resolved(let browser, _): marks.append(("resolved \(browser)", at))
-            case .shellRead(let title, _, _):
-                marks.append(("read the shell — \(title ?? "untitled")", at))
-            case .read(let rows, let named, let groups):
-                marks.append(("looked — \(rows) rows, \(named) named, \(groups) groups", at))
-            case .matched(let phrase, let label):
-                marks.append(("matched \"\(phrase)\" → \"\(label)\"", at))
-            case .acted(let what): marks.append((what, at))
-            case .receipt(let receipt): marks.append(("receipt — \(receipt.spoken)", at))
-            case .verified(let what): marks.append(("verified \(what)", at))
-            case .refused(let refusal): marks.append(("refused — \(refusal.summary)", at))
-            case .perceived(let controls, let playback, _):
-                marks.append(("perceived \(controls) controls · \(playback)", at))
-            }
+            // THE ENGINE'S OWN WORDS, shared with the bench — see `BrowserEngineEvent.line`.
+            marks.append((event.line, started.duration(to: ContinuousClock.now)))
         }
         return marks
     }

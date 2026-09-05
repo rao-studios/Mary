@@ -4,8 +4,9 @@
 //
 //  WHAT: One run, as a timeline: what the runtime asked for, what the machine
 //        layer did, what it refused, and where on screen it happened.
-//  IN:   ComputerUseMonitor.events() (in-process), AbilityExecutionLog, and
-//        optionally another Mary process's log mirror (SandObserverTail)
+//  IN:   ComputerUseMonitor.events() and BrowserEngine.live.events() (in-process),
+//        AbilityExecutionLog, and optionally another Mary process's log mirror
+//        (SandObserverTail)
 //  OUT:  SandTimelineView rows and SandStageOverlay marks
 //  PIN:  THE MONITOR IS THE SOURCE, NOT SAND. Every act and refusal on this
 //        timeline was reported by the lane that performed it, in the order it
@@ -14,6 +15,11 @@
 //        anyone which compiled step produced which act, so the timeline matches
 //        acts to steps by lane and order. It is a reading aid; the acts
 //        themselves are the evidence, and the UI labels the difference.
+//        TWO STREAMS, ONE TIMELINE, AND THE INTERLEAVING IS THE EVIDENCE. The
+//        machine layer says a click happened at a point; the browsing engine says
+//        which phrase became which row and whether the page then moved. Neither
+//        answers "did that do what was asked" alone — together, in arrival order,
+//        they do.
 //        A REFUSAL IS THE POINT. `ComputerUseRefusalReason` exists so a skipped
 //        act says why — that line is usually the answer the bench was opened
 //        for, so it is never collapsed or summarized away.
@@ -32,6 +38,10 @@ struct SandTraceEntry: Identifiable {
         case refusal(ComputerUseRefusal)
         case record(BehavioralActionRecord)
         case runEnded(summary: String, ok: Bool)
+        /// The browsing engine's own stream — resolve, look, match, act, verify.
+        /// Carries the engine's line verbatim (`BrowserEngineEvent.line`); the flag is
+        /// the one thing the timeline colours differently.
+        case browser(String, isRefusal: Bool)
         /// A line from ANOTHER process's mirror — the running Mary app.
         case external(text: String)
         case note(String)
@@ -67,14 +77,16 @@ final class SandTraceModel: ObservableObject {
     @Published private(set) var steps: [SandStepRow] = []
     @Published private(set) var snapshot: ComputerUseSnapshot?
     @Published private(set) var isRunning = false
-    /// The last run's outcome, kept after the run so the banner survives.
-    @Published private(set) var lastOutcome: (ok: Bool, summary: String)?
+    /// The last run's outcome, kept after the run so the banner survives. `receipt` is
+    /// the four facts that say whether the summary is true — see `receiptWords`.
+    @Published private(set) var lastOutcome: (ok: Bool, summary: String, receipt: String)?
 
     /// How many rows the timeline keeps. Long enough for a whole recipe and
     /// its refusals, short enough that it is never a recording.
     static let capacity = 400
 
     private var monitorTask: Task<Void, Never>?
+    private var browserTask: Task<Void, Never>?
     private var ledgerTask: Task<Void, Never>?
     private var pruneTask: Task<Void, Never>?
     private var runStartedAt: Date?
@@ -94,6 +106,17 @@ final class SandTraceModel: ObservableObject {
                 await MainActor.run { self?.receive(event) }
             }
         }
+        // THE BROWSING LANE'S OWN STREAM, beside the machine layer's. A browsing turn
+        // is mostly decisions — which browser, which row, did the page move — and none
+        // of them are acts, so a timeline with only `ComputerUseAct`s shows a click in
+        // the middle of nowhere.
+        browserTask = Task { [weak self] in
+            for await event in await BrowserEngine.live.events() {
+                await MainActor.run {
+                    self?.append(.browser(event.line, isRefusal: event.isRefusal))
+                }
+            }
+        }
         // Marks age out on their own; without a tick, a stale crosshair would
         // sit at full strength until the next event happened to arrive.
         pruneTask = Task { [weak self] in
@@ -106,6 +129,7 @@ final class SandTraceModel: ObservableObject {
 
     func stop() {
         monitorTask?.cancel(); monitorTask = nil
+        browserTask?.cancel(); browserTask = nil
         ledgerTask?.cancel(); ledgerTask = nil
         pruneTask?.cancel(); pruneTask = nil
     }
@@ -153,7 +177,7 @@ final class SandTraceModel: ObservableObject {
     func endRun(record: BehavioralActionRecord) {
         isRunning = false
         let ok = record.disposition == .succeeded
-        lastOutcome = (ok, record.summary)
+        lastOutcome = (ok, record.summary, record.receiptWords)
         append(.runEnded(summary: record.summary, ok: ok))
         append(.record(record))
         if let mark = Self.mark(for: record) { add(mark) }
@@ -193,8 +217,10 @@ final class SandTraceModel: ObservableObject {
         isRunning = false
         let ok = outcome?.ok ?? false
         let summary = outcome?.summary ?? "the runtime answered nothing"
-        lastOutcome = (ok, summary)
+        let receipt = outcome?.receiptWords ?? ""
+        lastOutcome = (ok, summary, receipt)
         append(.runEnded(summary: summary, ok: ok))
+        if !receipt.isEmpty { append(.note(receipt)) }
         // The ledger row lands from inside `dispatch`, which has already
         // returned by the time we get here — but the behavioral hand-off is
         // detached, so it is worth a short wait rather than a single look.

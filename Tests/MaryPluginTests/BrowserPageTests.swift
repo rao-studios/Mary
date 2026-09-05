@@ -61,6 +61,59 @@ import Testing
         #expect(missed.spoken.contains("Alpine touring boots"))
     }
 
+    // MARK: - The roster the engine kept
+
+    /// THE ROSTER IS KEPT AS EVIDENCE, alongside the slate it was published from —
+    /// what a debugger draws to show the page the engine actually saw.
+    @Test func aReadRemembersTheRosterItPublished() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage(pages: [results()]))
+        #expect(await engine.snapshot().lastRoster == nil, "nothing read, nothing drawn")
+
+        _ = await engine.readPage(in: BrowsingFixtures.target())
+
+        let roster = await engine.snapshot().lastRoster
+        #expect(roster?.elements.count == 4)
+        #expect(roster?.map.groups.first?.title == "Results")
+    }
+
+    /// AND A READ THAT FAILS LEAVES NONE. The retract runs before the look, so a page
+    /// that could not be read cannot leave the previous one standing — which is the
+    /// whole reason the roster is written where the slate is.
+    @Test func aFailedReadLeavesNoRoster() async {
+        let page = FakePage(pages: [results()])
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]), page: page)
+        _ = await engine.readPage(in: BrowsingFixtures.target())
+        #expect(await engine.snapshot().lastRoster != nil)
+
+        page.failure = .visionUnavailable("no engine")
+        _ = await engine.readPage(in: BrowsingFixtures.target())
+
+        #expect(await engine.snapshot().lastRoster == nil)
+    }
+
+    /// A NAVIGATION REPLACES IT WITH WHERE THE BROWSER ARRIVED, never leaving the page
+    /// that has gone.
+    @Test func aNavigationReplacesTheRoster() async {
+        let arrived = BrowsingFixtures.page([
+            (role: "AXLink", label: "Buy these boots", affordance: .press),
+        ])
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([
+                BrowsingFixtures.shell(title: "Results"),
+                BrowsingFixtures.shell(title: "Boots", url: "https://example.com/a"),
+            ]),
+            page: FakePage(pages: [results(), arrived]))
+
+        _ = await engine.pressOnPage(
+            "Alpine touring boots reviewed", in: BrowsingFixtures.target())
+
+        let roster = await engine.snapshot().lastRoster
+        #expect(roster?.elements.map(\.label) == ["Buy these boots"])
+    }
+
     // MARK: - Resolving
 
     /// THE WORDS FIND THE THING, and the ordinal counts the pool the listing showed.

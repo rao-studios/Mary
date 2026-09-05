@@ -166,10 +166,27 @@ extension MaryBrain {
         return nil
     }
 
+    /// Every synthetic `.user` turn a lane appended to steer itself, removed before the
+    /// turn is remembered.
+    ///
+    /// PIN: THE ORCHESTRATOR LANE KEEPS ITS NUDGES IN A PRIVATE `laneHistory`; the local
+    /// lane has no such thing and appends to the shared one, so anything it adds must be
+    /// named here or it persists into the next turn as words the person never said.
+    /// `groundedRetryNudge` was already leaking that way before the local lane grew the
+    /// two rungs below it.
     // internal for file split — treat as private
     func pruneSyntheticTurns() {
+        let synthetic: Set<String> = [
+            Self.confirmRelayNudge,
+            Self.budgetNudge,
+            Self.groundedRetryNudge,
+            MaryPrompts.continuationNudge,
+        ]
         history.removeAll {
-            $0.role == .user && ($0.text == Self.confirmRelayNudge || $0.text == Self.budgetNudge)
+            guard $0.role == .user else { return false }
+            // The affordance nudge names the controls it saw, so it is matched by shape
+            // rather than by equality.
+            return synthetic.contains($0.text) || MaryPrompts.isAffordanceNudge($0.text)
         }
     }
 

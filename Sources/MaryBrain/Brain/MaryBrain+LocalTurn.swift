@@ -43,6 +43,12 @@ extension MaryBrain {
             lane: .model, query: userText, route: route.intent)
         var fullText = ""
         var usedEmptyRetry = false
+        // ONE EXTRA ROUND ACROSS BOTH RUNGS, the way the orchestrator lane latches it:
+        // a turn may be nudged once, not once per reason.
+        var usedContinuation = false
+        // The screen's offer, when a rung named one — read again at the deterministic
+        // press so the score is the one that was just measured.
+        var affordanceOffer: AffordanceCandidate?
 
         // G2 — THE LOCATED PASSAGE REACHES THE LOOP THAT EXECUTES SKILLS.
         var turnPrompt = systemPrompt
@@ -158,6 +164,51 @@ extension MaryBrain {
                 }
 
                 guard let dispatcher, !skillInvocations.isEmpty else {
+                    // LOCAL IS NOT A LESSER TURN — the rungs the orchestrator lane has
+                    // are here too. Without them a local model's turn ends politely on
+                    // work it only half did, and the receipts (`landed`) that the
+                    // browsing lane spent its whole design earning are read by nobody.
+                    //
+                    // Only read or prepared a surface, on a turn that asked for
+                    // something to be DONE — say so once and let it finish.
+                    //
+                    // PIN: GATED ON `actionTurn` ALONE, narrower than the orchestrator's
+                    // wider "implies action" reading (edit intent or a named transform).
+                    // A non-action local turn streams its prose live as the tokens
+                    // arrive (see the `.text` case above), so continuing after it spoke
+                    // would say the same thing twice — which is not a risk the
+                    // orchestrator lane runs, because it buffers into `laneHistory`.
+                    if let dispatcher, !usedContinuation, actionTurn,
+                       !outcomes.isEmpty,
+                       !outcomes.contains(where: \.landed),
+                       outcomes.allSatisfy({
+                           dispatcher.isReadOnly($0.skillName)
+                               || dispatcher.isNonEffectful($0.skillName)
+                               || dispatcher.preparesSurface($0.skillName)
+                       }) {
+                        usedContinuation = true
+                        appendHistory(
+                            BrainTurn(role: .user, text: MaryPrompts.continuationNudge),
+                            epoch: epoch)
+                        Self.laneLog.info("local turn only read or prepared on an acting turn — continuing once")
+                        continue
+                    }
+                    // Nothing ran at all, and the screen is already offering something
+                    // that would serve. Name it once; the press, if it comes, is below.
+                    if !usedContinuation, actionTurn, outcomes.isEmpty,
+                       let offer = AffordanceProbe.candidate(for: userText),
+                       !offer.labels.isEmpty {
+                        usedContinuation = true
+                        affordanceOffer = offer
+                        appendHistory(
+                            BrainTurn(
+                                role: .user,
+                                text: MaryPrompts.affordanceNudge(labels: offer.labels)),
+                            epoch: epoch)
+                        Self.laneLog.info("local turn NOOPed while the screen offered a control — naming it once")
+                        continue
+                    }
+
                     if skillInvocations.isEmpty {
                         TurnCircuitLog.laneNOOP(
                             offeredNames: Array(roundProjection?.names ?? []))
@@ -178,9 +229,32 @@ extension MaryBrain {
                             continuation: continuation) {
                             reply = sentence
                         } else if outcomes.isEmpty {
-                            reply = Self.couldNotActLine(
-                                label: Self.routineLabel(from: userText))
-                            continuation.yield(.token(reply))
+                            // AN IGNORED INSTRUCTION GETS REPLACED BY A MECHANISM. The
+                            // model was told what the screen offers and still ran
+                            // nothing; if one control answers the goal confidently
+                            // enough, press it rather than report a failure. Same rung,
+                            // same floor and the same `act_on_screen` the Seer turn
+                            // uses — it can do nothing the model could not have done.
+                            let offer = affordanceOffer
+                                ?? AffordanceProbe.candidate(for: userText)
+                            let acted = offer.map {
+                                $0.score >= AffordanceProbe.confidentFloor
+                            } == true
+                                ? await dispatchAffordanceAct(
+                                    goal: userText, continuation: continuation, epoch: epoch)
+                                : nil
+                            if let acted {
+                                // Silent on success, spoken on failure — the
+                                // action-turn rhythm, unchanged.
+                                if !acted.ok {
+                                    reply = acted.summary
+                                    continuation.yield(.token(reply))
+                                }
+                            } else {
+                                reply = Self.couldNotActLine(
+                                    label: Self.routineLabel(from: userText))
+                                continuation.yield(.token(reply))
+                            }
                         }
                         let historyText = reply.isEmpty
                             ? "(ran: \(outcomes.map(\.skillName).joined(separator: ", ")))"

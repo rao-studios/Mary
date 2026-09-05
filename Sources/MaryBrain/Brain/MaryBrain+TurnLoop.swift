@@ -410,6 +410,10 @@ extension MaryBrain {
         // THE ROUTED ROSTER, as the circuit log has always seen it: after the
         // route, before the referent.
         let routedProjection = dispatcher?.projectRoster()
+        // And as a watcher sees it — from in here, where the turn's signals and
+        // task-locals are still standing. A confidence-lane dispatch returns before the
+        // second projection below, so for that path this is the only one there is.
+        if let trace = routedProjection?.trace { rosterProjectionObserver?(trace) }
         actionTurn = route.isActionTurn
         let offeredAffinities = triage.skillAffinities
         let uniqueSkill = triage.uniqueSkill
@@ -530,6 +534,7 @@ extension MaryBrain {
         // here; they were adjacent arguments to the same initializer, each
         // arbitrating all 105 Skills to the identical verdict.
         let tracedProjection = dispatcher?.projectRoster()
+        if let trace = tracedProjection?.trace { rosterProjectionObserver?(trace) }
 
         // World veto unarmed in this cut.
         let worldVetoArming: WorldVeto.Arming? = nil

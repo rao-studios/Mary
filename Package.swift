@@ -8,11 +8,13 @@
 //       MaryPlugin, and the machine they drive lives in MaryComputerUse —
 //       nothing above it posts an event or performs an AX action.
 //       AX is tier 0 (MaryAmbient → MaryFoundation only).
-//       VisionAX joins ONLY MaryComputerUse: it consumes the pixels only this layer
-//       may capture, and it replicates the AXNode/AXScreenElement type names, so a
-//       second importer would face an ambiguity on every use (VisionAXSealTests).
+//       VisionAX joins ONLY MaryComputerUse, THROUGH Frigate's FrigateVision product:
+//       it consumes the pixels only this layer may capture, and it replicates the
+//       AXNode/AXScreenElement type names, so a second importer would face an ambiguity
+//       on every use (VisionAXSealTests).
 //       Platform is macOS "26.0" (string, not .v26) for SpeechAnalyzer.
-//       No module aliases. Frigate only through MaryBrain.
+//       No module aliases. Frigate's INFERENCE products only through MaryBrain; its
+//       vision product only through MaryComputerUse.
 
 import PackageDescription
 
@@ -35,14 +37,14 @@ let package = Package(
         .executable(name: "mary-web-probe", targets: ["WebProbe"]),
     ],
     dependencies: [
-        // Frigate: only MaryBrain (onlyBrainNamesFrigate). No alias map.
+        // Frigate: the ML surfaces, one package. Its inference products (MLX, MLXLLM,
+        // MLXLMCommon) belong to MaryBrain; its FrigateVision product — VisionAX,
+        // re-exported — belongs to MaryComputerUse and to nothing else. No alias map.
         .package(path: "../Frigate"),
         // Conduit: local checkout, same wire as the Seer/Totem node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
         .package(path: "../Fleet"),
-        // VisionAX: the pixel perception engine. MaryComputerUse only.
-        .package(path: "../VisionAX"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
@@ -83,7 +85,10 @@ let package = Package(
             dependencies: [
                 "MaryFoundation",
                 "MaryAmbient",
-                .product(name: "VisionAX", package: "VisionAX"),
+                // VisionAX, hosted by Frigate. MLX-free: the vision product depends on
+                // the perception engine and nothing else, so a keystroke still has no
+                // model runtime behind it.
+                .product(name: "FrigateVision", package: "Frigate"),
             ],
             path: "Sources/MaryComputerUse",
             swiftSettings: [.swiftLanguageMode(.v5)]

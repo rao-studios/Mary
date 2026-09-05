@@ -38,8 +38,13 @@ struct AmbientInspectorView: View {
     /// Room left for the roster after the header/focus rows and the
     /// window's own chrome (breadcrumb, toolbar) — a floor keeps a very
     /// short window from collapsing the scroll region to nothing.
+    ///
+    /// PIN: THE PAGE SECTION IS PAID FOR OUT OF THE SAME BUDGET. On a browser the card
+    /// carries a second list, and a roster that kept its whole allowance pushed the
+    /// page offers — the half worth reading for a browser — off the bottom of the
+    /// window entirely.
     private var rosterBudget: CGFloat {
-        max(120, availableHeight - 220)
+        max(120, availableHeight - (model.targetIsBrowser ? 420 : 220))
     }
 
     var body: some View {
@@ -51,6 +56,9 @@ struct AmbientInspectorView: View {
                 roster(ambient)
             } else {
                 Text("—").foregroundStyle(.secondary)
+            }
+            if model.targetIsBrowser {
+                pageOffers
             }
         }
         .font(.system(size: 11, design: .monospaced))
@@ -97,7 +105,13 @@ struct AmbientInspectorView: View {
         Divider()
         let lines = AXAmbientPresentation.elementLines(for: ambient)
         HStack {
-            Text("On offer").foregroundStyle(.secondary)
+            // A BROWSER'S AX TREE IS THE SHELL, AND SAYING SO IS THE WHOLE LESSON.
+            // Tabs, the address field and the toolbar are all that is here; nothing
+            // inside the page appears in this list, which is exactly why the page lane
+            // reads pixels. Calling these rows "on offer" for a browser told the
+            // opposite story.
+            Text(model.targetIsBrowser ? "Shell (AX)" : "On offer")
+                .foregroundStyle(.secondary)
             Spacer()
             Text("\(lines.count) in reading order")
         }
@@ -115,6 +129,48 @@ struct AmbientInspectorView: View {
                 }
             }
             .frame(maxHeight: rosterBudget)
+        }
+    }
+
+    /// WHAT THE PAGE ITSELF OFFERS, beneath the shell that cannot see it. Empty until a
+    /// read happens, and it says which — "no page read yet" and "read, nothing
+    /// reachable" are entirely different findings.
+    @ViewBuilder
+    private var pageOffers: some View {
+        Divider()
+        if let roster = model.browserRoster {
+            let offers = PageMapProjection.offerLines(for: roster)
+            HStack {
+                Text("Page offers").foregroundStyle(.secondary)
+                Spacer()
+                Text("\(offers.count) of \(roster.elements.count) rows")
+            }
+            Text(PageMapProjection.caption(for: roster))
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.secondary)
+            if offers.isEmpty {
+                Text("nothing on this page can be named")
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 2) {
+                        ForEach(offers) { offer in
+                            Text(offer.text)
+                                .foregroundStyle(
+                                    offer.isEnabled
+                                        ? AnyShapeStyle(.primary) : AnyShapeStyle(.tertiary))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+                .frame(maxHeight: max(100, availableHeight - 480))
+            }
+        } else {
+            HStack {
+                Text("Page offers").foregroundStyle(.secondary)
+                Spacer()
+                Text("no page read yet").foregroundStyle(.secondary)
+            }
         }
     }
 

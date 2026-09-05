@@ -137,11 +137,27 @@ struct SandTimelineView: View {
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
+                // WHICH HANDS ACTUALLY ANSWERED. A fallback adapter's success reads
+                // exactly like the primary's until the trail is named.
+                if !record.receiptWords.isEmpty {
+                    Text(record.receiptWords)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                }
             }
         case .runEnded(let summary, let ok):
             Text(summary)
                 .font(.system(size: 11))
                 .foregroundStyle(ok ? Color.green : Color.red)
+        case .browser(let line, let isRefusal):
+            HStack(spacing: 6) {
+                Text("browsing")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundStyle(isRefusal ? Color.red : Color.teal)
+                Text(line)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(isRefusal ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
+            }
         case .external(let text):
             HStack(spacing: 6) {
                 Text("external")

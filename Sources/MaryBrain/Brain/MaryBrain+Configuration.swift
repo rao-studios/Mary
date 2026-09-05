@@ -52,6 +52,23 @@ extension MaryBrain {
         turnContextPreparer = preparer
     }
 
+    /// Watch the roster this turn projected, at the moment it projected it.
+    ///
+    /// PIN: THE ONLY HONEST WAY TO SEE IT FROM OUTSIDE. `AbilityRuntime
+    /// .abilityRosterTrace` re-arbitrates on demand and is documented as diagnostics —
+    /// read after a turn, from another task, it answers with neither the turn's frozen
+    /// signals nor its task-locals, so a bench showed a roster the turn never used
+    /// (measured on a confidence-lane dispatch, which returns before the second
+    /// projection runs). This fires INSIDE the turn, with what the turn actually held.
+    /// A CLOSURE, NOT A `BrainEvent`. `BrainEvent` is declared in MaryVoice, which
+    /// depends on MaryFoundation alone; `AbilityRosterTrace` is MaryAmbient's. An enum
+    /// case would either invert that layering or smuggle the trace through as JSON.
+    public func setRosterProjectionObserver(
+        _ observer: (@Sendable (AbilityRosterTrace) -> Void)?
+    ) {
+        rosterProjectionObserver = observer
+    }
+
     /// Convenience for a fixed prompt.
     public func setSystemPrompt(_ prompt: String) {
         systemPromptProvider = { prompt }

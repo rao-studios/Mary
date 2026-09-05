@@ -16,6 +16,7 @@
 import AppKit
 import Foundation
 import MaryComputerUse
+import MaryPlugin
 
 /// One step of a click-to-zoom drill-down — "the app" down to "this one
 /// button", each click narrowing the stage to what was clicked. Sand-local:
@@ -49,6 +50,18 @@ final class WireframeViewModel: ObservableObject {
     /// purely from `latest` (no new lane, no extra IPC), and only while
     /// something is showing it.
     @Published private(set) var ambient: AXAmbientContext?
+    /// THE PAGE AS THE BROWSING LANE LAST READ IT — the same roster the affordance
+    /// slate was published from, drawn over the AX wireframe by `PageMapOverlay`.
+    ///
+    /// PIN: PULLED, NEVER POLLED. This is refreshed after a dispatch or a turn — the
+    /// only moments a page read can have happened — and never on the AX tick. A stage
+    /// that re-read the engine four times a second would be asking a question whose
+    /// answer only changes when a skill runs, and would make a debugging app look like
+    /// it perceives on its own. Pixels are read when a skill asks.
+    @Published private(set) var browserRoster: PageRoster?
+    /// Whether the watched target is a browser Mary has been taught. Nil target, or an
+    /// app with no registration, means the page overlay has no business being drawn.
+    @Published private(set) var targetIsBrowser = false
     /// The roster row selected in the ambient inspector, if any. An id, not a
     /// stored element — `ambient` is replaced wholesale on every publish, so
     /// the row is RESOLVED by id at render time, never held as a stale value.
@@ -139,6 +152,12 @@ final class WireframeViewModel: ObservableObject {
         stop()
         targetName = name
         targetPID = pid
+        // WHETHER THE PAGE LANE APPLIES AT ALL, asked once per target and of the
+        // registration rather than a list of bundle ids kept here — Sand names no app in
+        // its own code, and a browser it has not been taught is not a browser to Mary.
+        targetIsBrowser = bundleID.flatMap {
+            WebSurfaceSupport.shared.registration(bundleID: $0)
+        } != nil
         zoomStack = []
         activityAssertion = ProcessInfo.processInfo.beginActivity(
             options: [.userInitiated, .latencyCritical],
@@ -179,6 +198,22 @@ final class WireframeViewModel: ObservableObject {
         ambient = derived
     }
 
+    /// Ask the browsing engine what it last read. Called after a dispatch and after a
+    /// turn — see the PIN on `browserRoster` for why it is never called anywhere else.
+    func refreshBrowserRoster() {
+        guard targetIsBrowser else { return }
+        Task { [weak self] in
+            let roster = await BrowserEngine.live.snapshot().lastRoster
+            await MainActor.run { self?.browserRoster = roster }
+        }
+    }
+
+    /// Drop the drawn page without touching the engine. The stage's own gesture — the
+    /// engine's slate is its business, and a debugger must not retract it.
+    func clearBrowserRoster() {
+        browserRoster = nil
+    }
+
     func stop() {
         streamTask?.cancel()
         statsTask?.cancel()
@@ -188,6 +223,8 @@ final class WireframeViewModel: ObservableObject {
         detailTask = nil
         focusDetail = nil
         ambient = nil
+        browserRoster = nil
+        targetIsBrowser = false
         selectedElementID = nil
         lastDetailRequestedAt = nil
         if let activityAssertion {

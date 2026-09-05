@@ -2,8 +2,9 @@
 //  VisionPageReader.swift
 //  MaryComputerUse
 //
-//  WHAT: What is on a page, read from its pixels. THE ONLY FILE THAT IMPORTS VisionAX.
-//  IN:   WindowPixels + VisionAX
+//  WHAT: What is on a page, read from its pixels. THE ONLY FILE THAT IMPORTS THE VISION
+//        ENGINE — as `FrigateVision`, which re-exports VisionAX.
+//  IN:   WindowPixels + FrigateVision
 //  OUT:  Reading — AXScreenElement rows and a MediaControlReading, in screen points
 //  PIN:  THE SEAL IS HERE. VisionAX replicates Mary's AX type names (AXNodeSnapshot,
 //        AXScreenElement, AXNodeCategory), so a second importer anywhere in the module
@@ -20,7 +21,7 @@
 
 import CoreGraphics
 import Foundation
-import VisionAX
+import FrigateVision
 import os
 
 public enum VisionPageReader {

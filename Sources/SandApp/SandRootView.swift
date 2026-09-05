@@ -90,7 +90,7 @@ struct SandRootView: View {
                     .padding(10)
                     Divider()
                     HSplitView {
-                        WireframeStageView(model: model, trace: trace)
+                        WireframeStageView(model: model, trace: trace, host: host)
                             .frame(minWidth: 420)
                         if showBench {
                             VStack(spacing: 0) {
@@ -113,6 +113,12 @@ struct SandRootView: View {
                             }
                         }
                     }
+                }
+                // A TURN CAN READ A PAGE TOO, and its dispatches never pass through
+                // `host.dispatch` — so the end of a turn is its own moment to pull the
+                // roster back. Still never a poll: see `browserRoster`'s PIN.
+                .onChange(of: turn.isRunning) { _, running in
+                    if !running { model.refreshBrowserRoster() }
                 }
             }
         }

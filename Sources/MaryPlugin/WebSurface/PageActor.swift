@@ -122,7 +122,7 @@ extension BrowserEngine {
                 // A NAVIGATION MAKES THE WHOLE SLATE WRONG. Retract before the new page
                 // is published, so nothing can be offered from the page that just left.
                 if PageReceipts.navigation(before.shell, shellNow) != nil {
-                    AffordanceSlatePublisher.retract(store: seams.slate)
+                    retractSlate()
                 }
                 switch await read(target, shell: shellNow ?? shell) {
                 case .failure(let refusal):
@@ -377,7 +377,7 @@ extension BrowserEngine {
                     roster.annotation(for: $0)?.labelSource == .synthesized
                 }.count,
                 groups: roster.map.groups.count))
-            AffordanceSlatePublisher.publish(roster, store: seams.slate)
+            publishSlate(roster)
             return .success(roster)
         }
     }

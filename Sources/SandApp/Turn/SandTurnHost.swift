@@ -51,8 +51,9 @@ final class SandTurnHost: ObservableObject {
     @Published private(set) var round: SandModelRound?
     /// The route this turn resolved, read after the brain published it.
     @Published private(set) var route: AmbientRoute?
-    /// Why each skill was or was not offered.
-    @Published private(set) var trace: AbilityRosterTrace = .empty
+    /// Why each skill was or was not offered — as the TURN projected it, from the
+    /// brain's own observer.
+    @Published fileprivate(set) var trace: AbilityRosterTrace = .empty
     /// What Mary said back.
     @Published private(set) var reply: String = ""
     /// True once a round has been asked for — the turn reached the model.
@@ -101,11 +102,23 @@ final class SandTurnHost: ObservableObject {
         // ONE WORLD. The runtime already reads AmbientWorld.shared, and the
         // brain must write the utterance and the route into that same store or
         // the roster it projects describes a different machine.
+        //
+        // AND ONE ELEMENT INDEX, WITH A VECTORIZER IN IT. `BrainWiring` defaults to a
+        // FRESH store, which is empty forever — so `addressCandidates` could never
+        // answer and "addressed by its contents" never fired. Meanwhile the affordance
+        // probe and the reference gate read `.shared` regardless, so without the
+        // vectorizer installed here every slate a page read publishes is matched
+        // lexically and the 0.90 floor is unreachable. Installed BEFORE the first
+        // surface is published, because `noteElements` vectorizes at write time.
+        if let vectorizer = MaryEmbeddings.vectorizer() {
+            AmbientElementIndexStore.shared.installVectorizer(vectorizer)
+        }
         let wiring = BrainWiring(
             containers: .shared,
             focusTracker: .shared,
             world: .shared,
-            behavior: BehavioralAssembler())
+            elementIndex: .shared,
+            behavior: runtimeHost.behavior)
         let brain = MaryBrain(engine: engine, dispatcher: runtime, wiring: wiring)
         self.brain = brain
 
@@ -115,9 +128,18 @@ final class SandTurnHost: ObservableObject {
                 MaryPrompts.system(plugins: adapters, projects: [:])
             }
             // The turn's own preparer. Mary refreshes its observers here; Sand
-            // publishes the one surface it already walked.
+            // publishes the one surface it already walked — and the same two declared
+            // perceptions, so a turn about a player or a page is arbitrated with the
+            // evidence Mary would have had. Accessibility only: no pixels on a turn's
+            // own schedule.
             await brain.setTurnContextPreparer { [weak self] in
                 await self?.publishStagedSurface()
+                TurnPerceptionPublisher.publishAll()
+            }
+            // THE ROSTER THE TURN USED, not one arbitrated afterwards. See
+            // `refreshRouteAndTrace`, which now reads only the route.
+            await brain.setRosterProjectionObserver { [weak self] trace in
+                Task { @MainActor in self?.trace = trace }
             }
         }
     }
@@ -203,15 +225,17 @@ final class SandTurnHost: ObservableObject {
         if !reply.isEmpty { append(.spoke(reply)) }
     }
 
-    /// PIN: `abilityRosterTrace`, never `projectRoster()`. The trace property
-    /// arbitrates without recording a projection; `schemas` arms the offer
-    /// ledger, and arming it from a view is what made the direct lane's
-    /// behaviour depend on which SwiftUI render won a race.
+    /// The route only. THE ROSTER ARRIVES FROM INSIDE THE TURN.
+    ///
+    /// PIN: This used to read `runtime.abilityRosterTrace` as well, and that was wrong
+    /// in a way that mattered: the property RE-ARBITRATES on demand, and it is called
+    /// here from the turn's task rather than from within the turn's task-locals — so
+    /// the frozen signals and the turn context were both absent and the answer
+    /// described a different machine. On a confidence-lane dispatch, where the turn
+    /// never reaches the second projection, the bench was showing a roster that had
+    /// never existed. `setRosterProjectionObserver` publishes the real one.
     func refreshRouteAndTrace() {
         route = AmbientContextStore.shared.route()
-        if let runtime = runtimeHost?.runtime {
-            trace = runtime.abilityRosterTrace
-        }
     }
 
     /// This turn's ambient surface, from the walk the stage already made.

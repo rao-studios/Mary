@@ -16,6 +16,13 @@
 //        UNINSTALLED, so routing and application habits stay in memory and a
 //        rehearsal on the bench never edits what Mary believes about this
 //        person. The execution log is a private ring for the same reason.
+//        EVERYTHING ELSE MARY INSTALLS, IT INSTALLS. The capability bridge, the
+//        affordance faculty and the surface reconciles all run here, because a
+//        bench missing any of them routes a DIFFERENT turn: without the bridge
+//        ambient routing reads an empty capability index, and without
+//        `AffordancePlugin` there is no `act_on_screen` for the browsing lane's
+//        last rung to be delegated to. What stays out needs a model
+//        (`LookingPlugin`, `CodingAgentAdapter`) or a network.
 //        THE STAGE IS THE LEAD. `focusProvider` names the application the
 //        person put on the stage, because that IS this bench's arbitrated
 //        answer — the whole gesture was choosing it. Without it the runtime
@@ -140,6 +147,9 @@ final class SandRuntimeHost: ObservableObject {
     /// A private ring, not `AbilityExecutionLog.shared` — the bench's runs are
     /// the bench's own memory.
     let executionLog = AbilityExecutionLog()
+    /// Shared with the brain's wiring, so the runtime and the turn agree about what
+    /// an act belonged to.
+    let behavior = BehavioralAssembler()
 
     /// The runtime the turn host hands to the brain as its dispatcher, and the
     /// same one the direct lane dispatches into.
@@ -161,8 +171,15 @@ final class SandRuntimeHost: ObservableObject {
     /// Build the graph and the runtime. Called once, from the root view.
     func start() {
         guard runtime == nil else { return }
-        let adapters = MaryAdapterCatalog.adapters()
+        // THE AFFORDANCE FACULTY IS NOT OPTIONAL FOR A BROWSER. Pressing something on a
+        // page by name IS `act_on_screen` on this stack — the browser arm of
+        // `AffordanceRecipes` delegates straight to the browsing engine — so a bench
+        // without it cannot rehearse the rung the real turn falls back to.
+        let adapters = MaryAdapterCatalog.adapters() + [AffordancePlugin()]
         let observers = MaryAdapterCatalog.observers()
+        // Points MaryAmbient at the live registry, the way the composition root does
+        // before it loads the graph. Without it ambient routing reads an empty index.
+        AmbientCapabilityBridge.install()
         self.adapters = adapters
         nativeProfiles = adapters.map(\.applicationProfile)
         // The package graph. `AbilityLibrary.defaultLocations` walks up from
@@ -183,6 +200,9 @@ final class SandRuntimeHost: ObservableObject {
             plugins: adapters,
             focusProvider: { lead.withLock { $0 } },
             executionLog: executionLog,
+            // The same assembler the turn host hands the brain, so a dispatch here
+            // joins an episode exactly as it does in Mary.
+            behavior: behavior,
             contextProvider: { AbilityExecutionContext(projects: [:]) })
 
         adopt(load.snapshot, issues: load.issues, filesRead: load.filesRead)

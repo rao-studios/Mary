@@ -154,9 +154,9 @@ extension MaryRuntime {
             for observer in observers where !observer.ambientSenses.isEmpty {
                 await observer.refreshAmbientContext()
             }
-            // Declared perceptions — dispatch asks what Mary observes now.
-            publishPlayerTransportPerception()
-            publishPageContextPerception()
+            // Declared perceptions — dispatch asks what Mary observes now. In MaryBrain
+            // so the bench publishes the same two (see TurnPerceptionPublisher).
+            TurnPerceptionPublisher.publishAll()
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)

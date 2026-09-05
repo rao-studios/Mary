@@ -133,3 +133,26 @@ public struct SkillOutcome: Sendable {
         self.applicationID = applicationID
     }
 }
+
+public extension SkillOutcome {
+
+    /// THE FOUR FACTS A RECEIPT IS MADE OF, in one line: did the asked-for change
+    /// happen, did the read find anything, which application answered, and which
+    /// adapters carried it.
+    ///
+    /// PIN: FOR SOMEONE READING A TIMELINE, NOT FOR THE MODEL. The model is told the
+    /// summary; these are the fields that say whether the summary is TRUE — a dispatch
+    /// that reports "opened it" with `landed` false and an empty trail is the exact
+    /// shape of the bug this line exists to make visible.
+    /// EMPTY WHEN THERE IS NOTHING TO SAY, so a plain outcome prints no ornament.
+    var receiptWords: String {
+        var parts: [String] = []
+        if landed { parts.append("landed") }
+        if foundNothing { parts.append("found nothing") }
+        if let applicationID, !applicationID.isEmpty { parts.append(applicationID) }
+        if !adapterTrail.isEmpty {
+            parts.append(adapterTrail.map(\.rawValue).joined(separator: " → "))
+        }
+        return parts.joined(separator: "  ·  ")
+    }
+}

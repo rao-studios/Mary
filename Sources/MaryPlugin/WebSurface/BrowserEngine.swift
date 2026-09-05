@@ -107,6 +107,9 @@ public actor BrowserEngine {
     private var lastBrowser: String?
     var lastChrome: WebSurfaceAX.Reading?
     var lastMedia: MediaControlReading?
+    /// The page as the last read saw it. Set and cleared with the slate, by
+    /// `publishSlate` / `retractSlate` — see the PIN on those.
+    var lastRoster: PageRoster?
     private var lastRefusal: BrowserRefusal?
     private var acts = 0
     private var refusals = 0
@@ -135,11 +138,28 @@ public actor BrowserEngine {
             lastBrowser: lastBrowser,
             lastChrome: lastChrome,
             lastMedia: lastMedia,
+            lastRoster: lastRoster,
             lastRefusal: lastRefusal,
             acts: acts,
             refusals: refusals,
             perceptions: perceptions,
             recent: recent)
+    }
+
+    /// THE SLATE AND THE ROSTER ARE ONE FACT, so they are written in one place.
+    ///
+    /// PIN: A ROSTER LEFT BEHIND AFTER A RETRACT IS A DRAWN PAGE THAT IS NOT THERE. The
+    /// retract exists because a navigation makes every offer wrong; a debugger still
+    /// showing the old rows would be telling the person the opposite of what the engine
+    /// now believes. Two call sites got this right by hand; a third would not have.
+    func publishSlate(_ roster: PageRoster) {
+        lastRoster = roster
+        AffordanceSlatePublisher.publish(roster, store: seams.slate)
+    }
+
+    func retractSlate() {
+        lastRoster = nil
+        AffordanceSlatePublisher.retract(store: seams.slate)
     }
 
     /// Live activity. Anything watching reads this instead of polling.

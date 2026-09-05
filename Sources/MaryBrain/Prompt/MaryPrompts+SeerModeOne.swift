@@ -63,6 +63,17 @@ extension MaryPrompts {
 
     /// Lane wanted something DONE, ran nothing, and the screen already offers it.
     /// PIN: Names observed control labels, not intent. One re-roll.
+    /// Is this text one of `affordanceNudge`'s? It names the controls it saw, so it
+    /// cannot be matched by equality — and `pruneSyntheticTurns` has to recognize it or
+    /// a lane's own steering persists into the next turn as words the person never said.
+    public static func isAffordanceNudge(_ text: String) -> Bool {
+        text.hasPrefix(affordanceNudgePrefix)
+    }
+
+    /// The invariant head of the nudge, up to the first control it names.
+    static let affordanceNudgePrefix =
+        "Continuation note: the user asked for something to be DONE and you "
+
     public static func affordanceNudge(labels: [String]) -> String {
         let named = labels.map { "\"\($0)\"" }.joined(separator: ", ")
         return """

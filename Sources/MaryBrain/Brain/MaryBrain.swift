@@ -101,6 +101,10 @@ public actor MaryBrain: LanguageResponder {
     /// Refresh volatile frontmost context (AX selection) before classify/prompt.
     // internal for file split — treat as private
     var turnContextPreparer: (@Sendable () async -> Void)?
+    /// Watches each roster projection from inside the turn. See
+    /// `setRosterProjectionObserver` — a bench reading the runtime afterwards sees a
+    /// re-arbitration, not what the turn used.
+    var rosterProjectionObserver: (@Sendable (AbilityRosterTrace) -> Void)?
     /// Lane join/detach log — catches fast actions detaching from queueing, not work.
     // internal for file split — treat as private
     static let laneLog = Logger(subsystem: "nyc.rao.mary", category: "lanes")

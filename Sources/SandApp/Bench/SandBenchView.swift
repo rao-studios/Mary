@@ -443,7 +443,14 @@ struct SandBenchView: View {
                 Image(systemName: outcome.ok
                     ? "checkmark.circle.fill" : "xmark.octagon.fill")
                     .foregroundStyle(outcome.ok ? Color.green : Color.red)
-                Text(outcome.summary).font(.caption)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(outcome.summary).font(.caption)
+                    if !outcome.receipt.isEmpty {
+                        Text(outcome.receipt)
+                            .font(.system(size: 10, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
             .padding(8)
             .frame(maxWidth: .infinity, alignment: .leading)

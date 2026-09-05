@@ -31,7 +31,7 @@ import Testing
         return report.activated ? report.snapshot : nil
     }
 
-    /// Byte-for-byte the envelope `MaryRuntime.publishPlayerTransportPerception`
+    /// Byte-for-byte the envelope `TurnPerceptionPublisher.publishPlayerTransport`
     /// builds, minus the Accessibility read that supplies the sentence. If this
     /// shape stops being accepted, that lane stops publishing — silently, since
     /// it logs and returns rather than trapping.

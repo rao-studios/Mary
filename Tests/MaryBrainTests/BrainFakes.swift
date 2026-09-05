@@ -141,10 +141,19 @@ enum BrainFakes {
         /// this codebase's own convention (the read ran; there was nothing to
         /// find), so this is distinct from `failingTools`.
         var foundNothingTools: Set<String> = []
+        /// Tools whose dispatch reports `landed: true` — the asked-for change is
+        /// PROVEN to have happened, which is the one receipt the continuation
+        /// rungs refuse to talk over. Empty by default, so every pre-existing
+        /// turn keeps the `landed: false` a plain dispatch reports.
+        var landedTools: Set<String> = []
         /// Directly settable — flipped by tests and by confirm/cancel dispatch.
         var pending = false
         /// Optional packaged registry for archive/projection integration tests.
         var snapshotOverride: AbilityRuntime.Snapshot?
+        /// What `projectRoster()` reports as the turn's arbitration. `.empty` by default
+        /// — set it to prove a watcher was handed THIS projection rather than one it
+        /// re-derived for itself.
+        var rosterTrace: AbilityRosterTrace = .empty
         /// FETCH-FIRST: what a pre-read answers. Nil (the default) means "no
         /// targeted read in view", which is what every pre-existing test gets
         /// — so their turns stay byte-identical.
@@ -186,6 +195,11 @@ enum BrainFakes {
         func armedDesignSurfaceApplicationsSnapshot() -> [String] {
             lock.lock(); defer { lock.unlock() }
             return armedDesignSurfaceApplications
+        }
+
+        var abilityRosterTrace: AbilityRosterTrace {
+            lock.lock(); defer { lock.unlock() }
+            return rosterTrace
         }
 
         func beginTurn() {}
@@ -249,6 +263,7 @@ enum BrainFakes {
             let deferred = deferredTools.contains(name)
             let ok = !failingTools.contains(name)
             let foundNothing = foundNothingTools.contains(name)
+            let landed = landedTools.contains(name)
             let policy: ArchivePolicy = unrememberedTools.contains(name)
                 ? .none
                 : (stateSnapshotTools.contains(name) ? .stateSnapshot : .episodic)
@@ -258,7 +273,8 @@ enum BrainFakes {
                 // The real runtime parks a CONFIRM with `.requested`; the stub
                 // mirrors that so the lane's requested flag is exercised here.
                 status: summary.hasPrefix("CONFIRM:") ? .requested : nil,
-                deferred: deferred, archivePolicy: policy, foundNothing: foundNothing)
+                deferred: deferred, archivePolicy: policy, foundNothing: foundNothing,
+                landed: landed)
             guard let snapshotOverride else { return outcome }
             return AbilityRuntime.applyingTotemArchivePolicy(
                 outcome,

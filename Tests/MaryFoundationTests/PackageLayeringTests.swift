@@ -161,7 +161,13 @@ import Testing
     /// second importer makes those names ambiguous at every use;
     /// `VisionAXSealTests` holds that line inside the module, and the rule
     /// below holds it in the manifest.
-    @Test func computerUseDependsOnFoundationAmbientAndVisionAXOnly() throws {
+    ///
+    /// IT ARRIVES THROUGH FRIGATE, which hosts the ML surfaces this repository takes
+    /// from one place. `FrigateVision` re-exports VisionAX and depends on nothing else,
+    /// so this edge still puts no model runtime behind a keystroke — see
+    /// `frigateInferenceOnlyThroughBrain`, which polices that per PRODUCT rather than
+    /// per package.
+    @Test func computerUseDependsOnFoundationAmbientAndFrigateVisionOnly() throws {
         let manifest = try Self.manifest()
         guard let target = Self.targetBlock(manifest, named: "MaryComputerUse") else { return }
         let declared = Self.dependencyNames(target)
@@ -170,26 +176,32 @@ import Testing
             declared.count == 3,
             """
             MaryComputerUse declares \(declared.count) dependencies: \(declared). \
-            It must declare exactly three — MaryFoundation, MaryAmbient and VisionAX.
+            It must declare exactly three — MaryFoundation, MaryAmbient and FrigateVision.
             """)
         #expect(declared.contains { $0.contains("MaryFoundation") })
         #expect(declared.contains { $0.contains("MaryAmbient") })
-        #expect(declared.contains { $0.contains("VisionAX") })
+        #expect(declared.contains { $0.contains("FrigateVision") })
     }
 
-    /// ONLY MARYCOMPUTERUSE NAMES VISIONAX.
+    /// ONLY MARYCOMPUTERUSE NAMES THE VISION ENGINE, BY EITHER SPELLING.
     ///
     /// The outer half of the seal: the manifest edge exists in exactly one place,
     /// so no other target can reach the module whose type names collide with ours.
     /// The inner half — that only one DIRECTORY imports it — is
     /// `Tests/MaryComputerUseTests/VisionAXSealTests.swift`.
-    @Test func onlyComputerUseNamesVisionAX() throws {
+    ///
+    /// BOTH NAMES, because the engine is reached through a re-export: `FrigateVision`
+    /// is the product, `VisionAX` is what it carries, and a target block naming either
+    /// has the edge.
+    @Test func onlyComputerUseNamesFrigateVision() throws {
         let manifest = try Self.manifest()
         for name in Self.plannedTargets where name != "MaryComputerUse" {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
-            #expect(
-                !target.contains("VisionAX"),
-                "\(name)'s target block names VisionAX — only MaryComputerUse may hold that edge.")
+            for spelling in ["FrigateVision", "VisionAX"] {
+                #expect(
+                    !target.contains(spelling),
+                    "\(name)'s target block names \(spelling) — only MaryComputerUse may hold that edge.")
+            }
         }
     }
 
@@ -256,35 +268,64 @@ import Testing
         for name in ["MaryAmbient", "MaryComputerUse", "MaryPlugin", "MaryVoice"] {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             if name != "MaryComputerUse" {
-                #expect(
-                    !target.contains("VisionAX"),
-                    "\(name)'s target block names VisionAX — that edge is MaryComputerUse's alone.")
+                for spelling in ["VisionAX", "FrigateVision"] {
+                    #expect(
+                        !target.contains(spelling),
+                        "\(name)'s target block names \(spelling) — that edge is MaryComputerUse's alone.")
+                }
             }
-            // VisionAX is deliberately NOT in this list for MaryComputerUse's sake —
-            // `onlyComputerUseNamesVisionAX` polices it instead, because one target is
-            // supposed to have the edge.
-            for forbidden in ["Frigate", "MLX", "Conduit", "grpc", "GRPC", "Fleet"] {
+            // The vision product is deliberately NOT in this list for MaryComputerUse's
+            // sake — `onlyComputerUseNamesFrigateVision` polices it instead, because one
+            // target is supposed to have the edge. What stays forbidden everywhere here
+            // is the INFERENCE half of Frigate.
+            let forbidden = name == "MaryComputerUse"
+                ? Self.frigateInferenceProducts + ["Conduit", "grpc", "GRPC", "Fleet"]
+                : Self.frigateInferenceProducts
+                    + ["Frigate", "Conduit", "grpc", "GRPC", "Fleet"]
+            for token in forbidden {
                 #expect(
-                    !target.contains(forbidden),
-                    "\(name)'s target block names \(forbidden). It may not join that graph.")
+                    !target.contains(token),
+                    "\(name)'s target block names \(token). It may not join that graph.")
             }
         }
     }
 
-    /// ONLY MARYBRAIN NAMES FRIGATE.
+    /// Frigate's INFERENCE products, by name. `FrigateVision` is not among them: it
+    /// re-exports the perception engine and depends on no MLX target.
+    static let frigateInferenceProducts = [
+        "MLX", "MLXLMCommon", "MLXLLM", "MLXVLM", "MLXEmbedders", "MLXAccelerate",
+        "FrigateHub", "FrigateTokenizers", "FrigateTransformers", "mlx_embeddings",
+    ]
+
+    /// FRIGATE'S INFERENCE PRODUCTS GO THROUGH MARYBRAIN; ITS VISION PRODUCT THROUGH
+    /// MARYCOMPUTERUSE. Nothing else may name either.
     ///
-    /// Frigate vendors swift-transformers targets (`Hub`, `Tokenizers`,
-    /// `Jinja`, `Generation`, `Models`) under their original names. Mary has
-    /// no second consumer of those names — which is exactly why it needs no
-    /// module-alias map — and that stays true only while one target owns the
-    /// edge.
-    @Test func onlyBrainNamesFrigate() throws {
+    /// Frigate vendors swift-transformers targets (`Hub`, `Tokenizers`, `Jinja`,
+    /// `Generation`, `Models`) under their original names. Mary has no second consumer
+    /// of those names — which is exactly why it needs no module-alias map — and that
+    /// stays true only while one target owns the edge. The rule is now per PRODUCT
+    /// rather than per package, because Frigate hosts two unrelated ML surfaces: the
+    /// inference stack, which carries those vendored names, and `FrigateVision`, which
+    /// carries none of them.
+    @Test func frigateInferenceOnlyThroughBrain() throws {
         let manifest = try Self.manifest()
         for name in Self.plannedTargets where name != "MaryBrain" {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
+            for product in Self.frigateInferenceProducts {
+                #expect(
+                    !target.contains(product),
+                    "\(name)'s target block names \(product) — only MaryBrain may hold that edge.")
+            }
+            // The umbrella product itself is MaryBrain's too; MaryComputerUse names
+            // Frigate only as the PACKAGE its vision product comes from.
             #expect(
-                !target.contains("Frigate"),
-                "\(name)'s target block names Frigate — only MaryBrain may hold that edge.")
+                !target.contains("name: \"Frigate\""),
+                "\(name) names the Frigate umbrella product — only MaryBrain may.")
+            if name != "MaryComputerUse" {
+                #expect(
+                    !target.contains("Frigate"),
+                    "\(name)'s target block names Frigate — only MaryBrain and MaryComputerUse may.")
+            }
         }
     }
 

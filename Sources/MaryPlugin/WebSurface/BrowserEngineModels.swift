@@ -305,6 +305,47 @@ public enum BrowserEngineEvent: Sendable {
     case refused(BrowserRefusal)
 }
 
+public extension BrowserEngineEvent {
+
+    /// ONE VOCABULARY FOR EVERY WATCHER. The probe timing a roundtrip and the bench
+    /// drawing a timeline are looking at the same stream and must not describe it in two
+    /// dialects — a lane whose events read differently in two places cannot be compared
+    /// across them, which is the entire use of watching it.
+    ///
+    /// PIN: PAST TENSE, AND NO ADDRESSES. Every one of these already happened, and the
+    /// browsing lane speaks site names rather than URLs everywhere else — a debug line
+    /// that printed one would be the only place a URL leaked back into view.
+    var line: String {
+        switch self {
+        case .resolved(let browser, _):
+            return "resolved \(browser)"
+        case .shellRead(let title, let site, _):
+            return "read the shell — \(title ?? "untitled")\(site.map { " · \($0)" } ?? "")"
+        case .perceived(let controls, let playback, _):
+            return "perceived \(controls) controls · \(playback)"
+        case .read(let rows, let named, let groups):
+            return "looked — \(rows) rows, \(named) named, \(groups) groups"
+        case .matched(let phrase, let label):
+            return "matched \"\(phrase)\" → \"\(label)\""
+        case .receipt(let receipt):
+            return "receipt — \(receipt.spoken)"
+        case .acted(let what):
+            return what
+        case .verified(let what):
+            return "verified \(what)"
+        case .refused(let refusal):
+            return "refused — \(refusal.summary)"
+        }
+    }
+
+    /// Whether this line is the lane saying it did NOT do something. The one thing a
+    /// timeline must never colour like an ordinary step.
+    var isRefusal: Bool {
+        if case .refused = self { return true }
+        return false
+    }
+}
+
 /// Everything the engine knows about itself right now.
 public struct BrowserEngineSnapshot: Sendable {
     public var startedAt: Date
@@ -312,6 +353,13 @@ public struct BrowserEngineSnapshot: Sendable {
     public var lastBrowser: String?
     public var lastChrome: WebSurfaceAX.Reading?
     public var lastMedia: MediaControlReading?
+    /// The last page read, whole — the same roster the slate was published from.
+    ///
+    /// PIN: EVIDENCE OF A READ THAT HAPPENED, never a licence to act on it. It is here
+    /// so a debugger can DRAW what the engine saw; resolution re-reads, always, because
+    /// a roster is a photograph and the page has moved on. Nil is the honest answer
+    /// whenever the slate is retracted — a navigation makes both wrong at once.
+    public var lastRoster: PageRoster?
     public var lastRefusal: BrowserRefusal?
     public var acts: Int
     public var refusals: Int
@@ -322,6 +370,7 @@ public struct BrowserEngineSnapshot: Sendable {
     public init(
         startedAt: Date, dryRun: Bool, lastBrowser: String? = nil,
         lastChrome: WebSurfaceAX.Reading? = nil, lastMedia: MediaControlReading? = nil,
+        lastRoster: PageRoster? = nil,
         lastRefusal: BrowserRefusal? = nil, acts: Int = 0, refusals: Int = 0,
         perceptions: Int = 0, recent: [String] = []
     ) {
@@ -330,6 +379,7 @@ public struct BrowserEngineSnapshot: Sendable {
         self.lastBrowser = lastBrowser
         self.lastChrome = lastChrome
         self.lastMedia = lastMedia
+        self.lastRoster = lastRoster
         self.lastRefusal = lastRefusal
         self.acts = acts
         self.refusals = refusals
