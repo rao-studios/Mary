@@ -199,6 +199,51 @@ import Testing
         #expect(PageMapProjection.caption(for: old, at: now).contains("STALE"))
     }
 
+    // MARK: - What is true of a row
+
+    /// THE ANSWER WHEN NO GOAL WAS SPOKEN. A plain `read_page` produces no route,
+    /// and that is exactly the case a person tuning this lane is looking at:
+    /// "why does this page offer four icons when I can see sixty titles".
+    @Test func aRowCarriesTheFactsThatExplainARefusal() {
+        var promoted = Self.row(1, "Alpine touring boots reviewed")
+        promoted.facts = [.promoted, .inFurnitureBand]
+        #expect(PageMapProjection.factWords(for: promoted) == "promoted · furniture band")
+    }
+
+    /// A HEALTHY ROW DRAWS NO ANNOTATION. Nil rather than an empty string, so the
+    /// overlay has nothing to render rather than an empty label to lay out.
+    @Test func aRowWithNothingAgainstItSaysNothing() {
+        #expect(PageMapProjection.factWords(for: Self.row(1, "Alpine touring boots")) == nil)
+    }
+
+    /// CREDITS ARE NOT EXPLANATIONS. Sitting in a result group is why a row is
+    /// GOOD; a reader scanning for the reason a page read badly wants demotions.
+    @Test func aCreditIsNotReportedAsAReason() {
+        var credited = Self.row(1, "Alpine touring boots reviewed")
+        credited.facts = [.inResultGroup, .inOverlay]
+        #expect(PageMapProjection.factWords(for: credited) == nil)
+    }
+
+    /// AND THE OVERLAY DRAWS THE SAME ROWS THE PANEL COUNTS. Drawing from the
+    /// AX-shaped shim while the panel beside it counted rows was two views of one
+    /// page in one file.
+    @Test func theOverlayAndTheOfferPanelDescribeOnePage() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+            (role: "AXTextField", label: "Search", affordance: .fill),
+        ])
+        let drawn = PageMapProjection.rows(for: page, plane: plane, size: size)
+        #expect(drawn.map(\.id) == page.rows.map(\.ordinal))
+    }
+
+    private static func row(_ ordinal: Int, _ label: String) -> PageRow {
+        PageRow(
+            ordinal: ordinal,
+            frame: CGRect(x: 0, y: CGFloat(ordinal) * 40, width: 400, height: 30),
+            label: label,
+            labelSource: .textInside,
+            affordance: .press)
+    }
 }
 
 /// The words a watcher is given for something that already happened.
@@ -257,4 +302,5 @@ import Testing
     @Test func anOrdinaryOutcomeHasNoReceiptWords() {
         #expect(SkillOutcome(ok: true, summary: "Done.").receiptWords.isEmpty)
     }
+
 }

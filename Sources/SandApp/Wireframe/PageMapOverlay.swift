@@ -93,7 +93,25 @@ enum PageMapOverlay {
                 .foregroundColor(color.opacity(row.isNamed ? 1 : 0.6)),
             at: CGPoint(x: row.rect.minX + 2, y: row.rect.minY + 1),
             anchor: .topLeading)
+
+        // WHAT IS TRUE OF IT, when the row is tall enough to say so and there is
+        // something to say.
+        //
+        // PIN: THE DIAGNOSIS WITH NO GOAL IN IT. The route pane explains a row
+        // only once somebody has asked for something; a plain `read_page` runs no
+        // route at all, which is exactly the moment a person is staring at a page
+        // wondering why sixty visible titles offered four icons. The words are
+        // `PageMapProjection`'s — nothing decidable is written in this Canvas.
+        guard let facts = row.factWords, row.rect.height >= factFloor else { return }
+        context.draw(
+            Text(facts).font(.system(size: 8))
+                .foregroundColor(.orange.opacity(0.85)),
+            at: CGPoint(x: row.rect.minX + 2, y: row.rect.maxY - 1),
+            anchor: .bottomLeading)
     }
+
+    /// A row shorter than this has no second line to give — the name already fills it.
+    private static let factFloor: CGFloat = 26
 
     /// Long enough to recognize, short enough that a paragraph-sized row does not paint
     /// over the three rows beneath it.

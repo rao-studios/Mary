@@ -38,11 +38,20 @@ public struct PageMapRow: Sendable, Equatable, Identifiable {
     public var caption: String?
     /// What the last route made of this row, when one has run against this read.
     public var routeDisposition: PageRouteDisposition?
+    /// WHAT IS TRUE OF THIS ROW, in words.
+    ///
+    /// PIN: THE ANSWER WHEN NO GOAL WAS SPOKEN. The route pane explains a row
+    /// only once somebody has ASKED for something; a plain `read_page` produces
+    /// no route at all, and that is exactly the case a person tuning this lane is
+    /// looking at — "why does this page offer four icons when I can see sixty
+    /// titles". The facts were decided at the seal and cost nothing to carry.
+    public var factWords: String?
 
     public init(
         id: Int, rect: CGRect, label: String, affordance: SeenAffordance,
         isNamed: Bool, caption: String? = nil,
-        routeDisposition: PageRouteDisposition? = nil
+        routeDisposition: PageRouteDisposition? = nil,
+        factWords: String? = nil
     ) {
         self.id = id
         self.rect = rect
@@ -51,6 +60,7 @@ public struct PageMapRow: Sendable, Equatable, Identifiable {
         self.isNamed = isNamed
         self.caption = caption
         self.routeDisposition = routeDisposition
+        self.factWords = factWords
     }
 }
 
@@ -107,22 +117,46 @@ public enum PageMapProjection {
         let dispositions = Dictionary(
             (route?.decisions ?? []).map { ($0.id, $0.disposition) },
             uniquingKeysWith: { first, _ in first })
-        return roster.elements.compactMap { element in
-            let rect = plane.viewRect(for: element.frame, in: size)
+        // THE READING'S OWN ROWS, which is also what `offerLines` counts. Drawing
+        // from the AX-shaped shim while the panel beside it counted rows was two
+        // views of one page in one file, and the shim is going.
+        return roster.rows.compactMap { row in
+            let rect = plane.viewRect(for: row.frame, in: size)
             // A row the plane places outside the stage, or with no area, cannot be
             // pointed at — and a zero-sized stroke is a dot in the corner.
             guard rect.width > 0, rect.height > 0 else { return nil }
-            let annotation = roster.annotation(for: element)
-            let named = annotation?.labelSource.isReal ?? !element.label.isEmpty
             return PageMapRow(
-                id: element.ordinal,
+                id: row.ordinal,
                 rect: rect,
-                label: named && !element.label.isEmpty ? element.label : unnamed,
-                affordance: annotation?.affordance ?? .none,
-                isNamed: named && !element.label.isEmpty,
-                caption: element.containerTrail.first,
-                routeDisposition: dispositions[element.ordinal])
+                label: row.isNamed ? row.label : unnamed,
+                affordance: row.affordance,
+                isNamed: row.isNamed,
+                caption: row.group?.title ?? row.group?.kind.rawValue,
+                routeDisposition: dispositions[row.ordinal],
+                factWords: factWords(for: row))
         }
+    }
+
+    /// WHAT IS TRUE OF ONE ROW, shortest-first and only what a person would act on.
+    ///
+    /// PIN: THE FACTS THAT EXPLAIN A REFUSAL, not every bit that happens to be set.
+    /// `inResultGroup` and `inOverlay` are credits and say nothing about why a row
+    /// was passed over; a reader scanning a page for the reason it read badly
+    /// wants the demotions. Nil when there is nothing to say, so a healthy row
+    /// draws no annotation at all.
+    public static func factWords(for row: PageRow) -> String? {
+        var words: [String] = []
+        if row.facts.contains(.promoted) { words.append("promoted") }
+        if row.facts.contains(.callToAction) { words.append("call to action") }
+        if row.facts.contains(.bareAddress) { words.append("an address") }
+        if row.facts.contains(.separatedStrip) { words.append("a strip") }
+        if row.facts.contains(.inFurnitureBand) { words.append("furniture band") }
+        if row.facts.contains(.inToolbar) { words.append("toolbar") }
+        if row.facts.contains(.inForm) { words.append("form") }
+        if row.facts.contains(.behindOverlay) { words.append("behind the dialog") }
+        if row.facts.contains(.duplicateLabel) { words.append("duplicated name") }
+        if row.facts.contains(.tooShortForTitle) { words.append("short") }
+        return words.isEmpty ? nil : words.joined(separator: " · ")
     }
 
     /// The rows that BECAME OFFERS — what a phrase can actually reach after this read.
