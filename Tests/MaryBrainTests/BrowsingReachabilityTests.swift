@@ -26,8 +26,10 @@ import Testing
         "browsing.control-media", "browsing.open-location", "browsing.navigate-back",
         "browsing.navigate-forward", "browsing.reload-page", "browsing.scroll-page",
         "browsing.new-tab",
-        // The page itself — read it, then act on what it named.
-        "browsing.read-page", "browsing.click-on-page", "browsing.fill-in-page",
+        // The page itself — read what it OFFERS or what it SAYS, then act on
+        // what it named.
+        "browsing.read-page", "browsing.read-page-text",
+        "browsing.click-on-page", "browsing.fill-in-page",
         "browsing.scroll-to-on-page", "browsing.adjust-on-page", "browsing.search-web",
         "browsing.interact-with-page",
     ]

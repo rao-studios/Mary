@@ -413,7 +413,14 @@ extension MaryBrain {
         // And as a watcher sees it — from in here, where the turn's signals and
         // task-locals are still standing. A confidence-lane dispatch returns before the
         // second projection below, so for that path this is the only one there is.
-        if let trace = routedProjection?.trace { rosterProjectionObserver?(trace) }
+        //
+        // THE SEMANTIC READ RIDES ALONG. `triage` already holds the intent, its
+        // score, its runner-up and the unique pick, computed once above; without
+        // this it reached os_log and nothing else, and a bench could see WHICH
+        // skills were offered but never what the words were judged to mean.
+        if let trace = routedProjection?.trace {
+            rosterProjectionObserver?(trace.carrying(triage.verdictValue()))
+        }
         actionTurn = route.isActionTurn
         let offeredAffinities = triage.skillAffinities
         let uniqueSkill = triage.uniqueSkill
@@ -483,7 +490,7 @@ extension MaryBrain {
            decisionOutcome == nil, editIntent == nil, !hadPendingAction,
            route.intent == .operate,
            let skill = uniqueSkill,
-           let shape = EmbeddingRouting.confidenceShape(of: skill),
+           let shape = EmbeddingRouting.confidenceShape(of: skill, utterance: userText),
            // A verb carrying no span claims the WHOLE sentence, so it only
            // acts on a whole simple one. A skill extracting a span already
            // reads around the joiners it finds.
@@ -491,9 +498,20 @@ extension MaryBrain {
             let name = skill.reference.invocationName
             let applicationID = route.gate.applications.count == 1
                 ? route.gate.applications.first : nil
-            let argumentsJSON = EmbeddingRouting.argumentsJSON(
+            let filled = EmbeddingRouting.filledArguments(
                 for: skill, utterance: userText, applicationID: applicationID,
                 applicationProfiles: applicationProfiles)
+            let argumentsJSON = filled.json
+            // WHAT THE SHORTCUT DID, said where somebody can read it. A dispatch
+            // with no model round is the hardest lane to trust on sight: the only
+            // evidence it was right is the peeling that produced its arguments.
+            if let trace = routedProjection?.trace {
+                rosterProjectionObserver?(trace.carrying(triage.verdictValue(
+                    lane: .confidence(
+                        invocationName: name,
+                        argumentsJSON: argumentsJSON,
+                        stages: filled.stages))))
+            }
             let outcome = await performSkillTurn(
                 dispatcher: dispatcher,
                 name: name,
@@ -534,7 +552,9 @@ extension MaryBrain {
         // here; they were adjacent arguments to the same initializer, each
         // arbitrating all 105 Skills to the identical verdict.
         let tracedProjection = dispatcher?.projectRoster()
-        if let trace = tracedProjection?.trace { rosterProjectionObserver?(trace) }
+        if let trace = tracedProjection?.trace {
+            rosterProjectionObserver?(trace.carrying(triage.verdictValue(lane: .model)))
+        }
 
         // World veto unarmed in this cut.
         let worldVetoArming: WorldVeto.Arming? = nil

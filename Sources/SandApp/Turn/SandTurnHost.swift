@@ -183,6 +183,51 @@ final class SandTurnHost: ObservableObject {
         engine?.answer(answer, for: round.id)
     }
 
+    // MARK: - Keeping what the bench learned
+
+    /// Record this turn's sentence as a route fixture on the Skill that should
+    /// have answered it.
+    ///
+    /// PIN: THE BENCH THAT FINDS A MIS-ROUTE COULD NOT RECORD ONE. Ability
+    /// Studio could keep a sentence and Sand could not — so the tool that runs
+    /// real turns, where a mis-route actually shows up, was the one with no way
+    /// to write down what it found, and the fix had to be retyped into another
+    /// window from memory. A route fixture is also the only lever that moves the
+    /// skill tier at all (an ability's phrases feed the ability tier alone), so
+    /// this is not a convenience: it is the repair.
+    /// TAKES EFFECT ON THE NEXT LOAD. The indexes are built at registry reload,
+    /// which is what the returned sentence says.
+    func keepAsFixture(
+        utterance: String,
+        decision: AbilityRosterDecision,
+        targetClass: String?
+    ) -> String {
+        let library = AbilityLibrary.shared
+        let packageID = decision.reference.packageID
+        do {
+            let session = try library.beginEditingPackage(id: packageID)
+            guard let data = session.draftJSON.data(using: .utf8) else {
+                return "the package draft is not UTF-8"
+            }
+            let package = try AbilityPackageCodec.decode(data, verifyIntegrity: false)
+            let updated = package.addingFixture(
+                utterance: utterance,
+                expectedSkill: decision.reference.skillID,
+                targetClass: targetClass)
+            guard updated.fixtures.count != package.fixtures.count else {
+                return "\(packageID.rawValue) already says this"
+            }
+            let encoded = try AbilityPackageCodec.encoded(updated)
+            guard let json = String(data: encoded, encoding: .utf8) else {
+                return "could not re-encode \(packageID.rawValue)"
+            }
+            _ = try library.saveEditedPackage(json: json, session: session)
+            return "kept in \(packageID.rawValue) — reaches the corpus on the next load"
+        } catch {
+            return "could not keep it: \(error.localizedDescription)"
+        }
+    }
+
     /// A line the bench itself puts on the story — `--auto` declining a round it cannot
     /// answer honestly, for instance. Same lane as the turn's own notes, so it reads in order.
     func note(_ text: String) {

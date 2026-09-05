@@ -88,6 +88,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// Awareness bindings, learned from whichever adapters declare them.
     /// PIN: the brain asks for "awareness"; only this table knows the names.
     let awarenessReads: [AwarenessRead]
+    /// The same reads, by the owner whose world they describe.
+    let awarenessReadsByOwner: [String: AwarenessRead]
     /// Plugin id → its revision verb, and plugin id → its half of the passage contract.
     let targetedEdits: [String: (binding: String, parameter: String)]
     let passageBackings: [String: PassageBacking]
@@ -192,6 +194,17 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             }
         }
         self.awarenessReads = plugins.compactMap(\.awarenessRead)
+        // WHICH FACULTY SERVES WHICH WORLD. Two adapters now declare an
+        // awareness read — the code/prose one and the browsing one — and
+        // `fetchAwareness` took whichever came first in the catalog, which is
+        // an ordering accident rather than an answer about the work in front of
+        // someone. Keyed by the plugin's own owner name, the same key
+        // `targetedReads` and `focusProvider` already speak.
+        self.awarenessReadsByOwner = Dictionary(
+            plugins.compactMap { plugin in
+                plugin.awarenessRead.map { (plugin.name, $0) }
+            },
+            uniquingKeysWith: { first, _ in first })
         self.targetedReads = reads
         self.targetedEdits = edits
         self.passageBackings = backings

@@ -226,8 +226,12 @@ final class SandRuntimeHost: ObservableObject {
     /// called "Next" only because the package said so. Without the reconcile a
     /// bench dispatches `control_playback` and hears "Music isn't running"
     /// while Music is plainly running — measured, and the reason this exists.
-    /// Corpus and awareness are deliberately NOT installed: they start crawls,
-    /// and nothing here reads what they produce.
+    /// Corpus and DOCUMENT awareness are deliberately NOT installed: they start
+    /// crawls, and nothing here reads what they produce. PAGE awareness is a
+    /// different thing that happens to share a name — it walks nothing, reading
+    /// a browser's chrome through Accessibility and reporting the roster a skill
+    /// already produced — so the bench gets it, and a browsing turn here is
+    /// arbitrated with the standing brief a real one would have.
     private func installSurfaces(from snapshot: AbilityRuntime.Snapshot) {
         ProseSurfaceSupport.shared.installBackingResolver()
         AmbientApplicationBridge.install(
@@ -236,6 +240,7 @@ final class SandRuntimeHost: ObservableObject {
         WebSurfaceSupport.shared.reconcile(snapshot.webSurfaceRegistrations())
         ProseSurfaceSupport.shared.reconcile(snapshot.proseSurfaceRegistrations())
         CodeSurfaceSupport.shared.reconcile(snapshot.codeSurfaceRegistrations())
+        AwarenessSupport.shared.reconcile(snapshot.awarenessPageRegistrations())
     }
 
     private func adopt(
@@ -388,6 +393,18 @@ final class SandRuntimeHost: ObservableObject {
     func setStageTarget(bundleID: String?) {
         let id = applicationID(forBundleID: bundleID)
         leadApplicationID.withLock { $0 = id }
+    }
+
+    /// WHAT KIND OF SURFACE IS ON THE STAGE, as the package declares it.
+    ///
+    /// A fixture kept from a turn records this, because a fixture with no
+    /// target class is a claim about no particular surface — which a
+    /// target-class-gated ability can never be tested against.
+    var stageTargetClass: String? {
+        guard let id = leadApplicationID.withLock({ $0 }) else { return nil }
+        return snapshot.plugins.applicationProfiles
+            .first { $0.id == id }?
+            .targetClasses.sorted().first
     }
 
     /// The plugin application id (`textedit`, `calendar`) a bundle id belongs

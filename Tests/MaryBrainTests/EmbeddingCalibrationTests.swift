@@ -562,6 +562,119 @@ private extension String {
         #expect(wrong.isEmpty, "\(wrong)")
     }
 
+    // MARK: - The transport twins, measured
+
+    /// TWO SKILLS, TWO SURFACES, NEARLY ONE SENTENCE — and the reported bug.
+    ///
+    /// `multimedia.control-playback` and `browsing.control-media` both described
+    /// themselves as "play, pause, mute, set the volume", differing only in a
+    /// trailing clause nobody says out loud. `uniqueWinner` needs a 0.04 margin,
+    /// so the pair reliably crowded each other out, every "pause the music" cost
+    /// a model round, and the model was reading a standing prompt fragment that
+    /// argued against the media keys. The summaries now name their surfaces and
+    /// each skill states its own sentences as fixtures.
+    ///
+    /// MEASURED, NOT ASSUMED: the report prints both affinities and the margin
+    /// whichever way it goes, so a regression says how far it moved.
+    @Test func theTransportTwinsSeparate() throws {
+        guard let environment = try Self.environment() else { return }
+        let store = RoutingHabitStore()
+        let vectorizer = try #require(NLUtteranceVectorizer.shared)
+        let diagnostic = try #require(SemanticSkillRequestIndex.build(
+            records: environment.snapshot.records, vectorizer: vectorizer, threshold: 0))
+
+        let music = SkillID("multimedia.control-playback")
+        let video = SkillID("browsing.control-media")
+        var report: [String] = []
+        var wrong: [String] = []
+
+        func measure(_ utterance: String, expecting wanted: SkillID) {
+            let scores = diagnostic.affinities(in: utterance, habits: store)
+            let musicScore = scores[music] ?? 0
+            let videoScore = scores[video] ?? 0
+            let winner = EmbeddingRouting.uniqueWinner(
+                affinities: environment.skills.affinities(in: utterance, habits: store),
+                snapshot: environment.snapshot)
+            report.append(String(
+                format: "twin   [%@] -> %@   playback=%.2f media=%.2f margin=%.2f",
+                utterance,
+                winner?.skill.id.rawValue ?? "none",
+                musicScore, videoScore, abs(musicScore - videoScore)))
+            guard let winner else {
+                wrong.append("[\(utterance)] had no unique winner")
+                return
+            }
+            if winner.skill.id != wanted {
+                wrong.append(
+                    "[\(utterance)] picked \(winner.skill.id.rawValue), expected \(wanted.rawValue)")
+            }
+        }
+
+        // THE REPORTED SENTENCE, and the ones beside it.
+        measure("can you pause the music", expecting: music)
+        measure("pause the music", expecting: music)
+        measure("pause the song", expecting: music)
+        // The other surface must stay reachable by its own words.
+        measure("pause the video", expecting: video)
+
+        print(report.joined(separator: "\n"))
+        #expect(wrong.isEmpty, "\(wrong)")
+    }
+
+    /// THE REPORTED SENTENCE, THROUGH EVERY GATE THE TURN LOOP APPLIES.
+    ///
+    /// "Can you pause the music" never worked, and the twin measurement above
+    /// only proves the corpus half. This walks the rest of the shortcut exactly
+    /// as `MaryBrain.runTurnBody` does — the roster with a browser in front, the
+    /// unique winner among the OFFERED names, the argument shape, and the
+    /// arguments themselves — so a regression in any one of them fails here
+    /// rather than on someone's machine.
+    ///
+    /// A BROWSER IS IN FRONT ON PURPOSE. That is the reported situation and the
+    /// one that used to strike the whole multimedia discipline out before the
+    /// roster was read.
+    @Test func pausingTheMusicDispatchesWithNoModelRound() throws {
+        guard let environment = try Self.environment() else { return }
+        let snapshot = environment.snapshot
+        let store = RoutingHabitStore()
+        let utterance = "can you pause the music"
+
+        // THE ROSTER, with a browser's target class in view.
+        let arbitration = AbilityRosterRehearsal.arbitration(
+            snapshot: snapshot,
+            utterance: utterance,
+            targetClasses: ["web-page", "document-window"],
+            habits: store)
+        let offered = Set(arbitration.trace.selected.map(\.reference.invocationName))
+        #expect(
+            offered.contains("control_playback"),
+            "the transport skill must be offered with a browser in front — offered: \(offered.sorted())")
+
+        // THE ELECTION SAID SO IN ITS OWN WORDS.
+        let multimedia = arbitration.trace.election.first {
+            $0.abilityID.rawValue == "multimedia"
+        }
+        #expect(multimedia?.isActive == true, "multimedia must stand: \(multimedia?.reason ?? "no row")")
+
+        // THE PICK, among the names actually offered.
+        let verdict = TurnTriage.verdict(
+            query: utterance, registry: snapshot, offeredNames: offered, habits: store)
+        let winner = try #require(verdict.uniqueSkill, "no unique winner")
+        #expect(winner.skill.id == SkillID("multimedia.control-playback"))
+
+        // THE SHAPE, and then the arguments the shortcut would send.
+        #expect(
+            EmbeddingRouting.confidenceShape(of: winner, utterance: utterance) == .singleEnum,
+            "an enum value the sentence names must qualify for the shortcut")
+        let filled = EmbeddingRouting.filledArguments(
+            for: winner, utterance: utterance, applicationID: nil)
+        #expect(
+            filled.json == #"{"action":"pause"}"#,
+            "the shortcut must send the value they said, got \(filled.json)")
+        print("lane   [\(utterance)] -> confidence \(winner.reference.invocationName) \(filled.json)")
+        print("       peeled: \(filled.stages.joined(separator: " | "))")
+    }
+
     @Test func bareUtterancesUniquelyPickPlayPlaylist() throws {
         let store = RoutingHabitStore()
         try Self.assertUniquePlayPlaylist(Self.screenshotOpen, store: store)

@@ -96,6 +96,11 @@
   "dependencies" : [
     {
       "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "awareness"
+    },
+    {
+      "minimumVersion" : "1.0.0",
       "optional" : false,
       "packageID" : "browsing"
     },
@@ -112,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "a18a69b7026a1b82dd16bf6d0df5f56d046a73278d3be94f30920ead00765d44"
+    "digest" : "42c5a09a160ee9ea62d474e756f8405a790423536b7351a78d79eff2a48ef933"
   },
   "interactions" : [
 

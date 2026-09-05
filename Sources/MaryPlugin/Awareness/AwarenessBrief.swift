@@ -63,6 +63,49 @@ public enum AwarenessBrief {
         return clipped(lines.joined(separator: "\n"), to: standingBudget)
     }
 
+    // MARK: - A page
+
+    /// The standing brief for a page: which page, and what it is offering.
+    ///
+    /// PIN: WHAT IS KNOWN, AND WHEN IT WAS KNOWN. The offers come from a read a
+    /// SKILL made, not from anything this poll did, so the brief says how long
+    /// ago — a list of buttons with no age on it invites acting on a page that
+    /// has since moved. A page nobody has read says so plainly and names the
+    /// verb that would read it, which is more useful than silence and more
+    /// honest than a guess.
+    public static func page(
+        shell: WebSurfaceAX.Reading,
+        roster: PageRoster?,
+        age: TimeInterval?,
+        browser: String
+    ) -> String {
+        var lines: [String] = []
+        let title = shell.title ?? "an untitled page"
+        if let site = shell.siteName {
+            lines.append("What they are looking at: \(title), at \(site), in \(browser).")
+        } else {
+            lines.append("What they are looking at: \(title), in \(browser).")
+        }
+        if let roster, !roster.actionable.isEmpty {
+            let tail = PageListing.tail(roster)
+            if !tail.isEmpty {
+                lines.append(ageWords(age).map { "Read \($0). \(tail)" } ?? tail)
+            }
+        } else {
+            lines.append(
+                "I have not read this page yet — read_page lists what is on it, "
+                + "and read_page_text reads what it says.")
+        }
+        return clipped(lines.joined(separator: "\n"), to: standingBudget)
+    }
+
+    /// "12 seconds ago" / "3 minutes ago". Nil when there is no reading to date.
+    static func ageWords(_ age: TimeInterval?) -> String? {
+        guard let age, age >= 0 else { return nil }
+        if age < 90 { return "\(Int(age.rounded())) seconds ago" }
+        return "\(Int((age / 60).rounded())) minutes ago"
+    }
+
     /// The asked block: the same bearings, plus wherever the words landed.
     public static func surroundings(
         unit: EnclosingUnit?,

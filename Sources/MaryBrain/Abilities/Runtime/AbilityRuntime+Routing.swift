@@ -192,6 +192,9 @@ extension AbilityRuntime {
         }
         // One vectorization for the whole turn — scorer is called per Skill across passes.
         let query = world.store.routingQuery()
+        // ONE READ, TWO MAPS. The gating map is what the floor admitted; the
+        // scores are every Skill the index scored, for the trace alone.
+        let scored = semanticSkillScores(for: query)
         return AbilityRoutingContext(
             utterance: query,
             intent: route?.intent.rawValue,
@@ -204,7 +207,10 @@ extension AbilityRuntime {
             grantedPermissions: grantedPermissions,
             sourceResolution: sourceResolution,
             workspaceFamily: workspaceFamily,
-            semanticSkillAffinity: semanticSkillAffinities(for: query),
+            semanticSkillAffinity: scored.filter {
+                $0.value >= SemanticSkillRequestIndex.defaultThreshold
+            },
+            semanticSkillScores: scored,
             usesEmbeddingRoster: snapshot.semanticSkillIndex != nil,
             // COMPUTED ONLY WHEN IT WILL BE READ. With a Skill index in hand
             // the roster is affinity-gated and this is never consulted, so a
@@ -215,7 +221,11 @@ extension AbilityRuntime {
     }
 
     /// See `semanticSkillAffinityCache`. One vectorization and one library scan per turn.
-    private func semanticSkillAffinities(for utterance: String) -> [SkillID: Float] {
+    ///
+    /// SCORED WITH NO FLOOR, then filtered by the caller. The gate and the trace
+    /// want the same numbers cut in two different places, and asking the index
+    /// twice would vectorize the utterance twice for one turn.
+    private func semanticSkillScores(for utterance: String) -> [SkillID: Float] {
         if let cached = semanticSkillAffinityCache.withLock({ $0 }),
            cached.utterance == utterance {
             return cached.affinities
@@ -223,7 +233,10 @@ extension AbilityRuntime {
         // THE INJECTED STORE, not `.shared` — `setRoutingHabitStoreForTesting`
         // only isolates a test if every read honours it.
         let computed = abilitySnapshot.semanticSkillIndex?
-            .affinities(in: utterance, habits: routingHabitStore.withLock { $0 }) ?? [:]
+            .affinities(
+                in: utterance,
+                habits: routingHabitStore.withLock { $0 },
+                floor: 0) ?? [:]
         semanticSkillAffinityCache.withLock { $0 = (utterance, computed) }
         return computed
     }

@@ -91,9 +91,16 @@ public struct SemanticSkillRequestIndex: Sendable {
 
     /// Best similarity per Skill, for every Skill that clears the floor.
     /// Habits join the authored positives (ok) or suppress (not ok).
+    ///
+    /// `floor` overrides the index's own threshold for this call ONLY. Pass zero
+    /// to see where everything sits — the diagnostic read the calibration suite
+    /// already builds a whole second index for, and the one a trace needs so a
+    /// missed Skill can say 0.61 rather than "no". IT DOES NOT MOVE THE GATE:
+    /// the caller that gates still asks with the index's own threshold.
     public func affinities(
         in utterance: String,
-        habits: RoutingHabitStore = .shared
+        habits: RoutingHabitStore = .shared,
+        floor: Float? = nil
     ) -> [SkillID: Float] {
         guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
         let query = Self.normalized(raw)
@@ -109,7 +116,7 @@ public struct SemanticSkillRequestIndex: Sendable {
                best - bestNegative < SemanticAbilityRequestIndex.defaultNegativeMargin {
                 continue
             }
-            guard best >= threshold else { continue }
+            guard best >= (floor ?? threshold) else { continue }
             affinities[entry.skillID] = best
         }
         return affinities

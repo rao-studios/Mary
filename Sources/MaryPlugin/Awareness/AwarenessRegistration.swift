@@ -38,6 +38,10 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
     /// STATE — an application can ask for awareness of a live surface without
     /// having a project on disk to trace through, and the honest answer to
     /// "who calls this" is then that there is nothing to search.
+    ///
+    /// ALWAYS NIL FOR A PAGE, and that is a decision rather than an omission:
+    /// the web is not a project, nothing here crawls or indexes it, and the
+    /// page brief is built from what a read already found.
     public let corpus: PluginCorpusSchema?
 
     /// Whether the application declares a live code channel — the buffer,
@@ -47,6 +51,16 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
     /// The prose twin of `hasCodeSurface`.
     public let hasProseSurface: Bool
 
+    /// Whether this application shows PAGES rather than documents on disk.
+    ///
+    /// PIN: THE THIRD KIND OF WORLD, AND IT HAS NO FILE. A code surface has a
+    /// buffer and a prose surface has a document; a browser has neither, and the
+    /// document road (`AwarenessSiteResolver.resolve`) bails on exactly that —
+    /// no text, no site, no brief. A page is still plainly the work in front of
+    /// someone. It takes its own road, `AwarenessPageSite`, and NEVER a corpus:
+    /// see `corpus` above.
+    public let hasWebSurface: Bool
+
     public init(
         applicationID: String,
         bundleIdentifiers: [String],
@@ -54,7 +68,8 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
         displayName: String,
         corpus: PluginCorpusSchema?,
         hasCodeSurface: Bool,
-        hasProseSurface: Bool
+        hasProseSurface: Bool,
+        hasWebSurface: Bool = false
     ) {
         self.applicationID = applicationID
         self.bundleIdentifiers = bundleIdentifiers
@@ -63,6 +78,7 @@ public struct AwarenessRegistration: Sendable, Equatable, SurfaceClaim {
         self.corpus = corpus
         self.hasCodeSurface = hasCodeSurface
         self.hasProseSurface = hasProseSurface
+        self.hasWebSurface = hasWebSurface
     }
 
     /// Whether this registration claims the given process. Exact first, then

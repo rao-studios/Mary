@@ -53,6 +53,46 @@ public extension BrowserEngine {
         }
     }
 
+    /// Read what the page SAYS, rather than what can be pressed on it.
+    ///
+    /// PIN: THE HALF OF A PAGE MARY COULD NOT REACH. `read_page` lists rows to
+    /// act on and drops the prose; `current_page` answers with a title. So
+    /// "what do you think of this article" had nothing to think about — the
+    /// exact gap the code and prose worlds fixed years earlier by declaring a
+    /// read. The text is already in the reading (the vision `.text` lane runs
+    /// for both intents); it was being discarded at this door.
+    /// SAME READ, SAME STAGE, SAME SLATE. This is `readPage` with a different
+    /// rendering, not a second way to look at a page.
+    func readPageText(
+        in target: BrowserTarget, budget: Int = PageListing.textBudget
+    ) async -> BrowserOutcome {
+        let shellOutcome = await readShell(target)
+        guard let shell = shellOutcome.shell else { return shellOutcome }
+        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
+            return refuse(.activationRefused(target.spokenName))
+        }
+        let cursor = await seams.hands.cursorLocation()
+        retractSlate()
+        let outcome = await read(target, shell: shell)
+        await seams.hands.restoreCursor(to: cursor)
+        switch outcome {
+        case .failure(let refusal):
+            return refuse(refusal)
+        case .success(let roster):
+            let passage = PageListing.text(
+                roster, pageName: shell.title ?? shell.siteName, budget: budget)
+            return BrowserOutcome(
+                ok: true,
+                spoken: passage,
+                // NOTHING READABLE IS A MISS, NOT A FAILURE — an image-only page
+                // is an answer, and a turn that says so beats one reporting an
+                // error against a page that loaded perfectly.
+                shell: shell,
+                elements: roster.elements,
+                map: roster.map)
+        }
+    }
+
     /// Press something on the page, named in the person's own words.
     func pressOnPage(
         _ phrase: String, in target: BrowserTarget, deadline: Date? = nil

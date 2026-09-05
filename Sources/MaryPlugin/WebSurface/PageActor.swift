@@ -241,7 +241,7 @@ extension BrowserEngine {
         let pid = target.processIdentifier
         switch command.action {
         case .click(let click):
-            let placed = place(click.location, in: roster, verb: .press)
+            let placed = place(click.location, in: roster, verb: pressVerb(for: click.location))
             guard case .success(let (point, element)) = placed else {
                 if case .failure(let refusal) = placed { return .refused(refusal) }
                 return .refused(.pageNotVisible)
@@ -411,6 +411,11 @@ extension BrowserEngine {
         let arbitration = PageRouter.arbitrate(
             goal: phrase, verb: verb, roster: roster, store: seams.slate)
         lastRoute = arbitration.trace
+        // THIS PAGE IS A LIST OF ANSWERS TO SOMETHING. Remembered for the next
+        // bare "open the second one" — see `lastResultQuery`.
+        if case .openResult(let query) = verb, !query.isEmpty {
+            lastResultQuery = query
+        }
         emit(.routed(arbitration.trace))
         return arbitration
     }
@@ -422,6 +427,23 @@ extension BrowserEngine {
     /// PIN: THE REFUSAL COMES BACK WITH IT, rather than being re-derived by asking
     /// again. Resolving twice can answer differently — the slate moves between the two
     /// calls — and the second answer would then describe a miss that never happened.
+    /// Which verb a click routes with: an ordinary press, or opening one of the
+    /// answers this page is already a list of.
+    ///
+    /// PIN: ONLY WHEN THE PHRASE SAYS NOTHING BUT WHICH ONE. "Open the second
+    /// one" and "the first video" name a position within a category and nothing
+    /// else — they can only mean the answers. A phrase that NAMES something
+    /// ("click the Boiler Room link") is a name, and `.press` reaches a row by
+    /// name anywhere on the page, which is the wider and correct pool for it.
+    /// The scoping is `.openResult`'s own; this only decides when to ask for it.
+    func pressVerb(for location: PageInteractionPointerLocation) -> PageRouteVerb {
+        guard case .target(let phrase) = location,
+              let query = lastResultQuery, !query.isEmpty,
+              PageElementKindDerivation.namesOnlyAPosition(phrase)
+        else { return .press }
+        return .openResult(query: query)
+    }
+
     func place(
         _ location: PageInteractionPointerLocation, in roster: PageRoster,
         verb: PageRouteVerb

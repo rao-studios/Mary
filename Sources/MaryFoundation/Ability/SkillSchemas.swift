@@ -108,6 +108,17 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
     /// message, replacement prose, a computed line number. Confidence-dispatch
     /// skips extraction eligibility for it and falls through to the model.
     public var requiresComposition: Bool
+    /// THE WORDS A PERSON SAYS FOR EACH ENUM VALUE, keyed by the value.
+    ///
+    /// PIN: DATA, NOT A SWITCH — this is the whole reason it lives on the schema.
+    /// An enum value is a machine word ("previous"); a person says "go back" or
+    /// "last song". Bonnie carried that mapping as a Swift synonym table inside
+    /// the music adapter, which meant every other platform's enum had none. Here
+    /// the package that declares the enum declares how it is spoken, so a skill in
+    /// any world gets the same treatment and no Swift file learns a verb.
+    /// Empty is honest: an enum whose values ARE the words needs nothing here,
+    /// because the value's own name is always matched first.
+    public var spokenValues: [String: [String]]
 
     public init(
         name: String,
@@ -115,7 +126,8 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         summary: String,
         required: Bool,
         enumValues: [String] = [],
-        requiresComposition: Bool = false
+        requiresComposition: Bool = false,
+        spokenValues: [String: [String]] = [:]
     ) {
         self.name = name
         self.type = type
@@ -123,10 +135,12 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         self.required = required
         self.enumValues = enumValues
         self.requiresComposition = requiresComposition
+        self.spokenValues = spokenValues
     }
 
     private enum CodingKeys: String, CodingKey {
         case name, type, summary, required, enumValues, requiresComposition
+        case spokenValues
     }
 
     /// Tolerant decode — a package sealed before this field existed must
@@ -140,6 +154,8 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         enumValues = try container.decodeIfPresent([String].self, forKey: .enumValues) ?? []
         requiresComposition = try container.decodeIfPresent(
             Bool.self, forKey: .requiresComposition) ?? false
+        spokenValues = try container.decodeIfPresent(
+            [String: [String]].self, forKey: .spokenValues) ?? [:]
     }
 }
 

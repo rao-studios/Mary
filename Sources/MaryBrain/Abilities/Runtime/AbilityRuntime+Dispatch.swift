@@ -306,6 +306,22 @@ extension AbilityRuntime {
 
         var arguments = Self.stringArguments(fromJSON: argumentsJSON)
         arguments = Self.reconcile(arguments, against: binding.parameters)
+        // A STRUCTURED VALUE THE PERSON SAID, WHEN THE CALLER SENT NONE.
+        //
+        // PIN: THE REPAIR BONNIE HAD PER-ADAPTER, GENERALISED ONCE. Its music
+        // plugin resolved a missing or garbled `action` out of the raw utterance
+        // through a hand-written synonym table, which meant every OTHER platform's
+        // enum had no such rescue — Mary's `control_playback` inherited the enum
+        // and not the repair, so a small model omitting `action` failed the turn
+        // outright ("I don't know how to do that to the music"). Here the words
+        // come from the package's own `spokenValues`, so every enum in every
+        // world gets the same treatment and no Swift file learns a verb.
+        // REPAIR, NEVER OVERRIDE: a value already in the enum is left alone.
+        arguments = SpokenEnumExtractor.repaired(
+            arguments,
+            parameters: Self.enumParameters(
+                binding: binding, declared: runtimeSkill),
+            utterance: world.store.utterance())
         // THE SILENCE THIS FILLS: "pause the music" names no player, and a
         // discipline's Skill has no application of its own. When something
         // inherits that discipline, the person's own habit says which one they

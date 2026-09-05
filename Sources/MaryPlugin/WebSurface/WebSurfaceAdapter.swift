@@ -48,14 +48,27 @@ public struct WebSurfaceAdapter: MaryAdapter {
         click_on_page, fill_in_page and scroll_to_on_page take those words back. To \
         search the web use search_web, which types the query into the browser's own \
         address bar; to search WITHIN a site, open it and fill_in_page its search box \
-        with submit. Drive a video with control_media — never a site's keyboard \
-        shortcut, and never the system media keys, which reach whatever holds \
-        now-playing rather than this tab.
+        with submit. Drive a video INSIDE THIS PAGE with control_media — never a site's \
+        keyboard shortcut. For the music app, or for whatever is playing \
+        system-wide, control_playback is the one that reaches it.
         """
     }
 
     public var targetedRead: (binding: String, parameter: String)? {
         (binding: "current_page", parameter: "app")
+    }
+
+    /// MARY'S OWN READ OF A PAGE, before either lane speaks.
+    ///
+    /// PIN: THE BROWSING HALF OF THE FETCH-FIRST LANE, which existed only for
+    /// code and prose. "What do you think about this code" reads the buffer
+    /// first; "what do you think of this article" read nothing at all, so the
+    /// answer was about a title. The unit is what the page SAYS; the
+    /// surroundings are which page it is. `fetchAwareness`'s own gates decide
+    /// when — a question or a deictic remark, never an action turn, so
+    /// "click that link" still does its own reading inside the skill.
+    public var awarenessRead: AwarenessRead? {
+        AwarenessRead(unit: "read_page_text", surroundings: "current_page")
     }
 
     public var refusals: [String] {
@@ -65,8 +78,8 @@ public struct WebSurfaceAdapter: MaryAdapter {
     public var skillBindings: [SkillBinding] {
         [currentPage, listTabs, describeMedia, controlMedia,
          openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
-         readPage, clickOnPage, fillInPage, scrollToOnPage, adjustOnPage,
-         searchWeb, interactWithPage]
+         readPage, readPageText, clickOnPage, fillInPage, scrollToOnPage,
+         adjustOnPage, searchWeb, interactWithPage]
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -111,6 +124,8 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 operation("scroll_page", capability: "browser.page.act",
                           input: "browsing.media-request", output: "browsing.operation-result"),
                 operation("read_page", capability: "browser.page.read",
+                          input: "browsing.page-query", output: "browsing.page-listing"),
+                operation("read_page_text", capability: "browser.page.read",
                           input: "browsing.page-query", output: "browsing.page-listing"),
                 operation("click_on_page", capability: "browser.page.press",
                           input: "browsing.page-target", output: "browsing.operation-result"),
@@ -386,6 +401,24 @@ public struct WebSurfaceAdapter: MaryAdapter {
             stage: true)
     }
 
+    private var readPageText: SkillBinding {
+        SkillBinding(
+            name: "read_page_text",
+            description: """
+                Read what the page SAYS — its headings and prose, top to bottom — \
+                so you can answer a question about it, summarise it, or give a view \
+                on it. read_page is the other one: what can be pressed.
+                """,
+            parameters: [browserParameter],
+            access: .read,
+            backing: .native { arguments, _ in
+                await self.run(arguments["app"]) { target in
+                    await self.engine.readPageText(in: target)
+                }
+            },
+            stage: true)
+    }
+
     private var clickOnPage: SkillBinding {
         SkillBinding(
             name: "click_on_page",
@@ -596,6 +629,20 @@ public struct WebSurfaceAdapter: MaryAdapter {
         }
         let target = BrowserTarget(registration: registration, processIdentifier: pid)
         let outcome = await body(target)
+        // A BROWSING ACT IS REAL WORK IN A PLACE.
+        //
+        // PIN: THE LEDGER IS WHAT KEEPS A PAGE IN THE CONVERSATION. `stickyLead`
+        // and `admittedPlaceMentions` both key on `.activity` evidence, and only
+        // the code, prose and corpus observers ever stamped it — so the moment
+        // any other window came forward, the browser stopped leading and every
+        // browsing skill fell out of the roster mid-conversation. Reading a page
+        // or acting on one is exactly the "user was just here" this evidence
+        // means. Stamped on a real outcome only: a refusal reached nothing.
+        if outcome.ok {
+            WorkspaceFocusTracker.shared.noteWork(
+                place: AmbientPlaceResolver.browserPlace,
+                processBundleID: registration.bundleIdentifiers.first)
+        }
         return SkillOutcome(
             ok: outcome.ok,
             summary: outcome.spoken,

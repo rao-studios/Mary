@@ -48,6 +48,46 @@ extension AbilityRuntime {
         snapshot: AbilityRuntime.Snapshot,
         signals: SchemaSignalTurnSnapshot
     ) -> String? {
+        // Everything a frozen registry can decide on its own.
+        if let failure = AbilityRuntime.snapshotEligibilityFailure(
+            for: runtime, in: context, snapshot: snapshot) {
+            return failure
+        }
+        // And the two that need this turn: what the signals authorize, and
+        // whether a workflow may safely run right now.
+        let effect = snapshot.effect(
+            forInvocation: runtime.reference.invocationName)
+        if let failure = signals
+            .mutationAuthorizationFailure(for: runtime.skill, effect: effect) {
+            return failure
+        }
+        if runtime.skill.execution.kind == .stateMachine,
+           let failure = workflowExecutionSafetyFailure(
+               for: runtime,
+               snapshot: snapshot) {
+            return failure
+        }
+        return nil
+    }
+
+    /// THE GATES A FROZEN REGISTRY CAN ANSWER BY ITSELF — model exposure,
+    /// readiness, the Capability contract, required Interactions, Perceptions
+    /// and Capabilities, and supporting Abilities.
+    ///
+    /// PIN: SPLIT OUT SO A REHEARSAL RUNS THE REAL RULES. `AbilityRosterRehearsal`
+    /// answers "would this have been offered, with that app in front" outside any
+    /// turn, and the alternative was a second copy of these sentences that would
+    /// drift from the ones a turn actually produces — which is precisely the
+    /// defect the Studio's rehearsal had: it ran the embedding tier alone and
+    /// could not say a Skill was withheld for being unready or for losing its
+    /// Ability's election. The two gates this deliberately EXCLUDES both need a
+    /// live turn (`signals`, and a workflow's own run state), and the rehearsal
+    /// says so rather than pretending otherwise.
+    static func snapshotEligibilityFailure(
+        for runtime: AbilityRuntimeSkill,
+        in context: AbilityRoutingContext,
+        snapshot: AbilityRuntime.Snapshot
+    ) -> String? {
         let policy = snapshot.executionPolicy(for: runtime.skill)
         if !runtime.skill.modelExposure.enabled {
             return "is not exposed for model invocation"
@@ -100,18 +140,6 @@ extension AbilityRuntime {
             .filter({ !snapshot.containsAbility($0) })
             .sorted(by: { $0.rawValue < $1.rawValue }).first {
             return "requires supporting Ability \(missing.rawValue)"
-        }
-        let effect = snapshot.effect(
-            forInvocation: runtime.reference.invocationName)
-        if let failure = signals
-            .mutationAuthorizationFailure(for: runtime.skill, effect: effect) {
-            return failure
-        }
-        if runtime.skill.execution.kind == .stateMachine,
-           let failure = workflowExecutionSafetyFailure(
-               for: runtime,
-               snapshot: snapshot) {
-            return failure
         }
         return nil
     }

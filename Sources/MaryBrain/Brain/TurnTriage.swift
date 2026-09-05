@@ -61,6 +61,21 @@ enum TurnTriage {
             uniqueSkill: nil,
             promotedByUniqueSkill: false)
 
+        /// THE SAME READ, AS A VALUE A BENCH CAN RENDER. Everything here was
+        /// already computed for the log line below; this is the same facts
+        /// crossing out of MaryBrain rather than a second opinion.
+        func verdictValue(lane: SemanticTurnLane? = nil) -> SemanticTurnVerdict {
+            SemanticTurnVerdict(
+                intent: intent?.rawValue,
+                intentScore: intentScore,
+                intentRunnerUp: intentRunnerUp?.rawValue,
+                promotedByUniqueSkill: promotedByUniqueSkill,
+                floor: EmbeddingRouting.floor,
+                margin: EmbeddingRouting.margin,
+                uniqueSkill: uniqueSkill?.reference.invocationName,
+                lane: lane)
+        }
+
         /// What the log and the trace quote, so both say the same thing.
         var intentDescription: String {
             guard let intent else { return "intent=lexical" }

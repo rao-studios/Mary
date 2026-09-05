@@ -25,6 +25,11 @@ struct AbilityStudioRehearsalSheet: View {
     @State private var typed = ""
     @State private var rehearsal: AbilityStudioRehearsal?
     @State private var keptFixture = false
+    /// WHAT IS IN FRONT WHILE THEY SAY IT. The roster is arbitrated against the
+    /// lead application's target classes, so the same sentence reaches different
+    /// skills depending on the window — which is the whole of the "pause the
+    /// music while a browser is fronted" failure, and was invisible here.
+    @State private var stageID: String?
 
     /// While a voice session is live the partial transcript is the utterance —
     /// observation only. Mary has no listen-without-dispatch mode.
@@ -134,6 +139,17 @@ struct AbilityStudioRehearsalSheet: View {
                         .onSubmit(run)
                 }
 
+                Picker("", selection: $stageID) {
+                    Text("nothing in front").tag(String?.none)
+                    ForEach(stages) { stage in
+                        Text("as if \(stage.title) were in front").tag(String?.some(stage.id))
+                    }
+                }
+                .labelsHidden()
+                .font(.marySans(10))
+                .frame(width: Paper.Layout.stagePicker)
+                .help(AbilityRosterRehearsal.caveat)
+
                 Button("Rehearse", action: run)
                     .buttonStyle(.mary)
                     .disabled(utterance.isEmpty)
@@ -149,10 +165,20 @@ struct AbilityStudioRehearsalSheet: View {
                 .font(.system(size: 11))
                 .foregroundStyle(rehearsal.isClean ? Color.maryGreen : Color.maryError)
                 .padding(.top, 1)
-            Text(rehearsal.verdictWord)
-                .font(.marySans(11.5))
-                .foregroundStyle(Color.maryInk.opacity(0.8))
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: .layer1) {
+                Text(rehearsal.verdictWord)
+                    .font(.marySans(11.5))
+                    .foregroundStyle(Color.maryInk.opacity(0.8))
+                    .fixedSize(horizontal: false, vertical: true)
+                // THE ROSTER'S OWN DISAGREEMENT, when it has one. The tiers can
+                // say a skill leads and the turn still not have it.
+                if let roster = rehearsal.rosterWord {
+                    Text(roster)
+                        .font(.marySans(11))
+                        .foregroundStyle(Color.maryError.opacity(0.9))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
             Spacer(minLength: 0)
         }
         .padding(.layer3)
@@ -362,6 +388,19 @@ struct AbilityStudioRehearsalSheet: View {
                                  ? Color.maryError
                                  : Color.maryInk.opacity(0.4))
                 .frame(width: 58, alignment: .trailing)
+
+            // WAS IT OFFERED AT ALL — the question the tiers beside it cannot
+            // answer. A skill can lead its corpus outright and still never
+            // reach the model.
+            if let disposition = row.disposition {
+                Text(row.wasOffered ? "offered" : disposition.rawValue)
+                    .font(.maryMono(9))
+                    .foregroundStyle(row.wasOffered
+                                     ? Color.maryGreen
+                                     : Color.maryError.opacity(0.75))
+                    .frame(width: 96, alignment: .trailing)
+                    .help(row.rosterReason ?? "")
+            }
         }
     }
 
@@ -497,7 +536,19 @@ struct AbilityStudioRehearsalSheet: View {
         keptFixture = false
         rehearsal = AbilityStudioRehearsal.run(
             utterance: utterance,
-            snapshot: model.snapshot)
+            snapshot: model.snapshot,
+            stage: stages.first { $0.id == stageID })
+    }
+
+    /// Every installed application, as a stage to rehearse in front of.
+    private var stages: [AbilityStudioRehearsal.Stage] {
+        model.snapshot.plugins.applicationProfiles
+            .filter { !$0.targetClasses.isEmpty }
+            .map {
+                AbilityStudioRehearsal.Stage(
+                    id: $0.id, title: $0.title, targetClasses: $0.targetClasses)
+            }
+            .sorted { $0.title < $1.title }
     }
 
     /// The winner is what this sentence should reach, so that is what the
@@ -512,7 +563,11 @@ struct AbilityStudioRehearsalSheet: View {
         let accepted = model.mutateAuthoringDocument { document in
             try document.addFixture(
                 utterance: rehearsal.utterance,
-                expectedSkill: expected ?? model.selectedRecipe?.id)
+                expectedSkill: expected ?? model.selectedRecipe?.id,
+                // WHAT WAS IN FRONT WHEN THEY SAID IT. A fixture with no target
+                // class is a claim about no particular surface, which a
+                // target-class-gated ability can never be tested against.
+                targetClass: rehearsal.stage?.targetClasses.sorted().first)
         }
         keptFixture = accepted
     }

@@ -10,6 +10,12 @@
 //        it gave as the reason — "does not match this turn's embedding roster"
 //        is a verdict about these words, not a defect, and seeing the same
 //        skill selected under a different sentence is the whole lesson.
+//        WITH THE NUMBER THE FLOOR WAS COMPARED AGAINST. A sentence alone cannot
+//        be tuned: 0.61 and 0.20 read identically as "does not match" and are
+//        completely different problems — one is a fixture away, the other is the
+//        wrong skill. The Election and Lane panes beside it answer the other two
+//        questions a person asks in that order: was its whole Ability struck out
+//        before the roster was read, and did the turn act without asking anyone.
 //
 import MaryAmbient
 import MaryBrain
@@ -24,6 +30,10 @@ struct SandTurnView: View {
     @State private var arguments: [String: String] = [:]
     @State private var replyText = ""
     @State private var showsIneligible = false
+    /// The utterance this roster belongs to, so a fixture kept from a row
+    /// records what was actually said rather than whatever is in the field now.
+    @State private var rosterUtterance = ""
+    @State private var keptWord: String?
 
     /// `--say` fires once, after the graph has loaded. Guarded so a re-render
     /// never re-asks.
@@ -40,6 +50,8 @@ struct SandTurnView: View {
                         Divider()
                     }
                     routeSection
+                    semanticSection
+                    electionSection
                     rosterSection
                     storySection
                 }
@@ -57,6 +69,8 @@ struct SandTurnView: View {
         else { return }
         autoRan = true
         utterance = wanted
+        rosterUtterance = wanted
+        keptWord = nil
         host.run(wanted)
     }
 
@@ -129,6 +143,8 @@ struct SandTurnView: View {
         chosenSkill = nil
         arguments = [:]
         replyText = ""
+        rosterUtterance = utterance
+        keptWord = nil
         host.run(utterance)
     }
 
@@ -277,6 +293,11 @@ struct SandTurnView: View {
                         .font(.system(size: 9, design: .monospaced))
                         .foregroundStyle(.secondary)
                 }
+                if let keptWord {
+                    Text(keptWord)
+                        .font(.system(size: 9))
+                        .foregroundStyle(.orange)
+                }
                 ForEach(selected) { decisionRow($0) }
                 if !rest.isEmpty {
                     Button {
@@ -306,9 +327,20 @@ struct SandTurnView: View {
                     Text(decision.reference.invocationName)
                         .font(.system(size: 10, design: .monospaced))
                     Spacer()
-                    Text("\(decision.evidence.total)")
-                        .font(.system(size: 9, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                    // THE AFFINITY, WHEREVER IT SITS. Below the floor is where a
+                    // corpus problem actually shows itself, and that is exactly
+                    // the row the old pane could say nothing numeric about.
+                    if let affinity = decision.affinity {
+                        let floor = host.trace.semantic?.floor ?? 0.62
+                        Text(String(format: "%.2f", affinity))
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(affinity >= floor ? Color.primary : Color.secondary)
+                        if affinity < floor {
+                            Text("below floor")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                     Text(decision.disposition.rawValue)
                         .font(.system(size: 9))
                         .foregroundStyle(decision.disposition == .selected ? .green : .secondary)
@@ -316,6 +348,112 @@ struct SandTurnView: View {
                 Text(decision.reason)
                     .font(.system(size: 9))
                     .foregroundStyle(.tertiary)
+            }
+            // THE REPAIR, WHERE THE PROBLEM IS VISIBLE. A row that should have
+            // answered and did not is exactly the sentence its package is
+            // missing — see `SandTurnHost.keepAsFixture`.
+            Button("keep") {
+                keptWord = host.keepAsFixture(
+                    utterance: rosterUtterance,
+                    decision: decision,
+                    targetClass: runtimeHost.stageTargetClass)
+            }
+            .buttonStyle(.plain)
+            .font(.system(size: 9))
+            .foregroundStyle(.blue)
+            .disabled(rosterUtterance.isEmpty)
+            .help("Record this sentence as a route fixture naming this skill.")
+        }
+    }
+
+    // MARK: - What the words were judged to mean
+
+    @ViewBuilder
+    private var semanticSection: some View {
+        if let semantic = host.trace.semantic {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Read").font(.caption.bold())
+                    Spacer()
+                    Text(String(
+                        format: "floor %.2f · margin %.2f", semantic.floor, semantic.margin))
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                }
+                row("intent", semantic.promotedByUniqueSkill
+                    ? "\(semantic.intent ?? "—") (promoted by a unique skill)"
+                    : String(format: "%@  %.2f  runner-up %@",
+                             semantic.intent ?? "—", semantic.intentScore,
+                             semantic.intentRunnerUp ?? "none"))
+                row("unique winner", semantic.uniqueSkill ?? "none — no skill cleared the margin")
+                if let lane = semantic.lane { laneRow(lane) }
+            }
+            .font(.system(size: 10, design: .monospaced))
+        }
+    }
+
+    /// WHICH LANE ANSWERED, and for the shortcut, how the words became arguments.
+    /// A no-model dispatch is the hardest lane to trust on sight — the peeling is
+    /// the only evidence it filled the right thing.
+    @ViewBuilder
+    private func laneRow(_ lane: SemanticTurnLane) -> some View {
+        switch lane {
+        case let .confidence(name, argumentsJSON, stages):
+            row("lane", "confidence — no model round")
+            row("dispatched", "\(name) \(argumentsJSON)")
+            ForEach(Array(stages.enumerated()), id: \.offset) { _, stage in
+                row("", stage)
+            }
+        case .model:
+            row("lane", "model")
+        case let .affordance(labels, score):
+            row("lane", String(
+                format: "affordance %.2f — %@", score, labels.joined(separator: ", ")))
+        }
+    }
+
+    // MARK: - The Ability election
+
+    /// WHICH ABILITIES EVEN STOOD. An Ability that loses its conflict group takes
+    /// every one of its Skills out of the roster before a single one is weighed,
+    /// and until this pane existed the only trace of that was the same borrowed
+    /// sentence repeated on each of them.
+    @ViewBuilder
+    private var electionSection: some View {
+        let rows = host.trace.election
+        if !rows.isEmpty {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Election").font(.caption.bold())
+                    Spacer()
+                    Text(rows.first?.regime.rawValue ?? "")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                }
+                ForEach(rows) { election in
+                    HStack(alignment: .top, spacing: 6) {
+                        Text(election.isActive ? "●" : "○")
+                            .foregroundStyle(election.isActive ? Color.green : Color.secondary)
+                        VStack(alignment: .leading, spacing: 1) {
+                            HStack(spacing: 6) {
+                                Text(election.abilityID.rawValue)
+                                    .font(.system(size: 10, design: .monospaced))
+                                Spacer()
+                                if let best = election.bestMemberAffinity {
+                                    Text(String(format: "best %.2f", best))
+                                        .font(.system(size: 9, design: .monospaced))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                Text("predicate \(election.predicateScore)")
+                                    .font(.system(size: 9, design: .monospaced))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            Text(election.reason)
+                                .font(.system(size: 9))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
             }
         }
     }

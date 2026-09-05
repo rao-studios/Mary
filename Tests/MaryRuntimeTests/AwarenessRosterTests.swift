@@ -38,6 +38,29 @@ import Testing
         #expect(!registrations[0].hasCodeSurface)
     }
 
+    /// A BROWSER IS FOLLOWED AS A PAGE, AND NEVER AS A PROJECT.
+    ///
+    /// PIN: THE CORPUS IS NIL BY RULE, NOT BY ACCIDENT. Awareness inherits a
+    /// walk grammar from any discipline dependency that declares one, and a
+    /// grammar pointed at the web would mean crawling it. `browsing.mary`
+    /// declares none today; this pins that a future donor still cannot.
+    @Test func aBrowserIsFollowedAsAPageWithNoCorpus() {
+        var browser = PackageFixtures.applicationExpertise
+        browser.dependencies = [
+            .init(packageID: "awareness", minimumVersion: "1.0.0", optional: true)
+        ]
+        browser.plugin?.webSurface = PackageFixtures.webSurface
+        browser.plugin?.corpus = nil
+        var discipline = Self.awarenessDiscipline
+        // A donor that WOULD have handed a grammar over, if a page could take one.
+        discipline.plugin?.corpus = nil
+        let registrations = MaryRuntime.awarenessRegistrations(
+            from: snapshot(packages: [discipline, browser]))
+        #expect(registrations.count == 1)
+        #expect(registrations[0].hasWebSurface, "it shows pages")
+        #expect(registrations[0].corpus == nil, "and the web is never a project")
+    }
+
     /// A required edge is the same request, stated more strongly.
     @Test func aRequiredEdgeAsksJustAsLoudly() {
         var expertise = PackageFixtures.applicationExpertise

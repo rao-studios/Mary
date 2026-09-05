@@ -116,6 +116,17 @@ public actor BrowserEngine {
     /// about rows that no longer exist the moment the page changes, and a debugger still
     /// showing it would be explaining a decision about a screen that is gone.
     var lastRoute: PageRouteTrace?
+    /// WHAT THIS PAGE IS A LIST OF ANSWERS TO, when it is one.
+    ///
+    /// PIN: A FOLLOW-UP IS A CONTINUATION, NOT A NEW REQUEST. "Open the second
+    /// one" after a search means the second RESULT — but a bare click routes
+    /// with `.press`, which counts every row on the page, so it opened the
+    /// second thing in reading order (a nav chip, the search box) while the
+    /// answers sat below. Only `search_web` ever used `.openResult`, and it
+    /// forgot the query the moment it returned. Held here with the same
+    /// lifetime as the slate, and for the same reason: the moment the page
+    /// changes, this describes a list that is no longer on screen.
+    var lastResultQuery: String?
     private var lastRefusal: BrowserRefusal?
     private var acts = 0
     private var refusals = 0
@@ -167,6 +178,7 @@ public actor BrowserEngine {
     func retractSlate() {
         lastRoster = nil
         lastRoute = nil
+        lastResultQuery = nil
         AffordanceSlatePublisher.retract(store: seams.slate)
     }
 

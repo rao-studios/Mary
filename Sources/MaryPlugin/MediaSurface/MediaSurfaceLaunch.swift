@@ -23,10 +23,26 @@ public enum MediaSurfaceLaunch {
     ) -> MediaSurfaceRegistration? {
         if let named, !named.isEmpty {
             let wanted = named.lowercased()
-            return declared.first {
+            if let exact = declared.first(where: {
                 $0.applicationID.lowercased() == wanted
                     || $0.displayName.lowercased() == wanted
                     || $0.owns(bundleID: named)
+            }) {
+                return exact
+            }
+            // WHAT THE PERSON CALLS IT — the same alias rung `SurfaceRoster`
+            // grew, and for the same measured miss: `app: "Music"` names Apple
+            // Music to everyone except a comparison against its id, its title
+            // and its bundle. The aliases come from the package's own
+            // declaration, so no name is spelled in Swift here.
+            let index = AmbientApplicationIndexProvider.current
+            guard let registration = index.all.first(where: { candidate in
+                candidate.profile.aliases.contains { $0.lowercased() == wanted }
+            }) else { return nil }
+            let identity = registration.id.lowercased()
+            return declared.first { player in
+                player.applicationID.lowercased() == identity
+                    || registration.bundleIdentifiers.contains(where: player.owns(bundleID:))
             }
         }
         guard declared.count == 1 else { return nil }

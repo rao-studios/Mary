@@ -105,6 +105,46 @@ public enum PageListing {
     }
 
     /// The same, compressed to ride along at the end of an act's own sentence.
+    /// How much of a page's prose one question is worth. `AwarenessBrief`'s
+    /// asked-block budget, for the same reason: a passage, not a document.
+    public static let textBudget = 2400
+
+    /// WHAT THE PAGE SAYS, top to bottom.
+    ///
+    /// PIN: THE ROWS THE ACTING LISTING THROWS AWAY. `spoken` and `tail` render
+    /// what can be PRESSED — the text rows are furniture to them. To a question
+    /// about the page they are the entire answer, so this reads the same roster
+    /// the other way round. Reading order is the roster's own order, which the
+    /// reading already put in reading order.
+    /// DUPLICATES COLLAPSE. The page reader emits some elements twice (once for
+    /// an outer link, once for the text inside it) — measured, pervasive, and
+    /// harmless to a listing that numbers rows but absurd in a passage, which
+    /// would say everything twice.
+    public static func text(
+        _ roster: PageRoster, pageName: String?, budget: Int = textBudget
+    ) -> String {
+        var seen = Set<String>()
+        var lines: [String] = []
+        for element in roster.elements {
+            let label = element.label.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard label.count > 1 else { continue }
+            let key = SpokenReference.normalized(label)
+            guard !key.isEmpty, seen.insert(key).inserted else { continue }
+            lines.append(label)
+        }
+        guard !lines.isEmpty else {
+            return pageName.map { "I can read nothing on \($0)." }
+                ?? "I can read nothing on this page."
+        }
+        var passage = pageName.map { "The visible part of \($0), top to bottom:" }
+            ?? "The visible part of the page, top to bottom:"
+        for line in lines {
+            guard passage.count + line.count + 1 <= budget else { break }
+            passage += "\n" + line
+        }
+        return passage
+    }
+
     public static func tail(_ roster: PageRoster, limit: Int = tailLimit) -> String {
         let rows = filtered(roster, query: nil)
         guard !rows.isEmpty else { return "" }

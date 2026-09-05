@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "880a590f8f98be3d075ea55c9bd313fbd2d5acefabd3e00f5b0e8ba96037199b"
+    "digest" : "754b77be8f63b75fe99bbbc66dfbc40b913a926490be1f7e34f3458e35b4dacd"
   },
   "interactions" : [
 
@@ -374,6 +374,9 @@
             "name" : "start_date",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "YYYY-MM-DD",
             "type" : "string"
           },
@@ -384,6 +387,9 @@
             "name" : "end_date",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "YYYY-MM-DD",
             "type" : "string"
           }
@@ -462,6 +468,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Title text.",
             "type" : "string"
           }
@@ -540,6 +549,9 @@
             "name" : "title",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Event title.",
             "type" : "string"
           },
@@ -550,6 +562,9 @@
             "name" : "start_date",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Start.",
             "type" : "string"
           },
@@ -560,6 +575,9 @@
             "name" : "end_date",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "End.",
             "type" : "string"
           }

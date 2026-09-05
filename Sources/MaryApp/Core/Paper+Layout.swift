@@ -64,6 +64,10 @@ extension Paper {
         static let popover = Span(min: 260, ideal: 320, max: 360)
         static let popoverMaxHeight: CGFloat = 360
         static let labelColumn: CGFloat = 150
+        /// A picker that names a whole application ("as if Google Chrome were
+        /// in front") — a sentence, so it is sized like one rather than like a
+        /// control.
+        static let stagePicker: CGFloat = 210
 
         /// The line between an atom (icon, divider, gutter) and a column
         /// pretending to be one. `LayoutDisciplineTests` fails any literal

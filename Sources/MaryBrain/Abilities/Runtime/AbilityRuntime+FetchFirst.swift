@@ -143,10 +143,24 @@ extension AbilityRuntime {
     /// in an editor stays an idle remark, and only a sentence that actually
     /// lands somewhere in their project turns into a read.
     public func fetchAwareness(query: String) async -> AwarenessSight? {
-        guard let read = awarenessReads.first(where: { candidate in
+        func live(_ candidate: AwarenessRead) -> Bool {
             skillBindings.contains { $0.name == candidate.unit }
                 && skillBindings.contains { $0.name == candidate.surroundings }
-        }) else { return nil }
+        }
+        // THE LEADING WORLD'S OWN READ FIRST.
+        //
+        // PIN: WITH ONE FACULTY THIS WAS A LIST OF ONE AND `first` WAS AN
+        // ANSWER. A browser declares an awareness read now too, so `first`
+        // became catalog order — which would read a page while somebody asks
+        // about the code in front of them, or the reverse. The lead place
+        // already decides every other fetch-first road (see `readNamedPart`
+        // and `wouldServeLook`); it decides this one too.
+        let owner = world.store.referent()?.place.memoryToken ?? focusProvider?()
+        let read = owner
+            .flatMap { awarenessReadsByOwner[$0] }
+            .flatMap { live($0) ? $0 : nil }
+            ?? awarenessReads.first(where: live)
+        guard let read else { return nil }
 
         let route = AmbientRouteTurnContext.state?.current() ?? world.store.route()
         // The turn already decided it wants something done. Leave it alone.

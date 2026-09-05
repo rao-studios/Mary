@@ -135,6 +135,37 @@ public enum PageElementKindDerivation {
             }
     }
 
+    /// DOES THIS PHRASE SAY NOTHING BUT WHICH ONE?
+    ///
+    /// "The second one", "the first video", "the last result" name a position
+    /// within a category and nothing else. Strip the position words, the
+    /// category words and the determiners around them and there is nothing left
+    /// — which is exactly the case where a follow-up can only mean "of the
+    /// things we were just looking at". A phrase with anything left over is a
+    /// NAME ("the Boiler Room link"), and a name is looked for across the whole
+    /// page rather than inside one list.
+    ///
+    /// PIN: SHAPE, NOT VOCABULARY, like every other rule of this kind here: it
+    /// asks whether words remain, never what the sentence is about.
+    public static func namesOnlyAPosition(_ phrase: String) -> Bool {
+        guard SpokenOrdinal.value(in: phrase) != nil else { return false }
+        var value = " " + phrase.lowercased() + " "
+        let noise = PageElementKind.allCases.flatMap { kind in
+            kind.admittingWords.flatMap { [$0, $0 + "s"] }
+        } + SpokenOrdinal.allWords + [
+            "the", "that", "this", "a", "an", "one", "ones", "please", "just",
+            "open", "click", "press", "tap", "play", "watch", "go", "to", "on",
+            "show", "me", "pick", "select", "of", "them", "it",
+        ]
+        for word in noise.sorted(by: { $0.count > $1.count }) {
+            value = value.replacingOccurrences(
+                of: " \(word) ", with: "  ", options: [])
+            value = value.replacingOccurrences(
+                of: " \(word) ", with: "  ", options: [])
+        }
+        return value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     /// The matching half of `offeredKind(namedIn:among:)`, generalized to any set of kinds
     /// actually present in a pool — what `SpokenReference` calls for a snapshot-lane
     /// resolve, since it has no.

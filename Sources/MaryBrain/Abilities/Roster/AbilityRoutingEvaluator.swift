@@ -28,6 +28,13 @@ public struct AbilityRoutingContext: Sendable, Equatable {
     public var workspaceFamily: String?
     /// Embedding similarity between this turn's query and each Skill's authored corpus.
     public var semanticSkillAffinity: [SkillID: Float]
+    /// THE SAME SIMILARITIES, UNFILTERED — every Skill the index scored, including
+    /// the ones below the floor. FOR THE TRACE ONLY: nothing may gate on this, or
+    /// the floor stops meaning anything. It exists because "does not match this
+    /// turn's embedding roster" is a true sentence that tells a person tuning a
+    /// corpus nothing at all — 0.61 and 0.20 are the same sentence and completely
+    /// different problems.
+    public var semanticSkillScores: [SkillID: Float]
     /// When true, utterance tokens/phrases and targetClass do not gate offer.
     public var usesEmbeddingRoster: Bool
 
@@ -61,6 +68,7 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         sourceResolution: SourceResolution = .unresolved,
         workspaceFamily: String? = nil,
         semanticSkillAffinity: [SkillID: Float] = [:],
+        semanticSkillScores: [SkillID: Float] = [:],
         usesEmbeddingRoster: Bool = false,
         requestedAbilities: Set<AbilityID> = []
     ) {
@@ -76,6 +84,10 @@ public struct AbilityRoutingContext: Sendable, Equatable {
         self.sourceResolution = sourceResolution
         self.workspaceFamily = workspaceFamily
         self.semanticSkillAffinity = semanticSkillAffinity
+        // A caller that supplied only the gating map gets it back as the scores
+        // too: they are the same numbers, minus the ones below the floor.
+        self.semanticSkillScores = semanticSkillScores.isEmpty
+            ? semanticSkillAffinity : semanticSkillScores
         self.usesEmbeddingRoster = usesEmbeddingRoster
         self.requestedAbilities = requestedAbilities
         self.utteranceWords = Self.words(in: utterance)

@@ -70,7 +70,7 @@
       "awareness.trace-callees",
       "awareness.search-neighbourhood"
     ],
-    "summary" : "The awareness discipline: already knowing what the work in front of you IS. It reads the whole declaration or passage the cursor sits inside rather than the window on screen, and traces what reaches that unit and what it reaches, through the project grammar the application in front declared. An application joins by depending on this package; it names no application, and this package names none. DELIBERATELY NOT A CRAFT THE USER ASKS FOR: it carries no intent exemplars, because the sentences that need it are the ones already spoken to coding or writing.",
+    "summary" : "The awareness discipline: already knowing what the work in front of you IS. It reads the whole declaration or passage the cursor sits inside rather than the window on screen, and traces what reaches that unit and what it reaches, through the project grammar the application in front declared. A WORLD WITH NO PROJECT ON DISK STILL HAS SOMETHING IN FRONT OF IT: where a browser depends on this package, the page it is showing — its site, its title and what it is currently offering — is the standing brief instead, held from what a read already found rather than from any index. Nothing on the web is crawled or indexed here. An application joins by depending on this package; it names no application, and this package names none. DELIBERATELY NOT A CRAFT THE USER ASKS FOR: it carries no intent exemplars, because the sentences that need it are the ones already spoken to coding or writing.",
     "tint" : "#5B8FA8",
     "title" : "Awareness",
     "totemProjections" : [
@@ -178,7 +178,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "290b940b7e36a07ff9dbaea55d692ab50846ed53f3b42bac6110975e8c1f083f"
+    "digest" : "8bf7998914ded536679678b02953818f7687256fbdfcf5a28fed39f0e1901d1b"
   },
   "interactions" : [
 
@@ -230,6 +230,9 @@
             "name" : "symbol",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "A named declaration instead of the one at the cursor.",
             "type" : "string"
           },
@@ -240,6 +243,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which application. Omit for the one in front.",
             "type" : "string"
           }
@@ -319,6 +325,9 @@
             "name" : "query",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What they asked, in their own words.",
             "type" : "string"
           },
@@ -329,6 +338,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which application. Omit for the one in front.",
             "type" : "string"
           }
@@ -408,6 +420,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to trace.",
             "type" : "string"
           },
@@ -418,6 +433,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which project. Omit for the one in front.",
             "type" : "string"
           }
@@ -497,6 +515,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to trace.",
             "type" : "string"
           },
@@ -507,6 +528,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which project. Omit for the one in front.",
             "type" : "string"
           }
@@ -586,6 +610,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The word or phrase to look for.",
             "type" : "string"
           },
@@ -596,6 +623,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which project. Omit for the one in front.",
             "type" : "string"
           }

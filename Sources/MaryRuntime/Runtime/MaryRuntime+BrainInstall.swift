@@ -280,15 +280,27 @@ extension MaryRuntime {
             guard record.package.dependencies.contains(where: {
                 activated[$0.packageID]?.ability.id == .awareness
             }) else { return nil }
+            // A PAGE IS FOLLOWED WITHOUT A CORPUS, whatever a discipline
+            // dependency would otherwise have donated. `browsing.mary` declares
+            // none today, but inheritance is a graph rule and a future donor
+            // must not be able to point a project crawl at the web.
+            // PIN: THE PAGE HALF ALSO EXISTS ON THE SNAPSHOT, as
+            // `awarenessPageRegistrations()`, so a bench that cannot link
+            // MaryRuntime still follows a page. This derivation stays the whole
+            // answer for the app — it is the one that consults inheritance.
+            let isPage = plugin.webSurface != nil
             return AwarenessRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
-                corpus: plugin.corpus
-                    ?? Self.inheritedCorpus(for: record.package, activated: activated),
+                corpus: isPage
+                    ? nil
+                    : (plugin.corpus
+                        ?? Self.inheritedCorpus(for: record.package, activated: activated)),
                 hasCodeSurface: plugin.codeSurface != nil,
-                hasProseSurface: plugin.proseSurface != nil)
+                hasProseSurface: plugin.proseSurface != nil,
+                hasWebSurface: isPage)
         }
     }
 

@@ -184,6 +184,9 @@ public enum SpokenOrdinal {
     /// Terminal positions have no number — "the last one" counts from the end.
     public static let lastWords = ["last", "final", "bottom"]
 
+    /// Every word that names a position, for a caller stripping them out.
+    public static var allWords: [String] { Array(words.keys) + lastWords }
+
     /// The 1-based position a phrase names, or nil. Negative one means "last".
     public static func value(in phrase: String) -> Int? {
         let tokens = phrase.lowercased()

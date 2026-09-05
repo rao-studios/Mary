@@ -185,16 +185,45 @@ struct UtteranceView: View {
 
 }
 
-/// History fade/blur. Unconditional tree (not if/else `.drawingGroup()` — that blanked on branch change).
+/// History fade/blur. The padding pair keeps the Gaussian's bleed from
+/// hard-clipping at the row's edge.
+///
+/// A BLUR OF ZERO IS NOT A NO-OP, and believing it was is what made the focal
+/// row soft. This modifier was deliberately made unconditional after an
+/// `if blurRadius > 0 { …drawingGroup() }` version blanked the wall — see
+/// below — on the reasoning that "a blur radius of 0 is already a no-op on the
+/// focal rows". It is not. `.blur` installs an offscreen filter pass whatever
+/// its radius, and a rasterized pass costs two things that show on small text:
+/// it drops subpixel antialiasing for grayscale, and it resamples if the layer
+/// lands on a fractional origin — which the newest row always does, because
+/// the rows above it are text-measured and stack to fractional heights. The
+/// 10pt chips are the first place a person notices it, on the one row that is
+/// supposed to be perfectly crisp.
+///
+/// THE OLD HAZARD DOES NOT COME BACK WITH IT. What blanked was not the branch,
+/// it was `.drawingGroup()`: crossing the threshold tore the subtree down and
+/// rebuilt it inside a brand-new Metal layer, and a layer that has not
+/// rasterized yet draws nothing until a scroll forces it. There is no
+/// `.drawingGroup()` here any more — a plain `.blur` branch rebuilds a row that
+/// draws immediately. The row's own `@State` is untouched either way: it lives
+/// on `UtteranceView`, outside this modifier. And the branch is crossed only as
+/// a row passes depth 2, by which point it is already faded and scrolling away.
 struct HistoryDepth: ViewModifier {
     let inkOpacity: Double
     let blurRadius: CGFloat
 
+    @ViewBuilder
     func body(content: Content) -> some View {
-        content
-            .opacity(inkOpacity)
-            .padding(3)
-            .blur(radius: blurRadius)
-            .padding(-3)
+        if blurRadius > 0 {
+            content
+                .opacity(inkOpacity)
+                .padding(3)
+                .blur(radius: blurRadius)
+                .padding(-3)
+        } else {
+            // NOTHING AT ALL on the focal row: `opacity(1)` is a layer property
+            // rather than a pass, so this leaves the text drawn directly.
+            content.opacity(inkOpacity)
+        }
     }
 }

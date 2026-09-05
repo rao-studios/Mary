@@ -83,6 +83,7 @@
       "browsing.new-tab",
       "browsing.open-location",
       "browsing.read-page",
+      "browsing.read-page-text",
       "browsing.reload-page",
       "browsing.scroll-page",
       "browsing.scroll-to-on-page",
@@ -156,16 +157,20 @@
 
       ],
       "phrases" : [
+        "click on",
         "find me",
         "go to",
         "in the browser",
         "look up",
         "on the page",
         "on this site",
+        "press on",
         "pull up",
         "search for",
         "search the web for",
         "take me to",
+        "tap",
+        "tap on",
         "the first result",
         "the search box",
         "the video",
@@ -444,43 +449,23 @@
   "fixtures" : [
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "find-a-video-on-youtube",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-on-the-boiler-room-link",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Find me a fireplace video on youtube."
+      "utterance" : "Click on the Boiler Room link."
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "pull-up-a-video-on-youtube",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-the-first-result",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Pull up a fred again video on youtube."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "look-up-on-the-web",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Look up alpine touring boots on the web."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "search-the-web-for",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Search the web for the tallest bridge in Europe."
+      "utterance" : "Click the first result."
     },
     {
       "expectedDisposition" : "route",
@@ -494,6 +479,26 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "find-a-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a fireplace video on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "go-full-screen",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Go full screen."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "browsing.open-location",
       "id" : "go-to-a-site",
       "interactions" : [
@@ -504,13 +509,13 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.open-location",
-      "id" : "take-me-to-a-site",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "look-up-on-the-web",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Take me to wikipedia."
+      "utterance" : "Look up alpine touring boots on the web."
     },
     {
       "expectedDisposition" : "route",
@@ -521,26 +526,6 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Open the bbc site."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.fill-in-page",
-      "id" : "search-this-site",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Search this site for fred again."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.fill-in-page",
-      "id" : "type-into-the-search-box",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Type fred again into the search box and press return."
     },
     {
       "expectedDisposition" : "route",
@@ -555,12 +540,32 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.click-on-page",
-      "id" : "click-the-first-result",
+      "id" : "open-the-second-one",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Click the first result."
+      "utterance" : "Open the second one."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "pause-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pause the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "pause-the-video-in-this-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pause the video in this tab."
     },
     {
       "expectedDisposition" : "route",
@@ -574,13 +579,13 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.read-page",
-      "id" : "what-can-i-click",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "pull-up-a-video-on-youtube",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "What can I click on here?"
+      "utterance" : "Pull up a fred again video on youtube."
     },
     {
       "expectedDisposition" : "route",
@@ -595,19 +600,109 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.search-web",
+      "id" : "search-the-web-for",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search the web for the tallest bridge in Europe."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.fill-in-page",
+      "id" : "search-this-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search this site for fred again."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page-text",
+      "id" : "summarise-this-page-for-me",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Summarise this page for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.open-location",
+      "id" : "take-me-to-a-site",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Take me to wikipedia."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.fill-in-page",
+      "id" : "type-into-the-search-box",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Type fred again into the search box and press return."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
       "id" : "watch-a-video-on-youtube",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
       "utterance" : "Watch a fireplace video on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "what-can-i-click",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What can I click on here?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page-text",
+      "id" : "what-do-you-think-of-this-article",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What do you think of this article?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page-text",
+      "id" : "what-does-this-page-say",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What does this page say?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page-text",
+      "id" : "what-is-this-article-about",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What is this article about?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f6724d134f3e86ce754c845506d30899749891c9cd42c606d3e0a1b28e29420b"
+    "digest" : "0417c9030b742066af7e9cc9570cc6e7f74beb70862f5e9e4b6bb8c56d7f2a18"
   },
   "interactions" : [
 
@@ -667,6 +762,9 @@
             "name" : "target",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which slider.",
             "type" : "string"
           },
@@ -677,6 +775,9 @@
             "name" : "position",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "How far along, 0 to 1.",
             "type" : "string"
           },
@@ -687,6 +788,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -765,6 +869,9 @@
             "name" : "target",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to press — \"the first result\", \"Accept all\".",
             "type" : "string"
           },
@@ -775,6 +882,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -860,6 +970,43 @@
             "name" : "action",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+              "fullscreen" : [
+                "fullscreen",
+                "full screen",
+                "go full screen"
+              ],
+              "mute" : [
+                "mute",
+                "silence"
+              ],
+              "pause" : [
+                "pause",
+                "hold"
+              ],
+              "play" : [
+                "play",
+                "resume",
+                "unpause"
+              ],
+              "seek" : [
+                "seek",
+                "skip to",
+                "jump to"
+              ],
+              "toggle" : [
+                "toggle",
+                "play pause"
+              ],
+              "unmute" : [
+                "unmute",
+                "sound on"
+              ],
+              "volume" : [
+                "volume",
+                "set the volume"
+              ]
+            },
             "summary" : "What to do to the player.",
             "type" : "string"
           },
@@ -870,6 +1017,9 @@
             "name" : "position",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "For seek, how far through; for volume, how loud. 0 to 1.",
             "type" : "string"
           },
@@ -880,6 +1030,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -930,7 +1083,7 @@
         ],
         "preference" : 225
       },
-      "summary" : "Play, pause, mute, set the volume, go full screen or skip in the page's player.",
+      "summary" : "Play, pause, mute, set the volume, go full screen or skip in the video player inside the page.",
       "title" : "Control the Page's Player",
       "usesStage" : true,
       "version" : "1.0.0"
@@ -970,6 +1123,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1060,6 +1216,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1150,6 +1309,9 @@
             "name" : "target",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which field. Omit to type where the cursor already is.",
             "type" : "string"
           },
@@ -1160,6 +1322,9 @@
             "name" : "text",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to type.",
             "type" : "string"
           },
@@ -1171,6 +1336,9 @@
             "name" : "submit",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "\"true\" to press Return after typing.",
             "type" : "string"
           },
@@ -1181,6 +1349,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1259,6 +1430,9 @@
             "name" : "plan",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The commands, as one JSON array.",
             "type" : "string"
           },
@@ -1269,6 +1443,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1347,6 +1524,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1437,6 +1617,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1527,6 +1710,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1692,6 +1878,9 @@
             "name" : "address",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The address to open, including https://.",
             "type" : "string"
           },
@@ -1702,6 +1891,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1780,6 +1972,9 @@
             "name" : "query",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Narrow the listing to things matching these words.",
             "type" : "string"
           },
@@ -1790,6 +1985,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1834,6 +2032,87 @@
       "version" : "1.0.0"
     },
     {
+      "access" : "seamless",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "read_page_text",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.read-page-text",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "read_page_text",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.page.read"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 234
+      },
+      "summary" : "Read the page's own words — its headings and prose — to answer a question about it.",
+      "title" : "Read What the Page Says",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
       "access" : "reversible",
       "execution" : {
         "bindings" : [
@@ -1868,6 +2147,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -1959,6 +2241,17 @@
             "name" : "direction",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+              "down" : [
+                "down",
+                "scroll down"
+              ],
+              "up" : [
+                "up",
+                "scroll up",
+                "back up"
+              ]
+            },
             "summary" : "Which way.",
             "type" : "string"
           },
@@ -1969,6 +2262,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -2059,6 +2355,9 @@
             "name" : "target",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to bring into view.",
             "type" : "string"
           },
@@ -2069,6 +2368,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
@@ -2147,6 +2449,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to search for.",
             "type" : "string"
           },
@@ -2157,6 +2462,9 @@
             "name" : "open",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which result to open — \"the first one\", or words from its title.",
             "type" : "string"
           },
@@ -2167,6 +2475,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which browser. Omit for the one they're using.",
             "type" : "string"
           }
