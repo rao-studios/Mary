@@ -93,6 +93,38 @@ A trip answers its own model rounds. A leg claiming the confidence lane is
 **never** rescued by an answered round: it declines, and the leg fails at R1
 where it belongs.
 
+## Staging the machine
+
+`~/.mary/trips/stage.json`, kept out of the repository because the lane speaks
+site names and never URLs. Front doors only: `SpokenAddress.admit` takes a bare
+host outright and admits anything deeper only if the person said it, so a seed
+with a path is refused by the gate rather than by the runner.
+
+```json
+{
+  "resultsPage":       "https://…",
+  "watchPage":         "https://…",
+  "article":           "https://…",
+  "consentWall":       "https://…",
+  "siteWithSearchBox": "https://…",
+  "form":              "https://…",
+  "sliderPage":        "https://…",
+  "phrases": {
+    "address":       "https://…",
+    "namedRow":      "click on images",
+    "revealTarget":  "scroll down to the comments",
+    "sliderTarget":  "set the slider to about a quarter",
+    "ambiguousRow":  "click the download button",
+    "namedTab":      "switch to the other tab"
+  }
+}
+```
+
+The `phrases` are for the legs that must name something a staged page holds. A
+corpus that wrote one page's words into a trip would only run against that page,
+which is the hard-coding the whole grammar refuses — so those words come from the
+machine. A key with no phrase makes its leg unstageable and says which key.
+
 ## Running a round
 
 ```sh
