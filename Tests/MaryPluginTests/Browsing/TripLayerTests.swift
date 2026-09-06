@@ -50,8 +50,12 @@ import Testing
             atMilliseconds: 100)
     }
 
+    /// PIN: THE VERB IS SPELLED THE WAY A TRACE SPELLS IT. `PageRouteVerb.word`
+    /// prints `openResult` as "result", and a helper that invented "openResult"
+    /// was building recordings no live run can produce — so the tests over it
+    /// were agreeing with a fixture rather than with the lane.
     static func route(
-        goal: String = "the second one", verb: String = "openResult",
+        goal: String = "the second one", verb: String = "result",
         selected: Int?, eligible: Int = 10, unmatched: Bool = false,
         basis: [Int: String] = [:], ordinals: [Int] = []
     ) -> RecordedRoute {
@@ -378,6 +382,50 @@ import Testing
                     verb: "press", selected: 1, basis: [1: "contained"], ordinals: [1])]))
         #expect(judged.layer == .pageRouting)
         #expect(judged.because?.contains("contained") == true)
+    }
+
+    /// A LEG NAMES WHICH ROUTE IT MEANS, AND A SEARCH ROUTES TWICE.
+    ///
+    /// PIN: MEASURED LIVE. A search navigates, reads, arbitrates `.openResult`
+    /// to choose an answer, then presses it — and pressing arbitrates AGAIN with
+    /// `.press`. Judging "the last route" reported the leg as routing with the
+    /// wrong verb, which is the classifier blaming the router for its own
+    /// reading.
+    @Test func aLegNamingAVerbIsJudgedAgainstThatRoute() {
+        let page = Self.page([
+            Self.row(1, facts: [.inResultGroup]),
+            Self.row(2, facts: [.inResultGroup]),
+        ])
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "look it up",
+                page: TripPageExpectation(
+                    verb: .openResult,
+                    winner: TripRowClass(facts: ["inResultGroup"], ordinalWithinKind: 1))),
+            recording: Self.recording(
+                pageReads: [page],
+                routes: [
+                    Self.route(verb: "result", selected: 1, ordinals: [1, 2]),
+                    // The inner press, which is not what the leg is about.
+                    Self.route(verb: "press", selected: 2, ordinals: [1, 2]),
+                ]))
+        #expect(judged.verdict == .passed)
+    }
+
+    /// AND WITH NO VERB NAMED, THE LAST ROUTE IS STILL THE ANSWER.
+    @Test func aLegNamingNoVerbIsJudgedAgainstTheLastRoute() {
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "press it",
+                page: TripPageExpectation(
+                    winner: TripRowClass(facts: ["inResultGroup"]))),
+            recording: Self.recording(
+                pageReads: [Self.page([Self.row(1), Self.row(2, facts: [.inResultGroup])])],
+                routes: [
+                    Self.route(verb: "result", selected: 2, ordinals: [1, 2]),
+                    Self.route(verb: "press", selected: 1, ordinals: [1, 2]),
+                ]))
+        #expect(judged.layer == .pageRouting)
     }
 
     // MARK: - E

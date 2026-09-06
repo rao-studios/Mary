@@ -194,7 +194,7 @@ public enum TripLayer {
 
     static func perception(_ leg: TripLeg, _ recording: TripLegRecording) -> Judgement? {
         guard let page = leg.page, let winner = page.winner else { return nil }
-        guard let route = recording.routes.last else { return nil }
+        guard let route = route(for: page, in: recording) else { return nil }
         // The route reached something. Whether it reached the RIGHT thing is R2.
         guard route.selectedOrdinal == nil || !satisfied(winner, by: route, in: recording)
         else { return nil }
@@ -211,7 +211,7 @@ public enum TripLayer {
 
     static func pageRouting(_ leg: TripLeg, _ recording: TripLegRecording) -> Judgement? {
         guard let page = leg.page else { return nil }
-        guard let route = recording.routes.last else {
+        guard let route = route(for: page, in: recording) else {
             // A LEG THAT STATES A PAGE EXPECTATION AND ROUTED NOTHING never got
             // as far as the page. Ambient or execution has already spoken if it
             // was their doing; otherwise the read itself did not happen.
@@ -220,9 +220,9 @@ public enum TripLayer {
                 : .failed(.pageRouting, "nothing was routed against this page")
         }
 
-        if let verb = page.verb, verb.rawValue != route.verb {
+        if let verb = page.verb, verb.traceWord != route.verb {
             return .failed(
-                .pageRouting, "routed as \(route.verb), not \(verb.rawValue)")
+                .pageRouting, "routed as \(route.verb), not \(verb.traceWord)")
         }
         if let unmatched = page.goalUnmatched, unmatched != route.goalUnmatched {
             return .failed(
@@ -333,6 +333,23 @@ public enum TripLayer {
         return .failed(
             .timing,
             "took \(recording.elapsedMilliseconds)ms against a \(budget)ms budget")
+    }
+
+    /// THE ROUTE A LEG IS TALKING ABOUT.
+    ///
+    /// PIN: A LEG CAN ROUTE MORE THAN ONCE, AND "THE LAST ONE" IS THE WRONG
+    /// ANSWER. Measured live: a search navigates, reads, arbitrates `.openResult`
+    /// to choose an answer, then presses it — and pressing arbitrates AGAIN with
+    /// `.press`. A leg stating `verb: openResult` was being judged against the
+    /// inner press and reported as routing with the wrong verb, which is the
+    /// classifier blaming the router for the classifier's own reading. When a leg
+    /// names a verb, the route it means is the one argued with that verb.
+    static func route(
+        for expectation: TripPageExpectation, in recording: TripLegRecording
+    ) -> RecordedRoute? {
+        guard let verb = expectation.verb else { return recording.routes.last }
+        return recording.routes.last { $0.verb == verb.traceWord }
+            ?? recording.routes.last
     }
 
     // MARK: - Reading a row class against a recorded page

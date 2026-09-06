@@ -41,14 +41,17 @@ import Testing
     }
 
     /// The verb a recorded route was argued with, back from its own words.
+    ///
+    /// PIN: THROUGH `TripRouteVerb.named(traceWord:)`, which owns the one place
+    /// the trace's "result" and the trip's `openResult` are reconciled.
     static func verb(_ recorded: RecordedRoute) -> PageRouteVerb? {
-        switch recorded.verb {
-        case "press": return .press
-        case "fill": return .fill
-        case "adjust": return .adjust
-        case "reveal": return .reveal
-        case "result": return .openResult(query: recorded.query ?? "")
-        default: return nil
+        switch TripRouteVerb.named(traceWord: recorded.verb) {
+        case .press: return .press
+        case .fill: return .fill
+        case .adjust: return .adjust
+        case .reveal: return .reveal
+        case .openResult: return .openResult(query: recorded.query ?? "")
+        case nil: return nil
         }
     }
 

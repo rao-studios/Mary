@@ -80,6 +80,23 @@ public enum TripProviderRationale: String, Sendable, Equatable, Codable, CaseIte
 /// a trip states the verb, and the query is whatever the previous leg searched.
 public enum TripRouteVerb: String, Sendable, Equatable, Codable, CaseIterable {
     case press, fill, adjust, reveal, openResult
+
+    /// HOW THE TRACE SPELLS IT, WHICH IS NOT HOW A TRIP DOES.
+    ///
+    /// PIN: `PageRouteVerb.word` PRINTS `openResult` AS "result", and comparing
+    /// a trip's raw value with a recorded verb silently never matched — a leg
+    /// asking about the openResult arbitration was judged against the inner
+    /// press and reported as routing with the wrong verb. Measured live on a
+    /// search, which routes twice. One conversion, in the type that owns the
+    /// vocabulary, rather than a string comparison at each reader.
+    public var traceWord: String {
+        self == .openResult ? "result" : rawValue
+    }
+
+    /// The trip's word for what a trace calls `word`.
+    public static func named(traceWord: String) -> TripRouteVerb? {
+        traceWord == "result" ? .openResult : TripRouteVerb(rawValue: traceWord)
+    }
 }
 
 /// The receipt rank an act must produce. Mirrors `PageEffectEvidence`, plus

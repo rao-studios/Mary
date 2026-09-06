@@ -214,3 +214,36 @@ fixed one has to be struck off deliberately with the round that did it.
   with an editor staged reaches `read_page_text` at 0.74 — invariant 5.
 - **A shipped verb the corpus does not carry.** "Open a new tab" reaches no
   unique winner, though `new_tab` is shipped and realized by both browsers.
+
+### Round 0 — driven directly against Chrome
+
+The engine was driven live, not only rehearsed. What worked, measured on a real
+page: the shell read in 36ms; the page read in 516–590ms for 95–99 rows; a goal
+routed to the row named exactly that, with every other row given a disposition
+and a sentence; a fill and submit proved by `navigation`; a whole
+search-and-open in 5.3s, which is the documented number; and the media lane
+refusing `controlsNotFound` on a page with no player rather than pressing
+something else. Three findings came out of it.
+
+- **`search_web` opens a result the person never named.** `browsing.mary`
+  declares it as "show the results, opening one when the person named which",
+  and `WebSearchRecipe.searchAndOpen` arbitrates `pick ?? ""` with `.openResult`,
+  which falls back to the page's first answer by design. So a bare "search the
+  web for X" walks into a result. Whether it should is a round 3 question,
+  because always-opening is masking the missing implied arguments that would let
+  "watch a video" open one on purpose.
+- **And when it falls back, it says it matched.** The trace reports
+  `goalUnmatched` false, so the recipe's own "I couldn't match that, so I opened
+  the first result" sentence never fires and the turn claims it found what was
+  asked for. That one is not a design question. `search-without-opening` pins it.
+- **A package-realized operation is unreachable from the probe.** `new_tab` is
+  Command-T through `chrome.managed-ui`, not a binding on the adapter, so the
+  engine-level runner cannot dispatch it. It needs the turn, which is a second
+  reason that verb is hard to measure.
+
+Two bugs in the instruments surfaced the same way and are fixed. A trip ran
+against whatever tab was open while claiming a page class, and now stages or
+declares itself unstageable. And `PageRouteVerb.word` prints `openResult` as
+"result", so a leg asking about the openResult arbitration was judged against the
+inner press a search performs afterwards — a search routes twice, and the leg now
+names which route it means.
