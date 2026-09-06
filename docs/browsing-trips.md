@@ -310,9 +310,87 @@ fifteen of its sentences are trips in the ledger now.
 - **Verbs that do not exist.** Reopen a closed tab, duplicate, close the others,
   select all, reader view, a dropdown's option, captions, the next video, a
   relative seek, downloads, history, and "send this page" elsewhere. Round 3's
-  list grows by these. What could not be staged honestly: the
+  list grows by these.
+
+### Round 1 — the twenty-two, resolved by cause
+
+Round 0's failures collapsed to ten causes; nine were fixed in the layer that
+owned them, and the tenth (verbs that do not exist) waits on round 4. Live on
+Chrome the corpus went from **30% to 63%**, and the layer column tells the story:
+**E fell from nine to one**, R2 from seven to four, while P rose from three to
+eleven — not a regression, but failures moving down the pipeline to where they
+actually live, as the engine stopped masking them.
+
+| Category | Round 0 | Round 1 |
+|---|---:|---:|
+| arrive | 33% | **100%** |
+| read | 100% | 100% |
+| search | 13% | **63%** |
+| act | 0% | **63%** |
+| tabs | — | **100%** |
+| all | 30% | **63%** |
+
+What was fixed, each in its own layer:
+
+- **A navigation had no receipt at all**, so every open, back, reload and search
+  reported proven work as unproven. `PageInteractionCommandKind.navigate` is the
+  receipt rank one had been missing, engine-only so no model-authored plan can
+  steer the browser through a page grammar. The search recipe's three hand-set
+  `landed: true` lines are gone.
+- **"Arrived" and "changed" were the same claim.** A reload lands on the same
+  title by definition; demanding a change burned the full budget and then called
+  it a failure. Reload now settles on quiet, back and forward on the history
+  flipping, and opening the page you are already on is an arrival.
+- **A shell button was pressed with a click Chrome ignores.** Measured
+  unambiguously: Back was found and clicked and nothing moved, five polls later,
+  and Mary said "Went back" about a page she had never left. It goes through the
+  control's own `AXPress` now, with the HID click as the fallback.
+- **A position counted the page's furniture.** Three legs picked the same
+  navigation strip. Positions recount over content; names still reach anywhere.
+- **A bare search walked into a result** the package never said it would open.
+- **A site's own search box made a results page nobody remembered**, and the read
+  that was about to use that memory was the thing clearing it — order was the fix.
+- **One control read as two nested rows** made naming it a question.
+- **A reveal hovered the page's midpoint**, so a player anywhere else read as no
+  player at all.
+- **Nine route fixtures** moved seven sentences: "fill in my email address" from
+  the address bar to the page's own field, "check the box…" and "press the blue
+  button" and "submit the form" to `click_on_page`, "read me the first paragraph"
+  to the right one of the two page reads, plus "how many tabs" and "play it from
+  the start" from reaching nothing. No floor and no margin moved.
+
+What round 2 owes, now that nothing masks it:
+
+- **The media transport cannot be measured at all (P × 8).** On the staged watch
+  page the reading returns zero controls, so every transport verb refuses
+  `controlsNotFound`. The player region fix aims the reveal correctly; the
+  detector still finds nothing there. This needs a VisionAX fixture from that
+  page before anything else in `media` can be believed.
+- **A real search field is not named as a field (P × 2).** Wikipedia's own search
+  box reads as a button, so `fill_in_page` reaches it through the candidate
+  fallback rather than as the field it is.
+- **No row is named `link` on a results page (P × 1)**, so "the third link" counts
+  rows of no named kind.
+- **`reload_page` is still the magnet** for "save this page" and "copy the link",
+  because no save or copy verb exists to lose to. Round 4. What could not be staged honestly: the
 context trips (another application must lead), the media trips (the seed is a
 file page, not a watch page — zero controls reveal), and the consent wall. And `PageRouteVerb.word` prints `openResult` as
 "result", so a leg asking about the openResult arbitration was judged against the
 inner press a search performs afterwards — a search routes twice, and the leg now
 names which route it means.
+
+### Round 1 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 5 | 3 | 1 | 5 | 63% | R2 3 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 2 | 1 | 8 | 50% | P 1 · E 1 |
+| media | 0 | 8 | 1 | 1 | 0% | P 8 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 5 | 3 | 0 | 0 | 63% | P 2 · R2 1 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **27** | **16** | **13** | **18** | **63%** | P 11 · R2 4 · E 1 |
+
+Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 0% — under 90%; search at 63% — under 90%; context has 2 failing leg(s); 4 page-routing failure(s) on the recorded corpus.

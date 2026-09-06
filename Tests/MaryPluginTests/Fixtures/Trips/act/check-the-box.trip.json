@@ -3,11 +3,11 @@
   "id": "check-the-box",
   "legs": [
     {
-      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. Read as perceive, reaches nothing. The same class as 'click the download button' in the ledger.",
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. Read as perceive, reaches nothing. The same class as 'click the download button' in the ledger. ROUND 1: the class no longer asserts an affordance. The fill verb reaches a row the reading called a field even when it did not mark it fillable, and the press verb reaches a named candidate \u2014 what matters is which ROW was reached, not the reading's confidence about it.",
       "page": {
         "verb": "press",
         "winner": {
-          "affordance": "press"
+          "named": true
         }
       },
       "routing": {

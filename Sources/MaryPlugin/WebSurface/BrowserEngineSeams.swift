@@ -16,6 +16,7 @@ import AppKit
 import OSLog
 import CoreGraphics
 import Foundation
+import MaryAmbient
 import MaryComputerUse
 import MaryFoundation
 
@@ -226,24 +227,62 @@ struct LiveBrowserShell: BrowserShellReading {
             modifiers: registration.schema.addressFocusModifiers)
     }
 
+    /// Press a shell control by its declared label — the control's OWN action
+    /// first, and a real click only if it has none.
+    ///
+    /// PIN: A PID-POSTED CLICK ON CHROME'S TOOLBAR DOES NOTHING. Measured live
+    /// and unambiguously: the Back button was found and clicked, and the title,
+    /// `canGoBack` and `canGoForward` were all identical five polls later — Mary
+    /// then said "Went back" about a page she had never left. `AXPress` is the
+    /// button's own action, it is what an assistive client is meant to send, and
+    /// it is less invasive than synthesizing input. The click stays as the
+    /// fallback for a control that publishes no press action, and goes through
+    /// the HID tap rather than the process, for the reason the page lane already
+    /// records: a posted click is invisible to rendered content.
     func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
-        guard let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive) else { return false }
-        var target: AXNodeSnapshot?
-        for window in snapshot.windows {
-            window.root?.forEachNode { node in
-                guard target == nil else { return }
-                if WebSurfaceRegistration.folded(node.label ?? "")
-                    == WebSurfaceRegistration.folded(label), node.isEnabled {
-                    target = node
+        let wanted = WebSurfaceRegistration.folded(label)
+        guard let application = AXUIElementCreateApplication(pid) as AXUIElement?
+        else { return false }
+        guard let control = Self.control(named: wanted, in: application) else { return false }
+
+        if AXUIElementPerformAction(control, kAXPressAction as CFString) == .success {
+            return true
+        }
+        guard let frame = AX.frame(of: control), frame.width > 1, frame.height > 1
+        else { return false }
+        return PointerDriver.clickThroughHID(
+            at: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
+            button: .left, count: 1)
+    }
+
+    /// The live control whose folded label matches, walked from the application.
+    ///
+    /// PIN: A LIVE ELEMENT, NOT A SNAPSHOT NODE. The walk this replaced produced
+    /// plain Sendable values, which carry a frame and no way to send the control
+    /// its own action — which is why the press was a coordinate click at all.
+    static func control(named wanted: String, in application: AXUIElement) -> AXUIElement? {
+        var found: AXUIElement?
+        var seen = 0
+        func walk(_ element: AXUIElement) {
+            guard found == nil, seen < 4_000 else { return }
+            seen += 1
+            let label = (AX.string(element, kAXTitleAttribute as String) ?? "")
+                + " " + (AX.string(element, kAXDescriptionAttribute as String) ?? "")
+            if WebSurfaceRegistration.folded(label) == wanted
+                || WebSurfaceRegistration.folded(
+                    AX.string(element, kAXTitleAttribute as String) ?? "") == wanted {
+                // A DISABLED CONTROL IS NOT THE ONE. There is nowhere to go.
+                if AX.attribute(element, kAXEnabledAttribute as String) as? Bool != false {
+                    found = element
+                    return
                 }
             }
+            for child in AX.children(element, kAXChildrenAttribute as String) {
+                walk(child)
+            }
         }
-        guard let target, let frame = target.frame, frame.width > 1, frame.height > 1
-        else { return false }
-        // A shell button is a real control: click its middle, posted to this process.
-        return PointerDriver.click(
-            at: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
-            button: .left, count: 1, pid: pid)
+        walk(application)
+        return found
     }
 }
 

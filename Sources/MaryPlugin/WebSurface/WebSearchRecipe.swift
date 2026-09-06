@@ -84,6 +84,15 @@ public enum WebSearchRecipe {
         await engine.settleForResults()
         let read = await engine.readPage(in: target)
         guard read.ok else { return read }
+        // WHAT THIS PAGE IS A LIST OF ANSWERS TO — remembered AFTER the read.
+        //
+        // PIN: THE READ ITSELF WIPES THIS. `readPage` retracts the slate before
+        // it looks, and the retraction clears the remembered query with it, for
+        // the good reason that both describe a page that may be gone. Noting the
+        // query first was therefore noting it into the thing about to be cleared,
+        // and the next "open the second one" routed as a bare press over the
+        // whole page — measured on two trips. Order is the whole fix.
+        await engine.noteResultQuery(asked)
         let roster = PageRoster(
             elements: read.elements, map: read.map ?? PageMapSummary(),
             pageFrame: read.shell?.pageFrame ?? .zero)
@@ -184,6 +193,17 @@ extension BrowserEngine {
     /// A refusal from outside the actor's own body.
     func refusing(_ refusal: BrowserRefusal) -> BrowserOutcome {
         refuse(refusal)
+    }
+
+    /// THIS PAGE IS A LIST OF ANSWERS TO SOMETHING.
+    ///
+    /// PIN: THE SEARCH KNOWS, EVEN WHEN NOBODY NAMED A RESULT. This used to be
+    /// set only inside an `.openResult` arbitration — so when a bare search
+    /// stopped arbitrating (round 1 E), it stopped remembering, and the next
+    /// "open the second one" routed as a bare press over the whole page. The
+    /// recipe has just PROVED it made a results page; saying so is its own job.
+    func noteResultQuery(_ query: String) {
+        lastResultQuery = query
     }
 
     /// Time for results to draw before they are read.

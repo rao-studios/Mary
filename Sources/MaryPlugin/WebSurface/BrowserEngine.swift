@@ -574,7 +574,16 @@ public actor BrowserEngine {
                 address, pid: target.processIdentifier, registration: target.registration)
             else { return refuse(.addressFieldNotFound) }
             emit(.acted("typed an address"))
-            let settled = await settle(target, from: shell, saying: "Opened")
+            // OPENING THE PAGE YOU ARE ALREADY ON IS AN ARRIVAL.
+            //
+            // PIN: MEASURED — searching for the same words twice, and re-opening
+            // the current page, both burn the whole budget and then report
+            // `navigationDidNotSettle` about a page that is exactly where it was
+            // asked to be. Nothing CAN change, so demanding a change is asking for
+            // evidence that cannot exist.
+            let settled = await settle(
+                target, from: shell, saying: "Opened",
+                expecting: Self.sameDestination(shell.url, address) ? .arrival : .change)
             // A PAGE ASKED FOR CAN LAND BEHIND A HUMAN-CHECK. Answer its visible
             // control once, then look again — or hand it back. See PageChallenge.
             return await satisfyingChallenge(settled, in: target)
@@ -607,7 +616,7 @@ public actor BrowserEngine {
             return await settle(
                 target, from: shell,
                 saying: request == .reload ? "Reloaded" : "Went \(request == .back ? "back" : "forward")",
-                expecting: .arrival)
+                expecting: request == .reload ? .arrival : .history)
 
         case .scroll(let delta):
             guard let pageFrame = shell.pageFrame else { return refuse(.pageNotVisible) }
@@ -718,6 +727,27 @@ public actor BrowserEngine {
         return nil
     }
 
+    /// Is the browser already showing the address being opened?
+    ///
+    /// PIN: COMPARED THE WAY THE OMNIBOX DISPLAYS THEM — scheme and a leading
+    /// "www." are presentation, not destination, and the same page reached two
+    /// ways must read as the same page here or the settle asks for a change that
+    /// cannot happen.
+    static func sameDestination(_ current: String?, _ intended: String) -> Bool {
+        guard let current, !current.isEmpty else { return false }
+        func stripped(_ value: String) -> String {
+            var value = value.lowercased()
+            for scheme in ["https://", "http://"] where value.hasPrefix(scheme) {
+                value = String(value.dropFirst(scheme.count))
+                break
+            }
+            if value.hasPrefix("www.") { value = String(value.dropFirst(4)) }
+            while value.hasSuffix("/") { value = String(value.dropLast()) }
+            return value
+        }
+        return stripped(current) == stripped(intended)
+    }
+
     /// THE RECEIPT A NAVIGATION EARNS — rank one of the ladder.
     ///
     /// PIN: `landed` COMES FROM A RECEIPT OR IT DOES NOT COME. Round 0 measured
@@ -747,9 +777,19 @@ public actor BrowserEngine {
     enum Arrival {
         /// The address or the title must differ. Opening somewhere new.
         case change
-        /// The load must finish. Reload, back, forward — where the same title is
-        /// an ordinary outcome.
+        /// The load must finish, and nothing else can be asked. A reload lands on
+        /// the same address AND the same history, so quiet is the only evidence
+        /// there is.
         case arrival
+        /// The page moved, or the history did. Back and forward.
+        ///
+        /// PIN: QUIET ALONE IS TOO WEAK HERE, MEASURED LIVE. A back whose page had
+        /// not changed within the quiet window was accepted, and Mary said "Went
+        /// back" about a page she had not left — then "there's nothing to go
+        /// forward to" a moment later, which is how the recording gave it away.
+        /// A real back makes forward available; that flip is evidence, and it
+        /// costs nothing because the shell reading already carries it.
+        case history
     }
 
     /// How long a same-title arrival is given to start before it is judged, so a
@@ -784,7 +824,9 @@ public actor BrowserEngine {
             let changed = reading.url != before.url || reading.title != before.title
             // A SAME-TITLE ARRIVAL COUNTS ONCE IT HAS BEEN QUIET, and not before
             // the grace — a reload's first frame can read as the old page.
-            let quiet = arrival == .arrival
+            let historyMoved = reading.canGoBack != before.canGoBack
+                || reading.canGoForward != before.canGoForward
+            let quiet = (arrival == .arrival || (arrival == .history && historyMoved))
                 && seams.now() >= started.addingTimeInterval(
                     Double(Self.arrivalGrace.components.attoseconds) / 1e18
                         + Double(Self.arrivalGrace.components.seconds))
@@ -804,11 +846,21 @@ public actor BrowserEngine {
                 lastChrome = reading
                 emit(.verified("the page changed"))
                 let site = reading.siteName.map { " at \($0)" } ?? ""
+                // ON THE STREAM AS WELL AS IN THE OUTCOME.
+                //
+                // PIN: EVERY WATCHER READS THE EVENTS. `PageActor` emits a
+                // `.receipt` per command, and this did not — so a navigation's
+                // receipt reached the caller and never the timeline, the bench, or
+                // a trip recording. Measured: recordings showed `landed: true`
+                // beside an empty receipt list, which reads exactly like the
+                // hand-set claim this round removed.
+                let receipt = Self.navigationReceipt(reading)
+                emit(.receipt(receipt))
                 return BrowserOutcome(
                     ok: true,
                     spoken: "\(verb) \(reading.title ?? "the page")\(site).",
                     shell: reading,
-                    receipts: [Self.navigationReceipt(reading)],
+                    receipts: [receipt],
                     landed: true)
             }
         }

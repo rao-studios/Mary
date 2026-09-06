@@ -626,16 +626,44 @@ enum BrowsingFixtures {
         #expect(outcome.receipts.first?.kind == .navigate)
     }
 
-    /// AND SO DOES A BACK, whose destination often carries the same words.
-    @Test func aBackOntoTheSameTitleArrives() async {
+    /// A BACK ONTO THE SAME TITLE ARRIVES WHEN THE HISTORY MOVED.
+    ///
+    /// PIN: QUIET ALONE WAS TOO WEAK, MEASURED LIVE. A back whose page had not
+    /// changed within the quiet window was accepted, and Mary said "Went back"
+    /// about a page she had not left — then "there's nothing to go forward to" a
+    /// moment later, which is how the recording gave it away. A real back makes
+    /// forward available, and that flip is free: the shell reading already
+    /// carries it.
+    @Test func aBackOntoTheSameTitleArrivesWhenHistoryMoved() async {
         let engine = BrowsingFixtures.engine(
-            shell: FakeShell([BrowsingFixtures.shell(title: "A Page", canGoBack: true)]),
+            shell: FakeShell([
+                BrowsingFixtures.shell(title: "A Page", canGoBack: true),
+                BrowsingFixtures.shell(title: "A Page", canGoBack: false),
+                BrowsingFixtures.shell(title: "A Page", canGoBack: false),
+                BrowsingFixtures.shell(title: "A Page", canGoBack: false),
+                BrowsingFixtures.shell(title: "A Page", canGoBack: false),
+            ]),
             page: FakePage([nil]))
 
         let outcome = await engine.navigate(.back, in: BrowsingFixtures.target())
 
         #expect(outcome.ok)
         #expect(outcome.landed)
+        #expect(outcome.receipts.first?.kind == .navigate)
+    }
+
+    /// AND A BACK THAT NEVER MOVED IS NOT AN ARRIVAL — the page is the same and
+    /// the history is the same, so nothing happened and saying otherwise would be
+    /// the lie this rule exists to stop.
+    @Test func aBackThatNeverMovedIsRefused() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "A Page", canGoBack: true)]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(.back, in: BrowsingFixtures.target())
+
+        #expect(outcome.refusal == .navigationDidNotSettle)
+        #expect(!outcome.landed)
     }
 
     /// BUT GOING SOMEWHERE NEW STILL HAS TO GO SOMEWHERE. Accepting a page that

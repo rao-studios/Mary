@@ -84,12 +84,17 @@ enum TripCommand {
         if trip.stage.front != "browser" {
             missing.append("\(trip.stage.front) has to be in front")
         }
+        // A HAND ON THE PAGE CANNOT BE SET UP IN ADVANCE, so `--staged` does not
+        // cover it. Running anyway answers a different question: measured, the
+        // leg then routed as `result` — correctly, because nothing had
+        // invalidated the session — and was reported as a routing failure for
+        // doing the right thing about a stage nobody had set.
+        if trip.stage.handNavigateBeforeLeg != nil {
+            missing.append("somebody has to navigate the page by hand mid-trip")
+        }
         if !SandStageless.staged(setup) {
             if trip.stage.musicPlaying == true { missing.append("music has to be playing") }
             if trip.stage.twoWindows == true { missing.append("a second window has to be open") }
-            if trip.stage.handNavigateBeforeLeg != nil {
-                missing.append("somebody has to navigate the page by hand mid-trip")
-            }
             if trip.stage.pin != nil { missing.append("\(trip.stage.pin ?? "") has to be pinned") }
         }
         if !missing.isEmpty {
