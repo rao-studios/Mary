@@ -627,6 +627,111 @@ misses. `recovery` still runs nothing — every leg of it needs a person.
   on screen. Navigation, scrolling and a single landscape are the same problem.
 - **A skip link is not the first link.** Two pages put one there.
 
+### Round 5 — the fold, and two things that were not what they were filed as
+
+Round 4 named three things for round 5: the detector's recall on a results page,
+below the fold, and skip links. All three were taken. Two of them turned out to be
+something other than what round 4 had called them, which is most of what this round
+is worth.
+
+**Below the fold is not a bigger read. It is a walk.** The obvious first question
+was whether Chrome's accessibility tree holds the whole document and the walk was
+merely clipping it away. Measured on a whole encyclopedia article, at eighty deep
+and sixty thousand nodes: **811 nodes exist for the entire page, none of them off
+screen**, and everything below the fold is published as a **one-pixel sliver at the
+viewport's edge carrying no name at all**. There is nothing further to read. So
+"read more" was never the answer to "click the link to X six screens down"; moving
+the page is, and `scrollToOnPage` was already the walk — no act had ever used it.
+
+An act that cannot reach a named row now looks for it and tries again, and puts the
+page back if it was not there. Two rules keep it honest:
+
+- **Only a name searches.** "The third link" means the third of the ones the person
+  can see; scrolling to count things they never saw answers a question nobody asked.
+- **Only a weak match searches.** A refusal, or a match reached on MEANING ALONE.
+  Measured live: "Ski mountaineering" reached "Ski touring" on 0 naming and 809
+  meaning. Containment is NOT weak, and the distinction cost a test to find —
+  "Randonnee racing equipment" reaching "Equipment" looks like the same guess and
+  is not, because the row's own name sits inside what the person said. Searching on
+  containment too would spend four page reads on most acts to improve a few.
+
+**A detour worth recording because it failed.** The obvious fix for the meaning-only
+match was to make the router refuse it: a name must be answered by a name. Tried,
+measured, reverted. Meaning alone is genuinely how a named thing is reached when the
+page spells it differently, and forbidding it broke a pinned case
+(`meaningCarriesACandidateTheWordsOnlyScatter`) and drifted a recording. The router
+is right to answer; the ACT is what should not settle for the answer without
+looking. That is now written into `clearsFloor` so nobody tries it a second time.
+
+**"The recall belongs in the detector" was wrong about four legs out of ten.** The
+trip classifier judged a leg's row class against `pageReads.last` — the page read
+AFTER the act, to prove it — rather than the one the route was argued on. A leg that
+navigates was therefore judged against its own destination: "open the second one"
+was checked against the article it had just opened, which of course holds no second
+result, and the verdict read "no row in this reading answers the class — the recall
+belongs in the detector". **The identical fault had been found and fixed in
+`BrowsingTripReplayTests` in round 4 and not looked for here.**
+
+Fixed, the four separate honestly:
+
+- `music-between-two-page-legs[2]` **passes outright**.
+- `site-search[1]` moves from P to **R2**, with a sentence somebody can act on:
+  "reached row 37, which is number 3 of its kind, not 1".
+- `search-then-open-second[1]` stays **P**, and now genuinely is: on the read the
+  route was argued against, no row sits in a result group at all.
+
+**Result grouping from shape.** The accessibility lane made naming better and
+grouping worse — a walked row that lands on no seen row is added with no group, and
+`inResultGroup` is read off the group. `PageListDerivation` fills that in from
+geometry: three or more rows at the same left edge, comparable width, regular gaps,
+in the page's own column. Only ever adds; a row the reading already grouped keeps
+its group. Live on a results page it took the openResult pool from unanswerable to
+**55 of 100 eligible**.
+
+**Skip links: two refutations and no detector.** The idea was that a skip link is
+positioned off the page and clipped back in, which would make it geometry the walk
+can see. It is not — on a search page "Skip to main content" is drawn at 110×44
+**eleven points inside** the page's own left edge and is hidden by means
+accessibility does not report at all. The machinery built on that reading was
+removed rather than left in on a false premise. The second idea was that the pixel
+lane could witness it, being the only lane that sees what is DRAWN. Measured across
+three sites, counting walked rows no seen row overlaps: **4 of 48, 2 of 56, 0 of 60
+— and the skip link is in none of them, while "Clear", "Main menu" and "About this
+result" are.** Using that as evidence would hide three visible things to hide one
+invisible one. `RowFacts.notDrawn` and the gate that reads it are kept, because the
+rule is right; nothing sets it, because neither lane publishes the evidence.
+
+**Two instrument repairs.** A recording did not carry a row's `region` at all, so
+every rule that reads one — the gate refusing "the third link in the sidebar" on a
+page with no sidebar, the list derivation that only groups the page's own column —
+was inert offline and could not be regression-tested. And the replay ledger was
+keyed on a sentence containing a live row count, so it would have reported four
+regressions and four fixes every round and meant nothing. It keys on trip, leg and
+layer now.
+
+#### The numbers, and why they are not the headline
+
+Three whole-corpus samples this round: **77, 72, 74**. Round 4 reported 77 from one
+sample. The spread is run-to-run variance — round 3 said this and it is still true —
+and **round 5 cannot claim to have moved the live percentage.** Two of the failures
+in the low sample passed on immediate re-run, and one was `addressFieldNotFound`
+during a back-to-back corpus run, which is the instrument driving Chrome harder than
+any person would.
+
+What is claimable is the layer column, which does not average away: one P failure
+became a pass, one became a statable R2, and the remaining P is genuinely
+perception. Read the layers, not the rate.
+
+#### What round 6 should take
+
+- **Why `PageListDerivation` did not fire on the one remaining P.** The read has 79
+  rows, fourteen bands, no result group, and twenty-two ungrouped pressable rows in
+  the main column — which is exactly the shape it is meant to answer.
+- **`arrive` is fragile under a corpus run and not alone.** Either the runner
+  settles the stage between trips or it stops claiming the failure is the engine's.
+- **A row that is published and not drawn.** Neither lane can see it today. That is
+  a VisionAX question, filed with its measurement.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -690,3 +795,19 @@ Exit criterion not met: no leg ran in recovery; act at 50% — under 90%; media 
 | **all** | **33** | **10** | **13** | **18** | **77%** | P 4 · R2 3 · E 3 |
 
 Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 63% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 3 page-routing failure(s) on the recorded corpus.
+
+### Round 5 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 5 | 3 | 1 | 5 | 63% | R2 2 · E 1 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 2 | 1 | 8 | 50% | P 1 · E 1 |
+| media | 4 | 4 | 1 | 1 | 50% | P 1 · E 3 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 2 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **32** | **11** | **13** | **18** | **74%** | P 4 · R2 2 · E 5 |
+
+Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 50% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 2 page-routing failure(s) on the recorded corpus.

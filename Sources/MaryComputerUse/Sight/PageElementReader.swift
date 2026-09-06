@@ -21,8 +21,11 @@ public enum PageElementReader {
     /// What one read publishes. Deliberately close to the browser roster's 40: an index
     /// nobody recites can be generous, but a slate that feeds spoken summaries and an
     /// embedding index must stay bounded.
-    static let maxSearchDepth = 24
-    static let maxSearchNodes = 4000
+    public static let maxSearchDepth = 24
+    public static let maxSearchNodes = 4000
+    /// The bound the page walk runs at by default.
+    public static let pageBudget = AXTreeWalker.Budget(
+        maxDepth: maxSearchDepth, maxNodes: maxSearchNodes)
 
     public static let publishedLimit = 60
     /// Elements smaller than this in either dimension are chrome artifacts,
@@ -69,7 +72,9 @@ public enum PageElementReader {
     public static func readWebContent(
         in application: AXUIElement,
         pageFrame: CGRect? = nil,
-        limit: Int = publishedLimit
+        limit: Int = publishedLimit,
+        budget: AXTreeWalker.Budget = pageBudget,
+        candidateCeiling: Int = maximumCandidates
     ) -> [PageElement] {
         guard let window = AX.element(application, kAXFocusedWindowAttribute)
                 ?? AX.element(application, kAXMainWindowAttribute)
@@ -82,11 +87,8 @@ public enum PageElementReader {
 
         var candidates: [Candidate] = []
         for area in areas {
-            AXTreeWalker.walk(
-                from: area,
-                budget: .init(maxDepth: maxSearchDepth, maxNodes: maxSearchNodes)
-            ) { element, _ in
-                guard candidates.count < maximumCandidates else { return }
+            AXTreeWalker.walk(from: area, budget: budget) { element, _ in
+                guard candidates.count < candidateCeiling else { return }
                 guard let candidate = candidate(from: element, viewport: viewport)
                 else { return }
                 candidates.append(candidate)

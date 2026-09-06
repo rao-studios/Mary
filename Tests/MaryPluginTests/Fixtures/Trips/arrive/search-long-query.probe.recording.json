@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 115,
+          "atMilliseconds" : 80,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 115,
+          "atMilliseconds" : 81,
           "kind" : "openLocation",
           "typedLength" : 58
         },
         {
-          "atMilliseconds" : 2621,
+          "atMilliseconds" : 2004,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3653,
+          "atMilliseconds" : 3017,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3656,
+      "elapsedMilliseconds" : 3023,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
       "pageReads" : [
         {
-          "atMilliseconds" : 3330,
+          "atMilliseconds" : 2696,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -153,7 +153,7 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   69,
-                  70,
+                  71,
                   72
                 ],
                 "title" : "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E"
@@ -161,12 +161,12 @@
             ],
             "labeledFraction" : 0.875,
             "pageFrame" : [
-              -1793,
-              195,
+              -1815,
+              173,
               1266,
               765
             ],
-            "readMilliseconds" : 444,
+            "readMilliseconds" : 439,
             "rows" : [
               {
                 "affordance" : "none",
@@ -177,8 +177,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1776,
-                  216,
+                  -1798,
+                  194,
                   86,
                   34
                 ],
@@ -201,8 +201,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1769,
-                  222,
+                  -1791,
+                  200,
                   70,
                   20
                 ],
@@ -226,8 +226,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1666,
-                  220,
+                  -1688,
+                  198,
                   435,
                   29
                 ],
@@ -251,8 +251,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1658,
-                  213,
+                  -1680,
+                  191,
                   557,
                   38
                 ],
@@ -276,8 +276,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1101,
-                  216,
+                  -1123,
+                  194,
                   32,
                   32
                 ],
@@ -300,8 +300,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1061,
-                  212,
+                  -1083,
+                  190,
                   40,
                   40
                 ],
@@ -324,8 +324,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1055,
-                  220,
+                  -1077,
+                  198,
                   27,
                   27
                 ],
@@ -349,8 +349,8 @@
                 ],
                 "facts" : 41,
                 "frame" : [
-                  -839,
-                  212,
+                  -861,
+                  190,
                   105,
                   40
                 ],
@@ -374,8 +374,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -802,
-                  225,
+                  -824,
+                  203,
                   33,
                   17
                 ],
@@ -399,8 +399,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -727,
-                  212,
+                  -749,
+                  190,
                   41,
                   40
                 ],
@@ -424,8 +424,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -679,
-                  212,
+                  -701,
+                  190,
                   113,
                   40
                 ],
@@ -448,8 +448,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1781,
-                  271,
+                  -1803,
+                  249,
                   32,
                   24
                 ],
@@ -472,8 +472,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1674,
-                  259,
+                  -1696,
+                  237,
                   446,
                   42
                 ],
@@ -497,8 +497,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1668,
-                  264,
+                  -1690,
+                  242,
                   75,
                   32
                 ],
@@ -522,8 +522,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1601,
-                  261,
+                  -1623,
+                  239,
                   370,
                   38
                 ],
@@ -547,8 +547,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1592,
-                  264,
+                  -1614,
+                  242,
                   93,
                   32
                 ],
@@ -572,8 +572,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1561,
-                  274,
+                  -1583,
+                  252,
                   50,
                   12
                 ],
@@ -597,8 +597,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1498,
-                  264,
+                  -1520,
+                  242,
                   92,
                   32
                 ],
@@ -622,8 +622,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1405,
-                  264,
+                  -1427,
+                  242,
                   90,
                   32
                 ],
@@ -647,8 +647,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1374,
-                  273,
+                  -1396,
+                  251,
                   47,
                   13
                 ],
@@ -672,8 +672,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1314,
-                  264,
+                  -1336,
+                  242,
                   81,
                   32
                 ],
@@ -697,8 +697,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1217,
-                  264,
+                  -1239,
+                  242,
                   77,
                   32
                 ],
@@ -721,8 +721,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1210,
-                  268,
+                  -1232,
+                  246,
                   64,
                   23
                 ],
@@ -746,8 +746,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1206,
-                  274,
+                  -1228,
+                  252,
                   35,
                   12
                 ],
@@ -772,8 +772,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1781,
-                  317,
+                  -1803,
+                  295,
                   304,
                   32
                 ],
@@ -798,8 +798,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1640,
-                  386,
+                  -1662,
+                  364,
                   81,
                   24
                 ],
@@ -824,8 +824,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1640,
-                  391,
+                  -1662,
+                  369,
                   80,
                   14
                 ],
@@ -849,8 +849,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1098,
-                  378,
+                  -1120,
+                  356,
                   41,
                   40
                 ],
@@ -874,8 +874,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1084,
-                  390,
+                  -1106,
+                  368,
                   14,
                   16
                 ],
@@ -900,8 +900,8 @@
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -988,
-                  376,
+                  -1010,
+                  354,
                   169,
                   31
                 ],
@@ -925,8 +925,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -984,
-                  378,
+                  -1006,
+                  356,
                   327,
                   27
                 ],
@@ -950,8 +950,8 @@
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -987,
-                  404,
+                  -1009,
+                  382,
                   281,
                   25
                 ],
@@ -975,8 +975,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -984,
-                  408,
+                  -1006,
+                  386,
                   327,
                   16
                 ],
@@ -1000,8 +1000,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1683,
-                  424,
+                  -1705,
+                  402,
                   589,
                   31
                 ],
@@ -1026,8 +1026,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1683,
-                  446,
+                  -1705,
+                  424,
                   491,
                   31
                 ],
@@ -1051,8 +1051,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1684,
-                  500,
+                  -1706,
+                  478,
                   427,
                   23
                 ],
@@ -1077,8 +1077,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -941,
-                  443,
+                  -963,
+                  421,
                   241,
                   161
                 ],
@@ -1102,8 +1102,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1678,
-                  534,
+                  -1700,
+                  512,
                   194,
                   41
                 ],
@@ -1127,8 +1127,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1616,
-                  544,
+                  -1638,
+                  522,
                   121,
                   27
                 ],
@@ -1153,8 +1153,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1311,
-                  534,
+                  -1333,
+                  512,
                   254,
                   41
                 ],
@@ -1179,8 +1179,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1219,
-                  598,
+                  -1241,
+                  576,
                   93,
                   23
                 ],
@@ -1204,8 +1204,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1121,
-                  591,
+                  -1143,
+                  569,
                   33,
                   33
                 ],
@@ -1228,8 +1228,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1089,
-                  591,
+                  -1111,
+                  569,
                   33,
                   33
                 ],
@@ -1253,8 +1253,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -987,
-                  620,
+                  -1009,
+                  598,
                   317,
                   25
                 ],
@@ -1279,8 +1279,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1686,
-                  654,
+                  -1708,
+                  632,
                   66,
                   25
                 ],
@@ -1304,8 +1304,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1679,
-                  656,
+                  -1701,
+                  634,
                   623,
                   19
                 ],
@@ -1329,8 +1329,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -987,
-                  640,
+                  -1009,
+                  618,
                   297,
                   27
                 ],
@@ -1354,8 +1354,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -990,
-                  662,
+                  -1012,
+                  640,
                   299,
                   25
                 ],
@@ -1379,8 +1379,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1676,
-                  690,
+                  -1698,
+                  668,
                   61,
                   33
                 ],
@@ -1404,8 +1404,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1510,
-                  692,
+                  -1532,
+                  670,
                   395,
                   31
                 ],
@@ -1430,8 +1430,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -987,
-                  684,
+                  -1009,
+                  662,
                   329,
                   25
                 ],
@@ -1455,8 +1455,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1680,
-                  700,
+                  -1702,
+                  678,
                   106,
                   49
                 ],
@@ -1479,8 +1479,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1679,
-                  690,
+                  -1701,
+                  668,
                   161,
                   91
                 ],
@@ -1504,8 +1504,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1508,
-                  719,
+                  -1530,
+                  697,
                   92,
                   28
                 ],
@@ -1528,8 +1528,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1503,
-                  690,
+                  -1525,
+                  668,
                   447,
                   61
                 ],
@@ -1553,8 +1553,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -989,
-                  704,
+                  -1011,
+                  682,
                   321,
                   49
                 ],
@@ -1578,8 +1578,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1507,
-                  748,
+                  -1529,
+                  726,
                   68,
                   23
                 ],
@@ -1604,8 +1604,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -987,
-                  746,
+                  -1009,
+                  724,
                   313,
                   25
                 ],
@@ -1629,8 +1629,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -984,
-                  768,
+                  -1006,
+                  746,
                   65,
                   18
                 ],
@@ -1655,8 +1655,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1507,
-                  814,
+                  -1529,
+                  792,
                   451,
                   31
                 ],
@@ -1681,8 +1681,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -991,
-                  820,
+                  -1013,
+                  798,
                   329,
                   29
                 ],
@@ -1705,8 +1705,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1679,
-                  813,
+                  -1701,
+                  791,
                   161,
                   91
                 ],
@@ -1730,8 +1730,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1510,
-                  841,
+                  -1532,
+                  819,
                   94,
                   30
                 ],
@@ -1754,8 +1754,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1503,
-                  813,
+                  -1525,
+                  791,
                   447,
                   61
                 ],
@@ -1779,8 +1779,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -988,
-                  850,
+                  -1010,
+                  828,
                   97,
                   23
                 ],
@@ -1804,8 +1804,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1508,
-                  871,
+                  -1530,
+                  849,
                   68,
                   24
                 ],
@@ -1830,8 +1830,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -984,
-                  870,
+                  -1006,
+                  848,
                   327,
                   40
                 ],
@@ -1855,8 +1855,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -984,
-                  893,
+                  -1006,
+                  871,
                   17,
                   17
                 ],
@@ -1871,32 +1871,6 @@
                 "role" : "AXImage"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1679,
-                  919,
-                  158,
-                  33
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "See more videos",
-                "labelSource" : "classifier",
-                "ordinal" : 69,
-                "role" : "AXLink"
-              },
-              {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
@@ -1906,8 +1880,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -987,
-                  918,
+                  -1009,
+                  896,
                   255,
                   21
                 ],
@@ -1919,7 +1893,7 @@
                 "kind" : "link",
                 "label" : "Carries: 4 lanes of the A75 autoroute",
                 "labelSource" : "textInside",
-                "ordinal" : 70,
+                "ordinal" : 69,
                 "role" : "AXStaticText"
               },
               {
@@ -1931,8 +1905,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -833,
-                  917,
+                  -855,
+                  895,
                   95,
                   21
                 ],
@@ -1942,6 +1916,32 @@
                 "isEnabled" : true,
                 "kind" : "link",
                 "label" : "A75 autoroute",
+                "labelSource" : "classifier",
+                "ordinal" : 70,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1701,
+                  897,
+                  158,
+                  33
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "See more videos",
                 "labelSource" : "classifier",
                 "ordinal" : 71,
                 "role" : "AXLink"
@@ -1956,8 +1956,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -987,
-                  944,
+                  -1009,
+                  922,
                   264,
                   19
                 ],
@@ -1981,8 +1981,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -921,
-                  945,
+                  -943,
+                  923,
                   41,
                   15
                 ],
@@ -2005,8 +2005,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -877,
-                  945,
+                  -899,
+                  923,
                   39,
                   15
                 ],
@@ -2029,8 +2029,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -759,
-                  945,
+                  -781,
+                  923,
                   31,
                   15
                 ],
@@ -2056,7 +2056,7 @@
           "kind" : "navigate",
           "landed" : true,
           "receipt" : "navigation",
-          "spoken" : "navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia"
+          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia"
         }
       ],
       "routes" : [
@@ -2066,7 +2066,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 114,
+          "atMilliseconds" : 80,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2077,7 +2077,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 837,
+          "atMilliseconds" : 738,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2088,29 +2088,18 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1201,
+          "atMilliseconds" : 1057,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+          "title" : "search the web for swift concurrency - Ecosia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1578,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "ecosia",
-          "tabCount" : 1,
-          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
-        },
-        {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 2621,
+          "atMilliseconds" : 2004,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2121,21 +2110,21 @@
         }
       ],
       "timeline" : [
-        "5ms  resolved Chrome",
-        "115ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "466ms  typed an address",
-        "1578ms  verified the page changed",
-        "1578ms  receipt — navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia",
-        "2520ms  resolved Chrome",
-        "2621ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "3330ms  perceived 75 controls · —",
-        "3330ms  looked — 75 rows, 69 named, 8 groups"
+        "6ms  resolved Chrome",
+        "80ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "406ms  typed an address",
+        "1057ms  verified the page changed",
+        "1057ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
+        "1966ms  resolved Chrome",
+        "2004ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "2696ms  perceived 75 controls · —",
+        "2696ms  looked — 75 rows, 69 named, 8 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T15:38:57Z",
-  "round" : "4",
+  "recordedAt" : "2026-09-06T16:30:39Z",
+  "round" : "5",
   "runner" : "probe",
   "tripID" : "search-long-query"
 }

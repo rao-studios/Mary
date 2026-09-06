@@ -404,6 +404,22 @@ public enum TripLayer {
 
     // MARK: - Reading a row class against a recorded page
 
+    /// THE PAGE THE ROUTE WAS ARGUED AGAINST, WHICH IS THE FIRST ONE READ.
+    ///
+    /// PIN: A LEG READS THE PAGE TWICE — once to route, once after the act to
+    /// prove it — and this read the LAST, so every class was checked against the
+    /// page that came AFTER the press. On a leg that navigates, that is a
+    /// different page entirely: "open the second one" was judged against the
+    /// article it had just opened, which naturally holds no second result, and
+    /// the verdict was "no row in this reading answers the class — the recall
+    /// belongs in the detector". FOUR OF ROUND 4'S TEN FAILURES WERE THIS, and
+    /// they were filed against VisionAX's recall, which had nothing to do with
+    /// it. The same fault was found and fixed in `BrowsingTripReplayTests` in the
+    /// same round and not looked for here.
+    static func routedPage(in recording: TripLegRecording) -> PageRosterFixture? {
+        recording.pageReads.first?.page
+    }
+
     /// Every ordinal in the last recorded page that answers this class.
     ///
     /// PIN: THE ORDINAL COUNTS WITHIN WHAT THE REST OF THE CLASS ADMITS. "The
@@ -413,7 +429,7 @@ public enum TripLayer {
     public static func candidates(
         for wanted: TripRowClass, in recording: TripLegRecording
     ) -> [Int] {
-        guard let page = recording.pageReads.last?.page else { return [] }
+        guard let page = routedPage(in: recording) else { return [] }
         let required = BrowsingTripValidator.facts(named: wanted.facts ?? [])
         let forbidden = BrowsingTripValidator.facts(named: wanted.factsAbsent ?? [])
 
@@ -456,7 +472,7 @@ public enum TripLayer {
         _ wanted: TripRowClass, route: RecordedRoute, recording: TripLegRecording
     ) -> String {
         guard let selected = route.selectedOrdinal,
-              let row = recording.pageReads.last?.page.rows.first(where: {
+              let row = routedPage(in: recording)?.rows.first(where: {
                   $0.ordinal == selected
               })
         else { return "is not in the reading at all" }

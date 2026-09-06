@@ -153,12 +153,22 @@ public struct PageRoster: Sendable {
                 isEnabled: element.isEnabled,
                 provenance: element.provenance)
         }
-        // THE REGIONS TOO, for the reason this whole function exists: a roster
-        // rebuilt from the AX-shaped shim must describe the same page as one
-        // that never left `PageRow`. `assign` is a no-op on a zero page frame,
-        // which is what a hand-written fixture has.
-        let derived = RowFactsDerivation.derive(rows: rows, groups: groups)
-        return (PageRegionDerivation.assign(rows: derived, pageFrame: pageFrame), groups)
+        // THE REGIONS AND THE LISTS TOO, for the reason this whole function
+        // exists: a roster rebuilt from the AX-shaped shim must describe the
+        // same page as one that never left `PageRow`. Both are no-ops on a zero
+        // page frame, which is what a hand-written fixture has.
+        //
+        // PIN: THE SEAL'S ORDER, NOT A CONVENIENT ONE. Regions first, because a
+        // list is only a list in the page's own column; facts last, because
+        // `inResultGroup` reads the group a list derivation may just have given
+        // a row. Getting this order wrong here and right at the seal is how the
+        // two views come to describe different pages, which is the one thing
+        // this function exists to prevent.
+        let placed = PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame)
+        let listed = PageListDerivation.lists(rows: placed, groups: groups)
+        return (
+            RowFactsDerivation.derive(rows: listed.rows, groups: listed.groups),
+            listed.groups)
     }
 
     /// Only what can be acted on. What a phrase is resolved against.

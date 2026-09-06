@@ -601,6 +601,60 @@ if flag("--page-ax") {
     let rows = PageElementReader.readWebContent(
         in: application, pageFrame: shell.pageFrame)
     check(!rows.isEmpty, "the walk found rows", "\(rows.count) elements")
+    // HOW MUCH OF THE PAGE IS BELOW THE FOLD, and does the tree publish it at
+    // all? The walk clips to the rendered viewport, so this asks the same
+    // question with the clip removed.
+    if let page = shell.pageFrame {
+        let everything = PageElementReader.readWebContent(
+            in: application, pageFrame: nil, limit: 4000,
+            budget: .init(maxDepth: 80, maxNodes: 60000))
+        let off = everything.filter { !page.intersects($0.frame) }
+        let above = off.filter { $0.frame.maxY <= page.minY }
+        check(
+            !off.isEmpty, "the tree publishes rows off the screen",
+            "\(off.count) of \(everything.count) — \(above.count) above, "
+                + "\(off.count - above.count) below")
+        // WHY EACH CANDIDATE WAS DROPPED — the walk's own arithmetic, so
+        // "Chrome does not publish it" is told apart from "we filtered it".
+        var visited = 0, collected = 0, noFrame = 0, tooSmall = 0, noLabel = 0
+        for area in WebAreaLocator.webAreasForProbe(inApp: application) {
+            AXTreeWalker.walk(
+                from: area, budget: .init(maxDepth: 80, maxNodes: 60000)
+            ) { element, _ in
+                visited += 1
+                guard let role = AX.string(element, kAXRoleAttribute),
+                      PageElementReader.collectedRoles.contains(role) else { return }
+                collected += 1
+                guard let frame = AX.frame(of: element) else { noFrame += 1; return }
+                guard frame.width >= 8, frame.height >= 8 else {
+                    tooSmall += 1
+                    if tooSmall <= 8 {
+                        let name = AX.string(element, kAXTitleAttribute)
+                            ?? AX.string(element, kAXDescriptionAttribute) ?? ""
+                        print(String(
+                            format: "      small: %@ %.0fx%.0f at %.0f,%.0f \"%@\"",
+                            role, frame.width, frame.height, frame.minX, frame.minY,
+                            String(name.prefix(40))))
+                    }
+                    return
+                }
+                if AX.string(element, kAXTitleAttribute)?.isEmpty != false,
+                   AX.string(element, kAXDescriptionAttribute)?.isEmpty != false,
+                   AX.string(element, kAXValueAttribute)?.isEmpty != false {
+                    noLabel += 1
+                }
+            }
+        }
+        check(
+            true, "the walk's arithmetic",
+            "\(visited) nodes · \(collected) of a collected role · "
+                + "\(noFrame) no frame · \(tooSmall) too small · \(noLabel) unnamed")
+        for row in off.prefix(8) {
+            print("      \(row.kind.rawValue) \"\(row.label.prefix(46))\""
+                + String(format: "  (y %.0f, page %.0f…%.0f)",
+                         row.frame.midY, page.minY, page.maxY))
+        }
+    }
     var byKind: [String: Int] = [:]
     for row in rows { byKind[row.kind.rawValue, default: 0] += 1 }
     print("      kinds: " + byKind.sorted { $0.key < $1.key }

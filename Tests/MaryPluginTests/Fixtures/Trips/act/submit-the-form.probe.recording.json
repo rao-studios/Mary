@@ -5,27 +5,27 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 77,
+          "atMilliseconds" : 41,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 768,
+          "atMilliseconds" : 679,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1068,
+          "atMilliseconds" : 983,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1592,
+          "atMilliseconds" : 1507,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2783,
+          "atMilliseconds" : 2592,
           "kind" : "restoreCursor"
         }
       ],
@@ -35,7 +35,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 2783,
+      "elapsedMilliseconds" : 2592,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -49,10 +49,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
+      "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"'json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
       "pageReads" : [
         {
-          "atMilliseconds" : 668,
+          "atMilliseconds" : 580,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -158,16 +158,26 @@
                   34
                 ],
                 "title" : "Preferred delivery time: -- :-- --"
+              },
+              {
+                "id" : 11,
+                "kind" : "list",
+                "memberOrdinals" : [
+                  19,
+                  22,
+                  25,
+                  28
+                ]
               }
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1793,
-              195,
+              -1815,
+              173,
               1266,
               765
             ],
-            "readMilliseconds" : 414,
+            "readMilliseconds" : 378,
             "rows" : [
               {
                 "affordance" : "none",
@@ -178,8 +188,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1791,
-                  210,
+                  -1813,
+                  188,
                   119,
                   25
                 ],
@@ -203,8 +213,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1676,
-                  212,
+                  -1698,
+                  190,
                   154,
                   21
                 ],
@@ -228,8 +238,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1792,
-                  246,
+                  -1814,
+                  224,
                   86,
                   28
                 ],
@@ -253,8 +263,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1711,
-                  249,
+                  -1733,
+                  227,
                   154,
                   21
                 ],
@@ -279,8 +289,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1791,
-                  284,
+                  -1813,
+                  262,
                   113,
                   25
                 ],
@@ -305,8 +315,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1682,
-                  286,
+                  -1704,
+                  264,
                   154,
                   21
                 ],
@@ -331,8 +341,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1774,
-                  319,
+                  -1796,
+                  297,
                   80,
                   27
                 ],
@@ -357,8 +367,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1769,
-                  360,
+                  -1791,
+                  338,
                   69,
                   27
                 ],
@@ -383,8 +393,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  365,
+                  -1786,
+                  343,
                   13,
                   14
                 ],
@@ -409,8 +419,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  367,
+                  -1766,
+                  345,
                   37,
                   13
                 ],
@@ -435,8 +445,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  396,
+                  -1794,
+                  374,
                   88,
                   27
                 ],
@@ -460,8 +470,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1764,
-                  401,
+                  -1786,
+                  379,
                   13,
                   14
                 ],
@@ -485,8 +495,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  403,
+                  -1766,
+                  381,
                   54,
                   13
                 ],
@@ -511,8 +521,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  432,
+                  -1794,
+                  410,
                   71,
                   29
                 ],
@@ -537,8 +547,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  437,
+                  -1786,
+                  415,
                   13,
                   14
                 ],
@@ -563,8 +573,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  439,
+                  -1766,
+                  417,
                   37,
                   16
                 ],
@@ -589,8 +599,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1773,
-                  480,
+                  -1795,
+                  458,
                   111,
                   27
                 ],
@@ -615,8 +625,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1770,
-                  520,
+                  -1792,
+                  498,
                   72,
                   25
                 ],
@@ -636,15 +646,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  525,
+                  -1787,
+                  503,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -665,8 +676,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  526,
+                  -1767,
+                  504,
                   41,
                   13
                 ],
@@ -691,8 +702,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1771,
-                  556,
+                  -1793,
+                  534,
                   119,
                   27
                 ],
@@ -712,15 +723,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2048,
+                "facts" : 2304,
                 "frame" : [
-                  -1765,
-                  561,
+                  -1787,
+                  539,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -741,8 +753,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  562,
+                  -1767,
+                  540,
                   85,
                   13
                 ],
@@ -767,8 +779,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  592,
+                  -1794,
+                  570,
                   74,
                   27
                 ],
@@ -788,15 +800,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  597,
+                  -1787,
+                  575,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -817,8 +830,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  598,
+                  -1767,
+                  576,
                   40,
                   13
                 ],
@@ -843,8 +856,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  628,
+                  -1794,
+                  606,
                   103,
                   27
                 ],
@@ -864,15 +877,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  633,
+                  -1787,
+                  611,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -893,8 +907,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  634,
+                  -1767,
+                  612,
                   70,
                   13
                 ],
@@ -919,8 +933,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  692,
+                  -1813,
+                  670,
                   245,
                   31
                 ],
@@ -943,8 +957,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1547,
-                  696,
+                  -1569,
+                  674,
                   21,
                   21
                 ],
@@ -959,32 +973,6 @@
                 "role" : "AXPopUpButton"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1791,
-                  754,
-                  153,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Delivery instructions:",
-                "labelSource" : "textInside",
-                "ordinal" : 32,
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "fill",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -994,8 +982,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1642,
-                  734,
+                  -1664,
+                  712,
                   183,
                   37
                 ],
@@ -1007,8 +995,34 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
-                "ordinal" : 33,
+                "ordinal" : 32,
                 "role" : "AXTextArea"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1813,
+                  732,
+                  153,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Delivery instructions:",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1020,8 +1034,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1785,
-                  790,
+                  -1807,
+                  768,
                   93,
                   22
                 ],
@@ -1041,7 +1055,7 @@
           }
         },
         {
-          "atMilliseconds" : 2452,
+          "atMilliseconds" : 2279,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1158,15 +1172,22 @@
                 "id" : 12,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  28,
-                  29,
-                  30,
-                  31
+                  28
                 ],
                 "title" : "\"Sec-Fetch-Mode\": \"navigate\""
               },
               {
                 "id" : 13,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  29,
+                  30,
+                  31
+                ],
+                "title" : "\"Sec-Fetch-Site\": \"same-origin\","
+              },
+              {
+                "id" : 14,
                 "kind" : "band",
                 "memberOrdinals" : [
                   32,
@@ -1175,22 +1196,22 @@
                 "title" : "\"Upgrade-Insecure-Requests\": \"1\","
               },
               {
-                "id" : 14,
+                "id" : 15,
                 "kind" : "band",
                 "memberOrdinals" : [
                   33
                 ],
-                "title" : "\"json\": null,"
+                "title" : "\"'json\": null,"
               }
             ],
             "labeledFraction" : 1,
             "pageFrame" : [
-              -1793,
-              195,
+              -1815,
+              173,
               1266,
               765
             ],
-            "readMilliseconds" : 303,
+            "readMilliseconds" : 310,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1201,8 +1222,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1797,
-                  194,
+                  -1819,
+                  172,
                   121,
                   23
                 ],
@@ -1225,8 +1246,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1793,
-                  195,
+                  -1815,
+                  173,
                   1266,
                   22
                 ],
@@ -1250,8 +1271,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1696,
-                  199,
+                  -1718,
+                  177,
                   14,
                   13
                 ],
@@ -1275,8 +1296,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1784,
-                  239,
+                  -1806,
+                  217,
                   98,
                   25
                 ],
@@ -1286,7 +1307,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"args\": 0,",
+                "label" : "\"args\": 0},",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
                 "role" : "AXStaticText"
@@ -1301,8 +1322,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1786,
-                  254,
+                  -1808,
+                  232,
                   108,
                   42
                 ],
@@ -1326,8 +1347,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1784,
-                  284,
+                  -1806,
+                  262,
                   83,
                   23
                 ],
@@ -1351,8 +1372,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1768,
-                  298,
+                  -1790,
+                  276,
                   100,
                   25
                 ],
@@ -1376,8 +1397,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  314,
+                  -1789,
+                  292,
                   107,
                   23
                 ],
@@ -1401,8 +1422,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  328,
+                  -1790,
+                  306,
                   130,
                   27
                 ],
@@ -1411,7 +1432,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"custname\": ''',",
+                "label" : "\"custname\": ''\",",
                 "labelSource" : "textInside",
                 "ordinal" : 9,
                 "role" : "AXStaticText"
@@ -1426,8 +1447,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  344,
+                  -1789,
+                  322,
                   113,
                   23
                 ],
@@ -1451,8 +1472,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  352,
+                  -1790,
+                  330,
                   122,
                   32
                 ],
@@ -1476,8 +1497,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1784,
-                  388,
+                  -1806,
+                  366,
                   107,
                   25
                 ],
@@ -1501,8 +1522,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1781,
-                  376,
+                  -1803,
+                  354,
                   23,
                   25
                 ],
@@ -1526,8 +1547,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  404,
+                  -1790,
+                  382,
                   1170,
                   65
                 ],
@@ -1551,8 +1572,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1759,
-                  438,
+                  -1781,
+                  416,
                   126,
                   19
                 ],
@@ -1576,8 +1597,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  464,
+                  -1790,
+                  442,
                   191,
                   25
                 ],
@@ -1601,8 +1622,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  448,
+                  -1789,
+                  426,
                   239,
                   27
                 ],
@@ -1626,8 +1647,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1770,
-                  472,
+                  -1792,
+                  450,
                   421,
                   35
                 ],
@@ -1652,8 +1673,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1770,
-                  508,
+                  -1792,
+                  486,
                   263,
                   31
                 ],
@@ -1677,9 +1698,9 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  494,
-                  183,
+                  -1733,
+                  472,
+                  128,
                   25
                 ],
                 "groupID" : 7,
@@ -1687,7 +1708,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Host\": \"httpbin.org\",",
+                "label" : "\"httpbin.org\",",
                 "labelSource" : "textInside",
                 "ordinal" : 20,
                 "role" : "AXStaticText"
@@ -1702,9 +1723,9 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  524,
-                  145,
+                  -1789,
+                  502,
+                  147,
                   25
                 ],
                 "groupID" : 7,
@@ -1727,8 +1748,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  554,
+                  -1790,
+                  532,
                   739,
                   25
                 ],
@@ -1753,8 +1774,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1789,
+                  518,
                   347,
                   25
                 ],
@@ -1778,8 +1799,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1766,
-                  570,
+                  -1788,
+                  548,
                   274,
                   39
                 ],
@@ -1803,8 +1824,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  600,
+                  -1789,
+                  578,
                   238,
                   25
                 ],
@@ -1828,8 +1849,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  614,
+                  -1790,
+                  592,
                   231,
                   25
                 ],
@@ -1853,8 +1874,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  630,
+                  -1790,
+                  608,
                   261,
                   25
                 ],
@@ -1878,8 +1899,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  644,
+                  -1789,
+                  622,
                   193,
                   27
                 ],
@@ -1888,7 +1909,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Sec-Fetch-User\": \"71\",",
+                "label" : "\"Sec-Fetch-User\"; \"71\",",
                 "labelSource" : "textInside",
                 "ordinal" : 28,
                 "role" : "AXStaticText"
@@ -1898,23 +1919,23 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  671,
+                  -1790,
+                  651,
                   1061,
-                  40
+                  28
                 ],
-                "groupID" : 12,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) h: Intel Mac OS X 10-157) ApplewebKit/537.36 (KHTML, Like Gecko) Chrome/152.0.0.0 Safar1/537.36\", \"X-Amzn-Trace-Id\": \"Root=1-6a9d88f8-4441e6e775804d017e8275a2\"",
+                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Applewebkit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36\",",
                 "labelSource" : "textInside",
                 "ordinal" : 29,
                 "role" : "AXStaticText"
@@ -1924,17 +1945,17 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1767,
-                  660,
+                  -1789,
+                  638,
                   271,
                   25
                 ],
-                "groupID" : 12,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
@@ -1949,22 +1970,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1768,
-                  690,
+                  -1790,
+                  668,
                   489,
                   23
                 ],
-                "groupID" : 12,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9d88f8-4441e6e775804d017e8275a2\"",
+                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9d9518-44e1ba9d3d4efd7764596123\"",
                 "labelSource" : "textInside",
                 "ordinal" : 31,
                 "role" : "AXStaticText"
@@ -1979,18 +2000,18 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1785,
-                  706,
-                  115,
-                  41
+                  -1808,
+                  683,
+                  116,
+                  42
                 ],
-                "groupID" : 13,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"json\": null,",
+                "label" : "\"'json\": null,",
                 "labelSource" : "textInside",
                 "ordinal" : 32,
                 "role" : "AXLink"
@@ -2000,17 +2021,17 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"json\": null,",
+                  "\"'json\": null,",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1784,
-                  750,
+                  -1806,
+                  728,
                   271,
                   25
                 ],
-                "groupID" : 14,
+                "groupID" : 15,
                 "hints" : [
 
                 ],
@@ -2031,12 +2052,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1781,
-                  734,
+                  -1803,
+                  712,
                   197,
                   27
                 ],
-                "groupID" : 13,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
@@ -2064,7 +2085,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 768,
+          "atMilliseconds" : 678,
           "decisions" : [
             {
               "affordance" : 0,
@@ -2303,7 +2324,7 @@
             {
               "affordance" : 100,
               "disposition" : "belowFloor",
-              "facts" : 2056,
+              "facts" : 2312,
               "label" : "Bacon",
               "lexical" : 0,
               "lexicalBasis" : "none",
@@ -2342,7 +2363,7 @@
             {
               "affordance" : 100,
               "disposition" : "belowFloor",
-              "facts" : 2048,
+              "facts" : 2304,
               "label" : "Extra Cheese",
               "lexical" : 0,
               "lexicalBasis" : "none",
@@ -2381,7 +2402,7 @@
             {
               "affordance" : 100,
               "disposition" : "belowFloor",
-              "facts" : 2056,
+              "facts" : 2312,
               "label" : "Onion",
               "lexical" : 0,
               "lexicalBasis" : "none",
@@ -2420,7 +2441,7 @@
             {
               "affordance" : 100,
               "disposition" : "belowFloor",
-              "facts" : 2056,
+              "facts" : 2312,
               "label" : "Mushroom",
               "lexical" : 0,
               "lexicalBasis" : "none",
@@ -2470,29 +2491,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 3072,
-              "label" : "Delivery instructions:",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 32,
-              "provenance" : 60,
-              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 400,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 3072,
               "label" : "Delivery instructions:",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 33,
+              "ordinal" : 32,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 362,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 3072,
+              "label" : "Delivery instructions:",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 33,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 400,
               "structure" : 0
             },
             {
@@ -2523,7 +2544,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 77,
+          "atMilliseconds" : 41,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2534,7 +2555,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1710,
+          "atMilliseconds" : 1561,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2545,7 +2566,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2062,
+          "atMilliseconds" : 1877,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2556,22 +2577,22 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "77ms  read the shell — httpbin.org/forms/post · httpbin",
-        "668ms  perceived 34 controls · —",
-        "668ms  looked — 34 rows, 27 named, 11 groups",
-        "768ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
-        "768ms  matched \"submit the form\" → \"Submit order\"",
-        "1113ms  clicked Submit order",
-        "2452ms  perceived 34 controls · —",
-        "2452ms  looked — 34 rows, 34 named, 15 groups",
-        "2783ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
+        "7ms  resolved Chrome",
+        "41ms  read the shell — httpbin.org/forms/post · httpbin",
+        "580ms  perceived 34 controls · —",
+        "580ms  looked — 34 rows, 27 named, 12 groups",
+        "678ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
+        "679ms  matched \"submit the form\" → \"Submit order\"",
+        "1027ms  clicked Submit order",
+        "2279ms  perceived 34 controls · —",
+        "2279ms  looked — 34 rows, 34 named, 16 groups",
+        "2592ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T15:38:30Z",
-  "round" : "4",
+  "recordedAt" : "2026-09-06T16:30:14Z",
+  "round" : "5",
   "runner" : "probe",
   "tripID" : "submit-the-form"
 }

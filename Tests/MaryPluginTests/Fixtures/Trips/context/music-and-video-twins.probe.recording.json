@@ -36,17 +36,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 105,
+          "atMilliseconds" : 44,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 106,
+          "atMilliseconds" : 45,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1456,
+          "atMilliseconds" : 1435,
           "kind" : "restoreCursor"
         }
       ],
@@ -57,13 +57,13 @@
 
       },
       "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1456,
+      "elapsedMilliseconds" : 1436,
       "index" : 1,
       "landed" : false,
       "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 1456,
+          "atMilliseconds" : 1435,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -101,7 +101,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 105,
+          "atMilliseconds" : 44,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -112,16 +112,16 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "105ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1456ms  perceived 0 controls · paused",
-        "1456ms  refused — I can see the player but not its volume control."
+        "7ms  resolved Chrome",
+        "44ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1435ms  perceived 0 controls · paused",
+        "1435ms  refused — I can see the player but not its volume control."
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T15:39:06Z",
-  "round" : "4",
+  "recordedAt" : "2026-09-06T16:30:48Z",
+  "round" : "5",
   "runner" : "probe",
   "tripID" : "music-and-video-twins"
 }

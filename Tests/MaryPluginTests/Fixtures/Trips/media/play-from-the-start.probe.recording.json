@@ -5,17 +5,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 86,
+          "atMilliseconds" : 47,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 87,
+          "atMilliseconds" : 47,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1468,
+          "atMilliseconds" : 1420,
           "kind" : "restoreCursor"
         }
       ],
@@ -26,13 +26,13 @@
 
       },
       "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1469,
+      "elapsedMilliseconds" : 1420,
       "index" : 0,
       "landed" : false,
       "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 1468,
+          "atMilliseconds" : 1420,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -70,7 +70,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 86,
+          "atMilliseconds" : 47,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -82,15 +82,15 @@
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "86ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1468ms  perceived 0 controls · paused",
-        "1468ms  refused — I can see the player but not its progress control."
+        "47ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1420ms  perceived 0 controls · paused",
+        "1420ms  refused — I can see the player but not its progress control."
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T15:39:43Z",
-  "round" : "4",
+  "recordedAt" : "2026-09-06T16:31:24Z",
+  "round" : "5",
   "runner" : "probe",
   "tripID" : "play-from-the-start"
 }

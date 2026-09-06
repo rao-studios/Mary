@@ -33,7 +33,6 @@ public struct SeenElementAnnotation: Sendable, Equatable {
     /// WRONG" — the reader below has not populated it yet, so anything ranking on this
     /// must degrade to neutral at zero rather than treating it as evidence against.
     public var confidence: Double
-
     public init(
         affordance: SeenAffordance,
         affordanceSource: SeenAffordanceSource = .unknown,

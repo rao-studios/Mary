@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 90,
+          "atMilliseconds" : 44,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 732,
+          "atMilliseconds" : 653,
           "kind" : "type",
           "typedLength" : 24
         },
         {
-          "atMilliseconds" : 1026,
+          "atMilliseconds" : 948,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1455,
+          "atMilliseconds" : 1342,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1455,
+      "elapsedMilliseconds" : 1342,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "typeText — no sign it did anything. Now offering 8 buttons, 4 fields, and 1 option — field 1 — Customer name:; field 2 — Telephone: (Customer name:); field 3 — E-mail address: (Telephone:); button 1 — Small (Pizza Size); button 2 — Medium",
       "pageReads" : [
         {
-          "atMilliseconds" : 638,
+          "atMilliseconds" : 557,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -151,16 +151,26 @@
                   34
                 ],
                 "title" : "Preferred delivery time: -- :-- --"
+              },
+              {
+                "id" : 11,
+                "kind" : "list",
+                "memberOrdinals" : [
+                  19,
+                  22,
+                  25,
+                  28
+                ]
               }
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1793,
-              195,
+              -1815,
+              173,
               1266,
               765
             ],
-            "readMilliseconds" : 363,
+            "readMilliseconds" : 339,
             "rows" : [
               {
                 "affordance" : "none",
@@ -171,8 +181,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1791,
-                  210,
+                  -1813,
+                  188,
                   119,
                   25
                 ],
@@ -196,8 +206,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1676,
-                  212,
+                  -1698,
+                  190,
                   154,
                   21
                 ],
@@ -221,8 +231,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1792,
-                  246,
+                  -1814,
+                  224,
                   86,
                   28
                 ],
@@ -246,8 +256,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1711,
-                  249,
+                  -1733,
+                  227,
                   154,
                   21
                 ],
@@ -272,8 +282,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1791,
-                  284,
+                  -1813,
+                  262,
                   113,
                   25
                 ],
@@ -298,8 +308,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1682,
-                  286,
+                  -1704,
+                  264,
                   154,
                   21
                 ],
@@ -324,8 +334,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1774,
-                  319,
+                  -1796,
+                  297,
                   80,
                   27
                 ],
@@ -350,8 +360,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1769,
-                  360,
+                  -1791,
+                  338,
                   69,
                   27
                 ],
@@ -376,8 +386,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  365,
+                  -1786,
+                  343,
                   13,
                   14
                 ],
@@ -402,8 +412,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  367,
+                  -1766,
+                  345,
                   37,
                   13
                 ],
@@ -428,8 +438,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  396,
+                  -1794,
+                  374,
                   88,
                   27
                 ],
@@ -453,8 +463,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1764,
-                  401,
+                  -1786,
+                  379,
                   13,
                   14
                 ],
@@ -478,8 +488,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  403,
+                  -1766,
+                  381,
                   54,
                   13
                 ],
@@ -504,8 +514,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  432,
+                  -1794,
+                  410,
                   71,
                   29
                 ],
@@ -530,8 +540,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  437,
+                  -1786,
+                  415,
                   13,
                   14
                 ],
@@ -556,8 +566,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  439,
+                  -1766,
+                  417,
                   37,
                   16
                 ],
@@ -582,8 +592,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1773,
-                  480,
+                  -1795,
+                  458,
                   111,
                   27
                 ],
@@ -608,8 +618,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1770,
-                  520,
+                  -1792,
+                  498,
                   72,
                   25
                 ],
@@ -629,15 +639,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  525,
+                  -1787,
+                  503,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -658,8 +669,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  526,
+                  -1767,
+                  504,
                   41,
                   13
                 ],
@@ -684,8 +695,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1771,
-                  556,
+                  -1793,
+                  534,
                   119,
                   27
                 ],
@@ -705,15 +716,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2048,
+                "facts" : 2304,
                 "frame" : [
-                  -1765,
-                  561,
+                  -1787,
+                  539,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -734,8 +746,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  562,
+                  -1767,
+                  540,
                   85,
                   13
                 ],
@@ -760,8 +772,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  592,
+                  -1794,
+                  570,
                   74,
                   27
                 ],
@@ -781,15 +793,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  597,
+                  -1787,
+                  575,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -810,8 +823,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  598,
+                  -1767,
+                  576,
                   40,
                   13
                 ],
@@ -836,8 +849,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  628,
+                  -1794,
+                  606,
                   103,
                   27
                 ],
@@ -857,15 +870,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  633,
+                  -1787,
+                  611,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -886,8 +900,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  634,
+                  -1767,
+                  612,
                   70,
                   13
                 ],
@@ -912,8 +926,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  692,
+                  -1813,
+                  670,
                   245,
                   31
                 ],
@@ -936,8 +950,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1547,
-                  696,
+                  -1569,
+                  674,
                   21,
                   21
                 ],
@@ -952,32 +966,6 @@
                 "role" : "AXPopUpButton"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1791,
-                  754,
-                  153,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Delivery instructions:",
-                "labelSource" : "textInside",
-                "ordinal" : 32,
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "fill",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -987,8 +975,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1642,
-                  734,
+                  -1664,
+                  712,
                   183,
                   37
                 ],
@@ -1000,8 +988,34 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
-                "ordinal" : 33,
+                "ordinal" : 32,
                 "role" : "AXTextArea"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1813,
+                  732,
+                  153,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Delivery instructions:",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1013,8 +1027,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1785,
-                  790,
+                  -1807,
+                  768,
                   93,
                   22
                 ],
@@ -1034,7 +1048,7 @@
           }
         },
         {
-          "atMilliseconds" : 1452,
+          "atMilliseconds" : 1339,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1140,16 +1154,26 @@
                   34
                 ],
                 "title" : "Preferred delivery time: -- :-- --"
+              },
+              {
+                "id" : 11,
+                "kind" : "list",
+                "memberOrdinals" : [
+                  19,
+                  22,
+                  25,
+                  28
+                ]
               }
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1793,
-              195,
+              -1815,
+              173,
               1266,
               765
             ],
-            "readMilliseconds" : 230,
+            "readMilliseconds" : 220,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1160,8 +1184,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1791,
-                  210,
+                  -1813,
+                  188,
                   119,
                   25
                 ],
@@ -1185,8 +1209,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1676,
-                  212,
+                  -1698,
+                  190,
                   154,
                   21
                 ],
@@ -1210,8 +1234,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1792,
-                  246,
+                  -1814,
+                  224,
                   86,
                   28
                 ],
@@ -1235,8 +1259,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1711,
-                  249,
+                  -1733,
+                  227,
                   154,
                   21
                 ],
@@ -1261,8 +1285,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1791,
-                  284,
+                  -1813,
+                  262,
                   113,
                   25
                 ],
@@ -1287,8 +1311,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1682,
-                  286,
+                  -1704,
+                  264,
                   154,
                   21
                 ],
@@ -1313,8 +1337,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1774,
-                  319,
+                  -1796,
+                  297,
                   80,
                   27
                 ],
@@ -1339,8 +1363,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1769,
-                  360,
+                  -1791,
+                  338,
                   69,
                   27
                 ],
@@ -1365,8 +1389,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  365,
+                  -1786,
+                  343,
                   13,
                   14
                 ],
@@ -1391,8 +1415,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  367,
+                  -1766,
+                  345,
                   37,
                   13
                 ],
@@ -1417,8 +1441,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  396,
+                  -1794,
+                  374,
                   88,
                   27
                 ],
@@ -1442,8 +1466,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1764,
-                  401,
+                  -1786,
+                  379,
                   13,
                   14
                 ],
@@ -1467,8 +1491,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  403,
+                  -1766,
+                  381,
                   54,
                   13
                 ],
@@ -1493,8 +1517,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1772,
-                  432,
+                  -1794,
+                  410,
                   71,
                   29
                 ],
@@ -1519,8 +1543,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1764,
-                  437,
+                  -1786,
+                  415,
                   13,
                   14
                 ],
@@ -1545,8 +1569,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1744,
-                  439,
+                  -1766,
+                  417,
                   37,
                   16
                 ],
@@ -1571,8 +1595,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1773,
-                  480,
+                  -1795,
+                  458,
                   111,
                   27
                 ],
@@ -1597,8 +1621,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1770,
-                  520,
+                  -1792,
+                  498,
                   72,
                   25
                 ],
@@ -1618,15 +1642,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  525,
+                  -1787,
+                  503,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1647,8 +1672,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  526,
+                  -1767,
+                  504,
                   41,
                   13
                 ],
@@ -1673,8 +1698,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1771,
-                  556,
+                  -1793,
+                  534,
                   119,
                   27
                 ],
@@ -1694,15 +1719,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2048,
+                "facts" : 2304,
                 "frame" : [
-                  -1765,
-                  561,
+                  -1787,
+                  539,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1723,8 +1749,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1745,
-                  562,
+                  -1767,
+                  540,
                   85,
                   13
                 ],
@@ -1749,8 +1775,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  592,
+                  -1794,
+                  570,
                   74,
                   27
                 ],
@@ -1770,15 +1796,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  597,
+                  -1787,
+                  575,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1799,8 +1826,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  598,
+                  -1767,
+                  576,
                   40,
                   13
                 ],
@@ -1825,8 +1852,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1772,
-                  628,
+                  -1794,
+                  606,
                   103,
                   27
                 ],
@@ -1846,15 +1873,16 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "list"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -1765,
-                  633,
+                  -1787,
+                  611,
                   13,
                   14
                 ],
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1875,8 +1903,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1745,
-                  634,
+                  -1767,
+                  612,
                   70,
                   13
                 ],
@@ -1901,8 +1929,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  692,
+                  -1813,
+                  670,
                   245,
                   31
                 ],
@@ -1925,8 +1953,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1547,
-                  696,
+                  -1569,
+                  674,
                   21,
                   21
                 ],
@@ -1941,32 +1969,6 @@
                 "role" : "AXPopUpButton"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1791,
-                  754,
-                  153,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Delivery instructions:",
-                "labelSource" : "textInside",
-                "ordinal" : 32,
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "fill",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -1976,8 +1978,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1642,
-                  734,
+                  -1664,
+                  712,
                   183,
                   37
                 ],
@@ -1989,8 +1991,34 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
-                "ordinal" : 33,
+                "ordinal" : 32,
                 "role" : "AXTextArea"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1813,
+                  732,
+                  153,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Delivery instructions:",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -2002,8 +2030,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1785,
-                  790,
+                  -1807,
+                  768,
                   93,
                   22
                 ],
@@ -2040,7 +2068,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 90,
+          "atMilliseconds" : 44,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2051,7 +2079,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1130,
+          "atMilliseconds" : 1027,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2062,20 +2090,20 @@
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "90ms  read the shell — httpbin.org/forms/post · httpbin",
-        "638ms  perceived 34 controls · —",
-        "638ms  looked — 34 rows, 27 named, 11 groups",
-        "791ms  typed 24 characters",
-        "1452ms  perceived 34 controls · —",
-        "1452ms  looked — 34 rows, 27 named, 11 groups",
-        "1455ms  receipt — typeText — no sign it did anything"
+        "6ms  resolved Chrome",
+        "44ms  read the shell — httpbin.org/forms/post · httpbin",
+        "557ms  perceived 34 controls · —",
+        "557ms  looked — 34 rows, 27 named, 12 groups",
+        "713ms  typed 24 characters",
+        "1339ms  perceived 34 controls · —",
+        "1339ms  looked — 34 rows, 27 named, 12 groups",
+        "1342ms  receipt — typeText — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T15:37:50Z",
-  "round" : "4",
+  "recordedAt" : "2026-09-06T16:29:32Z",
+  "round" : "5",
   "runner" : "probe",
   "tripID" : "fill-my-email"
 }

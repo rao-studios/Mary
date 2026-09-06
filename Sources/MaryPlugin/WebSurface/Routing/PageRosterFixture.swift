@@ -45,6 +45,18 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
         public var facts: Int?
         /// The kind the reading named, when it named one.
         public var kind: String?
+        /// WHERE ON THE PAGE THE SEAL PUT IT — see `PageRegion`.
+        ///
+        /// PIN: RECORDED FOR THE SAME REASON `facts` IS, and missing for two
+        /// rounds without anyone noticing. A region is decided at the seal from
+        /// the page's own geometry; a recording that dropped it replayed a page
+        /// with no places in it at all, so every rule that reads one — the gate
+        /// that refuses "the third link in the sidebar" on a page with no
+        /// sidebar, the list derivation that only groups the page's own column —
+        /// was inert offline and could not be regression-tested. Absent in a
+        /// recording made before it existed, which reads as a page whose seal
+        /// named no places, exactly as it was.
+        public var region: String?
     }
 
     public struct Group: Codable, Sendable, Equatable {
@@ -103,7 +115,9 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
         classified = roster.classified
         readMilliseconds = roster.readDuration.map(PageRosterFixture.milliseconds)
         let factsByOrdinal = Dictionary(
-            roster.rows.map { ($0.ordinal, ($0.facts.rawValue, $0.kind?.rawValue)) },
+            roster.rows.map {
+                ($0.ordinal, ($0.facts.rawValue, $0.kind?.rawValue, $0.region?.rawValue))
+            },
             uniquingKeysWith: { first, _ in first })
         rows = roster.elements.map { element in
             let annotation = roster.annotation(for: element)
@@ -123,7 +137,8 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 groupID: annotation?.groupID,
                 confidence: annotation?.confidence ?? 0,
                 facts: seen?.0,
-                kind: seen?.1)
+                kind: seen?.1,
+                region: seen?.2)
         }
         groups = roster.map.groups.map {
             Group(id: $0.id, kind: $0.kind, title: $0.title, memberOrdinals: $0.memberOrdinals)
@@ -206,6 +221,7 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 confidence: row.confidence,
                 isEnabled: row.isEnabled,
                 facts: RowFacts(rawValue: row.facts ?? 0),
+                region: row.region.flatMap { PageRegion(rawValue: $0) },
                 provenance: .seen)
         }
     }

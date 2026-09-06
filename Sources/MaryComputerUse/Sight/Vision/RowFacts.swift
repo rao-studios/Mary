@@ -59,6 +59,31 @@ public struct RowFacts: OptionSet, Sendable, Equatable, Hashable {
     /// "searches related to …" band at the foot. Both are pressable, well named
     /// and the right length, so nothing but the query can tell them from a result.
     public static let echoOfQuery = RowFacts(rawValue: 1 << 12)
+    /// NOT DRAWN, THOUGH THE TREE PUBLISHES IT — a skip link, an off-canvas
+    /// menu. Reachable by name; never what somebody means by "the first one".
+    ///
+    /// PIN: NOTHING SETS THIS, AND TWO MEASUREMENTS SAY WHY — both of them
+    /// refutations of an idea that looked right.
+    ///
+    /// FIRST: that a skip link is positioned OFF the page and clipped back in,
+    /// which would make it geometry the walk can see. It is not. On a search
+    /// page "Skip to main content" is drawn at 110x44 eleven points INSIDE the
+    /// page's own left edge; it is hidden by means accessibility does not report
+    /// at all — opacity, a clip path, a transform. The frame is honest and the
+    /// row is invisible.
+    ///
+    /// SECOND: that the pixel lane could witness it, since it is the only lane
+    /// that sees what is DRAWN. Measured across three sites, counting walked
+    /// rows that no seen row overlaps: 4 of 48, 2 of 56, 0 of 60 — and the skip
+    /// link is in none of them, while "Clear", "Main menu" and "About this
+    /// result" are. The pixel lane misses real controls and does not miss this
+    /// one, so using it as evidence of invisibility would hide three visible
+    /// things to hide one invisible one.
+    ///
+    /// The fact and the gate that reads it are kept because the RULE is right —
+    /// a row nobody can see is not what "the first one" means. What is missing
+    /// is evidence neither lane publishes today.
+    public static let notDrawn = RowFacts(rawValue: 1 << 13)
 
     /// The page's own furniture, however it is named.
     public static let furnitureGroups: RowFacts = [.inToolbar, .inForm]

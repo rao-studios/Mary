@@ -136,6 +136,7 @@ import Testing
             uniquingKeysWith: { first, _ in first })
 
         var wrong: [String] = []
+        var detail: [String: String] = [:]
         for (url, recording) in recordings {
             guard let trip = trips[recording.tripID] else {
                 wrong.append("\(url.lastPathComponent) records a trip that is gone")
@@ -148,9 +149,14 @@ import Testing
                 let judged = TripLayer.judge(leg: expectation, recording: leg)
                 guard judged.layer == .pageRouting || judged.layer == .perception
                 else { continue }
-                wrong.append(
-                    "\(recording.tripID)[\(leg.index)] \(judged.layer?.rawValue ?? "") "
-                        + (judged.because ?? ""))
+                // KEYED ON WHAT DOES NOT CHURN. The sentence carries a live row
+                // count ("though 96 row(s) in the reading answer the class"),
+                // which changes every time a round re-records — so a ledger keyed
+                // on it would report four regressions and four fixes each round
+                // and mean nothing. The trip, the leg and the LAYER are the
+                // finding; the sentence is how it reads.
+                wrong.append("\(recording.tripID)[\(leg.index)] \(judged.layer?.rawValue ?? "")")
+                detail["\(recording.tripID)[\(leg.index)]"] = judged.because ?? ""
             }
         }
         // A TWO-WAY LEDGER, THE SAME SHAPE AS THE ROUTING ONE.
@@ -166,7 +172,8 @@ import Testing
         let regressions = found.subtracting(Self.openFailures).sorted()
         let fixed = Self.openFailures.subtracting(found).sorted()
         let newly = "\(regressions.count) NEW recorded-page failure(s):\n"
-            + regressions.joined(separator: "\n")
+            + regressions.map { "\($0) — \(detail[String($0.split(separator: " ")[0])] ?? "")" }
+                .joined(separator: "\n")
         #expect(regressions.isEmpty, "\(newly)")
         let gone = "\(fixed.count) no longer reproduce — strike them from "
             + "openFailures and say which round did it:\n"
@@ -186,11 +193,26 @@ import Testing
     /// detector's recall and belongs in VisionAX rather than here. Both are
     /// result pages whose answer rows the reading did not group.
     static let openFailures: Set<String> = [
-        "check-the-box[0] R2 reached nothing, though 27 row(s) in the reading answer the class",
-        "press-by-name[0] R2 reached nothing, though 96 row(s) in the reading answer the class",
-        "music-between-two-page-legs[2] R2 reached row 45, which is not inResultGroup",
-        "search-then-open-second[1] P no row in this reading answers the class (107 rows read) — the recall belongs in the detector",
-        "site-search[1] P no row in this reading answers the class (102 rows read) — the recall belongs in the detector",
+        // A goal naming something the reading spells differently. Both reach
+        // nothing though rows answering the class are plainly there.
+        "check-the-box[0] R2",
+        "press-by-name[0] R2",
+        // ROUND 5 MOVED THIS ONE FROM P TO R2, which is the whole value of the
+        // move: "no row answers the class" blamed the detector's recall, and the
+        // truth is that a row does answer and the route reached number 3 of its
+        // kind instead of number 1. A routing miss, statable and fixable.
+        "site-search[1] R2",
+        // THE ONE THAT IS GENUINELY PERCEPTION. On the read the route was argued
+        // against, no row sits in a result group at all — the pixel lane grouped
+        // the page as fourteen bands and the walk added rows the merge could not
+        // place. `PageListDerivation` answers this when it fires; here it did
+        // not, and why is round 6's first question.
+        "search-then-open-second[1] P",
+        // STRUCK BY ROUND 5: "music-between-two-page-legs[2] R2 reached row 45,
+        // which is not inResultGroup". It was never about row 45. The classifier
+        // was reading the page the act ARRIVED at rather than the one the route
+        // was argued against — see `TripLayer.routedPage` — so a leg that
+        // navigated was judged against its own destination. It passes outright.
     ]
 
     /// THE DRIFT RULE MUST BE ABLE TO FAIL, and until a live round commits its

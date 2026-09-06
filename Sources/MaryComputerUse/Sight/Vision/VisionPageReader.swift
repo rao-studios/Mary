@@ -443,13 +443,18 @@ public enum VisionPageReader {
         windowTitle: String
     ) -> Reading {
         var sealed = reading
-        sealed.rows = PageRegionDerivation.assign(
+        let placed = PageRegionDerivation.assign(
             rows: merged.rows, pageFrame: reading.pageFrame)
-        sealed.groups = merged.groups
+        // AND THE LISTS THE READING DID NOT FIND. After the regions, because a
+        // list is only a list in the page's own column — see `PageListDerivation`.
+        let listed = PageListDerivation.lists(rows: placed, groups: merged.groups)
+        sealed.rows = RowFactsDerivation.derive(
+            rows: listed.rows, groups: listed.groups)
+        sealed.groups = listed.groups
         sealed.elements = legacyElements(
             sealed.rows, pid: pid, appName: appName, windowTitle: windowTitle)
         sealed.map = legacyMap(
-            sealed.rows, groups: merged.groups,
+            sealed.rows, groups: listed.groups,
             labeledFraction: reading.map.labeledFraction)
         return sealed
     }

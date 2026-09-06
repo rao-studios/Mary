@@ -66,14 +66,20 @@ public struct PageRouteDomain: ArbitrationDomain {
     /// every row rather than quietly widening back to all of them.
     public let regionNamedInGoal: PageRegion??
 
+    /// The goal named a THING, as opposed to counting one or naming nothing.
+    /// See `PageRouter.clearsFloor`.
+    public let goalNamesSomething: Bool
+
     public init(
         verb: PageRouteVerb,
         kindNamedInGoal: PageElementKind?,
         hasFillableRow: Bool,
         hasPick: Bool,
-        regionNamedInGoal: PageRegion?? = nil
+        regionNamedInGoal: PageRegion?? = nil,
+        goalNamesSomething: Bool = false
     ) {
         self.regionNamedInGoal = regionNamedInGoal
+        self.goalNamesSomething = goalNamesSomething
         self.verb = verb
         self.kindNamedInGoal = kindNamedInGoal
         self.hasFillableRow = hasFillableRow
@@ -169,7 +175,8 @@ public struct PageRouteDomain: ArbitrationDomain {
     public func clearsFloor(
         _ evidence: PageRouteEvidence, standing: ArbitrationStanding
     ) -> Bool {
-        PageRouter.clearsFloor(evidence, standing: standing)
+        PageRouter.clearsFloor(
+            evidence, standing: standing, namedInGoal: goalNamesSomething)
     }
 
     // MARK: - The sentences
@@ -329,7 +336,10 @@ public enum PageRouter {
             kindNamedInGoal: named,
             hasFillableRow: rows.contains { $0.affordance == .fill || $0.kind == .field },
             hasPick: !goal.isEmpty,
-            regionNamedInGoal: regionNamed)
+            regionNamedInGoal: regionNamed,
+            // A POSITION IS NOT A NAME, and neither is an empty goal.
+            goalNamesSomething: !goal.isEmpty
+                && !PageElementKindDerivation.namesOnlyAPosition(goal))
     }
 
     /// Cosine per slate key, or nothing at all in degraded mode.
@@ -378,7 +388,7 @@ public enum PageRouter {
     static func countsForAPosition(_ row: PageRow, verb: PageRouteVerb) -> Bool {
         var uncountable: RowFacts = [
             .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
-            .behindOverlay, .echoOfQuery,
+            .behindOverlay, .echoOfQuery, .notDrawn,
         ]
         if verb == .fill { uncountable.remove(.inForm) }
         guard row.facts.isDisjoint(with: uncountable) else { return false }
@@ -387,10 +397,24 @@ public enum PageRouter {
     }
 
     static func clearsFloor(
-        _ evidence: PageRouteEvidence, standing: ArbitrationStanding
+        _ evidence: PageRouteEvidence,
+        standing: ArbitrationStanding,
+        namedInGoal: Bool = false
     ) -> Bool {
         let lexical = standing == .candidate ? candidateLexicalFloor : lexicalFloor
         let semantic = standing == .candidate ? candidateFloor : semanticFloor
+        // MEANING ALONE ADMITS, AND IT HAS TO.
+        //
+        // PIN: TRIED AND MEASURED AND REVERTED, so nobody tries it again. Making
+        // a NAMED goal require naming evidence — "a name must be answered by a
+        // name" — looks right and is wrong: a page that spells its search box
+        // "Search or ask a question" is reached by meaning and nothing else, and
+        // `meaningCarriesACandidateTheWordsOnlyScatter` pins exactly that. The
+        // real problem it was aimed at — a meaning-only match on this screen
+        // beating a NAMED match one screen down that nobody had looked for — is
+        // not a floor question at all. It belongs to the act, which now looks
+        // further before it settles for a weak match. See
+        // `BrowserEngine.lookingFurther`.
         return evidence.lexical >= lexical || evidence.semantic >= semantic
     }
 
