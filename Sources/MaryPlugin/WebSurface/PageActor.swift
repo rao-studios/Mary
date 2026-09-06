@@ -123,6 +123,21 @@ extension BrowserEngine {
                 // is published, so nothing can be offered from the page that just left.
                 if PageReceipts.navigation(before.shell, shellNow) != nil {
                     retractSlate()
+                    // A SUBMIT THAT MADE A RESULTS PAGE IS A LIST OF ANSWERS TOO.
+                    //
+                    // PIN: ONLY `search_web` USED TO REMEMBER. Searching a site
+                    // through its OWN box — fill the field, press return — lands
+                    // on results exactly as the address bar does, and the next
+                    // "open the first one" then routed as a bare press over the
+                    // whole page, counting the site's chrome among the answers.
+                    // The evidence is the same the search recipe already trusts:
+                    // the typed words, folded, showing up in the page that
+                    // arrived. No site name, no address kept.
+                    if case .typeText(let typing) = command.action, typing.submit,
+                       let arrived = shellNow,
+                       WebSearchRecipe.searched(for: typing.text, shell: arrived) {
+                        lastResultQuery = typing.text
+                    }
                 }
                 switch await read(target, shell: shellNow ?? shell) {
                 case .failure(let refusal):

@@ -88,8 +88,28 @@ public enum WebSearchRecipe {
             elements: read.elements, map: read.map ?? PageMapSummary(),
             pageFrame: read.shell?.pageFrame ?? .zero)
 
+        // A BARE SEARCH SHOWS THE RESULTS; IT DOES NOT WALK INTO ONE.
+        //
+        // PIN: THE PACKAGE ALREADY SAID SO, AND THE ENGINE DID OTHERWISE.
+        // `browsing.mary` declares this verb as "show the results, opening one
+        // when the person named which" — and this arbitrated `pick ?? ""` with
+        // `.openResult`, whose no-goal fallback selects the page's first answer
+        // by design. So "search the web for X" opened whatever happened to be
+        // first, having been asked only to search. Measured live: 5.5s, of which
+        // the second read and the second arbitration were spent walking into a
+        // result nobody named. With no pick there is nothing to arbitrate, and
+        // the listing is the answer.
+        guard let pick, !pick.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return BrowserOutcome(
+                ok: true,
+                spoken: "I searched for \(asked). \(PageListing.tail(roster))",
+                shell: read.shell, elements: read.elements, map: read.map,
+                receipts: opened.receipts,
+                landed: opened.landed)
+        }
+
         let routed = await engine.arbitrate(
-            pick ?? "", verb: .openResult(query: asked), in: roster)
+            pick, verb: .openResult(query: asked), in: roster)
         guard let choice = routed.winner else {
             if let refusal = routed.refusal, case .ambiguousElement = refusal {
                 return await engine.refusing(refusal)
@@ -106,7 +126,7 @@ public enum WebSearchRecipe {
         // A PICK THAT MATCHED NOTHING IS SAID OUT LOUD. The page's first answer is a
         // better outcome than a refusal, and pretending it was what they named is not.
         let unmatched = routed.trace.goalUnmatched
-            ? "I couldn't match \"\(pick ?? "")\", so I opened the first result. "
+            ? "I couldn't match \"\(pick)\", so I opened the first result. "
             : ""
 
         let pressed = await engine.pressOnPage(choice.label, in: target, deadline: deadline)

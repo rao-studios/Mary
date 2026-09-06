@@ -527,3 +527,58 @@ import Testing
         #expect(hands.clicks.isEmpty)
     }
 }
+@Suite struct SearchShowsResultsTests {
+
+    static func results() -> (elements: [AXScreenElement], map: PageMapSummary) {
+        BrowsingFixtures.page(
+            [(role: "AXLink", label: "Alpine touring boots reviewed in full", affordance: .press),
+             (role: "AXLink", label: "The ten best touring boots this year", affordance: .press)],
+            group: (kind: "list", title: nil))
+    }
+
+    /// A BARE SEARCH SHOWS THE RESULTS AND PRESSES NOTHING.
+    ///
+    /// PIN: `browsing.mary` DECLARES THIS VERB AS "show the results, opening one
+    /// when the person named which", and the engine opened one regardless — the
+    /// no-goal fallback selecting the page's first answer. Measured live: a
+    /// search walked into a result nobody named, and spent a second read and a
+    /// second arbitration doing it.
+    @Test func aSearchWithNoPickPressesNothing() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+            ]),
+            page: FakePage(pages: [Self.results()]),
+            hands: hands)
+
+        let outcome = await engine.searchWeb("boots", in: BrowsingFixtures.target())
+
+        #expect(outcome.ok)
+        #expect(outcome.landed, "the search itself is proven by its navigation")
+        #expect(hands.clicks.isEmpty, "a bare search pressed something")
+        #expect(outcome.receipts.contains { $0.kind == .navigate })
+    }
+
+    /// AND ONE THAT NAMES A RESULT STILL OPENS IT.
+    @Test func aSearchWithAPickStillOpensIt() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+            ]),
+            page: FakePage(pages: [Self.results()]),
+            hands: hands)
+
+        _ = await engine.searchWeb(
+            "boots", in: BrowsingFixtures.target(), open: "the ten best touring boots this year")
+
+        #expect(!hands.clicks.isEmpty, "a named result was not opened")
+    }
+}

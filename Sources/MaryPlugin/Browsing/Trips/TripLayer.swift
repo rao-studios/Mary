@@ -329,6 +329,14 @@ public enum TripLayer {
                         + (recording.refusal.map { " · refused \($0)" } ?? ""))
             }
         }
+        // AND IT DID NOT DO MORE THAN IT WAS ASKED.
+        if wanted.noPress == true,
+           let click = recording.acts.first(where: { $0.kind == .click }) {
+            return .failed(
+                .execution,
+                "pressed something on the page \(click.atMilliseconds)ms in, "
+                    + "where nothing was to be pressed")
+        }
         if let landed = wanted.landed, landed != recording.landed {
             return .failed(
                 .execution,

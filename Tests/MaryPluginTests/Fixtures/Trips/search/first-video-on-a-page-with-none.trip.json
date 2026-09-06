@@ -7,9 +7,8 @@
         "budgetMs": 8000,
         "landed": false
       },
-      "note": "Counting rows at large used to answer with the first of whatever was there. A refusal costs a retry; a wrong press opens somebody's advert.",
+      "note": "Counting rows at large used to answer with the first of whatever was there. A refusal costs a retry; a wrong press opens somebody's advert. NOTE: no goalUnmatched here \u2014 nothing was reached, so nothing fell back; asserting it was my own error in round 0.",
       "page": {
-        "goalUnmatched": true,
         "minimumEligible": 5,
         "refusal": "elementNotFound",
         "verb": "press"

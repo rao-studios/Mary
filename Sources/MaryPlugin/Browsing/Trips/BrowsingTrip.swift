@@ -265,15 +265,25 @@ public struct TripEngineExpectation: Sendable, Equatable, Codable {
     public var refusal: TripRefusal?
     /// The whole leg, wall-clock. A leg that passes slowly is a `T` finding.
     public var budgetMs: Int?
+    /// NOTHING ON THE PAGE MAY BE PRESSED.
+    ///
+    /// PIN: THE ONLY WAY TO SAY "AND IT DID NOT DO MORE THAN ASKED". A bare
+    /// search that walks into a result still navigates and still lands, so every
+    /// receipt expectation a leg can make passes while the browser sits on a page
+    /// nobody asked for. What separates the two is whether a click was performed
+    /// at all, and the recording knows.
+    public var noPress: Bool?
 
     public init(
         receipt: TripReceipt? = nil, landed: Bool? = nil,
-        refusal: TripRefusal? = nil, budgetMs: Int? = nil
+        refusal: TripRefusal? = nil, budgetMs: Int? = nil,
+        noPress: Bool? = nil
     ) {
         self.receipt = receipt
         self.landed = landed
         self.refusal = refusal
         self.budgetMs = budgetMs
+        self.noPress = noPress
     }
 }
 

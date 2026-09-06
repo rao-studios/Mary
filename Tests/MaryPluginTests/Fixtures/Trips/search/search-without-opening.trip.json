@@ -6,13 +6,10 @@
       "engine": {
         "budgetMs": 12000,
         "landed": true,
+        "noPress": true,
         "receipt": "navigation"
       },
-      "note": "TWO FINDINGS, MEASURED LIVE, AND THIS ASSERTS THE INDEFENSIBLE ONE. browsing.mary declares search_web as \"show the results, opening one when the person named which\", and the engine opens one regardless: searchAndOpen arbitrates `pick ?? \"\"` with .openResult, which falls back to the page's first answer. Whether it should open at all is a design question for round 3, because always-opening is currently masking the missing implied arguments that would let \"watch a video\" open one on purpose. What is not a design question: when it DOES fall back with no goal, the trace reports goalUnmatched false, so the recipe's own \"I couldn't match that, so I opened the first result\" sentence never fires and the turn claims it found what was asked for. Measured at 5.5s, of which the second read and the second arbitration are spent walking into a result nobody named.",
-      "page": {
-        "goalUnmatched": true,
-        "verb": "openResult"
-      },
+      "note": "browsing.mary declares search_web as \"show the results, opening one when the person named which\", and the engine opened one regardless \u2014 the no-goal fallback selecting the page's first answer. Round 1 E: with no pick there is nothing to arbitrate, and the listing is the answer. What this asserts is that the search landed on its own navigation and pressed nothing.",
       "routing": {
         "arguments": {
           "query": "alpine touring boots"
