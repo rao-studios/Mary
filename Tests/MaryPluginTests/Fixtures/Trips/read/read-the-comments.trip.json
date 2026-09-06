@@ -1,0 +1,21 @@
+{
+  "category": "read",
+  "id": "read-the-comments",
+  "legs": [
+    {
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. read_corpus_document at 0.78 with a browser in front.",
+      "routing": {
+        "mustNotReach": [
+          "read_corpus_document"
+        ],
+        "skill": "read_page_text"
+      },
+      "say": "read the comments"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "article"
+  },
+  "summary": "The comments are on the page, not in a project corpus."
+}

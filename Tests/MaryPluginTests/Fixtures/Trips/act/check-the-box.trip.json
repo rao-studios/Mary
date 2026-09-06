@@ -1,0 +1,27 @@
+{
+  "category": "act",
+  "id": "check-the-box",
+  "legs": [
+    {
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. Read as perceive, reaches nothing. The same class as 'click the download button' in the ledger.",
+      "page": {
+        "verb": "press",
+        "winner": {
+          "affordance": "press"
+        }
+      },
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "check the box that says remember me"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "form"
+  },
+  "summary": "A checkbox named by its label is a press."
+}

@@ -1,0 +1,25 @@
+{
+  "category": "arrive",
+  "id": "refresh-is-reload",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. Reaches nothing today though reload_page ships. A route fixture on reload_page.",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "noRequiredArguments",
+        "skill": "reload_page"
+      },
+      "say": "refresh"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "'Refresh' reaches the reload verb."
+}

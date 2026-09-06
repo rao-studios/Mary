@@ -273,7 +273,44 @@ findings in the engine, each landed in its layer by the classifier:
 
 What passed, on real pages: every read trip; the omnibox search path including
 the long-query retype loop and forward-delete against completion; the echo and
-strip refusals on a real results page. What could not be staged honestly: the
+strip refusals on a real results page.
+
+### Round 0 — the census: what a person says that the corpus had not
+
+The corpus was authored from the engine's own verbs. `BrowsingGapCensusTests`
+walked in from the other side — forty-five things a person actually says at a
+browser — and rehearsed each through the real gates on a real stage. Doing so
+first exposed that the stage had been empty: a hand-built snapshot holds no
+application profiles, so every rehearsal until then had run with no `web-page`
+class standing. `BrowsingRehearsalSnapshot` now loads the graph the way Mary
+does; re-measured, twelve of thirteen ledger findings reproduced identically and
+one was struck as the instrument's. The census then found four classes, and
+fifteen of its sentences are trips in the ledger now.
+
+- **The confident wrong action — the class that matters most.** A skill wins the
+  corpus, the lane dispatches with no model round, and it is the wrong act
+  entirely. `reload_page` is a magnet: "save this page" (0.81), "copy the link"
+  (0.76) and "find the word…" (0.70) all reach it on the confidence lane.
+  "Fill in my email address" reaches `open_location` and would type that
+  sentence into the address bar. **Proven live through the whole turn in Sand:**
+  "save this page" read as operate, won `reload_page` uniquely, dispatched, and
+  reloaded the page — then reported "didn't finish loading", which is the
+  `settle` defect meeting it. The grammar gained `mustNotReach` and `lane: none`
+  to say exactly this. The fix is a summary that says what each verb *is*, never
+  a token list naming these sentences.
+- **Cross-surface leaks with a browser in front.** "Close this tab" → a coding
+  editor's split; "stop loading" → the typer's stop; "read the comments" → a
+  project corpus document; "turn the volume up" → the music app, the transport
+  twins on the variant their summaries did not separate.
+- **Synonyms for shipped verbs.** "Refresh" reaches nothing though `reload_page`
+  ships; "how many tabs" nothing though `list_tabs` does; "check the box…",
+  "press the blue button" and "submit the form" nothing though `click_on_page`
+  does; "read me the first paragraph" reaches the wrong twin of the two page
+  reads. Package data — a fixture that names its surface — is the fix.
+- **Verbs that do not exist.** Reopen a closed tab, duplicate, close the others,
+  select all, reader view, a dropdown's option, captions, the next video, a
+  relative seek, downloads, history, and "send this page" elsewhere. Round 3's
+  list grows by these. What could not be staged honestly: the
 context trips (another application must lead), the media trips (the seed is a
 file page, not a watch page — zero controls reveal), and the consent wall. And `PageRouteVerb.word` prints `openResult` as
 "result", so a leg asking about the openResult arbitration was judged against the

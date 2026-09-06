@@ -1,0 +1,19 @@
+{
+  "category": "act",
+  "id": "submit-the-form",
+  "legs": [
+    {
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. Read as converse, reaches nothing.",
+      "routing": {
+        "intent": "operate",
+        "skill": "click_on_page"
+      },
+      "say": "submit the form"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "form"
+  },
+  "summary": "Submitting a form is an action on the page."
+}

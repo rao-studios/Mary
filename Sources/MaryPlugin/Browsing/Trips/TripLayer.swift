@@ -84,6 +84,23 @@ public enum TripLayer {
         // runner is what fills this in.
         guard let found = recording.routing else { return nil }
 
+        // THE CONFIDENT WRONG ACTION, FIRST. A skill the leg forbids winning is
+        // a finding whatever else is true of the turn.
+        if let winner = found.uniqueSkill, wanted.mustNotReach?.contains(winner) == true {
+            return .failed(
+                .abilityRouting,
+                "reached \(winner), which must not answer this" + topAffinities(found))
+        }
+        // NOTHING AT ALL SHOULD FIRE. The verb does not exist yet, and until it
+        // does the honest turn is one that asks rather than one that acts.
+        if wanted.lane == TripLane.nothing {
+            if let winner = found.uniqueSkill {
+                return .failed(
+                    .abilityRouting,
+                    "dispatched \(winner) where nothing should have" + topAffinities(found))
+            }
+            return nil
+        }
         if let intent = wanted.intent, let read = found.intent, intent != read {
             return .failed(
                 .abilityRouting,

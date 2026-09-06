@@ -1,0 +1,22 @@
+{
+  "category": "tabs",
+  "id": "close-this-tab-not-the-editor",
+  "legs": [
+    {
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. unsplit_editor \u2014 a coding verb \u2014 at 0.72 on the confidence lane, with a browser in front. close_tab is round 3; until then nothing should fire, and certainly not that.",
+      "pending": "round 3",
+      "routing": {
+        "mustNotReach": [
+          "unsplit_editor"
+        ],
+        "skill": "close_tab"
+      },
+      "say": "close this tab"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "Closing a tab must not reach an editor's split."
+}

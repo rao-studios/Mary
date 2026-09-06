@@ -59,7 +59,14 @@ public enum TripLane: String, Sendable, Equatable, Codable, CaseIterable {
     /// The model was asked.
     case model
     /// Nothing dispatched.
-    case none
+    ///
+    /// PIN: NAMED `nothing`, WITH THE RAW VALUE "none", ON PURPOSE. A case called
+    /// `none` collides with `Optional.none` at every Swift call site that passes
+    /// `.none` to a `TripLane?` — it resolves to nil, the leg silently asserts no
+    /// lane at all, and a test built that way passed for the wrong reason before
+    /// the mismatch surfaced. The JSON keeps saying "none", which is what a trip
+    /// author would write; only the Swift name steps out of the trap.
+    case nothing = "none"
 }
 
 /// The argument shape the confidence lane could fill. Mirrors
@@ -139,6 +146,15 @@ public struct TripRoutingExpectation: Sendable, Equatable, Codable {
     public var intent: String?
     public var lane: TripLane?
     public var shape: TripArgumentShape?
+    /// SKILLS THAT MUST NOT BE THE UNIQUE WINNER — the confident wrong action.
+    ///
+    /// PIN: THE CENSUS FOUND A CLASS THE GRAMMAR COULD NOT SAY. "Save this page"
+    /// reaches reload_page at 0.81 on the confidence lane and would RELOAD the
+    /// page with no model round; "fill in my email address" reaches
+    /// open_location and would type that sentence into the address bar. A leg
+    /// asserting the right skill cannot express that when no right skill exists
+    /// yet; this can. With `lane: none` it says nothing at all may fire.
+    public var mustNotReach: [String]?
     /// Arguments the lane must have filled, by name. The values are THE PERSON'S
     /// OWN WORDS lifted out of the utterance, which is what the confidence lane
     /// can do and what a trip is entitled to assert.
@@ -146,13 +162,15 @@ public struct TripRoutingExpectation: Sendable, Equatable, Codable {
 
     public init(
         skill: String, intent: String? = nil, lane: TripLane? = nil,
-        shape: TripArgumentShape? = nil, arguments: [String: String]? = nil
+        shape: TripArgumentShape? = nil, arguments: [String: String]? = nil,
+        mustNotReach: [String]? = nil
     ) {
         self.skill = skill
         self.intent = intent
         self.lane = lane
         self.shape = shape
         self.arguments = arguments
+        self.mustNotReach = mustNotReach
     }
 }
 

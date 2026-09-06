@@ -200,6 +200,37 @@ import Testing
         #expect(judged.verdict == .passed)
     }
 
+    /// THE CONFIDENT WRONG ACTION. "Save this page" reaching reload_page on the
+    /// confidence lane would reload the page with nobody asked; the leg forbids
+    /// that winner and the finding names it, whatever else the turn did.
+    @Test func aForbiddenWinnerIsARoutingFailureBeforeAnythingElse() {
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "save this page",
+                routing: TripRoutingExpectation(
+                    skill: "save_page", lane: .nothing, mustNotReach: ["reload_page"])),
+            recording: Self.recording(routing: RecordedRouting(
+                uniqueSkill: "reload_page", topAffinities: ["reload_page": 0.81])))
+        #expect(judged.layer == .abilityRouting)
+        #expect(judged.because?.contains("reload_page, which must not answer this") == true)
+    }
+
+    /// LANE NONE MEANS NOTHING MAY FIRE. A verb that does not exist yet is
+    /// answered honestly by a turn that asks, not one that acts.
+    @Test func laneNoneFailsOnAnyDispatchAndPassesOnNone() {
+        let leg = TripLeg(
+            say: "stop loading",
+            routing: TripRoutingExpectation(skill: "stop_loading", lane: .nothing))
+        let fired = TripLayer.judge(
+            leg: leg, recording: Self.recording(routing: RecordedRouting(uniqueSkill: "stop_dictation")))
+        #expect(fired.layer == .abilityRouting)
+        #expect(fired.because?.contains("dispatched stop_dictation where nothing should have") == true)
+
+        let quiet = TripLayer.judge(
+            leg: leg, recording: Self.recording(routing: RecordedRouting(uniqueSkill: nil)))
+        #expect(quiet.verdict == .passed)
+    }
+
     // MARK: - A
 
     @Test func theWrongApplicationAnsweringIsAnAmbientFailure() {

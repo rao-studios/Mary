@@ -1,0 +1,22 @@
+{
+  "category": "act",
+  "id": "find-on-page",
+  "legs": [
+    {
+      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. reload_page at 0.70 on the confidence lane; find_in_page is round 3.",
+      "pending": "round 3",
+      "routing": {
+        "mustNotReach": [
+          "reload_page"
+        ],
+        "skill": "find_in_page"
+      },
+      "say": "find the word budget on this page"
+    }
+  ],
+  "stage": {
+    "front": "browser",
+    "pageClass": "article"
+  },
+  "summary": "Find-in-page is not a reload."
+}

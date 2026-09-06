@@ -154,6 +154,17 @@ import Testing
                 report.append(measured.line)
 
                 let name = "\(trip.id)[\(index)]"
+                let reachedName = measured.winner?.reference.invocationName
+                if let reachedName, wanted.mustNotReach?.contains(reachedName) == true {
+                    wrong.append("\(name) reached \(reachedName), which must not answer this")
+                    continue
+                }
+                if wanted.lane == TripLane.nothing {
+                    if let reachedName {
+                        wrong.append("\(name) dispatched \(reachedName) where nothing should have")
+                    }
+                    continue
+                }
                 if let intent = wanted.intent, measured.intent != intent {
                     wrong.append("\(name) read as \(measured.intent), not \(intent)")
                 }
@@ -264,6 +275,34 @@ import Testing
         "page-question-from-an-editor[1] reached read_page_text, not read_enclosing_unit",
         // The peeling leaves the phrase that named the surface in the query.
         "search-then-open-second[0] filled query as \"alpine touring boots on the web\", not \"alpine touring boots\"",
+
+        // FOUND BY THE CENSUS (BrowsingGapCensusTests), on the real stage —
+        // what a person says at a browser that the corpus had not written down.
+        //
+        // THE CONFIDENT WRONG ACTION: a skill wins the corpus and the lane
+        // dispatches it with no model round, and it is the wrong act entirely.
+        // reload_page is a magnet — "save", "copy the link", "find" all pull
+        // toward it — and open_location catches a form field. The fix is a
+        // summary that says what each verb IS, and never a token list naming
+        // these sentences.
+        "save-this-page[0] reached reload_page, which must not answer this",
+        "copy-the-link[0] reached reload_page, which must not answer this",
+        "fill-my-email[0] reached open_location, which must not answer this",
+        // Cross-surface leaks with a browser in front.
+        "stop-loading[0] reached stop_dictation, which must not answer this",
+        "read-the-comments[0] reached read_corpus_document, which must not answer this",
+        "volume-up-on-a-video[0] reached control_playback, which must not answer this",
+        // The wrong twin of the two page reads.
+        "first-paragraph[0] reached read_page, not read_page_text",
+        // Synonyms for shipped verbs that the corpus does not carry.
+        "refresh-is-reload[0] read as converse, not operate",
+        "refresh-is-reload[0] had no unique winner, so reload_page costs a model round",
+        "how-many-tabs[0] had no unique winner, so list_tabs costs a model round",
+        "check-the-box[0] read as perceive, not operate",
+        "check-the-box[0] had no unique winner, so click_on_page costs a model round",
+        "press-by-colour[0] read as converse, not operate",
+        "submit-the-form[0] read as converse, not operate",
+        "play-from-the-start[0] read as converse, not operate",
     ]
 
     /// A QUESTION MUST NEVER BECOME A SEARCH. The reported defect's own shape,
