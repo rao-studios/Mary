@@ -198,12 +198,15 @@ and the guard.
 |---|---:|---:|---:|---:|---:|---|
 | act | 0 | 4 | 0 | 0 | 0% | P 1 · R2 1 · E 2 |
 | arrive | 2 | 4 | 0 | 0 | 33% | E 4 |
+| context | 1 | 5 | 1 | 6 | 17% | P 1 · R2 2 · E 2 |
 | media | 0 | 1 | 0 | 6 | 0% | P 1 |
 | read | 4 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 2 | 0% | — |
 | search | 1 | 7 | 0 | 0 | 13% | R2 4 · E 3 |
-| **all** | **7** | **16** | **1** | **6** | **30%** | P 2 · R2 5 · E 9 |
+| tabs | 1 | 0 | 4 | 0 | 100% | — |
+| **all** | **9** | **21** | **10** | **14** | **30%** | P 3 · R2 7 · E 11 |
 
-Exit criterion not met: no recordings at all for context, recovery, tabs; act at 0% — under 90%; arrive at 33% — under 90%; media at 0% — under 90%; search at 13% — under 90%; 5 page-routing failure(s) on the recorded corpus.
+Exit criterion not met: no leg ran in recovery; act at 0% — under 90%; arrive at 33% — under 90%; media at 0% — under 90%; search at 13% — under 90%; context has 5 failing leg(s); 7 page-routing failure(s) on the recorded corpus.
 
 ### Round 0 — driven directly against Chrome
 

@@ -41,35 +41,10 @@ import Testing
             .appendingPathComponent("MaryPluginTests/Fixtures/Trips", isDirectory: true)
     }
 
-    /// Every shipped package, exactly as the production snapshot is built.
+    /// The production snapshot, loaded once and shared — see
+    /// `BrowsingRehearsalSnapshot` for why a hand-built one measured nothing.
     private static func snapshot() throws -> AbilityRuntime.Snapshot? {
-        guard enabled,
-              let vectorizer = NLUtteranceVectorizer.shared,
-              let abilities = InstalledPackages.installed()
-        else { return nil }
-        let records = try FileManager.default
-            .contentsOfDirectory(at: abilities, includingPropertiesForKeys: nil)
-            .filter { $0.pathExtension.lowercased() == "mary" }
-            .map { url -> AbilityPackageRecord in
-                AbilityPackageRecord(
-                    package: try AbilityPackageCodec.load(from: url),
-                    source: .sourceTree, sourceURL: url,
-                    validation: .init(), rawData: Data())
-            }
-        guard let intent = SemanticIntentIndex.build(records: records, vectorizer: vectorizer),
-              let skills = SemanticSkillRequestIndex.build(
-                records: records, vectorizer: vectorizer)
-        else { return nil }
-        return AbilityRuntime.Snapshot(
-            records: records,
-            validation: .init(),
-            adapterManifests: MaryAdapterCatalog.adapterManifests(
-                adapters: MaryAdapterCatalog.adapters(),
-                observers: MaryAdapterCatalog.observers()),
-            semanticIndex: SemanticAbilityRequestIndex.build(
-                records: records, vectorizer: vectorizer),
-            semanticSkillIndex: skills,
-            semanticIntentIndex: intent)
+        BrowsingRehearsalSnapshot.load()
     }
 
     /// WHAT THE STAGE SUPPLIES, ASKED OF THE GRAPH RATHER THAN LISTED HERE.
@@ -81,13 +56,7 @@ import Testing
     static func targetClasses(
         front: String, in snapshot: AbilityRuntime.Snapshot
     ) -> Set<String> {
-        // The corpus is Chrome-only, and "browser" is the place every browser
-        // collapses to — so the stage's browser is the browser package's profile.
-        let wanted = front == "browser" ? "chrome" : front
-        let profile = snapshot.plugins.applicationProfiles.first {
-            $0.id.caseInsensitiveCompare(wanted) == .orderedSame
-        }
-        return Set(profile?.targetClasses ?? [])
+        BrowsingRehearsalSnapshot.targetClasses(front: front, in: snapshot)
     }
 
     /// One leg, measured.
@@ -267,8 +236,9 @@ import Testing
     /// "what does this function do" though nothing on the stage is a web page —
     /// invariant 5, and the reason the context trips exist.
     ///
-    /// A VERB THE CORPUS DOES NOT CARRY. "Open a new tab" reaches no unique
-    /// winner at all, though `new_tab` is shipped and realized by both browsers.
+    /// (A VERB THE CORPUS DOES NOT CARRY was listed here once — "open a new tab"
+    /// reaching no unique winner — and it was the instrument: measured on an
+    /// empty stage. With web-page on the stage it wins outright.)
     static let knownFindings: Set<String> = [
         // An action read as something else.
         "ambiguous-name[0] read as perceive, not operate",
@@ -279,7 +249,12 @@ import Testing
         // …and the model round each one therefore costs.
         "press-by-ordinal-within-kind[0] had no unique winner, so click_on_page costs a model round",
         "transport-round-trip[1] had no unique winner, so control_media costs a model round",
-        "new-tab[0] had no unique winner, so new_tab costs a model round",
+        // STRUCK, AND NOT BY A ROUND: "new-tab[0] had no unique winner" was the
+        // instrument, not the corpus. It was measured on an empty stage — the
+        // hand-built snapshot held no application profiles, so no target class
+        // stood — and with web-page on the stage new_tab wins outright. The
+        // other twelve reproduce identically on the real stage. See
+        // BrowsingRehearsalSnapshot.
         // Twins that have not been separated.
         "describe-media[0] reached now_playing, not describe_media",
         "list-tabs[0] reached list_app_windows, not list_tabs",
