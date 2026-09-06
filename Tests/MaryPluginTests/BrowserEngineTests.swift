@@ -494,6 +494,126 @@ enum BrowsingFixtures {
     }
 }
 
+@Suite struct NavigationReceiptTests {
+
+    /// A NAVIGATION IS RECEIPT RANK ONE, AND `landed` COMES FROM IT.
+    ///
+    /// PIN: MEASURED ACROSS SIX LEGS OF ROUND 0. A settled navigation returned
+    /// success carrying no receipt at all, so every open, back, reload and search
+    /// reported proven work as unproven — and the continuation nudge then asks the
+    /// model for work that is already done.
+    @Test func aSettledNavigationCarriesItsOwnReceipt() async {
+        let shell = FakeShell([
+            BrowsingFixtures.shell(title: "Before"),
+            BrowsingFixtures.shell(title: "After"),
+            BrowsingFixtures.shell(title: "After"),
+            BrowsingFixtures.shell(title: "After"),
+        ])
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]))
+
+        let outcome = await engine.navigate(
+            .open("https://example.com/"), in: BrowsingFixtures.target())
+
+        #expect(outcome.ok)
+        #expect(outcome.landed, "a proven navigation reported itself unproven")
+        #expect(outcome.receipts.count == 1)
+        #expect(outcome.receipts.first?.kind == .navigate)
+        #expect(outcome.receipts.first?.landed == true)
+        if case .verified(.navigation(let title)) = outcome.receipts.first?.effect {
+            #expect(title == "After")
+        } else {
+            Issue.record("the receipt is not a verified navigation")
+        }
+    }
+
+    /// A NAVIGATION THAT NEVER SETTLES CARRIES NOTHING, and says so.
+    @Test func aStalledNavigationCarriesNoReceipt() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "Same")]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(
+            .open("https://example.com/"), in: BrowsingFixtures.target())
+
+        #expect(outcome.refusal == .navigationDidNotSettle)
+        #expect(outcome.receipts.isEmpty)
+        #expect(!outcome.landed)
+    }
+
+    /// AND NO PLAN MAY AUTHOR ONE. It is the engine's own act, like a browser
+    /// chord — refused with the same sentence as a kind nobody declared.
+    @Test func aPlanMayNotNavigate() {
+        let json = #"[{"kind": "navigate"}]"#
+        switch PageInteractionPlanValidator.validate(planJSON: json) {
+        case .valid:
+            Issue.record("a model-authored plan was allowed to navigate")
+        case .invalid(let issues):
+            #expect(issues.contains { $0.code == .unknownKind })
+        }
+        #expect(PageInteractionCommandKind.navigate.isAuthorable == false)
+        #expect(PageInteractionCommandKind.click.isAuthorable)
+    }
+}
+
+@Suite struct SettleArrivalTests {
+
+    /// A RELOAD LANDS ON THE SAME TITLE, AND THAT IS AN ARRIVAL.
+    ///
+    /// PIN: MEASURED IN ROUND 0 — a reload and a back both burned the full ten
+    /// second budget and reported `navigationDidNotSettle` about pages that had
+    /// arrived perfectly well, because settle demanded the title DIFFER.
+    @Test func aReloadOntoTheSameTitleArrives() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "A Page")]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(.reload, in: BrowsingFixtures.target())
+
+        #expect(outcome.ok, "a reload onto the same title was refused")
+        #expect(outcome.landed)
+        #expect(outcome.receipts.first?.kind == .navigate)
+    }
+
+    /// AND SO DOES A BACK, whose destination often carries the same words.
+    @Test func aBackOntoTheSameTitleArrives() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "A Page", canGoBack: true)]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(.back, in: BrowsingFixtures.target())
+
+        #expect(outcome.ok)
+        #expect(outcome.landed)
+    }
+
+    /// BUT GOING SOMEWHERE NEW STILL HAS TO GO SOMEWHERE. Accepting a page that
+    /// never moved would report a failed open as a success — the reason the two
+    /// claims are kept apart rather than both loosened.
+    @Test func anOpenOntoAPageThatNeverMovesIsStillRefused() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "A Page")]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(
+            .open("https://example.com/"), in: BrowsingFixtures.target())
+
+        #expect(outcome.refusal == .navigationDidNotSettle)
+        #expect(!outcome.landed)
+    }
+
+    /// A BLANK TITLE IS NOT AN ARRIVAL — a reload's empty frame must not be read
+    /// as the settled page.
+    @Test func aBlankFrameIsNotAnArrival() async {
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell(title: "")]),
+            page: FakePage([nil]))
+
+        let outcome = await engine.navigate(.reload, in: BrowsingFixtures.target())
+
+        #expect(outcome.refusal == .navigationDidNotSettle)
+    }
+}
+
 @Suite struct AddressLandedTests {
 
     /// THE ORDINARY CASE: what was typed, plus whatever the omnibox appended.

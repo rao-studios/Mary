@@ -360,7 +360,10 @@ import Testing
             "How to choose touring boots", in: BrowsingFixtures.target())
 
         #expect(outcome.ok)
-        #expect(outcome.landed)
+        // A REVEAL IS DELIVERED, NEVER LANDED. It changed nothing, so it proves
+        // nothing — `landed` is the top three receipts and this has none.
+        #expect(!outcome.landed)
+        #expect(outcome.receipts.isEmpty)
         #expect(hands.scrolls.count == 2)
         #expect(hands.scrolls.allSatisfy { $0 < 0 })
     }

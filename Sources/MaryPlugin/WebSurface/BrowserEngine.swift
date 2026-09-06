@@ -565,9 +565,12 @@ public actor BrowserEngine {
                 label: label, pid: target.processIdentifier, registration: target.registration)
             else { return refuse(.elementNotFound(label)) }
             emit(.acted("pressed \(label)"))
+            // A RELOAD LANDS ON THE SAME TITLE BY DEFINITION, and a back or a
+            // forward often does. What is owed is arrival, not difference.
             return await settle(
                 target, from: shell,
-                saying: request == .reload ? "Reloaded" : "Went \(request == .back ? "back" : "forward")")
+                saying: request == .reload ? "Reloaded" : "Went \(request == .back ? "back" : "forward")",
+                expecting: .arrival)
 
         case .scroll(let delta):
             guard let pageFrame = shell.pageFrame else { return refuse(.pageNotVisible) }
@@ -678,20 +681,78 @@ public actor BrowserEngine {
         return nil
     }
 
-    /// Wait for the address or the title to change, and stay changed.
+    /// THE RECEIPT A NAVIGATION EARNS — rank one of the ladder.
+    ///
+    /// PIN: `landed` COMES FROM A RECEIPT OR IT DOES NOT COME. Round 0 measured
+    /// six legs reporting proven work as unproven because a settled navigation
+    /// carried nothing, and the search recipe answering that by setting `landed`
+    /// by hand — a claim with no evidence behind it, which is the shape of the
+    /// bug the ranked ladder exists to prevent.
+    static func navigationReceipt(_ reading: WebSurfaceAX.Reading) -> PageCommandReceipt {
+        PageCommandReceipt(
+            sourceIndex: 0,
+            kind: .navigate,
+            target: nil,
+            delivery: .delivered,
+            effect: .verified(.navigation(title: reading.title ?? "the page")))
+    }
+
+    /// WHAT A NAVIGATION HAS TO SHOW BEFORE IT COUNTS AS DONE.
+    ///
+    /// PIN: "ARRIVED" AND "CHANGED" ARE NOT THE SAME CLAIM, and conflating them
+    /// cost round 0 two legs and ten seconds each. Going somewhere new must
+    /// CHANGE the address or the title — that is the strong evidence, and a
+    /// settle that accepted a page which never moved would report a failed open
+    /// as a success. But a reload, a back and a forward can legitimately land on
+    /// a page with the identical title, and demanding a change there burns the
+    /// whole budget and then reports `navigationDidNotSettle` about a page that
+    /// arrived perfectly well.
+    enum Arrival {
+        /// The address or the title must differ. Opening somewhere new.
+        case change
+        /// The load must finish. Reload, back, forward — where the same title is
+        /// an ordinary outcome.
+        case arrival
+    }
+
+    /// How long a same-title arrival is given to start before it is judged, so a
+    /// reload's blank frame is not read as the settled page.
+    static let arrivalGrace = Duration.milliseconds(750)
+    /// How many agreeing polls stand in for a load signal.
+    ///
+    /// PIN: MEASURED, BECAUSE CHROME PUBLISHES NO LOAD SIGNAL AT ALL. Its reload
+    /// button keeps the title "Reload" throughout a navigation — it never becomes
+    /// "Stop" — and its tree carries no busy node and no progress indicator
+    /// (polled live through `mary-ax-probe` across a dozen loads). So a declared
+    /// stop label would have been a schema field nothing could fill. Quiet
+    /// agreement is the only evidence a browser gives here, and three polls is
+    /// what makes it evidence rather than a coincidence.
+    static let arrivalQuietPolls = 3
+
+    /// Wait for the page to arrive — changed, or merely settled. See `Arrival`.
     func settle(
-        _ target: BrowserTarget, from before: WebSurfaceAX.Reading, saying verb: String
+        _ target: BrowserTarget, from before: WebSurfaceAX.Reading, saying verb: String,
+        expecting arrival: Arrival = .change
     ) async -> BrowserOutcome {
         var stable = 0
         var latest = before
-        let deadline = seams.now().addingTimeInterval(
+        let started = seams.now()
+        let deadline = started.addingTimeInterval(
             Double(Self.navigationBudget.components.seconds))
         while seams.now() < deadline {
             await seams.sleep(Self.navigationPoll)
             guard let reading = await seams.shell.read(
                 pid: target.processIdentifier, registration: target.registration)
             else { continue }
-            let moved = reading.url != before.url || reading.title != before.title
+            let changed = reading.url != before.url || reading.title != before.title
+            // A SAME-TITLE ARRIVAL COUNTS ONCE IT HAS BEEN QUIET, and not before
+            // the grace — a reload's first frame can read as the old page.
+            let quiet = arrival == .arrival
+                && seams.now() >= started.addingTimeInterval(
+                    Double(Self.arrivalGrace.components.attoseconds) / 1e18
+                        + Double(Self.arrivalGrace.components.seconds))
+                && !(reading.title ?? "").isEmpty
+            let moved = changed || quiet
             if moved && reading.title == latest.title && reading.url == latest.url {
                 stable += 1
             } else {
@@ -700,14 +761,18 @@ public actor BrowserEngine {
             latest = reading
             // TWO AGREEING POLLS, because a title flickers to the bare host and then to
             // the page's real name; reporting the first one names the wrong page.
-            if stable >= 2 {
+            // A QUIET ARRIVAL NEEDS MORE, because quiet is weaker evidence than change.
+            let needed = changed ? 2 : Self.arrivalQuietPolls
+            if stable >= needed {
                 lastChrome = reading
                 emit(.verified("the page changed"))
                 let site = reading.siteName.map { " at \($0)" } ?? ""
                 return BrowserOutcome(
                     ok: true,
                     spoken: "\(verb) \(reading.title ?? "the page")\(site).",
-                    shell: reading)
+                    shell: reading,
+                    receipts: [Self.navigationReceipt(reading)],
+                    landed: true)
             }
         }
         return refuse(.navigationDidNotSettle)

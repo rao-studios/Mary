@@ -34,6 +34,9 @@ extension PageInteractionPlanValidator {
             fields = ["deltaX", "deltaY", "settle"]
         case .wait:
             fields = ["seconds"]
+        case .navigate:
+            // Unreachable: admission refuses it before the fields are read.
+            fields = []
         }
         return fields.union(structuralFields)
     }
@@ -53,6 +56,8 @@ extension PageInteractionPlanValidator {
         case .adjust: return parseAdjust(object, sourceIndex: sourceIndex, issues: &issues)
         case .scroll: return parseScroll(object, sourceIndex: sourceIndex, issues: &issues)
         case .wait: return parseWait(object, sourceIndex: sourceIndex, issues: &issues)
+        // Unreachable: admission refuses an engine-only kind first.
+        case .navigate: return nil
         }
     }
 

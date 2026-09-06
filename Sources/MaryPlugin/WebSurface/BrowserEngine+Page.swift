@@ -157,7 +157,14 @@ public extension BrowserEngine {
                         shell: shell,
                         elements: roster.elements,
                         map: roster.map,
-                        landed: true)
+                        // A REVEAL CHANGES NOTHING, SO IT PROVES NOTHING.
+                        //
+                        // PIN: `landed` IS THE TOP THREE RECEIPTS AND NOTHING ELSE.
+                        // This returned true with an EMPTY receipt list — measured on
+                        // `scroll-to` in round 0 — which is `landed` from nothing at
+                        // all. Bringing something into view is delivered work and the
+                        // sentence says so; it is not proof that anything moved.
+                        landed: false)
                 }
                 guard attempt < Self.scrollAttempts else {
                     await seams.hands.restoreCursor(to: cursor)

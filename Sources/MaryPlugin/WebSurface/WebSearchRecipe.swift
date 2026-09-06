@@ -54,9 +54,17 @@ public enum WebSearchRecipe {
         // ALREADY DONE THIS TURN. Saying so is the whole answer — searching again would
         // land on the same page and be unable to prove it.
         if let landing = memo.landing(for: asked) {
+            // THE RECEIPT IS THE LANDING IT REMEMBERS. `landed` rests on evidence
+            // even here: this turn already proved the navigation, and reporting
+            // the work as done without saying what proved it is the hand-set
+            // claim this recipe used to make three times over.
             return BrowserOutcome(
                 ok: true,
                 spoken: "I already opened \(landing.destination) for that.",
+                receipts: [PageCommandReceipt(
+                    sourceIndex: 0, kind: .navigate, target: nil,
+                    delivery: .delivered,
+                    effect: .verified(.navigation(title: landing.destination)))],
                 landed: true)
         }
         // A BARE DOTTED WORD IS AN ADDRESS TO THIS FIELD, not a query, and the two do
@@ -86,9 +94,14 @@ public enum WebSearchRecipe {
             if let refusal = routed.refusal, case .ambiguousElement = refusal {
                 return await engine.refusing(refusal)
             }
+            // THE SEARCH LANDED EVEN THOUGH THE RESULTS DID NOT READ. What is
+            // proven is the navigation that carried it; the reading is a separate
+            // claim, and this sentence is careful not to make it.
             return BrowserOutcome(
                 ok: true, spoken: "I searched for \(asked), but I can't make out any results.",
-                shell: read.shell, elements: read.elements, map: read.map, landed: true)
+                shell: read.shell, elements: read.elements, map: read.map,
+                receipts: opened.receipts,
+                landed: opened.landed)
         }
         // A PICK THAT MATCHED NOTHING IS SAID OUT LOUD. The page's first answer is a
         // better outcome than a refusal, and pretending it was what they named is not.
@@ -104,8 +117,10 @@ public enum WebSearchRecipe {
                 ok: true,
                 spoken: "\(unmatched)I searched for \(asked). \(listing)",
                 shell: read.shell, elements: read.elements, map: read.map,
-                receipts: pressed.receipts,
-                landed: true)
+                // The search's navigation is proven; the press's receipts say for
+                // themselves what became of it.
+                receipts: opened.receipts + pressed.receipts,
+                landed: opened.landed)
         }
         memo.record(query: asked, destination: destination)
         guard !unmatched.isEmpty else { return pressed }
