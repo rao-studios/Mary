@@ -11,9 +11,9 @@
       "engine": {
         "budgetMs": 10000,
         "landed": true,
-        "receipt": "textAppeared"
+        "receipt": "navigation"
       },
-      "note": "Not search_web: the address bar would leave the site. fill_in_page with submit is the generic answer and needs nothing site-specific.",
+      "note": "Not search_web: the address bar would leave the site. fill_in_page with submit is the generic answer and needs nothing site-specific. With submit the field is committed and the page moves on, so the receipt is the navigation that followed; textAppeared is a fill WITHOUT a submit.",
       "page": {
         "verb": "fill",
         "winner": {

@@ -192,28 +192,18 @@ its validator, the recording, the recording seams over the engine's existing
 boundary, the failure classifier, the scoreboard, both runners, the replay net
 and the guard.
 
-### Round 0 — R1, measured
+### Round 0 — 2026-09-06
 
-`BrowsingTripRoutingTests` measured every leg that states where its words should
-go, against the real embedding model and the shipped packages. Thirteen findings,
-recorded as a two-way ledger in that suite: a new one is a regression, and a
-fixed one has to be struck off deliberately with the round that did it.
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 0 | 4 | 0 | 0 | 0% | P 1 · R2 1 · E 2 |
+| arrive | 2 | 4 | 0 | 0 | 33% | E 4 |
+| media | 0 | 1 | 0 | 6 | 0% | P 1 |
+| read | 4 | 0 | 1 | 0 | 100% | — |
+| search | 1 | 7 | 0 | 0 | 13% | R2 4 · E 3 |
+| **all** | **7** | **16** | **1** | **6** | **30%** | P 2 · R2 5 · E 9 |
 
-- **An action read as something else**, which costs a model round because the
-  confidence lane only runs on an action turn. "Click the download button" reads
-  as perceive; "type X into the search box and press return" and "play it again"
-  read as converse; "open the third link" reads as converse and reaches nothing.
-- **Twins that have not been separated.** `control-playback` and `control-media`
-  were separated by naming their surfaces in their summaries. The DESCRIBE twins
-  have the same collision and have not been: "what's playing in this tab" reaches
-  `now_playing` at 0.82 against `describe_media` at 0.70. So do the LISTING
-  twins: "what tabs do I have open" reaches `list_app_windows` at 0.85.
-- **A browser question answered by another surface.** "Which tab am I on" reaches
-  `list_playlists` at 0.63, and `current_page` is not offered at all.
-- **A page skill offered with an editor in front.** "What does this function do"
-  with an editor staged reaches `read_page_text` at 0.74 — invariant 5.
-- **A shipped verb the corpus does not carry.** "Open a new tab" reaches no
-  unique winner, though `new_tab` is shipped and realized by both browsers.
+Exit criterion not met: no recordings at all for context, recovery, tabs; act at 0% — under 90%; arrive at 33% — under 90%; media at 0% — under 90%; search at 13% — under 90%; 5 page-routing failure(s) on the recorded corpus.
 
 ### Round 0 — driven directly against Chrome
 
@@ -243,7 +233,46 @@ something else. Three findings came out of it.
 
 Two bugs in the instruments surfaced the same way and are fixed. A trip ran
 against whatever tab was open while claiming a page class, and now stages or
-declares itself unstageable. And `PageRouteVerb.word` prints `openResult` as
+declares itself unstageable.
+
+### Round 0 — the corpus driven, with staging
+
+Every trip the probe can stage was driven against Chrome on real pages. Four
+findings in the engine, each landed in its layer by the classifier:
+
+- **The address readback could not see Chrome elide a scheme (E, fixed here).**
+  Three trips in a row could not stage — "couldn't find the address bar" — on a
+  browser that reported the field found and focused. Ten keyboard acts, three
+  type-and-retry rounds, every readback refused: the omnibox shows a recognised
+  address without its scheme, and a literal prefix test called a correct type a
+  failed one. Found by the corpus, not by reading the code. The readback now
+  tolerates exactly Chrome's elisions and nothing looser, and a refused readback
+  logs its shape and never the address.
+- **`settle` conflates "arrived" with "changed" (E).** It waits for the title or
+  address to differ from before. A reload, a back to a same-titled page, and a
+  navigation to the page already open all arrive without changing either — and
+  all three burn the full 10s budget and report "didn't finish loading".
+  `arrive-by-name` and `transport-round-trip` hit it.
+- **A reveal claims `landed` with no receipt at all (E).** `scroll-to` reported
+  `landed: true` and an empty receipt list. `landed` is meant to rest on the top
+  three receipts only; a scroll has a sign at best.
+- **A site search does not remember it made a results page (R2).** After
+  `fill_in_page` with submit on a site's own box, "open the first one" routes as a
+  bare press over the whole page — only `search_web` sets the remembered query.
+- **Furniture wins a result pick on an ordinal (R2).** "Open the second one"
+  selected an `inForm` navigation-strip row with no press affordance. The fact is
+  on the row; the domain rule does not yet make it ineligible for `.openResult`.
+- **A control read twice looks ambiguous (P).** "Images" got a clarification
+  because VisionAX emitted the tab twice, both `duplicateLabel`. The router was
+  right to ask; the reading made one control into two.
+- **No row named `link` as its kind on a results page (P).** 93 rows read; "the
+  third link" had nothing to count. The kind naming belongs to the detector.
+
+What passed, on real pages: every read trip; the omnibox search path including
+the long-query retype loop and forward-delete against completion; the echo and
+strip refusals on a real results page. What could not be staged honestly: the
+context trips (another application must lead), the media trips (the seed is a
+file page, not a watch page — zero controls reveal), and the consent wall. And `PageRouteVerb.word` prints `openResult` as
 "result", so a leg asking about the openResult arbitration was judged against the
 inner press a search performs afterwards — a search routes twice, and the leg now
 names which route it means.

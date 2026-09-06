@@ -11,8 +11,9 @@
       "engine": {
         "budgetMs": 10000,
         "landed": true,
-        "receipt": "textAppeared"
+        "receipt": "navigation"
       },
+      "note": "With submit the field is committed and the page moves on, so the receipt is the navigation that followed; textAppeared is a fill WITHOUT a submit.",
       "page": {
         "verb": "fill",
         "winner": {
