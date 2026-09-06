@@ -7,7 +7,7 @@
         "budgetMs": 8000,
         "landed": true
       },
-      "note": "Naming something exactly must reach it even when the reading grouped it as furniture \u2014 the toolbar exclusion that used to refuse a real answer.",
+      "note": "Naming something exactly must reach it even when the reading grouped it as furniture \u2014 the toolbar exclusion that used to refuse a real answer. THE PHRASE MUST NOT BE A KIND: 'images' names PageElementKind.image, so the naming ladder reads it as a category and counts image rows instead of matching the label \u2014 measured live, where it then reached nothing because every image row was unnamed. That collision is its own finding; the keyed phrase for this leg is a word only one row wears.",
       "page": {
         "verb": "press",
         "winner": {

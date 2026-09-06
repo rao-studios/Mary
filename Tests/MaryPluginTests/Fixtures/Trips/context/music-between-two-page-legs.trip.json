@@ -44,7 +44,7 @@
         "landed": true,
         "receipt": "navigation"
       },
-      "note": "Invariant 1: the tab still knows what it is a list of answers to, so this is still openResult and not a bare press.",
+      "note": "Invariant 1: the tab still knows what it is a list of answers to, so this is still openResult and not a bare press. Round 1 rule D: a position counts the page's CONTENT \u2014 furniture and rows the reading could not name are not things a person counts. An advert still counts: it is a thing in the list the person can see, so `promoted` is not excluded.",
       "page": {
         "verb": "openResult",
         "winner": {
@@ -52,8 +52,12 @@
             "inResultGroup"
           ],
           "factsAbsent": [
-            "echoOfQuery"
+            "echoOfQuery",
+            "separatedStrip",
+            "bareAddress",
+            "tooShortForTitle"
           ],
+          "named": true,
           "ordinalWithinKind": 2
         }
       },

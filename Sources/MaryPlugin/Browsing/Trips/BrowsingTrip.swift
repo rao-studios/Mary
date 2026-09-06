@@ -204,11 +204,21 @@ public struct TripRowClass: Sendable, Equatable, Codable {
     public var ordinalWithinKind: Int?
     /// Which rung of the naming ladder reached it.
     public var lexicalBasis: String?
+    /// WHETHER ANYTHING ACTUALLY NAMED THE ROW.
+    ///
+    /// PIN: A POSITION DOES NOT COUNT WHAT THE READING COULD NOT NAME. On a real
+    /// results page the reading emitted "item 33" and "item 34" — synthesized
+    /// positions, not words anybody wrote — between two real links. The router
+    /// skips them, correctly, and a class that counted them made "the third link"
+    /// mean a different row than it does on screen. `PageRow.isNamed` is the
+    /// property; this is how a leg states it.
+    public var named: Bool?
 
     public init(
         facts: [String]? = nil, factsAbsent: [String]? = nil,
         affordance: TripAffordance? = nil, kind: String? = nil,
-        ordinalWithinKind: Int? = nil, lexicalBasis: String? = nil
+        ordinalWithinKind: Int? = nil, lexicalBasis: String? = nil,
+        named: Bool? = nil
     ) {
         self.facts = facts
         self.factsAbsent = factsAbsent
@@ -216,6 +226,7 @@ public struct TripRowClass: Sendable, Equatable, Codable {
         self.kind = kind
         self.ordinalWithinKind = ordinalWithinKind
         self.lexicalBasis = lexicalBasis
+        self.named = named
     }
 }
 

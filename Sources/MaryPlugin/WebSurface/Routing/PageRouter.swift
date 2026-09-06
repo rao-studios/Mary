@@ -83,10 +83,42 @@ public struct PageRouteDomain: ArbitrationDomain {
     ) -> [Int: (points: Int, basis: String)] {
         guard let reached = SpokenReference.reached(phrase: goal, among: rows)
         else { return [:] }
+
+        // A POSITION COUNTS WITHIN THE PAGE'S CONTENT; A NAME MAY REACH ANYWHERE.
+        //
+        // PIN: MEASURED ON THREE LEGS OF ROUND 0, ALL PICKING THE SAME ROW. "Open
+        // the second one" and "open the third link" both selected a site's own
+        // navigation strip — a row sitting in a form, offering nothing to press —
+        // because counting ran over every ELIGIBLE row and the strip was second in
+        // that list. Nobody counts a page's furniture when they say "the second
+        // one"; they count the things the page is showing them. So a positional
+        // rung recounts over content alone.
+        // NAMING IS UNTOUCHED, and deliberately: "a person naming something is
+        // evidence the map does not have" is this lane's rule, and someone who
+        // says "Images" means the strip. Only `.ordinal` and `.kindOnly` — the
+        // rungs that count rather than name — are narrowed.
+        // A POSITION OVER NOTHING COUNTABLE IS A MISS, not a fallback to the wider
+        // list: the same answer "the first video" already gets on a page holding
+        // no videos.
+        if reached.rung == .ordinal || reached.rung == .kindOnly {
+            let content = rows.filter { PageRouter.countsForAPosition($0, verb: verb) }
+            if content.count < rows.count {
+                guard !content.isEmpty,
+                      let again = SpokenReference.reached(phrase: goal, among: content)
+                else { return [:] }
+                return Self.hits(again, among: content)
+            }
+        }
+        return Self.hits(reached, among: rows)
+    }
+
+    private static func hits(
+        _ reached: (rung: SpokenReference.Rung, indices: [Int]), among rows: [PageRow]
+    ) -> [Int: (points: Int, basis: String)] {
         let points = PageRouter.lexicalScore(reached.rung)
         let basis = PageRouter.basis(reached.rung)
         var hits: [Int: (points: Int, basis: String)] = [:]
-        for index in reached.indices {
+        for index in reached.indices where rows.indices.contains(index) {
             hits[rows[index].ordinal] = (points, basis.rawValue)
         }
         return hits
@@ -274,6 +306,25 @@ public enum PageRouter {
         case .adjust: return .notAdjustable(goal)
         default: return nil
         }
+    }
+
+    /// Is this row one of the things a person counts when they say "the second one"?
+    ///
+    /// PIN: THE PAGE'S CONTENT, NOT ITS CHROME. Furniture is what nobody counts —
+    /// a toolbar, a form, a band of short labels, a strip of the site's own tabs,
+    /// anything behind a dialog, and the query said back. AN ADVERT STILL COUNTS:
+    /// it is a thing the person can see in the list, and skipping it would make
+    /// Mary's "second" disagree with theirs. For `.openResult` the countable set
+    /// is narrower still — the answers the page laid out — because that verb is
+    /// only ever asked about a list of results.
+    static func countsForAPosition(_ row: PageRow, verb: PageRouteVerb) -> Bool {
+        let uncountable: RowFacts = [
+            .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
+            .behindOverlay, .echoOfQuery,
+        ]
+        guard row.facts.isDisjoint(with: uncountable) else { return false }
+        if case .openResult = verb { return row.facts.contains(.inResultGroup) }
+        return true
     }
 
     static func clearsFloor(

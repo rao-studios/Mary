@@ -565,3 +565,91 @@ private func published(
         #expect(reasons[4] == "is the page's own first answer")
     }
 }
+@Suite struct PositionalPoolTests {
+
+    /// A POSITION COUNTS THE PAGE'S CONTENT, NOT ITS FURNITURE.
+    ///
+    /// PIN: MEASURED ON THREE LEGS OF ROUND 0, ALL PICKING THE SAME ROW — a
+    /// site's own navigation strip, sitting in a form, second in the eligible
+    /// list. Nobody counts that when they say "the second one".
+    static func row(
+        _ ordinal: Int, _ label: String, facts: RowFacts = [],
+        affordance: SeenAffordance = .press, kind: PageElementKind? = .link,
+        source: SeenLabelSource = .textInside
+    ) -> PageRow {
+        PageRow(
+            ordinal: ordinal,
+            frame: CGRect(x: 0, y: Double(ordinal) * 40, width: 400, height: 30),
+            label: label, labelSource: source, affordance: affordance,
+            affordanceSource: .classifier, kind: kind, facts: facts)
+    }
+
+    @Test func aPositionSkipsFurniture() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "News · Videos · Web", facts: [.inForm]),
+            Self.row(2, "Alpine touring boots reviewed"),
+            Self.row(3, "The ten best touring boots"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "the second one", verb: .press, roster: roster)
+        // Content is rows 2 and 3; the second of those is row 3.
+        #expect(routed.winner?.ordinal == 3)
+    }
+
+    /// AND IT DOES NOT COUNT WHAT NOBODY NAMED. A synthesized "item 33" is a
+    /// position the reading invented, not a thing on screen.
+    @Test func aPositionSkipsRowsNobodyNamed() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Alpine touring boots reviewed"),
+            Self.row(2, "item 33", source: .synthesized),
+            Self.row(3, "The ten best touring boots"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "the second one", verb: .press, roster: roster)
+        #expect(routed.winner?.ordinal == 3)
+    }
+
+    /// A NAME STILL REACHES FURNITURE. "A person naming something is evidence the
+    /// map does not have" — only the counting rungs are narrowed.
+    ///
+    /// PIN: THE NAME HERE IS DELIBERATELY NOT A KIND. "Images" would not do:
+    /// `image` is a `PageElementKind`, so the ladder reads that word as naming a
+    /// CATEGORY and counts image rows rather than matching the label — measured
+    /// live on a results page, where it then reached nothing because every image
+    /// row was unnamed. That collision is real and is its own finding; this test
+    /// is about furniture, so it uses a word only one row wears.
+    @Test func aNameStillReachesTheStrip() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Preferences", facts: [.inForm]),
+            Self.row(2, "Alpine touring boots reviewed"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "Preferences", verb: .press, roster: roster)
+        #expect(routed.winner?.ordinal == 1)
+    }
+
+    /// AN ADVERT IS STILL A THING IN THE LIST. Skipping it would make Mary's
+    /// "second" disagree with the person's.
+    @Test func aPositionCountsAPromotedRow() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Maestrale touring boot, on offer", facts: [.promoted, .inResultGroup]),
+            Self.row(2, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(
+            goal: "the second one", verb: .openResult(query: "touring boots"), roster: roster)
+        #expect(routed.winner?.ordinal == 2)
+    }
+
+    /// A POSITION OVER NOTHING COUNTABLE IS A MISS, not a fallback to the wider
+    /// list — the same answer "the first video" gets on a page holding none.
+    @Test func aPositionOverNothingCountableReachesNothing() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "News · Videos · Web", facts: [.inForm]),
+            Self.row(2, "Sign in", facts: [.inToolbar]),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "the second one", verb: .press, roster: roster)
+        #expect(routed.winner == nil)
+    }
+}

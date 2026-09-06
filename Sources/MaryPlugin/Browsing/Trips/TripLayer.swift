@@ -416,6 +416,10 @@ public enum TripLayer {
             if let affordance = wanted.affordance,
                row.affordance != affordance.rawValue { return false }
             if let kind = wanted.kind, row.kind != kind { return false }
+            // A SYNTHESIZED LABEL IS A POSITION, NOT A NAME — see `TripRowClass.named`.
+            if let named = wanted.named, (row.labelSource != "synthesized") != named {
+                return false
+            }
             return true
         }
         matching.sort { $0.ordinal < $1.ordinal }

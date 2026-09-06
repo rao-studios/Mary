@@ -36,11 +36,10 @@
         "landed": true,
         "receipt": "navigation"
       },
-      "note": "A bare position after a search means the second ANSWER. Routed with openResult, carrying the remembered query as evidence.",
+      "note": "A bare position after a search means the second ANSWER. Routed with openResult, carrying the remembered query as evidence. Round 1 rule D: a position counts the page's CONTENT \u2014 furniture and rows the reading could not name are not things a person counts. An advert still counts: it is a thing in the list the person can see, so `promoted` is not excluded.",
       "page": {
         "verb": "openResult",
         "winner": {
-          "affordance": "press",
           "facts": [
             "inResultGroup"
           ],
@@ -48,8 +47,9 @@
             "echoOfQuery",
             "separatedStrip",
             "bareAddress",
-            "promoted"
+            "tooShortForTitle"
           ],
+          "named": true,
           "ordinalWithinKind": 2
         }
       },

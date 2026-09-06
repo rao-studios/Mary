@@ -7,13 +7,21 @@
         "budgetMs": 8000,
         "landed": true
       },
-      "note": "Ordinal is the top rung of the naming ladder \u2014 no pile of structural priors may outweigh the person having said which one.",
+      "note": "A position the person spoke beats every prior, and counts within the kind they named. Round 1 rule D: a position counts the page's CONTENT \u2014 furniture and rows the reading could not name are not things a person counts. A candidate link the reading did not mark pressable is still a link on the page, so no affordance is asserted.",
       "page": {
         "verb": "press",
         "winner": {
-          "affordance": "press",
+          "factsAbsent": [
+            "inForm",
+            "inToolbar",
+            "inFurnitureBand",
+            "separatedStrip",
+            "behindOverlay",
+            "echoOfQuery"
+          ],
           "kind": "link",
           "lexicalBasis": "ordinal",
+          "named": true,
           "ordinalWithinKind": 3
         }
       },
