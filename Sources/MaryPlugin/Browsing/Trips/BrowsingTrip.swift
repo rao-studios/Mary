@@ -425,6 +425,10 @@ public struct TripStage: Sendable, Equatable, Codable {
     public var musicPlaying: Bool?
     /// A second browser window must be open.
     public var twoWindows: Bool?
+    /// The browser's window is minimized before the first leg. A stage the
+    /// runner makes itself, through the same window primitives the engine's
+    /// activation escalates to.
+    public var minimized: Bool?
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -435,12 +439,13 @@ public struct TripStage: Sendable, Equatable, Codable {
             Int.self, forKey: .handNavigateBeforeLeg)
         musicPlaying = try container.decodeIfPresent(Bool.self, forKey: .musicPlaying)
         twoWindows = try container.decodeIfPresent(Bool.self, forKey: .twoWindows)
+        minimized = try container.decodeIfPresent(Bool.self, forKey: .minimized)
     }
 
     public init(
         pageClass: TripPageClass = .any, front: String = "browser",
         pin: String? = nil, handNavigateBeforeLeg: Int? = nil,
-        musicPlaying: Bool? = nil, twoWindows: Bool? = nil
+        musicPlaying: Bool? = nil, twoWindows: Bool? = nil, minimized: Bool? = nil
     ) {
         self.pageClass = pageClass
         self.front = front
@@ -448,6 +453,7 @@ public struct TripStage: Sendable, Equatable, Codable {
         self.handNavigateBeforeLeg = handNavigateBeforeLeg
         self.musicPlaying = musicPlaying
         self.twoWindows = twoWindows
+        self.minimized = minimized
     }
 }
 

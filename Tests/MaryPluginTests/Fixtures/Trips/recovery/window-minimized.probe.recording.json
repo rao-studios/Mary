@@ -5,21 +5,21 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 9,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 193,
+          "atMilliseconds" : 1178,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 2582,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 2583,
           "kind" : "restoreFront"
         }
       ],
@@ -29,12 +29,12 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1571,
+      "elapsedMilliseconds" : 2587,
       "index" : 0,
       "landed" : true,
       "media" : [
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 2582,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -78,7 +78,7 @@
       "shells" : [
         {
           "activeTabIndex" : 1,
-          "atMilliseconds" : 193,
+          "atMilliseconds" : 1178,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -89,17 +89,17 @@
         }
       ],
       "timeline" : [
-        "114ms  resolved Chrome",
-        "193ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1568ms  perceived 0 controls · paused",
-        "1568ms  receipt — click \"play\" — It's already paused — Paused.",
-        "1568ms  gave the stage back"
+        "1088ms  resolved Chrome",
+        "1178ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "2582ms  perceived 0 controls · paused",
+        "2582ms  receipt — click \"play\" — It's already paused — Paused.",
+        "2583ms  gave the stage back"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T21:59:22Z",
+  "recordedAt" : "2026-09-06T22:01:22Z",
   "round" : "8",
   "runner" : "probe",
-  "tripID" : "window-behind"
+  "tripID" : "window-minimized"
 }

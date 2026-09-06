@@ -239,9 +239,16 @@ struct RecordingStaging: BrowserStaging {
     let inner: any BrowserStaging
     let recorder: TripRecorder
 
-    func bringForward(pid: pid_t) async -> Bool {
+    func frontmost() async -> pid_t? { await inner.frontmost() }
+
+    func bringForward(pid: pid_t) async -> Activation {
         await recorder.noteAct(RecordedAct(kind: .bringForward))
         return await inner.bringForward(pid: pid)
+    }
+
+    func standDown(givingBackTo previous: pid_t?) async {
+        if previous != nil { await recorder.noteAct(RecordedAct(kind: .restoreFront)) }
+        await inner.standDown(givingBackTo: previous)
     }
 
     func holdsFocus(pid: pid_t) async -> Bool { await inner.holdsFocus(pid: pid) }

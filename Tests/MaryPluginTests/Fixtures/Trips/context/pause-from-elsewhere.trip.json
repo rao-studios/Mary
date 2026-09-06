@@ -1,6 +1,6 @@
 {
-  "category": "recovery",
-  "id": "window-behind",
+  "category": "context",
+  "id": "pause-from-elsewhere",
   "legs": [
     {
       "ambient": {
@@ -12,7 +12,7 @@
         "landed": true,
         "receipt": "mediaState"
       },
-      "note": "A page is read from pixels; reading a covered window reads whatever covers it.",
+      "note": "Reported verbatim, answered \"Chrome wouldn't come forward.\" The stage faculty activated a process and never raised a window; the browser's seam flattened five reasons into that sentence; and nothing gave the editor back its place afterwards.",
       "provider": {
         "applicationID": "chrome"
       },
@@ -25,7 +25,10 @@
         "shape": "singleEnum",
         "skill": "control_media"
       },
-      "say": "pause the video"
+      "say": "Hey can you pause the video",
+      "speech": {
+        "silence": "forbidden"
+      }
     }
   ],
   "navigates": true,
@@ -33,5 +36,5 @@
     "front": "textedit",
     "pageClass": "watchPage"
   },
-  "summary": "A window behind another is brought forward before it is read, because its pixels are the other window's."
+  "summary": "The reported sentence, said from another application: the browser comes forward, the player is driven, and the editor is in front again after."
 }

@@ -327,9 +327,11 @@ if let path = value("--save"), let pageFrame = shell.pageFrame {
     heading("the capture")
     // The same staging AND reveal the engine performs, so the saved crop is the one it
     // reads — an inactive window shows no transport at all.
-    let forward = await LiveBrowserStaging().bringForward(pid: pid)
-    check(forward, "the window came forward",
-          NSWorkspace.shared.frontmostApplication?.localizedName ?? "nothing frontmost")
+    // The faculty itself, not the engine's seam: a probe holds no lease.
+    let forward = await VerifiedActivation.bringForward(pid: pid)
+    check(forward.succeeded, "the window came forward",
+          forward.reason(app: "the browser")
+              ?? NSWorkspace.shared.frontmostApplication?.localizedName ?? "nothing frontmost")
 
     await LiveBrowserHands().reveal(over: pageFrame, pid: pid)
     // The same settle the engine allows, unless the caller is measuring that.
@@ -462,7 +464,7 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
     guard parts.count == 2 else {
         check(false, "--hover-at takes x,y in capture coordinates"); exit(1)
     }
-    _ = await LiveBrowserStaging().bringForward(pid: pid)
+    _ = await VerifiedActivation.bringForward(pid: pid)
     let point = CGPoint(x: pageFrame.minX + parts[0], y: pageFrame.minY + parts[1])
     PointerDriver.hover(at: point, pid: pid)
     try? await Task.sleep(for: .milliseconds(600))

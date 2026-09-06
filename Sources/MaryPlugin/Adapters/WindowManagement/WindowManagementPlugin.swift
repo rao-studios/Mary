@@ -25,8 +25,8 @@ public struct WindowManagementPlugin: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [listAppWindows, bringWindowForward, bringAllWindowsForward, restoreWindow,
-         makeWindowFullScreen, exitFullScreen]
+        [bringApplicationForward, listAppWindows, bringWindowForward, bringAllWindowsForward,
+         restoreWindow, makeWindowFullScreen, exitFullScreen]
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -70,6 +70,16 @@ public struct WindowManagementPlugin: MaryAdapter {
             transport: .accessibility,
             claimCoverage: .complete,
             operations: [
+                // THE SKILL THAT COULD NOT ACTIVATE ANYTHING. `bring_application_forward`
+                // was bound to an operation no adapter published, so "bring Chrome
+                // forward" had a summary and no hands. It is the same faculty every
+                // act stages through — `VerifiedActivation` — offered by name.
+                operation(
+                    "bring_application_forward",
+                    capabilities: ["application.activate"],
+                    input: "window-management.application-target",
+                    output: "window-management.operation-result",
+                    targets: ["macos-application"]),
                 operation(
                     "list_app_windows",
                     capabilities: ["window.enumerate"],
@@ -108,6 +118,20 @@ public struct WindowManagementPlugin: MaryAdapter {
                 "window-management.operation-result",
             ],
             grantedPermissions: [.accessibility, .automation])
+    }
+
+    private var bringApplicationForward: SkillBinding {
+        SkillBinding(
+            name: "bring_application_forward",
+            description: "Bring a running application forward as a whole — its front window restored and raised, and proved by looking again. Opens it first when it is not running.",
+            parameters: [appParameter],
+            access: .tweak,
+            backing: .native { [service] arguments, _ in
+                await service.activateApplication(named: arguments["app"] ?? "")
+                    .activityOutcome
+            },
+            stage: true,
+            preparesSurface: true)
     }
 
     private var listAppWindows: SkillBinding {

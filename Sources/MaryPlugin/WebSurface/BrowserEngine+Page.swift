@@ -29,27 +29,22 @@ public extension BrowserEngine {
     func readPage(
         in target: BrowserTarget, query: String? = nil
     ) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
-        }
-        let cursor = await seams.hands.cursorLocation()
-        // The slate belongs to the page that is there NOW.
-        retractSlate()
-        let outcome = await read(target, shell: shell)
-        await seams.hands.restoreCursor(to: cursor)
-        switch outcome {
-        case .failure(let refusal):
-            return refuse(refusal)
-        case .success(let roster):
-            return BrowserOutcome(
-                ok: true,
-                spoken: PageListing.spoken(
-                    roster, pageName: shell.title ?? shell.siteName, query: query),
-                shell: shell,
-                elements: roster.elements,
-                map: roster.map)
+        // A question about the page gives the stage back — see `staged`.
+        await staged(target, after: .givenBack) { shell, _ in
+            // The slate belongs to the page that is there NOW.
+            retractSlate()
+            switch await read(target, shell: shell) {
+            case .failure(let refusal):
+                return refuse(refusal)
+            case .success(let roster):
+                return BrowserOutcome(
+                    ok: true,
+                    spoken: PageListing.spoken(
+                        roster, pageName: shell.title ?? shell.siteName, query: query),
+                    shell: shell,
+                    elements: roster.elements,
+                    map: roster.map)
+            }
         }
     }
 
@@ -66,30 +61,24 @@ public extension BrowserEngine {
     func readPageText(
         in target: BrowserTarget, budget: Int = PageListing.textBudget
     ) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
-        }
-        let cursor = await seams.hands.cursorLocation()
-        retractSlate()
-        let outcome = await read(target, shell: shell)
-        await seams.hands.restoreCursor(to: cursor)
-        switch outcome {
-        case .failure(let refusal):
-            return refuse(refusal)
-        case .success(let roster):
-            let passage = PageListing.text(
-                roster, pageName: shell.title ?? shell.siteName, budget: budget)
-            return BrowserOutcome(
-                ok: true,
-                spoken: passage,
-                // NOTHING READABLE IS A MISS, NOT A FAILURE — an image-only page
-                // is an answer, and a turn that says so beats one reporting an
-                // error against a page that loaded perfectly.
-                shell: shell,
-                elements: roster.elements,
-                map: roster.map)
+        await staged(target, after: .givenBack) { shell, _ in
+            retractSlate()
+            switch await read(target, shell: shell) {
+            case .failure(let refusal):
+                return refuse(refusal)
+            case .success(let roster):
+                let passage = PageListing.text(
+                    roster, pageName: shell.title ?? shell.siteName, budget: budget)
+                return BrowserOutcome(
+                    ok: true,
+                    spoken: passage,
+                    // NOTHING READABLE IS A MISS, NOT A FAILURE — an image-only page
+                    // is an answer, and a turn that says so beats one reporting an
+                    // error against a page that loaded perfectly.
+                    shell: shell,
+                    elements: roster.elements,
+                    map: roster.map)
+            }
         }
     }
 
@@ -261,14 +250,16 @@ public extension BrowserEngine {
     func scrollToOnPage(
         _ phrase: String, in target: BrowserTarget, deadline: Date? = nil
     ) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // Bringing something into view keeps the stage: it is there to be seen.
+        await staged(target, after: .kept) { shell, cursor in
+            await scrolledTo(phrase, in: target, shell: shell, deadline: deadline, restingAt: cursor)
         }
-        let cursor = await seams.hands.cursorLocation()
-        defer { Task { await seams.hands.restoreCursor(to: cursor) } }
+    }
 
+    private func scrolledTo(
+        _ phrase: String, in target: BrowserTarget, shell: WebSurfaceAX.Reading,
+        deadline: Date?, restingAt cursor: CGPoint?
+    ) async -> BrowserOutcome {
         for attempt in 0 ... Self.scrollAttempts {
             if let deadline, seams.now() >= deadline { return refuse(.outOfTime) }
             switch await read(target, shell: shell) {
@@ -325,8 +316,14 @@ public extension BrowserEngine {
         _ query: String, in target: BrowserTarget,
         open pick: String? = nil, deadline: Date? = nil
     ) async -> BrowserOutcome {
-        await WebSearchRecipe.searchAndOpen(
-            query, pick: pick, in: target, engine: self, deadline: deadline)
+        // ONE STAGE FOR THE WHOLE JOURNEY. The recipe navigates, reads and
+        // presses through the same verbs a person would say one at a time; held
+        // through the outer act, the stage is taken once and the person's editor
+        // is not handed forward between the read and the press.
+        await journey(target, after: .kept) {
+            await WebSearchRecipe.searchAndOpen(
+                query, pick: pick, in: target, engine: self, deadline: deadline)
+        }
     }
 }
 

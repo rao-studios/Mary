@@ -248,6 +248,89 @@ public actor BrowserEngine {
         return .refused(refusal)
     }
 
+    // MARK: - The stage
+
+    /// What an act does with the stage when it is done.
+    ///
+    /// PIN: A VERB THAT CHANGES WHERE THE PERSON IS LOOKING KEEPS THE STAGE; A
+    /// VERB THAT ANSWERS A QUESTION OR DRIVES THE PLAYER GIVES IT BACK. "Open
+    /// youtube.com" said from an editor is a request to see the browser; "mute
+    /// the video" said from the same editor is not, and leaving the browser in
+    /// front afterwards is invariant 3 broken — the browser reachable from
+    /// anywhere, and the person's place given back.
+    enum StageAfter: Equatable { case kept, givenBack }
+
+    /// How many staged acts are open. An act inside an act — a search that
+    /// navigates, reads and presses — holds the stage once, through the outer.
+    private var stagedDepth = 0
+
+    /// Take the stage for one act, read the shell of the window that is NOW in
+    /// front, run the act, and put the machine back.
+    ///
+    /// PIN: THE SHELL IS READ AFTER THE STAGE IS TAKEN, NOT BEFORE. Eight verbs
+    /// read it first and staged second, so the page frame every pointer act
+    /// aimed at was measured while the window could still be behind another
+    /// or on another Space — and the window that came forward was not always
+    /// the one measured. Every act pays the same courtesies in the same order:
+    /// the stage, the shell, the pointer put back where it was (before
+    /// returning, never in a deferred Task — measured, a deferred restore
+    /// landed DURING the next operation's read), and the stage given back
+    /// when it is owed.
+    func staged(
+        _ target: BrowserTarget,
+        after: StageAfter,
+        _ act: (WebSurfaceAX.Reading, CGPoint?) async -> BrowserOutcome
+    ) async -> BrowserOutcome {
+        await holding(target, after: after) {
+            let shellOutcome = await readShell(target)
+            guard let shell = shellOutcome.shell else { return shellOutcome }
+            let cursor = await seams.hands.cursorLocation()
+            let outcome = await act(shell, cursor)
+            await seams.hands.restoreCursor(to: cursor)
+            return outcome
+        }
+    }
+
+    /// Take the stage for a journey — several verbs said as one — and hold it
+    /// through all of them. A journey has no shell of its own: each verb inside
+    /// it reads the page it is on, as it would said alone.
+    func journey(
+        _ target: BrowserTarget,
+        after: StageAfter,
+        _ body: () async -> BrowserOutcome
+    ) async -> BrowserOutcome {
+        await holding(target, after: after, body)
+    }
+
+    private func holding(
+        _ target: BrowserTarget,
+        after: StageAfter,
+        _ body: () async -> BrowserOutcome
+    ) async -> BrowserOutcome {
+        // INSIDE AN ACT THAT HOLDS THE STAGE ALREADY. Taking it twice would
+        // wait on our own lease; giving it back halfway would hand the person's
+        // editor forward between a search's navigation and its press.
+        if stagedDepth > 0 { return await body() }
+
+        let previous = await seams.stage.frontmost()
+        let activation = await seams.stage.bringForward(pid: target.processIdentifier)
+        guard activation.succeeded else {
+            return refuse(.activationRefused(target.spokenName, activation.failure))
+        }
+        stagedDepth += 1
+        defer { stagedDepth -= 1 }
+
+        let outcome = await body()
+
+        var owed: pid_t?
+        if after == .givenBack, let previous, previous != target.processIdentifier {
+            owed = previous
+            emit(.acted("gave the stage back"))
+        }
+        await seams.stage.standDown(givingBackTo: owed)
+        return outcome
+    }
+
     // MARK: - Reading
 
     /// The browser's shell: what page it is on, and where that page is on screen.
@@ -450,23 +533,10 @@ public actor BrowserEngine {
     /// is playing therefore requires bringing the window forward, so this verb stages
     /// even though it changes nothing about the page.
     public func describeMedia(in target: BrowserTarget) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // A question about the player gives the stage back — see `staged`.
+        await staged(target, after: .givenBack) { shell, _ in
+            await describedMedia(target, shell: shell)
         }
-        // WHERE THE POINTER WAS IS PUT BACK — and IN ORDER.
-        //
-        // PIN: RESTORED BEFORE RETURNING, NEVER IN A DEFERRED TASK. A `defer` that spawns
-        // a Task returns immediately and the restore lands whenever the scheduler gets to
-        // it — measured, that was DURING the next operation's read, dragging the cursor
-        // off the player mid-look so the transport vanished and a page divider won the
-        // scan instead. An act that moves the machine finishes before the verb that
-        // caused it reports.
-        let cursor = await seams.hands.cursorLocation()
-        let outcome = await describedMedia(target, shell: shell)
-        await seams.hands.restoreCursor(to: cursor)
-        return outcome
     }
 
     private func describedMedia(
@@ -488,17 +558,11 @@ public actor BrowserEngine {
 
     /// Press the page's own transport, then prove the state moved.
     public func controlMedia(_ action: MediaAction, in target: BrowserTarget) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // Driving the player gives the stage back — "mute the video" from an
+        // editor leaves the editor in front. See `staged`.
+        await staged(target, after: .givenBack) { shell, _ in
+            await drove(action, in: target, shell: shell)
         }
-        // See `describeMedia`: restored in order, not in a deferred Task.
-        let cursor = await seams.hands.cursorLocation()
-        let outcome = await drove(action, in: target, shell: shell)
-        await seams.hands.restoreCursor(to: cursor)
-        return outcome
     }
 
     private func drove(
@@ -558,6 +622,13 @@ public actor BrowserEngine {
 
         if dryRun {
             return refuse(.dryRun("clicked \(what) at (\(Int(point.x)), \(Int(point.y)))"))
+        }
+        // SOMEBODY ELSE MAY HAVE TAKEN THE MACHINE between the reveal and the
+        // press — a second of hovering, settling and reading pixels. A click
+        // posted into whatever came forward is the strongest wrong gesture there
+        // is; the page plan checks this before every command, and so does this.
+        guard await seams.stage.holdsFocus(pid: target.processIdentifier) else {
+            return refuse(.interrupted(atCommand: 0))
         }
         // MOVE TO IT, THEN PRESS IT — the way a hand does, and the way the page needs.
         // A posted click alone lands on whatever the page believes is under the pointer,
@@ -643,11 +714,15 @@ public actor BrowserEngine {
     // MARK: - Navigating
 
     public func navigate(_ request: NavigationRequest, in target: BrowserTarget) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // Going somewhere keeps the stage: the person asked to see a page.
+        await staged(target, after: .kept) { shell, _ in
+            await navigated(request, in: target, shell: shell)
         }
+    }
+
+    private func navigated(
+        _ request: NavigationRequest, in target: BrowserTarget, shell: WebSurfaceAX.Reading
+    ) async -> BrowserOutcome {
         let schema = target.registration.schema
 
         switch request {
@@ -750,10 +825,10 @@ public actor BrowserEngine {
             return clearedOutcome(cleared, target: target)
         }
 
-        // The stage, the pointer put back afterwards — the same courtesy every
-        // page act pays.
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // THE STAGE IS ALREADY HELD — this runs inside the navigation that found
+        // the challenge — so the question is only whether it is still ours.
+        guard await seams.stage.holdsFocus(pid: target.processIdentifier) else {
+            return refuse(.interrupted(atCommand: 0))
         }
         let cursor = await seams.hands.cursorLocation()
         defer { Task { await seams.hands.restoreCursor(to: cursor) } }

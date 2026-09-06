@@ -439,7 +439,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4bcbac40dd63360b73023a1471320fcc22fe2618761cb712dce8b50722c00939"
+    "digest" : "dedb018f197acffebee23713c91aa71acf157864b62d35da8c21fbf81cad5730"
   },
   "interactions" : [
     {
@@ -526,8 +526,8 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "mac",
-            "operation" : "open_app",
+            "adapterID" : "window-management",
+            "operation" : "bring_application_forward",
             "preference" : 100,
             "targetClasses" : [
               "macos-application"

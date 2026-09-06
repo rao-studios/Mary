@@ -33,19 +33,15 @@ public enum KeyChordPress {
         key: PluginKey,
         modifiers: [PluginKeyModifier],
         targetPrefix: String? = nil,
-        frontmost: @Sendable () -> String? = {
-            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        }
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost
     ) -> Bool {
         let spelling = (modifiers.map(\.rawValue) + [key.rawValue]).joined(separator: "+")
-        if let targetPrefix, !targetPrefix.isEmpty {
-            let front = frontmost()
-            guard front?.hasPrefix(targetPrefix) == true else {
-                ComputerUseMonitor.shared.note(
-                    lane: .keyboard, refused: "keyChord",
-                    reason: .targetLostFocus(front))
-                return false
-            }
+        if case .lost(let front) = FrontmostGuard.check(
+            targetPrefix: targetPrefix, frontmost: frontmost) {
+            ComputerUseMonitor.shared.note(
+                lane: .keyboard, refused: "keyChord",
+                reason: .targetLostFocus(front))
+            return false
         }
         guard let code = keyCode(for: key) else {
             ComputerUseMonitor.shared.note(lane: .keyboard, refused: "keyChord", reason: .noKeyCode(key.rawValue))

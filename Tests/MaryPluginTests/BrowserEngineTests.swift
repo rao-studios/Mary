@@ -126,10 +126,28 @@ final class FakeKeys: BrowserKeys, @unchecked Sendable {
     }
 }
 
-struct FakeStage: BrowserStaging {
+final class FakeStage: BrowserStaging, @unchecked Sendable {
     var succeeds = true
     var keepsFocus = true
-    func bringForward(pid: pid_t) async -> Bool { succeeds }
+    /// Who is in front before the act — the process the stage may be owed to.
+    var front: pid_t?
+    /// Every pid the stage was taken for, in order.
+    var taken: [pid_t] = []
+    /// Every stand-down, with the pid the stage was given back to (nil: kept).
+    var stoodDown: [pid_t?] = []
+
+    init(succeeds: Bool = true, keepsFocus: Bool = true, front: pid_t? = nil) {
+        self.succeeds = succeeds
+        self.keepsFocus = keepsFocus
+        self.front = front
+    }
+
+    func frontmost() async -> pid_t? { front }
+    func bringForward(pid: pid_t) async -> Activation {
+        taken.append(pid)
+        return succeeds ? Activation(road: .cooperative, failure: nil) : .lost(.refused)
+    }
+    func standDown(givingBackTo previous: pid_t?) async { stoodDown.append(previous) }
     func holdsFocus(pid: pid_t) async -> Bool { keepsFocus }
 }
 
@@ -395,13 +413,74 @@ enum BrowsingFixtures {
         #expect(what.contains("transport"))
     }
 
-    @Test func aWindowThatWillNotComeForwardRefuses() async {
+    @Test func aWindowThatWillNotComeForwardRefusesAndSaysWhy() async {
         let engine = BrowsingFixtures.engine(
             shell: FakeShell([BrowsingFixtures.shell()]),
             page: FakePage([BrowsingFixtures.media()]),
             stage: FakeStage(succeeds: false))
         let outcome = await engine.controlMedia(.toggle, in: BrowsingFixtures.target())
-        #expect(outcome.refusal == .activationRefused("A Browser"))
+        #expect(outcome.refusal == .activationRefused("A Browser", .refused))
+        // THE STAGE FACULTY'S OWN REASON, not one sentence for five conditions.
+        #expect(outcome.spoken == "A Browser didn't come to the foreground.")
+        #expect(
+            BrowserRefusal.activationRefused("A Browser", .noVisibleWindow).summary
+                != BrowserRefusal.activationRefused("A Browser", .notRunning).summary)
+    }
+
+    // MARK: - The stage
+
+    /// THE SHELL IS READ AFTER THE STAGE IS TAKEN. A page frame measured while
+    /// the window was behind another is the frame of a window nobody can see.
+    @Test func theShellIsReadOnlyOnceTheStageIsTaken() async {
+        let shell = FakeShell([BrowsingFixtures.shell()])
+        let engine = BrowsingFixtures.engine(
+            shell: shell, page: FakePage([BrowsingFixtures.media()]),
+            stage: FakeStage(succeeds: false))
+        _ = await engine.describeMedia(in: BrowsingFixtures.target())
+        // A refused stage never reaches the shell: nothing was read at all.
+        let snapshot = await engine.snapshot()
+        #expect(snapshot.lastChrome == nil)
+    }
+
+    /// A VERB THAT ANSWERS A QUESTION GIVES THE STAGE BACK — invariant 3. "Mute
+    /// the video" said from an editor leaves the editor in front.
+    @Test func drivingThePlayerGivesTheStageBackToWhoeverHadIt() async {
+        let stage = FakeStage(front: 777)
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage([
+                BrowsingFixtures.media(playing: .playing), BrowsingFixtures.media(playing: .paused),
+            ]),
+            stage: stage)
+        _ = await engine.controlMedia(.pause, in: BrowsingFixtures.target())
+        #expect(stage.taken == [BrowsingFixtures.target().processIdentifier])
+        #expect(stage.stoodDown == [777])
+    }
+
+    /// A VERB THAT CHANGES WHERE THE PERSON IS LOOKING KEEPS THE STAGE. "Go to
+    /// the site" from an editor is a request to see the browser.
+    @Test func goingSomewhereKeepsTheStage() async {
+        let stage = FakeStage(front: 777)
+        let shell = FakeShell([
+            BrowsingFixtures.shell(), BrowsingFixtures.shell(title: "Elsewhere", url: "https://example.org/"),
+            BrowsingFixtures.shell(title: "Elsewhere", url: "https://example.org/"),
+        ])
+        let engine = BrowsingFixtures.engine(
+            shell: shell, page: FakePage([nil]), stage: stage)
+        _ = await engine.navigate(.open("https://example.org/"), in: BrowsingFixtures.target())
+        #expect(stage.stoodDown == [nil])
+    }
+
+    /// THE BROWSER ALREADY IN FRONT IS OWED NOTHING. Giving the stage "back" to
+    /// the browser would be an activation for its own sake.
+    @Test func aBrowserAlreadyInFrontIsNotHandedBackToItself() async {
+        let target = BrowsingFixtures.target()
+        let stage = FakeStage(front: target.processIdentifier)
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage([BrowsingFixtures.media()]), stage: stage)
+        _ = await engine.describeMedia(in: target)
+        #expect(stage.stoodDown == [nil])
     }
 
     /// A DISABLED CONTROL IS AN OBSERVATION, NOT AN ERROR: there is simply nowhere to go.

@@ -102,7 +102,9 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     case notFillable(String)
     case notAdjustable(String)
     case outOfTime
-    case activationRefused(String)
+    /// The browser could not be staged, and why — the stage faculty's own
+    /// reason, so five different conditions are not one sentence.
+    case activationRefused(String, Activation.Failure?)
     case notImplemented(String)
     /// The engine was asked to observe, not act.
     case dryRun(String)
@@ -148,8 +150,9 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
             return "\"\(phrase)\" isn't a slider, so there's nothing to set."
         case .outOfTime:
             return "That was taking too long, so I stopped partway."
-        case .activationRefused(let name):
-            return "\(name) wouldn't come forward."
+        case .activationRefused(let name, let failure):
+            return failure.flatMap { Activation.lost($0).reason(app: name) }
+                ?? "\(name) wouldn't come forward."
         case .notImplemented(let what):
             return "I can't \(what) yet."
         case .dryRun(let what):

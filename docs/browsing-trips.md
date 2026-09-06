@@ -875,6 +875,67 @@ file page — "0 controls seen" — which has been a detector question since rou
   rehearsals with no binding to dispatch. Either they get one or the category stops
   being counted as a live rate.
 
+### Round 8 — the revision: one stage, the browser as a workspace, journeys
+
+Seven rounds drove the same forty-three legs. The rate went from 30% to 80% and
+the layer column moved every round, and the same three numbers never did:
+pending legs (13, then 14 — the round-3 verbs were never built), `recovery` legs
+run (none), and `context` (50% throughout). Four of the seven rounds were
+repairs to the classifier or the runner. The corpus was written from the
+engine's own verbs, so the rounds converged on the engine's own verbs; nothing
+in it was a journey, and nothing in it was said from another application —
+which is how every reported sentence was said. Round 8 is the revision: fix the
+four things the corpus could not see, write the corpus that measures them, run
+both runners until two consecutive rounds clear 90%, then condense.
+
+#### Part 1 — one stage, and the browser inherits it
+
+"Hey can you pause the video" was answered *Chrome wouldn't come forward.* about
+a Chrome that was running. Traced, the stage was fourteen call sites with two
+selection rules, three name-to-pid ladders, two frontmost verifiers and six
+refusal sentences, and the only code that raises a **window** — window
+management's restore-and-`AXRaise` — was used by window management alone.
+`VerifiedActivation` activated a **process** once and polled; it never raised a
+window, so a window minimized or on another Space was reported forward with
+nothing on screen. The browser lane made it worse three ways: its seam answered
+`Bool`, so five different reasons reached the person as one sentence; it read
+the shell **before** staging, so every pointer act aimed at a page frame
+measured while the window could still be behind another; and it restored the
+cursor after an act and never the application — "mute the video" said from an
+editor left the browser in front, which is invariant 3 broken, designed in
+round 1 and never built. And `bring_application_forward`, the window-management
+skill itself, was bound to an operation no adapter published.
+
+One faculty now. The ladder resolves a helper to the regular member of its
+family (a roster matching a bundle family by prefix hands over renderers, and a
+renderer can never be frontmost — measured as an activation that "refused"
+forever), activates, and when activation alone does not take within its share
+of the budget, **restores and raises the application's main window through
+Accessibility** and asks again; a visible window is proved by default. The
+result is `Activation`, never `Bool`, and the browser speaks its reason. Eight
+copy-pasted guards in the engine became one `staged` door that takes the
+`StageArbiter` lease and the self-driving hold every other staging lane already
+took, reads the shell **after** the stage is taken, re-checks focus before the
+media lane's click, and gives the stage back when the verb answered a question
+or drove the player — a verb that changes where the person is looking keeps it.
+A search holds the stage once, through the whole journey. The four frontmost
+guards in the typer and the chord are one.
+
+Measured live, TextEdit in front and Chrome behind: "Hey can you pause the
+video" **landed on `mediaState` in 1.6 s and TextEdit was in front after.**
+`window-behind`, unstageable for seven rounds, passes. `window-minimized` — the
+runner minimizes the browser's window through the same primitive — passes, and
+found a rule on the way: the first raise road preferred any unminimized window,
+and on a browser with two the person's other window came forward while the page
+asked about stayed in the Dock. **The main window, minimized or not, is the one
+the person last worked in.** What this cannot yet answer honestly: which of two
+browser windows a sentence means when both are open — that is the per-window
+model, and it is still owed.
+
+Also on the way: round 1's shell press was an `AXPress` written into the seams
+file, which the machine-layer guard had been failing on all along; it goes
+through Hands now, where the monitor can see it.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |

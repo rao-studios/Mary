@@ -1,18 +1,17 @@
 {
   "category": "recovery",
-  "id": "window-behind",
+  "id": "window-minimized",
   "legs": [
     {
       "ambient": {
-        "frontAfter": "restored",
-        "leadBefore": "textedit"
+        "frontAfter": "restored"
       },
       "engine": {
         "budgetMs": 12000,
         "landed": true,
         "receipt": "mediaState"
       },
-      "note": "A page is read from pixels; reading a covered window reads whatever covers it.",
+      "note": "Cooperative activation makes a process frontmost and moves no window; a browser whose only window is minimized was reported as forward with nothing on screen, and its page read from whatever was there instead. The raise road restores and raises the window through Accessibility.",
       "provider": {
         "applicationID": "chrome"
       },
@@ -31,7 +30,8 @@
   "navigates": true,
   "stage": {
     "front": "textedit",
+    "minimized": true,
     "pageClass": "watchPage"
   },
-  "summary": "A window behind another is brought forward before it is read, because its pixels are the other window's."
+  "summary": "A minimized browser window is restored and raised before it is read, because a frontmost process with nothing on screen is not a stage."
 }

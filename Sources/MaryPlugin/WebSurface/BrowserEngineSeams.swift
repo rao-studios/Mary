@@ -118,8 +118,23 @@ public extension BrowserHands {
 }
 
 /// Who holds the machine.
+///
+/// PIN: THE STAGE IS TAKEN AND GIVEN BACK, AND THE REASON IT COULD NOT BE TAKEN
+/// IS KEPT. This used to answer `Bool`, so five different conditions — not
+/// running, no window on screen, another act holding the stage, cancelled,
+/// refused — reached the person as one sentence. And nothing ever put the
+/// previous application back: "mute the video" said from an editor left the
+/// browser in front, which the doctrine (invariant 3) says it must not.
 public protocol BrowserStaging: Sendable {
-    func bringForward(pid: pid_t) async -> Bool
+    /// The regular application in front before anything moves — what an act
+    /// that answers a question gives the stage back to. Nil when nothing is owed.
+    func frontmost() async -> pid_t?
+    /// Take the stage for one act: the lease, the hold, and the window brought
+    /// forward and proved.
+    func bringForward(pid: pid_t) async -> Activation
+    /// The act is over. Release the stage, and put `previous` back in front when
+    /// one is named.
+    func standDown(givingBackTo previous: pid_t?) async
     /// Is this still the process in front? A plan that keeps pressing into whatever
     /// came forward is worse than one that stops and says where it got to.
     func holdsFocus(pid: pid_t) async -> Bool
@@ -272,7 +287,9 @@ struct LiveBrowserShell: BrowserShellReading {
         else { return false }
         guard let control = Self.control(named: wanted, in: application) else { return false }
 
-        if AXUIElementPerformAction(control, kAXPressAction as CFString) == .success {
+        // Through Hands, so the monitor sees it — the seam locates, the machine
+        // layer acts.
+        if PageElementActions.press(control: control, pid: pid, detail: "shell \(label)") {
             return true
         }
         guard let frame = AX.frame(of: control), frame.width > 1, frame.height > 1
@@ -416,16 +433,58 @@ public struct LiveBrowserKeys: BrowserKeys {
     }
 }
 
-public struct LiveBrowserStaging: BrowserStaging {
+/// The live stage: the same lease and the same hold the typer and the
+/// affordance recipes take, and the same activation faculty every act uses.
+///
+/// PIN: THE BROWSER TOOK NEITHER, AND COULD BE PREEMPTED MID-PLAN. `StageArbiter`
+/// is how one act keeps another off the machine while it is driving; the
+/// self-driving hold is how the focus tracker knows the activations it sees are
+/// Mary's ceremony and not the person's intent. Every other lane that stages
+/// takes both; the browser stages more than any of them and took none.
+public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
+    private let lock = NSLock()
+    private var lease: UUID?
+    private var hold: UUID?
+
     public init() {}
 
-    public func bringForward(pid: pid_t) async -> Bool {
-        await VerifiedActivation.bringForward(pid: pid).succeeded
+    public func frontmost() async -> pid_t? {
+        await VerifiedActivation.frontmostRegularApplication()
+    }
+
+    public func bringForward(pid: pid_t) async -> Activation {
+        guard let taken = await StageArbiter.shared.acquire(owner: "browsing", onPreempt: {})
+        else {
+            return .lost(.stageHeld(StageArbiter.shared.currentOwner() ?? "another act"))
+        }
+        let holding = WorkspaceFocusTracker.shared.beginSelfDriving()
+        lock.withLock {
+            lease = taken
+            hold = holding
+        }
+        let activation = await VerifiedActivation.bringForward(pid: pid)
+        if !activation.succeeded { await standDown(givingBackTo: nil) }
+        return activation
+    }
+
+    public func standDown(givingBackTo previous: pid_t?) async {
+        let held = lock.withLock { () -> (UUID?, UUID?) in
+            defer {
+                lease = nil
+                hold = nil
+            }
+            return (lease, hold)
+        }
+        if let previous {
+            // THE PERSON'S PLACE, GIVEN BACK. Not proved to a visible window —
+            // it was in front a moment ago and is being handed what it had.
+            await VerifiedActivation.bringForward(pid: previous, requireVisibleWindow: false)
+        }
+        if let lease = held.0 { StageArbiter.shared.release(lease) }
+        if let hold = held.1 { WorkspaceFocusTracker.shared.endSelfDriving(hold) }
     }
 
     public func holdsFocus(pid: pid_t) async -> Bool {
-        await MainActor.run {
-            NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
-        }
+        await VerifiedActivation.isFrontmost(pid: pid)
     }
 }

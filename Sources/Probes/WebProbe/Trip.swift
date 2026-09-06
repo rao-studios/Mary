@@ -73,16 +73,23 @@ enum TripCommand {
         guard let profile = profiles.first(where: {
             $0.id.caseInsensitiveCompare(applicationID) == .orderedSame
         }) else { return false }
+        // THE SAME LADDER EVERY ACT USES — the regular member of the family,
+        // never a helper, and a window raised when activation alone does not take.
         for bundleID in profile.applicationIdentifiers {
-            guard let running = NSRunningApplication
-                .runningApplications(withBundleIdentifier: bundleID).first
-            else { continue }
-            if await VerifiedActivation.bringForward(
-                pid: running.processIdentifier).succeeded {
+            if await VerifiedActivation.bringForward(bundleID: bundleID).succeeded {
                 return true
             }
         }
         return false
+    }
+
+    /// Minimize the browser's front window — the stage the activation ladder's
+    /// raise road exists for, made through the same window primitives.
+    static func minimizeFrontWindow(of pid: pid_t) -> Bool {
+        guard let windows = try? AccessibilityWindowCore.axWindows(of: pid, standardOnly: true),
+              let window = windows.first
+        else { return false }
+        return (try? AccessibilityWindowCore.minimize(window.element)) != nil
     }
 
     // MARK: - Running one trip
@@ -191,6 +198,32 @@ enum TripCommand {
                 return recording
             }
             print("  staged \(wanted.rawValue)")
+        }
+
+        // THE STAGE, MADE AGAIN AFTER THE PAGE IS. Staging a page class brings
+        // the browser forward, so a trip that says an editor leads — or that
+        // the browser's window is minimized — means it is so when the leg is
+        // SAID, not before the runner navigated. Measured: `window-behind`
+        // recorded the browser in front before its own leg, and "restored"
+        // was judged against a stage nobody had set.
+        func unstageable(_ because: String) -> TripRecording {
+            for (index, leg) in trip.legs.enumerated() {
+                recording.legs.append(TripRunner.unstageable(
+                    index: index, say: leg.say, because: because))
+                print(line(recording.legs[recording.legs.count - 1]))
+            }
+            return recording
+        }
+        if trip.stage.minimized == true {
+            guard minimizeFrontWindow(of: target.processIdentifier) else {
+                return unstageable("the browser's window has to be minimized")
+            }
+            print("  minimized the browser's window")
+        }
+        if trip.stage.front != "browser" {
+            guard await bringForward(trip.stage.front) else {
+                return unstageable("\(trip.stage.front) has to be in front")
+            }
         }
 
         let bindings = Dictionary(

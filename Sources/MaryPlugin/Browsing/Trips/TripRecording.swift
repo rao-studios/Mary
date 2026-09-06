@@ -38,6 +38,8 @@ public struct RecordedAct: Sendable, Equatable, Codable {
         case click, hover, glide, move, scroll, drag
         case type, key
         case pressShell, openLocation, bringForward, restoreCursor
+        /// The stage given back to the application that had it before the act.
+        case restoreFront
     }
 
     public var kind: Kind

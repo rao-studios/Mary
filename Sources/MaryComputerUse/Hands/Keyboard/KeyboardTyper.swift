@@ -119,9 +119,7 @@ public enum KeyboardTyper {
         _ text: String,
         targetPrefix: String,
         poster: KeyEventPosting = CGKeyEventPoster(),
-        frontmost: @Sendable () -> String? = {
-            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        },
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost,
         shouldPause: @Sendable () -> Bool = { false },
         interChunkNanoseconds: UInt64 = 25_000_000
     ) async -> TypeResult {
@@ -129,8 +127,8 @@ public enum KeyboardTyper {
         for token in tokens(for: text) {
             if Task.isCancelled { return .stopped(typedCharacters: typed) }
             if shouldPause() { return .paused(typedCharacters: typed) }
-            let front = frontmost()
-            guard front?.hasPrefix(targetPrefix) == true else {
+            if case .lost(let front) = FrontmostGuard.check(
+                targetPrefix: targetPrefix, frontmost: frontmost) {
                 return .lostFocus(typedCharacters: typed, frontmost: front)
             }
             poster.post(token)
@@ -151,9 +149,7 @@ public enum KeyboardTyper {
         count: Int,
         targetPrefix: String,
         poster: KeyEventPosting = CGKeyEventPoster(),
-        frontmost: @Sendable () -> String? = {
-            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        },
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost,
         interChunkNanoseconds: UInt64 = 25_000_000
     ) async -> TypeResult {
         guard count > 0 else { return .completed(typedCharacters: 0) }
@@ -161,8 +157,8 @@ public enum KeyboardTyper {
         let chunk = 16
         while removed < count {
             if Task.isCancelled { return .stopped(typedCharacters: removed) }
-            let front = frontmost()
-            guard front?.hasPrefix(targetPrefix) == true else {
+            if case .lost(let front) = FrontmostGuard.check(
+                targetPrefix: targetPrefix, frontmost: frontmost) {
                 return .lostFocus(typedCharacters: removed, frontmost: front)
             }
             let step = min(chunk, count - removed)

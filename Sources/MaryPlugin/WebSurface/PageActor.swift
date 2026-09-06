@@ -44,17 +44,11 @@ extension BrowserEngine {
         in target: BrowserTarget,
         deadline: Date? = nil
     ) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // Acting on the page keeps the stage: what the press did is there to see.
+        await staged(target, after: .kept) { shell, cursor in
+            await perform(
+                plan, in: target, shell: shell, deadline: deadline, restingAt: cursor)
         }
-        // Restored in order, never in a deferred Task — see `describeMedia`.
-        let cursor = await seams.hands.cursorLocation()
-        let outcome = await perform(
-            plan, in: target, shell: shell, deadline: deadline, restingAt: cursor)
-        await seams.hands.restoreCursor(to: cursor)
-        return outcome
     }
 
     /// `restingAt` is where the pointer was before any of this — where it goes back to
