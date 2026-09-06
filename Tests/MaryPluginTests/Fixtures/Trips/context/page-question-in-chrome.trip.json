@@ -1,0 +1,25 @@
+{
+  "category": "context",
+  "id": "page-question-in-chrome",
+  "legs": [
+    {
+      "note": "Reported verbatim, answered \"You're looking at whatever webpage is open in your Chrome window right now.\" The browser compiled as perception-only and could not lead; naming it moved nothing; the pre-read keyed on the lead and read nothing; the brief said the page was unread and the voice paraphrased that as the answer. A perceive turn is answered by the voice from the pre-read (`aNamedPlaceIsReadBeforeTheLead` pins that), which this bench cannot hear: it answers the model round with the page read and judges the intent and the read; what the voice says is the model's, heard only in Mary.",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "named"
+      },
+      "routing": {
+        "intent": "perceive",
+        "lane": "model",
+        "skill": "read_page"
+      },
+      "say": "What's on this page right now on Google Chrome"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "textedit",
+    "pageClass": "article"
+  },
+  "summary": "The reported sentence, said with an editor in front: the browser is named, so the page is what is read and what is answered about."
+}

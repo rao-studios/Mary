@@ -1,0 +1,80 @@
+{
+  "browser" : "chrome",
+  "category" : "act",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 6,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 70,
+          "atX" : 0.5,
+          "atY" : 0.5006535947712418,
+          "delta" : -320,
+          "kind" : "scroll"
+        },
+        {
+          "atMilliseconds" : 70,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 70,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Scrolled.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "Can you scroll down this page",
+      "shells" : [
+        {
+          "activeTabIndex" : 1,
+          "atMilliseconds" : 70,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 2,
+          "title" : "Ski touring - Wikipedia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "70ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "70ms  scrolled"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T22:30:55Z",
+  "round" : "8",
+  "runner" : "probe",
+  "tripID" : "scroll-down-this-page"
+}

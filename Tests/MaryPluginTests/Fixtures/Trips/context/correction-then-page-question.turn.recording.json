@@ -1,0 +1,208 @@
+{
+  "browser" : "textedit",
+  "category" : "context",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "ambientAfter" : {
+        "frontApplicationID" : "textedit"
+      },
+      "ambientBefore" : {
+        "frontApplicationID" : "textedit"
+      },
+      "elapsedMilliseconds" : 31870,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "R1",
+        "A",
+        "S",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "routing" : {
+        "arguments" : {
+
+        },
+        "electionActive" : [
+          "browsing",
+          "multimedia",
+          "writing"
+        ],
+        "electionStruck" : {
+
+        },
+        "intent" : "perceive",
+        "intentScore" : 0.847859799861908,
+        "lane" : "model",
+        "offered" : [
+          "current_page",
+          "describe_media",
+          "now_playing",
+          "read_corpus_outline",
+          "read_page",
+          "read_page_text",
+          "trace_callees"
+        ],
+        "topAffinities" : {
+          "add_corpus_container" : 0.3581261932849884,
+          "add_corpus_item" : 0.41275814175605774,
+          "adjust_on_page" : 0.5218978524208069,
+          "apply_edit" : 0.38318830728530884,
+          "break_dictation" : 0.4422624409198761,
+          "bring_all_windows_forward" : 0.41632694005966187,
+          "bring_application_forward" : 0.34960970282554626,
+          "bring_window_forward" : 0.3779042363166809,
+          "build_check" : 0.31119272112846375,
+          "build_project" : 0.2913344204425812,
+          "calendar_go_today" : 0.36645597219467163,
+          "click_on_page" : 0.5839917659759521,
+          "code_changes" : 0.5052505731582642,
+          "coding.explain-code-change" : 0.3183550536632538,
+          "coding.plan-minimal-code-change" : 0.24313341081142426,
+          "coding_list" : 0.31322377920150757,
+          "coding_send" : 0.3014129400253296,
+          "coding_start" : 0.3264961242675781,
+          "coding_status" : 0.3182865083217621,
+          "coding_stop" : 0.3334618806838989,
+          "commit_changes" : 0.4621830880641937,
+          "complete_coding_change" : 0.2203521877527237,
+          "complete_reminder" : 0.3743749260902405,
+          "compose_draft" : 0.251714289188385,
+          "control_media" : 0.4362408518791199,
+          "control_playback" : 0.5069374442100525,
+          "corpus_progress" : 0.4361746311187744,
+          "create_document" : 0.31308332085609436,
+          "create_event" : 0.2321893572807312,
+          "create_file" : 0.3055150806903839,
+          "create_reminder" : 0.27462834119796753,
+          "current_file" : 0.508446991443634,
+          "current_page" : 0.6705939769744873,
+          "delegate_coding" : 0.4440438747406006,
+          "delete_passage" : 0.35177209973335266,
+          "describe_media" : 0.6431845426559448,
+          "exit_full_screen" : 0.41481855511665344,
+          "fill_in_page" : 0.5058767795562744,
+          "find_passage" : 0.43337902426719666,
+          "find_playlist" : 0.4587936997413635,
+          "find_references" : 0.3131655752658844,
+          "insert_code" : 0.34215301275253296,
+          "insert_passage" : 0.40462642908096313,
+          "interact_with_page" : 0.5977250337600708,
+          "list_app_windows" : 0.5228989720344543,
+          "list_calendars" : 0.4242790639400482,
+          "list_declarations" : 0.2999245524406433,
+          "list_documents" : 0.3091607391834259,
+          "list_events" : 0.3054046928882599,
+          "list_playlists" : 0.6118683815002441,
+          "list_quirks" : 0.3372558653354645,
+          "list_reminders" : 0.28376951813697815,
+          "list_tabs" : 0.4267064929008484,
+          "locate_declaration" : 0.3151760399341583,
+          "make_window_full_screen" : 0.3910151720046997,
+          "move_corpus_item" : 0.4329712688922882,
+          "navigate_back" : 0.441367506980896,
+          "navigate_forward" : 0.3405800461769104,
+          "new_tab" : 0.3794957995414734,
+          "now_playing" : 0.6559901833534241,
+          "open_corpus_document" : 0.35507065057754517,
+          "open_location" : 0.5031723380088806,
+          "open_player" : 0.3301573097705841,
+          "pair_program" : 0.3326559364795685,
+          "play_music" : 0.3201911449432373,
+          "play_playlist" : 0.41309335827827454,
+          "project_outline" : 0.3844824433326721,
+          "push_changes" : 0.33648908138275146,
+          "read_buffer" : 0.3926127552986145,
+          "read_corpus_document" : 0.4061983525753021,
+          "read_corpus_outline" : 0.6473434567451477,
+          "read_document" : 0.3801517188549042,
+          "read_enclosing_unit" : 0.4602879285812378,
+          "read_lines" : 0.3761098086833954,
+          "read_page" : 0.8153195977210999,
+          "read_page_text" : 0.6300601363182068,
+          "read_selection" : 0.41053667664527893,
+          "read_symbol" : 0.3696451187133789,
+          "recent_commits" : 0.23446021974086761,
+          "record_quirk" : 0.5114503502845764,
+          "reload_page" : 0.5131096243858337,
+          "reminders_new_item" : 0.3640342056751251,
+          "replace_passage" : 0.3466668426990509,
+          "replace_selection" : 0.28140100836753845,
+          "replace_symbol" : 0.25593069195747375,
+          "restore_undone" : 0.37661314010620117,
+          "restore_window" : 0.37262633442878723,
+          "resume_typing" : 0.26256197690963745,
+          "revert_last_edit" : 0.320279061794281,
+          "revise_code_selection" : 0.36381712555885315,
+          "revise_selection" : 0.28340721130371094,
+          "run_project" : 0.3556164503097534,
+          "run_tests" : 0.2851419150829315,
+          "save_all" : 0.26707980036735535,
+          "save_document" : 0.35015377402305603,
+          "scratch_dictation" : 0.4982682168483734,
+          "scroll_page" : 0.5693358182907104,
+          "scroll_to_on_page" : 0.5244356989860535,
+          "search_corpus" : 0.2877276837825775,
+          "search_events" : 0.263995498418808,
+          "search_music" : 0.39207586646080017,
+          "search_neighbourhood" : 0.3289421796798706,
+          "search_project" : 0.29045072197914124,
+          "search_web" : 0.39730119705200195,
+          "set_document_info" : 0.3880961239337921,
+          "show_diff" : 0.5426791310310364,
+          "shuffle_playlist" : 0.44500061869621277,
+          "split_document" : 0.4143717288970947,
+          "split_editor_horizontally" : 0.38744571805000305,
+          "split_editor_vertically" : 0.3754691183567047,
+          "start_dictation" : 0.3806063234806061,
+          "stop_dictation" : 0.3920276463031769,
+          "stop_execution" : 0.3325989246368408,
+          "test_project" : 0.3068247139453888,
+          "trace_callees" : 0.6406813263893127,
+          "trace_callers" : 0.39523056149482727,
+          "trace_surroundings" : 0.6033135056495667,
+          "trash_corpus_item" : 0.4547269344329834,
+          "type_at_cursor" : 0.4248861074447632,
+          "undo_file_changes" : 0.3110677897930145,
+          "unsplit_editor" : 0.3650343120098114
+        },
+        "uniqueSkill" : "read_page"
+      },
+      "say" : "No I'm not what's on this page I'm looking at in Google Chrome",
+      "shells" : [
+
+      ],
+      "speech" : {
+        "readRoutes" : [
+
+        ],
+        "spokeInTurn" : false,
+        "spoken" : ""
+      },
+      "timeline" : [
+
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T22:34:22Z",
+  "round" : "8",
+  "runner" : "turn",
+  "tripID" : "correction-then-page-question"
+}

@@ -114,10 +114,44 @@ public struct WebSurfaceAdapter: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [currentPage, listTabs, describeMedia, controlMedia,
+        [pageContext, currentPage, listTabs, describeMedia, controlMedia,
          openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
          readPage, readPageText, clickOnPage, fillInPage, scrollToOnPage,
          adjustOnPage, searchWeb, interactWithPage]
+    }
+
+    /// The name a browser package's document channel is polled through. The
+    /// plugin compiler stamps the same spelling on every package with a web
+    /// surface; the two must agree.
+    public static let pageContextOperation = "page_context"
+
+    /// THE BROWSER'S DOCUMENT CHANNEL — what the machine-wide poll reads.
+    ///
+    /// PIN: THE SHELL, NEVER THE PAGE, AND NEVER AN ADDRESS. A workspace is
+    /// polled through a read-only operation the package declares; for a
+    /// browser that is which page, which site, how many tabs and windows —
+    /// Accessibility facts, nothing from pixels, nothing from a URL. It is not
+    /// a skill: no model is offered it and no sentence routes to it. It exists
+    /// so a browser compiles as a workspace with eyes and a discipline, which
+    /// is what lets it lead and be named.
+    private var pageContext: SkillBinding {
+        SkillBinding(
+            name: Self.pageContextOperation,
+            description: "Which page and site the browser is on, and how many tabs it holds — the shell only, never an address.",
+            parameters: [browserParameter],
+            access: .read,
+            backing: .native { arguments, _ in
+                await self.run(arguments["app"]) { target in
+                    let outcome = await self.engine.readShell(target)
+                    guard let shell = outcome.shell else { return outcome }
+                    let tabs = shell.tabs.count
+                    let counted = tabs > 0 ? " \(tabs) tab\(tabs == 1 ? "" : "s") open." : ""
+                    return BrowserOutcome(
+                        ok: true,
+                        spoken: BrowserEngine.spoken(shell, browser: target.spokenName) + counted,
+                        shell: shell)
+                }
+            })
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -143,6 +177,11 @@ public struct WebSurfaceAdapter: MaryAdapter {
             title: "Web Surface",
             transport: .accessibility,
             operations: [
+                // The document channel: produces the page-context perception,
+                // does not observe it.
+                operation(Self.pageContextOperation, capability: "browser.page.read",
+                          input: "browsing.browser-query", output: "browsing.page-report",
+                          observes: false),
                 operation("current_page", capability: "browser.page.read",
                           input: "browsing.browser-query", output: "browsing.page-report"),
                 operation("list_tabs", capability: "browser.tabs.read",

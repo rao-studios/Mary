@@ -76,6 +76,25 @@ final class SandTripRunner {
             // than assumed: nothing in Swift names a browser.
             browser: Self.stagedBrowser() ?? "")
 
+        // AN APPLICATION IN FRONT IS A STAGE THIS RUNNER CAN MAKE — through the
+        // same faculty every act stages with, verified, and only called
+        // unstageable when the activation does not take. The probe learned
+        // this in round 7; the turn-level runner had kept filing every
+        // context trip as a person's job.
+        if trip.stage.front != "browser" {
+            guard await Self.bringForward(trip.stage.front) else {
+                for (index, leg) in trip.legs.enumerated() {
+                    recording.legs.append(TripLegRecording(
+                        index: index, say: leg.say, verdict: .unstageable,
+                        because: "\(trip.stage.front) has to be in front"))
+                    print(Self.line(recording.legs[recording.legs.count - 1]))
+                }
+                Self.record(recording)
+                return
+            }
+            print("  \(trip.stage.front) in front")
+        }
+
         // THE PIN IS PART OF THE STAGE, and it is the one stage condition this
         // runner can set for itself — every other one needs a person.
         if let pinned = trip.stage.pin {
@@ -119,20 +138,40 @@ final class SandTripRunner {
             print(Self.line(record))
         }
 
-        if let directory = SandLaunchOptions.current.record {
-            let folder = URL(fileURLWithPath: directory)
-            do {
-                try FileManager.default.createDirectory(
-                    at: folder, withIntermediateDirectories: true)
-                try recording.encoded().write(
-                    to: folder.appendingPathComponent(recording.fileName), options: .atomic)
-                print("  ✓  recorded \(recording.fileName)")
-            } catch {
-                print("  ✗  could not record — \(error)")
-            }
-        }
+        Self.record(recording)
         let failed = recording.legs.filter { $0.verdict == .failed }.count
         print("  \(recording.legs.count) leg(s), \(failed) failed\n")
+    }
+
+    /// Write the recording where `--record` asked, if it did.
+    private static func record(_ recording: TripRecording) {
+        guard let directory = SandLaunchOptions.current.record else { return }
+        let folder = URL(fileURLWithPath: directory)
+        do {
+            try FileManager.default.createDirectory(
+                at: folder, withIntermediateDirectories: true)
+            try recording.encoded().write(
+                to: folder.appendingPathComponent(recording.fileName), options: .atomic)
+            print("  ✓  recorded \(recording.fileName)")
+        } catch {
+            print("  ✗  could not record — \(error)")
+        }
+    }
+
+    /// Put a named application in front, by its registered profile — the
+    /// probe's `TripCommand.bringForward`, which the condensation folds into
+    /// one runner. THE PACKAGES NAME IT, NOT THIS FILE.
+    private static func bringForward(_ applicationID: String) async -> Bool {
+        let profiles = AbilityLibrary.shared.snapshot().plugins.applicationProfiles
+        guard let profile = profiles.first(where: {
+            $0.id.caseInsensitiveCompare(applicationID) == .orderedSame
+        }) else { return false }
+        for bundleID in profile.applicationIdentifiers {
+            if await VerifiedActivation.bringForward(bundleID: bundleID).succeeded {
+                return true
+            }
+        }
+        return false
     }
 
     // MARK: - One leg, through the turn

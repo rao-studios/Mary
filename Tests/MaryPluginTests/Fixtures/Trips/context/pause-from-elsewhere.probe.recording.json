@@ -5,21 +5,21 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 9,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 215,
+          "atMilliseconds" : 191,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1626,
+          "atMilliseconds" : 1567,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1626,
+          "atMilliseconds" : 1567,
           "kind" : "restoreFront"
         }
       ],
@@ -29,12 +29,12 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1632,
+      "elapsedMilliseconds" : 1578,
       "index" : 0,
       "landed" : true,
       "media" : [
         {
-          "atMilliseconds" : 1626,
+          "atMilliseconds" : 1567,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -77,28 +77,28 @@
       "say" : "Hey can you pause the video",
       "shells" : [
         {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 214,
+          "activeTabIndex" : 1,
+          "atMilliseconds" : 191,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikimedia commons",
-          "tabCount" : 1,
+          "tabCount" : 2,
           "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
         }
       ],
       "timeline" : [
-        "116ms  resolved Chrome",
-        "214ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1626ms  perceived 0 controls · paused",
-        "1626ms  receipt — click \"play\" — It's already paused — Paused.",
-        "1626ms  gave the stage back"
+        "111ms  resolved Chrome",
+        "191ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1567ms  perceived 0 controls · paused",
+        "1567ms  receipt — click \"play\" — It's already paused — Paused.",
+        "1567ms  gave the stage back"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T21:58:17Z",
+  "recordedAt" : "2026-09-06T22:35:26Z",
   "round" : "8",
   "runner" : "probe",
   "tripID" : "pause-from-elsewhere"

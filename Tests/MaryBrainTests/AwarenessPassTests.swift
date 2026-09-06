@@ -283,6 +283,39 @@ import Testing
         #expect(!dispatched.snapshot().contains("read_page_text"))
     }
 
+    /// A NAMED SURFACE HAS CHOSEN ITS READER. "What's on this page in Chrome"
+    /// said with an editor in front is a question about the page; the lead
+    /// says "the editor". The place the sentence names comes before the lead.
+    /// `page-question-from-an-editor` asserted this for seven rounds and the
+    /// runtime did not implement it — the brief said "I have not read this
+    /// page yet" and the voice paraphrased that as the answer.
+    @Test func aNamedPlaceIsReadBeforeTheLead() async {
+        let dispatched = Dispatched()
+        let runtime = AbilityRuntime(
+            plugins: [
+                AwarenessFixture(dispatched: dispatched, surroundings: "callers"),
+                PageAwarenessFixture(dispatched: dispatched),
+            ],
+            // THE EDITOR LEADS. The sentence names the browser.
+            focusProvider: { "awareness" },
+            world: AmbientWorld(store: AmbientContextStore()),
+            contextProvider: { AbilityExecutionContext(projects: [:]) })
+        let route = AmbientRoute(
+            intent: .perceive,
+            decidedBy: .none,
+            verdicts: AmbientVerdicts(isDeictic: true),
+            namedPlaces: [AmbientPlaceResolver.browserPlace])
+
+        let sight = await Self.underRoute(route) {
+            await runtime.fetchAwareness(query: "what's on this page right now in Chrome?")
+        }
+        #expect(sight?.unit == PageAwarenessFixture.pageText)
+        #expect(dispatched.snapshot().contains("read_page_text"))
+        #expect(
+            !dispatched.snapshot().contains("read_enclosing_unit"),
+            "the lead answered a question that named another surface: \(dispatched.snapshot())")
+    }
+
     /// The browsing adapter's own shape: it answers to the PLACE a browser
     /// leads as, which is not its name.
     private struct PageAwarenessFixture: MaryAdapter {

@@ -936,6 +936,62 @@ Also on the way: round 1's shell press was an `AXPress` written into the seams
 file, which the machine-layer guard had been failing on all along; it goes
 through Hands now, where the monitor can see it.
 
+#### Part 2 — the browser is a workspace
+
+"What's on this page right now on Google Chrome" was answered *You're looking
+at whatever webpage is open in your Chrome window right now* — a paraphrase of
+the standing brief's own "I have not read this page yet". Traced, the sentence
+had four faults stacked under it, none of them the router's. `chrome.mary`
+declares a workspace perception and a web surface, and the plugin compiler's
+workspace guard admitted prose, code, media and corpus surfaces and did not know
+the web surface existed — so every browser compiled **perception-only**: no
+eyes, no document channel. The browser workspace is the one place `"browser"`,
+which no package registers under that id, so the place had no registration and
+everything derived from one — class, eyes, discipline — answered as though no
+browser were installed; a place with no discipline can never lead, and naming it
+moved nothing. The pre-read keyed on the lead alone, so a page question asked
+from an editor read the editor. And the intent was read off the framed sentence:
+"Can you click on the first link" classified as a **question** (perceive, 0.69)
+while its own words reached `click_on_page` at 0.89, and nothing was dispatched.
+
+Each fixed where it lives. The compiler admits a web surface as a workspace
+whose document channel is `page_context` — the shell read, never a pixel and
+never an address — and the adapter binds it. The browser workspace is backed by
+the browser the ledger evidences, else any package realizing browsing, since
+what is asked of a registration there is the same for all of them. The
+pre-read takes **the place the sentence named** before the lead — the invariant
+`page-question-from-an-editor` had asserted for seven rounds. And the intent is
+read off the bare request first, the way round 4 bared the skill read: the bare
+form is the request, the frame is how it was asked.
+
+Then the turn-level runs found the fault the probe could not: **from a regular
+application that is not active, cooperative activation is ignored.** The probe
+is a command-line process and its activations took; the bench is an application
+behind an editor, exactly as Mary is when spoken to, and "Chrome didn't come to
+the foreground" after the whole budget — the reported sentence, reproduced at
+last. A raised window does not activate its process. Setting the application's
+own `AXFrontmost` attribute is how an assistive client activates what it drives,
+granted to a trusted process whoever is active; it is the raise road's third
+step now, and the same sentence from the bench brings Chrome forward.
+
+One more, found the same way. The confidence lane spoke nothing on a success —
+"the act was the answer" — so "Can you click the first link on this page"
+pressed the link, changed the page, and ended without a word, which is the
+shape the person reported as not working. A landed act speaks its receipt now;
+silence stays for the act that only changed where the person is looking.
+
+Measured, through the whole turn with TextEdit in front: "Can you click on the
+first link" reads as operate on the bare request and dispatches `click_on_page`
+with "the first link" on the confidence lane, Chrome forward after, and says
+*click "the first link" — the page became Wikimedia Commons*. "What's on
+this page right now on Google Chrome" and the dictated correction "No I'm not
+what's on this page I'm looking at in Google Chrome" both read as perceive
+(0.86, 0.85) and reach `read_page` uniquely. What the voice says on a perceive
+turn is the model's, which the bench cannot hear; `aNamedPlaceIsReadBeforeTheLead`
+pins that the page, not the editor, is what it is handed. Through the probe with
+the browser in front: "Can you click the first link on this page" lands; "Can you
+scroll down this page" is delivered in 70 ms and says so.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |

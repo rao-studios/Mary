@@ -137,6 +137,36 @@ import Testing
             bundleIdentifiers: ["com.literatureandlatte.scrivener"])
     }
 
+    // MARK: - Channel 5: webSurface — the browser
+
+    /// `chrome.mary` declares a `webSurface` and none of the other four. The
+    /// guard did not know the web surface existed, so every browser compiled
+    /// `.perceptionOnly`: no eyes, no discipline, never able to lead, and a
+    /// page question asked from an editor read nothing. MEASURED as "you're
+    /// looking at whatever webpage is open in your Chrome window".
+    @Test func webSurfaceEarnsWorkspaceEyes() throws {
+        guard InstalledPackages.installed() != nil else { return }
+        let package = try loadRootPackage("chrome")
+        #expect(
+            package.plugin?.proseSurface == nil && package.plugin?.codeSurface == nil
+                && package.plugin?.mediaSurface == nil && package.plugin?.corpus == nil,
+            "chrome.mary grew another surface — this test no longer isolates the web channel")
+        #expect(package.plugin?.webSurface != nil, "chrome.mary no longer declares a webSurface")
+        try assertEarnsWorkspaceEyes(
+            applicationID: "chrome",
+            packages: [package, try loadRootPackage("browsing")],
+            bundleIdentifiers: ["com.google.Chrome"])
+
+        // THE CHANNEL IS THE SHELL READ, by the name the adapter binds.
+        let compilation = PluginCompiler.compile(
+            packages: [package, try loadRootPackage("browsing")],
+            nativeAdapterManifests: [],
+            grantedPermissions: { _ in [.accessibility] })
+        let perception = try #require(
+            compilation.applicationProfiles.first { $0.id == "chrome" }?.perception)
+        #expect(perception.documentOperation == WebSurfaceAdapter.pageContextOperation)
+    }
+
     // MARK: - The other half: a workspace claim with NONE of the four still degrades
 
     /// THE GUARD THE FIX MUST NOT REMOVE. A package that somehow reaches

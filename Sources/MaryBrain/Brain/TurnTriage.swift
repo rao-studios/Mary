@@ -104,7 +104,19 @@ enum TurnTriage {
             // action" — it is "I cannot say".
             return .abstained
         }
-        let classified = intentIndex.classify(query, habits: habits)
+        // THE INTENT IS READ OFF THE BARE REQUEST FIRST. Round 4 found that a
+        // politeness frame and a named surface cost 0.06–0.21 of sentence
+        // similarity and bared the SKILL read; the intent read kept scoring the
+        // frame. MEASURED at the turn: "Can you click on the first link" read
+        // as PERCEIVE (0.69) — a question, by its shape — while its own words
+        // reached `click_on_page` at 0.89, and nothing was dispatched. The bare
+        // form is the request; the frame is how it was asked. When the bare
+        // form classifies, it is the verdict; the framed sentence answers only
+        // when the bare one cannot.
+        let bare = RoutingQuery.bareRequest(
+            query, surfaces: registry.semanticSkillIndex?.surfaces ?? [])
+        let classified = bare.flatMap { intentIndex.classify($0, habits: habits) }
+            ?? intentIndex.classify(query, habits: habits)
 
         // Habits reach BOTH tiers. `classify` took them and `affinities`
         // silently fell back to `.shared`, so an injected store only half

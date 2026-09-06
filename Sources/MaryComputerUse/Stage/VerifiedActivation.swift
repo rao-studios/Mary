@@ -192,6 +192,17 @@ public enum VerifiedActivation {
     ) async -> Activation {
         let pid = running.processIdentifier
         raiseAWindow(pid: pid)
+        // THE ASSISTIVE ROAD. Cooperative activation is a REQUEST, and macOS
+        // grants it to the active application; an application that is not
+        // active — Mary, spoken to while the person works in an editor — is
+        // ignored, and a raised window does not activate its process. MEASURED
+        // from the bench, a regular application behind an editor: "Chrome
+        // didn't come to the foreground" after the whole budget, while the
+        // same call from a command-line probe succeeded. Setting the
+        // application's own frontmost attribute is how an assistive client
+        // activates what it is driving, and it is granted to a trusted process
+        // whoever is active.
+        setFrontmostThroughAccessibility(pid: pid)
         running.activate(options: [.activateAllWindows])
         switch await frontmost(pid: pid, within: budget) {
         case .arrived:
@@ -356,6 +367,21 @@ public enum VerifiedActivation {
         else { return }
         try? AccessibilityWindowCore.restore(window.element)
         try? AccessibilityWindowCore.raise(window.element, title: window.title)
+    }
+
+    /// Ask the application, through Accessibility, to be frontmost. Checked;
+    /// the caller verifies with the workspace read either way.
+    @discardableResult
+    static func setFrontmostThroughAccessibility(pid: pid_t) -> Bool {
+        guard AXIsProcessTrusted() else { return false }
+        let application = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(application, 0.5)
+        let set = AXUIElementSetAttributeValue(
+            application, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
+        ComputerUseMonitor.shared.note(
+            lane: .stage, act: "setFrontmost", pid: pid,
+            detail: set == .success ? "via Accessibility" : "refused (\(set.rawValue))")
+        return set == .success
     }
 
     /// Frontmost proves ownership of the foreground; this proves there is

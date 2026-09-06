@@ -1,0 +1,25 @@
+{
+  "category": "context",
+  "id": "correction-then-page-question",
+  "legs": [
+    {
+      "note": "Reported verbatim, answered \"Chrome.\" with the editor leading. Round 4 made the correction a frame the router strips; the lead and the pre-read are round 8's. A perceive turn is answered by the voice from the pre-read (`aNamedPlaceIsReadBeforeTheLead` pins that), which this bench cannot hear: it answers the model round with the page read and judges the intent and the read; what the voice says is the model's, heard only in Mary.",
+      "provider": {
+        "applicationID": "chrome",
+        "rationale": "named"
+      },
+      "routing": {
+        "intent": "perceive",
+        "lane": "model",
+        "skill": "read_page"
+      },
+      "say": "No I'm not what's on this page I'm looking at in Google Chrome"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "textedit",
+    "pageClass": "article"
+  },
+  "summary": "Dictation runs a correction and the question after it into one sentence; the correction is a frame, and the question names the browser."
+}

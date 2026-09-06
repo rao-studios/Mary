@@ -31,7 +31,9 @@ public struct SemanticSkillRequestIndex: Sendable {
     private let threshold: Float
     /// Every registered application's spoken names, as folded word arrays.
     /// Learned from the same records the corpus is; see `surfaceNames`.
-    private let surfaces: [[String]]
+    /// The installed surfaces' names, for stripping a named one out of a request.
+    /// Shared with the intent read — see `TurnTriage.verdict`.
+    let surfaces: [[String]]
 
     public var entryCount: Int { entries.count }
 

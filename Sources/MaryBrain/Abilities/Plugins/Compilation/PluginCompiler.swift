@@ -474,7 +474,8 @@ public enum PluginCompiler {
                              proseSurface: plugin.proseSurface,
                              codeSurface: plugin.codeSurface,
                              mediaSurface: plugin.mediaSurface,
-                             corpus: plugin.corpus)
+                             corpus: plugin.corpus,
+                             webSurface: plugin.webSurface)
                 : nil,
             // WHAT THIS APPLICATION CALLS ITS DOCUMENTS, straight from the declaration.
             documentNoun: plugin.proseSurface?.documentNoun.singular)
@@ -484,12 +485,18 @@ public enum PluginCompiler {
     }
 
     /// A package projects MARY-OWNED perception only: the generic Accessibility reader, and
+    /// The read-only shell read a browser package is polled through — title,
+    /// site, tab and window counts, never an address. The web-surface adapter
+    /// binds an operation of this name; the two must agree by spelling.
+    static let browserDocumentOperation = "page_context"
+
     private static func perception(
         from schema: PluginApplicationPerceptionSchema?,
         proseSurface: PluginProseSurfaceSchema?,
         codeSurface: PluginCodeSurfaceSchema?,
         mediaSurface: PluginMediaSurfaceSchema?,
-        corpus: PluginCorpusSchema?
+        corpus: PluginCorpusSchema?,
+        webSurface: PluginWebSurfaceSchema? = nil
     ) -> ApplicationPerception? {
         guard let schema else { return nil }
         switch schema.kind {
@@ -498,6 +505,19 @@ public enum PluginCompiler {
                 kind: .perceptionOnly, documentOperation: nil,
                 pollSeconds: ApplicationPerception.pollBounds.lowerBound)
         case .workspace:
+            // A BROWSER IS A WORKSPACE. This guard admitted prose, code, media
+            // and corpus surfaces and did not know the web surface existed, so
+            // every browser package compiled `.perceptionOnly`: no eyes, no
+            // discipline, never able to lead — and a page question asked from
+            // an editor, naming the browser, read nothing. MEASURED as
+            // "you're looking at whatever webpage is open in your Chrome
+            // window" answered from a brief that said the page was unread.
+            // The document channel is the shell read, on the poll's cadence.
+            if webSurface != nil {
+                return ApplicationPerception(
+                    kind: .workspace, documentOperation: browserDocumentOperation,
+                    pollSeconds: ApplicationPerception.pollBounds.lowerBound)
+            }
             guard proseSurface != nil || codeSurface != nil
                     || mediaSurface != nil || corpus != nil else {
                 return ApplicationPerception(

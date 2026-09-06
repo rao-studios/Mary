@@ -1,0 +1,52 @@
+{
+  "category": "context",
+  "id": "click-first-link-from-editor",
+  "legs": [
+    {
+      "ambient": {
+        "frontAfter": "browser"
+      },
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true
+      },
+      "note": "Reported verbatim, answered \"Links.\" Round 4 fixed the floor (a politeness frame cost 0.06 of similarity); this leg is the whole turn from an editor.",
+      "page": {
+        "verb": "press",
+        "winner": {
+          "factsAbsent": [
+            "inForm",
+            "inToolbar",
+            "inFurnitureBand",
+            "separatedStrip"
+          ],
+          "kind": "link",
+          "lexicalBasis": "ordinal",
+          "ordinalWithinKind": 1
+        }
+      },
+      "provider": {
+        "applicationID": "chrome"
+      },
+      "routing": {
+        "arguments": {
+          "target": "the first link"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "Can you click on the first link",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "textedit",
+    "pageClass": "article"
+  },
+  "summary": "An act on the page said from an editor: the browser is reached by recent evidence, the press keeps the stage because the person asked to go somewhere."
+}
