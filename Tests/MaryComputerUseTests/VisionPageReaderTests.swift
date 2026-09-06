@@ -100,4 +100,59 @@ import Testing
         // AND EVERY ROW KNOWS IT IS IN ONE, without anyone re-deriving membership.
         #expect(read.rows.allSatisfy { $0.facts.contains(.inOverlay) })
     }
+
+    /// ONE CONTROL, NOT TWO. A row nested inside a row with the same words is the
+    /// same thing seen twice.
+    ///
+    /// PIN: MEASURED ON A LIVE RESULTS PAGE. The site's own tab came across as an
+    /// outer box and an inner one wholly inside it, carrying the identical label,
+    /// so naming it asked a question about one control the person can see once —
+    /// and both were then marked `duplicateLabel`, making the page look as though
+    /// it held two of everything.
+    @Test func aRowNestedInsideOneWithTheSameWordsCollapses() {
+        let scene = SeenPageFixture.scene(
+            pageOrigin: .zero, pixelsPerPoint: 1,
+            rows: [
+                (label: "News", role: "AXLink",
+                 frame: CGRect(x: 100, y: 100, width: 82, height: 26), affordance: "press"),
+                (label: "News", role: "AXLink",
+                 frame: CGRect(x: 106, y: 104, width: 68, height: 17), affordance: "press"),
+                (label: "Alpine touring boots reviewed", role: "AXLink",
+                 frame: CGRect(x: 40, y: 200, width: 600, height: 40), affordance: "press"),
+            ])
+        let read = VisionPageReader.rows(
+            from: scene, pid: 1, appName: "A Browser", windowTitle: "A Page")
+
+        #expect(read.rows.count == 2, "the nested twin was not collapsed")
+        // THE OUTER ONE SURVIVES: it is the whole control, and its frame is what
+        // a press aims at. (The fixture folds the inner text into the outer
+        // row's own label, which is what a real reading does too — what matters
+        // is that ONE row is left, and it is the outer box.)
+        let kept = read.rows.first { $0.label.lowercased().contains("news") }
+        #expect(kept?.frame.width == 82)
+        #expect(kept?.frame.height == 26)
+        // AND THE ORDINALS ARE RENUMBERED, because a listing speaks them.
+        #expect(read.rows.map(\.ordinal) == [1, 2])
+        // Neither survivor is a duplicate any more.
+        #expect(read.rows.allSatisfy { !$0.facts.contains(.duplicateLabel) })
+    }
+
+    /// TWO ROWS THAT MERELY SHARE A LABEL BOTH SURVIVE. Nesting is the rule, not
+    /// sameness of words — a page may honestly hold two links called the same
+    /// thing, and dropping one would make the second unreachable.
+    @Test func twoSeparateRowsWithOneLabelBothSurvive() {
+        let scene = SeenPageFixture.scene(
+            pageOrigin: .zero, pixelsPerPoint: 1,
+            rows: [
+                (label: "Backcountry.com", role: "AXLink",
+                 frame: CGRect(x: 40, y: 100, width: 200, height: 20), affordance: "press"),
+                (label: "Backcountry.com", role: "AXLink",
+                 frame: CGRect(x: 40, y: 300, width: 200, height: 20), affordance: "press"),
+            ])
+        let read = VisionPageReader.rows(
+            from: scene, pid: 1, appName: "A Browser", windowTitle: "A Page")
+
+        #expect(read.rows.count == 2)
+        #expect(read.rows.allSatisfy { $0.facts.contains(.duplicateLabel) })
+    }
 }

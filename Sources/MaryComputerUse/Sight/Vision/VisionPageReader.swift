@@ -348,6 +348,10 @@ public enum VisionPageReader {
             ordinalByID[element.id.raw] = ordinal
         }
 
+        // ONE CONTROL, NOT TWO. See `collapsingNestedDuplicates`.
+        let collapsed = collapsingNestedDuplicates(rows, ordinalByID: &ordinalByID)
+        rows = collapsed
+
         let groups = map.groups.map { group in
             PageGroup(
                 id: group.id,
@@ -361,6 +365,56 @@ public enum VisionPageReader {
             RowFactsDerivation.derive(rows: rows, groups: groups),
             groups,
             map.labeledFraction)
+    }
+
+    /// A ROW NESTED INSIDE A ROW WITH THE SAME WORDS IS THE SAME CONTROL.
+    ///
+    /// PIN: MEASURED ON A LIVE RESULTS PAGE. The reading emitted the site's own
+    /// "Images" tab twice — an outer box at 82×26 and an inner one at 68×17,
+    /// wholly inside it, carrying the identical label — so naming it asked a
+    /// question ("answers to that as well as one other") about one control the
+    /// person can see once. Both rows were then marked `duplicateLabel`, which
+    /// made the page look as though it held two of everything.
+    /// GEOMETRY AND WORDS, NEVER A SITE. Two rows collapse only when one frame
+    /// CONTAINS the other and their folded labels are identical — a heading
+    /// beside its link keeps both, because neither contains the other, and two
+    /// results that happen to share a title keep both, because neither nests.
+    /// THE OUTER ONE SURVIVES: it is the whole control, and its frame is what a
+    /// press should aim at.
+    static func collapsingNestedDuplicates(
+        _ rows: [PageRow], ordinalByID: inout [UInt: Int]
+    ) -> [PageRow] {
+        var dropped = Set<Int>()
+        for outer in rows {
+            let label = RowFactsDerivation.folded(outer.label)
+            guard !label.isEmpty else { continue }
+            for inner in rows where inner.ordinal != outer.ordinal
+                && !dropped.contains(inner.ordinal)
+                && !dropped.contains(outer.ordinal) {
+                guard RowFactsDerivation.folded(inner.label) == label,
+                      outer.frame.contains(inner.frame),
+                      outer.frame != inner.frame
+                else { continue }
+                dropped.insert(inner.ordinal)
+            }
+        }
+        guard !dropped.isEmpty else { return rows }
+
+        // RENUMBERED IN READING ORDER, because an ordinal is a position a listing
+        // speaks and a resolver counts — a gap in it would number the page wrongly.
+        var renumbered: [PageRow] = []
+        var newOrdinalByOld: [Int: Int] = [:]
+        for row in rows where !dropped.contains(row.ordinal) {
+            var row = row
+            let old = row.ordinal
+            row.ordinal = renumbered.count + 1
+            newOrdinalByOld[old] = row.ordinal
+            renumbered.append(row)
+        }
+        // A GROUP'S MEMBERS ARE NAMED BY THE OLD ORDINALS, so the identity table
+        // the groups are built from moves with them.
+        ordinalByID = ordinalByID.compactMapValues { newOrdinalByOld[$0] }
+        return renumbered
     }
 
     // MARK: - The shims

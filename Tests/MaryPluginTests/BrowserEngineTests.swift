@@ -555,6 +555,58 @@ enum BrowsingFixtures {
     }
 }
 
+@Suite struct PlayerRegionTests {
+
+    static func reading(_ frames: [CGRect]) -> VisionPageReader.Reading {
+        VisionPageReader.Reading(
+            rows: frames.enumerated().map { index, frame in
+                PageRow(
+                    ordinal: index + 1, frame: frame, label: "a row",
+                    affordance: .none, kind: .image)
+            },
+            pageFrame: BrowsingFixtures.pageFrame,
+            pixelsPerPoint: 1)
+    }
+
+    /// THE PICTURE, WHEN THE READING HELD ONE. A player is a large row shaped
+    /// like video; hovering it is what makes the transport draw.
+    ///
+    /// PIN: MEASURED — the retries hovered fractions down the WHOLE page, which
+    /// is right for a watch page whose picture fills the top two thirds and wrong
+    /// for a file page or an article, where every depth landed on prose and the
+    /// lane reported "no transport" for a page that plainly has one.
+    @Test func theLargestVideoShapedRowIsThePlayer() {
+        let page = BrowsingFixtures.pageFrame   // 800×600 at (100, 200)
+        let player = CGRect(x: 200, y: 500, width: 480, height: 270)
+        let found = BrowserEngine.playerRegion(
+            in: Self.reading([
+                CGRect(x: 110, y: 210, width: 300, height: 40),   // a banner, too thin
+                player,
+                CGRect(x: 120, y: 220, width: 60, height: 60),    // a thumbnail, too small
+            ]),
+            page: page)
+        #expect(found == player)
+    }
+
+    /// A PAGE WITH NO PICTURE ANSWERS NOTHING, and the whole page is used —
+    /// exactly the behaviour that was there before.
+    @Test func aPageWithNoPictureAnswersNothing() {
+        let page = BrowsingFixtures.pageFrame
+        #expect(BrowserEngine.playerRegion(
+            in: Self.reading([CGRect(x: 110, y: 210, width: 300, height: 20)]),
+            page: page) == nil)
+        #expect(BrowserEngine.playerRegion(in: Self.reading([]), page: page) == nil)
+    }
+
+    /// AND A TALL COLUMN IS NOT A PLAYER, however big it is.
+    @Test func aTallColumnIsNotAPlayer() {
+        let page = BrowsingFixtures.pageFrame
+        #expect(BrowserEngine.playerRegion(
+            in: Self.reading([CGRect(x: 110, y: 210, width: 300, height: 560)]),
+            page: page) == nil)
+    }
+}
+
 @Suite struct SettleArrivalTests {
 
     /// A RELOAD LANDS ON THE SAME TITLE, AND THAT IS AN ARRIVAL.

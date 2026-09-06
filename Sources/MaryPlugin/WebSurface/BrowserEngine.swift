@@ -315,16 +315,53 @@ public actor BrowserEngine {
                 return .success(reading)
             }
             emit(.acted("looked again — the transport was not showing"))
-            // A DIFFERENT DEPTH EACH TIME. A page is a player over only part of what was
-            // captured, and one fraction cannot be right for every layout — a watch page
-            // puts the picture in the top two thirds, an embedded player fills the frame,
-            // and a page scrolled halfway puts it anywhere.
+            // OVER THE PICTURE ITSELF, WHEN THE READING FOUND ONE.
+            //
+            // PIN: MEASURED — A PLAYER IS NOT ALWAYS IN THE MIDDLE OF THE PAGE.
+            // The retries hovered fractions down the whole captured region, which
+            // is right for a watch page whose picture fills the top two thirds and
+            // wrong for a file page, a wiki article or an embedded clip, where the
+            // player is a modest rectangle somewhere else entirely. On such a page
+            // every depth landed on prose and the lane reported "no transport" for
+            // a page that plainly has one — two legs of round 0, and six more that
+            // could not be staged because of it. The reading already knows where
+            // the picture is; aiming at it is generic, and needs no site.
+            let region = Self.playerRegion(in: reading, page: pageFrame) ?? pageFrame
             await seams.hands.reveal(
-                over: pageFrame, at: Self.revealDepths[attempt], pid: target.processIdentifier)
+                over: region, at: Self.revealDepths[attempt], pid: target.processIdentifier)
             await seams.sleep(Self.revealSettle)
             attempt += 1
         }
     }
+
+    /// THE PICTURE ON THE PAGE, WHEN THE READING HELD ONE.
+    ///
+    /// PIN: SHAPE AND SIZE, NEVER A SITE. A player reads as a large image-like
+    /// row: at least a fifth of the page's area, and wider than it is tall in the
+    /// way video is. The largest such row is the one worth hovering. A page with
+    /// no such row answers nil and the whole page is used, exactly as before.
+    static func playerRegion(
+        in reading: VisionPageReader.Reading, page: CGRect
+    ) -> CGRect? {
+        let area = page.width * page.height
+        guard area > 0 else { return nil }
+        return reading.rows
+            .filter { row in
+                let frame = row.frame
+                guard frame.width > 0, frame.height > 0 else { return false }
+                guard frame.width * frame.height >= area * playerAreaShare else { return false }
+                let aspect = frame.width / frame.height
+                return aspect >= playerMinimumAspect && aspect <= playerMaximumAspect
+            }
+            .max { ($0.frame.width * $0.frame.height) < ($1.frame.width * $1.frame.height) }?
+            .frame
+    }
+
+    /// How much of the page a row must cover before it can be the picture.
+    static let playerAreaShare: CGFloat = 0.2
+    /// The shape of video: wider than tall, and not a banner.
+    static let playerMinimumAspect: CGFloat = 1.2
+    static let playerMaximumAspect: CGFloat = 3.0
 
     /// Where each retry puts the pointer, as a fraction down the captured region.
     static let revealDepths: [Double] = [0.55, 0.22, 0.42]
