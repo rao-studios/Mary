@@ -41,6 +41,11 @@ public enum MediaAction: Sendable, Equatable {
     case fullscreen
     /// Jump to a proportion of the video.
     case seek(fraction: Double)
+    /// Jump to a time from the start. Resolved against the video's length into
+    /// a `seek(fraction:)` before anything is pressed — see `BrowserEngine.drove`.
+    case seekTo(seconds: TimeInterval)
+    /// Move by a length of time from wherever it is; negative is backwards.
+    case seekBy(seconds: TimeInterval)
     /// Set the sound to a proportion of the volume track.
     case volume(fraction: Double)
 
@@ -53,8 +58,21 @@ public enum MediaAction: Sendable, Equatable {
         case .unmute: return "Unmuted"
         case .fullscreen: return "Went full screen"
         case .seek(let fraction): return "Skipped to \(Int((fraction * 100).rounded()))%"
+        case .seekTo(let seconds): return "Went to \(SpokenDuration.clock(seconds))"
+        case .seekBy(let seconds):
+            return seconds < 0
+                ? "Went back \(SpokenDuration.clock(seconds))"
+                : "Skipped ahead \(SpokenDuration.clock(seconds))"
         case .volume(let fraction):
             return "Set the volume to \(Int((fraction * 100).rounded()))%"
+        }
+    }
+
+    /// A time seek, before it is resolved into a place on the track.
+    public var isTimeSeek: Bool {
+        switch self {
+        case .seekTo, .seekBy: return true
+        default: return false
         }
     }
 }
@@ -105,6 +123,10 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The browser could not be staged, and why — the stage faculty's own
     /// reason, so five different conditions are not one sentence.
     case activationRefused(String, Activation.Failure?)
+    /// A time was asked for and no lane could read how long the video is.
+    case videoLengthUnknown
+    /// A time past the end of the video, as the reading measures it.
+    case beyondTheEnd(TimeInterval)
     case notImplemented(String)
     /// The engine was asked to observe, not act.
     case dryRun(String)
@@ -153,6 +175,10 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
         case .activationRefused(let name, let failure):
             return failure.flatMap { Activation.lost($0).reason(app: name) }
                 ?? "\(name) wouldn't come forward."
+        case .videoLengthUnknown:
+            return "I can't tell how long the video is, so I can't go to a time in it."
+        case .beyondTheEnd(let duration):
+            return "The video is only \(SpokenDuration.clock(duration)) long."
         case .notImplemented(let what):
             return "I can't \(what) yet."
         case .dryRun(let what):

@@ -50,6 +50,9 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
     var reads = 0
     /// Rosters served to `.elements`, one per read; the last one repeats.
     var pages: [(elements: [AXScreenElement], map: PageMapSummary)] = []
+    /// Rows served to `.elements` instead, when a test needs what only a row
+    /// carries — a slider's value and range. One per read; the last repeats.
+    var rowPages: [[PageRow]] = []
     var elementReads = 0
 
     init(_ readings: [MediaControlReading?], failure: VisionPageReader.Failure? = nil) {
@@ -69,6 +72,12 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
     ) async throws -> VisionPageReader.Reading {
         if let failure { throw failure }
         reads += 1
+        if intent == .elements, !rowPages.isEmpty {
+            let index = min(elementReads, rowPages.count - 1)
+            elementReads += 1
+            return VisionPageReader.Reading(
+                rows: rowPages[index], pageFrame: pageFrame, pixelsPerPoint: 1, classified: true)
+        }
         if intent == .elements {
             let index = min(elementReads, max(0, pages.count - 1))
             elementReads += 1
@@ -411,6 +420,92 @@ enum BrowsingFixtures {
             return
         }
         #expect(what.contains("transport"))
+    }
+
+    // MARK: - A time, as a place on the track
+
+    /// "GO BACK TWO MINUTES" IS A FRACTION ONCE THE CLOCK IS KNOWN. The reading
+    /// carries the clock; the seek is resolved against it and pressed on the
+    /// track like any other, and the receipt speaks the time that was asked.
+    @Test func aTimeSeekIsResolvedAgainstTheClockAndProved() async {
+        var before = BrowsingFixtures.media(playing: .playing, fraction: 0.5)
+        before.elapsed = 300
+        before.duration = 600
+        let after = BrowsingFixtures.media(playing: .playing, fraction: 0.3)
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage([before, after]), hands: hands)
+        let outcome = await engine.controlMedia(
+            .seekBy(seconds: -120), in: BrowsingFixtures.target())
+        #expect(outcome.ok)
+        #expect(outcome.landed)
+        #expect(outcome.spoken.hasPrefix("Went back 2:00"))
+        // Pressed at 3/10 of the track: the fixture's track spans x 110...890.
+        let expected = before.seekPoint(fraction: 0.3)
+        #expect(hands.clicks.count == 1)
+        #expect(hands.clicks.first.map { abs($0.x - (expected?.x ?? -1)) < 2 } == true)
+    }
+
+    @Test func anAbsoluteTimeSeekLandsAtThatTime() async {
+        var before = BrowsingFixtures.media(playing: .playing, fraction: 0.5)
+        before.elapsed = 300
+        before.duration = 600
+        let after = BrowsingFixtures.media(playing: .playing, fraction: 0.3)
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage([before, after]))
+        let outcome = await engine.controlMedia(
+            .seekTo(seconds: 180), in: BrowsingFixtures.target())
+        #expect(outcome.landed)
+        #expect(outcome.spoken.hasPrefix("Went to 3:00"))
+    }
+
+    /// THE PAGE'S OWN SLIDER IS THE TRACK when the picture showed none. A player
+    /// hides its bar on a timer; the tree publishes the same bar as a slider,
+    /// with its value and range, for as long as it is drawn. MEASURED: "I can
+    /// see the player but not its progress control" about a track 879 points
+    /// wide in the tree.
+    @Test func aSeekWithNoVisibleTrackTakesThePagesSlider() async {
+        var blind = BrowsingFixtures.media(playing: .playing)
+        blind.progress = nil
+        let track = CGRect(x: 120, y: 690, width: 760, height: 5)
+        func slider(at seconds: Double) -> PageRow {
+            PageRow(
+                ordinal: 1, frame: track, label: "Progress Bar", affordance: .adjust,
+                kind: .slider, provenance: .accessibility,
+                value: seconds, minimumValue: 0, maximumValue: 600)
+        }
+        let picture = PageRow(
+            ordinal: 2, frame: CGRect(x: 100, y: 200, width: 800, height: 450),
+            label: "the picture", kind: .image)
+        let page = FakePage([blind, blind])
+        page.rowPages = [[picture, slider(at: 300)], [picture, slider(at: 180)]]
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]), page: page, hands: hands)
+
+        let outcome = await engine.controlMedia(
+            .seekBy(seconds: -120), in: BrowsingFixtures.target())
+        #expect(outcome.landed, Comment(rawValue: outcome.spoken))
+        #expect(outcome.spoken.hasPrefix("Went back 2:00"))
+        // Pressed on the slider's own frame, three tenths along.
+        let click = hands.clicks.first
+        #expect(click.map { track.contains($0) } == true, "\(String(describing: click))")
+        #expect(click.map { abs($0.x - (track.minX + track.width * 0.3)) < track.width * 0.05 } == true)
+    }
+
+    /// NO CLOCK, NO GUESS: the refusal names the length, not the track.
+    @Test func aTimeSeekWithNoClockRefusesByName() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([BrowsingFixtures.shell()]),
+            page: FakePage([BrowsingFixtures.media(playing: .playing)]), hands: hands)
+        let outcome = await engine.controlMedia(
+            .seekBy(seconds: -120), in: BrowsingFixtures.target())
+        #expect(!outcome.ok)
+        #expect(hands.clicks.isEmpty)
+        #expect(outcome.spoken.contains("how long the video is"))
     }
 
     @Test func aWindowThatWillNotComeForwardRefusesAndSaysWhy() async {

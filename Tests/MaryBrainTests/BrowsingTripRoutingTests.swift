@@ -142,12 +142,27 @@ import Testing
 
         var report: [String] = []
         var wrong: [String] = []
+        /// Legs this machine cannot put words to; their ledger lines are neither
+        /// regressions nor fixes.
+        var unmeasured: Set<String> = []
 
         for (_, trip) in corpus.trips {
-            for (index, leg) in trip.legs.enumerated() {
-                guard leg.pending == nil, let wanted = leg.routing else { continue }
+            for (index, stated) in trip.legs.enumerated() {
+                guard stated.pending == nil, let wanted = stated.routing else { continue }
                 // A LEG WHOSE SKILL IS NOT SHIPPED YET IS NOT A ROUTING FAULT.
                 guard snapshot.reference(forInvocation: wanted.skill) != nil else { continue }
+                // A KEYED LEG'S WORDS ARE THE MACHINE'S — the phrase a staged page
+                // holds, which the probe dispatches as the leg's TARGET rather
+                // than as a sentence. What a person would say around it is not
+                // in this repository, so the R1 half cannot be measured here at
+                // all: the generic `say` is a placeholder that reaches nothing on
+                // purpose, and the phrase alone is a name, not a request.
+                let leg = stated
+                if stated.sayKey != nil {
+                    unmeasured.insert("\(trip.id)[\(index)]")
+                    report.append("  ~    \(trip.id)[\(index)] not measured — its words are the machine's")
+                    continue
+                }
                 let measured = Self.measure(
                     trip: trip, index: index, leg: leg, wanted: wanted,
                     snapshot: snapshot, store: store)
@@ -206,8 +221,13 @@ import Testing
         // of findings is compared with the recorded one BOTH WAYS: a new one is
         // a regression, and a fixed one has to be struck off here deliberately.
         let found = Set(wrong)
-        let regressions = found.subtracting(Self.knownFindings).sorted()
-        let fixed = Self.knownFindings.subtracting(found).sorted()
+        // A LEG NOT MEASURED CANNOT HAVE BEEN FIXED. Its known lines stay on
+        // the ledger untouched until a machine can put words to it.
+        let known = Self.knownFindings.filter { finding in
+            !unmeasured.contains { finding.hasPrefix($0 + " ") }
+        }
+        let regressions = found.subtracting(known).sorted()
+        let fixed = known.subtracting(found).sorted()
         let newly = "\(regressions.count) NEW routing finding(s):\n"
             + regressions.joined(separator: "\n")
         #expect(regressions.isEmpty, "\(newly)")

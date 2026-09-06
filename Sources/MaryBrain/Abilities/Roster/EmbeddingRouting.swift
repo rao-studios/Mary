@@ -156,11 +156,19 @@ public enum EmbeddingRouting {
         var stages: [String] = []
         let parameters = skill.skill.modelExposure.parameters
         let required = parameters.filter(\.required)
+        let aliases = applicationProfiles.first { $0.id == applicationID }?.aliases ?? []
+        /// The sentence's remaining span, peeled once for whichever parameter takes it.
+        var peeledSpan: (value: String, stages: [String])?
+        func span() -> (value: String, stages: [String]) {
+            if let peeledSpan { return peeledSpan }
+            let peeled = SpokenArgumentExtractor.peeled(
+                utterance, triggers: skill.ability.triggers, applicationAliases: aliases)
+            peeledSpan = peeled
+            return peeled
+        }
         if required.count == 1, let only = required.first, only.type == "string" {
             if only.enumValues.isEmpty {
-                let aliases = applicationProfiles.first { $0.id == applicationID }?.aliases ?? []
-                let peeled = SpokenArgumentExtractor.peeled(
-                    utterance, triggers: skill.ability.triggers, applicationAliases: aliases)
+                let peeled = span()
                 args[only.name] = peeled.value
                 stages += peeled.stages
             } else if let match = SpokenEnumExtractor.value(for: only, in: utterance) {
@@ -180,6 +188,17 @@ public enum EmbeddingRouting {
             else { continue }
             args[parameter.name] = match.value
             stages.append("enum \(parameter.name): \"\(match.spokenAs)\" -> \(match.value)")
+        }
+        // AN OPTIONAL STRING THE PACKAGE SAYS THE SENTENCE FILLS. "Go back two
+        // minutes" names the seek AND how far; the enum took "go back", and the
+        // span that remains is the time. See `ModelParameterSchema.spokenSpan`.
+        for parameter in parameters
+        where !parameter.required && parameter.spokenSpan && parameter.type == "string"
+            && parameter.enumValues.isEmpty && args[parameter.name] == nil {
+            let peeled = span()
+            guard !peeled.value.isEmpty else { continue }
+            args[parameter.name] = peeled.value
+            stages.append("span \(parameter.name): \"\(peeled.value)\"")
         }
         if let applicationID, !applicationID.isEmpty,
            parameters.contains(where: { $0.name == "app" }) {

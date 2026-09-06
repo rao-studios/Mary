@@ -57,6 +57,12 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
         /// recording made before it existed, which reads as a page whose seal
         /// named no places, exactly as it was.
         public var region: String?
+        /// An adjustable control's state and range, when the page published
+        /// them — a progress bar's value and the video's length. Absent in a
+        /// recording made before they were carried.
+        public var value: Double?
+        public var minimumValue: Double?
+        public var maximumValue: Double?
     }
 
     public struct Group: Codable, Sendable, Equatable {
@@ -114,6 +120,8 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
         version = 2
         classified = roster.classified
         readMilliseconds = roster.readDuration.map(PageRosterFixture.milliseconds)
+        let rowsByOrdinal = Dictionary(
+            roster.rows.map { ($0.ordinal, $0) }, uniquingKeysWith: { first, _ in first })
         let factsByOrdinal = Dictionary(
             roster.rows.map {
                 ($0.ordinal, ($0.facts.rawValue, $0.kind?.rawValue, $0.region?.rawValue))
@@ -138,7 +146,10 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 confidence: annotation?.confidence ?? 0,
                 facts: seen?.0,
                 kind: seen?.1,
-                region: seen?.2)
+                region: seen?.2,
+                value: rowsByOrdinal[element.ordinal]?.value,
+                minimumValue: rowsByOrdinal[element.ordinal]?.minimumValue,
+                maximumValue: rowsByOrdinal[element.ordinal]?.maximumValue)
         }
         groups = roster.map.groups.map {
             Group(id: $0.id, kind: $0.kind, title: $0.title, memberOrdinals: $0.memberOrdinals)
@@ -222,7 +233,10 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 isEnabled: row.isEnabled,
                 facts: RowFacts(rawValue: row.facts ?? 0),
                 region: row.region.flatMap { PageRegion(rawValue: $0) },
-                provenance: .seen)
+                provenance: .seen,
+                value: row.value,
+                minimumValue: row.minimumValue,
+                maximumValue: row.maximumValue)
         }
     }
 

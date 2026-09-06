@@ -120,6 +120,14 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
     /// because the value's own name is always matched first.
     public var spokenValues: [String: [String]]
 
+    /// AN OPTIONAL STRING THE SENTENCE ITSELF FILLS. The no-model lane fills
+    /// one required string, the enums a sentence names, and the application;
+    /// an optional plain string was unfillable by construction, so a seek
+    /// ("go back two minutes") and a result pick cost a model round every
+    /// time. A parameter marked so receives the sentence's remaining span —
+    /// the same peel the required string gets — and the binding parses it.
+    public var spokenSpan: Bool
+
     public init(
         name: String,
         type: String,
@@ -127,7 +135,8 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         required: Bool,
         enumValues: [String] = [],
         requiresComposition: Bool = false,
-        spokenValues: [String: [String]] = [:]
+        spokenValues: [String: [String]] = [:],
+        spokenSpan: Bool = false
     ) {
         self.name = name
         self.type = type
@@ -136,11 +145,12 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         self.enumValues = enumValues
         self.requiresComposition = requiresComposition
         self.spokenValues = spokenValues
+        self.spokenSpan = spokenSpan
     }
 
     private enum CodingKeys: String, CodingKey {
         case name, type, summary, required, enumValues, requiresComposition
-        case spokenValues
+        case spokenValues, spokenSpan
     }
 
     /// Tolerant decode — a package sealed before this field existed must
@@ -156,6 +166,22 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
             Bool.self, forKey: .requiresComposition) ?? false
         spokenValues = try container.decodeIfPresent(
             [String: [String]].self, forKey: .spokenValues) ?? [:]
+        spokenSpan = try container.decodeIfPresent(Bool.self, forKey: .spokenSpan) ?? false
+    }
+
+    /// A NEW KEY IS WRITTEN ONLY WHEN IT SAYS SOMETHING. Every sealed package
+    /// carries a digest of its own encoding; a field that encodes `false` into
+    /// packages that never declared it would change every digest at once.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(type, forKey: .type)
+        try container.encode(summary, forKey: .summary)
+        try container.encode(required, forKey: .required)
+        try container.encode(enumValues, forKey: .enumValues)
+        try container.encode(requiresComposition, forKey: .requiresComposition)
+        try container.encode(spokenValues, forKey: .spokenValues)
+        if spokenSpan { try container.encode(spokenSpan, forKey: .spokenSpan) }
     }
 }
 

@@ -856,13 +856,63 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "What's on this page?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "seek-0-go-back-two-minutes-in-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Go back two minutes in the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "seek-1-skip-ahead-thirty-seconds",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Skip ahead thirty seconds."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "seek-2-go-to-three-minutes-in-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Go to three minutes in the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "seek-3-rewind-a-minute",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Rewind a minute."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "seek-4-jump-to-130-in-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Jump to 1:30 in the video."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "605f811ae786456b1b6eeb9a7662df00aafac1c05dcafd448af40e796731dea9"
+    "digest" : "efc456f5dd149c0ea4ff4d765889778704c1f4f39972dd49e99ade2a09094df0"
   },
   "interactions" : [
 
@@ -1154,9 +1204,17 @@
                 "unpause"
               ],
               "seek" : [
+                "back up",
+                "fast forward",
+                "go back",
+                "go to",
+                "jump to",
+                "rewind",
                 "seek",
-                "skip to",
-                "jump to"
+                "skip ahead",
+                "skip back",
+                "skip forward",
+                "skip to"
               ],
               "toggle" : [
                 "toggle",
@@ -1184,10 +1242,11 @@
             "name" : "position",
             "required" : false,
             "requiresComposition" : false,
+            "spokenSpan" : true,
             "spokenValues" : {
 
             },
-            "summary" : "For seek, how far through; for volume, how loud. 0 to 1.",
+            "summary" : "For seek, a time — \"two minutes\", \"1:30\", \"back thirty seconds\" — or how far through, 0 to 1; for volume, how loud, 0 to 1.",
             "type" : "string"
           },
           {

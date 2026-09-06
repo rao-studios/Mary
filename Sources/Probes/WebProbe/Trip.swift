@@ -214,6 +214,20 @@ enum TripCommand {
             }
             return recording
         }
+        if trip.stage.mediaPlaying == true {
+            // THE ENGINE'S OWN VERB, proved like any act. A video that will not
+            // play is a stage nobody set, not a failure of the leg.
+            let played = await engine.controlMedia(.play, in: target)
+            guard played.ok else {
+                return unstageable("the video has to be playing — \(played.spoken)")
+            }
+            // A FEW SECONDS IN, LIKE A PERSON. Nobody says "go to three minutes"
+            // half a second after pressing play; and measured, the transport's
+            // clock is not legible to the reading in its first second, which
+            // made a leg about seeking into a leg about a clock.
+            try? await Task.sleep(for: .seconds(3))
+            print("  the video is playing")
+        }
         if trip.stage.minimized == true {
             guard minimizeFrontWindow(of: target.processIdentifier) else {
                 return unstageable("the browser's window has to be minimized")

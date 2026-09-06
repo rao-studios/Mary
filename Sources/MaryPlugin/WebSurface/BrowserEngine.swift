@@ -566,7 +566,7 @@ public actor BrowserEngine {
     }
 
     private func drove(
-        _ action: MediaAction, in target: BrowserTarget, shell: WebSurfaceAX.Reading
+        _ asked: MediaAction, in target: BrowserTarget, shell: WebSurfaceAX.Reading
     ) async -> BrowserOutcome {
         var before: MediaControlReading
         switch await perceive(target, shell: shell, intent: .media, reveal: true) {
@@ -576,6 +576,37 @@ public actor BrowserEngine {
                 return refuse(.controlsNotFound)
             }
             before = media
+        }
+
+        // A TIME IS A PLACE ON THE TRACK, ONCE THE VIDEO'S LENGTH IS KNOWN.
+        //
+        // PIN: "GO BACK TWO MINUTES" WAS UNSAYABLE. The seek took a fraction and
+        // nothing else, so a person had to know the video's length and divide;
+        // the lane offered "halfway, or a quarter in". The reading knows the
+        // clock — VisionAX reads it off the transport, and the page's progress
+        // slider publishes its range — and once it does, a time is a fraction
+        // like any other and the rest of this verb is unchanged. When no lane
+        // can read the length, the refusal names the length, not the track.
+        var action = asked
+        if asked.isTimeSeek {
+            // THE PAGE'S OWN SLIDER AND CLOCK — see `withSliderTrack`, `clocked`.
+            before = await withSliderTrack(before, in: target, shell: shell)
+            guard let clock = Self.clock(from: before),
+                  let fraction = Self.fraction(
+                      for: asked, elapsed: clock.elapsed, duration: clock.duration)
+            else { return refuse(.videoLengthUnknown) }
+            // A PLACE PAST THE END IS NOT THE END. Clamping "go to three
+            // minutes" on a video read as 1:40 long jumped to the end and
+            // called it done — measured, when the clock's OCR misread 10:34
+            // as 1:40. A refusal that names the length is right whether the
+            // video or the reading is short, and the person can tell which.
+            if case .seekTo(let seconds) = asked, seconds > clock.duration + 1 {
+                return refuse(.beyondTheEnd(clock.duration))
+            }
+            emit(.acted("\(asked.spokenPast.lowercased()) is \(Int((fraction * 100).rounded()))% of \(SpokenDuration.clock(clock.duration))"))
+            action = .seek(fraction: fraction)
+        } else if case .seek = asked {
+            before = await withSliderTrack(before, in: target, shell: shell)
         }
 
         // ASKING FOR THE STATE IT IS ALREADY IN IS A SUCCESS THAT PRESSES NOTHING.
@@ -651,7 +682,7 @@ public actor BrowserEngine {
             await seams.hands.glide(to: control.clickPoint, pid: target.processIdentifier)
             await seams.sleep(Self.pressSettle)
         }
-        let after: MediaControlReading
+        var after: MediaControlReading
         switch await perceive(
             target, shell: shell, intent: .media,
             reveal: {
@@ -664,6 +695,14 @@ public actor BrowserEngine {
         case .success(let reading):
             guard let media = reading.media else { return refuse(.controlsNotFound) }
             after = media
+        }
+        // The second look proves a seek by the position: the clock when the
+        // transport shows one, else the page's slider, and the bar's pixels last.
+        if case .seek = action {
+            after = Self.clocked(after)
+            if after.progress == nil || (after.elapsed == nil && after.duration == nil) {
+                after = await withSliderTrack(after, in: target, shell: shell)
+            }
         }
 
         let verdict: String
@@ -684,7 +723,7 @@ public actor BrowserEngine {
             emit(.receipt(receipt))
             return BrowserOutcome(
                 ok: true,
-                spoken: "\(action.spokenPast), though \(why).",
+                spoken: "\(asked.spokenPast), though \(why).",
                 shell: shell, media: after, receipts: [receipt], landed: false)
         }
         emit(.verified(verdict))
@@ -707,7 +746,7 @@ public actor BrowserEngine {
             effect: .verified(.mediaState(verdict)))
         emit(.receipt(receipt))
         return BrowserOutcome(
-            ok: true, spoken: "\(action.spokenPast) — \(after.spoken)",
+            ok: true, spoken: "\(asked.spokenPast) — \(after.spoken)",
             shell: shell, media: after, receipts: [receipt], landed: true)
     }
 
@@ -1070,6 +1109,9 @@ public actor BrowserEngine {
         case .seek(let fraction):
             guard let point = media.seekPoint(fraction: fraction) else { return nil }
             return (point, "the progress bar")
+        case .seekTo, .seekBy:
+            // Resolved into a fraction before anything is aimed — see `drove`.
+            return nil
         case .volume(let fraction):
             // THE TRACK ONLY EXISTS WHILE THE POINTER IS ON THE CONTROL, so this is nil
             // on a first read and found on the second — see `drove`, which hovers the
@@ -1085,8 +1127,137 @@ public actor BrowserEngine {
         case .mute, .unmute: return "volume"
         case .volume: return "volume slider"
         case .fullscreen: return "full screen"
-        case .seek: return "progress"
+        case .seek, .seekTo, .seekBy: return "progress"
         }
+    }
+
+    // MARK: - A time, as a place on the track
+
+    /// The video's clock, from whichever lane could read it: the reading's own
+    /// (VisionAX reads the elapsed and total times off the transport), else
+    /// the page's progress slider, whose range IS the length. Nil when neither
+    /// answered, which a time seek must refuse by name rather than guess.
+    ///
+    /// PIN: THE SLIDER IS A SLIDER, NOT A SITE. A player's progress bar is an
+    /// `AXSlider` inside the picture whose maximum is the duration in seconds;
+    /// that is a role and a range, published by the page, and is the same on
+    /// every player that publishes one. MEASURED on the staged watch page:
+    /// `slider "Progress Bar" 879×5` while playing, nothing while paused.
+    static func clock(
+        from media: MediaControlReading
+    ) -> (elapsed: TimeInterval, duration: TimeInterval)? {
+        guard let duration = media.duration, duration > 0 else { return nil }
+        return (media.elapsed ?? 0, duration)
+    }
+
+    /// The page's progress slider: an adjustable row inside the picture whose
+    /// range is a length, wide and thin like a track. The widest range wins —
+    /// a volume slider is a fraction, a progress bar is minutes.
+    static func progressSlider(in rows: [PageRow], player: CGRect?) -> PageRow? {
+        // ON THE PICTURE OR JUST UNDER IT. A player draws its bar over the
+        // bottom of the picture or in a strip beneath it — measured, both — and
+        // a bar a screen away belongs to something else.
+        func belongsToThePlayer(_ frame: CGRect) -> Bool {
+            guard let player else { return true }
+            guard frame.maxX > player.minX, frame.minX < player.maxX else { return false }
+            return frame.intersects(player)
+                || (frame.minY >= player.maxY && frame.minY <= player.maxY + player.height * 0.3)
+        }
+        return rows
+            .filter { row in
+                row.affordance == .adjust
+                    && (row.maximumValue ?? 0) > (row.minimumValue ?? 0)
+                    && belongsToThePlayer(row.frame)
+                    && row.frame.width > row.frame.height * 4
+            }
+            .max { ($0.maximumValue ?? 0) < ($1.maximumValue ?? 0) }
+    }
+
+    /// The reading, with whatever the page's own slider can add: a track to
+    /// aim at when the picture showed none, and a length and a position when
+    /// the clock was not legible. One elements read, only when something is
+    /// missing.
+    ///
+    /// PIN: MEASURED — the picture lane finds the track on one look and loses
+    /// it on the next, because a player hides its bar on a timer; the tree
+    /// publishes the same bar as a slider for as long as it is drawn, with its
+    /// value and range. "I can see the player but not its progress control"
+    /// was said about a track that was 879 points wide in the tree.
+    func withSliderTrack(
+        _ media: MediaControlReading, in target: BrowserTarget, shell: WebSurfaceAX.Reading
+    ) async -> MediaControlReading {
+        guard let pageFrame = shell.pageFrame,
+              case .success(let seen) = await lookOnce(
+                  target, shell: shell, pageFrame: pageFrame, intent: .elements, previous: nil),
+              let slider = Self.progressSlider(
+                  in: seen.rows, player: Self.playerRegion(in: seen, page: pageFrame)),
+              let maximum = slider.maximumValue
+        else { return media }
+        var filled = media
+        let minimum = slider.minimumValue ?? 0
+        let length = maximum - minimum
+        guard length > 0 else { return media }
+        // THE PAGE'S RECTANGLE, OVER THE PICTURE'S. MEASURED: the pixel lane's
+        // bar was a rectangle a click on which moved nothing, and reported
+        // 0.6% for a video at 3:10 of 10:34; the same click on the slider the
+        // tree publishes moved the video exactly. Where the position is read
+        // from is decided by `clocked`; here the frame is the page's.
+        let fraction = slider.value.map { min(max(($0 - minimum) / length, 0), 1) }
+            ?? filled.progress?.fraction ?? 0
+        filled.progress = .init(frame: slider.frame, fraction: fraction)
+        emit(.acted("took the page's own slider as the track"))
+        // TWO LANES AGREE ON A LENGTH, OR ONE OF THEM IS WRONG. The slider's
+        // position and the clock's elapsed time give a length between them —
+        // `elapsed / fraction` — that owes nothing to how the clock's digits
+        // were read. MEASURED: the OCR read 10:34 as 1:40 on two runs out of
+        // six; the slider stood at 0.5% with 0:03 elapsed, which is a video
+        // about ten minutes long, not one. A length the clock says that is
+        // off from that by more than a factor of two is the reading's, not the
+        // video's; when the clock says nothing, the estimate stands alone.
+        if let elapsed = filled.elapsed, slider.value != nil, fraction >= 0.002 {
+            let estimated = elapsed / fraction
+            if let read = filled.duration, read > 0,
+               estimated / read > 2 || read / estimated > 2 {
+                emit(.acted("the clock read \(SpokenDuration.clock(read)) long; the slider says about \(SpokenDuration.clock(estimated))"))
+                filled.duration = estimated
+            } else if filled.duration == nil {
+                filled.duration = estimated
+            }
+        }
+        if filled.duration == nil, length > 100 {
+            // A range in seconds — a slider whose maximum IS the length.
+            filled.duration = length
+            if filled.elapsed == nil, slider.value != nil { filled.elapsed = (slider.value ?? minimum) - minimum }
+        }
+        return Self.clocked(filled)
+    }
+
+    /// The position, read from the clock when there is one. The transport's
+    /// "3:10 of 10:34" is text the reading OCRs and is right; the bar's filled
+    /// fraction is a guess about a few pixels and, measured on a thin bar, was
+    /// wrong by a factor of fifty. When both exist the clock wins.
+    static func clocked(_ media: MediaControlReading) -> MediaControlReading {
+        guard let elapsed = media.elapsed, let duration = media.duration, duration > 0,
+              var progress = media.progress
+        else { return media }
+        progress.fraction = min(max(elapsed / duration, 0), 1)
+        var read = media
+        read.progress = progress
+        return read
+    }
+
+    /// A time seek as the fraction the track takes. Clamped to the video.
+    static func fraction(
+        for action: MediaAction, elapsed: TimeInterval, duration: TimeInterval
+    ) -> Double? {
+        let target: TimeInterval
+        switch action {
+        case .seekTo(let seconds): target = seconds
+        case .seekBy(let seconds): target = elapsed + seconds
+        default: return nil
+        }
+        guard duration > 0 else { return nil }
+        return min(max(target / duration, 0), 1)
     }
 
     /// Did it land. Nil means it did not, and the caller refuses.
@@ -1133,7 +1304,7 @@ public actor BrowserEngine {
             guard after.volumeTrack != nil
             else { return .unreadable("the volume track is not visible to compare") }
             return .unchanged
-        case .seek:
+        case .seek, .seekTo, .seekBy:
             guard after.progress != nil
             else { return .unreadable("the progress track is not visible to compare") }
             return .unchanged
@@ -1194,6 +1365,9 @@ public actor BrowserEngine {
             if abs(now - fraction) <= 0.05 { return "the position is where it was asked for" }
             guard let was = before.progress?.fraction else { return nil }
             return abs(now - was) > 0.02 ? "the position moved" : nil
+        case .seekTo, .seekBy:
+            // Never verified as such: resolved into a fraction first. See `drove`.
+            return nil
         }
     }
 
@@ -1206,6 +1380,9 @@ public actor BrowserEngine {
         case .unmute: return "unmuted"
         case .fullscreen: return "full screen"
         case .seek(let fraction): return "\(Int((fraction * 100).rounded()))% through"
+        case .seekTo(let seconds): return "at \(SpokenDuration.clock(seconds))"
+        case .seekBy(let seconds):
+            return "\(SpokenDuration.clock(seconds)) \(seconds < 0 ? "earlier" : "later")"
         case .volume(let fraction): return "the volume at \(Int((fraction * 100).rounded()))%"
         }
     }

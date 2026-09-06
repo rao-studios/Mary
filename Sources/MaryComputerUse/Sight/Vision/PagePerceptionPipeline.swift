@@ -235,7 +235,10 @@ public enum PagePerceptionPipeline {
             isEnabled: element.isEnabled,
             // WALKED, NOT SEEN. There is an element behind this row to press by
             // name, and the frame is the one its own tree reports.
-            provenance: .accessibility)
+            provenance: .accessibility,
+            value: element.numericValue,
+            minimumValue: element.minimumValue,
+            maximumValue: element.maximumValue)
     }
 
     /// WHAT THE TREE SAYS CAN BE DONE TO IT, not what its role suggests.

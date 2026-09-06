@@ -367,6 +367,8 @@ public extension RecordedReceipt {
         case .notAdjustable: return "notAdjustable"
         case .outOfTime: return "outOfTime"
         case .activationRefused: return "activationRefused"
+        case .videoLengthUnknown: return "videoLengthUnknown"
+        case .beyondTheEnd: return "beyondTheEnd"
         case .notImplemented: return "notImplemented"
         case .dryRun: return "dryRun"
         }

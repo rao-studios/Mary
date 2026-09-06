@@ -372,11 +372,16 @@ public struct TripLeg: Sendable, Equatable, Codable {
     /// PIN: NOT THE SAME TABLE AS `routing.arguments`, AND THE DIFFERENCE IS A
     /// FINDING. `routing.arguments` says what the confidence lane MUST have
     /// filled from the sentence; this says what the probe has to supply to
-    /// dispatch the binding at all. A seek is the case that separates them: the
-    /// lane fills `action` from the word "skip", and `position` is an optional
-    /// STRING, which no shape can fill — so a seek costs a model round by
-    /// construction. Folding the two tables together would hide that.
+    /// dispatch the binding at all. A seek was the case that separated them:
+    /// the lane filled `action` from the word "skip", and `position` was an
+    /// optional STRING no shape could fill — until `spokenSpan` (round 8).
+    /// Folding the two tables together would still hide which is which.
     public var dispatch: [String: String]?
+    /// ARGUMENTS THE MACHINE SUPPLIES, BY KEY. An address the person said out
+    /// loud is a real address, and this repository holds none — so a leg that
+    /// needs one names a key in the machine's phrase table, exactly as `sayKey`
+    /// does for the words. Argument name → phrase key.
+    public var dispatchKeys: [String: String]?
     /// The round that makes this leg possible. Until then it is counted as
     /// PENDING rather than failed — a corpus authored ahead of the engine has to
     /// distinguish "not built yet" from "built and wrong".
@@ -394,6 +399,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         ambient: TripAmbientExpectation? = nil,
         speech: TripSpeechExpectation? = nil,
         dispatch: [String: String]? = nil,
+        dispatchKeys: [String: String]? = nil,
         pending: String? = nil,
         note: String? = nil
     ) {
@@ -406,6 +412,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         self.ambient = ambient
         self.speech = speech
         self.dispatch = dispatch
+        self.dispatchKeys = dispatchKeys
         self.pending = pending
         self.note = note
     }
@@ -429,6 +436,11 @@ public struct TripStage: Sendable, Equatable, Codable {
     /// runner makes itself, through the same window primitives the engine's
     /// activation escalates to.
     public var minimized: Bool?
+    /// The page's video is playing before the first leg — the state a person
+    /// is in when they say "go back two minutes". The runner presses play
+    /// through the engine's own verb, and the leg is unstageable if that
+    /// does not land.
+    public var mediaPlaying: Bool?
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -440,12 +452,14 @@ public struct TripStage: Sendable, Equatable, Codable {
         musicPlaying = try container.decodeIfPresent(Bool.self, forKey: .musicPlaying)
         twoWindows = try container.decodeIfPresent(Bool.self, forKey: .twoWindows)
         minimized = try container.decodeIfPresent(Bool.self, forKey: .minimized)
+        mediaPlaying = try container.decodeIfPresent(Bool.self, forKey: .mediaPlaying)
     }
 
     public init(
         pageClass: TripPageClass = .any, front: String = "browser",
         pin: String? = nil, handNavigateBeforeLeg: Int? = nil,
-        musicPlaying: Bool? = nil, twoWindows: Bool? = nil, minimized: Bool? = nil
+        musicPlaying: Bool? = nil, twoWindows: Bool? = nil, minimized: Bool? = nil,
+        mediaPlaying: Bool? = nil
     ) {
         self.pageClass = pageClass
         self.front = front
@@ -454,6 +468,7 @@ public struct TripStage: Sendable, Equatable, Codable {
         self.musicPlaying = musicPlaying
         self.twoWindows = twoWindows
         self.minimized = minimized
+        self.mediaPlaying = mediaPlaying
     }
 }
 

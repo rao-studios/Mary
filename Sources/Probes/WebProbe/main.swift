@@ -406,7 +406,17 @@ if let requested = value("--media") {
 
     let action: MediaAction?
     if requested.hasPrefix("seek=") {
-        action = Double(requested.dropFirst(5)).map { MediaAction.seek(fraction: $0) }
+        // A fraction, or a spoken time: seek=0.5, "seek=back two minutes", "seek=to 1:30".
+        let spelled = String(requested.dropFirst(5))
+        if let fraction = Double(spelled) {
+            action = .seek(fraction: fraction)
+        } else {
+            switch SpokenDuration.seek(in: spelled) {
+            case .to(let seconds)?: action = .seekTo(seconds: seconds)
+            case .by(let seconds)?: action = .seekBy(seconds: seconds)
+            case nil: action = nil
+            }
+        }
     } else if requested.hasPrefix("volume=") {
         action = Double(requested.dropFirst(7)).map { MediaAction.volume(fraction: $0) }
     } else {
@@ -441,7 +451,7 @@ if let requested = value("--media") {
         case .unmute: reverse = .mute
         // A seek or a volume cannot be undone without knowing where it was; say so
         // rather than guessing a position back.
-        case .seek, .fullscreen, .volume: reverse = nil
+        case .seek, .seekTo, .seekBy, .fullscreen, .volume: reverse = nil
         }
         if let reverse {
             let restored = await engine.controlMedia(reverse, in: target)
@@ -665,7 +675,16 @@ if flag("--page-ax") {
         let frame = String(
             format: "%.0f,%.0f %.0fx%.0f",
             row.frame.minX, row.frame.minY, row.frame.width, row.frame.height)
-        print("      \(row.ordinal). \(row.kind.rawValue) \"\(row.label)\"  (\(frame))")
+        var line = "      \(row.ordinal). \(row.kind.rawValue) \"\(row.label)\"  (\(frame))"
+        // WHAT A CONTROL PUBLISHES ABOUT ITS STATE — a slider's value and range,
+        // which is how a progress bar says how long the video is.
+        if row.numericValue != nil || row.maximumValue != nil {
+            let value = row.numericValue.map { String(format: "%.1f", $0) } ?? "—"
+            let low = row.minimumValue.map { String(format: "%.1f", $0) } ?? "—"
+            let high = row.maximumValue.map { String(format: "%.1f", $0) } ?? "—"
+            line += "  value \(value) in \(low)…\(high)\(row.isValueSettable ? " settable" : "")"
+        }
+        print(line)
     }
     if rows.count > 30 { print("      …and \(rows.count - 30) more.") }
 }

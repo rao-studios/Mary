@@ -193,6 +193,13 @@ public enum TripArguments {
         // THE LANE'S ARGUMENTS FIRST, THEN WHAT ONLY A MODEL COULD HAVE ADDED.
         var arguments = leg.routing?.arguments ?? [:]
         for (name, value) in leg.dispatch ?? [:] { arguments[name] = value }
+        // AND WHAT THE MACHINE HOLDS BY KEY — an address the person said.
+        for (name, key) in leg.dispatchKeys ?? [:] {
+            guard let phrase = TripStaging.phrase(for: key) else {
+                return .unstageable(TripStaging.missingPhraseAdvice(for: key))
+            }
+            arguments[name] = phrase
+        }
         for parameter in parameters where parameter.required {
             guard arguments[parameter.name] == nil else { continue }
             switch parameter.name {

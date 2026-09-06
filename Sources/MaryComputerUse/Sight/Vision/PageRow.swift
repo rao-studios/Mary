@@ -178,6 +178,14 @@ public struct PageRow: Sendable, Equatable, Identifiable {
     /// today every row is `.seen`.
     public var provenance: AXElementProvenance
 
+    /// An adjustable control's numeric state and range, when the page publishes
+    /// them — a slider's value and bounds. A player's progress bar is a slider
+    /// whose range is the video's length, which is how a spoken time becomes a
+    /// place on the track. Nil for everything that is not a control.
+    public var value: Double?
+    public var minimumValue: Double?
+    public var maximumValue: Double?
+
     public init(
         ordinal: Int,
         frame: CGRect,
@@ -193,8 +201,14 @@ public struct PageRow: Sendable, Equatable, Identifiable {
         isEnabled: Bool = true,
         facts: RowFacts = [],
         region: PageRegion? = nil,
-        provenance: AXElementProvenance = .seen
+        provenance: AXElementProvenance = .seen,
+        value: Double? = nil,
+        minimumValue: Double? = nil,
+        maximumValue: Double? = nil
     ) {
+        self.value = value
+        self.minimumValue = minimumValue
+        self.maximumValue = maximumValue
         self.ordinal = ordinal
         self.frame = frame
         self.label = label

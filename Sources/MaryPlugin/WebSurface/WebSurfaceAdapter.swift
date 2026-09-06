@@ -315,7 +315,7 @@ public struct WebSurfaceAdapter: MaryAdapter {
                     ]),
                 .init(
                     name: "position", type: "string",
-                    description: "For seek, how far through; for volume, how loud. 0 to 1.",
+                    description: "For seek, a time (\"two minutes\", \"1:30\", \"back thirty seconds\") or how far through, 0 to 1; for volume, how loud, 0 to 1.",
                     required: false),
                 browserParameter,
             ],
@@ -346,14 +346,22 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 case "seek":
                     // A SEEK WITHOUT A POSITION IS NOT A SEEK. Picking one would move
                     // somebody's video to a place nobody asked for.
-                    guard let fraction = arguments["position"].flatMap(Double.init),
-                          (0 ... 1).contains(fraction)
-                    else {
+                    // A TIME FIRST, THEN A FRACTION. "Back two minutes", "to 1:30",
+                    // "three minutes in" are how a person says where; a fraction is
+                    // how a model says it. The lane hands the sentence's span here.
+                    if let spoken = arguments["position"].flatMap(SpokenDuration.seek(in:)) {
+                        switch spoken {
+                        case .to(let seconds): action = .seekTo(seconds: seconds)
+                        case .by(let seconds): action = .seekBy(seconds: seconds)
+                        }
+                    } else if let fraction = arguments["position"].flatMap(Double.init),
+                              (0 ... 1).contains(fraction) {
+                        action = .seek(fraction: fraction)
+                    } else {
                         return SkillOutcome(
                             ok: false,
-                            summary: "Tell me how far through to skip to — halfway, or a quarter in.")
+                            summary: "Tell me where to go in the video — back two minutes, to 1:30, or halfway.")
                     }
-                    action = .seek(fraction: fraction)
                 default: action = nil
                 }
                 guard let action else {

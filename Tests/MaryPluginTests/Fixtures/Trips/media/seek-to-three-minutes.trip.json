@@ -1,0 +1,41 @@
+{
+  "category": "media",
+  "id": "seek-to-three-minutes",
+  "legs": [
+    {
+      "dispatch": {
+        "position": "three minutes in"
+      },
+      "engine": {
+        "budgetMs": 15000,
+        "landed": true,
+        "receipt": "mediaState"
+      },
+      "note": "Reported verbatim, answered \"I couldn't work out how to do that\": two skills inside the margin, a model round, and no call.",
+      "routing": {
+        "arguments": {
+          "action": "seek"
+        },
+        "intent": "operate",
+        "lane": "confidence",
+        "mustNotReach": [
+          "open_location",
+          "navigate_back"
+        ],
+        "shape": "singleEnum",
+        "skill": "control_media"
+      },
+      "say": "Can you go to three minutes in the video",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "mediaPlaying": true,
+    "pageClass": "watchPage"
+  },
+  "summary": "The reported sentence: an absolute time, resolved against the clock."
+}

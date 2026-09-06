@@ -34,6 +34,18 @@ public enum SpokenAddress {
     /// Returned UNCHANGED. Canonicalizing would rewrite what the person asked for, and a
     /// dictated address is the one case where a deep link is legitimate.
     public static func admit(_ value: String, spokenIn utterance: String = "") -> String? {
+        // A BARE HOST IS A HOST. "Go to youtube.com" reaches this as
+        // `youtube.com`, scheme-less, and was refused as "guessing at that
+        // address" — a sentence about provenance, about a value whose
+        // provenance was the person's own mouth. The rule is provenance, not
+        // spelling: a host the person said is admitted, and the scheme it lacks
+        // is the one every front door has. A path is still a claim and still
+        // needs to have been spoken.
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.lowercased().hasPrefix("http://"), !trimmed.lowercased().hasPrefix("https://"),
+           looksLikeAnAddress(trimmed) {
+            return admit("https://" + trimmed, spokenIn: utterance)
+        }
         guard let components = URLComponents(string: value),
               let scheme = components.scheme?.lowercased(),
               scheme == "http" || scheme == "https",

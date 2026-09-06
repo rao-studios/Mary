@@ -992,6 +992,49 @@ pins that the page, not the editor, is what it is handed. Through the probe with
 the browser in front: "Can you click the first link on this page" lands; "Can you
 scroll down this page" is delivered in 70 ms and says so.
 
+#### Part 3 — the arguments a lane can carry
+
+"Can you go back two minutes in the video" ran nothing, and "Can you go to three
+minutes in the video" was answered *I couldn't work out how to do that*. The seek
+took a fraction and nothing else, so a person had to know the video's length and
+divide; `position` was an optional string, which the no-model lane could not fill
+by construction — it fills one required string, the enums a sentence names, and
+the application — so every seek cost a model round; and `navigate_back`'s corpus
+is "Go back", a zero-argument verb one short sentence away from leaving the page.
+"Can you go to youtube.com" was refused as *guessing at that address*: the gate
+read a missing scheme as missing provenance, about a host the person had said.
+
+Three generic rules. A parameter the package marks `spokenSpan` receives the
+sentence's remaining span, the same peel the required string gets, so "go back
+two minutes in the video" dispatches with `action: seek` and the time in hand.
+`SpokenDuration` is the closed English vocabulary of lengths of time — "two
+minutes", "thirty seconds", "a minute and a half", "1:30" — and which way they
+point, on the same side of the doctrine as "third"; a number without a unit is
+not a time. And a bare host the person said is admitted with the scheme every
+front door has: the rule is provenance, not spelling.
+
+A time is a place on the track once the video's length is known, and the lane
+that knows it turned out not to be the one that draws it. MEASURED on the staged
+watch page: the picture lane finds the bar on one look and loses it on the next,
+because a player hides its bar on a timer, and the bar it finds is a rectangle a
+click on which moves nothing — it reported 0.6% for a video at 3:10 of 10:34.
+The page publishes the same bar as `slider "Progress Bar" 879×5, value 0.5 in
+0…100, settable`, a role and a range, for as long as it is drawn, and a click on
+that rectangle moves the video exactly. So a seek takes the page's own slider as
+the track when one is published, reads the position off the transport's clock —
+text the reading OCRs, and right — and the pixel bar is the last resort. Rows
+carry a control's value and range through the seal now, and so do recordings.
+
+Live, the video playing: "seek to 1:30" → *Went to 1:30 — Playing, 1:31 of
+10:34*; "seek back two minutes" → *Went back 2:00 — Playing, 0:01 of 10:34*.
+Both trips land on `mediaState` through the probe; through the whole turn the
+sentence reads as operate on the bare request, reaches `control_media` uniquely
+(0.92), and fills `position` with its own words. "Go to youtube.com" is a
+navigation receipt in 1.1 s. One finding filed against the picture lane: on one
+run the clock's OCR read 10:34 as 1:40, and "three minutes" clamped to the end of
+a video the reading believed was shorter — a destination past the end refuses and
+names the length now, which is right whether the video or the reading is short.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
