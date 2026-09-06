@@ -587,15 +587,24 @@ public actor BrowserEngine {
 
     // MARK: - The human check
 
+    /// How long the auto-clearing kind of check gets before anything is pressed.
+    /// "Checking your browser…" runs its own test and moves on by itself; reading
+    /// the page and pressing during it is wasted, and pressing is not nothing.
+    static let challengeGrace: Double = 3
+    /// How long a pressed check gets to clear before it is handed back.
+    static let challengeBudget: Double = 8
+
     /// If the navigation landed on a human-verification interstitial, press its
     /// visible control once and look again; otherwise the outcome stands.
     ///
     /// PIN: A NO-OP ON AN ORDINARY PAGE. `PageChallenge.isChallenge` reads the
     /// title the shell already carries, so this touches nothing unless the tab
-    /// is literally titled like an interstitial — and then it presses the one
-    /// control a person would press, through the same visible-cursor HID click
-    /// the rest of this lane uses. ONE PRESS, THEN AN HONEST HANDBACK. Hammering
-    /// a challenge is the thing this is not.
+    /// is literally titled like an interstitial. Then, in order: WAIT, because
+    /// the common kind clears itself and pressing during it is pointless; READ
+    /// the page from pixels and aim at the box, not the sentence; PRESS ONCE
+    /// through the same glide-and-click every page control gets — the real
+    /// cursor, which is what a rendered page sees; LOOK AGAIN. If one press did
+    /// not clear it, hand it back. Hammering a challenge is the thing this is not.
     func satisfyingChallenge(
         _ settled: BrowserOutcome, in target: BrowserTarget
     ) async -> BrowserOutcome {
@@ -604,23 +613,52 @@ public actor BrowserEngine {
         else { return settled }
 
         emit(.acted("a human-check stands on the page"))
-        // Press the visible control. `pressOnPage` reads the page from pixels,
-        // routes the phrase against the rows it found, and clicks through the
-        // HID tap — a real cursor on a control a person can see.
-        _ = await pressOnPage(PageChallenge.primaryControlPhrase, in: target)
-
-        // LOOK AGAIN. The title stops being the interstitial's when the check
-        // clears; that is the receipt, read the same way the navigation was.
-        if let cleared = await challengeCleared(in: target) {
-            lastChrome = cleared
-            emit(.verified("the human-check cleared"))
-            return BrowserOutcome(
-                ok: true,
-                spoken: Self.spoken(cleared, browser: target.spokenName),
-                shell: cleared)
+        // THE AUTO-CLEARING KIND, given its moment first.
+        if let cleared = await challengeCleared(in: target, within: Self.challengeGrace) {
+            return clearedOutcome(cleared, target: target)
         }
-        // One press did not clear it. The honest answer is to hand it back.
+
+        // The stage, the pointer put back afterwards — the same courtesy every
+        // page act pays.
+        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
+            return refuse(.activationRefused(target.spokenName))
+        }
+        let cursor = await seams.hands.cursorLocation()
+        defer { Task { await seams.hands.restoreCursor(to: cursor) } }
+
+        // READ, AND AIM AT THE BOX.
+        guard case .success(let roster) = await read(target, shell: shell),
+              let aim = PageChallenge.aim(in: roster.rows)
+        else {
+            // Nothing to press. It may still clear on its own; otherwise it is theirs.
+            if let cleared = await challengeCleared(in: target, within: Self.challengeBudget) {
+                return clearedOutcome(cleared, target: target)
+            }
+            return refuse(.humanCheck)
+        }
+
+        // PRESS ONCE, THE WAY EVERY PAGE CONTROL IS PRESSED.
+        await seams.hands.glide(to: aim.point, pid: target.processIdentifier)
+        await seams.sleep(Self.pressSettle)
+        await seams.hands.click(at: aim.point, button: .left, count: 1, pid: target.processIdentifier)
+        emit(.acted("pressed \(aim.named)"))
+
+        // LOOK AGAIN.
+        if let cleared = await challengeCleared(in: target, within: Self.challengeBudget) {
+            return clearedOutcome(cleared, target: target)
+        }
         return refuse(.humanCheck)
+    }
+
+    private func clearedOutcome(
+        _ cleared: WebSurfaceAX.Reading, target: BrowserTarget
+    ) -> BrowserOutcome {
+        lastChrome = cleared
+        emit(.verified("the human-check cleared"))
+        return BrowserOutcome(
+            ok: true,
+            spoken: Self.spoken(cleared, browser: target.spokenName),
+            shell: cleared)
     }
 
     /// Poll the shell title until it is no longer an interstitial, or the budget

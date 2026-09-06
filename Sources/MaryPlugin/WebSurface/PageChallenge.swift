@@ -30,7 +30,9 @@
 //        (`NoAppleEventsTests`).
 //
 
+import CoreGraphics
 import Foundation
+import MaryComputerUse
 
 enum PageChallenge {
 
@@ -88,6 +90,55 @@ enum PageChallenge {
             guard let folded = folded(needle) else { return false }
             return candidate.contains(folded)
         }
+    }
+
+    // MARK: - Where to press
+
+    /// The widest a checkbox is, in points. A real one is 20–32; anything
+    /// wider is a button or a card.
+    static let checkboxMaxSide: CGFloat = 40
+    /// How far from square a checkbox may read. Edge detection rounds corners.
+    static let checkboxSquareness: CGFloat = 8
+    /// How far left of the label's text the box may sit and still be its box.
+    static let checkboxGap: CGFloat = 32
+    /// Where in the label to press when no separate box was read: just inside
+    /// its left edge, the end nearest the box, inside the widget's own hit area.
+    static let labelInset: CGFloat = 8
+
+    /// WHERE THE PRESS GOES, AND WHAT IT IS AIMED AT.
+    ///
+    /// PIN: THE CHECKBOX, NOT THE MIDDLE OF THE SENTENCE. The reference port
+    /// found the control through the accessibility tree; Mary reads the page
+    /// from pixels, where "Verify you are human" arrives as a text row and the
+    /// box beside it, when the edge detector caught it, as a small square row on
+    /// the same line. Pressing the text's centre lands on words; the box is what
+    /// toggles. So the aim is the box when one was read, and otherwise the
+    /// label's own left edge — inside the widget's hit area, at the end nearest
+    /// the box — rather than a guess into empty page to the left of it. The
+    /// driven corpus is what moves that fallback if a real page needs it.
+    static func aim(in rows: [PageRow]) -> (point: CGPoint, named: String)? {
+        guard let label = rows.first(where: { namesControl($0.label) }) else { return nil }
+        let text = label.frame
+        let box = rows
+            .filter { row in
+                row.ordinal != label.ordinal
+                    && row.frame.width <= checkboxMaxSide
+                    && row.frame.height <= checkboxMaxSide
+                    && abs(row.frame.width - row.frame.height) <= checkboxSquareness
+                    && row.frame.maxX <= text.minX + checkboxGap
+                    && row.frame.maxX >= text.minX - checkboxGap - checkboxMaxSide
+                    && row.frame.minY < text.maxY && row.frame.maxY > text.minY
+            }
+            // The nearest one to the label's left edge is its box.
+            .max { $0.frame.maxX < $1.frame.maxX }
+        if let box {
+            return (
+                CGPoint(x: box.frame.midX.rounded(), y: box.frame.midY.rounded()),
+                "the checkbox beside \"\(label.label)\"")
+        }
+        return (
+            CGPoint(x: (text.minX + labelInset).rounded(), y: text.midY.rounded()),
+            "\"\(label.label)\"")
     }
 
     /// Lower-cased, letters and digits and single spaces — the same folding the

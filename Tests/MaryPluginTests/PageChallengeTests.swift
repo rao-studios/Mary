@@ -53,6 +53,57 @@ import Testing
         #expect(!PageChallenge.namesControl("Accept all"))
     }
 
+    // MARK: - Where the press goes
+
+    static func row(
+        _ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat
+    ) -> PageRow {
+        PageRow(
+            ordinal: ordinal, frame: CGRect(x: x, y: y, width: w, height: h),
+            label: label, labelSource: label.isEmpty ? .synthesized : .textInside,
+            affordance: .press, affordanceSource: .classifier)
+    }
+
+    /// THE BOX, WHEN THE READING CAUGHT IT: a small square on the same line,
+    /// just left of the label's text. That is what toggles, so that is the aim.
+    @Test func theAimIsTheCheckboxBesideTheLabel() {
+        let rows = [
+            Self.row(1, "", x: 300, y: 400, w: 24, h: 24),
+            Self.row(2, "Verify you are human", x: 336, y: 402, w: 180, h: 20),
+            // A distractor: a big card below, also to the left.
+            Self.row(3, "", x: 100, y: 500, w: 200, h: 120),
+        ]
+        let aim = PageChallenge.aim(in: rows)
+        #expect(aim?.point == CGPoint(x: 312, y: 412))
+        #expect(aim?.named.contains("checkbox") == true)
+    }
+
+    /// NO BOX READ: press the label's own left edge, inside the widget's hit
+    /// area at the end nearest the box — not a guess into empty page.
+    @Test func withNoBoxTheAimIsTheLabelsLeftEdge() {
+        let rows = [Self.row(2, "Verify you are human", x: 336, y: 402, w: 180, h: 20)]
+        let aim = PageChallenge.aim(in: rows)
+        #expect(aim?.point == CGPoint(x: 336 + PageChallenge.labelInset, y: 412))
+        #expect(aim?.named == "\"Verify you are human\"")
+    }
+
+    /// A SQUARE ON THE WRONG LINE, OR THE WRONG SIDE, IS NOT THE BOX.
+    @Test func aSquareElsewhereIsNotTakenForTheBox() {
+        let rows = [
+            Self.row(1, "", x: 300, y: 100, w: 24, h: 24),   // far above
+            Self.row(4, "", x: 600, y: 402, w: 24, h: 24),   // to the right
+            Self.row(2, "Verify you are human", x: 336, y: 402, w: 180, h: 20),
+        ]
+        let aim = PageChallenge.aim(in: rows)
+        #expect(aim?.point == CGPoint(x: 336 + PageChallenge.labelInset, y: 412))
+    }
+
+    /// NOTHING TO AIM AT WHEN NOTHING NAMES THE CONTROL.
+    @Test func noControlMeansNoAim() {
+        let rows = [Self.row(1, "Sign in", x: 10, y: 10, w: 80, h: 20)]
+        #expect(PageChallenge.aim(in: rows) == nil)
+    }
+
     // MARK: - The engine flow, against fakes
 
     /// A NO-OP ON AN ORDINARY PAGE. The outcome is returned untouched and the
