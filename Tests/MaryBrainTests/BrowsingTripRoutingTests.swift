@@ -287,22 +287,33 @@ import Testing
         // these sentences.
         "save-this-page[0] reached reload_page, which must not answer this",
         "copy-the-link[0] reached reload_page, which must not answer this",
-        "fill-my-email[0] reached open_location, which must not answer this",
         // Cross-surface leaks with a browser in front.
         "stop-loading[0] reached stop_dictation, which must not answer this",
         "read-the-comments[0] reached read_corpus_document, which must not answer this",
         "volume-up-on-a-video[0] reached control_playback, which must not answer this",
         // The wrong twin of the two page reads.
-        "first-paragraph[0] reached read_page, not read_page_text",
+        // STRUCK BY ROUND 1 I — nine route fixtures, each naming its surface, on
+        // reload_page, list_tabs, click_on_page, fill_in_page, read_page_text and
+        // control_media. Seven findings stopped reproducing and nothing regressed:
+        // "fill in my email address" moved from open_location (which would have
+        // typed the sentence into the address bar) to fill_in_page at 0.90;
+        // "check the box that says remember me" to click_on_page at 0.92; "press
+        // the blue button" to 0.85; "submit the form" to 0.74; "read me the first
+        // paragraph" from the wrong twin to read_page_text at 0.88; "how many
+        // tabs" to list_tabs; "play it from the start" to control_media. No floor
+        // and no margin moved.
+        //
+        // WHAT THE FIXTURES COULD NOT MOVE, AND WHY IT STAYS. reload_page is
+        // still the magnet for "save this page" (0.81) and "copy the link"
+        // (0.76), because no save or copy verb exists for it to lose to — a
+        // corpus cannot route a sentence to a skill that is not there. Those wait
+        // on round 4's verbs, not on more package data. "Find the word…" did
+        // improve: it no longer dispatches a reload on the confidence lane, it
+        // now costs a model round.
         // Synonyms for shipped verbs that the corpus does not carry.
         "refresh-is-reload[0] read as converse, not operate",
         "refresh-is-reload[0] had no unique winner, so reload_page costs a model round",
-        "how-many-tabs[0] had no unique winner, so list_tabs costs a model round",
         "check-the-box[0] read as perceive, not operate",
-        "check-the-box[0] had no unique winner, so click_on_page costs a model round",
-        "press-by-colour[0] read as converse, not operate",
-        "submit-the-form[0] read as converse, not operate",
-        "play-from-the-start[0] read as converse, not operate",
     ]
 
     /// A QUESTION MUST NEVER BECOME A SEARCH. The reported defect's own shape,

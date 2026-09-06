@@ -450,6 +450,16 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.click-on-page",
+      "id" : "check-the-box-on-this-page-that-says-remember-me",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Check the box on this page that says remember me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
       "id" : "click-on-the-boiler-room-link",
       "interactions" : [
 
@@ -469,13 +479,13 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "find-a-cat-video",
+      "expectedSkill" : "browsing.fill-in-page",
+      "id" : "fill-in-my-email-address-on-this-page",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Find me a video of a cat on youtube."
+      "utterance" : "Fill in my email address on this page."
     },
     {
       "expectedDisposition" : "route",
@@ -486,6 +496,16 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Find me a fireplace video on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "find-a-cat-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a video of a cat on youtube."
     },
     {
       "expectedDisposition" : "route",
@@ -506,6 +526,16 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Go to youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.list-tabs",
+      "id" : "how-many-tabs-do-i-have-open-in-the-browser",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "How many tabs do I have open in the browser?"
     },
     {
       "expectedDisposition" : "route",
@@ -550,6 +580,16 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.control-media",
+      "id" : "pause-the-video-in-this-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pause the video in this tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
       "id" : "pause-the-video",
       "interactions" : [
 
@@ -560,12 +600,12 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.control-media",
-      "id" : "pause-the-video-in-this-tab",
+      "id" : "play-the-video-from-the-start",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
-      "utterance" : "Pause the video in this tab."
+      "utterance" : "Play the video from the start."
     },
     {
       "expectedDisposition" : "route",
@@ -579,6 +619,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "press-the-blue-button-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Press the blue button on this page."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "browsing.search-web",
       "id" : "pull-up-a-video-on-youtube",
       "interactions" : [
@@ -589,6 +639,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page-text",
+      "id" : "read-me-the-first-paragraph-of-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Read me the first paragraph of this page."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "browsing.read-page",
       "id" : "read-the-page",
       "interactions" : [
@@ -596,6 +656,26 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Read me what's on this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.reload-page",
+      "id" : "refresh-the-page-in-the-browser",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Refresh the page in the browser."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.reload-page",
+      "id" : "reload-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Reload this page."
     },
     {
       "expectedDisposition" : "route",
@@ -616,6 +696,16 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Search this site for fred again."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "submit-the-form-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Submit the form on this page."
     },
     {
       "expectedDisposition" : "route",
@@ -702,7 +792,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "7841fb4d26205d41a550348e709e39f4429834edda27df8be0665995abea7fb6"
+    "digest" : "1840ac7285c0049c1b0c35df356cbd8f085c4cbc9258197548accaddf098a84a"
   },
   "interactions" : [
 
