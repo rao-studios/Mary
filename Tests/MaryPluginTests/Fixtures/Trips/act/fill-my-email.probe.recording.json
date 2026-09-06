@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 44,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 659,
+          "atMilliseconds" : 657,
           "kind" : "type",
           "typedLength" : 24
         },
         {
-          "atMilliseconds" : 946,
+          "atMilliseconds" : 939,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1291,
+          "atMilliseconds" : 1306,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1291,
+      "elapsedMilliseconds" : 1306,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "typeText — no sign it did anything. Now offering 8 buttons, 4 fields, and 1 option — field 1 — Customer name:; field 2 — Telephone: (Customer name:); field 3 — E-mail address: (Telephone:); button 1 — Small (Pizza Size); button 2 — Medium",
       "pageReads" : [
         {
-          "atMilliseconds" : 565,
+          "atMilliseconds" : 563,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -170,7 +170,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 355,
+            "readMilliseconds" : 344,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1082,7 +1082,7 @@
           }
         },
         {
-          "atMilliseconds" : 1288,
+          "atMilliseconds" : 1303,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -2136,7 +2136,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 44,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2147,7 +2147,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1009,
+          "atMilliseconds" : 1020,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2158,20 +2158,20 @@
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "43ms  read the shell — httpbin.org/forms/post · httpbin",
-        "565ms  perceived 34 controls · —",
-        "565ms  looked — 34 rows, 27 named, 12 groups",
-        "711ms  typed 24 characters",
-        "1288ms  perceived 34 controls · —",
-        "1288ms  looked — 34 rows, 27 named, 12 groups",
-        "1291ms  receipt — typeText — no sign it did anything"
+        "8ms  resolved Chrome",
+        "44ms  read the shell — httpbin.org/forms/post · httpbin",
+        "563ms  perceived 34 controls · —",
+        "563ms  looked — 34 rows, 27 named, 12 groups",
+        "709ms  typed 24 characters",
+        "1303ms  perceived 34 controls · —",
+        "1303ms  looked — 34 rows, 27 named, 12 groups",
+        "1306ms  receipt — typeText — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:58:20Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:19:54Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "fill-my-email"
 }

@@ -178,7 +178,18 @@ public struct TripScoreboard: Sendable {
         lines.append("")
         let exit = meetsExitCriterion()
         if exit.met {
-            lines.append("Exit criterion met for this round.")
+            // ONE ROUND IS NOT THE CRITERION, AND SAYING SO IS THE POINT.
+            //
+            // PIN: THE DOCTRINE SAYS "ON TWO CONSECUTIVE ROUNDS" AND THIS
+            // MEASURED ONE. Three whole-corpus samples of the same build came
+            // back 77, 72 and 74 — the spread is a live page changing under a
+            // live read, and a criterion satisfied by whichever sample was run
+            // last is a criterion about luck. A scoreboard cannot see the
+            // previous round; what it can do is refuse to call a single sample
+            // the answer, and name what is still owed.
+            lines.append(
+                "Every check passed for this round. The exit criterion asks for TWO"
+                    + " consecutive rounds — run it again before claiming it.")
         } else {
             lines.append("Exit criterion not met: " + exit.because.joined(separator: "; ") + ".")
         }

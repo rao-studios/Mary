@@ -5,11 +5,11 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 80,
+          "atMilliseconds" : 82,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 80,
+          "atMilliseconds" : 83,
           "kind" : "openLocation",
           "typedLength" : 25
         }
@@ -20,7 +20,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 994,
+      "elapsedMilliseconds" : 958,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -55,7 +55,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 79,
+          "atMilliseconds" : 82,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -66,7 +66,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 671,
+          "atMilliseconds" : 647,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -77,7 +77,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 993,
+          "atMilliseconds" : 958,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -89,21 +89,21 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "79ms  read the shell — httpbin.org/post · httpbin",
-        "348ms  typed an address",
-        "994ms  verified the page changed",
-        "994ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+        "82ms  read the shell — httpbin.org/post · httpbin",
+        "341ms  typed an address",
+        "958ms  verified the page changed",
+        "958ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
       ],
       "verdict" : "passed"
     },
     {
       "acts" : [
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 40,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 40,
           "kind" : "pressShell",
           "shellLabel" : "Back"
         }
@@ -114,7 +114,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 705,
+      "elapsedMilliseconds" : 708,
       "index" : 1,
       "landed" : true,
       "media" : [
@@ -149,7 +149,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 40,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -160,7 +160,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 386,
+          "atMilliseconds" : 378,
           "canGoBack" : true,
           "canGoForward" : true,
           "hasPageFrame" : true,
@@ -171,7 +171,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 705,
+          "atMilliseconds" : 708,
           "canGoBack" : true,
           "canGoForward" : true,
           "hasPageFrame" : true,
@@ -183,21 +183,21 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "44ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "47ms  pressed Back",
-        "705ms  verified the page changed",
-        "705ms  receipt — navigate — the page became httpbin.org/post"
+        "40ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "43ms  pressed Back",
+        "708ms  verified the page changed",
+        "708ms  receipt — navigate — the page became httpbin.org/post"
       ],
       "verdict" : "passed"
     },
     {
       "acts" : [
         {
-          "atMilliseconds" : 42,
+          "atMilliseconds" : 39,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 42,
+          "atMilliseconds" : 39,
           "kind" : "pressShell",
           "shellLabel" : "Forward"
         }
@@ -208,7 +208,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 710,
+      "elapsedMilliseconds" : 679,
       "index" : 2,
       "landed" : true,
       "media" : [
@@ -243,7 +243,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 41,
+          "atMilliseconds" : 39,
           "canGoBack" : true,
           "canGoForward" : true,
           "hasPageFrame" : true,
@@ -254,7 +254,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 378,
+          "atMilliseconds" : 359,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -265,7 +265,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 710,
+          "atMilliseconds" : 678,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -277,21 +277,21 @@
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "42ms  read the shell — httpbin.org/post · httpbin",
-        "44ms  pressed Forward",
-        "710ms  verified the page changed",
-        "710ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+        "39ms  read the shell — httpbin.org/post · httpbin",
+        "42ms  pressed Forward",
+        "678ms  verified the page changed",
+        "678ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
       ],
       "verdict" : "passed"
     },
     {
       "acts" : [
         {
-          "atMilliseconds" : 46,
+          "atMilliseconds" : 45,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 46,
+          "atMilliseconds" : 45,
           "kind" : "pressShell",
           "shellLabel" : "Reload"
         }
@@ -302,7 +302,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1640,
+      "elapsedMilliseconds" : 1670,
       "index" : 3,
       "landed" : true,
       "media" : [
@@ -337,7 +337,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 46,
+          "atMilliseconds" : 44,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -348,7 +348,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 359,
+          "atMilliseconds" : 363,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -359,7 +359,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 698,
+          "atMilliseconds" : 700,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -370,7 +370,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1008,
+          "atMilliseconds" : 1025,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -381,7 +381,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1324,
+          "atMilliseconds" : 1333,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -392,7 +392,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1640,
+          "atMilliseconds" : 1670,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -404,16 +404,16 @@
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "46ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "50ms  pressed Reload",
-        "1640ms  verified the page changed",
-        "1640ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+        "45ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "48ms  pressed Reload",
+        "1670ms  verified the page changed",
+        "1670ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:59:12Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:20:44Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "arrive-by-name"
 }

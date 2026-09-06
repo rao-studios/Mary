@@ -15,7 +15,7 @@
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1437,
+          "atMilliseconds" : 1434,
           "kind" : "restoreCursor"
         }
       ],
@@ -26,13 +26,13 @@
 
       },
       "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1438,
+      "elapsedMilliseconds" : 1434,
       "index" : 0,
       "landed" : false,
       "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 1437,
+          "atMilliseconds" : 1434,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -81,16 +81,16 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
+        "9ms  resolved Chrome",
         "46ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1437ms  perceived 0 controls · paused",
-        "1437ms  refused — I can see the player but not its progress control."
+        "1434ms  perceived 0 controls · paused",
+        "1434ms  refused — I can see the player but not its progress control."
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:00:16Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:21:57Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "play-from-the-start"
 }

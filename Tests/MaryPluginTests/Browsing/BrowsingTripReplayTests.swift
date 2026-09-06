@@ -193,10 +193,13 @@ import Testing
     /// detector's recall and belongs in VisionAX rather than here. Both are
     /// result pages whose answer rows the reading did not group.
     static let openFailures: Set<String> = [
-        // A goal naming something the reading spells differently. Both reach
-        // nothing though rows answering the class are plainly there.
-        "check-the-box[0] R2",
-        "press-by-name[0] R2",
+        // STRUCK BY ROUND 7, and neither was ever a routing fault. They were
+        // the oldest entries in this ledger and held `act` at 63% for three
+        // rounds. `check-the-box` asked a pizza-order form to check a "remember
+        // me" box that is not on it; `press-by-name` asked for a word the page
+        // wears twice, where the engine refused for ambiguity and NAMED BOTH
+        // RIVALS — which is the refusal ladder working. Both are staging, and
+        // there is a layer for that now: `TripFailureLayer.stage`.
         // ROUND 5 MOVED THIS ONE FROM P TO R2, which is the whole value of the
         // move: "no row answers the class" blamed the detector's recall, and the
         // truth is that a row does answer and the route reached number 3 of its

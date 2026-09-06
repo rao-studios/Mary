@@ -5,11 +5,11 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 78,
+          "atMilliseconds" : 62,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1159,
+          "atMilliseconds" : 1128,
           "kind" : "restoreCursor"
         }
       ],
@@ -19,7 +19,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1163,
+      "elapsedMilliseconds" : 1130,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -33,10 +33,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "On alpine touring boots - Ecosia, 32 links, 7 options, 5 buttons, and 1 field\nLaid out with 8 things across the top, 29 things in the page itself, and 8 things down the right.\nlink 1 — Ecosia Homepage\nfield 1 — Search the web (form)\nbutton 1 — Clear\nbutton 2 — Search\nbutton 3 — Q (form)\nlink 2 — Sign in (form)\nbutton 4 — News (form)\nbutton 5 — Show navigation menu\nlink 3 — Skip to main content\noption 1 — Web (form)\n…and 35 more.",
+      "outcomeSpoken" : "On alpine touring boots - Ecosia, 31 links, 7 options, 5 buttons, and 1 field\nLaid out with 8 things across the top, 28 things in the page itself, and 8 things down the right.\nlink 1 — Ecosia Homepage\nfield 1 — Search the web (form)\nbutton 1 — Clear\nbutton 2 — Search\nbutton 3 — Q (form)\nlink 2 — Sign in (form)\nbutton 4 — News (form)\nbutton 5 — Show navigation menu\nlink 3 — Skip to main content\noption 1 — Web (form)\n…and 34 more.",
       "pageReads" : [
         {
-          "atMilliseconds" : 827,
+          "atMilliseconds" : 794,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -70,7 +70,7 @@
                 "memberOrdinals" : [
                   25
                 ],
-                "title" : "A Images"
+                "title" : "• Images"
               },
               {
                 "id" : 2,
@@ -84,15 +84,17 @@
               },
               {
                 "id" : 3,
-                "kind" : "card",
+                "kind" : "toolbar",
                 "memberOrdinals" : [
                   31,
                   33,
                   35,
-                  39,
+                  38,
                   41,
                   43,
-                  45
+                  44,
+                  46,
+                  48
                 ],
                 "title" : "Sponsored • Shop related products"
               },
@@ -100,33 +102,33 @@
                 "id" : 4,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  46,
-                  47,
-                  48,
                   49,
                   50,
+                  51,
                   52,
                   53,
                   55,
-                  57,
-                  59,
+                  56,
+                  58,
+                  60,
                   62,
-                  63,
-                  64,
                   65,
                   66,
                   67,
                   68,
+                  69,
                   70,
                   71,
-                  72,
                   73,
                   74,
                   75,
                   76,
                   77,
                   78,
-                  80
+                  79,
+                  80,
+                  81,
+                  83
                 ],
                 "title" : "alpine touring boots vs downhill"
               },
@@ -134,8 +136,8 @@
                 "id" : 5,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  81,
-                  83
+                  84,
+                  86
                 ],
                 "title" : "Q"
               },
@@ -143,7 +145,7 @@
                 "id" : 6,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  84
+                  87
                 ],
                 "title" : "Geartrade.com -..."
               },
@@ -151,10 +153,10 @@
                 "id" : 7,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  85,
-                  87,
-                  89,
-                  90
+                  88,
+                  90,
+                  92,
+                  93
                 ],
                 "title" : "Sponsored"
               },
@@ -162,33 +164,47 @@
                 "id" : 8,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  92,
-                  94,
-                  95
+                  95,
+                  97,
+                  98
                 ],
                 "title" : "https://www.evo.com/:"
               },
               {
                 "id" : 9,
-                "kind" : "card",
+                "kind" : "band",
                 "memberOrdinals" : [
-                  96,
-                  97,
-                  98,
                   99,
                   100
                 ],
                 "title" : "How to Choose Alpine Touring or AT Ski Boots - evo"
+              },
+              {
+                "id" : 10,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  101,
+                  102
+                ],
+                "title" : "How to Choose Alpine Touring or AT Ski Boots - evo"
+              },
+              {
+                "id" : 11,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  103
+                ],
+                "title" : "Match Guarantee. Fast & Secure Delivery."
               }
             ],
-            "labeledFraction" : 0.8888888888888888,
+            "labeledFraction" : 0.8842105263157894,
             "pageFrame" : [
               -1815,
               173,
               1266,
               765
             ],
-            "readMilliseconds" : 441,
+            "readMilliseconds" : 444,
             "rows" : [
               {
                 "affordance" : "none",
@@ -516,7 +532,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat dE News D Web",
+                "label" : "• Images • Videos + Al Chat dE News ® Web",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
                 "region" : "main",
@@ -568,7 +584,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat dE News",
+                "label" : "• Images • Videos + Al Chat dE News",
                 "labelSource" : "textInside",
                 "ordinal" : 15,
                 "region" : "main",
@@ -764,9 +780,9 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1231,
+                  -1232,
                   246,
-                  61,
+                  62,
                   23
                 ],
                 "groupID" : 0,
@@ -812,7 +828,7 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "A Images",
+                  "• Images",
                   "band"
                 ],
                 "facts" : 0,
@@ -971,9 +987,9 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2304,
+                "facts" : 2560,
                 "frame" : [
                   -1012,
                   408,
@@ -1023,9 +1039,9 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2312,
+                "facts" : 2568,
                 "frame" : [
                   -700,
                   408,
@@ -1062,7 +1078,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of Dynafit Speed Ski Touring Boot - Men's",
+                "label" : "Image of Dynafit Radical Alpine Touring Ski Boot",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
                 "region" : "main",
@@ -1074,14 +1090,14 @@
                 "confidence" : 1,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2304,
+                "facts" : 2560,
                 "frame" : [
                   -1672,
-                  412,
+                  407,
                   71,
-                  80
+                  90
                 ],
                 "groupID" : 3,
                 "hints" : [
@@ -1089,7 +1105,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Dynafit Speed Ski Touring Boot - Men's",
+                "label" : "Image of Dynafit Radical Alpine Touring Ski Boot",
                 "labelSource" : "classifier",
                 "ordinal" : 35,
                 "region" : "main",
@@ -1114,7 +1130,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of Scarpa Gea Alpine Touring Boots - Women's",
+                "label" : "Image of Dynafit Hoji PX Alpine Touring Boot",
                 "labelSource" : "classifier",
                 "ordinal" : 36,
                 "region" : "main",
@@ -1139,11 +1155,37 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Scarpa Gea Alpine Touring Boots - Women's",
+                "label" : "Image of Dynafit Hoji PX Alpine Touring Boot",
                 "labelSource" : "classifier",
                 "ordinal" : 37,
                 "region" : "main",
                 "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1500,
+                  405,
+                  51,
+                  72
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 22",
+                "labelSource" : "synthesized",
+                "ordinal" : 38,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1164,9 +1206,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of Dynafit Radical Alpine Touring Ski Boot",
+                "label" : "Image of Scarpa Gea Alpine Touring Boots - Women's",
                 "labelSource" : "classifier",
-                "ordinal" : 38,
+                "ordinal" : 39,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1175,27 +1217,51 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "Sponsored • Shop related products",
-                  "card"
+
                 ],
-                "facts" : 2304,
+                "facts" : 2048,
                 "frame" : [
                   -1368,
-                  407,
+                  404,
                   71,
-                  90
+                  96
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Scarpa Gea Alpine Touring Boots - Women's",
+                "labelSource" : "classifier",
+                "ordinal" : 40,
+                "region" : "main",
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1352,
+                  405,
+                  55,
+                  67
                 ],
                 "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "image",
-                "label" : "Image of Dynafit Radical Alpine Touring Ski Boot",
-                "labelSource" : "classifier",
-                "ordinal" : 39,
+                "label" : "item 23",
+                "labelSource" : "synthesized",
+                "ordinal" : 41,
                 "region" : "main",
-                "role" : "AXImage"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1216,9 +1282,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of Dynafit Hoji Free 110 Alpine Touring Ski Boot",
+                "label" : "Image of Dynafit Speed Ski Touring Boot - Men's",
                 "labelSource" : "classifier",
-                "ordinal" : 40,
+                "ordinal" : 42,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1228,14 +1294,14 @@
                 "confidence" : 1,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2304,
+                "facts" : 2560,
                 "frame" : [
                   -1216,
-                  407,
+                  412,
                   71,
-                  90
+                  80
                 ],
                 "groupID" : 3,
                 "hints" : [
@@ -1243,11 +1309,37 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Dynafit Hoji Free 110 Alpine Touring Ski Boot",
+                "label" : "Image of Dynafit Speed Ski Touring Boot - Men's",
                 "labelSource" : "classifier",
-                "ordinal" : 41,
+                "ordinal" : 43,
                 "region" : "main",
                 "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1185,
+                  411,
+                  40,
+                  61
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 24",
+                "labelSource" : "synthesized",
+                "ordinal" : 44,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1268,9 +1360,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of K2 Mindbender BOA Alpine Touring Boot",
+                "label" : "Image of Dynafit Hoji Free 110 Alpine Touring Ski Boot",
                 "labelSource" : "classifier",
-                "ordinal" : 42,
+                "ordinal" : 45,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1280,11 +1372,11 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2304,
+                "facts" : 2560,
                 "frame" : [
-                  -1013,
+                  -1014,
                   456,
                   227,
                   27
@@ -1297,7 +1389,7 @@
                 "kind" : "link",
                 "label" : "alpine touring boots vs downhill",
                 "labelSource" : "textInside",
-                "ordinal" : 43,
+                "ordinal" : 46,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1322,7 +1414,7 @@
                 "kind" : "link",
                 "label" : "alpine touring boots vs downhill",
                 "labelSource" : "classifier",
-                "ordinal" : 44,
+                "ordinal" : 47,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -1332,9 +1424,9 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
-                  "card"
+                  "toolbar"
                 ],
-                "facts" : 2312,
+                "facts" : 2568,
                 "frame" : [
                   -702,
                   454,
@@ -1348,7 +1440,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 45,
+                "ordinal" : 48,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1362,10 +1454,10 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1705,
+                  -1704,
                   512,
-                  131,
-                  27
+                  111,
+                  25
                 ],
                 "groupID" : 4,
                 "hints" : [
@@ -1373,61 +1465,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Dynafit Speed Ski",
-                "labelSource" : "textInside",
-                "ordinal" : 46,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1551,
-                  514,
-                  133,
-                  23
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Scarpa Gea Alpine",
-                "labelSource" : "textInside",
-                "ordinal" : 47,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1401,
-                  512,
-                  113,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
                 "label" : "Dynafit Radical",
                 "labelSource" : "textInside",
-                "ordinal" : 48,
+                "ordinal" : 49,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1441,9 +1481,9 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1250,
+                  -1553,
                   512,
-                  123,
+                  111,
                   27
                 ],
                 "groupID" : 4,
@@ -1452,9 +1492,63 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Dynafit Hoji Free",
+                "label" : "Dynafit Hoji PX",
                 "labelSource" : "textInside",
-                "ordinal" : 49,
+                "ordinal" : 50,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1399,
+                  514,
+                  133,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Scarpa Gea Alpine",
+                "labelSource" : "textInside",
+                "ordinal" : 51,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1247,
+                  514,
+                  128,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Dynafit Speed Ski",
+                "labelSource" : "textInside",
+                "ordinal" : 52,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1481,7 +1575,7 @@
                 "kind" : "link",
                 "label" : "best ski touring boots 2026",
                 "labelSource" : "textInside",
-                "ordinal" : 50,
+                "ordinal" : 53,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1506,7 +1600,7 @@
                 "kind" : "link",
                 "label" : "best ski touring boots 2026",
                 "labelSource" : "classifier",
-                "ordinal" : 51,
+                "ordinal" : 54,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -1532,7 +1626,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 52,
+                "ordinal" : 55,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1548,7 +1642,7 @@
                 "frame" : [
                   -1703,
                   534,
-                  119,
+                  131,
                   23
                 ],
                 "groupID" : 4,
@@ -1556,9 +1650,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "Touring Boot -...",
+                "label" : "Alpine Touring S...",
                 "labelSource" : "textInside",
-                "ordinal" : 53,
+                "ordinal" : 56,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1581,9 +1675,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Dynafit Speed Ski Touring Boot - Men's",
+                "label" : "Dynafit Radical Alpine Touring Ski Boot",
                 "labelSource" : "classifier",
-                "ordinal" : 54,
+                "ordinal" : 57,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1599,7 +1693,7 @@
                 "frame" : [
                   -1551,
                   534,
-                  125,
+                  119,
                   23
                 ],
                 "groupID" : 4,
@@ -1607,9 +1701,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "Touring Boots -...",
+                "label" : "Alpine Touring...",
                 "labelSource" : "textInside",
-                "ordinal" : 55,
+                "ordinal" : 58,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1632,9 +1726,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Scarpa Gea Alpine Touring Boots - Women's",
+                "label" : "Dynafit Hoji PX Alpine Touring Boot",
                 "labelSource" : "classifier",
-                "ordinal" : 56,
+                "ordinal" : 59,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1650,7 +1744,7 @@
                 "frame" : [
                   -1399,
                   534,
-                  131,
+                  125,
                   23
                 ],
                 "groupID" : 4,
@@ -1658,9 +1752,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "Alpine Touring S...",
+                "label" : "Touring Boots -...",
                 "labelSource" : "textInside",
-                "ordinal" : 57,
+                "ordinal" : 60,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1683,9 +1777,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Dynafit Radical Alpine Touring Ski Boot",
+                "label" : "Scarpa Gea Alpine Touring Boots - Women's",
                 "labelSource" : "classifier",
-                "ordinal" : 58,
+                "ordinal" : 61,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1699,19 +1793,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1249,
-                  532,
-                  136,
-                  25
+                  -1247,
+                  534,
+                  119,
+                  23
                 ],
                 "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "110 Alpine Tourin...",
+                "label" : "Touring Boot -...",
                 "labelSource" : "textInside",
-                "ordinal" : 59,
+                "ordinal" : 62,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1734,9 +1828,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Dynafit Hoji Free 110 Alpine Touring Ski Boot",
+                "label" : "Dynafit Speed Ski Touring Boot - Men's",
                 "labelSource" : "classifier",
-                "ordinal" : 60,
+                "ordinal" : 63,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1759,9 +1853,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "K2 Mindbender BOA Alpine Touring Boot",
+                "label" : "Dynafit Hoji Free 110 Alpine Touring Ski Boot",
                 "labelSource" : "classifier",
-                "ordinal" : 61,
+                "ordinal" : 64,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1775,9 +1869,9 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1088,
-                  534,
-                  31,
+                  -1090,
+                  532,
+                  35,
                   23
                 ],
                 "groupID" : 4,
@@ -1785,85 +1879,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "OA",
-                "labelSource" : "textInside",
-                "ordinal" : 62,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1706,
-                  554,
-                  78,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$332.42",
-                "labelSource" : "textInside",
-                "ordinal" : 63,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1553,
-                  554,
-                  73,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$104.85",
-                "labelSource" : "textInside",
-                "ordinal" : 64,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1402,
-                  554,
-                  74,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$227.88",
+                "label" : "10 A",
                 "labelSource" : "textInside",
                 "ordinal" : 65,
                 "region" : "main",
@@ -1879,9 +1895,35 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1250,
+                  -1706,
+                  554,
+                  74,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$227.88",
+                "labelSource" : "textInside",
+                "ordinal" : 66,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1554,
                   553,
-                  76,
+                  74,
                   29
                 ],
                 "groupID" : 4,
@@ -1889,9 +1931,61 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "$254.98",
+                "label" : "$146.99",
                 "labelSource" : "textInside",
-                "ordinal" : 66,
+                "ordinal" : 67,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1402,
+                  553,
+                  74,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$104.85",
+                "labelSource" : "textInside",
+                "ordinal" : 68,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1250,
+                  554,
+                  78,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$332.42",
+                "labelSource" : "textInside",
+                "ordinal" : 69,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1915,9 +2009,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "$28",
+                "label" : "$25",
                 "labelSource" : "textInside",
-                "ordinal" : 67,
+                "ordinal" : 70,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1944,7 +2038,7 @@
                 "kind" : "link",
                 "label" : "scarpa alpine touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 68,
+                "ordinal" : 71,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1969,7 +2063,7 @@
                 "kind" : "link",
                 "label" : "scarpa alpine touring boots",
                 "labelSource" : "classifier",
-                "ordinal" : 69,
+                "ordinal" : 72,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -1995,7 +2089,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 70,
+                "ordinal" : 73,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2010,86 +2104,6 @@
                 "facts" : 2048,
                 "frame" : [
                   -1700,
-                  578,
-                  127,
-                  20
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Geartrade.com - Shopify",
-                "labelSource" : "classifier",
-                "ordinal" : 71,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 2056,
-                "frame" : [
-                  -1551,
-                  578,
-                  41,
-                  21
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Used",
-                "labelSource" : "textInside",
-                "ordinal" : 72,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1396,
-                  578,
-                  127,
-                  20
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Geartrade.com - Shopify",
-                "labelSource" : "classifier",
-                "ordinal" : 73,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1244,
                   578,
                   127,
                   20
@@ -2116,7 +2130,7 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1095,
+                  -1551,
                   578,
                   41,
                   21
@@ -2131,6 +2145,86 @@
                 "ordinal" : 75,
                 "region" : "main",
                 "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1399,
+                  578,
+                  41,
+                  21
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Used",
+                "labelSource" : "textInside",
+                "ordinal" : 76,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1244,
+                  578,
+                  127,
+                  20
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Geartrade.com - Shopify",
+                "labelSource" : "classifier",
+                "ordinal" : 77,
+                "region" : "main",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1092,
+                  578,
+                  30,
+                  20
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Geartrade.com - Shopify",
+                "labelSource" : "classifier",
+                "ordinal" : 78,
+                "region" : "main",
+                "role" : "AXLink"
               },
               {
                 "affordance" : "press",
@@ -2155,7 +2249,7 @@
                 "kind" : "link",
                 "label" : "Geartrade.com - Shopify",
                 "labelSource" : "classifier",
-                "ordinal" : 76,
+                "ordinal" : 79,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2169,9 +2263,9 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1092,
+                  -1396,
                   598,
-                  30,
+                  127,
                   20
                 ],
                 "groupID" : 4,
@@ -2182,7 +2276,7 @@
                 "kind" : "link",
                 "label" : "Geartrade.com - Shopify",
                 "labelSource" : "classifier",
-                "ordinal" : 77,
+                "ordinal" : 80,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2209,7 +2303,7 @@
                 "kind" : "link",
                 "label" : "scarpa ski touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 78,
+                "ordinal" : 81,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2234,7 +2328,7 @@
                 "kind" : "link",
                 "label" : "scarpa ski touring boots",
                 "labelSource" : "classifier",
-                "ordinal" : 79,
+                "ordinal" : 82,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -2260,7 +2354,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 80,
+                "ordinal" : 83,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2287,7 +2381,7 @@
                 "kind" : "link",
                 "label" : "dynafit touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 81,
+                "ordinal" : 84,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2312,7 +2406,7 @@
                 "kind" : "link",
                 "label" : "dynafit touring boots",
                 "labelSource" : "classifier",
-                "ordinal" : 82,
+                "ordinal" : 85,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -2338,7 +2432,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 83,
+                "ordinal" : 86,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2350,11 +2444,11 @@
                   "Geartrade.com -...",
                   "band"
                 ],
-                "facts" : 8,
+                "facts" : 2056,
                 "frame" : [
                   -1706,
                   672,
-                  84,
+                  83,
                   25
                 ],
                 "groupID" : 6,
@@ -2365,7 +2459,7 @@
                 "kind" : "link",
                 "label" : "Sponsored",
                 "labelSource" : "textInside",
-                "ordinal" : 84,
+                "ordinal" : 87,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2392,7 +2486,7 @@
                 "kind" : "link",
                 "label" : "evo",
                 "labelSource" : "textInside",
-                "ordinal" : 85,
+                "ordinal" : 88,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2417,7 +2511,7 @@
                 "kind" : "link",
                 "label" : "evo",
                 "labelSource" : "classifier",
-                "ordinal" : 86,
+                "ordinal" : 89,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2444,7 +2538,7 @@
                 "kind" : "link",
                 "label" : "best alpine touring boots for wide feet",
                 "labelSource" : "textInside",
-                "ordinal" : 87,
+                "ordinal" : 90,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2469,7 +2563,7 @@
                 "kind" : "link",
                 "label" : "best alpine touring boots for wide feet",
                 "labelSource" : "classifier",
-                "ordinal" : 88,
+                "ordinal" : 91,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -2495,7 +2589,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 89,
+                "ordinal" : 92,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2522,7 +2616,7 @@
                 "kind" : "link",
                 "label" : "https://(an address)",
                 "labelSource" : "classifier",
-                "ordinal" : 90,
+                "ordinal" : 93,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2547,7 +2641,7 @@
                 "kind" : "link",
                 "label" : "To get missing image descriptions, open the context menu.",
                 "labelSource" : "classifier",
-                "ordinal" : 91,
+                "ordinal" : 94,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2574,7 +2668,7 @@
                 "kind" : "link",
                 "label" : "atomic touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 92,
+                "ordinal" : 95,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2599,7 +2693,7 @@
                 "kind" : "link",
                 "label" : "atomic touring boots",
                 "labelSource" : "classifier",
-                "ordinal" : 93,
+                "ordinal" : 96,
                 "region" : "trailing",
                 "role" : "AXLink"
               },
@@ -2625,7 +2719,7 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 94,
+                "ordinal" : 97,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2652,7 +2746,7 @@
                 "kind" : "link",
                 "label" : "How to Choose Alpine Touring or AT Ski Boots – evo",
                 "labelSource" : "classifier",
-                "ordinal" : 95,
+                "ordinal" : 98,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2662,13 +2756,13 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "How to Choose Alpine Touring or AT Ski Boots - evo",
-                  "card"
+                  "band"
                 ],
-                "facts" : 256,
+                "facts" : 0,
                 "frame" : [
                   -1703,
                   786,
-                  513,
+                  555,
                   25
                 ],
                 "groupID" : 9,
@@ -2677,38 +2771,11 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Choosing the right alpine touring ski boots can be tricky whether you're new",
+                "label" : "Choosing the right alpine touring ski boots can be tricky whether you're new to the",
                 "labelSource" : "textInside",
-                "ordinal" : 96,
+                "ordinal" : 99,
                 "region" : "main",
                 "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "grouping",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "How to Choose Alpine Touring or AT Ski Boots - evo",
-                  "card"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1703,
-                  828,
-                  491,
-                  23
-                ],
-                "groupID" : 9,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Hassle Returns.Price Match Guarantee. LowestPrice Or We Pay 5% Top",
-                "labelSource" : "textInside",
-                "ordinal" : 97,
-                "region" : "main",
-                "role" : "AXLink"
               },
               {
                 "affordance" : "none",
@@ -2716,13 +2783,13 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "How to Choose Alpine Touring or AT Ski Boots - evo",
-                  "card"
+                  "band"
                 ],
-                "facts" : 256,
+                "facts" : 0,
                 "frame" : [
                   -1700,
                   810,
-                  470,
+                  536,
                   16
                 ],
                 "groupID" : 9,
@@ -2731,9 +2798,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "to the backcountry or not - Our expert staff is here to help. 366 Day No",
+                "label" : "backcountry or not - Our expert staff is here to help. Advocates Of Conservation.",
                 "labelSource" : "textInside",
-                "ordinal" : 98,
+                "ordinal" : 100,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2743,26 +2810,26 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "How to Choose Alpine Touring or AT Ski Boots - evo",
-                  "card"
+                  "band"
                 ],
-                "facts" : 264,
+                "facts" : 0,
                 "frame" : [
-                  -1179,
-                  788,
-                  102,
-                  101
+                  -1704,
+                  828,
+                  573,
+                  25
                 ],
-                "groupID" : 9,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "image",
-                "label" : "image 4",
-                "labelSource" : "synthesized",
-                "ordinal" : 99,
+                "kind" : "link",
+                "label" : "Respectful & Transparent. Free Shipping Over $50. 366 Day No Hassle Returns. Price",
+                "labelSource" : "textInside",
+                "ordinal" : 101,
                 "region" : "main",
-                "role" : "AXImage"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -2770,24 +2837,51 @@
                 "confidence" : 0,
                 "containerTrail" : [
                   "How to Choose Alpine Touring or AT Ski Boots - evo",
-                  "card"
+                  "band"
                 ],
-                "facts" : 256,
+                "facts" : 0,
                 "frame" : [
-                  -1705,
+                  -1703,
                   848,
-                  449,
+                  287,
                   25
                 ],
-                "groupID" : 9,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "Rated Service. Respectful & Transparent. Size and Buying Guides.",
+                "label" : "Match Guarantee. Fast & Secure Delivery.",
                 "labelSource" : "textInside",
-                "ordinal" : 100,
+                "ordinal" : 102,
                 "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Match Guarantee. Fast & Secure Delivery.",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1706,
+                  916,
+                  83,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sponsored",
+                "labelSource" : "textInside",
+                "ordinal" : 103,
+                "region" : "footer",
                 "role" : "AXStaticText"
               }
             ],
@@ -2806,7 +2900,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 78,
+          "atMilliseconds" : 62,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2817,16 +2911,16 @@
         }
       ],
       "timeline" : [
-        "12ms  resolved Chrome",
-        "78ms  read the shell — alpine touring boots - Ecosia · ecosia",
-        "827ms  perceived 100 controls · —",
-        "827ms  looked — 100 rows, 94 named, 10 groups"
+        "7ms  resolved Chrome",
+        "62ms  read the shell — alpine touring boots - Ecosia · ecosia",
+        "794ms  perceived 103 controls · —",
+        "794ms  looked — 103 rows, 95 named, 12 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:01:06Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:22:51Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "what-can-i-click"
 }

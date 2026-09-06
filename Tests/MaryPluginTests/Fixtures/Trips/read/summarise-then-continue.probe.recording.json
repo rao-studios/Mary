@@ -9,7 +9,7 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1222,
+          "atMilliseconds" : 1252,
           "kind" : "restoreCursor"
         }
       ],
@@ -19,7 +19,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1223,
+      "elapsedMilliseconds" : 1253,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -36,7 +36,7 @@
       "outcomeSpoken" : "The visible part of Ski touring - Wikipedia, top to bottom:\nMain menu\nWikipedia\nWikipedia The Free Encyclopedia\nQ Search Wikipedia Search\nSearch Wikipedia\nitem 5\nSearch\nDonate Create account Log in\nDonate\nCreate account\nLog in\n25 years of the free encyclopedia\nThe Free Encyclopedia\nSki touring\n9 languages\nContents hide\nContents\nitem 14\nHide Contents\nlink 3\nArticle Talk\nArticle\nitem 15\nTalk\nlink 4\nRead Edit View history :\nRead\nitem 16\nEdit\nlink 5\nView history\nTools\nAppearance hide\nitem 18\nHide Appearance\nitem 19\nFrom Wikipedia, the free encyclopedia\n(Top)\nText\nHistory\nThis article has multiple issues. Please help improve it [hide]\nimprove it\n[hide]\nSmall\nTerminology\n• Standard\nitem 31\nToggle Equipment subsection\n• Equipment\nitem 33\nor discuss these issues on the talk page. (Learn how and when to\nLearn how and when to remove these messages\ntalk page\nStyles of equipment\nremove these messages)\nO Large\nLarge\nitem 36\nAscending aids\n• This article may contain original research. (December\noriginal research\n2012)\nWidth\nSee also\n• This article needs more citations. (January 2013)\nmore citations\nitem 43\nReferences\nlink 18\nO Wide\nWide\nitem 46\nExternal links\nSki touring is skiing in the backcountry on unmarked\nskiing\nbackcountry\nor unpatrolled areas. Touring is typically done off-piste\npiste\nColor\nand outside of ski resorts, and may extend over a\nski resorts\nperiod of more than one day. It is similar to\nTo get missing image descriptions, open the context menu.\nAutomatic\nitem 53\nbackcountry skiing but excludes the use of a ski lift or\nbackcountry skiing\nski lift\n• Light\nitem 56\ntransport. Ski touring can take place anywhere that has\nO Dark\nDark\nitem 59\nsuitable snow and terrain as well as reasonable means\nof access to the trailhead, i.e. plowed roads, snowcats,\naircraft or public transport.\nFree moving heels during the ascent are a\ndefining characteristic of ski touring. After\nreaching the mountain top or other destination,\nSki touring combines elements of Nordic and alpine\nNordic\nthe heel portions of the special touring bindings\nskiing and embraces such sub-disciplines as Telemark\nalpine skiing\nTelemark\nare fixated such that the skis behave like\nand randonnée. A defining characteristic is that the\nnormal alpine skis on the typically long ride\nalpine skis\nskier's heels are \"free\" - i.e. not bound to the skis - in\ndownhill.",
       "pageReads" : [
         {
-          "atMilliseconds" : 790,
+          "atMilliseconds" : 813,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -273,7 +273,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 444,
+            "readMilliseconds" : 463,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3666,10 +3666,10 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
+        "6ms  resolved Chrome",
         "43ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "790ms  perceived 129 controls · —",
-        "790ms  looked — 129 rows, 111 named, 19 groups"
+        "813ms  perceived 129 controls · —",
+        "813ms  looked — 129 rows, 111 named, 19 groups"
       ],
       "verdict" : "passed"
     },
@@ -3705,8 +3705,8 @@
       "verdict" : "pending"
     }
   ],
-  "recordedAt" : "2026-09-06T17:01:01Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:22:45Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "summarise-then-continue"
 }

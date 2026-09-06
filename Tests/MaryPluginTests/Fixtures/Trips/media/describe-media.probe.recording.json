@@ -5,17 +5,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 46,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 46,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1463,
+          "atMilliseconds" : 1414,
           "kind" : "restoreCursor"
         }
       ],
@@ -25,12 +25,12 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1463,
+      "elapsedMilliseconds" : 1414,
       "index" : 0,
       "landed" : false,
       "media" : [
         {
-          "atMilliseconds" : 1463,
+          "atMilliseconds" : 1414,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -67,7 +67,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 46,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -78,15 +78,15 @@
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "43ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1463ms  perceived 0 controls · paused"
+        "9ms  resolved Chrome",
+        "46ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1414ms  perceived 0 controls · paused"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:00:11Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:21:51Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "describe-media"
 }

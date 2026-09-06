@@ -5,27 +5,27 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 46,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 674,
+          "atMilliseconds" : 691,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 979,
+          "atMilliseconds" : 991,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1482,
+          "atMilliseconds" : 1498,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2564,
+          "atMilliseconds" : 2605,
           "kind" : "restoreCursor"
         }
       ],
@@ -35,7 +35,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 2564,
+      "elapsedMilliseconds" : 2605,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -49,10 +49,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
+      "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"'json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
       "pageReads" : [
         {
-          "atMilliseconds" : 576,
+          "atMilliseconds" : 592,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -177,7 +177,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 352,
+            "readMilliseconds" : 379,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1089,7 +1089,7 @@
           }
         },
         {
-          "atMilliseconds" : 2246,
+          "atMilliseconds" : 2280,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1235,7 +1235,7 @@
                 "memberOrdinals" : [
                   33
                 ],
-                "title" : "\"json\": null,"
+                "title" : "\"'json\": null,"
               }
             ],
             "labeledFraction" : 1,
@@ -1245,7 +1245,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 302,
+            "readMilliseconds" : 304,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1726,10 +1726,10 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1792,
+                  -1790,
                   486,
-                  263,
-                  31
+                  261,
+                  29
                 ],
                 "groupID" : 8,
                 "hints" : [
@@ -1998,7 +1998,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) h; Intel Mac OS X 10-157) ApplewebKit/537.36 (KHTML, Like Gecko) Chrome/152.0.0.0 Safar1/537.36\", \"X-Amzn-Trace-Id\": \"Root=1-6a9d9bdc-0fa8430611a3b0872847a58f\"",
+                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) sh: Intel Mac 0S X 10_15 7) ApplewebKit/537.36 (KHTML, Like Gecko) Chrome/152.0.o.o Safarl/537.36\", \"X-Amzn-Trace-Id\": \"Root=1-6a9daØe8-457ac7911901aea85726aaad\"",
                 "labelSource" : "textInside",
                 "ordinal" : 29,
                 "region" : "main",
@@ -2016,7 +2016,7 @@
                 "frame" : [
                   -1789,
                   638,
-                  269,
+                  271,
                   25
                 ],
                 "groupID" : 13,
@@ -2040,7 +2040,7 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
+                  -1789,
                   668,
                   489,
                   23
@@ -2050,7 +2050,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9d9bdc-0fa8430611a3b0872847a58f\"",
+                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9daØe8-457ac7911901aea85726aaad\"",
                 "labelSource" : "textInside",
                 "ordinal" : 31,
                 "region" : "main",
@@ -2066,10 +2066,10 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1807,
-                  684,
-                  115,
-                  41
+                  -1808,
+                  683,
+                  116,
+                  42
                 ],
                 "groupID" : 14,
                 "hints" : [
@@ -2077,7 +2077,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"json\": null,",
+                "label" : "\"'json\": null,",
                 "labelSource" : "textInside",
                 "ordinal" : 32,
                 "region" : "main",
@@ -2088,7 +2088,7 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"json\": null,",
+                  "\"'json\": null,",
                   "band"
                 ],
                 "facts" : 0,
@@ -2154,7 +2154,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 674,
+          "atMilliseconds" : 691,
           "decisions" : [
             {
               "affordance" : 0,
@@ -2613,7 +2613,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 45,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2624,7 +2624,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1545,
+          "atMilliseconds" : 1562,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2635,7 +2635,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1864,
+          "atMilliseconds" : 1877,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2646,22 +2646,22 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "44ms  read the shell — httpbin.org/forms/post · httpbin",
-        "576ms  perceived 34 controls · —",
-        "576ms  looked — 34 rows, 27 named, 12 groups",
-        "674ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
-        "674ms  matched \"submit the form\" → \"Submit order\"",
-        "1024ms  clicked Submit order",
-        "2246ms  perceived 34 controls · —",
-        "2246ms  looked — 34 rows, 34 named, 16 groups",
-        "2564ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
+        "6ms  resolved Chrome",
+        "46ms  read the shell — httpbin.org/forms/post · httpbin",
+        "592ms  perceived 34 controls · —",
+        "592ms  looked — 34 rows, 27 named, 12 groups",
+        "691ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
+        "691ms  matched \"submit the form\" → \"Submit order\"",
+        "1035ms  clicked Submit order",
+        "2280ms  perceived 34 controls · —",
+        "2280ms  looked — 34 rows, 34 named, 16 groups",
+        "2605ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:59:06Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:20:38Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "submit-the-form"
 }

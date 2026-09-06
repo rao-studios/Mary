@@ -268,6 +268,32 @@ public enum TripLayer {
         }
         guard let winner = page.winner else { return nil }
         guard route.selectedOrdinal != nil else {
+            // THE ENGINE FOUND TWO AND SAID SO. That is the refusal ladder
+            // working, not the router missing — see `TripFailureLayer.stage`.
+            if recording.refusal == "ambiguousElement" || !route.rivalOrdinals.isEmpty {
+                let named = route.rivalOrdinals.map(String.init).joined(separator: " and ")
+                return .failed(
+                    .stage,
+                    "the page holds more than one \"\(route.goal)\" — rows \(named) —"
+                        + " and the engine asked which")
+            }
+            // AND THE PAGE MAY SIMPLY NOT HAVE IT — but only a class that says
+            // NOTHING may be answered that way.
+            //
+            // PIN: A STATED CLASS IS EVIDENCE AND MUST BE BELIEVED. When a leg
+            // says "a video, the first of its kind" and the reading holds a
+            // video, a miss is the router's and the echo test has no business
+            // overruling it — a row can answer a goal under a name that shares
+            // no word with it, which is what the meaning term is for. It is only
+            // where the class is `named` and nothing else — answered by every
+            // named row, so the count is vacuous — that the page's own words are
+            // the best evidence available about whether it held the thing at all.
+            if !winner.discriminates, !anyRowEchoes(route.goal, in: recording) {
+                return .failed(
+                    .stage,
+                    "no row on this page carries a word of \"\(route.goal)\" —"
+                        + " the leg was staged against a page that has not got one")
+            }
             return .failed(
                 .pageRouting,
                 "reached nothing, though \(candidates(for: winner, in: recording).count)"
@@ -401,6 +427,35 @@ public enum TripLayer {
         return recording.routes.last { $0.verb == verb.traceWord }
             ?? recording.routes.last
     }
+
+    /// Does any row's name carry a word of the goal?
+    ///
+    /// PIN: THE CHEAPEST HONEST TEST FOR "THE PAGE HAS NOT GOT ONE". Not a match
+    /// — matching is the router's job and the question here is whether the router
+    /// had anything to work with at all. Words of three letters or more, and the
+    /// same request framing `SpokenReference` already strips, so "check the box
+    /// that says remember me" asks after "check", "box", "says", "remember" and
+    /// finds none of them on a form about pizza.
+    static func anyRowEchoes(_ goal: String, in recording: TripLegRecording) -> Bool {
+        guard let page = routedPage(in: recording) else { return false }
+        let words = Set(
+            goal.lowercased()
+                .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+                .map(String.init)
+                .filter { $0.count >= 3 && !Self.framing.contains($0) })
+        guard !words.isEmpty else { return true }
+        return page.rows.contains { row in
+            let label = row.label.lowercased()
+            return words.contains { label.contains($0) }
+        }
+    }
+
+    /// Words that frame a request rather than name a thing. Deliberately small:
+    /// a word wrongly here makes a real miss look like bad staging.
+    static let framing: Set<String> = [
+        "the", "that", "this", "and", "for", "with", "please", "can", "you",
+        "could", "would", "open", "click", "press", "tap", "show", "select",
+    ]
 
     // MARK: - Reading a row class against a recorded page
 

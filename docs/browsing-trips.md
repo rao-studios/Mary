@@ -795,6 +795,86 @@ round 2.
 - **The exit criterion is still measured on one run.** After round 5's 77/72/74 it
   should require two consecutive rounds, which is what it says and not what it does.
 
+### Round 7 — a layer for the stage, and three rounds of blaming the wrong one
+
+`act` had sat at 63% since round 4 on two failing legs, both filed as R2 — the
+router had the row and did not pick it. Neither was a routing fault, and the reason
+nobody had noticed is that **there was no layer for what they actually were.**
+
+- **`check-the-box`** asked a page to "check the box that says remember me". The
+  form this machine stages is httpbin's pizza order — E-mail address, Telephone,
+  Bacon, Onion. **There is no remember-me box on it.** The engine read the page,
+  searched four screens down for it (round 5's work, behaving exactly right),
+  found nothing and refused `elementNotFound`. The classifier reported "reached
+  nothing, though 27 rows in the reading answer the class" — where the class was
+  `named: true`, which every named row answers. The count was vacuous and the
+  layer was wrong.
+- **`press-by-name`** asked for "news" on a results page that has **two different
+  controls called News** — one in the header at 41×40, one in the tab strip at
+  81×32. The engine refused `ambiguousElement` and **named both rivals**, which is
+  precisely what the refusal ladder exists to produce. That was filed as the
+  router missing a row.
+
+`TripFailureLayer.stage` — `X` — is the missing column: the page in front of the
+leg was not the page the leg is about. It is the trip's fault or the machine's, a
+seed that does not hold what the leg names or a phrase the page wears twice, and
+both are fixed by staging. Two rules route to it: a refusal that **named rivals**,
+and — only where the class says nothing but `named` — a goal **no row on the page
+carries a word of**. A stated class is evidence and is believed: when a leg says
+"a video, the first of its kind" and the reading holds a video, a miss is the
+router's and the echo test has no business overruling it, because a row can answer
+a goal under a name sharing no word with it. That is what the meaning term is for,
+and a pinned test says so.
+
+Then the staging itself: `check-the-box` became a keyed leg like `press-by-name`,
+so the machine supplies a phrase its own form actually holds, and the leg tests the
+SHAPE of the request rather than a label this repository cannot know. Both pass.
+`press-by-name` also stopped pinning `lexicalBasis: contained` — a keyed leg cannot
+pin a basis, because the phrase is the machine's and whether it matches exactly or
+by containment depends on a word this file does not choose.
+
+**`recovery` had never run a leg in seven rounds**, and eight of `context`'s
+eleven unstageable legs said the same sentence: *"textedit has to be in front"*.
+Bringing a named application forward is what `VerifiedActivation` does for every
+act this engine performs — the browser is brought forward by it constantly — so
+the runner does it, verified, and only calls the leg unstageable if the activation
+does not take. What stays a person's job is unchanged and is the real distinction:
+music playing, a hand on the page mid-trip, a second window. Those are states of
+the world nobody can synthesize; which application has focus is not one of them.
+Unstageable fell from 18 to 15 and `recovery`'s legs now reach their rehearsal.
+
+**The exit criterion said "two consecutive rounds" and measured one.** After
+77/72/74 from one build, a criterion satisfied by whichever sample ran last is a
+criterion about luck. A scoreboard cannot see the previous round; it can refuse to
+call one sample the answer, and it now does.
+
+#### The numbers
+
+Two whole-corpus samples: **82% and 80%**, against round 6's 79 and 81 — the
+overall rate did not move, and the ranges overlap. What moved, in both samples and
+in the same direction:
+
+| | round 6 | round 7 |
+|---|---:|---:|
+| `act` | 63% | **88%** |
+| R2 failures | 3 | **1** |
+| unstageable | 18 | **15** |
+
+The one remaining R2 is a search leg. The three P failures are the media lane on a
+file page — "0 controls seen" — which has been a detector question since round 2.
+
+#### What round 8 should take
+
+- **`context` at 50%, and it has never been higher.** Three failing legs, two of
+  them P. It is also the category the exit criterion treats most strictly, and the
+  one whose invariants the whole plan was written around.
+- **`media` at 63%, and the two P failures are the same one.** A player on a file
+  page shows no transport to the reading. Filed against VisionAX since round 2 and
+  not looked at since.
+- **`recovery` still passes nothing**, but for an honest reason now: its legs are
+  rehearsals with no binding to dispatch. Either they get one or the category stops
+  being counted as a live rate.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -890,3 +970,19 @@ Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media 
 | **all** | **35** | **8** | **13** | **18** | **81%** | P 2 · R2 3 · E 3 |
 
 Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 63% — under 90%; search at 88% — under 90%; context has 1 failing leg(s); 3 page-routing failure(s) on the recorded corpus.
+
+### Round 7 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 7 | 1 | 1 | 5 | 88% | E 1 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 3 | 3 | 1 | 6 | 50% | P 2 · E 1 |
+| media | 5 | 3 | 1 | 1 | 63% | P 1 · E 2 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 5 | 2 | 0% | — |
+| search | 6 | 2 | 0 | 0 | 75% | R2 1 · E 1 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **36** | **9** | **14** | **15** | **80%** | P 3 · R2 1 · E 5 |
+
+Exit criterion not met: no leg ran in recovery; act at 88% — under 90%; media at 63% — under 90%; search at 75% — under 90%; context has 3 failing leg(s); 1 page-routing failure(s) on the recorded corpus.

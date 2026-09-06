@@ -12,7 +12,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 93,
+      "elapsedMilliseconds" : 81,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -26,7 +26,7 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "You're on Ski touring - Wikipedia - High memory usage - 959 MB, at wikipedia.",
+      "outcomeSpoken" : "You're on Ski touring - Wikipedia, at wikipedia.",
       "pageReads" : [
 
       ],
@@ -41,25 +41,25 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 93,
+          "atMilliseconds" : 81,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "Ski touring - Wikipedia - High memory usage - 959 MB"
+          "title" : "Ski touring - Wikipedia"
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "93ms  read the shell — Ski touring - Wikipedia - High memory usage - 959 MB · wikipedia"
+        "6ms  resolved Chrome",
+        "81ms  read the shell — Ski touring - Wikipedia · wikipedia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:01:16Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:23:01Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "which-tab"
 }

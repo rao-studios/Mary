@@ -18,6 +18,7 @@
 import AppKit
 import Foundation
 import MaryAmbient
+import MaryBrain
 import MaryComputerUse
 import MaryFoundation
 import MaryPlugin
@@ -56,6 +57,34 @@ enum TripCommand {
         return answer == "y" || answer == "yes"
     }
 
+    /// Put a named application in front, by its registered profile.
+    ///
+    /// PIN: THE PACKAGES NAME IT, NOT THIS FILE. A trip says `front: "textedit"`,
+    /// which is an application id some installed package declares along with its
+    /// bundle identifiers; this looks it up the same way a turn does. An id
+    /// nothing declares cannot be staged and says so by returning false, rather
+    /// than guessing at a bundle id from the spelling.
+    static func bringForward(_ applicationID: String) async -> Bool {
+        // THE INSTALLED PACKAGES' PROFILES, not the native adapters' own. A
+        // native adapter carries a profile for the surface it IS; an application
+        // a trip stages ("textedit", "xcode") is declared by a package, and the
+        // library is where those live.
+        let profiles = AbilityLibrary.shared.snapshot().plugins.applicationProfiles
+        guard let profile = profiles.first(where: {
+            $0.id.caseInsensitiveCompare(applicationID) == .orderedSame
+        }) else { return false }
+        for bundleID in profile.applicationIdentifiers {
+            guard let running = NSRunningApplication
+                .runningApplications(withBundleIdentifier: bundleID).first
+            else { continue }
+            if await VerifiedActivation.bringForward(
+                pid: running.processIdentifier).succeeded {
+                return true
+            }
+        }
+        return false
+    }
+
     // MARK: - Running one trip
 
     static func run(
@@ -82,7 +111,24 @@ enum TripCommand {
         // have set it up by hand; without it, these are Sand's or a person's.
         var missing: [String] = []
         if trip.stage.front != "browser" {
-            missing.append("\(trip.stage.front) has to be in front")
+            // AN APPLICATION IN FRONT IS A STAGE THE RUNNER CAN MAKE, and for
+            // six rounds it was filed as one only a person could.
+            //
+            // PIN: `recovery` NEVER RAN A SINGLE LEG, and eight of `context`'s
+            // eleven unstageable legs said the same sentence: "textedit has to
+            // be in front". Bringing a named application forward is exactly what
+            // `VerifiedActivation` does for every act this engine performs, and
+            // the browser is brought forward by it constantly. The distinction
+            // that matters is the one below — music playing, a hand on the page,
+            // a second window — which are states of the WORLD nobody can
+            // synthesize. Which application has focus is not one of them.
+            // IT IS STILL VERIFIED, not merely requested: an activation that
+            // does not take leaves the leg unstageable rather than running it
+            // against whatever is actually in front, which is the false pass
+            // this whole block exists to prevent.
+            if await TripCommand.bringForward(trip.stage.front) == false {
+                missing.append("\(trip.stage.front) has to be in front")
+            }
         }
         // A HAND ON THE PAGE CANNOT BE SET UP IN ADVANCE, so `--staged` does not
         // cover it. Running anyway answers a different question: measured, the

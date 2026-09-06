@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 78,
+          "atMilliseconds" : 83,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 78,
+          "atMilliseconds" : 84,
           "kind" : "openLocation",
           "typedLength" : 58
         },
         {
-          "atMilliseconds" : 2274,
+          "atMilliseconds" : 2301,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3271,
+          "atMilliseconds" : 3316,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3272,
+      "elapsedMilliseconds" : 3318,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
       "pageReads" : [
         {
-          "atMilliseconds" : 2955,
+          "atMilliseconds" : 2993,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -166,7 +166,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 432,
+            "readMilliseconds" : 460,
             "rows" : [
               {
                 "affordance" : "none",
@@ -2131,7 +2131,7 @@
           "kind" : "navigate",
           "landed" : true,
           "receipt" : "navigation",
-          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia"
         }
       ],
       "routes" : [
@@ -2141,51 +2141,50 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 78,
+          "atMilliseconds" : 83,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+          "title" : "search the web for swift concurrency - Ecosia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 754,
+          "atMilliseconds" : 751,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+          "title" : "search the web for swift concurrency - Ecosia"
         },
         {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 1067,
+          "atMilliseconds" : 1116,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+          "title" : "search the web for swift concurrency - Ecosia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1108,
+          "atMilliseconds" : 1158,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2274,
+          "atMilliseconds" : 2301,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2197,22 +2196,22 @@
       ],
       "timeline" : [
         "5ms  resolved Chrome",
-        "78ms  read the shell — search the web for swift concurrency - Ecosia - High memory usage - 807 MB · ecosia",
+        "83ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
         "428ms  typed an address",
-        "1067ms  verified the page changed",
-        "1067ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia - High memory usage - 807 MB",
-        "1067ms  resolved Chrome",
-        "1108ms  read the shell — search the web for swift concurrency - Ecosia - High memory usage - 807 MB · ecosia",
-        "2209ms  resolved Chrome",
-        "2274ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "2955ms  perceived 75 controls · —",
-        "2955ms  looked — 75 rows, 69 named, 8 groups"
+        "1116ms  verified the page changed",
+        "1116ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
+        "1116ms  resolved Chrome",
+        "1158ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "2250ms  resolved Chrome",
+        "2301ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "2993ms  perceived 75 controls · —",
+        "2993ms  looked — 75 rows, 69 named, 8 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:59:32Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:21:04Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "search-long-query"
 }

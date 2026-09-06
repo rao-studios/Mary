@@ -5,15 +5,15 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 37,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1280,
+          "atMilliseconds" : 1270,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1283,
+          "atMilliseconds" : 1270,
           "kind" : "restoreCursor"
         }
       ],
@@ -23,7 +23,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1283,
+      "elapsedMilliseconds" : 1270,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -40,7 +40,7 @@
       "outcomeSpoken" : "References is on screen.",
       "pageReads" : [
         {
-          "atMilliseconds" : 834,
+          "atMilliseconds" : 817,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -277,7 +277,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 478,
+            "readMilliseconds" : 485,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3654,7 +3654,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1280,
+          "atMilliseconds" : 1270,
           "decisions" : [
             {
               "affordance" : 40,
@@ -5348,7 +5348,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 37,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -5360,17 +5360,17 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "43ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "834ms  perceived 129 controls · —",
-        "834ms  looked — 129 rows, 111 named, 19 groups",
-        "1280ms  routed \"references\" → \"References\" (111 of 129 eligible)",
-        "1280ms  matched \"references\" → \"References\""
+        "37ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "817ms  perceived 129 controls · —",
+        "817ms  looked — 129 rows, 111 named, 19 groups",
+        "1270ms  routed \"references\" → \"References\" (111 of 129 eligible)",
+        "1270ms  matched \"references\" → \"References\""
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:58:58Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:20:30Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "scroll-to"
 }

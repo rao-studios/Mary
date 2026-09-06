@@ -214,6 +214,19 @@ public struct TripRowClass: Sendable, Equatable, Codable {
     /// property; this is how a leg states it.
     public var named: Bool?
 
+    /// DOES THIS CLASS PICK ANYTHING OUT?
+    ///
+    /// PIN: A CLASS OF `named: true` IS ANSWERED BY EVERY NAMED ROW, so "12 rows
+    /// in the reading answer the class" is not evidence of anything — and it was
+    /// being printed as though it were, and attributed to the router. A class
+    /// that states a fact, a kind, an affordance or a position has actually
+    /// narrowed the page and its count means what it says.
+    public var discriminates: Bool {
+        !(facts ?? []).isEmpty || !(factsAbsent ?? []).isEmpty
+            || kind != nil || affordance != nil || ordinalWithinKind != nil
+            || lexicalBasis != nil
+    }
+
     public init(
         facts: [String]? = nil, factsAbsent: [String]? = nil,
         affordance: TripAffordance? = nil, kind: String? = nil,

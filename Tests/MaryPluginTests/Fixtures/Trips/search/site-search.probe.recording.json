@@ -5,37 +5,37 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 45,
+          "atMilliseconds" : 44,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1437,
+          "atMilliseconds" : 1418,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1746,
+          "atMilliseconds" : 1728,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 2011,
+          "atMilliseconds" : 2003,
           "kind" : "type",
           "typedLength" : 20
         },
         {
-          "atMilliseconds" : 2073,
+          "atMilliseconds" : 2061,
           "key" : "return",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 2307,
+          "atMilliseconds" : 2296,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 3798,
+          "atMilliseconds" : 3845,
           "kind" : "restoreCursor"
         }
       ],
@@ -45,7 +45,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3798,
+      "elapsedMilliseconds" : 3845,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -62,7 +62,7 @@
       "outcomeSpoken" : "typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia. Now offering 22 links, 17 buttons, 3 fields, and 3 options — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
       "pageReads" : [
         {
-          "atMilliseconds" : 922,
+          "atMilliseconds" : 893,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -302,7 +302,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 503,
+            "readMilliseconds" : 493,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3684,7 +3684,7 @@
           }
         },
         {
-          "atMilliseconds" : 3521,
+          "atMilliseconds" : 3553,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3920,7 +3920,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 305,
+            "readMilliseconds" : 316,
             "rows" : [
               {
                 "affordance" : "press",
@@ -6610,7 +6610,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1437,
+          "atMilliseconds" : 1418,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8317,7 +8317,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 45,
+          "atMilliseconds" : 44,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8328,7 +8328,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2359,
+          "atMilliseconds" : 2365,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8339,18 +8339,18 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2679,
+          "atMilliseconds" : 2704,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "en.wikipedia.org/w/index.php?search=alpine+touring+boots&title=Special%3ASearch&wprov=acrw1_-1"
+          "title" : "Wikipedia, the free encyclopedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3003,
+          "atMilliseconds" : 3021,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8361,43 +8361,43 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "45ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "922ms  perceived 130 controls · —",
-        "922ms  looked — 130 rows, 116 named, 19 groups",
-        "1437ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
-        "1437ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
-        "2074ms  typed 20 characters",
-        "3521ms  perceived 102 controls · —",
-        "3521ms  looked — 102 rows, 86 named, 18 groups",
-        "3798ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
+        "7ms  resolved Chrome",
+        "44ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "893ms  perceived 130 controls · —",
+        "893ms  looked — 130 rows, 116 named, 19 groups",
+        "1418ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
+        "1418ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
+        "2061ms  typed 20 characters",
+        "3553ms  perceived 102 controls · —",
+        "3553ms  looked — 102 rows, 86 named, 18 groups",
+        "3844ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
       ],
       "verdict" : "passed"
     },
     {
       "acts" : [
         {
-          "atMilliseconds" : 54,
+          "atMilliseconds" : 47,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 620,
+          "atMilliseconds" : 654,
           "atX" : 0.10110584518167456,
           "atY" : 0.35947712418300654,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 918,
+          "atMilliseconds" : 952,
           "atX" : 0.10110584518167456,
           "atY" : 0.35947712418300654,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1433,
+          "atMilliseconds" : 1471,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2350,
+          "atMilliseconds" : 2718,
           "kind" : "restoreCursor"
         }
       ],
@@ -8408,7 +8408,7 @@
 
       },
       "because" : "reached row 37, which is number 3 of its kind, not 1",
-      "elapsedMilliseconds" : 2351,
+      "elapsedMilliseconds" : 2719,
       "index" : 1,
       "landed" : true,
       "layer" : "R2",
@@ -8423,10 +8423,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "click \"open the first one\" — the page became alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB. Now offering 21 buttons, 18 links, 5 options, and 4 fields — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
+      "outcomeSpoken" : "click \"open the first one\" — it is gone from the page. Now offering 21 buttons, 18 links, 5 options, and 4 fields — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
       "pageReads" : [
         {
-          "atMilliseconds" : 599,
+          "atMilliseconds" : 632,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -8662,7 +8662,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 338,
+            "readMilliseconds" : 349,
             "rows" : [
               {
                 "affordance" : "press",
@@ -11339,7 +11339,7 @@
           }
         },
         {
-          "atMilliseconds" : 2294,
+          "atMilliseconds" : 2659,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -11523,7 +11523,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 283,
+            "readMilliseconds" : 286,
             "rows" : [
               {
                 "affordance" : "press",
@@ -14286,14 +14286,14 @@
           "delivery" : "delivered",
           "kind" : "click",
           "landed" : true,
-          "receipt" : "navigation",
-          "spoken" : "click \"open the first one\" — the page became alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB",
+          "receipt" : "targetChanged",
+          "spoken" : "click \"open the first one\" — it is gone from the page",
           "target" : "open the first one"
         }
       ],
       "routes" : [
         {
-          "atMilliseconds" : 620,
+          "atMilliseconds" : 654,
           "decisions" : [
             {
               "affordance" : 0,
@@ -15636,7 +15636,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 54,
+          "atMilliseconds" : 47,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -15647,44 +15647,55 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1503,
+          "atMilliseconds" : 1531,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB"
+          "title" : "alpine touring boots - Search results - Wikipedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1823,
+          "atMilliseconds" : 1835,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB"
+          "title" : "alpine touring boots - Search results - Wikipedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 2173,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "alpine touring boots - Search results - Wikipedia"
         }
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "54ms  read the shell — alpine touring boots - Search results - Wikipedia · wikipedia",
-        "599ms  perceived 102 controls · —",
-        "599ms  looked — 102 rows, 86 named, 18 groups",
-        "620ms  routed \"open the first one\" → \"Search in: ( (Article) X\" (42 of 102 eligible)",
-        "620ms  matched \"open the first one\" → \"Search in: ( (Article) X\"",
-        "964ms  clicked Search in: ( (Article) X",
-        "2294ms  perceived 105 controls · —",
-        "2294ms  looked — 105 rows, 90 named, 14 groups",
-        "2350ms  receipt — click \"open the first one\" — the page became alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB"
+        "47ms  read the shell — alpine touring boots - Search results - Wikipedia · wikipedia",
+        "632ms  perceived 102 controls · —",
+        "632ms  looked — 102 rows, 86 named, 18 groups",
+        "654ms  routed \"open the first one\" → \"Search in: ( (Article) X\" (42 of 102 eligible)",
+        "654ms  matched \"open the first one\" → \"Search in: ( (Article) X\"",
+        "998ms  clicked Search in: ( (Article) X",
+        "2659ms  perceived 105 controls · —",
+        "2659ms  looked — 105 rows, 90 named, 14 groups",
+        "2718ms  receipt — click \"open the first one\" — it is gone from the page"
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:02:04Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:23:50Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "site-search"
 }

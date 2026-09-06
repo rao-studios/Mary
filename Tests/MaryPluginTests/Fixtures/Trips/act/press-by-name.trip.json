@@ -7,11 +7,10 @@
         "budgetMs": 8000,
         "landed": true
       },
-      "note": "Naming something exactly must reach it even when the reading grouped it as furniture \u2014 the toolbar exclusion that used to refuse a real answer. THE PHRASE MUST NOT BE A KIND: 'images' names PageElementKind.image, so the naming ladder reads it as a category and counts image rows instead of matching the label \u2014 measured live, where it then reached nothing because every image row was unnamed. That collision is its own finding; the keyed phrase for this leg is a word only one row wears. ROUND 1: the class no longer asserts an affordance. The fill verb reaches a row the reading called a field even when it did not mark it fillable, and the press verb reaches a named candidate \u2014 what matters is which ROW was reached, not the reading's confidence about it.",
+      "note": "Naming something exactly must reach it even when the reading grouped it as furniture — the toolbar exclusion that used to refuse a real answer. THE PHRASE MUST NOT BE A KIND: 'images' names PageElementKind.image, so the naming ladder reads it as a category and counts image rows instead of matching the label — measured live, where it then reached nothing because every image row was unnamed. That collision is its own finding; the keyed phrase for this leg is a word only one row wears. ROUND 1: the class no longer asserts an affordance. The fill verb reaches a row the reading called a field even when it did not mark it fillable, and the press verb reaches a named candidate — what matters is which ROW was reached, not the reading's confidence about it. ROUND 7: THE BASIS IS NO LONGER PINNED, because a keyed leg cannot pin one. The phrase is the MACHINE's — that is the whole point of sayKey — so whether it reaches its row exactly or by containment depends on a word this file does not choose and must not assert. Pinning `contained` here made the leg fail the moment the machine's phrase matched a label outright, which is the better outcome of the two.",
       "page": {
         "verb": "press",
         "winner": {
-          "lexicalBasis": "contained",
           "named": true
         }
       },

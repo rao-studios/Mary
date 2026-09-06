@@ -379,6 +379,21 @@ public enum TripFailureLayer: String, Sendable, Equatable, Codable, CaseIterable
     case perception = "P"
     /// The reading had it and the route did not pick it.
     case pageRouting = "R2"
+    /// THE PAGE IN FRONT OF THE LEG WAS NOT THE PAGE THE LEG IS ABOUT.
+    ///
+    /// PIN: THE LAYER THAT DID NOT EXIST, AND SO EVERY CASE OF IT WAS FILED
+    /// AGAINST THE ROUTER. `act` sat at 63% for three rounds on two legs, and
+    /// neither was a routing fault: one asked a pizza-order form to check a
+    /// "remember me" box that is not on it, and the other asked for "news" on a
+    /// page that has two different controls called News — where the engine
+    /// refused for ambiguity and NAMED BOTH RIVALS, which is the behaviour the
+    /// whole refusal ladder exists to produce. Calling either R2 says the router
+    /// missed a row that was there. It did not, and a scoreboard that says so
+    /// sends the next round after the wrong layer.
+    /// IT IS THE TRIP'S FAULT OR THE MACHINE'S, never the engine's — a seed
+    /// address that does not hold what the leg names, or a phrase the page uses
+    /// twice. Both are fixed by staging, which is why it is its own column.
+    case stage = "X"
     /// The route was right and the act was not.
     case execution = "E"
     /// It landed and nobody heard.

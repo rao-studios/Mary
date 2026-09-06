@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 81,
+          "atMilliseconds" : 86,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 82,
+          "atMilliseconds" : 87,
           "kind" : "openLocation",
           "typedLength" : 36
         },
         {
-          "atMilliseconds" : 2580,
+          "atMilliseconds" : 2557,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3587,
+          "atMilliseconds" : 3531,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3590,
+      "elapsedMilliseconds" : 3533,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -42,10 +42,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "I searched for search the web for swift concurrency. Now offering 22 links, 7 options, 5 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web (form); button 1 — Clear; button 2 — Search; button 3 — Q (form)",
+      "outcomeSpoken" : "I searched for search the web for swift concurrency. Now offering 21 links, 7 options, 6 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web (form); button 1 — Clear; button 2 — Search; button 3 — Q (form)",
       "pageReads" : [
         {
-          "atMilliseconds" : 3288,
+          "atMilliseconds" : 3253,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -60,7 +60,7 @@
                   8,
                   9,
                   10,
-                  12,
+                  13,
                   14,
                   15,
                   16,
@@ -69,25 +69,25 @@
                   19,
                   20,
                   21,
-                  22,
-                  24,
-                  25
+                  23,
+                  24
                 ]
               },
               {
                 "id" : 1,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  26
+                  25
                 ],
-                "title" : "a Images"
+                "title" : "+ Al Chat"
               },
               {
                 "id" : 2,
                 "kind" : "band",
                 "memberOrdinals" : [
+                  26,
                   27,
-                  28,
+                  29,
                   30,
                   32,
                   33,
@@ -100,8 +100,12 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   36,
-                  38,
-                  40
+                  37,
+                  39,
+                  40,
+                  41,
+                  42,
+                  44
                 ],
                 "title" : "https://www.udemy.com/:"
               },
@@ -109,91 +113,67 @@
                 "id" : 4,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  41,
-                  42,
-                  43,
-                  45
+                  45,
+                  47
                 ],
-                "title" : "Q"
+                "title" : "modern concurrency in swift pdf"
               },
               {
                 "id" : 5,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  46
+                  48
                 ],
-                "title" : "Concurrency Fundamentals in Swift"
+                "title" : "path."
               },
               {
                 "id" : 6,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  47,
-                  49
+                  49,
+                  50,
+                  52,
+                  53
                 ],
-                "title" : "modern concurrency in swift pdf"
+                "title" : "Q"
               },
               {
                 "id" : 7,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  50,
-                  51,
-                  53,
-                  54
+                  54,
+                  55,
+                  57,
+                  58,
+                  59,
+                  61
                 ],
-                "title" : "Q"
+                "title" : "Embracing Swift concurrency - WWDC25 - Videos"
               },
               {
                 "id" : 8,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  55,
-                  56,
-                  58
+                  62,
+                  63,
+                  65
                 ],
-                "title" : "https://developer.apple.com› videos›playwwdc2025›268›"
+                "title" : "Q"
               },
               {
                 "id" : 9,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  59,
-                  60,
-                  61,
-                  63
-                ],
-                "title" : "Q"
-              },
-              {
-                "id" : 10,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  64,
-                  66
-                ],
-                "title" : "Q"
-              },
-              {
-                "id" : 11,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  67
-                ],
-                "title" : "Embracing Swift concurrency - WWDC25 - Videos"
-              },
-              {
-                "id" : 12,
-                "kind" : "band",
-                "memberOrdinals" : [
+                  66,
+                  67,
                   68,
-                  69,
+                  70,
                   71
                 ],
                 "title" : "Q"
               },
               {
-                "id" : 13,
+                "id" : 10,
                 "kind" : "band",
                 "memberOrdinals" : [
                   72,
@@ -202,23 +182,26 @@
                 "title" : "Swift 6 Concurrency (Part 1) - Swift Talk - objc.io"
               },
               {
-                "id" : 14,
-                "kind" : "band",
+                "id" : 11,
+                "kind" : "toolbar",
                 "memberOrdinals" : [
                   74,
-                  76
+                  75,
+                  76,
+                  77,
+                  78
                 ],
-                "title" : "Swift 6 Concurrency (Part 1) - Swift Talk - objc.io"
+                "title" : "Medium"
               }
             ],
-            "labeledFraction" : 0.9358974358974359,
+            "labeledFraction" : 0.8780487804878049,
             "pageFrame" : [
               -1815,
               173,
               1266,
               765
             ],
-            "readMilliseconds" : 469,
+            "readMilliseconds" : 458,
             "rows" : [
               {
                 "affordance" : "none",
@@ -229,10 +212,10 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1797,
+                  -1798,
                   194,
-                  85,
-                  31
+                  86,
+                  32
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -381,10 +364,10 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1077,
+                  -1078,
                   198,
                   27,
-                  27
+                  25
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -502,31 +485,6 @@
                 "role" : "AXButton"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "form"
-                ],
-                "facts" : 1032,
-                "frame" : [
-                  -676,
-                  198,
-                  47,
-                  25
-                ],
-                "groupID" : 0,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "38",
-                "labelSource" : "textInside",
-                "ordinal" : 12,
-                "region" : "header",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -547,7 +505,7 @@
                 "kind" : "link",
                 "label" : "Skip to main content",
                 "labelSource" : "classifier",
-                "ordinal" : 13,
+                "ordinal" : 12,
                 "region" : "leading",
                 "role" : "AXLink"
               },
@@ -571,10 +529,10 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "a Images dE News D Videos + Al Chat ® Web",
+                "label" : "a Images • Videos + Al Chat E News ® Web",
                 "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
+                "ordinal" : 13,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -599,8 +557,8 @@
                 "kind" : "option",
                 "label" : "Web",
                 "labelSource" : "classifier",
-                "ordinal" : 15,
-                "region" : "main",
+                "ordinal" : 14,
+                "region" : "leading",
                 "role" : "AXMenuItem"
               },
               {
@@ -623,9 +581,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "a Images dE News D Videos + Al Chat",
+                "label" : "a Images • Videos + Al Chat E News",
                 "labelSource" : "textInside",
-                "ordinal" : 16,
+                "ordinal" : 15,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -651,8 +609,8 @@
                 "kind" : "option",
                 "label" : "AI Chat",
                 "labelSource" : "classifier",
-                "ordinal" : 17,
-                "region" : "main",
+                "ordinal" : 16,
+                "region" : "leading",
                 "role" : "AXMenuItem"
               },
               {
@@ -675,10 +633,10 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 10",
+                "label" : "item 9",
                 "labelSource" : "synthesized",
-                "ordinal" : 18,
-                "region" : "main",
+                "ordinal" : 17,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -703,8 +661,8 @@
                 "kind" : "option",
                 "label" : "Images",
                 "labelSource" : "classifier",
-                "ordinal" : 19,
-                "region" : "main",
+                "ordinal" : 18,
+                "region" : "leading",
                 "role" : "AXMenuItem"
               },
               {
@@ -729,8 +687,8 @@
                 "kind" : "option",
                 "label" : "Videos",
                 "labelSource" : "classifier",
-                "ordinal" : 20,
-                "region" : "main",
+                "ordinal" : 19,
+                "region" : "leading",
                 "role" : "AXMenuItem"
               },
               {
@@ -753,10 +711,10 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 14",
+                "label" : "item 13",
                 "labelSource" : "synthesized",
-                "ordinal" : 21,
-                "region" : "main",
+                "ordinal" : 20,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -781,7 +739,7 @@
                 "kind" : "option",
                 "label" : "News",
                 "labelSource" : "classifier",
-                "ordinal" : 22,
+                "ordinal" : 21,
                 "region" : "main",
                 "role" : "AXMenuItem"
               },
@@ -806,7 +764,7 @@
                 "kind" : "option",
                 "label" : "More",
                 "labelSource" : "classifier",
-                "ordinal" : 23,
+                "ordinal" : 22,
                 "region" : "main",
                 "role" : "AXPopUpButton"
               },
@@ -832,7 +790,7 @@
                 "kind" : "link",
                 "label" : "More v",
                 "labelSource" : "textInside",
-                "ordinal" : 24,
+                "ordinal" : 23,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -856,9 +814,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 18",
+                "label" : "item 17",
                 "labelSource" : "synthesized",
-                "ordinal" : 25,
+                "ordinal" : 24,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -867,7 +825,7 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "a Images",
+                  "+ Al Chat",
                   "band"
                 ],
                 "facts" : 0,
@@ -885,8 +843,8 @@
                 "kind" : "option",
                 "label" : "Search region",
                 "labelSource" : "classifier",
-                "ordinal" : 26,
-                "region" : "main",
+                "ordinal" : 25,
+                "region" : "leading",
                 "role" : "AXMenuItem"
               },
               {
@@ -912,8 +870,8 @@
                 "kind" : "link",
                 "label" : "Sponsored",
                 "labelSource" : "textInside",
-                "ordinal" : 27,
-                "region" : "main",
+                "ordinal" : 26,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -939,7 +897,7 @@
                 "kind" : "link",
                 "label" : "Searches related to search the web for",
                 "labelSource" : "textInside",
-                "ordinal" : 28,
+                "ordinal" : 27,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -964,9 +922,36 @@
                 "kind" : "heading",
                 "label" : "Searches related to search the web for swift concurrency",
                 "labelSource" : "classifier",
-                "ordinal" : 29,
+                "ordinal" : 28,
                 "region" : "main",
                 "role" : "AXHeading"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1700,
+                  391,
+                  28,
+                  28
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "button 6",
+                "labelSource" : "synthesized",
+                "ordinal" : 29,
+                "region" : "leading",
+                "role" : "AXButton"
               },
               {
                 "affordance" : "none",
@@ -991,7 +976,7 @@
                 "label" : "Udemy, Inc.",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
-                "region" : "main",
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1016,7 +1001,7 @@
                 "label" : "Udemy, Inc.",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
-                "region" : "main",
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1043,7 +1028,7 @@
                 "label" : "Udemy, Inc. https://www.udemy.com/:",
                 "labelSource" : "textInside",
                 "ordinal" : 32,
-                "region" : "main",
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1096,7 +1081,7 @@
                 "label" : "https://(an address)",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
-                "region" : "main",
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1121,34 +1106,7 @@
                 "label" : "To get missing image descriptions, open the context menu.",
                 "labelSource" : "classifier",
                 "ordinal" : 35,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "grouping",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "https://www.udemy.com/:",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1706,
-                  436,
-                  347,
-                  33
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Concurrency Fundamentals in Swift",
-                "labelSource" : "textInside",
-                "ordinal" : 36,
-                "region" : "main",
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1156,23 +1114,25 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-
+                  "https://www.udemy.com/:",
+                  "band"
                 ],
-                "facts" : 2048,
+                "facts" : 0,
                 "frame" : [
                   -1701,
                   435,
                   615,
                   30
                 ],
+                "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Concurrency Fundamentals in Swift",
+                "label" : "Async/Await and Actors - Concurrency in Swift",
                 "labelSource" : "classifier",
-                "ordinal" : 37,
+                "ordinal" : 36,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1199,7 +1159,7 @@
                 "kind" : "link",
                 "label" : "swift approachable concurrency",
                 "labelSource" : "textInside",
-                "ordinal" : 38,
+                "ordinal" : 37,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1224,7 +1184,7 @@
                 "kind" : "link",
                 "label" : "swift approachable concurrency",
                 "labelSource" : "classifier",
-                "ordinal" : 39,
+                "ordinal" : 38,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1250,8 +1210,8 @@
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 40,
-                "region" : "trailing",
+                "ordinal" : 39,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1259,25 +1219,25 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "https://www.udemy.com/:",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1704,
-                  464,
-                  598,
-                  29
+                  -1705,
+                  466,
+                  579,
+                  25
                 ],
-                "groupID" : 4,
+                "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Control your development with Personal Plan. Access courses in development and more.",
+                "label" : "Learn your way with Personal Plan. Explore development, switch topics & control your",
                 "labelSource" : "textInside",
-                "ordinal" : 41,
+                "ordinal" : 40,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1286,25 +1246,25 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "https://www.udemy.com/:",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 8,
                 "frame" : [
                   -1705,
-                  488,
-                  591,
-                  27
+                  490,
+                  47,
+                  25
                 ],
-                "groupID" : 4,
+                "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "Personal Plan allows you unlimited access to develop skills in tech, business, and more.",
+                "label" : "path.",
                 "labelSource" : "textInside",
-                "ordinal" : 42,
-                "region" : "main",
+                "ordinal" : 41,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1312,7 +1272,7 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "https://www.udemy.com/:",
                   "band"
                 ],
                 "facts" : 2048,
@@ -1322,7 +1282,7 @@
                   237,
                   27
                 ],
-                "groupID" : 4,
+                "groupID" : 3,
                 "hints" : [
 
                 ],
@@ -1330,7 +1290,7 @@
                 "kind" : "link",
                 "label" : "modern concurrency in swift pdf",
                 "labelSource" : "textInside",
-                "ordinal" : 43,
+                "ordinal" : 42,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1355,7 +1315,7 @@
                 "kind" : "link",
                 "label" : "modern concurrency in swift pdf",
                 "labelSource" : "classifier",
-                "ordinal" : 44,
+                "ordinal" : 43,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1364,7 +1324,7 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "https://www.udemy.com/:",
                   "band"
                 ],
                 "facts" : 2056,
@@ -1374,40 +1334,14 @@
                   27,
                   27
                 ],
-                "groupID" : 4,
+                "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 45,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Concurrency Fundamentals in Swift",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1703,
-                  510,
-                  131,
-                  23
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Risk free learning.",
-                "labelSource" : "textInside",
-                "ordinal" : 46,
+                "ordinal" : 44,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1426,7 +1360,7 @@
                   181,
                   25
                 ],
-                "groupID" : 6,
+                "groupID" : 4,
                 "hints" : [
 
                 ],
@@ -1434,7 +1368,7 @@
                 "kind" : "link",
                 "label" : "swift concurrency wwdc",
                 "labelSource" : "textInside",
-                "ordinal" : 47,
+                "ordinal" : 45,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1459,7 +1393,7 @@
                 "kind" : "link",
                 "label" : "swift concurrency wwdc",
                 "labelSource" : "classifier",
-                "ordinal" : 48,
+                "ordinal" : 46,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1478,42 +1412,70 @@
                   27,
                   27
                 ],
-                "groupID" : 6,
+                "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 49,
-                "region" : "trailing",
+                "ordinal" : 47,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "path.",
                   "band"
                 ],
                 "facts" : 8,
                 "frame" : [
                   -1672,
-                  568,
+                  548,
                   51,
-                  27
+                  25
                 ],
-                "groupID" : 7,
+                "groupID" : 5,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
+                "kind" : "link",
                 "label" : "Apple",
                 "labelSource" : "textInside",
-                "ordinal" : 50,
-                "region" : "main",
+                "ordinal" : 48,
+                "region" : "leading",
                 "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2,
+                "frame" : [
+                  -1665,
+                  570,
+                  358,
+                  18
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "https://(an address)",
+                "labelSource" : "classifier",
+                "ordinal" : 49,
+                "region" : "leading",
+                "role" : "AXLink"
               },
               {
                 "affordance" : "none",
@@ -1530,7 +1492,7 @@
                   271,
                   25
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
@@ -1538,7 +1500,7 @@
                 "kind" : "link",
                 "label" : "swift concurrency: behind the scenes",
                 "labelSource" : "textInside",
-                "ordinal" : 51,
+                "ordinal" : 50,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1563,7 +1525,7 @@
                 "kind" : "link",
                 "label" : "swift concurrency: behind the scenes",
                 "labelSource" : "classifier",
-                "ordinal" : 52,
+                "ordinal" : 51,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1582,15 +1544,15 @@
                   27,
                   27
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 53,
-                "region" : "trailing",
+                "ordinal" : 52,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1601,41 +1563,14 @@
                   "Q",
                   "band"
                 ],
-                "facts" : 2,
-                "frame" : [
-                  -1665,
-                  591,
-                  358,
-                  18
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "https://(an address)",
-                "labelSource" : "classifier",
-                "ordinal" : 54,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "https://developer.apple.com› videos›playwwdc2025›268›",
-                  "band"
-                ],
                 "facts" : 0,
                 "frame" : [
                   -1701,
-                  612,
+                  591,
                   475,
                   31
                 ],
-                "groupID" : 8,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
@@ -1643,7 +1578,7 @@
                 "kind" : "video",
                 "label" : "Embracing Swift concurrency - WWDC25 - Videos",
                 "labelSource" : "classifier",
-                "ordinal" : 55,
+                "ordinal" : 53,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1652,7 +1587,34 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "https://developer.apple.com› videos›playwwdc2025›268›",
+                  "Embracing Swift concurrency - WWDC25 - Videos",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1705,
+                  626,
+                  623,
+                  25
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Concurrency helps you improve app responsiveness and performance, and Swift is designed",
+                "labelSource" : "textInside",
+                "ordinal" : 54,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Embracing Swift concurrency - WWDC25 - Videos",
                   "band"
                 ],
                 "facts" : 2048,
@@ -1662,7 +1624,7 @@
                   171,
                   23
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
@@ -1670,7 +1632,7 @@
                 "kind" : "link",
                 "label" : "task swift concurrency",
                 "labelSource" : "textInside",
-                "ordinal" : 56,
+                "ordinal" : 55,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1695,7 +1657,7 @@
                 "kind" : "link",
                 "label" : "task swift concurrency",
                 "labelSource" : "classifier",
-                "ordinal" : 57,
+                "ordinal" : 56,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1704,7 +1666,7 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "https://developer.apple.com› videos›playwwdc2025›268›",
+                  "Embracing Swift concurrency - WWDC25 - Videos",
                   "band"
                 ],
                 "facts" : 2056,
@@ -1714,41 +1676,14 @@
                   27,
                   27
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 58,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Q",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1706,
-                  646,
-                  623,
-                  25
-                ],
-                "groupID" : 9,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Concurrency helps you improve app responsiveness and performance, and Swift is designed",
-                "labelSource" : "textInside",
-                "ordinal" : 59,
+                "ordinal" : 57,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1757,24 +1692,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "Embracing Swift concurrency - WWDC25 - Videos",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1705,
-                  668,
-                  511,
-                  23
+                  -1707,
+                  646,
+                  512,
+                  25
                 ],
-                "groupID" : 9,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "to make asynchronous and concurrent code easier to write correctly. We' ...",
+                "label" : "to make asynchronous and concurrent code easier to write correctly. We'...",
                 "labelSource" : "textInside",
-                "ordinal" : 60,
+                "ordinal" : 58,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1783,7 +1718,7 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "Embracing Swift concurrency - WWDC25 - Videos",
                   "band"
                 ],
                 "facts" : 2048,
@@ -1793,7 +1728,7 @@
                   258,
                   25
                 ],
-                "groupID" : 9,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
@@ -1801,7 +1736,7 @@
                 "kind" : "link",
                 "label" : "how to achieve concurrency in swift",
                 "labelSource" : "textInside",
-                "ordinal" : 61,
+                "ordinal" : 59,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1826,7 +1761,7 @@
                 "kind" : "link",
                 "label" : "how to achieve concurrency in swift",
                 "labelSource" : "classifier",
-                "ordinal" : 62,
+                "ordinal" : 60,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1835,7 +1770,7 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
+                  "Embracing Swift concurrency - WWDC25 - Videos",
                   "band"
                 ],
                 "facts" : 2056,
@@ -1845,16 +1780,43 @@
                   27,
                   27
                 ],
-                "groupID" : 9,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 63,
-                "region" : "trailing",
+                "ordinal" : 61,
+                "region" : "main",
                 "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2,
+                "frame" : [
+                  -1665,
+                  718,
+                  389,
+                  18
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "https://(an address)",
+                "labelSource" : "classifier",
+                "ordinal" : 62,
+                "region" : "leading",
+                "role" : "AXLink"
               },
               {
                 "affordance" : "none",
@@ -1871,7 +1833,7 @@
                   149,
                   25
                 ],
-                "groupID" : 10,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
@@ -1879,7 +1841,7 @@
                 "kind" : "link",
                 "label" : "swift 6 concurrency",
                 "labelSource" : "textInside",
-                "ordinal" : 64,
+                "ordinal" : 63,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1904,7 +1866,7 @@
                 "kind" : "link",
                 "label" : "swift 6 concurrency",
                 "labelSource" : "classifier",
-                "ordinal" : 65,
+                "ordinal" : 64,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1923,43 +1885,16 @@
                   25,
                   27
                 ],
-                "groupID" : 10,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 66,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Embracing Swift concurrency - WWDC25 - Videos",
-                  "band"
-                ],
-                "facts" : 2,
-                "frame" : [
-                  -1665,
-                  739,
-                  389,
-                  18
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "https://(an address)",
-                "labelSource" : "classifier",
-                "ordinal" : 67,
+                "ordinal" : 65,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1972,11 +1907,11 @@
                 "facts" : 0,
                 "frame" : [
                   -1701,
-                  764,
+                  743,
                   464,
                   31
                 ],
-                "groupID" : 12,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
@@ -1984,9 +1919,36 @@
                 "kind" : "video",
                 "label" : "Swift 6 Concurrency (Part 1) - Swift Talk - objc.io",
                 "labelSource" : "classifier",
-                "ordinal" : 68,
+                "ordinal" : 66,
                 "region" : "main",
                 "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1706,
+                  776,
+                  617,
+                  27
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Oct 11, 2024 ... 00:44 At least, that's the long-term goal. As a first step, we'll further explore",
+                "labelSource" : "textInside",
+                "ordinal" : 67,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -2003,7 +1965,7 @@
                   213,
                   23
                 ],
-                "groupID" : 12,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
@@ -2011,7 +1973,7 @@
                 "kind" : "link",
                 "label" : "swift structured concurrency",
                 "labelSource" : "textInside",
-                "ordinal" : 69,
+                "ordinal" : 68,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2036,7 +1998,7 @@
                 "kind" : "link",
                 "label" : "swift structured concurrency",
                 "labelSource" : "classifier",
-                "ordinal" : 70,
+                "ordinal" : 69,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2055,41 +2017,14 @@
                   27,
                   27
                 ],
-                "groupID" : 12,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 71,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Swift 6 Concurrency (Part 1) - Swift Talk - objc.io",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1705,
-                  798,
-                  617,
-                  25
-                ],
-                "groupID" : 13,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Oct 11, 2024 ... 00:44 At least, that's the long-term goal. As a first step, we'll further explore",
-                "labelSource" : "textInside",
-                "ordinal" : 72,
+                "ordinal" : 70,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2098,25 +2033,25 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Swift 6 Concurrency (Part 1) - Swift Talk - objc.io",
+                  "Q",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
                   -1705,
-                  820,
+                  798,
                   447,
-                  27
+                  25
                 ],
-                "groupID" : 13,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Swift's structured concurrency, actors, and sendable types. We ...",
                 "labelSource" : "textInside",
-                "ordinal" : 73,
-                "region" : "main",
+                "ordinal" : 71,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -2130,11 +2065,11 @@
                 "facts" : 8,
                 "frame" : [
                   -1670,
-                  883,
-                  64,
+                  863,
+                  66,
                   22
                 ],
-                "groupID" : 14,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
@@ -2142,34 +2077,9 @@
                 "kind" : "link",
                 "label" : "Medium",
                 "labelSource" : "textInside",
-                "ordinal" : 74,
+                "ordinal" : 72,
                 "region" : "footer",
                 "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1701,
-                  927,
-                  531,
-                  11
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Swift Concurrency: A Complete Guide | by jojo varghese",
-                "labelSource" : "classifier",
-                "ordinal" : 75,
-                "region" : "footer",
-                "role" : "AXLink"
               },
               {
                 "affordance" : "press",
@@ -2182,11 +2092,11 @@
                 "facts" : 2,
                 "frame" : [
                   -1665,
-                  906,
+                  885,
                   535,
                   18
                 ],
-                "groupID" : 14,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
@@ -2194,9 +2104,141 @@
                 "kind" : "link",
                 "label" : "https://(an address)",
                 "labelSource" : "classifier",
-                "ordinal" : 76,
+                "ordinal" : 73,
                 "region" : "footer",
                 "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Medium",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1815,
+                  909,
+                  29,
+                  29
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 69",
+                "labelSource" : "synthesized",
+                "ordinal" : 74,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Medium",
+                  "toolbar"
+                ],
+                "facts" : 512,
+                "frame" : [
+                  -1701,
+                  906,
+                  531,
+                  31
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Swift Concurrency: A Complete Guide | by jojo varghese",
+                "labelSource" : "classifier",
+                "ordinal" : 75,
+                "region" : "footer",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Medium",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1700,
+                  913,
+                  47,
+                  17
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 70",
+                "labelSource" : "synthesized",
+                "ordinal" : 76,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Medium",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1325,
+                  914,
+                  23,
+                  20
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 71",
+                "labelSource" : "synthesized",
+                "ordinal" : 77,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Medium",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1297,
+                  913,
+                  34,
+                  21
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 72",
+                "labelSource" : "synthesized",
+                "ordinal" : 78,
+                "region" : "footer",
+                "role" : "AXStaticText"
               }
             ],
             "version" : 2
@@ -2220,7 +2262,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 81,
+          "atMilliseconds" : 86,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2231,7 +2273,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 734,
+          "atMilliseconds" : 706,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2242,7 +2284,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1035,
+          "atMilliseconds" : 1039,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2253,7 +2295,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1353,
+          "atMilliseconds" : 1342,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2264,7 +2306,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1415,
+          "atMilliseconds" : 1395,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2275,7 +2317,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2580,
+          "atMilliseconds" : 2557,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2287,22 +2329,22 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "81ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "396ms  typed an address",
-        "1353ms  verified the page changed",
-        "1353ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
-        "1353ms  resolved Chrome",
-        "1415ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "2535ms  resolved Chrome",
-        "2580ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "3288ms  perceived 76 controls · —",
-        "3289ms  looked — 76 rows, 72 named, 15 groups"
+        "86ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "390ms  typed an address",
+        "1342ms  verified the page changed",
+        "1342ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
+        "1342ms  resolved Chrome",
+        "1395ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "2506ms  resolved Chrome",
+        "2557ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "3253ms  perceived 78 controls · —",
+        "3253ms  looked — 78 rows, 69 named, 12 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:59:22Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:20:54Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "omnibox-completion"
 }

@@ -5,37 +5,37 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 37,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1444,
+          "atMilliseconds" : 1400,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1746,
+          "atMilliseconds" : 1708,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 2012,
+          "atMilliseconds" : 1988,
           "kind" : "type",
           "typedLength" : 20
         },
         {
-          "atMilliseconds" : 2075,
+          "atMilliseconds" : 2048,
           "key" : "return",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 2311,
+          "atMilliseconds" : 2283,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 3821,
+          "atMilliseconds" : 3775,
           "kind" : "restoreCursor"
         }
       ],
@@ -45,7 +45,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3821,
+      "elapsedMilliseconds" : 3775,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -62,7 +62,7 @@
       "outcomeSpoken" : "typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia. Now offering 22 links, 17 buttons, 3 fields, and 3 options — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
       "pageReads" : [
         {
-          "atMilliseconds" : 925,
+          "atMilliseconds" : 882,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -302,7 +302,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 512,
+            "readMilliseconds" : 505,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3684,7 +3684,7 @@
           }
         },
         {
-          "atMilliseconds" : 3541,
+          "atMilliseconds" : 3491,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3920,7 +3920,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 300,
+            "readMilliseconds" : 306,
             "rows" : [
               {
                 "affordance" : "press",
@@ -6610,7 +6610,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1444,
+          "atMilliseconds" : 1399,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8317,7 +8317,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 43,
+          "atMilliseconds" : 36,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8328,7 +8328,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2388,
+          "atMilliseconds" : 2336,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8339,7 +8339,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2725,
+          "atMilliseconds" : 2669,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8350,7 +8350,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3040,
+          "atMilliseconds" : 2982,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8362,21 +8362,21 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "43ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "925ms  perceived 130 controls · —",
-        "925ms  looked — 130 rows, 116 named, 19 groups",
-        "1444ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
-        "1444ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
-        "2076ms  typed 20 characters",
-        "3541ms  perceived 102 controls · —",
-        "3541ms  looked — 102 rows, 86 named, 18 groups",
-        "3820ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
+        "37ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "882ms  perceived 130 controls · —",
+        "882ms  looked — 130 rows, 116 named, 19 groups",
+        "1399ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
+        "1400ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
+        "2048ms  typed 20 characters",
+        "3491ms  perceived 102 controls · —",
+        "3491ms  looked — 102 rows, 86 named, 18 groups",
+        "3774ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:58:13Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:19:47Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "fill-and-submit"
 }

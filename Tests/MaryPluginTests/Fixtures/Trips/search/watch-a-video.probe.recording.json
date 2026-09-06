@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 87,
+          "atMilliseconds" : 84,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 87,
+          "atMilliseconds" : 84,
           "kind" : "openLocation",
           "typedLength" : 34
         },
         {
-          "atMilliseconds" : 2573,
+          "atMilliseconds" : 2255,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3480,
+          "atMilliseconds" : 3153,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3482,
+      "elapsedMilliseconds" : 3154,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "I searched for watch a fireplace video on youtube. Now offering 19 links, 7 options, 6 buttons, and 2 videos — link 1 — Ecosia Homepage; field 1 — Search the web (form); button 1 — Clear; button 2 — Search; button 3 — Q (form)",
       "pageReads" : [
         {
-          "atMilliseconds" : 3223,
+          "atMilliseconds" : 2894,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -210,7 +210,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 417,
+            "readMilliseconds" : 413,
             "rows" : [
               {
                 "affordance" : "none",
@@ -2253,7 +2253,7 @@
           "kind" : "navigate",
           "landed" : true,
           "receipt" : "navigation",
-          "spoken" : "navigate — the page became watch a fireplace video on youtube - Ecosia"
+          "spoken" : "navigate — the page became alpine touring boots - Search results - Wikipedia"
         }
       ],
       "routes" : [
@@ -2263,62 +2263,50 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 87,
+          "atMilliseconds" : 84,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB"
+          "title" : "alpine touring boots - Search results - Wikipedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 693,
+          "atMilliseconds" : 689,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB"
+          "title" : "alpine touring boots - Search results - Wikipedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1022,
+          "atMilliseconds" : 1023,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "watch a fireplace video on youtube - Ecosia"
+          "title" : "alpine touring boots - Search results - Wikipedia"
         },
         {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 1338,
+          "atMilliseconds" : 1082,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "watch a fireplace video on youtube - Ecosia"
+          "title" : "alpine touring boots - Search results - Wikipedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1391,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "ecosia",
-          "tabCount" : 1,
-          "title" : "watch a fireplace video on youtube - Ecosia"
-        },
-        {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 2573,
+          "atMilliseconds" : 2255,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2329,23 +2317,23 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "87ms  read the shell — alpine touring boots - Search results - Wikipedia - High memory usage - 1.3 GB · wikipedia",
+        "7ms  resolved Chrome",
+        "84ms  read the shell — alpine touring boots - Search results - Wikipedia · wikipedia",
         "380ms  typed an address",
-        "1338ms  verified the page changed",
-        "1338ms  receipt — navigate — the page became watch a fireplace video on youtube - Ecosia",
-        "1338ms  resolved Chrome",
-        "1391ms  read the shell — watch a fireplace video on youtube - Ecosia · ecosia",
-        "2504ms  resolved Chrome",
-        "2573ms  read the shell — watch a fireplace video on youtube - Ecosia · ecosia",
-        "3223ms  perceived 78 controls · —",
-        "3223ms  looked — 78 rows, 71 named, 14 groups"
+        "1023ms  verified the page changed",
+        "1023ms  receipt — navigate — the page became alpine touring boots - Search results - Wikipedia",
+        "1023ms  resolved Chrome",
+        "1082ms  read the shell — alpine touring boots - Search results - Wikipedia · ecosia",
+        "2184ms  resolved Chrome",
+        "2255ms  read the shell — watch a fireplace video on youtube - Ecosia · ecosia",
+        "2894ms  perceived 78 controls · —",
+        "2894ms  looked — 78 rows, 71 named, 14 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:02:13Z",
-  "round" : "6",
+  "recordedAt" : "2026-09-06T17:24:01Z",
+  "round" : "7",
   "runner" : "probe",
   "tripID" : "watch-a-video"
 }
