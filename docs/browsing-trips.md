@@ -732,6 +732,69 @@ perception. Read the layers, not the rate.
 - **A row that is published and not drawn.** Neither lane can see it today. That is
   a VisionAX question, filed with its measurement.
 
+### Round 6 — a settle that watches instead of waiting, and a chord that knows where it is aimed
+
+Round 5 left two questions and called the third a VisionAX matter. Both questions
+had the same shape of answer: the thing being blamed was not the thing that was
+wrong.
+
+**"The recall belongs in the detector" was wrong a second time.** Round 5 had
+already moved three of four such failures out of the P column by fixing which page
+the classifier read. The last one — `search-then-open-second[1]` — stayed P and was
+written up as "genuinely perception". It was not. `PageListDerivation` fires
+correctly on that page: measured live, **55 of 107 rows eligible as results**. What
+differed was the READ it was given. The same search across one round recorded
+readings of 79, 104, 107 and 108 rows, and on the 79 the results had not been
+grouped yet, because `settleForResults` was a **flat 900 ms sleep** followed by one
+read of whatever happened to be drawn.
+
+A settle needs a signal, not a sleep. Reading the whole page twice to find out
+whether it had stopped changing would double the cost of every search, so the
+settle polls the browser's **own accessibility tree** — a bounded walk of a few
+hundred nodes, cheap since round 4 woke it — until the count holds still twice
+running, and only then takes the expensive read. The old sleep is both the floor
+and the budget: a page that never settles is read at exactly the moment it would
+have been before. **The leg passes four runs out of four.**
+
+**A chord had no idea where it was aimed.** `KeyboardTyper` has always checked the
+frontmost bundle before every chunk it types. `KeyChordPress` checked nothing — and
+the same code uses them one after the other: focus the address bar with ⌘L, then
+type. During a back-to-back corpus run the browser lost the stage between trips,
+⌘L went to whatever had it, and the navigation reported "I couldn't find the
+address bar" about a browser it had never reached. Round 5 filed that as the
+instrument driving Chrome too hard. It is a real hazard: **a chord is the stronger
+of the two gestures**, and ⌘W in the wrong window closes somebody's document.
+
+Chords take an optional `targetPrefix` now, and every chord in the navigation path
+passes it. Nil still means anywhere, which is not an oversight — a system chord or
+a media key has no application in mind and must not be made to invent one.
+
+#### The numbers
+
+Two whole-corpus samples: **79% and 81%**, against round 5's 77 / 72 / 74. The low
+end of this round sits above the high end of the last, which is the first time this
+work has moved the rate outside its own noise band. More usefully, the layer column
+moved and held across both samples: **P fell from 4 to 2**, `arrive` is 100% in
+both, and `search` reached 88%.
+
+The two remaining P failures are both the media lane on a file page — "0 controls
+seen, controls visible: false" — which is a detector question and has been one since
+round 2.
+
+#### What round 7 should take
+
+- **`act` at 63%, unchanged for three rounds.** Two R2 failures — "check the box
+  that says remember me" and a named row on a feed — both of the same shape: a goal
+  naming something the reading spells differently. That is the oldest open finding
+  in the ledger and nothing has been aimed at it.
+- **`recovery` has never run a leg.** Every one of its seven needs a person: a page
+  that stalls, focus taken mid-plan, a second browser. Three are already engine
+  tests with fakes. The rest should either become fakes or stop being counted as
+  unstageable, because a category that can never run flatters nothing and warns
+  nobody.
+- **The exit criterion is still measured on one run.** After round 5's 77/72/74 it
+  should require two consecutive rounds, which is what it says and not what it does.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -811,3 +874,19 @@ Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media 
 | **all** | **32** | **11** | **13** | **18** | **74%** | P 4 · R2 2 · E 5 |
 
 Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 50% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 2 page-routing failure(s) on the recorded corpus.
+
+### Round 6 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 5 | 3 | 1 | 5 | 63% | R2 2 · E 1 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 3 | 1 | 1 | 8 | 75% | P 1 |
+| media | 5 | 3 | 1 | 1 | 63% | P 1 · E 2 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 7 | 1 | 0 | 0 | 88% | R2 1 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **35** | **8** | **13** | **18** | **81%** | P 2 · R2 3 · E 3 |
+
+Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 63% — under 90%; search at 88% — under 90%; context has 1 failing leg(s); 3 page-routing failure(s) on the recorded corpus.

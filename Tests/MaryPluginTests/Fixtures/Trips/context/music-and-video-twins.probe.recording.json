@@ -36,17 +36,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 45,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 45,
+          "atMilliseconds" : 46,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1435,
+          "atMilliseconds" : 1433,
           "kind" : "restoreCursor"
         }
       ],
@@ -57,13 +57,13 @@
 
       },
       "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1436,
+      "elapsedMilliseconds" : 1433,
       "index" : 1,
       "landed" : false,
       "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 1435,
+          "atMilliseconds" : 1433,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -101,7 +101,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 45,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -113,15 +113,15 @@
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "44ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1435ms  perceived 0 controls · paused",
-        "1435ms  refused — I can see the player but not its volume control."
+        "45ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1433ms  perceived 0 controls · paused",
+        "1433ms  refused — I can see the player but not its volume control."
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:30:48Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:59:41Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "music-and-video-twins"
 }

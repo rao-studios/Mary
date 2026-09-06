@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 80,
+          "atMilliseconds" : 78,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 81,
+          "atMilliseconds" : 78,
           "kind" : "openLocation",
           "typedLength" : 58
         },
         {
-          "atMilliseconds" : 2004,
+          "atMilliseconds" : 2274,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3017,
+          "atMilliseconds" : 3271,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3023,
+      "elapsedMilliseconds" : 3272,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
       "pageReads" : [
         {
-          "atMilliseconds" : 2696,
+          "atMilliseconds" : 2955,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -166,7 +166,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 439,
+            "readMilliseconds" : 432,
             "rows" : [
               {
                 "affordance" : "none",
@@ -190,6 +190,7 @@
                 "label" : "ECOSIA",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -215,6 +216,7 @@
                 "label" : "Ecosia Homepage",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -240,6 +242,7 @@
                 "label" : "the tallest bridge in europe and how long it took to build",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -265,6 +268,7 @@
                 "label" : "Search the web",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXComboBox"
               },
               {
@@ -289,6 +293,7 @@
                 "label" : "Clear",
                 "labelSource" : "classifier",
                 "ordinal" : 5,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -313,6 +318,7 @@
                 "label" : "Search",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -338,6 +344,7 @@
                 "label" : "Q",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -363,6 +370,7 @@
                 "label" : "Sign in",
                 "labelSource" : "classifier",
                 "ordinal" : 8,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -388,6 +396,7 @@
                 "label" : "item 5",
                 "labelSource" : "synthesized",
                 "ordinal" : 9,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -413,6 +422,7 @@
                 "label" : "News",
                 "labelSource" : "classifier",
                 "ordinal" : 10,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -437,6 +447,7 @@
                 "label" : "Show navigation menu",
                 "labelSource" : "classifier",
                 "ordinal" : 11,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -461,6 +472,7 @@
                 "label" : "Skip to main content",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -486,6 +498,7 @@
                 "label" : "A Images D Videos + Al Chat dE News @ Web",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -511,6 +524,7 @@
                 "label" : "Web",
                 "labelSource" : "classifier",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -536,6 +550,7 @@
                 "label" : "A Images D Videos + Al Chat dE News",
                 "labelSource" : "textInside",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -561,6 +576,7 @@
                 "label" : "AI Chat",
                 "labelSource" : "classifier",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -586,6 +602,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -611,6 +628,7 @@
                 "label" : "Images",
                 "labelSource" : "classifier",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -636,6 +654,7 @@
                 "label" : "Videos",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -661,6 +680,7 @@
                 "label" : "item 14",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -686,6 +706,7 @@
                 "label" : "News",
                 "labelSource" : "classifier",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -710,6 +731,7 @@
                 "label" : "More",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXPopUpButton"
               },
               {
@@ -735,6 +757,7 @@
                 "label" : "More v",
                 "labelSource" : "textInside",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -760,6 +783,7 @@
                 "label" : "item 18",
                 "labelSource" : "synthesized",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -786,6 +810,7 @@
                 "label" : "Search region",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXMenuItem"
               },
               {
@@ -812,6 +837,7 @@
                 "label" : "Overviews",
                 "labelSource" : "classifier",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXPopUpButton"
               },
               {
@@ -838,6 +864,7 @@
                 "label" : "item 21",
                 "labelSource" : "synthesized",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -862,6 +889,7 @@
                 "label" : "Settings",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXPopUpButton"
               },
               {
@@ -888,6 +916,7 @@
                 "label" : "item 22",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -914,6 +943,7 @@
                 "label" : "Millau Viaduct",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -938,6 +968,7 @@
                 "label" : "Millau Viaduct",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXHeading"
               },
               {
@@ -964,6 +995,7 @@
                 "label" : "Cable-stayed bridge in Occitanie, France",
                 "labelSource" : "textInside",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -988,6 +1020,7 @@
                 "label" : "Cable-stayed bridge in Occitanie, France",
                 "labelSource" : "classifier",
                 "ordinal" : 33,
+                "region" : "trailing",
                 "role" : "AXHeading"
               },
               {
@@ -1014,6 +1047,7 @@
                 "label" : "The Millau Viaduct in France, the tallest bridge in Europe at 343 meters, was",
                 "labelSource" : "textInside",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1039,6 +1073,7 @@
                 "label" : "completed in 2004 after approximately 3 years of construction.",
                 "labelSource" : "textInside",
                 "ordinal" : 35,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1065,6 +1100,7 @@
                 "label" : "Responses can be inaccurate. We recommend you check important facts.",
                 "labelSource" : "textInside",
                 "ordinal" : 36,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1091,6 +1127,7 @@
                 "label" : "Millau Viaduct",
                 "labelSource" : "classifier",
                 "ordinal" : 37,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1115,6 +1152,7 @@
                 "label" : "Sources (4)",
                 "labelSource" : "classifier",
                 "ordinal" : 38,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -1141,6 +1179,7 @@
                 "label" : "Sources (4)v",
                 "labelSource" : "textInside",
                 "ordinal" : 39,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1167,6 +1206,7 @@
                 "label" : "Explore more with AI Chat",
                 "labelSource" : "classifier",
                 "ordinal" : 40,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1193,6 +1233,7 @@
                 "label" : "Is this helpful?",
                 "labelSource" : "textInside",
                 "ordinal" : 41,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1217,6 +1258,7 @@
                 "label" : "Yes, this is helpful",
                 "labelSource" : "classifier",
                 "ordinal" : 42,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -1241,6 +1283,7 @@
                 "label" : "No, this is not helpful",
                 "labelSource" : "classifier",
                 "ordinal" : 43,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -1267,6 +1310,7 @@
                 "label" : "The Millau Viaduct is a multispan cable-stayed",
                 "labelSource" : "textInside",
                 "ordinal" : 44,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1293,6 +1337,7 @@
                 "label" : "Videos",
                 "labelSource" : "textInside",
                 "ordinal" : 45,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1317,6 +1362,7 @@
                 "label" : "Videos",
                 "labelSource" : "classifier",
                 "ordinal" : 46,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -1342,6 +1388,7 @@
                 "label" : "bridge completed in 2004 across the gorge",
                 "labelSource" : "textInside",
                 "ordinal" : 47,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1367,6 +1414,7 @@
                 "label" : "valley of the Tarn near Millau in the Aveyron",
                 "labelSource" : "textInside",
                 "ordinal" : 48,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1392,6 +1440,7 @@
                 "label" : "WHY",
                 "labelSource" : "textInside",
                 "ordinal" : 49,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1418,6 +1467,7 @@
                 "label" : "The Bridge That Took 14 Years to Build -",
                 "labelSource" : "textInside",
                 "ordinal" : 50,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1443,6 +1493,7 @@
                 "label" : "department in the Occitanie Region, in Southern",
                 "labelSource" : "textInside",
                 "ordinal" : 51,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1468,6 +1519,7 @@
                 "label" : "14 YEARS?",
                 "labelSource" : "textInside",
                 "ordinal" : 52,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1492,6 +1544,7 @@
                 "label" : "Thumbnail for “The Bridge That Took 14 Years to Build - YouTube”",
                 "labelSource" : "classifier",
                 "ordinal" : 53,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1517,6 +1570,7 @@
                 "label" : "YouTube",
                 "labelSource" : "textInside",
                 "ordinal" : 54,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1541,6 +1595,7 @@
                 "label" : "The Bridge That Took 14 Years to Build - YouTube",
                 "labelSource" : "classifier",
                 "ordinal" : 55,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1566,6 +1621,7 @@
                 "label" : "France. The design team was led by engineer Michel Virlogeux and English architect Norman",
                 "labelSource" : "textInside",
                 "ordinal" : 56,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1592,6 +1648,7 @@
                 "label" : "YouTube",
                 "labelSource" : "textInside",
                 "ordinal" : 57,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1617,6 +1674,7 @@
                 "label" : "Foster. It was the tallest bridge in the world ...",
                 "labelSource" : "textInside",
                 "ordinal" : 58,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1643,6 +1701,7 @@
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 59,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1669,6 +1728,7 @@
                 "label" : "The Bridge That Changed the Map of Europe -",
                 "labelSource" : "textInside",
                 "ordinal" : 60,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1694,6 +1754,7 @@
                 "label" : "Millau Viaduct Viaduc de Millau (French)",
                 "labelSource" : "textInside",
                 "ordinal" : 61,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1718,6 +1779,7 @@
                 "label" : "Thumbnail for “The Bridge That Changed the Map of Europe - YouTube”",
                 "labelSource" : "classifier",
                 "ordinal" : 62,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1743,6 +1805,7 @@
                 "label" : "YouTube",
                 "labelSource" : "textInside",
                 "ordinal" : 63,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1767,6 +1830,7 @@
                 "label" : "The Bridge That Changed the Map of Europe - YouTube",
                 "labelSource" : "classifier",
                 "ordinal" : 64,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1792,6 +1856,7 @@
                 "label" : "Coordinates:",
                 "labelSource" : "textInside",
                 "ordinal" : 65,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1818,6 +1883,7 @@
                 "label" : "YouTube",
                 "labelSource" : "textInside",
                 "ordinal" : 66,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1844,6 +1910,7 @@
                 "label" : "44°04′46″N 03°01′20″E / 44.07944°N 3.02222°E external link",
                 "labelSource" : "classifier",
                 "ordinal" : 67,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -1868,6 +1935,7 @@
                 "label" : "external link",
                 "labelSource" : "classifier",
                 "ordinal" : 68,
+                "region" : "footer",
                 "role" : "AXImage"
               },
               {
@@ -1894,6 +1962,7 @@
                 "label" : "Carries: 4 lanes of the A75 autoroute",
                 "labelSource" : "textInside",
                 "ordinal" : 69,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -1918,6 +1987,7 @@
                 "label" : "A75 autoroute",
                 "labelSource" : "classifier",
                 "ordinal" : 70,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -1944,6 +2014,7 @@
                 "label" : "See more videos",
                 "labelSource" : "classifier",
                 "ordinal" : 71,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -1970,6 +2041,7 @@
                 "label" : "Croecee• Gorge vallev of the river Tarn",
                 "labelSource" : "textInside",
                 "ordinal" : 72,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -1994,6 +2066,7 @@
                 "label" : "Gorge",
                 "labelSource" : "classifier",
                 "ordinal" : 73,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -2018,6 +2091,7 @@
                 "label" : "valley",
                 "labelSource" : "classifier",
                 "ordinal" : 74,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -2042,6 +2116,7 @@
                 "label" : "Tarn",
                 "labelSource" : "classifier",
                 "ordinal" : 75,
+                "region" : "footer",
                 "role" : "AXLink"
               }
             ],
@@ -2056,7 +2131,7 @@
           "kind" : "navigate",
           "landed" : true,
           "receipt" : "navigation",
-          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia"
+          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
         }
       ],
       "routes" : [
@@ -2066,40 +2141,51 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 80,
+          "atMilliseconds" : 78,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia"
+          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 738,
+          "atMilliseconds" : 754,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia"
+          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1057,
+          "atMilliseconds" : 1067,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
           "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia"
+          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2004,
+          "atMilliseconds" : 1108,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia - High memory usage - 807 MB"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 2274,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2110,21 +2196,23 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "80ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "406ms  typed an address",
-        "1057ms  verified the page changed",
-        "1057ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
-        "1966ms  resolved Chrome",
-        "2004ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "2696ms  perceived 75 controls · —",
-        "2696ms  looked — 75 rows, 69 named, 8 groups"
+        "5ms  resolved Chrome",
+        "78ms  read the shell — search the web for swift concurrency - Ecosia - High memory usage - 807 MB · ecosia",
+        "428ms  typed an address",
+        "1067ms  verified the page changed",
+        "1067ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia - High memory usage - 807 MB",
+        "1067ms  resolved Chrome",
+        "1108ms  read the shell — search the web for swift concurrency - Ecosia - High memory usage - 807 MB · ecosia",
+        "2209ms  resolved Chrome",
+        "2274ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "2955ms  perceived 75 controls · —",
+        "2955ms  looked — 75 rows, 69 named, 8 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:30:39Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:59:32Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "search-long-query"
 }

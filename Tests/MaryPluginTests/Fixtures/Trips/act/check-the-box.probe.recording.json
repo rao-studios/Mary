@@ -9,60 +9,60 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 664,
+          "atMilliseconds" : 672,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1010,
+          "atMilliseconds" : 1035,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 1672,
+          "atMilliseconds" : 1751,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 2339,
+          "atMilliseconds" : 2455,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 3053,
+          "atMilliseconds" : 3155,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 3803,
+          "atMilliseconds" : 3887,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 4176,
+          "atMilliseconds" : 4260,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 4545,
+          "atMilliseconds" : 4634,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 4919,
+          "atMilliseconds" : 5008,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
@@ -76,7 +76,7 @@
 
       },
       "because" : "reached nothing, though 27 row(s) in the reading answer the class",
-      "elapsedMilliseconds" : 5286,
+      "elapsedMilliseconds" : 5382,
       "index" : 0,
       "landed" : false,
       "layer" : "R2",
@@ -94,7 +94,7 @@
       "outcomeSpoken" : "I couldn't find \"check the box that says remember me\" on the page.",
       "pageReads" : [
         {
-          "atMilliseconds" : 565,
+          "atMilliseconds" : 574,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -219,7 +219,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 346,
+            "readMilliseconds" : 366,
             "rows" : [
               {
                 "affordance" : "none",
@@ -244,6 +244,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -268,6 +269,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -293,6 +295,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -319,6 +322,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -345,6 +349,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -371,6 +376,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -397,6 +403,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -423,6 +430,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -449,6 +457,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -475,6 +484,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -501,6 +511,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -525,6 +536,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -551,6 +563,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -577,6 +590,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -603,6 +617,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -629,6 +644,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -655,6 +671,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -681,6 +698,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -706,6 +724,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -732,6 +751,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -758,6 +778,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -783,6 +804,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -809,6 +831,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -835,6 +858,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -860,6 +884,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -886,6 +911,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -912,6 +938,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -937,6 +964,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -963,6 +991,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -988,6 +1017,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1012,6 +1042,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -1038,6 +1069,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -1064,6 +1096,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1090,6 +1123,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -1097,7 +1131,7 @@
           }
         },
         {
-          "atMilliseconds" : 1004,
+          "atMilliseconds" : 1029,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1222,7 +1256,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 195,
+            "readMilliseconds" : 228,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1247,6 +1281,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -1271,6 +1306,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -1296,6 +1332,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -1322,6 +1359,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -1348,6 +1386,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1374,6 +1413,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -1400,6 +1440,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1426,6 +1467,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1452,6 +1494,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1478,6 +1521,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1504,6 +1548,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1528,6 +1573,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1554,6 +1600,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1580,6 +1627,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1606,6 +1654,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1632,6 +1681,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1658,6 +1708,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1684,6 +1735,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1709,6 +1761,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1735,6 +1788,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1761,6 +1815,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1786,6 +1841,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1812,6 +1868,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1838,6 +1895,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1863,6 +1921,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1889,6 +1948,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1915,6 +1975,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1940,6 +2001,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1966,6 +2028,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1991,6 +2054,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2015,6 +2079,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -2041,6 +2106,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -2067,6 +2133,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2093,6 +2160,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -2100,7 +2168,7 @@
           }
         },
         {
-          "atMilliseconds" : 1666,
+          "atMilliseconds" : 1745,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -2225,7 +2293,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 204,
+            "readMilliseconds" : 220,
             "rows" : [
               {
                 "affordance" : "none",
@@ -2250,6 +2318,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -2274,6 +2343,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -2299,6 +2369,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -2325,6 +2396,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -2351,6 +2423,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2377,6 +2450,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -2403,6 +2477,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2429,6 +2504,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2455,6 +2531,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -2481,6 +2558,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2507,6 +2585,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2531,6 +2610,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -2557,6 +2637,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2583,6 +2664,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2609,6 +2691,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -2635,6 +2718,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2661,6 +2745,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2687,6 +2772,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2712,6 +2798,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -2738,6 +2825,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2764,6 +2852,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2789,6 +2878,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -2815,6 +2905,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2841,6 +2932,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2866,6 +2958,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -2892,6 +2985,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2918,6 +3012,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2943,6 +3038,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -2969,6 +3065,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2994,6 +3091,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3018,6 +3116,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -3044,6 +3143,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -3070,6 +3170,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3096,6 +3197,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -3103,7 +3205,1044 @@
           }
         },
         {
-          "atMilliseconds" : 2333,
+          "atMilliseconds" : 2449,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  1
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  3,
+                  4
+                ],
+                "title" : "Customer name:"
+              },
+              {
+                "id" : 2,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  5,
+                  6,
+                  7
+                ],
+                "title" : "Telephone:"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  8,
+                  9,
+                  10
+                ],
+                "title" : "Pizza Size"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  11,
+                  13,
+                  14,
+                  15,
+                  16
+                ],
+                "title" : "O Small"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  17
+                ],
+                "title" : "O Large"
+              },
+              {
+                "id" : 6,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  18,
+                  20
+                ],
+                "title" : "Pizza Toppings"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  21,
+                  23
+                ],
+                "title" : "• Bacon"
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  24,
+                  26,
+                  27,
+                  29
+                ],
+                "title" : "• Extra Cheese"
+              },
+              {
+                "id" : 9,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  30
+                ],
+                "title" : "• Mushroom"
+              },
+              {
+                "id" : 10,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  32,
+                  33,
+                  34
+                ],
+                "title" : "Preferred delivery time: -- :-- --"
+              },
+              {
+                "id" : 11,
+                "kind" : "list",
+                "memberOrdinals" : [
+                  19,
+                  22,
+                  25,
+                  28
+                ]
+              }
+            ],
+            "labeledFraction" : 0.7,
+            "pageFrame" : [
+              -1815,
+              173,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 211,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1813,
+                  188,
+                  119,
+                  25
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Customer name:",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1698,
+                  190,
+                  154,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Customer name:",
+                "labelSource" : "classifier",
+                "ordinal" : 2,
+                "region" : "header",
+                "role" : "AXTextField"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Customer name:",
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1814,
+                  224,
+                  86,
+                  28
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Telephone:",
+                "labelSource" : "textInside",
+                "ordinal" : 3,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Customer name:",
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1733,
+                  227,
+                  154,
+                  21
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Telephone:",
+                "labelSource" : "classifier",
+                "ordinal" : 4,
+                "region" : "header",
+                "role" : "AXTextField"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Telephone:",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1813,
+                  262,
+                  113,
+                  25
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "E-mail address:",
+                "labelSource" : "textInside",
+                "ordinal" : 5,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Telephone:",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1704,
+                  264,
+                  154,
+                  21
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "E-mail address:",
+                "labelSource" : "classifier",
+                "ordinal" : 6,
+                "region" : "trailing",
+                "role" : "AXTextField"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Telephone:",
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1796,
+                  297,
+                  80,
+                  27
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Pizza Size",
+                "labelSource" : "textInside",
+                "ordinal" : 7,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1791,
+                  338,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 8,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1786,
+                  343,
+                  13,
+                  14
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Small",
+                "labelSource" : "classifier",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1766,
+                  345,
+                  37,
+                  13
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 6",
+                "labelSource" : "synthesized",
+                "ordinal" : 10,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1794,
+                  374,
+                  88,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Medium",
+                "labelSource" : "textInside",
+                "ordinal" : 11,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1786,
+                  379,
+                  13,
+                  14
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Medium",
+                "labelSource" : "classifier",
+                "ordinal" : 12,
+                "region" : "main",
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1766,
+                  381,
+                  54,
+                  13
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 8",
+                "labelSource" : "synthesized",
+                "ordinal" : 13,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1794,
+                  410,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 14,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1786,
+                  415,
+                  13,
+                  14
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Large",
+                "labelSource" : "classifier",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1766,
+                  417,
+                  37,
+                  16
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 10",
+                "labelSource" : "synthesized",
+                "ordinal" : 16,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Large",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1795,
+                  458,
+                  111,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Pizza Toppings",
+                "labelSource" : "textInside",
+                "ordinal" : 17,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Toppings",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1792,
+                  498,
+                  72,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Bacon",
+                "labelSource" : "textInside",
+                "ordinal" : 18,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "list"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -1787,
+                  503,
+                  13,
+                  14
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Bacon",
+                "labelSource" : "classifier",
+                "ordinal" : 19,
+                "region" : "main",
+                "role" : "AXCheckBox"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Toppings",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1767,
+                  504,
+                  41,
+                  13
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 13",
+                "labelSource" : "synthesized",
+                "ordinal" : 20,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Bacon",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1793,
+                  534,
+                  119,
+                  27
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Extra Cheese",
+                "labelSource" : "textInside",
+                "ordinal" : 21,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "list"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -1787,
+                  539,
+                  13,
+                  14
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Extra Cheese",
+                "labelSource" : "classifier",
+                "ordinal" : 22,
+                "region" : "main",
+                "role" : "AXCheckBox"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Bacon",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1767,
+                  540,
+                  85,
+                  13
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 15",
+                "labelSource" : "synthesized",
+                "ordinal" : 23,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Extra Cheese",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1794,
+                  570,
+                  74,
+                  27
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Onion",
+                "labelSource" : "textInside",
+                "ordinal" : 24,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "list"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -1787,
+                  575,
+                  13,
+                  14
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Onion",
+                "labelSource" : "classifier",
+                "ordinal" : 25,
+                "region" : "main",
+                "role" : "AXCheckBox"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Extra Cheese",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1767,
+                  576,
+                  40,
+                  13
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 17",
+                "labelSource" : "synthesized",
+                "ordinal" : 26,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Extra Cheese",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1794,
+                  606,
+                  103,
+                  27
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Mushroom",
+                "labelSource" : "textInside",
+                "ordinal" : 27,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "list"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -1787,
+                  611,
+                  13,
+                  14
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Mushroom",
+                "labelSource" : "classifier",
+                "ordinal" : 28,
+                "region" : "main",
+                "role" : "AXCheckBox"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Extra Cheese",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1767,
+                  612,
+                  70,
+                  13
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 19",
+                "labelSource" : "synthesized",
+                "ordinal" : 29,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Mushroom",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1813,
+                  670,
+                  245,
+                  31
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Preferred delivery time: -- :-- --",
+                "labelSource" : "textInside",
+                "ordinal" : 30,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1569,
+                  674,
+                  21,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Show time picker",
+                "labelSource" : "classifier",
+                "ordinal" : 31,
+                "region" : "trailing",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1664,
+                  712,
+                  183,
+                  37
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Delivery instructions:",
+                "labelSource" : "classifier",
+                "ordinal" : 32,
+                "region" : "trailing",
+                "role" : "AXTextArea"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 3072,
+                "frame" : [
+                  -1813,
+                  732,
+                  153,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Delivery instructions:",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Preferred delivery time: -- :-- --",
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1807,
+                  768,
+                  93,
+                  22
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Submit order",
+                "labelSource" : "classifier",
+                "ordinal" : 34,
+                "region" : "main",
+                "role" : "AXButton"
+              }
+            ],
+            "version" : 2
+          }
+        },
+        {
+          "atMilliseconds" : 3149,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3253,6 +4392,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -3277,6 +4417,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -3302,6 +4443,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -3328,6 +4470,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -3354,6 +4497,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3380,6 +4524,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -3406,6 +4551,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3432,6 +4578,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3458,6 +4605,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -3484,6 +4632,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3510,6 +4659,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3534,6 +4684,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -3560,6 +4711,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3586,6 +4738,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3612,6 +4765,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -3638,6 +4792,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3664,6 +4819,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3690,6 +4846,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3715,6 +4872,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -3741,6 +4899,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3767,6 +4926,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3792,6 +4952,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -3818,6 +4979,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3844,6 +5006,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3869,6 +5032,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -3895,6 +5059,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3921,6 +5086,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3946,6 +5112,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -3972,6 +5139,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3997,6 +5165,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4021,6 +5190,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -4047,6 +5217,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -4073,6 +5244,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4099,6 +5271,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -4106,7 +5279,7 @@
           }
         },
         {
-          "atMilliseconds" : 3047,
+          "atMilliseconds" : 3834,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -4231,7 +5404,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 208,
+            "readMilliseconds" : 211,
             "rows" : [
               {
                 "affordance" : "none",
@@ -4256,6 +5429,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -4280,6 +5454,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -4305,6 +5480,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -4331,6 +5507,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -4357,6 +5534,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4383,6 +5561,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -4409,6 +5588,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4435,6 +5615,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4461,6 +5642,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -4487,6 +5669,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4513,6 +5696,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4537,6 +5721,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -4563,6 +5748,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4589,6 +5775,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4615,6 +5802,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -4641,6 +5829,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4667,6 +5856,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4693,6 +5883,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4718,6 +5909,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -4744,6 +5936,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4770,6 +5963,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4795,6 +5989,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -4821,6 +6016,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4847,6 +6043,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4872,6 +6069,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -4898,6 +6096,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4924,6 +6123,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4949,6 +6149,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -4975,6 +6176,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5000,6 +6202,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5024,6 +6227,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -5050,6 +6254,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -5076,6 +6281,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5102,1009 +6308,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
-                "role" : "AXButton"
-              }
-            ],
-            "version" : 2
-          }
-        },
-        {
-          "atMilliseconds" : 3754,
-          "page" : {
-            "classified" : true,
-            "groups" : [
-              {
-                "id" : 0,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  1
-                ]
-              },
-              {
-                "id" : 1,
-                "kind" : "form",
-                "memberOrdinals" : [
-                  3,
-                  4
-                ],
-                "title" : "Customer name:"
-              },
-              {
-                "id" : 2,
-                "kind" : "form",
-                "memberOrdinals" : [
-                  5,
-                  6,
-                  7
-                ],
-                "title" : "Telephone:"
-              },
-              {
-                "id" : 3,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  8,
-                  9,
-                  10
-                ],
-                "title" : "Pizza Size"
-              },
-              {
-                "id" : 4,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  11,
-                  13,
-                  14,
-                  15,
-                  16
-                ],
-                "title" : "O Small"
-              },
-              {
-                "id" : 5,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  17
-                ],
-                "title" : "O Large"
-              },
-              {
-                "id" : 6,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  18,
-                  20
-                ],
-                "title" : "Pizza Toppings"
-              },
-              {
-                "id" : 7,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  21,
-                  23
-                ],
-                "title" : "• Bacon"
-              },
-              {
-                "id" : 8,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  24,
-                  26,
-                  27,
-                  29
-                ],
-                "title" : "• Extra Cheese"
-              },
-              {
-                "id" : 9,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  30
-                ],
-                "title" : "• Mushroom"
-              },
-              {
-                "id" : 10,
-                "kind" : "form",
-                "memberOrdinals" : [
-                  32,
-                  33,
-                  34
-                ],
-                "title" : "Preferred delivery time: -- :-- --"
-              },
-              {
-                "id" : 11,
-                "kind" : "list",
-                "memberOrdinals" : [
-                  19,
-                  22,
-                  25,
-                  28
-                ]
-              }
-            ],
-            "labeledFraction" : 0.7,
-            "pageFrame" : [
-              -1815,
-              173,
-              1266,
-              765
-            ],
-            "readMilliseconds" : 207,
-            "rows" : [
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1813,
-                  188,
-                  119,
-                  25
-                ],
-                "groupID" : 0,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Customer name:",
-                "labelSource" : "textInside",
-                "ordinal" : 1,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "fill",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1698,
-                  190,
-                  154,
-                  21
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "field",
-                "label" : "Customer name:",
-                "labelSource" : "classifier",
-                "ordinal" : 2,
-                "role" : "AXTextField"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Customer name:",
-                  "form"
-                ],
-                "facts" : 3080,
-                "frame" : [
-                  -1814,
-                  224,
-                  86,
-                  28
-                ],
-                "groupID" : 1,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Telephone:",
-                "labelSource" : "textInside",
-                "ordinal" : 3,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "fill",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Customer name:",
-                  "form"
-                ],
-                "facts" : 3080,
-                "frame" : [
-                  -1733,
-                  227,
-                  154,
-                  21
-                ],
-                "groupID" : 1,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "field",
-                "label" : "Telephone:",
-                "labelSource" : "classifier",
-                "ordinal" : 4,
-                "role" : "AXTextField"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Telephone:",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1813,
-                  262,
-                  113,
-                  25
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "E-mail address:",
-                "labelSource" : "textInside",
-                "ordinal" : 5,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "fill",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Telephone:",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1704,
-                  264,
-                  154,
-                  21
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "field",
-                "label" : "E-mail address:",
-                "labelSource" : "classifier",
-                "ordinal" : 6,
-                "role" : "AXTextField"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Telephone:",
-                  "form"
-                ],
-                "facts" : 1032,
-                "frame" : [
-                  -1796,
-                  297,
-                  80,
-                  27
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Pizza Size",
-                "labelSource" : "textInside",
-                "ordinal" : 7,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1791,
-                  338,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1786,
-                  343,
-                  13,
-                  14
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Small",
-                "labelSource" : "classifier",
-                "ordinal" : 9,
-                "role" : "AXRadioButton"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1766,
-                  345,
-                  37,
-                  13
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 6",
-                "labelSource" : "synthesized",
-                "ordinal" : 10,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1794,
-                  374,
-                  88,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Medium",
-                "labelSource" : "textInside",
-                "ordinal" : 11,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1786,
-                  379,
-                  13,
-                  14
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Medium",
-                "labelSource" : "classifier",
-                "ordinal" : 12,
-                "role" : "AXRadioButton"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1766,
-                  381,
-                  54,
-                  13
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 8",
-                "labelSource" : "synthesized",
-                "ordinal" : 13,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1794,
-                  410,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1786,
-                  415,
-                  13,
-                  14
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Large",
-                "labelSource" : "classifier",
-                "ordinal" : 15,
-                "role" : "AXRadioButton"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1766,
-                  417,
-                  37,
-                  16
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 10",
-                "labelSource" : "synthesized",
-                "ordinal" : 16,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Large",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1795,
-                  458,
-                  111,
-                  27
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Pizza Toppings",
-                "labelSource" : "textInside",
-                "ordinal" : 17,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Toppings",
-                  "band"
-                ],
-                "facts" : 2056,
-                "frame" : [
-                  -1792,
-                  498,
-                  72,
-                  25
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "• Bacon",
-                "labelSource" : "textInside",
-                "ordinal" : 18,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "list"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -1787,
-                  503,
-                  13,
-                  14
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Bacon",
-                "labelSource" : "classifier",
-                "ordinal" : 19,
-                "role" : "AXCheckBox"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Toppings",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1767,
-                  504,
-                  41,
-                  13
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 13",
-                "labelSource" : "synthesized",
-                "ordinal" : 20,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Bacon",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1793,
-                  534,
-                  119,
-                  27
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "• Extra Cheese",
-                "labelSource" : "textInside",
-                "ordinal" : 21,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "list"
-                ],
-                "facts" : 2304,
-                "frame" : [
-                  -1787,
-                  539,
-                  13,
-                  14
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Extra Cheese",
-                "labelSource" : "classifier",
-                "ordinal" : 22,
-                "role" : "AXCheckBox"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Bacon",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1767,
-                  540,
-                  85,
-                  13
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 15",
-                "labelSource" : "synthesized",
-                "ordinal" : 23,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Extra Cheese",
-                  "band"
-                ],
-                "facts" : 2088,
-                "frame" : [
-                  -1794,
-                  570,
-                  74,
-                  27
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "• Onion",
-                "labelSource" : "textInside",
-                "ordinal" : 24,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "list"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -1787,
-                  575,
-                  13,
-                  14
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Onion",
-                "labelSource" : "classifier",
-                "ordinal" : 25,
-                "role" : "AXCheckBox"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Extra Cheese",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1767,
-                  576,
-                  40,
-                  13
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 17",
-                "labelSource" : "synthesized",
-                "ordinal" : 26,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Extra Cheese",
-                  "band"
-                ],
-                "facts" : 2088,
-                "frame" : [
-                  -1794,
-                  606,
-                  103,
-                  27
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "• Mushroom",
-                "labelSource" : "textInside",
-                "ordinal" : 27,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "list"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -1787,
-                  611,
-                  13,
-                  14
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Mushroom",
-                "labelSource" : "classifier",
-                "ordinal" : 28,
-                "role" : "AXCheckBox"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Extra Cheese",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1767,
-                  612,
-                  70,
-                  13
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 19",
-                "labelSource" : "synthesized",
-                "ordinal" : 29,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Mushroom",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1813,
-                  670,
-                  245,
-                  31
-                ],
-                "groupID" : 9,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Preferred delivery time: -- :-- --",
-                "labelSource" : "textInside",
-                "ordinal" : 30,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1569,
-                  674,
-                  21,
-                  21
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "Show time picker",
-                "labelSource" : "classifier",
-                "ordinal" : 31,
-                "role" : "AXPopUpButton"
-              },
-              {
-                "affordance" : "fill",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1664,
-                  712,
-                  183,
-                  37
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "field",
-                "label" : "Delivery instructions:",
-                "labelSource" : "classifier",
-                "ordinal" : 32,
-                "role" : "AXTextArea"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 3072,
-                "frame" : [
-                  -1813,
-                  732,
-                  153,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Delivery instructions:",
-                "labelSource" : "textInside",
-                "ordinal" : 33,
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Preferred delivery time: -- :-- --",
-                  "form"
-                ],
-                "facts" : 1024,
-                "frame" : [
-                  -1807,
-                  768,
-                  93,
-                  22
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "button",
-                "label" : "Submit order",
-                "labelSource" : "classifier",
-                "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -6119,7 +6323,7 @@
       "refusal" : "elementNotFound",
       "routes" : [
         {
-          "atMilliseconds" : 664,
+          "atMilliseconds" : 672,
           "decisions" : [
             {
               "affordance" : 0,
@@ -6573,7 +6777,7 @@
           "verb" : "press"
         },
         {
-          "atMilliseconds" : 1010,
+          "atMilliseconds" : 1035,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7027,7 +7231,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 1672,
+          "atMilliseconds" : 1751,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7481,7 +7685,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 2339,
+          "atMilliseconds" : 2455,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7935,7 +8139,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 3053,
+          "atMilliseconds" : 3155,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8389,7 +8593,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 3760,
+          "atMilliseconds" : 3840,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8858,7 +9062,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 714,
+          "atMilliseconds" : 717,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8869,50 +9073,50 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3803,
+          "atMilliseconds" : 3887,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "httpbin",
           "tabCount" : 1,
-          "title" : "httpbin.org/forms/post - High memory usage - 832 MB"
+          "title" : "httpbin.org/forms/post"
         }
       ],
       "timeline" : [
         "7ms  resolved Chrome",
         "43ms  read the shell — httpbin.org/forms/post · httpbin",
-        "565ms  perceived 34 controls · —",
-        "565ms  looked — 34 rows, 27 named, 12 groups",
-        "664ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "664ms  refused — I couldn't find \"check the box that says remember me\" on the page.",
-        "668ms  looking further down the page for \"check the box that says remember me\"",
-        "668ms  resolved Chrome",
-        "714ms  read the shell — httpbin.org/forms/post · httpbin",
-        "1004ms  perceived 34 controls · —",
-        "1004ms  looked — 34 rows, 27 named, 12 groups",
-        "1010ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "1667ms  perceived 34 controls · —",
-        "1667ms  looked — 34 rows, 27 named, 12 groups",
-        "1672ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "2333ms  perceived 34 controls · —",
-        "2333ms  looked — 34 rows, 27 named, 12 groups",
-        "2339ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "3047ms  perceived 34 controls · —",
-        "3047ms  looked — 34 rows, 27 named, 12 groups",
-        "3053ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "3754ms  perceived 34 controls · —",
-        "3754ms  looked — 34 rows, 27 named, 12 groups",
-        "3760ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
-        "3760ms  resolved Chrome",
-        "3803ms  read the shell — httpbin.org/forms/post - High memory usage - 832 MB · httpbin",
-        "5286ms  put the page back where it was"
+        "574ms  perceived 34 controls · —",
+        "574ms  looked — 34 rows, 27 named, 12 groups",
+        "672ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "672ms  refused — I couldn't find \"check the box that says remember me\" on the page.",
+        "672ms  looking further down the page for \"check the box that says remember me\"",
+        "672ms  resolved Chrome",
+        "717ms  read the shell — httpbin.org/forms/post · httpbin",
+        "1029ms  perceived 34 controls · —",
+        "1029ms  looked — 34 rows, 27 named, 12 groups",
+        "1035ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "1745ms  perceived 34 controls · —",
+        "1745ms  looked — 34 rows, 27 named, 12 groups",
+        "1751ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "2449ms  perceived 34 controls · —",
+        "2449ms  looked — 34 rows, 27 named, 12 groups",
+        "2455ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "3149ms  perceived 34 controls · —",
+        "3149ms  looked — 34 rows, 27 named, 12 groups",
+        "3155ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "3834ms  perceived 34 controls · —",
+        "3834ms  looked — 34 rows, 27 named, 12 groups",
+        "3840ms  routed \"check the box that says remember me\" → nothing (27 of 34 eligible)",
+        "3840ms  resolved Chrome",
+        "3887ms  read the shell — httpbin.org/forms/post · httpbin",
+        "5381ms  put the page back where it was"
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:29:09Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:57:58Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "check-the-box"
 }

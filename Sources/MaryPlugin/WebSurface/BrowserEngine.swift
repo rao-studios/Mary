@@ -39,6 +39,8 @@ public actor BrowserEngine {
         public var hands: any BrowserHands
         public var keys: any BrowserKeys
         public var stage: any BrowserStaging
+        /// The cheap signal a settle watches. See `PageSettling`.
+        public var settling: any PageSettling
         /// Where a page read publishes what the screen is offering.
         ///
         /// PIN: A SEAM, NOT `.shared` REACHED FOR IN PLACE. The slate is process-wide in
@@ -56,6 +58,7 @@ public actor BrowserEngine {
             hands: any BrowserHands,
             keys: any BrowserKeys = LiveBrowserKeys(),
             stage: any BrowserStaging,
+            settling: any PageSettling = NothingToSettle(),
             slate: AmbientElementIndexStore = .shared,
             sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) },
             now: @escaping @Sendable () -> Date = { Date() }
@@ -65,6 +68,7 @@ public actor BrowserEngine {
             self.hands = hands
             self.keys = keys
             self.stage = stage
+            self.settling = settling
             self.slate = slate
             self.sleep = sleep
             self.now = now
@@ -76,7 +80,8 @@ public actor BrowserEngine {
                 page: LivePagePerception(),
                 hands: LiveBrowserHands(),
                 keys: LiveBrowserKeys(),
-                stage: LiveBrowserStaging())
+                stage: LiveBrowserStaging(),
+                settling: LivePageSettling())
         }
     }
 

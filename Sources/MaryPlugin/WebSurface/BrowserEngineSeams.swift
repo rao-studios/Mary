@@ -37,6 +37,23 @@ public protocol PagePerceiving: Sendable {
     ) async throws -> VisionPageReader.Reading
 }
 
+/// HOW MUCH THE PAGE IS OFFERING RIGHT NOW, cheaply.
+///
+/// PIN: A SETTLE NEEDS A SIGNAL, NOT A SLEEP, AND THE SIGNAL MUST BE CHEAP. A
+/// results page was read after a flat 900ms and the reading came back with 79
+/// rows where a read a moment later found 107 — no result groups formed, the
+/// openResult class unanswerable, and the failure filed against the detector's
+/// recall. Reading the whole page twice to find that out would double the cost
+/// of every search, so the settle polls the browser's OWN accessibility tree,
+/// which is a bounded walk of a few hundred nodes, and the expensive read
+/// happens once, after the count stops moving.
+public protocol PageSettling: Sendable {
+    /// How many things the page's own tree publishes, or nil when it cannot say
+    /// — a host with no web content, a tree that never woke. Nil settles nothing
+    /// and the caller falls back to waiting.
+    func offering(pid: pid_t, pageFrame: CGRect) async -> Int?
+}
+
 /// The pointer.
 public protocol BrowserHands: Sendable {
     func move(to point: CGPoint, pid: pid_t) async
@@ -148,7 +165,12 @@ struct LiveBrowserShell: BrowserShellReading {
         guard await focusAddressField(pid: pid, registration: registration) else { return false }
         for attempt in 1...Self.addressTypingAttempts {
             // Select all, so typing replaces rather than appends.
-            guard KeyChordPress.press(key: .a, modifiers: [.command]) else { return false }
+            // AIMED, like the focus chord above it: ⌘A in somebody else's window
+            // selects their document, and the typing that follows replaces it.
+            guard KeyChordPress.press(
+                key: .a, modifiers: [.command],
+                targetPrefix: registration.bundleIdentifiers.first)
+            else { return false }
             let typed = await KeyboardTyper.type(
                 address, targetPrefix: registration.bundleIdentifiers.first ?? "")
             // A PARTIAL ADDRESS MUST NOT BE COMMITTED. Losing focus halfway through
@@ -179,8 +201,10 @@ struct LiveBrowserShell: BrowserShellReading {
             // the shape of fix this needs — it cannot damage the honest case. It is a
             // text-editing key inside a text field, not a page shortcut; see
             // NoSiteShortcutsTests, which admits it for that reason.
-            _ = KeyChordPress.press(key: .forwardDelete, modifiers: [])
-            return KeyChordPress.press(key: .return, modifiers: [])
+            let aimed = registration.bundleIdentifiers.first
+            _ = KeyChordPress.press(
+                key: .forwardDelete, modifiers: [], targetPrefix: aimed)
+            return KeyChordPress.press(key: .return, modifiers: [], targetPrefix: aimed)
         }
         return false
     }
@@ -224,7 +248,10 @@ struct LiveBrowserShell: BrowserShellReading {
         // discipline turns on.
         KeyChordPress.press(
             key: registration.schema.addressFocusKey,
-            modifiers: registration.schema.addressFocusModifiers)
+            modifiers: registration.schema.addressFocusModifiers,
+            // AIMED, so it can never land in whatever came forward. See
+            // `KeyChordPress.press(key:modifiers:targetPrefix:)`.
+            targetPrefix: registration.bundleIdentifiers.first)
     }
 
     /// Press a shell control by its declared label — the control's OWN action
@@ -283,6 +310,27 @@ struct LiveBrowserShell: BrowserShellReading {
         }
         walk(application)
         return found
+    }
+}
+
+/// THE DEFAULT, WHICH SETTLES NOTHING. A caller that has not been given a signal
+/// waits out its budget exactly as it did before this seam existed — the fakes get
+/// this, and so does anything constructing seams by hand.
+public struct NothingToSettle: PageSettling {
+    public init() {}
+    public func offering(pid: pid_t, pageFrame: CGRect) async -> Int? { nil }
+}
+
+struct LivePageSettling: PageSettling {
+    func offering(pid: pid_t, pageFrame: CGRect) async -> Int? {
+        let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        let readiness = await BrowserAXReadiness.ensureWebContentAX(
+            pid: pid, bundleID: bundleID,
+            timeout: BrowserAXReadiness.readSettleTimeout)
+        guard readiness.walkable else { return nil }
+        let rows = PageElementReader.readWebContent(
+            in: AXUIElementCreateApplication(pid), pageFrame: pageFrame)
+        return rows.isEmpty ? nil : rows.count
     }
 }
 

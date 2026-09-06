@@ -5,15 +5,15 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 47,
+          "atMilliseconds" : 43,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1285,
+          "atMilliseconds" : 1280,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1285,
+          "atMilliseconds" : 1283,
           "kind" : "restoreCursor"
         }
       ],
@@ -23,7 +23,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1285,
+      "elapsedMilliseconds" : 1283,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -40,7 +40,7 @@
       "outcomeSpoken" : "References is on screen.",
       "pageReads" : [
         {
-          "atMilliseconds" : 833,
+          "atMilliseconds" : 834,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -277,7 +277,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 481,
+            "readMilliseconds" : 478,
             "rows" : [
               {
                 "affordance" : "press",
@@ -301,6 +301,7 @@
                 "label" : "Main menu",
                 "labelSource" : "classifier",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXPopUpButton"
               },
               {
@@ -326,6 +327,7 @@
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -350,6 +352,7 @@
                 "label" : "Wikipedia The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -375,6 +378,7 @@
                 "label" : "Q Search Wikipedia Search",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -400,6 +404,7 @@
                 "label" : "Search Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 5,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -425,6 +430,7 @@
                 "label" : "item 5",
                 "labelSource" : "synthesized",
                 "ordinal" : 6,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -450,6 +456,7 @@
                 "label" : "Search",
                 "labelSource" : "classifier",
                 "ordinal" : 7,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -475,6 +482,7 @@
                 "label" : "Donate Create account Log in",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -500,6 +508,7 @@
                 "label" : "Donate",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -524,6 +533,7 @@
                 "label" : "Create account",
                 "labelSource" : "classifier",
                 "ordinal" : 10,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -548,6 +558,7 @@
                 "label" : "Log in",
                 "labelSource" : "classifier",
                 "ordinal" : 11,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -573,6 +584,7 @@
                 "label" : "25 years of the free encyclopedia",
                 "labelSource" : "textInside",
                 "ordinal" : 12,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -597,6 +609,7 @@
                 "label" : "The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 13,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -622,6 +635,7 @@
                 "label" : "Ski touring",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -646,6 +660,7 @@
                 "label" : "Ski touring",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -672,6 +687,7 @@
                 "label" : "9 languages",
                 "labelSource" : "classifier",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXPopUpButton"
               },
               {
@@ -698,6 +714,7 @@
                 "label" : "Contents hide",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -722,6 +739,7 @@
                 "label" : "Contents",
                 "labelSource" : "classifier",
                 "ordinal" : 18,
+                "region" : "leading",
                 "role" : "AXHeading"
               },
               {
@@ -748,6 +766,7 @@
                 "label" : "item 14",
                 "labelSource" : "synthesized",
                 "ordinal" : 19,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -772,6 +791,7 @@
                 "label" : "Hide Contents",
                 "labelSource" : "classifier",
                 "ordinal" : 20,
+                "region" : "leading",
                 "role" : "AXButton"
               },
               {
@@ -798,6 +818,7 @@
                 "label" : "link 3",
                 "labelSource" : "synthesized",
                 "ordinal" : 21,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -823,6 +844,7 @@
                 "label" : "Article Talk",
                 "labelSource" : "textInside",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -847,6 +869,7 @@
                 "label" : "Article",
                 "labelSource" : "classifier",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -873,6 +896,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -897,6 +921,7 @@
                 "label" : "Talk",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -923,6 +948,7 @@
                 "label" : "link 4",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -948,6 +974,7 @@
                 "label" : "Read Edit View history :",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -972,6 +999,7 @@
                 "label" : "Read",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -998,6 +1026,7 @@
                 "label" : "item 16",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1022,6 +1051,7 @@
                 "label" : "Edit",
                 "labelSource" : "classifier",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1048,6 +1078,7 @@
                 "label" : "link 5",
                 "labelSource" : "synthesized",
                 "ordinal" : 31,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1072,6 +1103,7 @@
                 "label" : "View history",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1096,6 +1128,7 @@
                 "label" : "Tools",
                 "labelSource" : "classifier",
                 "ordinal" : 33,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -1122,6 +1155,7 @@
                 "label" : "Appearance hide",
                 "labelSource" : "textInside",
                 "ordinal" : 34,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1148,6 +1182,7 @@
                 "label" : "item 18",
                 "labelSource" : "synthesized",
                 "ordinal" : 35,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1172,6 +1207,7 @@
                 "label" : "Hide Appearance",
                 "labelSource" : "classifier",
                 "ordinal" : 36,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -1198,6 +1234,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 37,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1224,6 +1261,7 @@
                 "label" : "From Wikipedia, the free encyclopedia",
                 "labelSource" : "textInside",
                 "ordinal" : 38,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1250,6 +1288,7 @@
                 "label" : "(Top)",
                 "labelSource" : "textInside",
                 "ordinal" : 39,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1274,6 +1313,7 @@
                 "label" : "(Top)",
                 "labelSource" : "classifier",
                 "ordinal" : 40,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1300,6 +1340,7 @@
                 "label" : "Text",
                 "labelSource" : "textInside",
                 "ordinal" : 41,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1326,6 +1367,7 @@
                 "label" : "History",
                 "labelSource" : "textInside",
                 "ordinal" : 42,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1350,6 +1392,7 @@
                 "label" : "History",
                 "labelSource" : "classifier",
                 "ordinal" : 43,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1376,6 +1419,7 @@
                 "label" : "This article has multiple issues. Please help improve it [hide]",
                 "labelSource" : "textInside",
                 "ordinal" : 44,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1400,6 +1444,7 @@
                 "label" : "improve it",
                 "labelSource" : "classifier",
                 "ordinal" : 45,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1424,6 +1469,7 @@
                 "label" : "[hide]",
                 "labelSource" : "classifier",
                 "ordinal" : 46,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -1448,6 +1494,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 47,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1474,6 +1521,7 @@
                 "label" : "Small",
                 "labelSource" : "textInside",
                 "ordinal" : 48,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1500,6 +1548,7 @@
                 "label" : "Terminology",
                 "labelSource" : "textInside",
                 "ordinal" : 49,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1524,6 +1573,7 @@
                 "label" : "Terminology",
                 "labelSource" : "classifier",
                 "ordinal" : 50,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1549,6 +1599,7 @@
                 "label" : "• Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 51,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1573,6 +1624,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 52,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1599,6 +1651,7 @@
                 "label" : "item 31",
                 "labelSource" : "synthesized",
                 "ordinal" : 53,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1623,6 +1676,7 @@
                 "label" : "Toggle Equipment subsection",
                 "labelSource" : "classifier",
                 "ordinal" : 54,
+                "region" : "leading",
                 "role" : "AXButton"
               },
               {
@@ -1649,6 +1703,7 @@
                 "label" : "• Equipment",
                 "labelSource" : "textInside",
                 "ordinal" : 55,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1673,6 +1728,7 @@
                 "label" : "Equipment",
                 "labelSource" : "classifier",
                 "ordinal" : 56,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1699,6 +1755,7 @@
                 "label" : "item 33",
                 "labelSource" : "synthesized",
                 "ordinal" : 57,
+                "region" : "leading",
                 "role" : "AXStaticText"
               },
               {
@@ -1725,6 +1782,7 @@
                 "label" : "or discuss these issues on the talk page. (Learn how and when to",
                 "labelSource" : "textInside",
                 "ordinal" : 58,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1749,6 +1807,7 @@
                 "label" : "Learn how and when to remove these messages",
                 "labelSource" : "classifier",
                 "ordinal" : 59,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1773,6 +1832,7 @@
                 "label" : "talk page",
                 "labelSource" : "classifier",
                 "ordinal" : 60,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1799,6 +1859,7 @@
                 "label" : "Styles of equipment",
                 "labelSource" : "classifier",
                 "ordinal" : 61,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1825,6 +1886,7 @@
                 "label" : "remove these messages)",
                 "labelSource" : "textInside",
                 "ordinal" : 62,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1850,6 +1912,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 63,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1874,6 +1937,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 64,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1900,6 +1964,7 @@
                 "label" : "item 36",
                 "labelSource" : "synthesized",
                 "ordinal" : 65,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1926,6 +1991,7 @@
                 "label" : "Ascending aids",
                 "labelSource" : "textInside",
                 "ordinal" : 66,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1950,6 +2016,7 @@
                 "label" : "Ascending aids",
                 "labelSource" : "classifier",
                 "ordinal" : 67,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -1976,6 +2043,7 @@
                 "label" : "• This article may contain original research. (December",
                 "labelSource" : "textInside",
                 "ordinal" : 68,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2000,6 +2068,7 @@
                 "label" : "original research",
                 "labelSource" : "classifier",
                 "ordinal" : 69,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2025,6 +2094,7 @@
                 "label" : "2012)",
                 "labelSource" : "textInside",
                 "ordinal" : 70,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2051,6 +2121,7 @@
                 "label" : "Width",
                 "labelSource" : "textInside",
                 "ordinal" : 71,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2077,6 +2148,7 @@
                 "label" : "See also",
                 "labelSource" : "textInside",
                 "ordinal" : 72,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2101,6 +2173,7 @@
                 "label" : "See also",
                 "labelSource" : "classifier",
                 "ordinal" : 73,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2127,6 +2200,7 @@
                 "label" : "• This article needs more citations. (January 2013)",
                 "labelSource" : "textInside",
                 "ordinal" : 74,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2151,6 +2225,7 @@
                 "label" : "more citations",
                 "labelSource" : "classifier",
                 "ordinal" : 75,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2177,6 +2252,7 @@
                 "label" : "• Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 76,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2201,6 +2277,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 77,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2227,6 +2304,7 @@
                 "label" : "item 43",
                 "labelSource" : "synthesized",
                 "ordinal" : 78,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2253,6 +2331,7 @@
                 "label" : "References",
                 "labelSource" : "textInside",
                 "ordinal" : 79,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2277,6 +2356,7 @@
                 "label" : "References",
                 "labelSource" : "classifier",
                 "ordinal" : 80,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2303,6 +2383,7 @@
                 "label" : "link 18",
                 "labelSource" : "synthesized",
                 "ordinal" : 81,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2329,6 +2410,7 @@
                 "label" : "O Wide",
                 "labelSource" : "textInside",
                 "ordinal" : 82,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2353,6 +2435,7 @@
                 "label" : "Wide",
                 "labelSource" : "classifier",
                 "ordinal" : 83,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2379,6 +2462,7 @@
                 "label" : "item 46",
                 "labelSource" : "synthesized",
                 "ordinal" : 84,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2405,6 +2489,7 @@
                 "label" : "External links",
                 "labelSource" : "textInside",
                 "ordinal" : 85,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2429,6 +2514,7 @@
                 "label" : "External links",
                 "labelSource" : "classifier",
                 "ordinal" : 86,
+                "region" : "leading",
                 "role" : "AXLink"
               },
               {
@@ -2455,6 +2541,7 @@
                 "label" : "Ski touring is skiing in the backcountry on unmarked",
                 "labelSource" : "textInside",
                 "ordinal" : 87,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2479,6 +2566,7 @@
                 "label" : "skiing",
                 "labelSource" : "classifier",
                 "ordinal" : 88,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2503,6 +2591,7 @@
                 "label" : "backcountry",
                 "labelSource" : "classifier",
                 "ordinal" : 89,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2529,6 +2618,7 @@
                 "label" : "or unpatrolled areas. Touring is typically done off-piste",
                 "labelSource" : "textInside",
                 "ordinal" : 90,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2553,6 +2643,7 @@
                 "label" : "piste",
                 "labelSource" : "classifier",
                 "ordinal" : 91,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2579,6 +2670,7 @@
                 "label" : "Color",
                 "labelSource" : "textInside",
                 "ordinal" : 92,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2605,6 +2697,7 @@
                 "label" : "and outside of ski resorts, and may extend over a",
                 "labelSource" : "textInside",
                 "ordinal" : 93,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2629,6 +2722,7 @@
                 "label" : "ski resorts",
                 "labelSource" : "classifier",
                 "ordinal" : 94,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2655,6 +2749,7 @@
                 "label" : "period of more than one day. It is similar to",
                 "labelSource" : "textInside",
                 "ordinal" : 95,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2679,6 +2774,7 @@
                 "label" : "To get missing image descriptions, open the context menu.",
                 "labelSource" : "classifier",
                 "ordinal" : 96,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2703,6 +2799,7 @@
                 "label" : "To get missing image descriptions, open the context menu.",
                 "labelSource" : "classifier",
                 "ordinal" : 97,
+                "region" : "main",
                 "role" : "AXImage"
               },
               {
@@ -2729,6 +2826,7 @@
                 "label" : "Automatic",
                 "labelSource" : "textInside",
                 "ordinal" : 98,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2753,6 +2851,7 @@
                 "label" : "Automatic",
                 "labelSource" : "classifier",
                 "ordinal" : 99,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2779,6 +2878,7 @@
                 "label" : "item 53",
                 "labelSource" : "synthesized",
                 "ordinal" : 100,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2805,6 +2905,7 @@
                 "label" : "backcountry skiing but excludes the use of a ski lift or",
                 "labelSource" : "textInside",
                 "ordinal" : 101,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2829,6 +2930,7 @@
                 "label" : "backcountry skiing",
                 "labelSource" : "classifier",
                 "ordinal" : 102,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2853,6 +2955,7 @@
                 "label" : "ski lift",
                 "labelSource" : "classifier",
                 "ordinal" : 103,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2879,6 +2982,7 @@
                 "label" : "• Light",
                 "labelSource" : "textInside",
                 "ordinal" : 104,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2903,6 +3007,7 @@
                 "label" : "Light",
                 "labelSource" : "classifier",
                 "ordinal" : 105,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2929,6 +3034,7 @@
                 "label" : "item 56",
                 "labelSource" : "synthesized",
                 "ordinal" : 106,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2955,6 +3061,7 @@
                 "label" : "transport. Ski touring can take place anywhere that has",
                 "labelSource" : "textInside",
                 "ordinal" : 107,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2981,6 +3088,7 @@
                 "label" : "O Dark",
                 "labelSource" : "textInside",
                 "ordinal" : 108,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -3005,6 +3113,7 @@
                 "label" : "Dark",
                 "labelSource" : "classifier",
                 "ordinal" : 109,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -3031,6 +3140,7 @@
                 "label" : "item 59",
                 "labelSource" : "synthesized",
                 "ordinal" : 110,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -3057,6 +3167,7 @@
                 "label" : "suitable snow and terrain as well as reasonable means",
                 "labelSource" : "textInside",
                 "ordinal" : 111,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3083,6 +3194,7 @@
                 "label" : "of access to the trailhead, i.e. plowed roads, snowcats,",
                 "labelSource" : "textInside",
                 "ordinal" : 112,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3108,6 +3220,7 @@
                 "label" : "aircraft or public transport.",
                 "labelSource" : "textInside",
                 "ordinal" : 113,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3134,6 +3247,7 @@
                 "label" : "Free moving heels during the ascent are a",
                 "labelSource" : "textInside",
                 "ordinal" : 114,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3160,6 +3274,7 @@
                 "label" : "defining characteristic of ski touring. After",
                 "labelSource" : "textInside",
                 "ordinal" : 115,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3186,6 +3301,7 @@
                 "label" : "reaching the mountain top or other destination,",
                 "labelSource" : "textInside",
                 "ordinal" : 116,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3212,6 +3328,7 @@
                 "label" : "Ski touring combines elements of Nordic and alpine",
                 "labelSource" : "textInside",
                 "ordinal" : 117,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3236,6 +3353,7 @@
                 "label" : "Nordic",
                 "labelSource" : "classifier",
                 "ordinal" : 118,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3261,6 +3379,7 @@
                 "label" : "the heel portions of the special touring bindings",
                 "labelSource" : "textInside",
                 "ordinal" : 119,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3287,6 +3406,7 @@
                 "label" : "skiing and embraces such sub-disciplines as Telemark",
                 "labelSource" : "textInside",
                 "ordinal" : 120,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3311,6 +3431,7 @@
                 "label" : "alpine skiing",
                 "labelSource" : "classifier",
                 "ordinal" : 121,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3335,6 +3456,7 @@
                 "label" : "Telemark",
                 "labelSource" : "classifier",
                 "ordinal" : 122,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3360,6 +3482,7 @@
                 "label" : "are fixated such that the skis behave like",
                 "labelSource" : "textInside",
                 "ordinal" : 123,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3386,6 +3509,7 @@
                 "label" : "and randonnée. A defining characteristic is that the",
                 "labelSource" : "textInside",
                 "ordinal" : 124,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3411,6 +3535,7 @@
                 "label" : "normal alpine skis on the typically long ride",
                 "labelSource" : "textInside",
                 "ordinal" : 125,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3435,6 +3560,7 @@
                 "label" : "alpine skis",
                 "labelSource" : "classifier",
                 "ordinal" : 126,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3461,6 +3587,7 @@
                 "label" : "skier's heels are \"free\" - i.e. not bound to the skis - in",
                 "labelSource" : "textInside",
                 "ordinal" : 127,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3486,6 +3613,7 @@
                 "label" : "downhill.",
                 "labelSource" : "textInside",
                 "ordinal" : 128,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3512,6 +3640,7 @@
                 "label" : "order to allow a natural alidina motion while travercina",
                 "labelSource" : "textInside",
                 "ordinal" : 129,
+                "region" : "footer",
                 "role" : "AXStaticText"
               }
             ],
@@ -3525,7 +3654,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1285,
+          "atMilliseconds" : 1280,
           "decisions" : [
             {
               "affordance" : 40,
@@ -5219,7 +5348,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 47,
+          "atMilliseconds" : 43,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -5231,17 +5360,17 @@
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "47ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "833ms  perceived 129 controls · —",
-        "833ms  looked — 129 rows, 111 named, 19 groups",
-        "1285ms  routed \"references\" → \"References\" (111 of 129 eligible)",
-        "1285ms  matched \"references\" → \"References\""
+        "43ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "834ms  perceived 129 controls · —",
+        "834ms  looked — 129 rows, 111 named, 19 groups",
+        "1280ms  routed \"references\" → \"References\" (111 of 129 eligible)",
+        "1280ms  matched \"references\" → \"References\""
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:30:05Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:58:58Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "scroll-to"
 }

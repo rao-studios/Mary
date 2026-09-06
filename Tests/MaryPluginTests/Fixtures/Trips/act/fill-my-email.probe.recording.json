@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 43,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 653,
+          "atMilliseconds" : 659,
           "kind" : "type",
           "typedLength" : 24
         },
         {
-          "atMilliseconds" : 948,
+          "atMilliseconds" : 946,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1342,
+          "atMilliseconds" : 1291,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1342,
+      "elapsedMilliseconds" : 1291,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -45,7 +45,7 @@
       "outcomeSpoken" : "typeText — no sign it did anything. Now offering 8 buttons, 4 fields, and 1 option — field 1 — Customer name:; field 2 — Telephone: (Customer name:); field 3 — E-mail address: (Telephone:); button 1 — Small (Pizza Size); button 2 — Medium",
       "pageReads" : [
         {
-          "atMilliseconds" : 557,
+          "atMilliseconds" : 565,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -170,7 +170,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 339,
+            "readMilliseconds" : 355,
             "rows" : [
               {
                 "affordance" : "none",
@@ -195,6 +195,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -219,6 +220,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -244,6 +246,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -270,6 +273,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -296,6 +300,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -322,6 +327,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -348,6 +354,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -374,6 +381,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -400,6 +408,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -426,6 +435,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -452,6 +462,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -476,6 +487,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -502,6 +514,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -528,6 +541,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -554,6 +568,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -580,6 +595,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -606,6 +622,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -632,6 +649,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -657,6 +675,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -683,6 +702,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -709,6 +729,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -734,6 +755,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -760,6 +782,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -786,6 +809,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -811,6 +835,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -837,6 +862,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -863,6 +889,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -888,6 +915,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -914,6 +942,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -939,6 +968,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -963,6 +993,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -989,6 +1020,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -1015,6 +1047,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1041,6 +1074,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -1048,7 +1082,7 @@
           }
         },
         {
-          "atMilliseconds" : 1339,
+          "atMilliseconds" : 1288,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1173,7 +1207,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 220,
+            "readMilliseconds" : 194,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1198,6 +1232,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "textInside",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -1222,6 +1257,7 @@
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -1247,6 +1283,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "textInside",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -1273,6 +1310,7 @@
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -1299,6 +1337,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1325,6 +1364,7 @@
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "trailing",
                 "role" : "AXTextField"
               },
               {
@@ -1351,6 +1391,7 @@
                 "label" : "Pizza Size",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1377,6 +1418,7 @@
                 "label" : "O Small",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1403,6 +1445,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1429,6 +1472,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 10,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1455,6 +1499,7 @@
                 "label" : "O Medium",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1479,6 +1524,7 @@
                 "label" : "Medium",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1505,6 +1551,7 @@
                 "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1531,6 +1578,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1557,6 +1605,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXRadioButton"
               },
               {
@@ -1583,6 +1632,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1609,6 +1659,7 @@
                 "label" : "Pizza Toppings",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1635,6 +1686,7 @@
                 "label" : "• Bacon",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1660,6 +1712,7 @@
                 "label" : "Bacon",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1686,6 +1739,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1712,6 +1766,7 @@
                 "label" : "• Extra Cheese",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1737,6 +1792,7 @@
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1763,6 +1819,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1789,6 +1846,7 @@
                 "label" : "• Onion",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1814,6 +1872,7 @@
                 "label" : "Onion",
                 "labelSource" : "classifier",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1840,6 +1899,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1866,6 +1926,7 @@
                 "label" : "• Mushroom",
                 "labelSource" : "textInside",
                 "ordinal" : 27,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1891,6 +1952,7 @@
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
                 "ordinal" : 28,
+                "region" : "main",
                 "role" : "AXCheckBox"
               },
               {
@@ -1917,6 +1979,7 @@
                 "label" : "item 19",
                 "labelSource" : "synthesized",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1942,6 +2005,7 @@
                 "label" : "Preferred delivery time: -- :-- --",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1966,6 +2030,7 @@
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -1992,6 +2057,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXTextArea"
               },
               {
@@ -2018,6 +2084,7 @@
                 "label" : "Delivery instructions:",
                 "labelSource" : "textInside",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2044,6 +2111,7 @@
                 "label" : "Submit order",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "main",
                 "role" : "AXButton"
               }
             ],
@@ -2068,7 +2136,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 43,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2079,7 +2147,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1027,
+          "atMilliseconds" : 1009,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2090,20 +2158,20 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "44ms  read the shell — httpbin.org/forms/post · httpbin",
-        "557ms  perceived 34 controls · —",
-        "557ms  looked — 34 rows, 27 named, 12 groups",
-        "713ms  typed 24 characters",
-        "1339ms  perceived 34 controls · —",
-        "1339ms  looked — 34 rows, 27 named, 12 groups",
-        "1342ms  receipt — typeText — no sign it did anything"
+        "7ms  resolved Chrome",
+        "43ms  read the shell — httpbin.org/forms/post · httpbin",
+        "565ms  perceived 34 controls · —",
+        "565ms  looked — 34 rows, 27 named, 12 groups",
+        "711ms  typed 24 characters",
+        "1288ms  perceived 34 controls · —",
+        "1288ms  looked — 34 rows, 27 named, 12 groups",
+        "1291ms  receipt — typeText — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:29:32Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:58:20Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "fill-my-email"
 }

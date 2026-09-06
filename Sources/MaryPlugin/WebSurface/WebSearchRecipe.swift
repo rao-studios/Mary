@@ -36,6 +36,15 @@ public enum WebSearchRecipe {
 
     /// How long the results have to draw before they are read.
     static let resultsSettle = Duration.milliseconds(900)
+    /// How often the settle asks the tree. Sized under the old flat wait so a
+    /// page that IS ready is read sooner than it used to be, not later.
+    static let settleInterval = Duration.milliseconds(150)
+    /// How many times before it gives up and reads whatever is there — 900ms of
+    /// polling, the same budget the flat sleep spent.
+    static let settlePolls = 6
+    /// Two readings the same is a page that has stopped arriving. The same number
+    /// the navigation settle uses, for the same reason.
+    static let quietPolls = 2
     /// A row shorter than this is chrome — a "next" or a breadcrumb, not a result.
     static let minimumResultLabel = 12
 
@@ -81,7 +90,7 @@ public enum WebSearchRecipe {
             return await engine.refusing(.searchCompletedElsewhere)
         }
 
-        await engine.settleForResults()
+        await engine.settleForResults(in: target)
         let read = await engine.readPage(in: target)
         guard read.ok else { return read }
         // WHAT THIS PAGE IS A LIST OF ANSWERS TO — remembered AFTER the read.
@@ -207,7 +216,35 @@ extension BrowserEngine {
     }
 
     /// Time for results to draw before they are read.
-    func settleForResults() async {
-        await seams.sleep(WebSearchRecipe.resultsSettle)
+    /// WAIT FOR THE PAGE TO STOP ARRIVING, then read it once.
+    ///
+    /// PIN: A FLAT SLEEP READ A HALF-DRAWN PAGE. Measured across a round: the same
+    /// search recorded readings of 79, 104, 107 and 108 rows, and on the 79 the
+    /// results had not been grouped yet — so `openResult` had nothing to pick and
+    /// the leg was filed as the detector's recall. This polls the browser's own
+    /// tree, which is cheap, until the count holds still twice running, and only
+    /// then hands over to the expensive read. The old sleep is the floor and the
+    /// budget both: a page that never settles is read anyway, at the same moment
+    /// it would have been before.
+    func settleForResults(in target: BrowserTarget? = nil) async {
+        guard let target, let frame = (await readShell(target)).shell?.pageFrame else {
+            await seams.sleep(WebSearchRecipe.resultsSettle)
+            return
+        }
+        var stable = 0
+        var last: Int?
+        for _ in 0..<WebSearchRecipe.settlePolls {
+            await seams.sleep(WebSearchRecipe.settleInterval)
+            guard let now = await seams.settling.offering(
+                pid: target.processIdentifier, pageFrame: frame)
+            else {
+                // NO SIGNAL IS NOT A SETTLED PAGE. Wait out the old budget.
+                await seams.sleep(WebSearchRecipe.resultsSettle)
+                return
+            }
+            if now == last { stable += 1 } else { stable = 0 }
+            last = now
+            if stable >= WebSearchRecipe.quietPolls { return }
+        }
     }
 }

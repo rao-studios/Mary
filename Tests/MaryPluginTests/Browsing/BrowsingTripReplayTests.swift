@@ -202,12 +202,12 @@ import Testing
         // truth is that a row does answer and the route reached number 3 of its
         // kind instead of number 1. A routing miss, statable and fixable.
         "site-search[1] R2",
-        // THE ONE THAT IS GENUINELY PERCEPTION. On the read the route was argued
-        // against, no row sits in a result group at all — the pixel lane grouped
-        // the page as fourteen bands and the walk added rows the merge could not
-        // place. `PageListDerivation` answers this when it fires; here it did
-        // not, and why is round 6's first question.
-        "search-then-open-second[1] P",
+        // STRUCK BY ROUND 6: "search-then-open-second[1] P". It was never
+        // perception either. `PageListDerivation` fires correctly on that page —
+        // 55 of 107 rows eligible as results, measured live — and the read it was
+        // given had 79 rows because the search settled on a FLAT 900ms sleep and
+        // read a half-drawn page. The settle polls the tree now and the leg
+        // passes four runs out of four. See `WebSearchRecipe.settleForResults`.
         // STRUCK BY ROUND 5: "music-between-two-page-legs[2] R2 reached row 45,
         // which is not inResultGroup". It was never about row 45. The classifier
         // was reading the page the act ARRIVED at rather than the one the route

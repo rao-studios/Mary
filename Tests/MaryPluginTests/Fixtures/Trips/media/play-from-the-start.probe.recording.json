@@ -5,17 +5,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 47,
+          "atMilliseconds" : 46,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 47,
+          "atMilliseconds" : 46,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1420,
+          "atMilliseconds" : 1437,
           "kind" : "restoreCursor"
         }
       ],
@@ -26,13 +26,13 @@
 
       },
       "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1420,
+      "elapsedMilliseconds" : 1438,
       "index" : 0,
       "landed" : false,
       "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 1420,
+          "atMilliseconds" : 1437,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -70,7 +70,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 47,
+          "atMilliseconds" : 46,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -81,16 +81,16 @@
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "47ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1420ms  perceived 0 controls · paused",
-        "1420ms  refused — I can see the player but not its progress control."
+        "6ms  resolved Chrome",
+        "46ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1437ms  perceived 0 controls · paused",
+        "1437ms  refused — I can see the player but not its progress control."
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:31:24Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T17:00:16Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "play-from-the-start"
 }

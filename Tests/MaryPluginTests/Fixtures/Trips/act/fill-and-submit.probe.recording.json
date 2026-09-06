@@ -5,37 +5,37 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 49,
+          "atMilliseconds" : 43,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1453,
+          "atMilliseconds" : 1444,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1757,
+          "atMilliseconds" : 1746,
           "atX" : 0.3696682464454976,
           "atY" : 0.044444444444444446,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 2033,
+          "atMilliseconds" : 2012,
           "kind" : "type",
           "typedLength" : 20
         },
         {
-          "atMilliseconds" : 2095,
+          "atMilliseconds" : 2075,
           "key" : "return",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 2325,
+          "atMilliseconds" : 2311,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 3834,
+          "atMilliseconds" : 3821,
           "kind" : "restoreCursor"
         }
       ],
@@ -45,7 +45,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3834,
+      "elapsedMilliseconds" : 3821,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -62,7 +62,7 @@
       "outcomeSpoken" : "typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia. Now offering 22 links, 17 buttons, 3 fields, and 3 options — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
       "pageReads" : [
         {
-          "atMilliseconds" : 932,
+          "atMilliseconds" : 925,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -302,7 +302,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 506,
+            "readMilliseconds" : 512,
             "rows" : [
               {
                 "affordance" : "press",
@@ -326,6 +326,7 @@
                 "label" : "Main menu",
                 "labelSource" : "classifier",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXPopUpButton"
               },
               {
@@ -351,6 +352,7 @@
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -376,6 +378,7 @@
                 "label" : "Wikipedia The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -401,6 +404,7 @@
                 "label" : "Search Search Wikipedia",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -426,6 +430,7 @@
                 "label" : "Search Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 5,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -451,6 +456,7 @@
                 "label" : "Search",
                 "labelSource" : "classifier",
                 "ordinal" : 6,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -476,6 +482,7 @@
                 "label" : "Donate Create account Log in",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -501,6 +508,7 @@
                 "label" : "Donate",
                 "labelSource" : "classifier",
                 "ordinal" : 8,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -525,6 +533,7 @@
                 "label" : "Create account",
                 "labelSource" : "classifier",
                 "ordinal" : 9,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -549,6 +558,7 @@
                 "label" : "Log in",
                 "labelSource" : "classifier",
                 "ordinal" : 10,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -574,6 +584,7 @@
                 "label" : "25 years of the free encyclopedia",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -598,6 +609,7 @@
                 "label" : "The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -623,6 +635,7 @@
                 "label" : "Main Page Talk",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -647,6 +660,7 @@
                 "label" : "Main Page",
                 "labelSource" : "classifier",
                 "ordinal" : 14,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -671,6 +685,7 @@
                 "label" : "Talk",
                 "labelSource" : "classifier",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -697,6 +712,7 @@
                 "label" : "link 3",
                 "labelSource" : "synthesized",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -722,6 +738,7 @@
                 "label" : "Read View source View history:",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -746,6 +763,7 @@
                 "label" : "Read",
                 "labelSource" : "classifier",
                 "ordinal" : 18,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -772,6 +790,7 @@
                 "label" : "item 11",
                 "labelSource" : "synthesized",
                 "ordinal" : 19,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -796,6 +815,7 @@
                 "label" : "View source",
                 "labelSource" : "classifier",
                 "ordinal" : 20,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -822,6 +842,7 @@
                 "label" : "link 4",
                 "labelSource" : "synthesized",
                 "ordinal" : 21,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -846,6 +867,7 @@
                 "label" : "View history",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -872,6 +894,7 @@
                 "label" : "link 5",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -896,6 +919,7 @@
                 "label" : "Tools",
                 "labelSource" : "classifier",
                 "ordinal" : 24,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -922,6 +946,7 @@
                 "label" : "Appearance hide",
                 "labelSource" : "textInside",
                 "ordinal" : 25,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -948,6 +973,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -972,6 +998,7 @@
                 "label" : "Hide Appearance",
                 "labelSource" : "classifier",
                 "ordinal" : 27,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -998,6 +1025,7 @@
                 "label" : "item 15",
                 "labelSource" : "synthesized",
                 "ordinal" : 28,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1024,6 +1052,7 @@
                 "label" : "Welcome to Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 29,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -1048,6 +1077,7 @@
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 30,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1074,6 +1104,7 @@
                 "label" : "the free encyclopedia that anyone can edit.",
                 "labelSource" : "textInside",
                 "ordinal" : 31,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1098,6 +1129,7 @@
                 "label" : "free",
                 "labelSource" : "classifier",
                 "ordinal" : 32,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1122,6 +1154,7 @@
                 "label" : "anyone can edit",
                 "labelSource" : "classifier",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1148,6 +1181,7 @@
                 "label" : "Text",
                 "labelSource" : "textInside",
                 "ordinal" : 34,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1174,6 +1208,7 @@
                 "label" : "258,083 active editors • 7,236,097 articles in English",
                 "labelSource" : "textInside",
                 "ordinal" : 35,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1198,6 +1233,7 @@
                 "label" : "258,083",
                 "labelSource" : "classifier",
                 "ordinal" : 36,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1222,6 +1258,7 @@
                 "label" : "7,236,097",
                 "labelSource" : "classifier",
                 "ordinal" : 37,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1246,6 +1283,7 @@
                 "label" : "English",
                 "labelSource" : "classifier",
                 "ordinal" : 38,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1270,6 +1308,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 39,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1296,6 +1335,7 @@
                 "label" : "Small",
                 "labelSource" : "textInside",
                 "ordinal" : 40,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1320,6 +1360,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 41,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1346,6 +1387,7 @@
                 "label" : "Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 42,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1372,6 +1414,7 @@
                 "label" : "From today's featured article",
                 "labelSource" : "classifier",
                 "ordinal" : 43,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -1398,6 +1441,7 @@
                 "label" : "In the news",
                 "labelSource" : "classifier",
                 "ordinal" : 44,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -1423,6 +1467,7 @@
                 "label" : "O Large",
                 "labelSource" : "textInside",
                 "ordinal" : 45,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1447,6 +1492,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 46,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1473,6 +1519,7 @@
                 "label" : "item 28",
                 "labelSource" : "synthesized",
                 "ordinal" : 47,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1499,6 +1546,7 @@
                 "label" : "• American journalist and feminist",
                 "labelSource" : "textInside",
                 "ordinal" : 48,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1525,6 +1573,7 @@
                 "label" : "President William McKinley was shot and",
                 "labelSource" : "textInside",
                 "ordinal" : 49,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1549,6 +1598,7 @@
                 "label" : "President William McKinley was shot and fatally wounded",
                 "labelSource" : "classifier",
                 "ordinal" : 50,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1575,6 +1625,7 @@
                 "label" : "Width",
                 "labelSource" : "textInside",
                 "ordinal" : 51,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1601,6 +1652,7 @@
                 "label" : "fatally wounded on September 6, 1901, while",
                 "labelSource" : "textInside",
                 "ordinal" : 52,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1627,6 +1679,7 @@
                 "label" : "item 35",
                 "labelSource" : "synthesized",
                 "ordinal" : 53,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1652,6 +1705,7 @@
                 "label" : "activist Gloria Steinem (pictured)",
                 "labelSource" : "textInside",
                 "ordinal" : 54,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1676,6 +1730,7 @@
                 "label" : "Gloria Steinem",
                 "labelSource" : "classifier",
                 "ordinal" : 55,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1702,6 +1757,7 @@
                 "label" : "• Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 56,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1726,6 +1782,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 57,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1752,6 +1809,7 @@
                 "label" : "item 37",
                 "labelSource" : "synthesized",
                 "ordinal" : 58,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1777,6 +1835,7 @@
                 "label" : "shaking hands with the public in the Temple of",
                 "labelSource" : "textInside",
                 "ordinal" : 59,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1801,6 +1860,7 @@
                 "label" : "Temple of Music",
                 "labelSource" : "classifier",
                 "ordinal" : 60,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1827,6 +1887,7 @@
                 "label" : "dies at the age of 92.",
                 "labelSource" : "textInside",
                 "ordinal" : 61,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1851,6 +1912,7 @@
                 "label" : "Gloria Steinem in 1977",
                 "labelSource" : "classifier",
                 "ordinal" : 62,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -1877,6 +1939,7 @@
                 "label" : "O Wide",
                 "labelSource" : "textInside",
                 "ordinal" : 63,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1901,6 +1964,7 @@
                 "label" : "Wide",
                 "labelSource" : "classifier",
                 "ordinal" : 64,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -1927,6 +1991,7 @@
                 "label" : "item 44",
                 "labelSource" : "synthesized",
                 "ordinal" : 65,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1951,6 +2016,7 @@
                 "label" : "Czolgosz shooting McKinley with a revolver",
                 "labelSource" : "classifier",
                 "ordinal" : 66,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -1976,6 +2042,7 @@
                 "label" : "Music at the Pan-American Exposition in Buffalo,",
                 "labelSource" : "textInside",
                 "ordinal" : 67,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2000,6 +2067,7 @@
                 "label" : "Buffalo, New York",
                 "labelSource" : "classifier",
                 "ordinal" : 68,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2024,6 +2092,7 @@
                 "label" : "Pan-American Exposition",
                 "labelSource" : "classifier",
                 "ordinal" : 69,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2050,6 +2119,7 @@
                 "label" : "• Duane Davis is convicted of",
                 "labelSource" : "textInside",
                 "ordinal" : 70,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2076,6 +2146,7 @@
                 "label" : "New York, U.S. McKinley died on September 14",
                 "labelSource" : "textInside",
                 "ordinal" : 71,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2100,6 +2171,7 @@
                 "label" : "McKinley",
                 "labelSource" : "classifier",
                 "ordinal" : 72,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2125,6 +2197,7 @@
                 "label" : "orchestrating the 1996 murder of",
                 "labelSource" : "textInside",
                 "ordinal" : 73,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2149,6 +2222,7 @@
                 "label" : "the 1996 murder",
                 "labelSource" : "classifier",
                 "ordinal" : 74,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -2175,6 +2249,7 @@
                 "label" : "Color",
                 "labelSource" : "textInside",
                 "ordinal" : 75,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2201,6 +2276,7 @@
                 "label" : "from gangrene caused by the bullet wounds.",
                 "labelSource" : "textInside",
                 "ordinal" : 76,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2225,6 +2301,7 @@
                 "label" : "gangrene",
                 "labelSource" : "classifier",
                 "ordinal" : 77,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2251,6 +2328,7 @@
                 "label" : "American rapper Tupac Shakur.",
                 "labelSource" : "textInside",
                 "ordinal" : 78,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2275,6 +2353,7 @@
                 "label" : "Tupac Shakur",
                 "labelSource" : "classifier",
                 "ordinal" : 79,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -2301,6 +2380,7 @@
                 "label" : "President McKinley enjoyed meeting the public,",
                 "labelSource" : "textInside",
                 "ordinal" : 80,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2326,6 +2406,7 @@
                 "label" : "• In a referendum, Icelanders reject Gloria Steinem in",
                 "labelSource" : "textInside",
                 "ordinal" : 81,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2350,6 +2431,7 @@
                 "label" : "a referendum",
                 "labelSource" : "classifier",
                 "ordinal" : 82,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2376,6 +2458,7 @@
                 "label" : "Automatic",
                 "labelSource" : "textInside",
                 "ordinal" : 83,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2400,6 +2483,7 @@
                 "label" : "Automatic",
                 "labelSource" : "classifier",
                 "ordinal" : 84,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2426,6 +2510,7 @@
                 "label" : "item 52",
                 "labelSource" : "synthesized",
                 "ordinal" : 85,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2451,6 +2536,7 @@
                 "label" : "Czolgosz shooting and was reluctant to take security precautions.",
                 "labelSource" : "textInside",
                 "ordinal" : 86,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2476,6 +2562,7 @@
                 "label" : "European Union membership",
                 "labelSource" : "textInside",
                 "ordinal" : 87,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2500,6 +2587,7 @@
                 "label" : "European Union",
                 "labelSource" : "classifier",
                 "ordinal" : 88,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2525,6 +2613,7 @@
                 "label" : "1977",
                 "labelSource" : "textInside",
                 "ordinal" : 89,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2551,6 +2640,7 @@
                 "label" : "• Light",
                 "labelSource" : "textInside",
                 "ordinal" : 90,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2575,6 +2665,7 @@
                 "label" : "Light",
                 "labelSource" : "classifier",
                 "ordinal" : 91,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2601,6 +2692,7 @@
                 "label" : "item 57",
                 "labelSource" : "synthesized",
                 "ordinal" : 92,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2626,6 +2718,7 @@
                 "label" : "revolver",
                 "labelSource" : "textInside",
                 "ordinal" : 93,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2651,6 +2744,7 @@
                 "label" : "McKinley with a",
                 "labelSource" : "textInside",
                 "ordinal" : 94,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2676,6 +2770,7 @@
                 "label" : "George B. Cortelyou, the secretary to the",
                 "labelSource" : "textInside",
                 "ordinal" : 95,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2700,6 +2795,7 @@
                 "label" : "George B. Cortelyou",
                 "labelSource" : "classifier",
                 "ordinal" : 96,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2725,6 +2821,7 @@
                 "label" : "negotiations.",
                 "labelSource" : "textInside",
                 "ordinal" : 97,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2750,6 +2847,7 @@
                 "label" : "Dark",
                 "labelSource" : "textInside",
                 "ordinal" : 98,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2774,6 +2872,7 @@
                 "label" : "Dark",
                 "labelSource" : "classifier",
                 "ordinal" : 99,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -2800,6 +2899,7 @@
                 "label" : "item 63",
                 "labelSource" : "synthesized",
                 "ordinal" : 100,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -2826,6 +2926,7 @@
                 "label" : "president, feared an assassination attempt, but",
                 "labelSource" : "textInside",
                 "ordinal" : 101,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2850,6 +2951,7 @@
                 "label" : "secretary to the president",
                 "labelSource" : "classifier",
                 "ordinal" : 102,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2875,6 +2977,7 @@
                 "label" : "• The Nancy Grace Roman Space Telescope is",
                 "labelSource" : "textInside",
                 "ordinal" : 103,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2899,6 +3002,7 @@
                 "label" : "Nancy Grace Roman Space Telescope",
                 "labelSource" : "classifier",
                 "ordinal" : 104,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -2924,6 +3028,7 @@
                 "label" : "McKinley kept the visit in the schedule. The assassin, Leon Czolgosz,",
                 "labelSource" : "textInside",
                 "ordinal" : 105,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2950,6 +3055,7 @@
                 "label" : "item 67",
                 "labelSource" : "synthesized",
                 "ordinal" : 106,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -2974,6 +3080,7 @@
                 "label" : "Leon Czolgosz",
                 "labelSource" : "classifier",
                 "ordinal" : 107,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -2998,6 +3105,7 @@
                 "label" : "Earth–Sun L2",
                 "labelSource" : "classifier",
                 "ordinal" : 108,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -3024,6 +3132,7 @@
                 "label" : "regarded McKinley as a symbol of oppression, and felt it was his duty",
                 "labelSource" : "textInside",
                 "ordinal" : 109,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3050,6 +3159,7 @@
                 "label" : "launched towards its Earth-Sun L2 operating orbit.",
                 "labelSource" : "textInside",
                 "ordinal" : 110,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -3074,6 +3184,7 @@
                 "label" : "anarchist",
                 "labelSource" : "classifier",
                 "ordinal" : 111,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3099,6 +3210,7 @@
                 "label" : "• An attempted coup against the military junta in",
                 "labelSource" : "textInside",
                 "ordinal" : 112,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3123,6 +3235,7 @@
                 "label" : "An attempted coup",
                 "labelSource" : "classifier",
                 "ordinal" : 113,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3147,6 +3260,7 @@
                 "label" : "the military junta in Niger",
                 "labelSource" : "classifier",
                 "ordinal" : 114,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -3173,6 +3287,7 @@
                 "label" : "as an anarchist to kill him. Unable to get near McKinley earlier in the",
                 "labelSource" : "textInside",
                 "ordinal" : 115,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -3198,6 +3313,7 @@
                 "label" : "Niger fails.",
                 "labelSource" : "textInside",
                 "ordinal" : 116,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3224,6 +3340,7 @@
                 "label" : "visit, Czolgosz shot himtwice (pictured) as McKinley reached to",
                 "labelSource" : "textInside",
                 "ordinal" : 117,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3250,6 +3367,7 @@
                 "label" : "• King Harald V of Norway dies at the age of 89 and is",
                 "labelSource" : "textInside",
                 "ordinal" : 118,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -3274,6 +3392,7 @@
                 "label" : "Harald V",
                 "labelSource" : "classifier",
                 "ordinal" : 119,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -3298,6 +3417,7 @@
                 "label" : "dies",
                 "labelSource" : "classifier",
                 "ordinal" : 120,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -3324,6 +3444,7 @@
                 "label" : "shake his hand in the reception line. McKinley initially appeared to be",
                 "labelSource" : "textInside",
                 "ordinal" : 121,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3349,6 +3470,7 @@
                 "label" : "succeeded by Haakon VIll.",
                 "labelSource" : "textInside",
                 "ordinal" : 122,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3373,6 +3495,7 @@
                 "label" : "Haakon VIII",
                 "labelSource" : "classifier",
                 "ordinal" : 123,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3398,6 +3521,7 @@
                 "label" : "recovering, but took a turn for the worse on September 13 and died",
                 "labelSource" : "textInside",
                 "ordinal" : 124,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3423,6 +3547,7 @@
                 "label" : "Ongoing: Iran war (Lebanon war) • Russo-Ukrainian war",
                 "labelSource" : "textInside",
                 "ordinal" : 125,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3447,6 +3572,7 @@
                 "label" : "Iran war",
                 "labelSource" : "classifier",
                 "ordinal" : 126,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3471,6 +3597,7 @@
                 "label" : "Lebanon war",
                 "labelSource" : "classifier",
                 "ordinal" : 127,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3497,6 +3624,7 @@
                 "label" : "Russo-Ukrainian war",
                 "labelSource" : "classifier",
                 "ordinal" : 128,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -3522,6 +3650,7 @@
                 "label" : "the next morning; Theodore Roosevelt, the vice president, succeeded",
                 "labelSource" : "textInside",
                 "ordinal" : 129,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -3547,6 +3676,7 @@
                 "label" : "timalina",
                 "labelSource" : "textInside",
                 "ordinal" : 130,
+                "region" : "footer",
                 "role" : "AXStaticText"
               }
             ],
@@ -3554,7 +3684,7 @@
           }
         },
         {
-          "atMilliseconds" : 3547,
+          "atMilliseconds" : 3541,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3790,7 +3920,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 292,
+            "readMilliseconds" : 300,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3814,6 +3944,7 @@
                 "label" : "Main menu",
                 "labelSource" : "classifier",
                 "ordinal" : 1,
+                "region" : "header",
                 "role" : "AXPopUpButton"
               },
               {
@@ -3839,6 +3970,7 @@
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 2,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -3863,6 +3995,7 @@
                 "label" : "Wikipedia The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 3,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -3888,6 +4021,7 @@
                 "label" : "Q Search Wikipedia Search",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -3913,6 +4047,7 @@
                 "label" : "Search Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 5,
+                "region" : "header",
                 "role" : "AXTextField"
               },
               {
@@ -3938,6 +4073,7 @@
                 "label" : "item 5",
                 "labelSource" : "synthesized",
                 "ordinal" : 6,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -3963,6 +4099,7 @@
                 "label" : "Search",
                 "labelSource" : "classifier",
                 "ordinal" : 7,
+                "region" : "header",
                 "role" : "AXButton"
               },
               {
@@ -3988,6 +4125,7 @@
                 "label" : "item 6",
                 "labelSource" : "synthesized",
                 "ordinal" : 8,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -4013,6 +4151,7 @@
                 "label" : "Donate Create account Log in",
                 "labelSource" : "textInside",
                 "ordinal" : 9,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -4038,6 +4177,7 @@
                 "label" : "Donate",
                 "labelSource" : "classifier",
                 "ordinal" : 10,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -4062,6 +4202,7 @@
                 "label" : "Create account",
                 "labelSource" : "classifier",
                 "ordinal" : 11,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -4086,6 +4227,7 @@
                 "label" : "Log in",
                 "labelSource" : "classifier",
                 "ordinal" : 12,
+                "region" : "header",
                 "role" : "AXLink"
               },
               {
@@ -4111,6 +4253,7 @@
                 "label" : "25 years of the free encyclopedia",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
+                "region" : "header",
                 "role" : "AXStaticText"
               },
               {
@@ -4135,6 +4278,7 @@
                 "label" : "The Free Encyclopedia",
                 "labelSource" : "classifier",
                 "ordinal" : 14,
+                "region" : "header",
                 "role" : "AXImage"
               },
               {
@@ -4161,6 +4305,7 @@
                 "label" : "Search results",
                 "labelSource" : "textInside",
                 "ordinal" : 15,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -4185,6 +4330,7 @@
                 "label" : "Search results",
                 "labelSource" : "classifier",
                 "ordinal" : 16,
+                "region" : "main",
                 "role" : "AXHeading"
               },
               {
@@ -4211,6 +4357,7 @@
                 "label" : "Help",
                 "labelSource" : "classifier",
                 "ordinal" : 17,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -4237,6 +4384,7 @@
                 "label" : "item 10",
                 "labelSource" : "synthesized",
                 "ordinal" : 18,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4261,6 +4409,7 @@
                 "label" : "Tools",
                 "labelSource" : "classifier",
                 "ordinal" : 19,
+                "region" : "trailing",
                 "role" : "AXPopUpButton"
               },
               {
@@ -4286,6 +4435,7 @@
                 "label" : "Appearance hide",
                 "labelSource" : "textInside",
                 "ordinal" : 20,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4312,6 +4462,7 @@
                 "label" : "item 12",
                 "labelSource" : "synthesized",
                 "ordinal" : 21,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4336,6 +4487,7 @@
                 "label" : "Hide Appearance",
                 "labelSource" : "classifier",
                 "ordinal" : 22,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -4362,6 +4514,7 @@
                 "label" : "item 13",
                 "labelSource" : "synthesized",
                 "ordinal" : 23,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4388,6 +4541,7 @@
                 "label" : "Search Wikipedia",
                 "labelSource" : "classifier",
                 "ordinal" : 24,
+                "region" : "main",
                 "role" : "AXComboBox"
               },
               {
@@ -4414,6 +4568,7 @@
                 "label" : "Q alpine touring boots",
                 "labelSource" : "textInside",
                 "ordinal" : 25,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4440,6 +4595,7 @@
                 "label" : "item 17",
                 "labelSource" : "synthesized",
                 "ordinal" : 26,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4466,6 +4622,7 @@
                 "label" : "Search",
                 "labelSource" : "classifier",
                 "ordinal" : 27,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -4492,6 +4649,7 @@
                 "label" : "item 18",
                 "labelSource" : "synthesized",
                 "ordinal" : 28,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4518,6 +4676,7 @@
                 "label" : "Results 1 - 20 of 228",
                 "labelSource" : "textInside",
                 "ordinal" : 29,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4544,6 +4703,7 @@
                 "label" : "Text",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4568,6 +4728,7 @@
                 "label" : "Small",
                 "labelSource" : "classifier",
                 "ordinal" : 31,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -4593,6 +4754,7 @@
                 "label" : "Small",
                 "labelSource" : "textInside",
                 "ordinal" : 32,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4619,6 +4781,7 @@
                 "label" : "Advanced search:",
                 "labelSource" : "classifier",
                 "ordinal" : 33,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -4643,6 +4806,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 34,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -4669,6 +4833,7 @@
                 "label" : "Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 35,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4695,6 +4860,7 @@
                 "label" : "Search in:",
                 "labelSource" : "classifier",
                 "ordinal" : 36,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -4721,6 +4887,7 @@
                 "label" : "Search in: ( (Article) X",
                 "labelSource" : "textInside",
                 "ordinal" : 37,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4745,6 +4912,7 @@
                 "label" : "Remove",
                 "labelSource" : "classifier",
                 "ordinal" : 38,
+                "region" : "main",
                 "role" : "AXButton"
               },
               {
@@ -4770,6 +4938,7 @@
                 "label" : "Large",
                 "labelSource" : "textInside",
                 "ordinal" : 39,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4794,6 +4963,7 @@
                 "label" : "Large",
                 "labelSource" : "classifier",
                 "ordinal" : 40,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -4820,6 +4990,7 @@
                 "label" : "item 27",
                 "labelSource" : "synthesized",
                 "ordinal" : 41,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4846,6 +5017,7 @@
                 "label" : "This page always uses",
                 "labelSource" : "textInside",
                 "ordinal" : 42,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -4872,6 +5044,7 @@
                 "label" : "The page \"Alpine touring boots\" does not exist. You can create a draft and submit it for",
                 "labelSource" : "textInside",
                 "ordinal" : 43,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4898,6 +5071,7 @@
                 "label" : "item 30",
                 "labelSource" : "synthesized",
                 "ordinal" : 44,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4922,6 +5096,7 @@
                 "label" : "Alpine touring boots",
                 "labelSource" : "classifier",
                 "ordinal" : 45,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -4947,6 +5122,7 @@
                 "label" : "small font size",
                 "labelSource" : "textInside",
                 "ordinal" : 46,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -4973,6 +5149,7 @@
                 "label" : "review or request that a redirect be created, but consider checking the search results",
                 "labelSource" : "textInside",
                 "ordinal" : 47,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -4997,6 +5174,7 @@
                 "label" : "create a draft and submit it for review",
                 "labelSource" : "classifier",
                 "ordinal" : 48,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -5021,6 +5199,7 @@
                 "label" : "request that a redirect be created",
                 "labelSource" : "classifier",
                 "ordinal" : 49,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -5047,6 +5226,7 @@
                 "label" : "item 34",
                 "labelSource" : "synthesized",
                 "ordinal" : 50,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5072,6 +5252,7 @@
                 "label" : "below to see whether the topic is already covered.",
                 "labelSource" : "textInside",
                 "ordinal" : 51,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5098,6 +5279,7 @@
                 "label" : "Width",
                 "labelSource" : "textInside",
                 "ordinal" : 52,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5123,6 +5305,7 @@
                 "label" : ">",
                 "labelSource" : "textInside",
                 "ordinal" : 53,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5149,6 +5332,7 @@
                 "label" : "• Standard",
                 "labelSource" : "textInside",
                 "ordinal" : 54,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5173,6 +5357,7 @@
                 "label" : "Standard",
                 "labelSource" : "classifier",
                 "ordinal" : 55,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -5199,6 +5384,7 @@
                 "label" : "item 38",
                 "labelSource" : "synthesized",
                 "ordinal" : 56,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5225,6 +5411,7 @@
                 "label" : "20 items",
                 "labelSource" : "classifier",
                 "ordinal" : 57,
+                "region" : "main",
                 "role" : "AXPopUpButton"
               },
               {
@@ -5249,6 +5436,7 @@
                 "label" : "First page",
                 "labelSource" : "classifier",
                 "ordinal" : 58,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -5273,6 +5461,7 @@
                 "label" : "Previous page",
                 "labelSource" : "classifier",
                 "ordinal" : 59,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -5297,6 +5486,7 @@
                 "label" : "Next page",
                 "labelSource" : "classifier",
                 "ordinal" : 60,
+                "region" : "trailing",
                 "role" : "AXButton"
               },
               {
@@ -5322,6 +5512,7 @@
                 "label" : "O Wide",
                 "labelSource" : "textInside",
                 "ordinal" : 61,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5346,6 +5537,7 @@
                 "label" : "Wide",
                 "labelSource" : "classifier",
                 "ordinal" : 62,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -5372,6 +5564,7 @@
                 "label" : "item 41",
                 "labelSource" : "synthesized",
                 "ordinal" : 63,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5397,6 +5590,7 @@
                 "label" : "® Texts from Wikisource",
                 "labelSource" : "textInside",
                 "ordinal" : 64,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5421,6 +5615,7 @@
                 "label" : "Texts from Wikisource",
                 "labelSource" : "classifier",
                 "ordinal" : 65,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -5447,6 +5642,7 @@
                 "label" : "Color",
                 "labelSource" : "textInside",
                 "ordinal" : 66,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5473,6 +5669,7 @@
                 "label" : "Ski touring",
                 "labelSource" : "classifier",
                 "ordinal" : 67,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -5499,6 +5696,7 @@
                 "label" : "item 46",
                 "labelSource" : "synthesized",
                 "ordinal" : 68,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5525,6 +5723,7 @@
                 "label" : "Canadian Alpine Journal/Volume",
                 "labelSource" : "textInside",
                 "ordinal" : 69,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -5549,6 +5748,7 @@
                 "label" : "Thumbnail for Ski touring",
                 "labelSource" : "classifier",
                 "ordinal" : 70,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -5575,6 +5775,7 @@
                 "label" : "areas. Touring is typically done off-piste and outside of ski resorts, and",
                 "labelSource" : "textInside",
                 "ordinal" : 71,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5601,6 +5802,7 @@
                 "label" : "Ski touring is skiing in the backcountry on unmarked or unpatrolled",
                 "labelSource" : "textInside",
                 "ordinal" : 72,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5626,6 +5828,7 @@
                 "label" : "1/Number 1/The Ascent of Mt.",
                 "labelSource" : "textInside",
                 "ordinal" : 73,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5650,6 +5853,7 @@
                 "label" : "Canadian Alpine Journal/Volume 1/Number 1/The Ascent of Mt. Macoun",
                 "labelSource" : "classifier",
                 "ordinal" : 74,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -5675,6 +5879,7 @@
                 "label" : "• Automatic",
                 "labelSource" : "textInside",
                 "ordinal" : 75,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5699,6 +5904,7 @@
                 "label" : "Automatic",
                 "labelSource" : "classifier",
                 "ordinal" : 76,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -5725,6 +5931,7 @@
                 "label" : "item 51",
                 "labelSource" : "synthesized",
                 "ordinal" : 77,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5750,6 +5957,7 @@
                 "label" : "may extend...",
                 "labelSource" : "textInside",
                 "ordinal" : 78,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5775,6 +5983,7 @@
                 "label" : "Macoun",
                 "labelSource" : "textInside",
                 "ordinal" : 79,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5801,6 +6010,7 @@
                 "label" : "O Light",
                 "labelSource" : "textInside",
                 "ordinal" : 80,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5825,6 +6035,7 @@
                 "label" : "Light",
                 "labelSource" : "classifier",
                 "ordinal" : 81,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -5851,6 +6062,7 @@
                 "label" : "item 57",
                 "labelSource" : "synthesized",
                 "ordinal" : 82,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5877,6 +6089,7 @@
                 "label" : "8 KB (910 words) - 23:49, 25 February 2026",
                 "labelSource" : "textInside",
                 "ordinal" : 83,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -5903,6 +6116,7 @@
                 "label" : "Canadian Alpine Journal (1907) The",
                 "labelSource" : "textInside",
                 "ordinal" : 84,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5928,6 +6142,7 @@
                 "label" : "Dark",
                 "labelSource" : "textInside",
                 "ordinal" : 85,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -5952,6 +6167,7 @@
                 "label" : "Dark",
                 "labelSource" : "classifier",
                 "ordinal" : 86,
+                "region" : "trailing",
                 "role" : "AXRadioButton"
               },
               {
@@ -5978,6 +6194,7 @@
                 "label" : "item 64",
                 "labelSource" : "synthesized",
                 "ordinal" : 87,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -6003,6 +6220,7 @@
                 "label" : "Ascent of Mt. Macoun by J. C.",
                 "labelSource" : "textInside",
                 "ordinal" : 88,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -6029,6 +6247,7 @@
                 "label" : "Ski binding (redirect from Alpine touring binding)",
                 "labelSource" : "textInside",
                 "ordinal" : 89,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -6053,6 +6272,7 @@
                 "label" : "Ski binding",
                 "labelSource" : "classifier",
                 "ordinal" : 90,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -6077,6 +6297,7 @@
                 "label" : "Alpine touring binding",
                 "labelSource" : "classifier",
                 "ordinal" : 91,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -6103,6 +6324,7 @@
                 "label" : "Herdman 4006131Canadian Alpine",
                 "labelSource" : "textInside",
                 "ordinal" : 92,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -6129,6 +6351,7 @@
                 "label" : "mountain. Most touring bindings are designed for ski boots falling",
                 "labelSource" : "textInside",
                 "ordinal" : 93,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -6155,6 +6378,7 @@
                 "label" : "Journal - The Ascent of Mt.",
                 "labelSource" : "textInside",
                 "ordinal" : 94,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -6179,6 +6403,7 @@
                 "label" : "Thumbnail for Ski binding",
                 "labelSource" : "classifier",
                 "ordinal" : 95,
+                "region" : "main",
                 "role" : "AXLink"
               },
               {
@@ -6205,6 +6430,7 @@
                 "label" : "under one of two ISO specifications: ISO 5355:2019, for traditional",
                 "labelSource" : "textInside",
                 "ordinal" : 96,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -6231,6 +6457,7 @@
                 "label" : "Macoun1907J. C. Herdman THE",
                 "labelSource" : "textInside",
                 "ordinal" : 97,
+                "region" : "trailing",
                 "role" : "AXLink"
               },
               {
@@ -6256,6 +6483,7 @@
                 "label" : "alpine boots. In this...",
                 "labelSource" : "textInside",
                 "ordinal" : 98,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -6282,6 +6510,7 @@
                 "label" : "See all results",
                 "labelSource" : "classifier",
                 "ordinal" : 99,
+                "region" : "footer",
                 "role" : "AXLink"
               },
               {
@@ -6308,6 +6537,7 @@
                 "label" : "26 KB (3,182 words) - 16:22, 24 August 2026",
                 "labelSource" : "textInside",
                 "ordinal" : 100,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -6334,6 +6564,7 @@
                 "label" : "•))) Quotes from Wikiquote",
                 "labelSource" : "textInside",
                 "ordinal" : 101,
+                "region" : "footer",
                 "role" : "AXStaticText"
               },
               {
@@ -6358,6 +6589,7 @@
                 "label" : "Quotes from Wikiquote",
                 "labelSource" : "classifier",
                 "ordinal" : 102,
+                "region" : "footer",
                 "role" : "AXLink"
               }
             ],
@@ -6378,7 +6610,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1453,
+          "atMilliseconds" : 1444,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8085,7 +8317,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 49,
+          "atMilliseconds" : 43,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8096,7 +8328,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2391,
+          "atMilliseconds" : 2388,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8107,18 +8339,18 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2726,
+          "atMilliseconds" : 2725,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
           "tabCount" : 1,
-          "title" : "alpine touring boots - Search results - Wikipedia"
+          "title" : "Wikipedia, the free encyclopedia"
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3048,
+          "atMilliseconds" : 3040,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -8129,22 +8361,22 @@
         }
       ],
       "timeline" : [
-        "10ms  resolved Chrome",
-        "49ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "932ms  perceived 130 controls · —",
-        "932ms  looked — 130 rows, 116 named, 19 groups",
-        "1453ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
-        "1453ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
-        "2095ms  typed 20 characters",
-        "3547ms  perceived 102 controls · —",
-        "3547ms  looked — 102 rows, 86 named, 18 groups",
-        "3833ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
+        "6ms  resolved Chrome",
+        "43ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "925ms  perceived 130 controls · —",
+        "925ms  looked — 130 rows, 116 named, 19 groups",
+        "1444ms  routed \"search wikipedia\" → \"Search Wikipedia\" (2 of 130 eligible)",
+        "1444ms  matched \"search wikipedia\" → \"Search Wikipedia\"",
+        "2076ms  typed 20 characters",
+        "3541ms  perceived 102 controls · —",
+        "3541ms  looked — 102 rows, 86 named, 18 groups",
+        "3820ms  receipt — typeText \"search wikipedia\" — the page became alpine touring boots - Search results - Wikipedia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T16:29:24Z",
-  "round" : "5",
+  "recordedAt" : "2026-09-06T16:58:13Z",
+  "round" : "6",
   "runner" : "probe",
   "tripID" : "fill-and-submit"
 }
