@@ -110,7 +110,7 @@ public enum TripReceipt: String, Sendable, Equatable, Codable, CaseIterable {
 public enum TripRefusal: String, Sendable, Equatable, Codable, CaseIterable {
     case noBrowser, ambiguousBrowser, shellUnreadable, pageNotVisible
     case visionUnavailable, controlsNotFound, controlNotFound, stateUnchanged
-    case navigationDidNotSettle, addressFieldNotFound, elementNotFound
+    case navigationDidNotSettle, humanCheck, addressFieldNotFound, elementNotFound
     case ambiguousElement, planInvalid, interrupted, searchCompletedElsewhere
     case notFillable, notAdjustable, outOfTime, activationRefused, notImplemented
 }
@@ -733,13 +733,23 @@ public enum TripStaging {
     }
 
     /// The address to open for a page class, when the person has written one.
+    ///
+    /// PIN: READ AS AN OBJECT WITH MIXED VALUES, NOT AS A FLAT STRING MAP. This
+    /// decoded `[String: String]`, and the file also carries a `phrases` object
+    /// — so decoding the WHOLE file failed and every page class came back
+    /// without an address. Measured: a fully written seed file, and forty legs
+    /// reporting "no address for …". The failure was visible only because an
+    /// unstageable leg says which key it wanted; a runner that had guessed would
+    /// have run the whole corpus against one page.
     public static func seed(for pageClass: TripPageClass) -> String? {
         guard pageClass != .any, pageClass != .blank,
               let data = FileManager.default.contents(atPath: seedsURL.path),
-              let table = try? JSONDecoder().decode([String: String].self, from: data)
+              let object = try? JSONSerialization.jsonObject(with: data)
+                as? [String: Any],
+              let value = object[pageClass.rawValue] as? String,
+              !value.isEmpty
         else { return nil }
-        let value = table[pageClass.rawValue]
-        return (value?.isEmpty ?? true) ? nil : value
+        return value
     }
 
     /// The words a leg names by key — `{"phrases": {"namedRow": "…"}}` in the

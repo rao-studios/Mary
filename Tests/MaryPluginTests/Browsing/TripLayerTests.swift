@@ -455,14 +455,46 @@ import Testing
         #expect(judged.because?.contains("rosterChanged") == true)
     }
 
+    /// THE WRONG REFUSAL, BETWEEN TWO THAT ARE BOTH ABOUT ACTING. A refusal
+    /// about something UNSEEN belongs to perception instead — see
+    /// `aRefusalAboutSomethingUnseenBelongsToPerception`, which is why this
+    /// names a pair the executor genuinely owns.
     @Test func theWrongRefusalIsAnExecutionFailure() {
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "go to wikipedia",
+                engine: TripEngineExpectation(refusal: .stateUnchanged)),
+            recording: Self.recording(landed: false, refusal: "navigationDidNotSettle"))
+        #expect(judged.layer == .execution)
+        #expect(judged.because?.contains("navigationDidNotSettle") == true)
+    }
+
+    /// A REFUSAL ABOUT SOMETHING NOT SEEN IS A PERCEPTION FINDING, wherever the
+    /// leg happened to state its expectation.
+    ///
+    /// PIN: MEASURED. Six media legs refused `controlsNotFound` on a page that
+    /// holds a player, and all six were filed under execution — sending the
+    /// finding to the receipt ladder when the executor did exactly what it was
+    /// told and nothing was ever found to press.
+    @Test func aRefusalAboutSomethingUnseenBelongsToPerception() {
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "pause the video",
+                engine: TripEngineExpectation(receipt: .mediaState, landed: true)),
+            recording: Self.recording(landed: false, refusal: "controlsNotFound"))
+        #expect(judged.layer == .perception)
+        #expect(judged.because?.contains("nothing was found to act on") == true)
+    }
+
+    /// AND A LEG THAT ASKED FOR THAT REFUSAL STILL PASSES — the bright-frame
+    /// case, where refusing is the correct answer.
+    @Test func aRefusalTheLegAskedForIsNotAFinding() {
         let judged = TripLayer.judge(
             leg: TripLeg(
                 say: "pause the video",
                 engine: TripEngineExpectation(refusal: .controlsNotFound)),
-            recording: Self.recording(landed: false, refusal: "pageNotVisible"))
-        #expect(judged.layer == .execution)
-        #expect(judged.because?.contains("pageNotVisible") == true)
+            recording: Self.recording(landed: false, refusal: "controlsNotFound"))
+        #expect(judged.verdict == .passed)
     }
 
     // MARK: - S

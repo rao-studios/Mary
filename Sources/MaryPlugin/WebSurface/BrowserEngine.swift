@@ -537,7 +537,10 @@ public actor BrowserEngine {
                 address, pid: target.processIdentifier, registration: target.registration)
             else { return refuse(.addressFieldNotFound) }
             emit(.acted("typed an address"))
-            return await settle(target, from: shell, saying: "Opened")
+            let settled = await settle(target, from: shell, saying: "Opened")
+            // A PAGE ASKED FOR CAN LAND BEHIND A HUMAN-CHECK. Answer its visible
+            // control once, then look again — or hand it back. See PageChallenge.
+            return await satisfyingChallenge(settled, in: target)
 
         case .back, .forward, .reload:
             let label: String
@@ -580,6 +583,61 @@ public actor BrowserEngine {
             // chord the expertise declares, and this engine does not own chords.
             return refuse(.notImplemented("switch tabs from here"))
         }
+    }
+
+    // MARK: - The human check
+
+    /// If the navigation landed on a human-verification interstitial, press its
+    /// visible control once and look again; otherwise the outcome stands.
+    ///
+    /// PIN: A NO-OP ON AN ORDINARY PAGE. `PageChallenge.isChallenge` reads the
+    /// title the shell already carries, so this touches nothing unless the tab
+    /// is literally titled like an interstitial — and then it presses the one
+    /// control a person would press, through the same visible-cursor HID click
+    /// the rest of this lane uses. ONE PRESS, THEN AN HONEST HANDBACK. Hammering
+    /// a challenge is the thing this is not.
+    func satisfyingChallenge(
+        _ settled: BrowserOutcome, in target: BrowserTarget
+    ) async -> BrowserOutcome {
+        guard settled.ok, let shell = settled.shell,
+              PageChallenge.isChallenge(title: shell.title)
+        else { return settled }
+
+        emit(.acted("a human-check stands on the page"))
+        // Press the visible control. `pressOnPage` reads the page from pixels,
+        // routes the phrase against the rows it found, and clicks through the
+        // HID tap — a real cursor on a control a person can see.
+        _ = await pressOnPage(PageChallenge.primaryControlPhrase, in: target)
+
+        // LOOK AGAIN. The title stops being the interstitial's when the check
+        // clears; that is the receipt, read the same way the navigation was.
+        if let cleared = await challengeCleared(in: target) {
+            lastChrome = cleared
+            emit(.verified("the human-check cleared"))
+            return BrowserOutcome(
+                ok: true,
+                spoken: Self.spoken(cleared, browser: target.spokenName),
+                shell: cleared)
+        }
+        // One press did not clear it. The honest answer is to hand it back.
+        return refuse(.humanCheck)
+    }
+
+    /// Poll the shell title until it is no longer an interstitial, or the budget
+    /// runs out. Returns the cleared reading, or nil if it never cleared.
+    func challengeCleared(
+        in target: BrowserTarget, within seconds: Double = 8
+    ) async -> WebSurfaceAX.Reading? {
+        let deadline = seams.now().addingTimeInterval(seconds)
+        while seams.now() < deadline {
+            guard !Task.isCancelled else { return nil }
+            await seams.sleep(Self.navigationPoll)
+            guard let reading = await seams.shell.read(
+                pid: target.processIdentifier, registration: target.registration)
+            else { continue }
+            if !PageChallenge.isChallenge(title: reading.title) { return reading }
+        }
+        return nil
     }
 
     /// Wait for the address or the title to change, and stay changed.

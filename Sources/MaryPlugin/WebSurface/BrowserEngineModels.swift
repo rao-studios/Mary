@@ -83,6 +83,11 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The act landed and nothing moved. The receipt that failed.
     case stateUnchanged(expected: String, observed: String)
     case navigationDidNotSettle
+    /// A human-verification interstitial stands between the person and the page
+    /// they asked for, and pressing its visible control did not clear it. NOT a
+    /// failure to try — see PageChallenge — but the point at which the honest
+    /// answer is to hand it back.
+    case humanCheck
     case addressFieldNotFound
     case elementNotFound(String)
     /// Several things answer to that phrase. Carries the rivals so the refusal names them.
@@ -122,6 +127,8 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
             return "I pressed it, but it's still \(observed) rather than \(expected)."
         case .navigationDidNotSettle:
             return "The page didn't finish loading."
+        case .humanCheck:
+            return "There's a \"verify you are human\" step on this page — could you click it? I'd rather not get that one wrong."
         case .addressFieldNotFound:
             return "I couldn't find the address bar."
         case .elementNotFound(let phrase):

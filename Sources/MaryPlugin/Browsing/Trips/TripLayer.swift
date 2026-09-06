@@ -267,8 +267,33 @@ public enum TripLayer {
 
     // MARK: - E — the act
 
+    /// REFUSALS THAT MEAN "I COULD NOT SEE IT", which is a reading failure
+    /// wherever it is reported from.
+    ///
+    /// PIN: MEASURED ON THE MEDIA TRIPS. Six transport legs refused
+    /// `controlsNotFound` on a page that genuinely holds a player, and every one
+    /// was filed under EXECUTION because the leg happened to state an engine
+    /// expectation and not a page one. The executor did exactly what it was
+    /// told; nothing was ever found to press. Sending that finding to the
+    /// receipt ladder is sending it to the wrong file — it belongs to the
+    /// detector, or to the reveal that was supposed to make the controls appear.
+    static let sightRefusals: Set<String> = [
+        "controlsNotFound", "controlNotFound", "visionUnavailable", "pageNotVisible",
+    ]
+
     static func execution(_ leg: TripLeg, _ recording: TripLegRecording) -> Judgement? {
         guard let wanted = leg.engine else { return nil }
+
+        // A REFUSAL THE LEG DID NOT ASK FOR, ABOUT SOMETHING NOT SEEN.
+        if let refused = recording.refusal, Self.sightRefusals.contains(refused),
+           wanted.refusal?.rawValue != refused {
+            return .failed(
+                .perception,
+                "refused \(refused) — nothing was found to act on"
+                    + (recording.media.last.map {
+                        " (\($0.controlCount) control(s) seen, controls visible: \($0.controlsVisible))"
+                    } ?? ""))
+        }
 
         if let refusal = wanted.refusal {
             guard recording.refusal == refusal.rawValue else {

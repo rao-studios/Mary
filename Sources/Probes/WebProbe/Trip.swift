@@ -22,6 +22,11 @@ import MaryComputerUse
 import MaryFoundation
 import MaryPlugin
 
+/// Whether the operator says they have set the stage by hand.
+enum SandStageless {
+    static func staged(_ setup: TripRunner.Setup) -> Bool { setup.staged }
+}
+
 enum TripCommand {
 
     /// One leg's line in the verdict table.
@@ -65,6 +70,37 @@ enum TripCommand {
         var recording = TripRecording(
             tripID: trip.id, category: trip.category,
             runner: setup.runner, round: setup.round, browser: setup.browser)
+
+        // A STAGE THIS RUNNER CANNOT SET IS NOT A STAGE IT MAY IGNORE.
+        //
+        // PIN: THE SAME FALSE PASS AS AN UNSTAGED PAGE CLASS, ONE FIELD OVER. A
+        // trip that says an editor leads, or that music is playing, or that a
+        // second window is open, is asking what the browser does when it is NOT
+        // the whole machine — and this runner drives the browser and nothing
+        // else. Running it anyway with Chrome in front answers a different
+        // question and reports a pass. `--staged` is the operator saying they
+        // have set it up by hand; without it, these are Sand's or a person's.
+        var missing: [String] = []
+        if trip.stage.front != "browser" {
+            missing.append("\(trip.stage.front) has to be in front")
+        }
+        if !SandStageless.staged(setup) {
+            if trip.stage.musicPlaying == true { missing.append("music has to be playing") }
+            if trip.stage.twoWindows == true { missing.append("a second window has to be open") }
+            if trip.stage.handNavigateBeforeLeg != nil {
+                missing.append("somebody has to navigate the page by hand mid-trip")
+            }
+            if trip.stage.pin != nil { missing.append("\(trip.stage.pin ?? "") has to be pinned") }
+        }
+        if !missing.isEmpty {
+            for (index, leg) in trip.legs.enumerated() {
+                recording.legs.append(TripRunner.unstageable(
+                    index: index, say: leg.say,
+                    because: missing.joined(separator: "; ")))
+                print(line(recording.legs[recording.legs.count - 1]))
+            }
+            return recording
+        }
 
         // THE STAGE IS PART OF THE QUESTION, AND AN UNSTAGED RUN IS A FALSE PASS.
         // Measured while building this: `what-can-i-click` staged `resultsPage`

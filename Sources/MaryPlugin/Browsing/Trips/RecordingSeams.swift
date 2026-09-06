@@ -349,6 +349,7 @@ public extension RecordedReceipt {
         case .controlNotFound: return "controlNotFound"
         case .stateUnchanged: return "stateUnchanged"
         case .navigationDidNotSettle: return "navigationDidNotSettle"
+        case .humanCheck: return "humanCheck"
         case .addressFieldNotFound: return "addressFieldNotFound"
         case .elementNotFound: return "elementNotFound"
         case .ambiguousElement: return "ambiguousElement"
