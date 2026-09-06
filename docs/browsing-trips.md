@@ -428,7 +428,46 @@ the change cannot be seen) and `go full screen` (the page frame changes under th
 second look). A seek with no track needs the player playing first. And on the
 routing side: "the third link" and "the second one" now reach real content but
 land one row off, and a site's own search box still reads as a button rather than
-a field — a VisionAX naming gap, not a routing one. What could not be staged honestly: the
+a field — a VisionAX naming gap, not a routing one.
+
+### Round 3 — proving an act, and a lesson about what a live page can measure
+
+Media reached **75%**: five of the six transport verbs now land. Two changes, and
+one finding about the method itself that matters more than either.
+
+- **"I cannot see whether it worked" is not "it did not work."** The media lane
+  had one failure sentence for both, so a mute on a player whose volume glyph the
+  reading could not make out was reported as `stateUnchanged` — "I pressed it,
+  but it's still unmuted" — about a video that may well have gone silent. Sound
+  is not visible. A verdict is now `proved`, `unchanged` or `unreadable`, and the
+  unreadable case is delivered-but-unverified: rank five of the ladder, which
+  existed for exactly this and was never reachable.
+- **Full screen is proved by the page, which the shell already carries.** The old
+  test compared the player's bar before and after, and no bar was legible either
+  side, so it could never fire. Going full screen takes the frame from the window
+  below the toolbar to the whole window — measured, 1266×765 to 1920×1080 — and
+  that is free evidence the engine already had in hand.
+- **`mute` remains an honest failure, and stays recorded.** The glyph reads "not
+  muted" both before and after, so the verdict is right to refuse. The volume
+  control is found by POSITION, because a real speaker icon matches the drawn
+  silhouettes about half the time; if the position is wrong the press lands
+  elsewhere. That belongs to the detector.
+
+**A LIVE RESULTS PAGE CANNOT MEASURE AN ORDINAL.** Running the same corpus twice
+gave the same staged seeds 61, 72, 74 and 75 rows, and the `act` and `search`
+numbers moved with them — down as readily as up, with no code between the runs.
+A leg asserting "the second result" against a page whose content changes every
+run is measuring the page, not the router. The division the instruments were
+built for is the answer, and round 4 should enforce it: **live runs prove the ACT
+path — it reached a row, it landed, it said something — and RECORDED pages prove
+the ROUTING**, through the replay net, where the read is fixed and a change in
+the answer means a change in the router. Until those ordinal assertions move,
+the `act` and `search` percentages should be read as noisy.
+
+One instrument bug fixed on the way: a mismatch could print "reached by
+contained, not contained" — the basis branch reporting a comparison it had not
+failed, because the row was refused for a reason no branch covered. It now names
+the real reason, or says the class admits nothing on that page. What could not be staged honestly: the
 context trips (another application must lead), the media trips (the seed is a
 file page, not a watch page — zero controls reveal), and the consent wall. And `PageRouteVerb.word` prints `openResult` as
 "result", so a leg asking about the openResult arbitration was judged against the
@@ -466,3 +505,19 @@ Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media 
 | **all** | **33** | **10** | **13** | **18** | **77%** | P 3 · R2 3 · E 4 |
 
 Exit criterion not met: no leg ran in recovery; act at 75% — under 90%; media at 50% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 3 page-routing failure(s) on the recorded corpus.
+
+### Round 3 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 4 | 4 | 1 | 5 | 50% | R2 4 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 2 | 1 | 8 | 50% | P 1 · E 1 |
+| media | 6 | 2 | 1 | 1 | 75% | P 1 · E 1 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 5 | 3 | 0 | 0 | 63% | P 2 · R2 1 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **32** | **11** | **13** | **18** | **74%** | P 4 · R2 5 · E 2 |
+
+Exit criterion not met: no leg ran in recovery; act at 50% — under 90%; media at 75% — under 90%; search at 63% — under 90%; context has 2 failing leg(s); 5 page-routing failure(s) on the recorded corpus.

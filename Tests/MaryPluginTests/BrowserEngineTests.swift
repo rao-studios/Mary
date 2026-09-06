@@ -615,6 +615,82 @@ enum BrowsingFixtures {
     }
 }
 
+@Suite struct MediaVerdictTests {
+
+    /// `bar` is DERIVED from the controls that were found (see the private
+    /// extension in BrowserEngine), so a reading with no controls has no bar —
+    /// which is exactly the case these tests are about.
+    static func reading(
+        muted: Bool? = nil, volume: Bool = false,
+        page: CGRect = BrowsingFixtures.pageFrame,
+        playback: MediaControlReading.Playback = .paused
+    ) -> MediaControlReading {
+        MediaControlReading(
+            pageFrame: page,
+            controlsVisible: volume,
+            playback: playback,
+            volume: volume
+                ? .init(frame: CGRect(x: 180, y: 700, width: 20, height: 20),
+                        glyph: muted == true ? .muted : .volume, confidence: 0.6)
+                : nil)
+    }
+
+    /// "I CANNOT SEE WHETHER IT WORKED" IS NOT "IT DID NOT WORK".
+    ///
+    /// PIN: MEASURED. A mute on a player whose volume glyph the reading could not
+    /// make out in either look was reported `stateUnchanged` — "I pressed it, but
+    /// it's still unmuted" — about a video that had in fact gone silent. Sound is
+    /// not visible; sometimes there is genuinely nothing to see.
+    @Test func anIllegibleControlIsUnreadableRatherThanUnchanged() {
+        let before = Self.reading(volume: false)
+        let after = Self.reading(volume: false)
+        guard case .unreadable(let why) = BrowserEngine.verdict(
+            .mute, before: before, after: after) else {
+            Issue.record("an illegible volume control was called unchanged")
+            return
+        }
+        #expect(why.contains("not legible"))
+    }
+
+    /// AND A LEGIBLE CONTROL THAT DID NOT MOVE IS STILL `unchanged` — the
+    /// distinction has to cut both ways or it is just a softer refusal.
+    @Test func aLegibleControlThatDidNotMoveIsUnchanged() {
+        let before = Self.reading(muted: false, volume: true)
+        let after = Self.reading(muted: false, volume: true)
+        guard case .unchanged = BrowserEngine.verdict(.mute, before: before, after: after)
+        else {
+            Issue.record("a legible control that did not move was excused")
+            return
+        }
+    }
+
+    /// FULL SCREEN IS READ FROM THE PAGE, WHICH THE SHELL ALREADY CARRIES.
+    ///
+    /// PIN: MEASURED LIVE — the frame went from the window below the toolbar to
+    /// the whole window, 1266×765 to 1920×1080. The bar comparison this had could
+    /// not fire, because no bar was legible on either side.
+    @Test func fullScreenIsProvedByThePageGrowing() {
+        let before = Self.reading(page: CGRect(x: 0, y: 0, width: 1266, height: 765))
+        let after = Self.reading(page: CGRect(x: 0, y: 0, width: 1920, height: 1080))
+        guard case .proved(let proof) = BrowserEngine.verdict(
+            .fullscreen, before: before, after: after) else {
+            Issue.record("a page that filled the screen proved nothing")
+            return
+        }
+        #expect(proof.contains("filled the screen"))
+    }
+
+    /// AND A PAGE THAT DID NOT GROW, WITH NO BAR EITHER SIDE, IS UNREADABLE.
+    @Test func fullScreenWithNothingToCompareIsUnreadable() {
+        let same = Self.reading(page: CGRect(x: 0, y: 0, width: 1266, height: 765))
+        guard case .unreadable = BrowserEngine.verdict(
+            .fullscreen, before: same, after: same) else {
+            Issue.record("full screen with nothing legible was called unchanged")
+            return
+        }
+    }
+}
+
 @Suite struct PlayerRegionTests {
 
     static func reading(_ frames: [CGRect]) -> VisionPageReader.Reading {

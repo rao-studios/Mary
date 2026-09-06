@@ -459,6 +459,39 @@ import Testing
         #expect(judged.layer == .pageRouting)
     }
 
+    /// THE SENTENCE MUST NOT CONTRADICT ITSELF.
+    ///
+    /// PIN: MEASURED IN A ROUND-3 RUN — "reached row 16, which was reached by
+    /// contained, not contained". The basis branch printed a comparison it had
+    /// not failed, because the row was refused for a reason no branch covered.
+    @Test func aMismatchNamesARealReasonOrSaysTheClassAdmitsNothing() {
+        let judged = TripLayer.judge(
+            leg: TripLeg(
+                say: "press it",
+                page: TripPageExpectation(
+                    verb: .press,
+                    winner: TripRowClass(lexicalBasis: "contained", named: true))),
+            recording: Self.recording(
+                pageReads: [Self.page([
+                    // The row the router reached: a position the reading invented.
+                    PageRosterFixture.Row(
+                        ordinal: 1, role: "", label: "item 4",
+                        frame: [0, 0, 40, 20], isEnabled: true, containerTrail: [],
+                        affordance: "press", affordanceSource: "classifier",
+                        labelSource: "synthesized", hints: [], groupID: nil,
+                        confidence: 0.5, facts: 0, kind: nil),
+                    // And one the class does admit, so this is a ROUTING finding
+                    // rather than a detector one.
+                    Self.row(2, label: "Alpine touring boots reviewed"),
+                ])],
+                routes: [Self.route(
+                    verb: "press", selected: 1, basis: [1: "contained"], ordinals: [1, 2])]))
+        #expect(judged.layer == .pageRouting)
+        let because = judged.because ?? ""
+        #expect(!because.contains("contained, not contained"), "\(because)")
+        #expect(because.contains("no name anybody wrote"), "\(because)")
+    }
+
     // MARK: - E
 
     /// THE MEDIA LANE'S KNOWN DEFECT: a proven mute reporting `landed: false`,

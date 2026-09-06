@@ -493,10 +493,27 @@ public enum TripLayer {
             return place.map { "is number \($0) of its kind, not \(ordinal)" }
                 ?? "is not among the rows the class admits"
         }
+        // A SYNTHESIZED LABEL IS A POSITION, NOT A NAME — the class can ask for a
+        // row somebody actually named, and this is what says it did not get one.
+        if wanted.named == true, row.labelSource == "synthesized" {
+            return "carries no name anybody wrote — the reading called it \"\(row.label)\""
+        }
         if let basis = wanted.lexicalBasis {
             let reached = route.decisions.first { $0.ordinal == selected }?.lexicalBasis
-            return "was reached by \(reached ?? "nothing"), not \(basis)"
+            if reached != basis {
+                return "was reached by \(reached ?? "nothing"), not \(basis)"
+            }
         }
-        return "does not answer the class"
+        // EVERY NAMED TEST AGREED AND THE ROW STILL IS NOT ONE THE CLASS ADMITS.
+        //
+        // PIN: THE SENTENCE USED TO CONTRADICT ITSELF HERE — "reached by
+        // contained, not contained" — because the basis branch printed a
+        // comparison it had not actually failed. Falling through every check
+        // without finding the reason means the class admits nothing on this page
+        // at all, and saying so is the finding.
+        let admitted = candidates(for: wanted, in: recording)
+        return admitted.isEmpty
+            ? "is not among the rows the class admits — nothing on this page answers it"
+            : "is not one of the \(admitted.count) row(s) the class admits (\(admitted.prefix(4).map(String.init).joined(separator: ", ")))"
     }
 }

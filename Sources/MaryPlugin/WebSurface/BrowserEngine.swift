@@ -590,10 +590,26 @@ public actor BrowserEngine {
             after = media
         }
 
-        guard let verdict = Self.verify(action, before: before, after: after) else {
+        let verdict: String
+        switch Self.verdict(action, before: before, after: after) {
+        case .proved(let proof):
+            verdict = proof
+        case .unchanged:
             return refuse(.stateUnchanged(
                 expected: Self.expected(action),
                 observed: Self.observed(action, in: after)))
+        case .unreadable(let why):
+            // DELIVERED, EFFECT UNVERIFIED — rank five of the ladder, and the
+            // honest answer when there was nothing to compare. Not `landed`,
+            // because nothing proved it; not a refusal either, because the press
+            // happened and saying it did not would be the wrong lie.
+            let receipt = PageCommandReceipt(
+                sourceIndex: 0, kind: .click, target: what, delivery: .delivered)
+            emit(.receipt(receipt))
+            return BrowserOutcome(
+                ok: true,
+                spoken: "\(action.spokenPast), though \(why).",
+                shell: shell, media: after, receipts: [receipt], landed: false)
         }
         emit(.verified(verdict))
         // THE RECEIPT THE MEDIA LANE NEVER GAVE.
@@ -998,6 +1014,56 @@ public actor BrowserEngine {
     /// PIN: MUTE HAS NO TEMPORAL WITNESS. Sound is not visible, so the only evidence is
     /// the glyph flipping — a weaker receipt than playback's, and the reason this
     /// returns a sentence naming which evidence was used rather than a bare Bool.
+    /// WHAT A SECOND LOOK CAN SAY ABOUT AN ACT.
+    ///
+    /// PIN: "I CANNOT SEE WHETHER IT WORKED" IS NOT "IT DID NOT WORK", and
+    /// collapsing the two makes Mary tell the person the stronger, wrong thing.
+    /// Measured: a mute on a player whose volume glyph the reading could not make
+    /// out in either look was reported as `stateUnchanged` — "I pressed it, but
+    /// it's still unmuted" — about a video that had in fact gone silent. Sound is
+    /// not visible; sometimes there is genuinely nothing to see, and the ranked
+    /// ladder already has a rung for that: delivered, effect unverified.
+    enum MediaVerdict {
+        /// The second look proved it, and says how.
+        case proved(String)
+        /// The second look was legible and nothing moved.
+        case unchanged
+        /// There was nothing legible to compare — the act was delivered and its
+        /// effect cannot be seen from a picture.
+        case unreadable(String)
+    }
+
+    static func verdict(
+        _ action: MediaAction, before: MediaControlReading, after: MediaControlReading
+    ) -> MediaVerdict {
+        if let proof = verify(action, before: before, after: after) {
+            return .proved(proof)
+        }
+        switch action {
+        case .mute, .unmute:
+            // The glyph answered nothing in either look, so nothing was legible.
+            guard after.isMuted != nil || (before.volume != nil && after.volume != nil)
+            else { return .unreadable("the volume control is not legible in the picture") }
+            return .unchanged
+        case .fullscreen:
+            guard before.bar != nil, after.bar != nil
+            else { return .unreadable("the player's bar is not visible to compare") }
+            return .unchanged
+        case .volume:
+            guard after.volumeTrack != nil
+            else { return .unreadable("the volume track is not visible to compare") }
+            return .unchanged
+        case .seek:
+            guard after.progress != nil
+            else { return .unreadable("the progress track is not visible to compare") }
+            return .unchanged
+        case .play, .pause, .toggle:
+            guard after.playback != .unknown
+            else { return .unreadable("whether it is playing cannot be told from the picture") }
+            return .unchanged
+        }
+    }
+
     static func verify(
         _ action: MediaAction, before: MediaControlReading, after: MediaControlReading
     ) -> String? {
@@ -1028,7 +1094,14 @@ public actor BrowserEngine {
         case .fullscreen:
             // Vision cannot answer this: full screen replaces the whole picture, so the
             // reading after is of a different layout entirely. The honest evidence is
-            // that the transport moved to the bottom of a much larger frame.
+            // that the transport moved to the bottom of a much larger frame — or, when
+            // no bar is legible either side, that the PAGE grew, which the shell reads
+            // for free and which full screen changes unmistakably (measured live: the
+            // frame went from the window below the toolbar to the whole window).
+            if before.pageFrame.height > 0,
+               after.pageFrame.height > before.pageFrame.height * 1.2 {
+                return "the page filled the screen"
+            }
             guard let beforeBar = before.bar, let afterBar = after.bar else { return nil }
             return afterBar.height > beforeBar.height * 1.2 ? "the player grew" : nil
         case .volume(let fraction):
