@@ -305,16 +305,37 @@ public actor BrowserEngine {
         // depending on where the animation and the auto-hide timer happened to be. A
         // person in this situation moves the mouse again; so does this.
         var attempt = 0
+        /// Where the picture is, once anything has said. Kept across retries so
+        /// the extra read happens at most once.
+        var playerFrame: CGRect?
         while true {
             let result = await lookOnce(
                 target, shell: shell, pageFrame: pageFrame, intent: intent,
                 previous: previous)
             guard case .success(let reading) = result else { return result }
-            let found = intent != .media || reading.media?.controlsVisible == true
+            let found = intent != .media
+                || reading.media.map(Self.hasTransport) == true
             if found || !reveal || attempt >= Self.revealAttempts {
                 return .success(reading)
             }
             emit(.acted("looked again — the transport was not showing"))
+            // ASK WHERE THE PICTURE IS, ONCE.
+            //
+            // PIN: A MEDIA READ CARRIES NO ROWS, WHICH MADE THE REGION FIX INERT.
+            // `playerRegion` reads `reading.rows`, and a `.media` reading has
+            // none — so it always answered nil and every retry went on hovering
+            // fractions of the whole page, which is what it was written to stop.
+            // Measured: four hovers, one of them above the video entirely, on a
+            // page whose player sits well below the middle. One `.elements` read
+            // on the FIRST retry answers it, and only on the path where the blind
+            // look already failed.
+            if playerFrame == nil, attempt == 0,
+               case .success(let seen) = await lookOnce(
+                   target, shell: shell, pageFrame: pageFrame, intent: .elements,
+                   previous: nil) {
+                playerFrame = Self.playerRegion(in: seen, page: pageFrame)
+                if playerFrame != nil { emit(.acted("found the picture to hover")) }
+            }
             // OVER THE PICTURE ITSELF, WHEN THE READING FOUND ONE.
             //
             // PIN: MEASURED — A PLAYER IS NOT ALWAYS IN THE MIDDLE OF THE PAGE.
@@ -326,12 +347,24 @@ public actor BrowserEngine {
             // a page that plainly has one — two legs of round 0, and six more that
             // could not be staged because of it. The reading already knows where
             // the picture is; aiming at it is generic, and needs no site.
-            let region = Self.playerRegion(in: reading, page: pageFrame) ?? pageFrame
+            let region = playerFrame ?? Self.playerRegion(in: reading, page: pageFrame) ?? pageFrame
             await seams.hands.reveal(
                 over: region, at: Self.revealDepths[attempt], pid: target.processIdentifier)
             await seams.sleep(Self.revealSettle)
             attempt += 1
         }
+    }
+
+    /// IS THERE ANYTHING TO DRIVE — a control row, or the circle over the picture?
+    ///
+    /// PIN: `controlsVisible` MEANS "A BAR WAS FOUND", AND THAT IS NOT THE SAME
+    /// QUESTION. A paused player often draws no bar at all and one big play glyph
+    /// instead; refusing there says "I can't find the player's controls" about a
+    /// control the person is looking at. What each VERB needs is a separate
+    /// matter and `target(for:in:)` still decides it — volume, seek and full
+    /// screen have no centre glyph to fall back to and still refuse by name.
+    static func hasTransport(_ media: MediaControlReading) -> Bool {
+        media.controlsVisible || media.centerGlyph != nil
     }
 
     /// THE PICTURE ON THE PAGE, WHEN THE READING HELD ONE.
@@ -438,7 +471,7 @@ public actor BrowserEngine {
         case .failure(let refusal):
             return refuse(refusal)
         case .success(let reading):
-            guard let media = reading.media, media.controlsVisible else {
+            guard let media = reading.media, Self.hasTransport(media) else {
                 return refuse(.controlsNotFound)
             }
             return BrowserOutcome(
@@ -470,7 +503,7 @@ public actor BrowserEngine {
         switch await perceive(target, shell: shell, intent: .media, reveal: true) {
         case .failure(let refusal): return refuse(refusal)
         case .success(let reading):
-            guard let media = reading.media, media.controlsVisible else {
+            guard let media = reading.media, Self.hasTransport(media) else {
                 return refuse(.controlsNotFound)
             }
             before = media
@@ -480,7 +513,18 @@ public actor BrowserEngine {
         // Pressing play on a playing video pauses it, which is the opposite of what
         // was asked for — the most annoying possible way to be wrong.
         if let settled = Self.alreadySatisfied(action, by: before) {
-            return BrowserOutcome(ok: true, spoken: settled, shell: shell, media: before)
+            // ALREADY TRUE IS STILL PROVEN. The reading says so, and a turn that
+            // reported this as unproven would be nudged to do it again.
+            let receipt = PageCommandReceipt(
+                sourceIndex: 0, kind: .click, target: Self.controlNoun(for: action),
+                delivery: .delivered, effect: .verified(.mediaState(settled)))
+            // ON THE STREAM TOO — every watcher reads the events, and a receipt
+            // that reaches only the caller is invisible to the bench, the
+            // timeline and a trip recording.
+            emit(.receipt(receipt))
+            return BrowserOutcome(
+                ok: true, spoken: settled, shell: shell, media: before,
+                receipts: [receipt], landed: true)
         }
 
         if case .volume = action {
@@ -552,9 +596,27 @@ public actor BrowserEngine {
                 observed: Self.observed(action, in: after)))
         }
         emit(.verified(verdict))
+        // THE RECEIPT THE MEDIA LANE NEVER GAVE.
+        //
+        // PIN: THE LAST OF THE THREE PLACES `landed` WAS CLAIMED WITHOUT ONE.
+        // This lane verified in prose — it re-perceives and refuses
+        // `stateUnchanged` when nothing moved, which is real proof — and then
+        // returned it as a sentence, so `SkillOutcome.landed` was false for a
+        // mute that had demonstrably worked and the turn tried again with
+        // something else. That is the reported "mute the video runs a web search"
+        // in its final form. `mediaState` is rank one's sibling in the ladder and
+        // exists for exactly this; the verdict `verify` already produced IS the
+        // evidence, so nothing new is measured, only reported.
+        let receipt = PageCommandReceipt(
+            sourceIndex: 0,
+            kind: .click,
+            target: what,
+            delivery: .delivered,
+            effect: .verified(.mediaState(verdict)))
+        emit(.receipt(receipt))
         return BrowserOutcome(
             ok: true, spoken: "\(action.spokenPast) — \(after.spoken)",
-            shell: shell, media: after)
+            shell: shell, media: after, receipts: [receipt], landed: true)
     }
 
     // MARK: - Navigating
@@ -891,8 +953,18 @@ public actor BrowserEngine {
     ) -> (CGPoint, String)? {
         switch action {
         case .play, .pause, .toggle:
-            guard let control = media.playPause else { return nil }
-            return (control.clickPoint, "the transport")
+            // THE BAR FIRST, THEN THE CIRCLE IN THE MIDDLE.
+            //
+            // PIN: A PAUSED PLAYER OFTEN DRAWS NO BAR AT ALL. Measured live on a
+            // real watch page: paused, poster showing, one big play circle over
+            // the picture and no control row anywhere — hovering it added only a
+            // volume icon. The lane refused `controlsNotFound` about a control a
+            // person would press without thinking. The centre glyph is that
+            // control, and it is only ever used for the verbs it can serve:
+            // volume, seek and full screen still need the bar and still say so.
+            if let control = media.playPause { return (control.clickPoint, "the transport") }
+            guard let centre = media.centerGlyph else { return nil }
+            return (centre.clickPoint, "the play button over the picture")
         case .mute, .unmute:
             guard let control = media.volume else { return nil }
             return (control.clickPoint, "the volume control")

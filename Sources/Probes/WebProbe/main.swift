@@ -380,6 +380,11 @@ if flag("--perceive") || value("--media") != nil {
         check(media.playback != .unknown, "playback was decided", media.playback.rawValue)
         print("      · witnesses: \(media.witnesses.joined(separator: " · "))")
         print("      · transport: \(media.playPause.map { "\($0.glyph.rawValue) at (\(Int($0.clickPoint.x)), \(Int($0.clickPoint.y)))" } ?? "not found")")
+        print("      · centre:    "
+              + (media.centerGlyph.map {
+                  "\($0.glyph.rawValue) at (\(Int($0.clickPoint.x)), \(Int($0.clickPoint.y)))"
+                      + String(format: " conf %.2f", $0.confidence)
+              } ?? "not found"))
         print("      · volume:    \(media.volume.map(\.glyph.rawValue) ?? "not found")")
         print("      · fullscreen:\(media.fullscreen.map { " \($0.glyph.rawValue)" } ?? " not found")")
         if let elapsed = media.elapsed {

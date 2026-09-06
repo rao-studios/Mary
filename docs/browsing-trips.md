@@ -372,7 +372,63 @@ What round 2 owes, now that nothing masks it:
 - **No row is named `link` on a results page (P × 1)**, so "the third link" counts
   rows of no named kind.
 - **`reload_page` is still the magnet** for "save this page" and "copy the link",
-  because no save or copy verb exists to lose to. Round 4. What could not be staged honestly: the
+  because no save or copy verb exists to lose to. Round 4.
+
+### Round 2 — the perception layer, and the media lane's missing receipt
+
+Driven by the scoreboard rather than the design list: round 1 left eleven
+perception failures, eight of them the media transport being unmeasurable at all.
+Live on Chrome the corpus went **63% to 77%**, media from **0% to 50%**, and P
+from eleven failures to three.
+
+| Category | Round 0 | Round 1 | Round 2 |
+|---|---:|---:|---:|
+| arrive | 33% | 100% | 100% |
+| read | 100% | 100% | 100% |
+| search | 13% | 63% | **75%** |
+| act | 0% | 63% | **75%** |
+| media | 0% | 0% | **50%** |
+| all | 30% | 63% | **77%** |
+
+**The media diagnosis, from the pixels rather than the code.** Capturing the
+exact crop the lane reads showed a paused player with a poster frame, one big
+play circle over the picture, and no control bar anywhere; hovering it added only
+a small volume icon. VisionAX's own trace confirmed the shape of it — the
+detection is entirely bar-first, hunting a progress track with blobs under it,
+and every candidate was rejected for thickness or for having no blobs. Three
+things followed:
+
+- **The reveal never aimed at the player, and the round-1 fix for that was
+  inert.** `playerRegion` reads the reading's rows and a `.media` reading has
+  none, so it always answered nil and the retries went on hovering fractions of
+  the whole page — one of them above the video entirely. One `.elements` read on
+  the first retry answers where the picture is, and only on the path where the
+  blind look already failed.
+- **`controlsVisible` means "a bar was found", which is a different question from
+  "is there anything to drive".** A big play circle is the control a person
+  presses without thinking, and the lane refused `controlsNotFound` about it.
+  It is now a transport for the verbs it can serve — play, pause, toggle — while
+  volume, seek and full screen still need the bar and still refuse by name. The
+  glyph's NAME is not trusted: VisionAX matched this one as `exitFullscreen` at
+  0.38. It is a place to press, and the press is proved by looking again.
+- **The media lane verified in prose and issued no receipt** — the last of the
+  three places `landed` was claimed without one. It re-perceives and refuses
+  `stateUnchanged` when nothing moved, which is real proof, and then returned it
+  as a sentence, so a mute that had demonstrably worked reported `landed: false`
+  and the turn tried something else. That is the reported "mute the video runs a
+  web search" in its final form. `mediaState` is the receipt, and "already in
+  that state" carries one too, because already-true is still proven.
+
+Driving it live: paused → play through the centre circle, verified. Pause, play,
+unmute and seek all land on `mediaState`.
+
+**What round 3 owes.** Two transport verbs still refuse `stateUnchanged` after
+acting: `mute` (the volume glyph matches a real speaker about half the time, so
+the change cannot be seen) and `go full screen` (the page frame changes under the
+second look). A seek with no track needs the player playing first. And on the
+routing side: "the third link" and "the second one" now reach real content but
+land one row off, and a site's own search box still reads as a button rather than
+a field — a VisionAX naming gap, not a routing one. What could not be staged honestly: the
 context trips (another application must lead), the media trips (the seed is a
 file page, not a watch page — zero controls reveal), and the consent wall. And `PageRouteVerb.word` prints `openResult` as
 "result", so a leg asking about the openResult arbitration was judged against the
@@ -394,3 +450,19 @@ names which route it means.
 | **all** | **27** | **16** | **13** | **18** | **63%** | P 11 · R2 4 · E 1 |
 
 Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 0% — under 90%; search at 63% — under 90%; context has 2 failing leg(s); 4 page-routing failure(s) on the recorded corpus.
+
+### Round 2 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 6 | 2 | 1 | 5 | 75% | R2 2 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 2 | 1 | 8 | 50% | P 1 · E 1 |
+| media | 4 | 4 | 1 | 1 | 50% | P 1 · E 3 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 1 · R2 1 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **33** | **10** | **13** | **18** | **77%** | P 3 · R2 3 · E 4 |
+
+Exit criterion not met: no leg ran in recovery; act at 75% — under 90%; media at 50% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 3 page-routing failure(s) on the recorded corpus.

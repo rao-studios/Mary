@@ -555,6 +555,66 @@ enum BrowsingFixtures {
     }
 }
 
+@Suite struct MediaReceiptTests {
+
+    static func reading(
+        playing: Bool, centre: MediaControlReading.Control?, bar: Bool
+    ) -> MediaControlReading {
+        MediaControlReading(
+            pageFrame: BrowsingFixtures.pageFrame,
+            controlsVisible: bar,
+            playback: playing ? .playing : .paused,
+            playPause: bar
+                ? .init(frame: CGRect(x: 120, y: 700, width: 20, height: 20),
+                        glyph: playing ? .pause : .play, confidence: 0.7)
+                : nil,
+            centerGlyph: centre)
+    }
+
+    /// A PAUSED PLAYER OFTEN DRAWS NO BAR, AND THE CIRCLE IS THE CONTROL.
+    ///
+    /// PIN: MEASURED LIVE. A real watch page, paused, showed one big play circle
+    /// over the picture and no control row anywhere — hovering it added only a
+    /// volume icon. The lane refused `controlsNotFound` about a control the
+    /// person was looking at. `controlsVisible` means "a bar was found", which is
+    /// a different question from "is there anything to drive".
+    @Test func aCentreGlyphIsATransport() {
+        let centre = MediaControlReading.Control(
+            frame: CGRect(x: 400, y: 400, width: 56, height: 56),
+            glyph: .play, confidence: 0.4)
+        #expect(BrowserEngine.hasTransport(
+            Self.reading(playing: false, centre: centre, bar: false)))
+        #expect(!BrowserEngine.hasTransport(
+            Self.reading(playing: false, centre: nil, bar: false)))
+    }
+
+    /// AND IT IS PRESSED FOR THE VERBS IT CAN SERVE, AND ONLY THOSE. Volume,
+    /// seek and full screen have no circle to fall back to and still refuse by
+    /// name — a centre glyph is a play control, not a whole transport.
+    @Test func theCentreGlyphServesPlayAndPauseOnly() {
+        let centre = MediaControlReading.Control(
+            frame: CGRect(x: 400, y: 400, width: 56, height: 56),
+            glyph: .play, confidence: 0.4)
+        let barless = Self.reading(playing: false, centre: centre, bar: false)
+
+        #expect(BrowserEngine.target(for: .toggle, in: barless)?.0
+            == CGPoint(x: 428, y: 428))
+        #expect(BrowserEngine.target(for: .play, in: barless) != nil)
+        #expect(BrowserEngine.target(for: .fullscreen, in: barless) == nil)
+        #expect(BrowserEngine.target(for: .mute, in: barless) == nil)
+    }
+
+    /// THE BAR WINS WHEN THERE IS ONE. The circle is the fallback, not the
+    /// preference — a drawn transport is the more precise control.
+    @Test func theBarIsPreferredOverTheCircle() {
+        let centre = MediaControlReading.Control(
+            frame: CGRect(x: 400, y: 400, width: 56, height: 56),
+            glyph: .play, confidence: 0.4)
+        let both = Self.reading(playing: false, centre: centre, bar: true)
+        #expect(BrowserEngine.target(for: .toggle, in: both)?.1 == "the transport")
+    }
+}
+
 @Suite struct PlayerRegionTests {
 
     static func reading(_ frames: [CGRect]) -> VisionPageReader.Reading {
