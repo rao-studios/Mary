@@ -3,6 +3,11 @@
   "id": "site-search",
   "legs": [
     {
+      "dispatch": {
+        "submit": "true",
+        "target": "search wikipedia",
+        "text": "alpine touring boots"
+      },
       "engine": {
         "budgetMs": 10000,
         "landed": true,
@@ -38,6 +43,10 @@
           ],
           "ordinalWithinKind": 1
         }
+      },
+      "routing": {
+        "intent": "operate",
+        "skill": "click_on_page"
       },
       "say": "open the first one"
     }

@@ -13,6 +13,7 @@
 //
 
 import AppKit
+import OSLog
 import CoreGraphics
 import Foundation
 import MaryComputerUse
@@ -109,6 +110,7 @@ public protocol BrowserStaging: Sendable {
 // MARK: - Live
 
 struct LiveBrowserShell: BrowserShellReading {
+    private static let log = Logger(subsystem: "nyc.rao.mary", category: "browsing")
     func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading? {
         WebSurfaceAX.read(pid: pid, registration: registration)
     }
@@ -153,10 +155,16 @@ struct LiveBrowserShell: BrowserShellReading {
             // somewhere nobody asked for — worse than not navigating at all.
             guard case .completed = typed else { return false }
             try? await Task.sleep(for: Self.addressVerifySettle)
-            let landed = Self.addressLanded(
-                intended: address,
-                fieldValue: WebSurfaceAX.addressFieldValue(pid: pid, registration: registration))
+            let readback = WebSurfaceAX.addressFieldValue(pid: pid, registration: registration)
+            let landed = Self.addressLanded(intended: address, fieldValue: readback)
             guard landed else {
+                // SAY WHY, WITHOUT SAYING WHAT. A refused readback used to be a
+                // silent `continue` three times and then "couldn't find the
+                // address bar" — a sentence about a control that was found and
+                // typed into. The shape of the mismatch is the diagnosis; the
+                // address itself is held, never logged, like everywhere else.
+                Self.log.info(
+                    "address readback refused — attempt \(attempt) typed \(address.count) read \(readback?.count ?? -1) scheme=\(readback?.lowercased().hasPrefix("http") == true) empty=\(readback?.isEmpty ?? true)")
                 if attempt == Self.addressTypingAttempts { return false }
                 continue
             }
@@ -181,7 +189,30 @@ struct LiveBrowserShell: BrowserShellReading {
     /// because that is exactly the part a chunk-boundary race wipes.
     static func addressLanded(intended: String, fieldValue: String?) -> Bool {
         guard let fieldValue else { return false }
-        return fieldValue.hasPrefix(intended)
+        if fieldValue.hasPrefix(intended) { return true }
+        // CHROME ELIDES WHAT IT DISPLAYS. The moment the omnibox recognises a
+        // typed address it shows it without its scheme, and without a leading
+        // "www." — so the field reads "en.wikipedia.org/…" for a typed
+        // "https://en.wikipedia.org/…", and the literal prefix test above called
+        // a correct type a failed one, three times over, and refused the whole
+        // navigation as "couldn't find the address bar". MEASURED LIVE: it
+        // worked while the address was new and failed once it was in history and
+        // being completed. What is compared is the typed address with the same
+        // elisions applied, and nothing looser — a completion to a DIFFERENT
+        // address still has to fail here so forward-delete can remove it.
+        let elided = Self.displayForm(intended)
+        return fieldValue.hasPrefix(elided) || Self.displayForm(fieldValue).hasPrefix(elided)
+    }
+
+    /// An address as the omnibox displays it: no scheme, no leading "www.".
+    static func displayForm(_ address: String) -> String {
+        var value = address
+        for scheme in ["https://", "http://"] where value.lowercased().hasPrefix(scheme) {
+            value = String(value.dropFirst(scheme.count))
+            break
+        }
+        if value.lowercased().hasPrefix("www.") { value = String(value.dropFirst(4)) }
+        return value
     }
 
     private func focusAddressField(

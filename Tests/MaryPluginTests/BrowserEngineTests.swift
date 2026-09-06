@@ -505,6 +505,36 @@ enum BrowsingFixtures {
             intended: "a fred again video on youtube", fieldValue: "a fred again video on youtube"))
     }
 
+    /// CHROME ELIDES WHAT IT DISPLAYS. Once a typed address is recognised — and
+    /// especially once it is in history and being completed — the omnibox shows
+    /// it without its scheme and without a leading "www.". MEASURED LIVE: the
+    /// same navigation worked while the address was new and failed three times
+    /// over, as "couldn't find the address bar", once it was in history. A correct
+    /// type that reads back elided has landed.
+    @Test func anElidedReadbackOfTheSameAddressLands() {
+        #expect(LiveBrowserShell.addressLanded(
+            intended: "https://en.wikipedia.org/wiki/Ski_touring",
+            fieldValue: "en.wikipedia.org/wiki/Ski_touring"))
+        #expect(LiveBrowserShell.addressLanded(
+            intended: "https://www.ecosia.org/search?q=alpine",
+            fieldValue: "ecosia.org/search?q=alpine"))
+        // And a scheme that stayed still lands, elided or not.
+        #expect(LiveBrowserShell.addressLanded(
+            intended: "https://www.ecosia.org/", fieldValue: "https://ecosia.org/"))
+    }
+
+    /// AND ONLY THE SAME ADDRESS. A completion to a DIFFERENT destination must
+    /// still fail here, because failing is what lets forward-delete remove it
+    /// before Return accepts it — the measured "swift concurrency opened
+    /// YouTube" defect. Looser than an elision would put that bug back.
+    @Test func aCompletionToADifferentAddressStillDoesNotLand() {
+        #expect(!LiveBrowserShell.addressLanded(
+            intended: "https://en.wikipedia.org/wiki/Ski_touring",
+            fieldValue: "en.wikipedia.org/wiki/Skiing"))
+        #expect(!LiveBrowserShell.addressLanded(
+            intended: "https://example.com/", fieldValue: "example.org/"))
+    }
+
     /// THE MEASURED FAILURE. A chunk-boundary race replaces the field's own selection
     /// rather than appending to it, so what survives is a SUFFIX of what was typed —
     /// never a prefix match against the intended string.
