@@ -52,12 +52,28 @@ public struct PageRouteDomain: ArbitrationDomain {
     /// to vouch for a row; being told its name does not.
     public let hasPick: Bool
 
+    /// THE PART OF THE PAGE THE GOAL NAMED, when it named one at all.
+    ///
+    /// PIN: A PLACE IS A GATE, NOT EVIDENCE. Measured across seven seeded pages:
+    /// "the first link in the sidebar" on a page with no sidebar scored nothing
+    /// on the naming ladder, fell through to meaning, and confidently opened a
+    /// link in the body. A person who says WHERE has narrowed the page, and a row
+    /// somewhere else is not a worse answer to that question — it is not an
+    /// answer to it. Carried on the domain rather than asked at ranking time for
+    /// the reason `kindNamedInGoal` is: it is one question about the GOAL, and
+    /// the gate's job is to ask it of each ROW.
+    /// `.some(nil)` MEANS "NAMED A PLACE THIS PAGE HAS NOT GOT", which refuses
+    /// every row rather than quietly widening back to all of them.
+    public let regionNamedInGoal: PageRegion??
+
     public init(
         verb: PageRouteVerb,
         kindNamedInGoal: PageElementKind?,
         hasFillableRow: Bool,
-        hasPick: Bool
+        hasPick: Bool,
+        regionNamedInGoal: PageRegion?? = nil
     ) {
+        self.regionNamedInGoal = regionNamedInGoal
         self.verb = verb
         self.kindNamedInGoal = kindNamedInGoal
         self.hasFillableRow = hasFillableRow
@@ -202,25 +218,43 @@ public enum PageRouter {
         verb: PageRouteVerb,
         roster: PageRoster,
         store: AmbientElementIndexStore = .shared,
-        scope: AmbientElementScope? = nil
+        scope: AmbientElementScope? = nil,
+        /// THE MEANING TERM, SUPPLIED RATHER THAN LOOKED UP — the one thing a
+        /// replay cannot rebuild.
+        ///
+        /// PIN: A ROUTE IS A PURE FUNCTION OF A READ, AND THE MEANING SCORES ARE
+        /// PART OF THE READ. They come from the turn's own element index, which
+        /// is live per-turn state no offline run can reconstruct — so a replay
+        /// that recomputed them was arguing a DIFFERENT read and calling the
+        /// difference drift. Measured the first time any recording existed to
+        /// replay: six of forty-three recorded routes disagreed, every one of
+        /// them a row the meaning term had chosen. The recording already carries
+        /// the score it used, per row; this is where it goes back in.
+        semantic precomputed: [Int: Int]? = nil
     ) -> PageRouteArbitration {
         let goal = rawGoal.trimmingCharacters(in: .whitespacesAndNewlines)
         let rows = withEcho(roster.rows, verb: verb)
         let domain = domain(for: rows, verb: verb, goal: goal)
-        let semantic = semanticScores(
-            goal: goal, store: store, scope: scope ?? AffordanceSlatePublisher.browserScope)
+        // MEANING IS SCORED WITHOUT THE PLACE IN IT. See `PageRegion.removed`:
+        // the region has already narrowed the pool, and the words that named it
+        // describe no row.
+        let meant = domain.regionNamedInGoal.flatMap { $0 }?.removed(from: goal) ?? goal
+        let scored = precomputed ?? Dictionary(
+            semanticScores(
+                goal: meant, store: store,
+                scope: scope ?? AffordanceSlatePublisher.browserScope
+            ).compactMap { key, value -> (Int, Int)? in
+                guard let ordinal = PageRowRule.ordinal(fromIdentity: key) else { return nil }
+                return (ordinal, Int((max(0, value) * 1000).rounded()))
+            },
+            uniquingKeysWith: { first, _ in first })
 
         let result = Arbitration.run(
             domain,
             goal: goal,
             verb: verb.word,
             candidates: rows,
-            semantic: Dictionary(
-                semantic.compactMap { key, value -> (Int, Int)? in
-                    guard let ordinal = PageRowRule.ordinal(fromIdentity: key) else { return nil }
-                    return (ordinal, Int((max(0, value) * 1000).rounded()))
-                },
-                uniquingKeysWith: { first, _ in first }))
+            semantic: scored)
 
         if let winner = result.winner {
             return PageRouteArbitration(winner: winner, trace: result.trace)
@@ -275,11 +309,27 @@ public enum PageRouter {
         if named == nil, case .openResult(let query) = verb {
             named = PageElementKindDerivation.offeredKind(namedIn: query, offering: present)
         }
+        // THE PLACE THE GOAL NAMED. Asked of the page's own regions first, so a
+        // page laid out in one column never has a "sidebar" to be asked about;
+        // then of every region there is, so naming one this page lacks is a
+        // refusal rather than a phrase nobody heard. See `regionNamedInGoal`.
+        let regions = Set(rows.compactMap(\.region))
+        let regionNamed: PageRegion??
+        if regions.isEmpty {
+            regionNamed = nil
+        } else if let here = PageRegion.named(in: goal, among: regions) {
+            regionNamed = .some(here)
+        } else if PageRegion.named(in: goal, among: Set(PageRegion.allCases)) != nil {
+            regionNamed = .some(nil)
+        } else {
+            regionNamed = nil
+        }
         return PageRouteDomain(
             verb: verb,
             kindNamedInGoal: named,
             hasFillableRow: rows.contains { $0.affordance == .fill || $0.kind == .field },
-            hasPick: !goal.isEmpty)
+            hasPick: !goal.isEmpty,
+            regionNamedInGoal: regionNamed)
     }
 
     /// Cosine per slate key, or nothing at all in degraded mode.
@@ -317,11 +367,20 @@ public enum PageRouter {
     /// Mary's "second" disagree with theirs. For `.openResult` the countable set
     /// is narrower still — the answers the page laid out — because that verb is
     /// only ever asked about a list of results.
+    /// PIN: A FORM IS FURNITURE TO EVERY VERB BUT THE ONE THAT TYPES. Measured:
+    /// "the search box at the top" scored nothing on a page whose search box was
+    /// plainly there and plainly the only one — because the box sits in a form,
+    /// forms are what nobody counts when they say "the second one", and the
+    /// recount over content came back empty. That rule is right for pressing (a
+    /// site's navigation strip lives in a form and is never the second result)
+    /// and exactly backwards for filling, where the form IS the content: a
+    /// person saying "the second field" means the second field of the form.
     static func countsForAPosition(_ row: PageRow, verb: PageRouteVerb) -> Bool {
-        let uncountable: RowFacts = [
+        var uncountable: RowFacts = [
             .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
             .behindOverlay, .echoOfQuery,
         ]
+        if verb == .fill { uncountable.remove(.inForm) }
         guard row.facts.isDisjoint(with: uncountable) else { return false }
         if case .openResult = verb { return row.facts.contains(.inResultGroup) }
         return true

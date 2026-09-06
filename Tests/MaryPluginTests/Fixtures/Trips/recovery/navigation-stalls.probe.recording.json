@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "recovery",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on replay only",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go to wikipedia",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:40:53Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "navigation-stalls"
+}

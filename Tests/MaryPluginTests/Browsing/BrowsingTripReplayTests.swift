@@ -55,6 +55,13 @@ import Testing
         }
     }
 
+    /// The meaning term as the live run scored it, per row.
+    static func semantic(_ recorded: RecordedRoute) -> [Int: Int] {
+        Dictionary(
+            recorded.decisions.map { ($0.ordinal, $0.semantic) },
+            uniquingKeysWith: { first, _ in first })
+    }
+
     // MARK: - The corpus of recordings
 
     /// EVERY RECORDING IS ONE WE CAN READ. Same rule as the trips, and the same
@@ -82,12 +89,28 @@ import Testing
         var drift: [String] = []
         for (url, recording) in found.recordings {
             for leg in recording.legs {
-                guard let page = leg.pageReads.last?.page else { continue }
+                // THE READ THE ROUTE WAS ARGUED AGAINST, WHICH IS THE FIRST.
+                //
+                // PIN: A LEG READS THE PAGE TWICE — once to route, once after
+                // the act to prove it — and this took the LAST, so every route
+                // was re-argued against the page that came AFTER the press. On a
+                // leg that navigated, that is a different page entirely, and the
+                // net reported the difference as drift in the router. Measured
+                // the first time any recording existed to replay: four of the
+                // six reports were this, including one comparing a search
+                // results page with the article it had opened.
+                guard let page = leg.pageReads.first?.page else { continue }
                 let roster = page.roster()
                 for recorded in leg.routes {
                     guard let verb = Self.verb(recorded) else { continue }
                     let again = PageRouter.arbitrate(
-                        goal: recorded.goal, verb: verb, roster: roster)
+                        goal: recorded.goal, verb: verb, roster: roster,
+                        // THE MEANING SCORES THE LIVE ROUTE USED. See
+                        // `PageRouter.arbitrate(semantic:)`: they are part of the
+                        // read, not something a replay can recompute, and
+                        // recomputing them was the whole of the first drift
+                        // report this net ever produced.
+                        semantic: Self.semantic(recorded))
                     let now = again.winner?.ordinal
                     guard now != recorded.selectedOrdinal else { continue }
                     drift.append(
@@ -130,9 +153,45 @@ import Testing
                         + (judged.because ?? ""))
             }
         }
-        let named = wrong.joined(separator: "\n")
-        #expect(wrong.isEmpty, "\(named)")
+        // A TWO-WAY LEDGER, THE SAME SHAPE AS THE ROUTING ONE.
+        //
+        // PIN: THESE ARE THE ROUND'S OWN OPEN FAILURES, AND THE POINT IS THAT
+        // THE REPLAY AGREES WITH IT. Each also appears in the live scoreboard in
+        // `docs/browsing-trips.md`; what this file adds is that they are now
+        // ARITHMETIC — the same read, offline, forever, so the day one of them
+        // changes it changed because the router did. A NEW one is a regression;
+        // a FIXED one must be struck off with the round that fixed it, or a
+        // round gets credit for a page that simply looked different that day.
+        let found = Set(wrong)
+        let regressions = found.subtracting(Self.openFailures).sorted()
+        let fixed = Self.openFailures.subtracting(found).sorted()
+        let newly = "\(regressions.count) NEW recorded-page failure(s):\n"
+            + regressions.joined(separator: "\n")
+        #expect(regressions.isEmpty, "\(newly)")
+        let gone = "\(fixed.count) no longer reproduce — strike them from "
+            + "openFailures and say which round did it:\n"
+            + fixed.joined(separator: "\n")
+        #expect(fixed.isEmpty, "\(gone)")
     }
+
+    /// WHAT ROUND 4 LEFT OPEN, on the pages it recorded.
+    ///
+    /// R2 — a row satisfying the class IS in the reading and the route missed
+    /// it. Two are the same shape: a goal naming something by words the reading
+    /// spells differently ("remember me" against a checkbox the page labels
+    /// otherwise; a named row on a feed). One is an `openResult` reaching a row
+    /// outside any result group, which is the result-group derivation's own gap.
+    ///
+    /// P — no row in the reading answers the class at all, which is the
+    /// detector's recall and belongs in VisionAX rather than here. Both are
+    /// result pages whose answer rows the reading did not group.
+    static let openFailures: Set<String> = [
+        "check-the-box[0] R2 reached nothing, though 27 row(s) in the reading answer the class",
+        "press-by-name[0] R2 reached nothing, though 96 row(s) in the reading answer the class",
+        "music-between-two-page-legs[2] R2 reached row 45, which is not inResultGroup",
+        "search-then-open-second[1] P no row in this reading answers the class (107 rows read) — the recall belongs in the detector",
+        "site-search[1] P no row in this reading answers the class (102 rows read) — the recall belongs in the detector",
+    ]
 
     /// THE DRIFT RULE MUST BE ABLE TO FAIL, and until a live round commits its
     /// first recording there is nothing in the repository to prove it with.

@@ -36,6 +36,23 @@ public enum KeyChordPress {
         up.flags = flags
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
+        // AND THE MODIFIER IS PUT DOWN AGAIN.
+        //
+        // PIN: A CHORD THAT NEVER RELEASES ITS MODIFIER LATCHES THE SESSION.
+        // `CGEventSource.flagsState(.combinedSessionState)` folds in what has
+        // been POSTED, and the key-up above carries the chord's flags — which
+        // says "the key came up while Command was still held" and leaves Command
+        // held, with nothing anywhere to lower it. Every later event created
+        // with a nil source then inherits it. MEASURED LIVE after a round of
+        // browsing: Command was latched, `KeyChordPress` still worked because it
+        // sets its own flags, and `KeyboardTyper` — which did not — typed
+        // nothing at all. This posts the empty flags state that a real hand
+        // leaving the keys would produce.
+        if !flags.isEmpty, let cleared = CGEvent(source: nil) {
+            cleared.type = .flagsChanged
+            cleared.flags = []
+            cleared.post(tap: .cghidEventTap)
+        }
         ComputerUseMonitor.shared.note(lane: .keyboard, act: "keyChord", detail: spelling)
         return true
     }

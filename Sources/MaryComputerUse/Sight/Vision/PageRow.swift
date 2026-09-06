@@ -169,6 +169,10 @@ public struct PageRow: Sendable, Equatable, Identifiable {
     /// What is true of this row, decided once. See `RowFacts`.
     public var facts: RowFacts
 
+    /// WHERE ON THE PAGE IT SITS — the header, a side column, the body itself.
+    /// Nil until the seal assigns one; see `PageRegionDerivation`.
+    public var region: PageRegion?
+
     /// Whether this row was SEEN or WALKED — a place to click, or an element to
     /// press by name. The accessibility lane will produce `.accessibility` rows;
     /// today every row is `.seen`.
@@ -188,6 +192,7 @@ public struct PageRow: Sendable, Equatable, Identifiable {
         confidence: Double = 0,
         isEnabled: Bool = true,
         facts: RowFacts = [],
+        region: PageRegion? = nil,
         provenance: AXElementProvenance = .seen
     ) {
         self.ordinal = ordinal
@@ -203,6 +208,7 @@ public struct PageRow: Sendable, Equatable, Identifiable {
         self.confidence = confidence
         self.isEnabled = isEnabled
         self.facts = facts
+        self.region = region
         self.provenance = provenance
     }
 

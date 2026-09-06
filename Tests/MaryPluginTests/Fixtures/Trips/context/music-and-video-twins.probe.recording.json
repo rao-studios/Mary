@@ -1,0 +1,127 @@
+{
+  "browser" : "chrome",
+  "category" : "context",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "control_playback is not a binding this adapter offers",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "mute the music",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 105,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 106,
+          "atX" : 0.5,
+          "atY" : 0.3503267973856209,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 1456,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
+      "elapsedMilliseconds" : 1456,
+      "index" : 1,
+      "landed" : false,
+      "layer" : "P",
+      "media" : [
+        {
+          "atMilliseconds" : 1456,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        }
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "I can see the player but not its volume control.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "refusal" : "controlNotFound",
+      "routes" : [
+
+      ],
+      "say" : "mute the video",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 105,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikimedia commons",
+          "tabCount" : 1,
+          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
+        }
+      ],
+      "timeline" : [
+        "8ms  resolved Chrome",
+        "105ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1456ms  perceived 0 controls · paused",
+        "1456ms  refused — I can see the player but not its volume control."
+      ],
+      "verdict" : "failed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:39:06Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "music-and-video-twins"
+}

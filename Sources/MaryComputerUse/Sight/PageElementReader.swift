@@ -46,6 +46,55 @@ public enum PageElementReader {
 
     /// Enumerate the page's interactive elements, in reading order.
 
+    /// THE PAGE ITSELF, through Accessibility — every `AXWebArea` under the
+    /// front window, walked into `PageElement`s in reading order.
+    ///
+    /// PIN: THE LANE THE PIXEL READ CANNOT REPLACE, and the reverse is also
+    /// true, which is why both exist. Accessibility knows a row's ROLE — this
+    /// is a link, that is a field — and its live handle, so "the first link"
+    /// is a question with an answer and pressing it is `AXPress` rather than a
+    /// click at a guessed midpoint. It does not know what a `<canvas>` player
+    /// looks like, which is what the pixels are for. `PagePerceptionPipeline`
+    /// merges them.
+    ///
+    /// REQUIRES THE WAKE. On a Chromium host this returns nothing at all until
+    /// `BrowserAXReadiness.ensureWebContentAX` has run — and nothing is
+    /// indistinguishable from an empty page, which is exactly the failure the
+    /// wake exists to end. Callers ask readiness first.
+    ///
+    /// CLIPPED TO THE PAGE FRAME, not the window: the toolbar's own controls
+    /// are the shell's business and are read through `WebSurfaceAX`. A page
+    /// element whose frame sits outside the rendered content is off-screen or
+    /// furniture, and `actionableFrame` already refuses it.
+    public static func readWebContent(
+        in application: AXUIElement,
+        pageFrame: CGRect? = nil,
+        limit: Int = publishedLimit
+    ) -> [PageElement] {
+        guard let window = AX.element(application, kAXFocusedWindowAttribute)
+                ?? AX.element(application, kAXMainWindowAttribute)
+        else { return [] }
+        let viewport = pageFrame ?? AX.frame(of: window)
+        let areas = WebAreaLocator.webAreas(
+            inWindow: window,
+            budget: .init(maxDepth: maxSearchDepth, maxNodes: maxSearchNodes))
+        guard !areas.isEmpty else { return [] }
+
+        var candidates: [Candidate] = []
+        for area in areas {
+            AXTreeWalker.walk(
+                from: area,
+                budget: .init(maxDepth: maxSearchDepth, maxNodes: maxSearchNodes)
+            ) { element, _ in
+                guard candidates.count < maximumCandidates else { return }
+                guard let candidate = candidate(from: element, viewport: viewport)
+                else { return }
+                candidates.append(candidate)
+            }
+        }
+        return publish(deduplicated(candidates), limit: limit)
+    }
+
     /// The same enumeration, rooted at an application's own WINDOW instead of a web area.
     public static func readWindowControls(
         in application: AXUIElement,
@@ -341,6 +390,15 @@ public enum PageElementReader {
                 guard existing.frame.intersects(candidate.frame),
                       overlapRatio(existing.frame, candidate.frame) > 0.6
                 else { return false }
+                // ONE RECTANGLE HOLDS ONE VISIBLE THING. MEASURED on a search
+                // page: "Accessibility help" and "Skip to main content" are
+                // published at the identical frame at the page's left edge —
+                // both real, both keyboard-reachable, and at most one of them
+                // drawn. They went on to be the first two rows any ordinal
+                // counted, so "the second result" reached a skip link. Different
+                // destinations, so the test below keeps both; an exact frame
+                // match is the geometry that says they cannot both be there.
+                if existing.frame == candidate.frame { return true }
                 if let lhs = existing.destination, let rhs = candidate.destination {
                     return lhs == rhs
                 }

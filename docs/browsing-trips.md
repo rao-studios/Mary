@@ -474,6 +474,159 @@ file page, not a watch page — zero controls reveal), and the consent wall. And
 inner press a search performs afterwards — a search routes twice, and the leg now
 names which route it means.
 
+### Round 4 — the page's own accessibility tree, and a vocabulary for pointing at it
+
+Round 3 ended saying the live percentages were noisy because a leg asserting "the
+second result" against a page whose content changes every run measures the page.
+Round 4 did not start there. Three reported failures did — a person asked what was
+on the page in Chrome and was told "Chrome."; asked again and was told "you're
+looking at whatever webpage is open"; asked to click the first link and was told
+"Links." — and following them down found the same answer under all three.
+
+**Nothing was offered.** Not the wrong skill: none. `"Can you click on the first
+link"` scored `click_on_page` at 0.563 against a floor of 0.62, and
+`"What's on this page right now on Google Chrome"` scored `read_page` at 0.597.
+Bare, the same sentences score 0.623 and 0.805. **The ranking was already right
+in every case and the floor threw it away.** A politeness frame costs 0.06 to
+0.21 of sentence similarity; a named surface costs about as much again. Neither
+is a calibration problem — 0.62 is the right floor for a sentence that is all
+task, and lowering it to admit these would admit everything at 0.56 too.
+
+`RoutingQuery.bareRequest` is the fix, and it is `firstLine`'s argument one level
+in: **a request carries two things that are not about the task** — the politeness
+that asks for it and the surface it names — and both are already routing FACTS by
+the time the sentence is vectorized, the surface as `namedApplications` and the
+request as the intent. Leaving them in spends the sentence twice. The bare form is
+scored as a SECOND reading and taken at its best, so a request that needs its own
+words keeps them. The surface names come from the installed packages, never from a
+list in the file. A correction frame is a frame too: dictation runs "no I'm not"
+and the question after it into one sentence with no punctuation, and the rejection
+was being scored as though it were the request.
+
+Five of the six reported sentences now reach a unique skill on the confidence lane
+with no model round. Two known findings stopped reproducing and were struck.
+
+**The other half was perception, and the answer had been written down and
+deferred.** `PageReaderLane` carried a TODO naming exactly what was missing: the
+accessibility lane, its Chromium wake, and the merge. The reason it mattered is
+what the reported failures were really about — asked to click the first link, the
+pixel lane offered rows called `link 1`, `star`, and `Diew Special`.
+
+Chrome builds no web-content accessibility tree until an assistive client
+announces itself, and until then the walk returns nothing — indistinguishable from
+a page with nothing on it. Woken (measured here at **2286 ms**, matching the
+reference port's 2.3 s), the same page answers in full. Both lanes on one page,
+back to back: the pixel lane read 108 rows and could offer **four**, naming the
+page's own menu "Diew Special" and a heading "1ooked first"; the walk found sixty
+with the words their author wrote. The merge is IoU ≥ 0.6, the walked row taking
+the rectangle and the seen row keeping the page's shape, because grouping is
+geometry the tree does not publish. On the same page, offered rows went **4 → 32**.
+
+**And then a person still could not point at anything.** Every way of naming a row
+was a WORD — its label, its kind, its position in reading order — and nobody reads
+a page in reading order. They say "the search box at the top", "the third link in
+the sidebar", "the button at the bottom of the page". `PageRegion` is that
+vocabulary: six places found from geometry over the rendered page, never from
+markup or a landmark role, so they mean the same thing on a site that marks its
+structure up and on one that draws it. The same closed-English-vocabulary shape as
+`SpokenOrdinal.words`, and on the same side of the doctrine for the same reason
+"third" is.
+
+Three things had to be true together, and each was measured live:
+
+- **The place has to be found, not assumed.** A first rule took every slice of the
+  page that beat half the busiest one; on a search page a dense strip of chips set
+  a peak its neighbours could not reach, the column was carved down to it, and the
+  page's own results were reported as a sidebar. Asking instead for the narrowest
+  span that carries most of the page lets the column grow to fit the content.
+- **A place is a gate, not evidence.** "The first link in the sidebar" on a page
+  with no sidebar scored nothing on the naming ladder, fell through to meaning, and
+  confidently opened a link in the body. A person who says where has narrowed the
+  page; a row elsewhere is not a worse answer, it is not an answer.
+- **A place is spent once.** "The search box at the top" scored 431 against the row
+  that IS the search box, where "the search box" scored 624 — three words that had
+  already done their work, scored again as meaning. Same fix as `bareRequest`, one
+  layer down.
+
+The brief speaks the same vocabulary it accepts: *"Laid out with 9 things across
+the top, 4 things down the left, 26 things in the page itself, 17 things down the
+right, and 5 things along the bottom."* Every place named there is a place the
+resolver takes back. **That loop is the point** — a brief describing the page in
+words the resolver did not accept would invite requests it then had to refuse.
+
+**The sweep is the instrument, and it is what makes this general.** `--landscape`
+drives every page the machine is seeded with and asks the same five generic
+questions of each. Seven page shapes — an encyclopedia article, two search engines,
+a feed, a form, a media page, a site with its own search — and the same questions.
+Six of seven answer "the search box at the top"; the seventh has no search box.
+That is the difference between a trip that works and a rule that holds.
+
+#### Three defects the driving found that no test would have
+
+- **The wake broke the shell.** A browser window is about seventy accessibility
+  nodes until its page tree is built and several thousand after, and the shell's
+  own address-field lookup walked all of them: 700 ms, twice a read, three times a
+  navigation, and the detail read at the end began returning nil — so Mary said
+  "I couldn't find the address bar" about a field she had just typed into.
+  `Options.shell` stops at the web area's door: **2247 nodes → 68, nil → the real
+  address in 46 ms.** A shell read has no business inside the page.
+- **A latched Command key.** After a round of browsing, typing stopped reaching
+  Chrome while chords still worked. `KeyChordPress` posts its key-up carrying the
+  chord's modifiers — which tells the session Command is still held, with nothing
+  anywhere to lower it — and `CGEvent` inherits the session's modifiers, so every
+  character `KeyboardTyper` sent became a menu shortcut. Forty-one typed
+  characters vanished, three attempts running. The chord now puts the modifier
+  down, and the typer states its own empty flags, which is the honest rule with
+  nothing stuck too: a person resting a hand on Command while Mary types must not
+  have their text eaten.
+- **Two links in one rectangle.** A search page publishes "Accessibility help" and
+  "Skip to main content" at the identical frame; both are real and at most one is
+  drawn, and they became the first two rows any ordinal counted. A page cannot draw
+  two different links in the same place.
+
+#### The replay net, for the first time with something to replay
+
+No recording had ever been committed, so `BrowsingTripReplayTests` had been
+passing on an empty corpus. Forty-three recordings later it reported six drifts,
+and **every one was the net's own fault**, which is the best possible outcome for
+a first run:
+
+- Four were the replay arguing against the wrong read. A leg reads the page twice
+  — once to route, once after the act to prove it — and the net took the LAST, so
+  a route was re-argued against the page that came after the press. On a leg that
+  navigated, that is a different page entirely; one compared a results page with
+  the article it had opened.
+- Two were the meaning term. It comes from the turn's own element index, which no
+  offline run can rebuild — so a replay that recomputed it was arguing a different
+  read. The recording already carried the score it used, per row; it goes back in
+  now. **A route is a pure function of a read, and the meaning scores are part of
+  the read.**
+
+Drift is zero. What remains is a two-way ledger of five open failures, each also
+in the live scoreboard, now kept as arithmetic: the day one changes, it changed
+because the router did.
+
+#### The numbers
+
+**44% → 77%, and 43 legs ran where 16 had.** That second number is the real one:
+the unstageable count fell from 50 to 18 once navigation worked again. `arrive`,
+`read` and `tabs` are at 100%. Round 3's 74% was measured over 16 legs and is not
+comparable.
+
+What is left is honest and named: `act` and `media` at 63%, `search` at 75%, four
+perception failures that belong in the detector's recall, and three page-routing
+misses. `recovery` still runs nothing — every leg of it needs a person.
+
+#### What round 5 should take
+
+- **The detector's recall on a results page**, which is four of the ten remaining
+  failures and the one layer this round did not touch. Both are result pages whose
+  answer rows the reading did not group.
+- **Below the fold.** The walk drops off-viewport rows, so "click the link to X"
+  fails when X is one scroll away — and the landscape is honest only about what is
+  on screen. Navigation, scrolling and a single landscape are the same problem.
+- **A skip link is not the first link.** Two pages put one there.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -521,3 +674,19 @@ Exit criterion not met: no leg ran in recovery; act at 75% — under 90%; media 
 | **all** | **32** | **11** | **13** | **18** | **74%** | P 4 · R2 5 · E 2 |
 
 Exit criterion not met: no leg ran in recovery; act at 50% — under 90%; media at 75% — under 90%; search at 63% — under 90%; context has 2 failing leg(s); 5 page-routing failure(s) on the recorded corpus.
+
+### Round 4 — 2026-09-06
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 5 | 3 | 1 | 5 | 63% | R2 2 · E 1 |
+| arrive | 7 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 2 | 1 | 8 | 50% | P 1 · R2 1 |
+| media | 5 | 3 | 1 | 1 | 63% | P 1 · E 2 |
+| read | 6 | 0 | 1 | 0 | 100% | — |
+| recovery | 0 | 0 | 4 | 3 | 0% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 2 |
+| tabs | 2 | 0 | 5 | 0 | 100% | — |
+| **all** | **33** | **10** | **13** | **18** | **77%** | P 4 · R2 3 · E 3 |
+
+Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media at 63% — under 90%; search at 75% — under 90%; context has 2 failing leg(s); 3 page-routing failure(s) on the recorded corpus.

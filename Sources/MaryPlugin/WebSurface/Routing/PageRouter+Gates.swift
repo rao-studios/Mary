@@ -51,6 +51,15 @@ public extension PageRouter {
         guard row.isEnabled else {
             return .ineligible("is unavailable")
         }
+        // WHERE THEY SAID, BEFORE WHAT THEY SAID. See `regionNamedInGoal`.
+        if let wanted = domain.regionNamedInGoal {
+            guard let wanted else {
+                return .mismatched("is on a page with no such part to it")
+            }
+            guard row.region == wanted else {
+                return .mismatched("isn't \(wanted.spokenPlace)")
+            }
+        }
 
         switch verb {
         case .press:

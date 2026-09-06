@@ -1,0 +1,96 @@
+{
+  "browser" : "chrome",
+  "category" : "media",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 86,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 87,
+          "atX" : 0.5,
+          "atY" : 0.3503267973856209,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 1468,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
+      "elapsedMilliseconds" : 1469,
+      "index" : 0,
+      "landed" : false,
+      "layer" : "P",
+      "media" : [
+        {
+          "atMilliseconds" : 1468,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        }
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "I can see the player but not its progress control.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "refusal" : "controlNotFound",
+      "routes" : [
+
+      ],
+      "say" : "play it from the start",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 86,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikimedia commons",
+          "tabCount" : 1,
+          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
+        }
+      ],
+      "timeline" : [
+        "7ms  resolved Chrome",
+        "86ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1468ms  perceived 0 controls · paused",
+        "1468ms  refused — I can see the player but not its progress control."
+      ],
+      "verdict" : "failed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:39:43Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "play-from-the-start"
+}

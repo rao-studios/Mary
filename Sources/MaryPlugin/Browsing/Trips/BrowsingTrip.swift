@@ -791,6 +791,18 @@ public enum TripStaging {
         return value
     }
 
+    /// EVERY SEEDED PAGE, keyed as written. A page class the grammar does not
+    /// know is still a page somebody wrote down — the landscape sweep drives
+    /// whatever is there, because the rule it measures is about the SHAPE of a
+    /// page rather than about which classes the corpus happens to name.
+    public static func seeds() -> [String: String] {
+        guard let data = FileManager.default.contents(atPath: seedsURL.path),
+              let object = try? JSONSerialization.jsonObject(with: data)
+                as? [String: Any]
+        else { return [:] }
+        return object.compactMapValues { $0 as? String }
+    }
+
     /// The words a leg names by key — `{"phrases": {"namedRow": "…"}}` in the
     /// same file. Nil when the person has not written one, which makes the leg
     /// unstageable rather than wrong.

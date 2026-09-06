@@ -190,6 +190,11 @@ public enum VisionPageReader {
         if intent == .elements {
             (rows, groups, labeledFraction) = Self.rows(
                 from: scene, pid: pid, appName: appName, windowTitle: windowTitle)
+            // WHERE EACH ROW SITS, DECIDED ONCE, at the seal and beside the
+            // facts — for the reason `RowFacts` gives: it is true of the row
+            // whether or not anybody is routing, and asking it at ranking time
+            // meant asking it again for every goal.
+            rows = PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame)
         }
         // THE SHIMS, DERIVED FROM THE ROWS RATHER THAN READ SEPARATELY, so the
         // old AX-shaped view and the new one cannot describe different pages.
@@ -415,6 +420,38 @@ public enum VisionPageReader {
         // the groups are built from moves with them.
         ordinalByID = ordinalByID.compactMapValues { newOrdinalByOld[$0] }
         return renumbered
+    }
+
+    // MARK: - Re-sealing a merged reading
+
+    /// A reading whose rows a second lane changed, sealed again.
+    ///
+    /// PIN: THE SHIMS ARE DERIVED, SO THEY MUST BE RE-DERIVED. `elements` and
+    /// `map` are projections of `rows`, joined by ordinal — a merge that renames
+    /// a row and renumbers the page would otherwise leave the old layer reading
+    /// the old names against the new numbers, which is worse than either lane
+    /// alone. One function, so the day a third field is derived from rows there
+    /// is one place that forgets it.
+    /// `labeledFraction` IS THE PIXEL LANE'S OWN NUMBER and is carried through
+    /// unchanged: it answers "how much of what I SAW could I name", and a walked
+    /// row is not something the pixel lane saw.
+    public static func sealing(
+        _ reading: Reading,
+        merged: (rows: [PageRow], groups: [PageGroup]),
+        pid: pid_t,
+        appName: String,
+        windowTitle: String
+    ) -> Reading {
+        var sealed = reading
+        sealed.rows = PageRegionDerivation.assign(
+            rows: merged.rows, pageFrame: reading.pageFrame)
+        sealed.groups = merged.groups
+        sealed.elements = legacyElements(
+            sealed.rows, pid: pid, appName: appName, windowTitle: windowTitle)
+        sealed.map = legacyMap(
+            sealed.rows, groups: merged.groups,
+            labeledFraction: reading.map.labeledFraction)
+        return sealed
     }
 
     // MARK: - The shims

@@ -254,12 +254,15 @@ import Testing
         // An action read as something else.
         "ambiguous-name[0] read as perceive, not operate",
         "fill-and-submit[0] read as converse, not operate",
-        "press-by-ordinal-within-kind[0] read as converse, not operate",
         "transport-round-trip[1] read as converse, not operate",
         "page-question-from-an-editor[1] read as perceive, not ask",
         // …and the model round each one therefore costs.
-        "press-by-ordinal-within-kind[0] had no unique winner, so click_on_page costs a model round",
         "transport-round-trip[1] had no unique winner, so control_media costs a model round",
+        // STRUCK BY ROUND 4, both of them, and by the same two changes: the
+        // corpus gained an ordinal past the first ("Click the third link.") and
+        // the index began scoring the request without the frame around it. The
+        // leg says "press the third link on the page" — it now reads as operate
+        // and reaches click_on_page outright, with no model round.
         // STRUCK, AND NOT BY A ROUND: "new-tab[0] had no unique winner" was the
         // instrument, not the corpus. It was measured on an empty stage — the
         // hand-built snapshot held no application profiles, so no target class
@@ -286,7 +289,12 @@ import Testing
         // summary that says what each verb IS, and never a token list naming
         // these sentences.
         "save-this-page[0] reached reload_page, which must not answer this",
-        "copy-the-link[0] reached reload_page, which must not answer this",
+        // STRUCK BY ROUND 4: reload_page's pull on "copy the link" was the
+        // FRAME, not the words. See `RoutingQuery.bareRequest` — the sentence
+        // vectorized whole scored the polite wrapper as much as the request, and
+        // reload_page is the magnet that catches whatever is left over. Scored
+        // bare, the reload corpus no longer reaches it. `save-this-page` below
+        // still does, and still has no verb to reach instead.
         // Cross-surface leaks with a browser in front.
         "stop-loading[0] reached stop_dictation, which must not answer this",
         "read-the-comments[0] reached read_corpus_document, which must not answer this",

@@ -484,6 +484,136 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
     }
 }
 
+// MARK: - The landscape, across every page shape the machine is seeded with
+
+/// `--landscape` — drive every seeded page in turn and ask the same questions.
+///
+/// PIN: ONE PAGE PROVES A READ; SEVERAL PROVE A RULE. The region derivation is
+/// geometry over whatever a site drew, so the only way to know it means the same
+/// thing on an encyclopedia, a search engine and a feed is to put all three in
+/// front of it and print what it says. Every question below is generic — a
+/// place, a kind, a position — and none of them names a site, so the same run
+/// answers for a page nobody has seen yet.
+/// THE ADDRESSES ARE THE MACHINE'S, NOT THE REPOSITORY'S. `~/.mary/trips/stage.json`
+/// seeds them, exactly as the trips are staged, so this file holds no URL.
+if flag("--landscape") {
+    let seeds = TripStaging.seeds()
+    let wanted = value("--pages")?.split(separator: ",").map(String.init)
+    let pages = seeds
+        .filter { $0.key != "phrases" }
+        .filter { wanted?.contains($0.key) ?? true }
+        .sorted { $0.key < $1.key }
+    // EACH QUESTION WITH THE VERB A PERSON WOULD BE ASKING IT WITH. A search box
+    // is something to type into, and asking for it with `.press` was measuring
+    // the gate rather than the landscape.
+    let questions: [(String, PageRouteVerb)] = [
+        ("the first link", .press),
+        ("the third link in the page itself", .press),
+        ("the search box at the top", .fill),
+        ("the link at the bottom of the page", .press),
+        ("the first link in the sidebar", .press),
+    ]
+    for (name, address) in pages {
+        heading("the landscape — \(name)")
+        let opened = await engine.navigate(.open(address), in: target)
+        guard opened.ok else {
+            check(false, "staged \(name)", opened.refusal.map { "\($0)" } ?? "no")
+            continue
+        }
+        let outcome = await engine.readPage(in: target, query: nil)
+        guard outcome.ok, let map = outcome.map, let frame = outcome.shell?.pageFrame else {
+            check(false, "read \(name)"); continue
+        }
+        let roster = PageRoster(elements: outcome.elements, map: map, pageFrame: frame)
+        check(true, "read", "\(outcome.elements.count) rows · \(roster.actionable.count) offered")
+        print("      " + (PageListing.landscape(roster) ?? "one column — nothing to lay out."))
+        for (question, verb) in questions {
+            let route = PageRouter.arbitrate(goal: question, verb: verb, roster: roster)
+            let answer = route.winner.map { row -> String in
+                let label = row.label.count > 40
+                    ? String(row.label.prefix(40)) + "…" : row.label
+                return "\(row.kindWord) \"\(label)\" [\(row.region?.rawValue ?? "—")]"
+            } ?? "— nothing"
+            print(String(format: "      %-38@ -> %@", question as NSString, answer as NSString))
+        }
+    }
+}
+
+// MARK: - What the shell walk costs, and whether it can still see its toolbar
+
+/// `--shell-walk` — the measurement `AXSnapshotBuilder.Options.shell` stands on.
+///
+/// PIN: THE READ THAT BROKE WHEN THE PAGE WOKE UP. A browser window is about
+/// seventy accessibility nodes until the web-content tree is built and several
+/// thousand afterwards, and the shell's own address-field lookup walked all of
+/// them. This prints both halves — how many nodes each window holds, and what
+/// the address field reads and how long it took — so the claim is a number on
+/// the machine in front of you rather than a story in a comment.
+if flag("--shell-walk") {
+    heading("the shell walk")
+    guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell) else {
+        check(false, "a snapshot came back"); exit(1)
+    }
+    check(true, "windows", "\(snapshot.windows.count)")
+    for window in snapshot.windows {
+        var nodes: [AXNodeSnapshot] = []
+        window.root?.forEachNode { nodes.append($0) }
+        let field = nodes.first { registration.isAddressLabel($0.label) }
+        print("      \(window.isMain ? "main " : "     ")\"\(window.title ?? "—")\""
+            + " — \(nodes.count) nodes, address field: "
+            + (field.map { "\"\($0.label ?? "")\"" } ?? "NOT FOUND"))
+    }
+    let started = Date()
+    let value = WebSurfaceAX.addressFieldValue(pid: pid, registration: registration)
+    check(
+        value?.isEmpty == false, "the address field read back",
+        "\(Int(Date().timeIntervalSince(started) * 1000)) ms")
+    let held = CGEventSource.flagsState(.combinedSessionState)
+    let names = [
+        (CGEventFlags.maskCommand, "command"), (.maskShift, "shift"),
+        (.maskAlternate, "option"), (.maskControl, "control"),
+        (.maskSecondaryFn, "fn"), (.maskAlphaShift, "capslock"),
+    ].filter { held.contains($0.0) }.map(\.1)
+    check(names.isEmpty, "no modifier is stuck down", names.joined(separator: ", "))
+}
+
+// MARK: - The page, through accessibility
+
+/// `--page-ax` — what the AX lane sees, and what it cost to wake it.
+///
+/// PIN: THE MEASUREMENT THE WAKE'S DOCTRINE STANDS ON. Every claim in
+/// `WebAXWakeup`'s header is a number this flag prints on the machine in front
+/// of you: whether a web area answered before the signals, how long after them
+/// it appeared, and how many rows with real roles the walk then found. A ported
+/// recipe nobody re-measured is a story.
+if flag("--page-ax") {
+    heading("the page, through accessibility")
+    let application = AXUIElementCreateApplication(pid)
+    let host = WebContentHost.classify(pid: pid, bundleID: registration.bundleIdentifiers.first)
+    check(host != .none, "the host builds web content", host.rawValue)
+    let before = Date()
+    let readiness = await BrowserAXReadiness.ensureWebContentAX(
+        pid: pid, bundleID: registration.bundleIdentifiers.first)
+    let waited = Date().timeIntervalSince(before)
+    check(
+        readiness.walkable, "the web-content tree answers",
+        "\(readiness.rawValue) after \(Int(waited * 1000)) ms")
+    let rows = PageElementReader.readWebContent(
+        in: application, pageFrame: shell.pageFrame)
+    check(!rows.isEmpty, "the walk found rows", "\(rows.count) elements")
+    var byKind: [String: Int] = [:]
+    for row in rows { byKind[row.kind.rawValue, default: 0] += 1 }
+    print("      kinds: " + byKind.sorted { $0.key < $1.key }
+        .map { "\($0.key) \($0.value)" }.joined(separator: ", "))
+    for row in rows.prefix(30) {
+        let frame = String(
+            format: "%.0f,%.0f %.0fx%.0f",
+            row.frame.minX, row.frame.minY, row.frame.width, row.frame.height)
+        print("      \(row.ordinal). \(row.kind.rawValue) \"\(row.label)\"  (\(frame))")
+    }
+    if rows.count > 30 { print("      …and \(rows.count - 30) more.") }
+}
+
 // MARK: - The page
 
 if flag("--map") {
@@ -502,6 +632,28 @@ if flag("--map") {
         }
         // What the model would be shown, verbatim.
         for line in outcome.spoken.split(separator: "\n") { print("      \(line)") }
+        // THE LANDSCAPE, ROW BY ROW. The spoken sentence says how many things sit
+        // where; this says WHICH, because the question a driven run has to answer
+        // is whether "the third link in the sidebar" counts the rows a person
+        // would count.
+        let roster = PageRoster(
+            elements: outcome.elements, map: map,
+            pageFrame: outcome.shell?.pageFrame ?? .zero)
+        let offeredOrdinals = Set(roster.actionable.map(\.ordinal))
+        for region in PageRegion.allCases {
+            let here = roster.rows.filter {
+                $0.region == region && offeredOrdinals.contains($0.ordinal)
+            }
+            guard !here.isEmpty else { continue }
+            print("      \(region.rawValue) (\(here.count)):")
+            for row in here.prefix(6) {
+                let kind = row.kind?.rawValue ?? "—"
+                let label = row.label.count > 58
+                    ? String(row.label.prefix(58)) + "…" : row.label
+                print("        \(row.ordinal). \(kind) \"\(label)\"")
+            }
+            if here.count > 6 { print("        …and \(here.count - 6) more.") }
+        }
         // And where each name came from, which is the number that says whether the map
         // is working on this page.
         var sources: [String: Int] = [:]

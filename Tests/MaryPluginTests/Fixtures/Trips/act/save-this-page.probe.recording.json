@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "act",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "save_page is not a binding this adapter offers",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "save this page",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:17Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "save-this-page"
+}

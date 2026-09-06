@@ -470,12 +470,32 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-on-the-first-link",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Click on the first link."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
       "id" : "click-the-first-result",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
       "utterance" : "Click the first result."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-the-third-link",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Click the third link."
     },
     {
       "expectedDisposition" : "route",
@@ -490,22 +510,22 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.search-web",
-      "id" : "find-a-video-on-youtube",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Find me a fireplace video on youtube."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
       "id" : "find-a-cat-video",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
       "utterance" : "Find me a video of a cat on youtube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "find-a-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a fireplace video on youtube."
     },
     {
       "expectedDisposition" : "route",
@@ -536,6 +556,16 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "How many tabs do I have open in the browser?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "list-the-links-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "List the links on this page."
     },
     {
       "expectedDisposition" : "route",
@@ -580,22 +610,22 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.control-media",
-      "id" : "pause-the-video-in-this-tab",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Pause the video in this tab."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.control-media",
       "id" : "pause-the-video",
       "interactions" : [
 
       ],
       "targetClass" : "web-page",
       "utterance" : "Pause the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "pause-the-video-in-this-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pause the video in this tab."
     },
     {
       "expectedDisposition" : "route",
@@ -676,6 +706,26 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Reload this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.scroll-page",
+      "id" : "scroll-down-a-bit",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Scroll down a bit."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.scroll-page",
+      "id" : "scroll-to-the-bottom-of-the-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Scroll to the bottom of the page."
     },
     {
       "expectedDisposition" : "route",
@@ -786,13 +836,33 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "What is this article about?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "what-links-are-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What links are on this page?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.read-page",
+      "id" : "whats-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What's on this page?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "1840ac7285c0049c1b0c35df356cbd8f085c4cbc9258197548accaddf098a84a"
+    "digest" : "605f811ae786456b1b6eeb9a7662df00aafac1c05dcafd448af40e796731dea9"
   },
   "interactions" : [
 

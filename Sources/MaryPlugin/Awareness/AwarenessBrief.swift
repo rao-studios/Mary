@@ -87,6 +87,18 @@ public enum AwarenessBrief {
             lines.append("What they are looking at: \(title), in \(browser).")
         }
         if let roster, !roster.actionable.isEmpty {
+            // HOW THE PAGE IS LAID OUT, BEFORE WHAT IS ON IT.
+            //
+            // PIN: THE BRIEF IS THE VOCABULARY, AND THAT IS THE WHOLE POINT.
+            // A person who cannot see the page has to be told its SHAPE before
+            // any of the words they would naturally point with mean anything —
+            // "the search box at the top", "the third link in the sidebar". This
+            // sentence names exactly the places `PageRegion.named(in:among:)`
+            // will accept back, so what Mary says the page looks like and what
+            // she can be asked about it are the same list. A brief that
+            // described the page in words the resolver did not take would invite
+            // requests it then had to refuse.
+            if let landscape = PageListing.landscape(roster) { lines.append(landscape) }
             let tail = PageListing.tail(roster)
             if !tail.isEmpty {
                 lines.append(ageWords(age).map { "Read \($0). \(tail)" } ?? tail)

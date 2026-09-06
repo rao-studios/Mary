@@ -39,6 +39,26 @@ public enum AXSnapshotBuilder {
         /// EXTRACTION, not live rendering. The defaults above are sized for a stream that
         /// must publish at a watchable cadence; this preset is for the one-shot
         /// `AXEngine.snapshot`.
+        /// THE BROWSER'S OWN FURNITURE, AND NOT ONE NODE OF ITS PAGE.
+        ///
+        /// PIN: A SHELL READ HAS NO BUSINESS INSIDE THE PAGE, and it cost a
+        /// navigation to prove it. Once the web-content tree is woken
+        /// (`WebAXWakeup`) a browser window goes from about seventy nodes to
+        /// several thousand, and `exhaustive` walked all of them to find a
+        /// toolbar: the address-field lookup went from instant to ~700ms, was
+        /// made twice per read and three times per navigation, and the detail
+        /// read at the end of it began returning nil — so Mary answered "I
+        /// couldn't find the address bar" about a field she had just typed into.
+        /// `maxDepth: 0` on the web lane stops AT the web area: its own node is
+        /// recorded, with its id, frame and URL — which is all a shell read ever
+        /// wanted from it, and exactly what a browser declaring
+        /// `urlSource: .webArea` reads — and nothing below it is walked.
+        public static let shell = Options(
+            frontWindowBudget: .init(maxDepth: 64, maxNodes: 20000),
+            backgroundWindowBudget: .init(maxDepth: 64, maxNodes: 20000),
+            labelCap: 200,
+            webAreaBudget: .init(maxDepth: 0, maxNodes: 1))
+
         public static let exhaustive = Options(
             frontWindowBudget: .init(maxDepth: 64, maxNodes: 20000),
             backgroundWindowBudget: .init(maxDepth: 64, maxNodes: 20000),

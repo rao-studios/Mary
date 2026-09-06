@@ -33,12 +33,14 @@ public struct PageRoster: Sendable {
     /// old computed property did and what keeps a caller that EDITS those two
     /// honest. Both branches go when the shim does.
     public var rows: [PageRow] {
-        storedRows ?? Self.derivedRows(elements: elements, map: map).rows
+        storedRows ?? Self.derivedRows(
+            elements: elements, map: map, pageFrame: pageFrame).rows
     }
 
     /// The groups those rows sit in.
     public var groups: [PageGroup] {
-        storedGroups ?? Self.derivedRows(elements: elements, map: map).groups
+        storedGroups ?? Self.derivedRows(
+            elements: elements, map: map, pageFrame: pageFrame).groups
     }
 
     private var storedRows: [PageRow]?
@@ -115,7 +117,7 @@ public struct PageRoster: Sendable {
     }
 
     static func derivedRows(
-        elements: [AXScreenElement], map: PageMapSummary
+        elements: [AXScreenElement], map: PageMapSummary, pageFrame: CGRect = .zero
     ) -> (rows: [PageRow], groups: [PageGroup]) {
         let groups = map.groups.map { group in
             PageGroup(
@@ -151,7 +153,12 @@ public struct PageRoster: Sendable {
                 isEnabled: element.isEnabled,
                 provenance: element.provenance)
         }
-        return (RowFactsDerivation.derive(rows: rows, groups: groups), groups)
+        // THE REGIONS TOO, for the reason this whole function exists: a roster
+        // rebuilt from the AX-shaped shim must describe the same page as one
+        // that never left `PageRow`. `assign` is a no-op on a zero page frame,
+        // which is what a hand-written fixture has.
+        let derived = RowFactsDerivation.derive(rows: rows, groups: groups)
+        return (PageRegionDerivation.assign(rows: derived, pageFrame: pageFrame), groups)
     }
 
     /// Only what can be acted on. What a phrase is resolved against.
@@ -214,11 +221,39 @@ public enum PageListing {
 
         let head = pageName.map { "On \($0), " } ?? ""
         lines.append("\(head)\(offeringSentence(rows))")
+        if query == nil, let landscape = landscape(roster) { lines.append(landscape) }
         lines.append(contentsOf: numbered(rows, roster: roster, limit: limit))
         if rows.count > limit {
             lines.append("…and \(rows.count - limit) more.")
         }
         return lines.joined(separator: "\n")
+    }
+
+    /// HOW THE PAGE IS LAID OUT, in one sentence.
+    ///
+    /// PIN: THE MISSING HALF OF "WHAT IS ON THIS PAGE". A numbered list answers
+    /// "what can I press"; it does not answer "what am I looking at", and a
+    /// person who cannot see the page has to be told its SHAPE before any of the
+    /// words they would naturally point with — "the search box at the top", "the
+    /// third link in the sidebar" — mean anything. This is that shape, and it is
+    /// also the vocabulary: every place named here is a place
+    /// `PageRegion.named(in:among:)` will accept back.
+    /// ONLY WHEN THERE IS A SHAPE TO SPEAK. A one-column page is all `main`, and
+    /// saying so would be noise on every read.
+    public static func landscape(_ roster: PageRoster) -> String? {
+        var counts: [PageRegion: Int] = [:]
+        let offered = Set(roster.actionable.map(\.ordinal))
+        for row in roster.rows where offered.contains(row.ordinal) {
+            guard let region = row.region else { continue }
+            counts[region, default: 0] += 1
+        }
+        guard counts.count > 1 else { return nil }
+        let parts = PageRegion.allCases.compactMap { region -> String? in
+            guard let count = counts[region], count > 0 else { return nil }
+            return "\(count) \(count == 1 ? "thing" : "things") \(region.spokenPlace)"
+        }
+        guard parts.count > 1 else { return nil }
+        return "Laid out with " + SpokenReference.spokenList(parts) + "."
     }
 
     /// The same, compressed to ride along at the end of an act's own sentence.

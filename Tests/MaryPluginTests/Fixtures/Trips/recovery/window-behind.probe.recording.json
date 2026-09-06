@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "recovery",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "textedit has to be in front",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "pause the video",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:41:04Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "window-behind"
+}

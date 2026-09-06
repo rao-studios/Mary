@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "context",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "xcode has to be in front",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "mute the video",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:39:32Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "video-behind-an-editor"
+}

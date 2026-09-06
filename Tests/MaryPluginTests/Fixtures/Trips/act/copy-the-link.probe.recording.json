@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "act",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "copy_address is not a binding this adapter offers",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "copy the link to this page",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:37:39Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "copy-the-link"
+}

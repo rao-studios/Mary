@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "act",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on round 3",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "find the word budget on this page",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:37:55Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "find-on-page"
+}

@@ -1,0 +1,4134 @@
+{
+  "browser" : "chrome",
+  "category" : "act",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 88,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 1220,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "because" : "reached nothing, though 96 row(s) in the reading answer the class",
+      "elapsedMilliseconds" : 1220,
+      "index" : 0,
+      "landed" : false,
+      "layer" : "R2",
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "There's more than one \"news\" on this page — \"News\", \"News\". Which one?",
+      "pageReads" : [
+        {
+          "atMilliseconds" : 819,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  1,
+                  3,
+                  4,
+                  7,
+                  8,
+                  9,
+                  10,
+                  13,
+                  14,
+                  15,
+                  16,
+                  17,
+                  18,
+                  19,
+                  20,
+                  21,
+                  23,
+                  24
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  25
+                ],
+                "title" : "+ Al Chat"
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  26,
+                  27,
+                  29
+                ],
+                "title" : "Search region: United States (English) v"
+              },
+              {
+                "id" : 3,
+                "kind" : "card",
+                "memberOrdinals" : [
+                  31,
+                  33,
+                  36,
+                  38,
+                  42,
+                  44,
+                  46
+                ],
+                "title" : "Sponsored • Shop related products"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  47,
+                  48,
+                  49,
+                  50,
+                  51,
+                  53
+                ],
+                "title" : "alpine touring boots vs downhill"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  54,
+                  56,
+                  58,
+                  60,
+                  62
+                ]
+              },
+              {
+                "id" : 6,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  64,
+                  65,
+                  66,
+                  67,
+                  68,
+                  69,
+                  71,
+                  72,
+                  73,
+                  74,
+                  75,
+                  76,
+                  78,
+                  80
+                ],
+                "title" : "Salomon Men's"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  81,
+                  83
+                ],
+                "title" : "Q"
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  84
+                ],
+                "title" : "Sports Basement"
+              },
+              {
+                "id" : 9,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  85,
+                  87,
+                  89,
+                  90
+                ],
+                "title" : "Sponsored"
+              },
+              {
+                "id" : 10,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  93,
+                  95,
+                  96
+                ],
+                "title" : "https://www.evo.com/:"
+              },
+              {
+                "id" : 11,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  97,
+                  98,
+                  99
+                ],
+                "title" : "Alpine Touring Ski Boots - evo"
+              },
+              {
+                "id" : 12,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  100,
+                  101
+                ],
+                "title" : "reviews. Committed To Giving Back."
+              }
+            ],
+            "labeledFraction" : 0.9010989010989011,
+            "pageFrame" : [
+              -1793,
+              195,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 420,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1776,
+                  216,
+                  86,
+                  34
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ECOSIA",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1769,
+                  222,
+                  70,
+                  20
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ecosia Homepage",
+                "labelSource" : "classifier",
+                "ordinal" : 2,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1666,
+                  220,
+                  163,
+                  29
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "alpine touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 3,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1658,
+                  213,
+                  557,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Search the web",
+                "labelSource" : "classifier",
+                "ordinal" : 4,
+                "role" : "AXComboBox"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1101,
+                  216,
+                  32,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Clear",
+                "labelSource" : "classifier",
+                "ordinal" : 5,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1061,
+                  212,
+                  40,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Search",
+                "labelSource" : "classifier",
+                "ordinal" : 6,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1056,
+                  220,
+                  27,
+                  25
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 7,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1033,
+                "frame" : [
+                  -839,
+                  212,
+                  105,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sign in",
+                "labelSource" : "classifier",
+                "ordinal" : 8,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -802,
+                  225,
+                  33,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 3",
+                "labelSource" : "synthesized",
+                "ordinal" : 9,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -727,
+                  212,
+                  41,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 10,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -679,
+                  212,
+                  113,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Show navigation menu",
+                "labelSource" : "classifier",
+                "ordinal" : 11,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  271,
+                  32,
+                  24
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Skip to main content",
+                "labelSource" : "classifier",
+                "ordinal" : 12,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1674,
+                  259,
+                  446,
+                  42
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "A Images + Al Chat D Videos dE News Ф Web",
+                "labelSource" : "textInside",
+                "ordinal" : 13,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1668,
+                  264,
+                  75,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Web",
+                "labelSource" : "classifier",
+                "ordinal" : 14,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1601,
+                  261,
+                  370,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "A Images + Al Chat D Videos dE News",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1592,
+                  264,
+                  93,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "AI Chat",
+                "labelSource" : "classifier",
+                "ordinal" : 16,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1561,
+                  274,
+                  50,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 8",
+                "labelSource" : "synthesized",
+                "ordinal" : 17,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1498,
+                  264,
+                  92,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Images",
+                "labelSource" : "classifier",
+                "ordinal" : 18,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1405,
+                  264,
+                  90,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "ordinal" : 19,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1374,
+                  273,
+                  47,
+                  13
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 12",
+                "labelSource" : "synthesized",
+                "ordinal" : 20,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1314,
+                  264,
+                  81,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 21,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1217,
+                  264,
+                  77,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "More",
+                "labelSource" : "classifier",
+                "ordinal" : 22,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1210,
+                  268,
+                  62,
+                  23
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "More v",
+                "labelSource" : "textInside",
+                "ordinal" : 23,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1206,
+                  274,
+                  35,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 16",
+                "labelSource" : "synthesized",
+                "ordinal" : 24,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "+ Al Chat",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  317,
+                  304,
+                  32
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Search region",
+                "labelSource" : "classifier",
+                "ordinal" : 25,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1686,
+                  376,
+                  297,
+                  31
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sponsored • Shop related products",
+                "labelSource" : "textInside",
+                "ordinal" : 26,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1678,
+                  384,
+                  73,
+                  14
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 20",
+                "labelSource" : "synthesized",
+                "ordinal" : 27,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1075,
+                  381,
+                  19,
+                  18
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "ordinal" : 28,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -987,
+                  378,
+                  313,
+                  25
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Searches related to alpine touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 29,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  362,
+                  327,
+                  56
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Searches related to alpine touring boots",
+                "labelSource" : "classifier",
+                "ordinal" : 30,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -990,
+                  430,
+                  227,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "ski touring boots vs alpine boot",
+                "labelSource" : "textInside",
+                "ordinal" : 31,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  417,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "ski touring boots vs alpine boot",
+                "labelSource" : "classifier",
+                "ordinal" : 32,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -678,
+                  430,
+                  23,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1686,
+                  424,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 34,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1650,
+                  429,
+                  71,
+                  90
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 35,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1629,
+                  428,
+                  50,
+                  73
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "image 1",
+                "labelSource" : "synthesized",
+                "ordinal" : 36,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1534,
+                  424,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 37,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -1498,
+                  430,
+                  71,
+                  88
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 38,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1382,
+                  424,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/Black/Beluga | 24.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 39,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1346,
+                  429,
+                  71,
+                  90
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/Black/Beluga | 24.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 40,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1230,
+                  424,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Met/Burgundy Met | 28.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 41,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -1194,
+                  431,
+                  71,
+                  86
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Met/Burgundy Met | 28.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 42,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1078,
+                  424,
+                  38,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Atomic Hawx Ultra XTD 130 BOA GW | Cement/Stone/Red | 26.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 43,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -992,
+                  478,
+                  227,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "alpine touring boots vs downhill",
+                "labelSource" : "textInside",
+                "ordinal" : 44,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  465,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "alpine touring boots vs downhill",
+                "labelSource" : "classifier",
+                "ordinal" : 45,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -680,
+                  476,
+                  27,
+                  29
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 46,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1686,
+                  534,
+                  117,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon Men's",
+                "labelSource" : "textInside",
+                "ordinal" : 47,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1529,
+                  534,
+                  97,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Atomic Hawx",
+                "labelSource" : "textInside",
+                "ordinal" : 48,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1379,
+                  534,
+                  136,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon Women's",
+                "labelSource" : "textInside",
+                "ordinal" : 49,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1225,
+                  534,
+                  109,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon S/Pro",
+                "labelSource" : "textInside",
+                "ordinal" : 50,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -990,
+                  526,
+                  201,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "best ski touring boots 2026",
+                "labelSource" : "textInside",
+                "ordinal" : 51,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  513,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "best ski touring boots 2026",
+                "labelSource" : "classifier",
+                "ordinal" : 52,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "alpine touring boots vs downhill",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  526,
+                  27,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 53,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1686,
+                  552,
+                  133,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "S/PRO 100 GW|...",
+                "labelSource" : "textInside",
+                "ordinal" : 54,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1678,
+                  536,
+                  127,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 55,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1534,
+                  552,
+                  102,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Prime 100 |...",
+                "labelSource" : "textInside",
+                "ordinal" : 56,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1526,
+                  536,
+                  127,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 57,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1381,
+                  554,
+                  139,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "S/Pro Supra BOA...",
+                "labelSource" : "textInside",
+                "ordinal" : 58,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1374,
+                  536,
+                  127,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/Black/Beluga | 24.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 59,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1225,
+                  556,
+                  123,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Supra BOA 100...",
+                "labelSource" : "textInside",
+                "ordinal" : 60,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1222,
+                  536,
+                  127,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Met/Burgundy Met | 28.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 61,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1072,
+                  554,
+                  37,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "MID",
+                "labelSource" : "textInside",
+                "ordinal" : 62,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1070,
+                  536,
+                  30,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Atomic Hawx Ultra XTD 130 BOA GW | Cement/Stone/Red | 26.5 Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 63,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1684,
+                  576,
+                  78,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$299.00",
+                "labelSource" : "textInside",
+                "ordinal" : 64,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1531,
+                  576,
+                  77,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$294.00",
+                "labelSource" : "textInside",
+                "ordinal" : 65,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1380,
+                  576,
+                  76,
+                  29
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$489.97",
+                "labelSource" : "textInside",
+                "ordinal" : 66,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1228,
+                  576,
+                  78,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$364.00",
+                "labelSource" : "textInside",
+                "ordinal" : 67,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1075,
+                  576,
+                  43,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$66",
+                "labelSource" : "textInside",
+                "ordinal" : 68,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -989,
+                  574,
+                  195,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "scarpa alpine touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 69,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  561,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "scarpa alpine touring boots",
+                "labelSource" : "classifier",
+                "ordinal" : 70,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -679,
+                  574,
+                  27,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 71,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1678,
+                  600,
+                  114,
+                  20
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 72,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1526,
+                  600,
+                  114,
+                  20
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 73,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1374,
+                  600,
+                  114,
+                  20
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 74,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1222,
+                  600,
+                  114,
+                  20
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 75,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1076,
+                  598,
+                  43,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "SpoI",
+                "labelSource" : "textInside",
+                "ordinal" : 76,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1070,
+                  600,
+                  30,
+                  20
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sports Basement",
+                "labelSource" : "classifier",
+                "ordinal" : 77,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -990,
+                  622,
+                  177,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "scarpa ski touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 78,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  609,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "scarpa ski touring boots",
+                "labelSource" : "classifier",
+                "ordinal" : 79,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Salomon Men's",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -680,
+                  622,
+                  27,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 80,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -989,
+                  670,
+                  157,
+                  27
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "dynafit touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 81,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  657,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "dynafit touring boots",
+                "labelSource" : "classifier",
+                "ordinal" : 82,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -680,
+                  670,
+                  27,
+                  27
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 83,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sports Basement",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1684,
+                  694,
+                  84,
+                  25
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sponsored",
+                "labelSource" : "textInside",
+                "ordinal" : 84,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1644,
+                  726,
+                  35,
+                  21
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "evo",
+                "labelSource" : "textInside",
+                "ordinal" : 85,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1639,
+                  725,
+                  178,
+                  20
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "evo",
+                "labelSource" : "classifier",
+                "ordinal" : 86,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -987,
+                  720,
+                  267,
+                  23
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "best alpine touring boots for wide feet",
+                "labelSource" : "textInside",
+                "ordinal" : 87,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  705,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "best alpine touring boots for wide feet",
+                "labelSource" : "classifier",
+                "ordinal" : 88,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -680,
+                  718,
+                  27,
+                  27
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 89,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2,
+                "frame" : [
+                  -1639,
+                  745,
+                  148,
+                  20
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "https://(an address)",
+                "labelSource" : "classifier",
+                "ordinal" : 90,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1492,
+                  745,
+                  31,
+                  18
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "ordinal" : 91,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1679,
+                  775,
+                  615,
+                  30
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Alpine Touring Ski Boots – evo",
+                "labelSource" : "classifier",
+                "ordinal" : 92,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "https://www.evo.com/:",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -990,
+                  768,
+                  155,
+                  23
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "atomic touring boots",
+                "labelSource" : "textInside",
+                "ordinal" : 93,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  753,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "atomic touring boots",
+                "labelSource" : "classifier",
+                "ordinal" : 94,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "https://www.evo.com/:",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -680,
+                  766,
+                  27,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 95,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "grouping",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "https://www.evo.com/:",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1686,
+                  776,
+                  297,
+                  33
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Alpine Touring Ski Boots - evo",
+                "labelSource" : "textInside",
+                "ordinal" : 96,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Alpine Touring Ski Boots - evo",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1683,
+                  808,
+                  611,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "evo Alpine Touring Boots - Enjoy Fast FREE SHIPPING on qualifying orders and our Lowest",
+                "labelSource" : "textInside",
+                "ordinal" : 97,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Alpine Touring Ski Boots - evo",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1683,
+                  828,
+                  565,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Price Guarantee. Shop Alpine Touring Ski Boots at evo. Best selection and authentic",
+                "labelSource" : "textInside",
+                "ordinal" : 98,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Alpine Touring Ski Boots - evo",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1683,
+                  850,
+                  248,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "reviews. Committed To Giving Back.",
+                "labelSource" : "textInside",
+                "ordinal" : 99,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "reviews. Committed To Giving Back.",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1684,
+                  915,
+                  84,
+                  26
+                ],
+                "groupID" : 12,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sponsored",
+                "labelSource" : "textInside",
+                "ordinal" : 100,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "reviews. Committed To Giving Back.",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1643,
+                  946,
+                  132,
+                  17
+                ],
+                "groupID" : 12,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "cuitahhoah Trouol",
+                "labelSource" : "textInside",
+                "ordinal" : 101,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1639,
+                  947,
+                  265,
+                  13
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Switchback Travel",
+                "labelSource" : "classifier",
+                "ordinal" : 102,
+                "role" : "AXLink"
+              }
+            ],
+            "version" : 2
+          }
+        }
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "refusal" : "ambiguousElement",
+      "routes" : [
+        {
+          "atMilliseconds" : 1219,
+          "decisions" : [
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "ECOSIA",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 1,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 259,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Ecosia Homepage",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 2,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 302,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 1024,
+              "label" : "alpine touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 3,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 218,
+              "structure" : 0
+            },
+            {
+              "affordance" : 40,
+              "disposition" : "belowFloor",
+              "facts" : 1024,
+              "label" : "Search the web",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 4,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 344,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 8,
+              "label" : "Clear",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 5,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 213,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 8,
+              "label" : "Search",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 6,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 255,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 3080,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 7,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 178,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 1033,
+              "label" : "Sign in",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 8,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 217,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 1032,
+              "label" : "item 3",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "clarificationRequired",
+              "facts" : 3080,
+              "label" : "News",
+              "lexical" : 400,
+              "lexicalBasis" : "exact",
+              "ordinal" : 10,
+              "provenance" : 100,
+              "reason" : "answers to \"news\" as well as 1 other",
+              "semantic" : 1000,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Show navigation menu",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 11,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 419,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Skip to main content",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 12,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 331,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 1024,
+              "label" : "A Images + Al Chat D Videos dE News Ф Web",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 13,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 464,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "Web",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 14,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 365,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 1024,
+              "label" : "A Images + Al Chat D Videos dE News",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 500,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "AI Chat",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 16,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 494,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 1032,
+              "label" : "item 8",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 17,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "Images",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 18,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 463,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "Videos",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 19,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 364,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 1032,
+              "label" : "item 12",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 20,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "clarificationRequired",
+              "facts" : 3080,
+              "label" : "News",
+              "lexical" : 400,
+              "lexicalBasis" : "exact",
+              "ordinal" : 21,
+              "provenance" : 100,
+              "reason" : "answers to \"news\" as well as 1 other",
+              "semantic" : 1000,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 8,
+              "label" : "More",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 22,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 161,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 1032,
+              "label" : "More v",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 23,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 116,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 1032,
+              "label" : "item 16",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 24,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Search region",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 25,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 213,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Sponsored • Shop related products",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 26,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 361,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 8,
+              "label" : "item 20",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 27,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "To get missing image descriptions, open the context menu.",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 28,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 251,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Searches related to alpine touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 29,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 172,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Searches related to alpine touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 30,
+              "provenance" : 100,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 164,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2304,
+              "label" : "ski touring boots vs alpine boot",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 31,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 140,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "ski touring boots vs alpine boot",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 32,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 140,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2312,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 33,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Ba…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 34,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 59,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Ba…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 35,
+              "provenance" : 100,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 64,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "ineligible",
+              "facts" : 264,
+              "label" : "image 1",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 36,
+              "provenance" : 0,
+              "reason" : "has no name anyone wrote",
+              "semantic" : 0,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Bas…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 37,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 94,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2304,
+              "label" : "Image of Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Bas…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 38,
+              "provenance" : 100,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 98,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/B…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 39,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 83,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/B…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 40,
+              "provenance" : 100,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 84,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Image of Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Me…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 41,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 64,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2304,
+              "label" : "Image of Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Me…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 42,
+              "provenance" : 100,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 62,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Image of Atomic Hawx Ultra XTD 130 BOA GW | Cement/Stone/Red…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 43,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 68,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2304,
+              "label" : "alpine touring boots vs downhill",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 44,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 150,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "alpine touring boots vs downhill",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 45,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 150,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2312,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 46,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon Men's",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 47,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 138,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 8,
+              "label" : "Atomic Hawx",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 48,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 121,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon Women's",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 49,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 174,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon S/Pro",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 50,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 198,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "best ski touring boots 2026",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 51,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 247,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "best ski touring boots 2026",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 52,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 247,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 53,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "S/PRO 100 GW|...",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 54,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 224,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon Men's S/PRO 100 GW | Black | 29.5 Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 55,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 55,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Prime 100 |...",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 56,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 249,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Atomic Hawx Prime 100 | Black/Red | 26.5 Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 57,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 85,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "S/Pro Supra BOA...",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 58,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 176,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon Women's S/Pro Supra BOA 105 | Rose Shadow/Black/Belu…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 59,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 81,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Supra BOA 100...",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 60,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 320,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Salomon S/Pro Supra BOA 100 GW | Black/Dark Gray Met/Burgund…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 61,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 59,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 8,
+              "label" : "MID",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 62,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 317,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Atomic Hawx Ultra XTD 130 BOA GW | Cement/Stone/Red | 26.5 S…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 63,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 61,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "$299.00",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 64,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 275,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "$294.00",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 65,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 271,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "$489.97",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 66,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 248,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "$364.00",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 67,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 272,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "$66",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 68,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 324,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "scarpa alpine touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 69,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 183,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "scarpa alpine touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 70,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 183,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2088,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 71,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 72,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 278,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 73,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 278,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 74,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 278,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 75,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 278,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "SpoI",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 76,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 325,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Sports Basement",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 77,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 278,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2080,
+              "label" : "scarpa ski touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 78,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 232,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "scarpa ski touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 79,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 232,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2088,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 80,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "dynafit touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 81,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 321,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "dynafit touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 82,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 321,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 83,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Sponsored",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 84,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 284,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "evo",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 85,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 244,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "evo",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 86,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 244,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "best alpine touring boots for wide feet",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 87,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 117,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "best alpine touring boots for wide feet",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 88,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 117,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 89,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2,
+              "label" : "https://www.evo.com/",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 90,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 230,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "To get missing image descriptions, open the context menu.",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 91,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 251,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Alpine Touring Ski Boots – evo",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 92,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 221,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "atomic touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 93,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 304,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "atomic touring boots",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 94,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 304,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Q",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 95,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 315,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 2048,
+              "label" : "Alpine Touring Ski Boots - evo",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 96,
+              "provenance" : 50,
+              "reason" : "nothing about it answers",
+              "semantic" : 202,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "evo Alpine Touring Boots - Enjoy Fast FREE SHIPPING on quali…",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 97,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 92,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Price Guarantee. Shop Alpine Touring Ski Boots at evo. Best …",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 98,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 174,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "reviews. Committed To Giving Back.",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 99,
+              "provenance" : 30,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 183,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 2056,
+              "label" : "Sponsored",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 100,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 284,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "cuitahhoah Trouol",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 101,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 166,
+              "structure" : 0
+            },
+            {
+              "affordance" : 100,
+              "disposition" : "belowFloor",
+              "facts" : 0,
+              "label" : "Switchback Travel",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 102,
+              "provenance" : 100,
+              "reason" : "nothing about it answers",
+              "semantic" : 428,
+              "structure" : 0
+            }
+          ],
+          "eligibleCount" : 96,
+          "goal" : "news",
+          "goalUnmatched" : false,
+          "rivalOrdinals" : [
+            10,
+            21
+          ],
+          "verb" : "press"
+        }
+      ],
+      "say" : "news",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 88,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "alpine touring boots - Ecosia"
+        }
+      ],
+      "timeline" : [
+        "12ms  resolved Chrome",
+        "88ms  read the shell — alpine touring boots - Ecosia · ecosia",
+        "819ms  perceived 102 controls · —",
+        "819ms  looked — 102 rows, 96 named, 13 groups",
+        "1219ms  routed \"news\" → a question (96 of 102 eligible)",
+        "1220ms  refused — There's more than one \"news\" on this page — \"News\", \"News\". Which one?"
+      ],
+      "verdict" : "failed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:04Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "press-by-name"
+}

@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "recovery",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on resolution unit",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "pause the video in chrome",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:41:01Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "two-browsers-running"
+}

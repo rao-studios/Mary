@@ -1,0 +1,419 @@
+{
+  "browser" : "chrome",
+  "category" : "arrive",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 120,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 121,
+          "kind" : "openLocation",
+          "typedLength" : 25
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 1127,
+      "index" : 0,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Opened Wikipedia, the free encyclopedia at wikipedia.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became Wikipedia, the free encyclopedia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go to wikipedia",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 120,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 761,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1127,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "120ms  read the shell — httpbin.org/post · httpbin",
+        "407ms  typed an address",
+        "1127ms  verified the page changed",
+        "1127ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+      ],
+      "verdict" : "passed"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 83,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 83,
+          "kind" : "pressShell",
+          "shellLabel" : "Back"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 797,
+      "index" : 1,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Went back httpbin.org/post at httpbin.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became httpbin.org/post"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go back",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 83,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 454,
+          "canGoBack" : true,
+          "canGoForward" : true,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 796,
+          "canGoBack" : true,
+          "canGoForward" : true,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        }
+      ],
+      "timeline" : [
+        "8ms  resolved Chrome",
+        "83ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "93ms  pressed Back",
+        "796ms  verified the page changed",
+        "796ms  receipt — navigate — the page became httpbin.org/post"
+      ],
+      "verdict" : "passed"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 83,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 83,
+          "kind" : "pressShell",
+          "shellLabel" : "Forward"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 793,
+      "index" : 2,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Went forward Wikipedia, the free encyclopedia at wikipedia.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became Wikipedia, the free encyclopedia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go forward again",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 83,
+          "canGoBack" : true,
+          "canGoForward" : true,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 447,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 793,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "83ms  read the shell — httpbin.org/post · httpbin",
+        "85ms  pressed Forward",
+        "793ms  verified the page changed",
+        "793ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+      ],
+      "verdict" : "passed"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 86,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 86,
+          "kind" : "pressShell",
+          "shellLabel" : "Reload"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 1871,
+      "index" : 3,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Reloaded Wikipedia, the free encyclopedia at wikipedia.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became Wikipedia, the free encyclopedia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "reload this page",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 86,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 439,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 801,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1153,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1507,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1871,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "86ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "89ms  pressed Reload",
+        "1871ms  verified the page changed",
+        "1871ms  receipt — navigate — the page became Wikipedia, the free encyclopedia"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:36Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "arrive-by-name"
+}

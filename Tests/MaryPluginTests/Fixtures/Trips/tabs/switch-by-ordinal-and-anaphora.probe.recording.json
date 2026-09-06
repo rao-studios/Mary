@@ -1,0 +1,72 @@
+{
+  "browser" : "chrome",
+  "category" : "tabs",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on round 3",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go to the second tab",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    },
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on round 3",
+      "elapsedMilliseconds" : 0,
+      "index" : 1,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "go back to the other one",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:42:03Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "switch-by-ordinal-and-anaphora"
+}

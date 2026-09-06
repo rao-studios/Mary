@@ -1,0 +1,3334 @@
+{
+  "browser" : "chrome",
+  "category" : "read",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 71,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 1233,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 1233,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "The visible part of Ski touring - Wikipedia, top to bottom:\nMain menu\nWikipedia\nWikipedia The Free Encyclopedia\nQ Search Wikipedia Search\nSearch Wikipedia\nitem 5\nSearch\nDonate Create account Log in\nDonate\nCreate account\nLog in\n25 years of the free encyclopedia\nThe Free Encyclopedia\nSki touring\n9 languages\nContents hide\nContents\nitem 13\nHide Contents\nlink 3\nArticle Talk\nArticle\nitem 15\nTalk\nlink 4\nRead Edit View history:\nRead\nitem 16\nEdit\nlink 5\nView history\nTools\nAppearance hide\nitem 18\nHide Appearance\nitem 19\n(Top)\nFrom Wikipedia, the free encyclopedia\nText\nHistory\n• Small\nitem 27\nTerminology\ni September 6: Wikipedia still can't be sold\n• Standard\nitem 30\nToggle Equipment subsection\n~ Equipment\nWe're sorry we've made several attempts to reach you.\nStyles of equipment\nIt's Sunday, September 6, and Wikipedia is seeing fewer\nGive $2.75\nitem 41\nLarge\nitem 37\nAscending aids\nreaders this year so your visit means a lot. If everyone\nWidth\nSee also\nreading this gave $2.75 today, we'd hit our goal quickly.\nMost readers don't donate; only 2% do. Wikipedia is run\nGive a different amount\nby a nonprofit, not by a billionaire. So if Wikipedia has\nitem 48\nReferences\ngiven you$2.75 worthof knowledge, please give. Any\nWikimedia Foundation\n• Wide\nitem 54\nExternal links\ncontribution helps, whether it's $2.75 or $25.\nColor\nMAYBE LATER O\nMAYBE LATER\nI ALREADY DONATED\nCLOSE\nCLOSE X\nAutomatic\nitem 61\nThis article has multiple issues. Please help improve it [hide]\nimprove it\n[hide]\nLight\nor discuss these issues on the talk page. (Learn how and when to\ntalk page\nDark\nLearn how and when to remove these messages\nremove these messages)\n• This article may contain original research. (December\noriginal research\n2012)\n• This article needs more citations. (January 2013)\nmore citations\nitem 71\nSki touring is skiing in the backcountry on unmarked\nskiing\nbackcountry\nor unpatrolled areas. Touring is typically done off-piste\npiste\nTo get missing image descriptions, open the context menu.\nand outside of ski resorts, and may extend over a\nski resorts",
+      "pageReads" : [
+        {
+          "atMilliseconds" : 830,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "list",
+                "memberOrdinals" : [
+                  115,
+                  118,
+                  122
+                ],
+                "title" : "• This article needs more citations. (January 2013)"
+              },
+              {
+                "id" : 1,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  2,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  12
+                ]
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  14,
+                  16,
+                  17,
+                  19,
+                  21,
+                  22,
+                  24,
+                  26,
+                  27,
+                  29,
+                  31,
+                  34,
+                  35,
+                  37
+                ],
+                "title" : "25 years of the free encyclopedia"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  39,
+                  40,
+                  41
+                ],
+                "title" : "Appearance hide"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  42,
+                  44,
+                  46,
+                  47,
+                  49,
+                  50,
+                  52,
+                  54,
+                  56
+                ],
+                "title" : "(Top)"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  57,
+                  58,
+                  59,
+                  60,
+                  61,
+                  63,
+                  64,
+                  66,
+                  67,
+                  68,
+                  70,
+                  71,
+                  73,
+                  74,
+                  75,
+                  77,
+                  78,
+                  80,
+                  81,
+                  82,
+                  84,
+                  85,
+                  87,
+                  88,
+                  89,
+                  92,
+                  94,
+                  95,
+                  97
+                ],
+                "title" : "• Standard"
+              },
+              {
+                "id" : 6,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  98,
+                  102,
+                  103,
+                  106,
+                  108
+                ],
+                "title" : "Automatic"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  109
+                ],
+                "title" : "remove these messages)"
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  111,
+                  112,
+                  114
+                ],
+                "title" : "• This article may contain original research. (December"
+              },
+              {
+                "id" : 9,
+                "kind" : "row",
+                "memberOrdinals" : [
+                  115
+                ],
+                "title" : "• This article needs more citations. (January 2013)"
+              },
+              {
+                "id" : 10,
+                "kind" : "row",
+                "memberOrdinals" : [
+                  118
+                ],
+                "title" : "• This article needs more citations. (January 2013)"
+              },
+              {
+                "id" : 11,
+                "kind" : "row",
+                "memberOrdinals" : [
+                  122
+                ],
+                "title" : "• This article needs more citations. (January 2013)"
+              }
+            ],
+            "labeledFraction" : 0.8235294117647058,
+            "pageFrame" : [
+              -1793,
+              195,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 433,
+            "rows" : [
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1755,
+                  213,
+                  32,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Main menu",
+                "labelSource" : "classifier",
+                "ordinal" : 1,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1709,
+                  210,
+                  140,
+                  22
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Wikipedia",
+                "labelSource" : "classifier",
+                "ordinal" : 2,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1709,
+                  210,
+                  140,
+                  38
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Wikipedia The Free Encyclopedia",
+                "labelSource" : "classifier",
+                "ordinal" : 3,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1528,
+                  212,
+                  476,
+                  34
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Q Search Wikipedia Search",
+                "labelSource" : "textInside",
+                "ordinal" : 4,
+                "role" : "AXTextField"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1527,
+                  213,
+                  405,
+                  32
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Search Wikipedia",
+                "labelSource" : "classifier",
+                "ordinal" : 5,
+                "role" : "AXTextField"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1492,
+                  223,
+                  109,
+                  14
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 5",
+                "labelSource" : "synthesized",
+                "ordinal" : 6,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1124,
+                  213,
+                  71,
+                  32
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Search",
+                "labelSource" : "classifier",
+                "ordinal" : 7,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -790,
+                  218,
+                  205,
+                  23
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Donate Create account Log in",
+                "labelSource" : "textInside",
+                "ordinal" : 8,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -785,
+                  221,
+                  46,
+                  16
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Donate",
+                "labelSource" : "classifier",
+                "ordinal" : 9,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -732,
+                  221,
+                  96,
+                  16
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Create account",
+                "labelSource" : "classifier",
+                "ordinal" : 10,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 9,
+                "frame" : [
+                  -629,
+                  221,
+                  39,
+                  16
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Log in",
+                "labelSource" : "classifier",
+                "ordinal" : 11,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1713,
+                  232,
+                  151,
+                  21
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "25 years of the free encyclopedia",
+                "labelSource" : "textInside",
+                "ordinal" : 12,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1709,
+                  237,
+                  140,
+                  11
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "The Free Encyclopedia",
+                "labelSource" : "classifier",
+                "ordinal" : 13,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1536,
+                  286,
+                  156,
+                  42
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Ski touring",
+                "labelSource" : "textInside",
+                "ordinal" : 14,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1529,
+                  286,
+                  587,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Ski touring",
+                "labelSource" : "classifier",
+                "ordinal" : 15,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -943,
+                  289,
+                  149,
+                  33
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "9 languages",
+                "labelSource" : "classifier",
+                "ordinal" : 16,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1738,
+                  334,
+                  116,
+                  21
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Contents hide",
+                "labelSource" : "textInside",
+                "ordinal" : 17,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1733,
+                  332,
+                  61,
+                  24
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Contents",
+                "labelSource" : "classifier",
+                "ordinal" : 18,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1733,
+                  338,
+                  61,
+                  12
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 13",
+                "labelSource" : "synthesized",
+                "ordinal" : 19,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1661,
+                  332,
+                  40,
+                  23
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Hide Contents",
+                "labelSource" : "classifier",
+                "ordinal" : 20,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1653,
+                  338,
+                  23,
+                  11
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "link 3",
+                "labelSource" : "synthesized",
+                "ordinal" : 21,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1534,
+                  332,
+                  92,
+                  22
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Article Talk",
+                "labelSource" : "textInside",
+                "ordinal" : 22,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1529,
+                  325,
+                  39,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Article",
+                "labelSource" : "classifier",
+                "ordinal" : 23,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1529,
+                  336,
+                  39,
+                  12
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 15",
+                "labelSource" : "synthesized",
+                "ordinal" : 24,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1475,
+                  325,
+                  26,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Talk",
+                "labelSource" : "classifier",
+                "ordinal" : 25,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1475,
+                  336,
+                  26,
+                  12
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "link 4",
+                "labelSource" : "synthesized",
+                "ordinal" : 26,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1010,
+                  323,
+                  208,
+                  35
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Read Edit View history:",
+                "labelSource" : "textInside",
+                "ordinal" : 27,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1003,
+                  325,
+                  34,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Read",
+                "labelSource" : "classifier",
+                "ordinal" : 28,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1003,
+                  336,
+                  34,
+                  12
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 16",
+                "labelSource" : "synthesized",
+                "ordinal" : 29,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -954,
+                  325,
+                  25,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Edit",
+                "labelSource" : "classifier",
+                "ordinal" : 30,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -953,
+                  336,
+                  24,
+                  12
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "link 5",
+                "labelSource" : "synthesized",
+                "ordinal" : 31,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -914,
+                  325,
+                  76,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "View history",
+                "labelSource" : "classifier",
+                "ordinal" : 32,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -830,
+                  325,
+                  32,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Tools",
+                "labelSource" : "classifier",
+                "ordinal" : 33,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -772,
+                  334,
+                  136,
+                  25
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Appearance hide",
+                "labelSource" : "textInside",
+                "ordinal" : 34,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -766,
+                  338,
+                  80,
+                  15
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 18",
+                "labelSource" : "synthesized",
+                "ordinal" : 35,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -674,
+                  332,
+                  39,
+                  23
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Hide Appearance",
+                "labelSource" : "classifier",
+                "ordinal" : 36,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "25 years of the free encyclopedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -666,
+                  339,
+                  23,
+                  10
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 19",
+                "labelSource" : "synthesized",
+                "ordinal" : 37,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  368,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "(Top)",
+                "labelSource" : "classifier",
+                "ordinal" : 38,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Appearance hide",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1533,
+                  366,
+                  246,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "From Wikipedia, the free encyclopedia",
+                "labelSource" : "textInside",
+                "ordinal" : 39,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Appearance hide",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -771,
+                  372,
+                  38,
+                  23
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Text",
+                "labelSource" : "textInside",
+                "ordinal" : 40,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Appearance hide",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1740,
+                  372,
+                  48,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "(Top)",
+                "labelSource" : "textInside",
+                "ordinal" : 41,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1738,
+                  400,
+                  53,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "History",
+                "labelSource" : "textInside",
+                "ordinal" : 42,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  396,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "History",
+                "labelSource" : "classifier",
+                "ordinal" : 43,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -769,
+                  408,
+                  69,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Small",
+                "labelSource" : "textInside",
+                "ordinal" : 44,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  410,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Small",
+                "labelSource" : "classifier",
+                "ordinal" : 45,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  415,
+                  35,
+                  12
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 27",
+                "labelSource" : "synthesized",
+                "ordinal" : 46,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1738,
+                  428,
+                  88,
+                  26
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Terminology",
+                "labelSource" : "textInside",
+                "ordinal" : 47,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  424,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Terminology",
+                "labelSource" : "classifier",
+                "ordinal" : 48,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1514,
+                  420,
+                  389,
+                  33
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "i September 6: Wikipedia still can't be sold",
+                "labelSource" : "textInside",
+                "ordinal" : 49,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -772,
+                  438,
+                  93,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Standard",
+                "labelSource" : "textInside",
+                "ordinal" : 50,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  442,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Standard",
+                "labelSource" : "classifier",
+                "ordinal" : 51,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  447,
+                  57,
+                  12
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 30",
+                "labelSource" : "synthesized",
+                "ordinal" : 52,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1756,
+                  453,
+                  22,
+                  23
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Toggle Equipment subsection",
+                "labelSource" : "classifier",
+                "ordinal" : 53,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1754,
+                  456,
+                  96,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "~ Equipment",
+                "labelSource" : "textInside",
+                "ordinal" : 54,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  452,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Equipment",
+                "labelSource" : "classifier",
+                "ordinal" : 55,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1511,
+                  458,
+                  369,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "We're sorry we've made several attempts to reach you.",
+                "labelSource" : "textInside",
+                "ordinal" : 56,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1721,
+                  480,
+                  152,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Styles of equipment",
+                "labelSource" : "classifier",
+                "ordinal" : 57,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1514,
+                  478,
+                  379,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "It's Sunday, September 6, and Wikipedia is seeing fewer",
+                "labelSource" : "textInside",
+                "ordinal" : 58,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1041,
+                  478,
+                  128,
+                  46
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Give $2.75",
+                "labelSource" : "classifier",
+                "ordinal" : 59,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1025,
+                  493,
+                  81,
+                  15
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 41",
+                "labelSource" : "synthesized",
+                "ordinal" : 60,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -772,
+                  471,
+                  72,
+                  31
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Large",
+                "labelSource" : "textInside",
+                "ordinal" : 61,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  474,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Large",
+                "labelSource" : "classifier",
+                "ordinal" : 62,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  479,
+                  36,
+                  15
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 37",
+                "labelSource" : "synthesized",
+                "ordinal" : 63,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1726,
+                  512,
+                  108,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ascending aids",
+                "labelSource" : "textInside",
+                "ordinal" : 64,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1721,
+                  508,
+                  152,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ascending aids",
+                "labelSource" : "classifier",
+                "ordinal" : 65,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1513,
+                  498,
+                  363,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "readers this year so your visit means a lot. If everyone",
+                "labelSource" : "textInside",
+                "ordinal" : 66,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -773,
+                  516,
+                  51,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Width",
+                "labelSource" : "textInside",
+                "ordinal" : 67,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1738,
+                  540,
+                  66,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "See also",
+                "labelSource" : "textInside",
+                "ordinal" : 68,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  536,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "See also",
+                "labelSource" : "classifier",
+                "ordinal" : 69,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1515,
+                  516,
+                  375,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "reading this gave $2.75 today, we'd hit our goal quickly.",
+                "labelSource" : "textInside",
+                "ordinal" : 70,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1514,
+                  538,
+                  377,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Most readers don't donate; only 2% do. Wikipedia is run",
+                "labelSource" : "textInside",
+                "ordinal" : 71,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1069,
+                  523,
+                  184,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Give a different amount",
+                "labelSource" : "classifier",
+                "ordinal" : 72,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1061,
+                  536,
+                  171,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Give a different amount",
+                "labelSource" : "textInside",
+                "ordinal" : 73,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1514,
+                  558,
+                  361,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "by a nonprofit, not by a billionaire. So if Wikipedia has",
+                "labelSource" : "textInside",
+                "ordinal" : 74,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -772,
+                  550,
+                  94,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• Standard",
+                "labelSource" : "textInside",
+                "ordinal" : 75,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  553,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Standard",
+                "labelSource" : "classifier",
+                "ordinal" : 76,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  558,
+                  57,
+                  12
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 48",
+                "labelSource" : "synthesized",
+                "ordinal" : 77,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1738,
+                  568,
+                  84,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "References",
+                "labelSource" : "textInside",
+                "ordinal" : 78,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1733,
+                  564,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "References",
+                "labelSource" : "classifier",
+                "ordinal" : 79,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1513,
+                  578,
+                  363,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "given you$2.75 worthof knowledge, please give. Any",
+                "labelSource" : "textInside",
+                "ordinal" : 80,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1020,
+                  581,
+                  86,
+                  21
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Wikimedia Foundation",
+                "labelSource" : "classifier",
+                "ordinal" : 81,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -772,
+                  581,
+                  68,
+                  28
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "• Wide",
+                "labelSource" : "textInside",
+                "ordinal" : 82,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  585,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Wide",
+                "labelSource" : "classifier",
+                "ordinal" : 83,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  590,
+                  32,
+                  12
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 54",
+                "labelSource" : "synthesized",
+                "ordinal" : 84,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1737,
+                  596,
+                  95,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "External links",
+                "labelSource" : "textInside",
+                "ordinal" : 85,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1733,
+                  592,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "External links",
+                "labelSource" : "classifier",
+                "ordinal" : 86,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1513,
+                  600,
+                  307,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "contribution helps, whether it's $2.75 or $25.",
+                "labelSource" : "textInside",
+                "ordinal" : 87,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -769,
+                  626,
+                  45,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Color",
+                "labelSource" : "textInside",
+                "ordinal" : 88,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1352,
+                  654,
+                  119,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "MAYBE LATER O",
+                "labelSource" : "textInside",
+                "ordinal" : 89,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1348,
+                  641,
+                  117,
+                  46
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "MAYBE LATER",
+                "labelSource" : "classifier",
+                "ordinal" : 90,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1212,
+                  641,
+                  139,
+                  46
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "I ALREADY DONATED",
+                "labelSource" : "classifier",
+                "ordinal" : 91,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1211,
+                  654,
+                  137,
+                  21
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "I ALREADY DONATED",
+                "labelSource" : "textInside",
+                "ordinal" : 92,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1054,
+                  641,
+                  67,
+                  46
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "CLOSE",
+                "labelSource" : "classifier",
+                "ordinal" : 93,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1051,
+                  654,
+                  63,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "CLOSE X",
+                "labelSource" : "textInside",
+                "ordinal" : 94,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -772,
+                  661,
+                  100,
+                  29
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Automatic",
+                "labelSource" : "textInside",
+                "ordinal" : 95,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  664,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Automatic",
+                "labelSource" : "classifier",
+                "ordinal" : 96,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Standard",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -742,
+                  669,
+                  63,
+                  12
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 61",
+                "labelSource" : "synthesized",
+                "ordinal" : 97,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Automatic",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1379,
+                  704,
+                  468,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "This article has multiple issues. Please help improve it [hide]",
+                "labelSource" : "textInside",
+                "ordinal" : 98,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1042,
+                  706,
+                  78,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "improve it",
+                "labelSource" : "classifier",
+                "ordinal" : 99,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -960,
+                  702,
+                  47,
+                  27
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "[hide]",
+                "labelSource" : "classifier",
+                "ordinal" : 100,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  696,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Light",
+                "labelSource" : "classifier",
+                "ordinal" : 101,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Automatic",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -750,
+                  696,
+                  45,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Light",
+                "labelSource" : "textInside",
+                "ordinal" : 102,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Automatic",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1379,
+                  730,
+                  455,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "or discuss these issues on the talk page. (Learn how and when to",
+                "labelSource" : "textInside",
+                "ordinal" : 103,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1156,
+                  732,
+                  70,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "talk page",
+                "labelSource" : "classifier",
+                "ordinal" : 104,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -766,
+                  728,
+                  20,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Dark",
+                "labelSource" : "classifier",
+                "ordinal" : 105,
+                "role" : "AXRadioButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Automatic",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -748,
+                  730,
+                  43,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Dark",
+                "labelSource" : "textInside",
+                "ordinal" : 106,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1375,
+                  734,
+                  444,
+                  42
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Learn how and when to remove these messages",
+                "labelSource" : "classifier",
+                "ordinal" : 107,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Automatic",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1380,
+                  760,
+                  163,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "remove these messages)",
+                "labelSource" : "textInside",
+                "ordinal" : 108,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "remove these messages)",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1371,
+                  786,
+                  429,
+                  27
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• This article may contain original research. (December",
+                "labelSource" : "textInside",
+                "ordinal" : 109,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1170,
+                  788,
+                  130,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "original research",
+                "labelSource" : "classifier",
+                "ordinal" : 110,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article may contain original research. (December",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1356,
+                  810,
+                  55,
+                  27
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "2012)",
+                "labelSource" : "textInside",
+                "ordinal" : 111,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article may contain original research. (December",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1372,
+                  834,
+                  387,
+                  25
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "• This article needs more citations. (January 2013)",
+                "labelSource" : "textInside",
+                "ordinal" : 112,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1217,
+                  836,
+                  110,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "more citations",
+                "labelSource" : "classifier",
+                "ordinal" : 113,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article may contain original research. (December",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1098,
+                  838,
+                  108,
+                  17
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 71",
+                "labelSource" : "synthesized",
+                "ordinal" : 114,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article needs more citations. (January 2013)",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1534,
+                  878,
+                  387,
+                  25
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ski touring is skiing in the backcountry on unmarked",
+                "labelSource" : "textInside",
+                "ordinal" : 115,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1425,
+                  879,
+                  41,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "skiing",
+                "labelSource" : "classifier",
+                "ordinal" : 116,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1337,
+                  879,
+                  88,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "backcountry",
+                "labelSource" : "classifier",
+                "ordinal" : 117,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article needs more citations. (January 2013)",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1533,
+                  904,
+                  393,
+                  25
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "or unpatrolled areas. Touring is typically done off-piste",
+                "labelSource" : "textInside",
+                "ordinal" : 118,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1181,
+                  905,
+                  34,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "piste",
+                "labelSource" : "classifier",
+                "ordinal" : 119,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1115,
+                  876,
+                  308,
+                  84
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "ordinal" : 120,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1112,
+                  879,
+                  302,
+                  81
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "ordinal" : 121,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• This article needs more citations. (January 2013)",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1534,
+                  930,
+                  359,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "and outside of ski resorts, and may extend over a",
+                "labelSource" : "textInside",
+                "ordinal" : 122,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1425,
+                  931,
+                  74,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "ski resorts",
+                "labelSource" : "classifier",
+                "ordinal" : 123,
+                "role" : "AXLink"
+              }
+            ],
+            "version" : 2
+          }
+        }
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "read the comments",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 71,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Ski touring - Wikipedia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "71ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "830ms  perceived 123 controls · —",
+        "830ms  looked — 123 rows, 106 named, 12 groups"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:40:24Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "read-the-comments"
+}

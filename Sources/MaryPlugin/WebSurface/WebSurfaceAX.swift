@@ -72,7 +72,11 @@ public enum WebSurfaceAX {
 
     public static func read(pid: pid_t, registration: WebSurfaceRegistration) -> Reading? {
         guard AXIsProcessTrusted() else { return nil }
-        guard let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive),
+        // THE SHELL PRESET. Every read in this file is about the browser's own
+        // window — title, tabs, history, the address field, the page's frame —
+        // and once the page's accessibility tree is awake `.exhaustive` walks
+        // several thousand page nodes to reach a toolbar. See `Options.shell`.
+        guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
               let window = snapshot.windows.first(where: { $0.isMain })
                 ?? snapshot.windows.first,
               let root = window.root
@@ -176,7 +180,8 @@ public enum WebSurfaceAX {
         registration: WebSurfaceRegistration
     ) -> String? {
         if registration.schema.urlSource == .webArea, let webArea,
-           let found = AXEngine.detail(pid: pid, nodeID: webArea.id, budget: .probe),
+           let found = AXEngine.detail(
+            pid: pid, nodeID: webArea.id, options: .shell, budget: .probe),
            let url = found.detail.nodes[webArea.id]?.url, !url.isEmpty {
             return url
         }
@@ -198,7 +203,10 @@ public enum WebSurfaceAX {
         pid: pid_t, registration: WebSurfaceRegistration
     ) -> String? {
         guard AXIsProcessTrusted(),
-              let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive),
+              // THE SHELL PRESET, NOT `.exhaustive` — see `Options.shell`. This
+              // is the browser's toolbar; the page below it is read by the page
+              // lane, when a skill asks, and never on the way to a text field.
+              let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
               let window = snapshot.windows.first(where: { $0.isMain })
                 ?? snapshot.windows.first,
               let root = window.root
@@ -206,7 +214,8 @@ public enum WebSurfaceAX {
         var nodes: [AXNodeSnapshot] = []
         root.forEachNode { nodes.append($0) }
         guard let field = nodes.first(where: { registration.isAddressLabel($0.label) }),
-              let found = AXEngine.detail(pid: pid, nodeID: field.id, budget: .probe)
+              let found = AXEngine.detail(
+                pid: pid, nodeID: field.id, options: .shell, budget: .probe)
         else { return nil }
         return found.detail.nodes[field.id]?.textValue
     }

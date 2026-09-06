@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "tabs",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "waiting on round 3",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "switch to the other tab",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "pending"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:42:01Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "switch-by-name"
+}

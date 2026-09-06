@@ -1,0 +1,72 @@
+{
+  "browser" : "chrome",
+  "category" : "context",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "somebody has to navigate the page by hand mid-trip",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "look up alpine touring boots on the web",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    },
+    {
+      "acts" : [
+
+      ],
+      "because" : "somebody has to navigate the page by hand mid-trip",
+      "elapsedMilliseconds" : 0,
+      "index" : 1,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "open the second one",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:39:03Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "hand-navigation-invalidates"
+}

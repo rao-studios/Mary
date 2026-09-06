@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "media",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "action is one of play/pause/toggle/mute/unmute/fullscreen/seek/volume and the trip does not say which",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "turn the volume up a bit",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:40:14Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "volume-up-on-a-video"
+}

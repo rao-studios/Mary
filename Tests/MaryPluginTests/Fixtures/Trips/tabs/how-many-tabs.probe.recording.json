@@ -1,0 +1,65 @@
+{
+  "browser" : "chrome",
+  "category" : "tabs",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 115,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "watch a fireplace video on youtube - Ecosia - High memory usage - 928 MB",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "how many tabs do I have open",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 115,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "watch a fireplace video on youtube - Ecosia - High memory usage - 928 MB"
+        }
+      ],
+      "timeline" : [
+        "5ms  resolved Chrome",
+        "115ms  read the shell — watch a fireplace video on youtube - Ecosia - High memory usage - 928 MB · ecosia"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:41:55Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "how-many-tabs"
+}

@@ -1,0 +1,2141 @@
+{
+  "browser" : "chrome",
+  "category" : "arrive",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 115,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 115,
+          "kind" : "openLocation",
+          "typedLength" : 58
+        },
+        {
+          "atMilliseconds" : 2621,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 3653,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 3656,
+      "index" : 0,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
+      "pageReads" : [
+        {
+          "atMilliseconds" : 3330,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  1,
+                  2,
+                  3,
+                  4,
+                  7,
+                  8,
+                  9,
+                  10,
+                  13,
+                  14,
+                  15,
+                  16,
+                  17,
+                  18,
+                  19,
+                  20,
+                  21,
+                  23,
+                  24
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  25
+                ],
+                "title" : "+ Al Chat"
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  26,
+                  27,
+                  29,
+                  30,
+                  32
+                ],
+                "title" : "Search region: United States (English) v"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  34,
+                  35,
+                  36,
+                  37,
+                  39,
+                  40,
+                  41
+                ],
+                "title" : "• Overviews"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  44,
+                  45,
+                  47,
+                  48
+                ],
+                "title" : "Is this helpful?"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  49,
+                  50,
+                  51,
+                  52,
+                  54,
+                  56,
+                  57,
+                  58,
+                  59
+                ],
+                "title" : "valley of the Tarn near Millau in the Aveyron"
+              },
+              {
+                "id" : 6,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  60,
+                  61,
+                  63,
+                  65,
+                  66,
+                  67
+                ],
+                "title" : "Wikipedia"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  69,
+                  70,
+                  72
+                ],
+                "title" : "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E"
+              }
+            ],
+            "labeledFraction" : 0.875,
+            "pageFrame" : [
+              -1793,
+              195,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 444,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  216,
+                  86,
+                  34
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ECOSIA",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1769,
+                  222,
+                  70,
+                  20
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ecosia Homepage",
+                "labelSource" : "classifier",
+                "ordinal" : 2,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1666,
+                  220,
+                  435,
+                  29
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "the tallest bridge in europe and how long it took to build",
+                "labelSource" : "textInside",
+                "ordinal" : 3,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1658,
+                  213,
+                  557,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Search the web",
+                "labelSource" : "classifier",
+                "ordinal" : 4,
+                "role" : "AXComboBox"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1101,
+                  216,
+                  32,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Clear",
+                "labelSource" : "classifier",
+                "ordinal" : 5,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1061,
+                  212,
+                  40,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Search",
+                "labelSource" : "classifier",
+                "ordinal" : 6,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1055,
+                  220,
+                  27,
+                  27
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 7,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 41,
+                "frame" : [
+                  -839,
+                  212,
+                  105,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sign in",
+                "labelSource" : "classifier",
+                "ordinal" : 8,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -802,
+                  225,
+                  33,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 5",
+                "labelSource" : "synthesized",
+                "ordinal" : 9,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -727,
+                  212,
+                  41,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 10,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -679,
+                  212,
+                  113,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Show navigation menu",
+                "labelSource" : "classifier",
+                "ordinal" : 11,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  271,
+                  32,
+                  24
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Skip to main content",
+                "labelSource" : "classifier",
+                "ordinal" : 12,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1674,
+                  259,
+                  446,
+                  42
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "A Images D Videos + Al Chat dE News @ Web",
+                "labelSource" : "textInside",
+                "ordinal" : 13,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1668,
+                  264,
+                  75,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Web",
+                "labelSource" : "classifier",
+                "ordinal" : 14,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1601,
+                  261,
+                  370,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "A Images D Videos + Al Chat dE News",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1592,
+                  264,
+                  93,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "AI Chat",
+                "labelSource" : "classifier",
+                "ordinal" : 16,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1561,
+                  274,
+                  50,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 10",
+                "labelSource" : "synthesized",
+                "ordinal" : 17,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1498,
+                  264,
+                  92,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Images",
+                "labelSource" : "classifier",
+                "ordinal" : 18,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1405,
+                  264,
+                  90,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "ordinal" : 19,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1374,
+                  273,
+                  47,
+                  13
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 14",
+                "labelSource" : "synthesized",
+                "ordinal" : 20,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1314,
+                  264,
+                  81,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 21,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1217,
+                  264,
+                  77,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "More",
+                "labelSource" : "classifier",
+                "ordinal" : 22,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1210,
+                  268,
+                  64,
+                  23
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "More v",
+                "labelSource" : "textInside",
+                "ordinal" : 23,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1206,
+                  274,
+                  35,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 18",
+                "labelSource" : "synthesized",
+                "ordinal" : 24,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "+ Al Chat",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  317,
+                  304,
+                  32
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Search region",
+                "labelSource" : "classifier",
+                "ordinal" : 25,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1640,
+                  386,
+                  81,
+                  24
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Overviews",
+                "labelSource" : "classifier",
+                "ordinal" : 26,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1640,
+                  391,
+                  80,
+                  14
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 21",
+                "labelSource" : "synthesized",
+                "ordinal" : 27,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1098,
+                  378,
+                  41,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Settings",
+                "labelSource" : "classifier",
+                "ordinal" : 28,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1084,
+                  390,
+                  14,
+                  16
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 22",
+                "labelSource" : "synthesized",
+                "ordinal" : 29,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "grouping",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -988,
+                  376,
+                  169,
+                  31
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Millau Viaduct",
+                "labelSource" : "textInside",
+                "ordinal" : 30,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  378,
+                  327,
+                  27
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Millau Viaduct",
+                "labelSource" : "classifier",
+                "ordinal" : 31,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -987,
+                  404,
+                  281,
+                  25
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Cable-stayed bridge in Occitanie, France",
+                "labelSource" : "textInside",
+                "ordinal" : 32,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  408,
+                  327,
+                  16
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Cable-stayed bridge in Occitanie, France",
+                "labelSource" : "classifier",
+                "ordinal" : 33,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1683,
+                  424,
+                  589,
+                  31
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "The Millau Viaduct in France, the tallest bridge in Europe at 343 meters, was",
+                "labelSource" : "textInside",
+                "ordinal" : 34,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1683,
+                  446,
+                  491,
+                  31
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "completed in 2004 after approximately 3 years of construction.",
+                "labelSource" : "textInside",
+                "ordinal" : 35,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1684,
+                  500,
+                  427,
+                  23
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Responses can be inaccurate. We recommend you check important facts.",
+                "labelSource" : "textInside",
+                "ordinal" : 36,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -941,
+                  443,
+                  241,
+                  161
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Millau Viaduct",
+                "labelSource" : "classifier",
+                "ordinal" : 37,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1678,
+                  534,
+                  194,
+                  41
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Sources (4)",
+                "labelSource" : "classifier",
+                "ordinal" : 38,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1616,
+                  544,
+                  121,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sources (4)v",
+                "labelSource" : "textInside",
+                "ordinal" : 39,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1311,
+                  534,
+                  254,
+                  41
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Explore more with AI Chat",
+                "labelSource" : "classifier",
+                "ordinal" : 40,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Overviews",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1219,
+                  598,
+                  93,
+                  23
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Is this helpful?",
+                "labelSource" : "textInside",
+                "ordinal" : 41,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1121,
+                  591,
+                  33,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Yes, this is helpful",
+                "labelSource" : "classifier",
+                "ordinal" : 42,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1089,
+                  591,
+                  33,
+                  33
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "No, this is not helpful",
+                "labelSource" : "classifier",
+                "ordinal" : 43,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -987,
+                  620,
+                  317,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "The Millau Viaduct is a multispan cable-stayed",
+                "labelSource" : "textInside",
+                "ordinal" : 44,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1686,
+                  654,
+                  66,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Videos",
+                "labelSource" : "textInside",
+                "ordinal" : 45,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1679,
+                  656,
+                  623,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "ordinal" : 46,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -987,
+                  640,
+                  297,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "bridge completed in 2004 across the gorge",
+                "labelSource" : "textInside",
+                "ordinal" : 47,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -990,
+                  662,
+                  299,
+                  25
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "valley of the Tarn near Millau in the Aveyron",
+                "labelSource" : "textInside",
+                "ordinal" : 48,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1676,
+                  690,
+                  61,
+                  33
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "WHY",
+                "labelSource" : "textInside",
+                "ordinal" : 49,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1510,
+                  692,
+                  395,
+                  31
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "The Bridge That Took 14 Years to Build -",
+                "labelSource" : "textInside",
+                "ordinal" : 50,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -987,
+                  684,
+                  329,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "department in the Occitanie Region, in Southern",
+                "labelSource" : "textInside",
+                "ordinal" : 51,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1680,
+                  700,
+                  106,
+                  49
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "14 YEARS?",
+                "labelSource" : "textInside",
+                "ordinal" : 52,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  690,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “The Bridge That Took 14 Years to Build - YouTube”",
+                "labelSource" : "classifier",
+                "ordinal" : 53,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1508,
+                  719,
+                  92,
+                  28
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 54,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1503,
+                  690,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "The Bridge That Took 14 Years to Build - YouTube",
+                "labelSource" : "classifier",
+                "ordinal" : 55,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -989,
+                  704,
+                  321,
+                  49
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "France. The design team was led by engineer Michel Virlogeux and English architect Norman",
+                "labelSource" : "textInside",
+                "ordinal" : 56,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1507,
+                  748,
+                  68,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 57,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -987,
+                  746,
+                  313,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Foster. It was the tallest bridge in the world ...",
+                "labelSource" : "textInside",
+                "ordinal" : 58,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -984,
+                  768,
+                  65,
+                  18
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Wikipedia",
+                "labelSource" : "classifier",
+                "ordinal" : 59,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1507,
+                  814,
+                  451,
+                  31
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "The Bridge That Changed the Map of Europe -",
+                "labelSource" : "textInside",
+                "ordinal" : 60,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -991,
+                  820,
+                  329,
+                  29
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Millau Viaduct Viaduc de Millau (French)",
+                "labelSource" : "textInside",
+                "ordinal" : 61,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  813,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “The Bridge That Changed the Map of Europe - YouTube”",
+                "labelSource" : "classifier",
+                "ordinal" : 62,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1510,
+                  841,
+                  94,
+                  30
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 63,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1503,
+                  813,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "The Bridge That Changed the Map of Europe - YouTube",
+                "labelSource" : "classifier",
+                "ordinal" : 64,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -988,
+                  850,
+                  97,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Coordinates:",
+                "labelSource" : "textInside",
+                "ordinal" : 65,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1508,
+                  871,
+                  68,
+                  24
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 66,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -984,
+                  870,
+                  327,
+                  40
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "44°04′46″N 03°01′20″E / 44.07944°N 3.02222°E external link",
+                "labelSource" : "classifier",
+                "ordinal" : 67,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -984,
+                  893,
+                  17,
+                  17
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "external link",
+                "labelSource" : "classifier",
+                "ordinal" : 68,
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  919,
+                  158,
+                  33
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "See more videos",
+                "labelSource" : "classifier",
+                "ordinal" : 69,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -987,
+                  918,
+                  255,
+                  21
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Carries: 4 lanes of the A75 autoroute",
+                "labelSource" : "textInside",
+                "ordinal" : 70,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -833,
+                  917,
+                  95,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "A75 autoroute",
+                "labelSource" : "classifier",
+                "ordinal" : 71,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -987,
+                  944,
+                  264,
+                  19
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Croecee• Gorge vallev of the river Tarn",
+                "labelSource" : "textInside",
+                "ordinal" : 72,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -921,
+                  945,
+                  41,
+                  15
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Gorge",
+                "labelSource" : "classifier",
+                "ordinal" : 73,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -877,
+                  945,
+                  39,
+                  15
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "valley",
+                "labelSource" : "classifier",
+                "ordinal" : 74,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -759,
+                  945,
+                  31,
+                  15
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Tarn",
+                "labelSource" : "classifier",
+                "ordinal" : 75,
+                "role" : "AXLink"
+              }
+            ],
+            "version" : 2
+          }
+        }
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "search the web for the tallest bridge in europe and how long it took to build",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 114,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 837,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1201,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1578,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 2621,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+        }
+      ],
+      "timeline" : [
+        "5ms  resolved Chrome",
+        "115ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "466ms  typed an address",
+        "1578ms  verified the page changed",
+        "1578ms  receipt — navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia",
+        "2520ms  resolved Chrome",
+        "2621ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "3330ms  perceived 75 controls · —",
+        "3330ms  looked — 75 rows, 69 named, 8 groups"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:57Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "search-long-query"
+}

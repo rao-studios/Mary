@@ -97,4 +97,5 @@ public enum PageRowRule: AmbientElementRuleset {
 extension PageRow: SpokenReferable {
     public var spokenLabel: String { label }
     public var spokenKind: PageElementKind? { kind }
+    public var spokenRegion: PageRegion? { region }
 }

@@ -1,0 +1,92 @@
+{
+  "browser" : "chrome",
+  "category" : "media",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 79,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 79,
+          "atX" : 0.5,
+          "atY" : 0.3503267973856209,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 1452,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 1452,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+        {
+          "atMilliseconds" : 1452,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        }
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Paused.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "what's playing in this tab",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 79,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikimedia commons",
+          "tabCount" : 1,
+          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "79ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1452ms  perceived 0 controls · paused"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:39:38Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "describe-media"
+}

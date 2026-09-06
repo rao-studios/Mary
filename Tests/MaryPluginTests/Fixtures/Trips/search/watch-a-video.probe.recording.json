@@ -1,0 +1,2260 @@
+{
+  "browser" : "chrome",
+  "category" : "search",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 120,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 120,
+          "kind" : "openLocation",
+          "typedLength" : 34
+        },
+        {
+          "atMilliseconds" : 2587,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 3500,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 3504,
+      "index" : 0,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "I searched for watch a fireplace video on youtube. Now offering 19 links, 7 options, 6 buttons, and 2 videos — link 1 — Ecosia Homepage; field 1 — Search the web (form); button 1 — Clear; button 2 — Search; button 3 — Q (form)",
+      "pageReads" : [
+        {
+          "atMilliseconds" : 3242,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "form",
+                "memberOrdinals" : [
+                  1,
+                  3,
+                  4,
+                  7,
+                  8,
+                  9,
+                  10,
+                  13,
+                  14,
+                  15,
+                  16,
+                  17,
+                  18,
+                  19,
+                  20,
+                  21,
+                  22,
+                  23
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  24
+                ],
+                "title" : "a Images"
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  25,
+                  27,
+                  29,
+                  30
+                ],
+                "title" : "Search region: United States (English) v"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  33,
+                  34,
+                  36
+                ],
+                "title" : "Fireplace Ambience - Cozy Fire for Relaxation"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  37,
+                  38
+                ],
+                "title" : "... - YouTube"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  39,
+                  41
+                ],
+                "title" : "fireplace video download"
+              },
+              {
+                "id" : 6,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  42,
+                  44,
+                  46,
+                  48,
+                  49,
+                  50,
+                  52
+                ],
+                "title" : "Q"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  53,
+                  55
+                ],
+                "title" : "Q"
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  56,
+                  59,
+                  60,
+                  62
+                ],
+                "title" : "YouTube"
+              },
+              {
+                "id" : 9,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  63,
+                  64
+                ],
+                "title" : "4K Ultra HD ..."
+              },
+              {
+                "id" : 10,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  65,
+                  67,
+                  68,
+                  69,
+                  71
+                ],
+                "title" : "4K Ultra HD ..."
+              },
+              {
+                "id" : 11,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  72,
+                  73,
+                  74
+                ],
+                "title" : "D See more videos"
+              },
+              {
+                "id" : 12,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  75
+                ],
+                "title" : "https://www.youtube.com › watch?v=L_LUpnjgPso |"
+              },
+              {
+                "id" : 13,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  76,
+                  78
+                ],
+                "title" : "Fireplace Ambience - Cozy Fire for Relaxation ... - YouTube"
+              }
+            ],
+            "labeledFraction" : 0.8947368421052632,
+            "pageFrame" : [
+              -1793,
+              195,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 408,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1776,
+                  216,
+                  86,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ECOSIA",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1769,
+                  222,
+                  70,
+                  20
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Ecosia Homepage",
+                "labelSource" : "classifier",
+                "ordinal" : 2,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1663,
+                  220,
+                  277,
+                  27
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "watch a fireplace video on youtube",
+                "labelSource" : "textInside",
+                "ordinal" : 3,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "fill",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1658,
+                  213,
+                  557,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "field",
+                "label" : "Search the web",
+                "labelSource" : "classifier",
+                "ordinal" : 4,
+                "role" : "AXComboBox"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1101,
+                  216,
+                  32,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Clear",
+                "labelSource" : "classifier",
+                "ordinal" : 5,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1061,
+                  212,
+                  40,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Search",
+                "labelSource" : "classifier",
+                "ordinal" : 6,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1056,
+                  220,
+                  27,
+                  25
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 7,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1033,
+                "frame" : [
+                  -839,
+                  212,
+                  105,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sign in",
+                "labelSource" : "classifier",
+                "ordinal" : 8,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -802,
+                  225,
+                  33,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 4",
+                "labelSource" : "synthesized",
+                "ordinal" : 9,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -727,
+                  212,
+                  41,
+                  40
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 10,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -679,
+                  212,
+                  113,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Show navigation menu",
+                "labelSource" : "classifier",
+                "ordinal" : 11,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  271,
+                  32,
+                  24
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Skip to main content",
+                "labelSource" : "classifier",
+                "ordinal" : 12,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1674,
+                  259,
+                  446,
+                  42
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "a Images + Al Chat • Videos Ф Web dE News",
+                "labelSource" : "textInside",
+                "ordinal" : 13,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1668,
+                  264,
+                  75,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Web",
+                "labelSource" : "classifier",
+                "ordinal" : 14,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1601,
+                  261,
+                  370,
+                  38
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "a Images + Al Chat • Videos dE News",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1592,
+                  264,
+                  93,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "AI Chat",
+                "labelSource" : "classifier",
+                "ordinal" : 16,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1561,
+                  274,
+                  50,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 10",
+                "labelSource" : "synthesized",
+                "ordinal" : 17,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1498,
+                  264,
+                  92,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Images",
+                "labelSource" : "classifier",
+                "ordinal" : 18,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1405,
+                  264,
+                  90,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "ordinal" : 19,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1374,
+                  273,
+                  47,
+                  13
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 14",
+                "labelSource" : "synthesized",
+                "ordinal" : 20,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 3080,
+                "frame" : [
+                  -1314,
+                  264,
+                  81,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "ordinal" : 21,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1217,
+                  264,
+                  77,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "More",
+                "labelSource" : "classifier",
+                "ordinal" : 22,
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1032,
+                "frame" : [
+                  -1206,
+                  274,
+                  35,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 18",
+                "labelSource" : "synthesized",
+                "ordinal" : 23,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "a Images",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1781,
+                  317,
+                  304,
+                  32
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Search region",
+                "labelSource" : "classifier",
+                "ordinal" : 24,
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1686,
+                  382,
+                  66,
+                  26
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Videos",
+                "labelSource" : "textInside",
+                "ordinal" : 25,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1679,
+                  385,
+                  623,
+                  18
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "ordinal" : 26,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -987,
+                  378,
+                  291,
+                  25
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Searches related to watch a fireplace",
+                "labelSource" : "textInside",
+                "ordinal" : 27,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -984,
+                  362,
+                  327,
+                  78
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "Searches related to watch a fireplace video on youtube",
+                "labelSource" : "classifier",
+                "ordinal" : 28,
+                "role" : "AXHeading"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -989,
+                  400,
+                  143,
+                  27
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "video on youtube",
+                "labelSource" : "textInside",
+                "ordinal" : 29,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) v",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1507,
+                  420,
+                  443,
+                  31
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Fireplace Ambience - Cozy Fire for Relaxation",
+                "labelSource" : "textInside",
+                "ordinal" : 30,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1503,
+                  418,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Fireplace Ambience – Cozy Fire for Relaxation ... - YouTube",
+                "labelSource" : "classifier",
+                "ordinal" : 31,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1679,
+                  418,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “Fireplace Ambience – Cozy Fire for Relaxation ... - YouTube”",
+                "labelSource" : "classifier",
+                "ordinal" : 32,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Fireplace Ambience - Cozy Fire for Relaxation",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1510,
+                  448,
+                  131,
+                  31
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "... - YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Fireplace Ambience - Cozy Fire for Relaxation",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -990,
+                  452,
+                  183,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video download",
+                "labelSource" : "textInside",
+                "ordinal" : 34,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  439,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video download",
+                "labelSource" : "classifier",
+                "ordinal" : 35,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Fireplace Ambience - Cozy Fire for Relaxation",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -677,
+                  452,
+                  25,
+                  25
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 36,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "... - YouTube",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1510,
+                  476,
+                  72,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 37,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "... - YouTube",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1502,
+                  483,
+                  56,
+                  12
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 30",
+                "labelSource" : "synthesized",
+                "ordinal" : 38,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "fireplace video download",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -989,
+                  500,
+                  193,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video with sound",
+                "labelSource" : "textInside",
+                "ordinal" : 39,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  487,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video with sound",
+                "labelSource" : "classifier",
+                "ordinal" : 40,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "fireplace video download",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  500,
+                  27,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 41,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1507,
+                  544,
+                  433,
+                  31
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Burning Fireplace with Crackling Fire Sounds",
+                "labelSource" : "textInside",
+                "ordinal" : 42,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1503,
+                  541,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Burning Fireplace with Crackling Fire Sounds (NO MUSIC)",
+                "labelSource" : "classifier",
+                "ordinal" : 43,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -991,
+                  548,
+                  199,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "youtube fireplace 24 hours",
+                "labelSource" : "textInside",
+                "ordinal" : 44,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  535,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "youtube fireplace 24 hours",
+                "labelSource" : "classifier",
+                "ordinal" : 45,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -679,
+                  548,
+                  27,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 46,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  541,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “Burning Fireplace with Crackling Fire Sounds (NO MUSIC)”",
+                "labelSource" : "classifier",
+                "ordinal" : 47,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1510,
+                  570,
+                  127,
+                  29
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "(NO MUSIC)",
+                "labelSource" : "textInside",
+                "ordinal" : 48,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1508,
+                  600,
+                  70,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 49,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -987,
+                  596,
+                  151,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace videos free",
+                "labelSource" : "textInside",
+                "ordinal" : 50,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  583,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace videos free",
+                "labelSource" : "classifier",
+                "ordinal" : 51,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -679,
+                  596,
+                  27,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 52,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -989,
+                  644,
+                  173,
+                  25
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "relaxing fireplace video",
+                "labelSource" : "textInside",
+                "ordinal" : 53,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  631,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "relaxing fireplace video",
+                "labelSource" : "classifier",
+                "ordinal" : 54,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Q",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  644,
+                  27,
+                  27
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 55,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1571,
+                  664,
+                  501,
+                  33
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "247 LIVE Cozy Fireplace NO ADS (Live 24/7). Fireplace",
+                "labelSource" : "textInside",
+                "ordinal" : 56,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1503,
+                  664,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Cozy Fireplace NO ADS (Live 24/7). Fireplace 4K Ultra HD ...",
+                "labelSource" : "classifier",
+                "ordinal" : 57,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  664,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “Cozy Fireplace NO ADS (Live 24/7). Fireplace 4K Ultra HD ...”",
+                "labelSource" : "classifier",
+                "ordinal" : 58,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1507,
+                  694,
+                  145,
+                  31
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "4K Ultra HD ...",
+                "labelSource" : "textInside",
+                "ordinal" : 59,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -988,
+                  692,
+                  261,
+                  25
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video download with sound",
+                "labelSource" : "textInside",
+                "ordinal" : 60,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  679,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "fireplace video download with sound",
+                "labelSource" : "classifier",
+                "ordinal" : 61,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  692,
+                  27,
+                  27
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 62,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1510,
+                  724,
+                  72,
+                  25
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 63,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1502,
+                  729,
+                  56,
+                  12
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 53",
+                "labelSource" : "synthesized",
+                "ordinal" : 64,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -988,
+                  740,
+                  233,
+                  25
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "4k fireplace video download free",
+                "labelSource" : "textInside",
+                "ordinal" : 65,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  727,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "4k fireplace video download free",
+                "labelSource" : "classifier",
+                "ordinal" : 66,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  740,
+                  27,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 67,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1679,
+                  770,
+                  158,
+                  33
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "See more videos",
+                "labelSource" : "classifier",
+                "ordinal" : 68,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -989,
+                  790,
+                  159,
+                  23
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "1 hour fireplace video",
+                "labelSource" : "textInside",
+                "ordinal" : 69,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -984,
+                  775,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "1 hour fireplace video",
+                "labelSource" : "classifier",
+                "ordinal" : 70,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "4K Ultra HD ...",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -679,
+                  788,
+                  27,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 71,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "D See more videos",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1678,
+                  848,
+                  28,
+                  28
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "button 6",
+                "labelSource" : "synthesized",
+                "ordinal" : 72,
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "D See more videos",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1648,
+                  842,
+                  70,
+                  23
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 73,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "D See more videos",
+                  "band"
+                ],
+                "facts" : 34,
+                "frame" : [
+                  -1643,
+                  865,
+                  287,
+                  17
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "https://(an address)",
+                "labelSource" : "classifier",
+                "ordinal" : 74,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "https://www.youtube.com › watch?v=L_LUpnjgPso |",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1679,
+                  885,
+                  557,
+                  31
+                ],
+                "groupID" : 12,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Fireplace Ambience – Cozy Fire for Relaxation ... - YouTube",
+                "labelSource" : "classifier",
+                "ordinal" : 75,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Fireplace Ambience - Cozy Fire for Relaxation ... - YouTube",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1539,
+                  920,
+                  476,
+                  25
+                ],
+                "groupID" : 13,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Oct 2, 2016 ... Original ambient fireplace video designed for relaxation,",
+                "labelSource" : "textInside",
+                "ordinal" : 76,
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1679,
+                  919,
+                  129,
+                  41
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “Fireplace Ambience – Cozy Fire for Relaxation ... - YouTube”",
+                "labelSource" : "classifier",
+                "ordinal" : 77,
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Fireplace Ambience - Cozy Fire for Relaxation ... - YouTube",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1539,
+                  942,
+                  463,
+                  21
+                ],
+                "groupID" : 13,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "sleep, and background viewing. This content is carefully prepared to",
+                "labelSource" : "textInside",
+                "ordinal" : 78,
+                "role" : "AXStaticText"
+              }
+            ],
+            "version" : 2
+          }
+        }
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became watch a fireplace video on youtube - Ecosia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "watch a fireplace video on youtube",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 120,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 956 MB"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 793,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "alpine touring boots - Search results - Wikipedia - High memory usage - 956 MB"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1163,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "watch a fireplace video on youtube - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1526,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "watch a fireplace video on youtube - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 2587,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "watch a fireplace video on youtube - Ecosia"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "120ms  read the shell — alpine touring boots - Search results - Wikipedia - High memory usage - 956 MB · wikipedia",
+        "440ms  typed an address",
+        "1526ms  verified the page changed",
+        "1526ms  receipt — navigate — the page became watch a fireplace video on youtube - Ecosia",
+        "2485ms  resolved Chrome",
+        "2587ms  read the shell — watch a fireplace video on youtube - Ecosia · ecosia",
+        "3242ms  perceived 78 controls · —",
+        "3242ms  looked — 78 rows, 71 named, 14 groups"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:41:44Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "watch-a-video"
+}

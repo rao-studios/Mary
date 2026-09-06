@@ -1,0 +1,41 @@
+{
+  "browser" : "chrome",
+  "category" : "arrive",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "because" : "new_tab is not a binding this adapter offers",
+      "elapsedMilliseconds" : 0,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "",
+      "pageReads" : [
+
+      ],
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "open a new tab",
+      "shells" : [
+
+      ],
+      "timeline" : [
+
+      ],
+      "verdict" : "unstageable"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:43Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "new-tab"
+}

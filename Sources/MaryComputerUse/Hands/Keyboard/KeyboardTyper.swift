@@ -48,9 +48,24 @@ struct CGKeyEventPoster: KeyEventPosting {
             var units = Array(run.utf16)
             let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
             down?.keyboardSetUnicodeString(stringLength: units.count, unicodeString: &units)
+            // TYPED TEXT IS TYPED TEXT, WHATEVER IS BEING HELD.
+            //
+            // PIN: A NEW `CGEvent` INHERITS THE SESSION'S CURRENT MODIFIERS, and
+            // this one never said otherwise — so a held Command turned every
+            // character Mary typed into a menu shortcut and nothing reached the
+            // field. MEASURED LIVE: a browsing round left Command latched in
+            // `combinedSessionState` (see `KeyChordPress`, which is where it came
+            // from), after which ⌘L and ⌘A still worked — they set their own
+            // flags — and forty-one typed characters vanished into shortcuts,
+            // three attempts running, reported as "I couldn't find the address
+            // bar" about a field that was focused and selected on screen.
+            // It is also the honest rule with nothing stuck: a person resting a
+            // hand on Command while Mary types must not have her text eaten.
+            down?.flags = []
             down?.post(tap: .cghidEventTap)
-            CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)?
-                .post(tap: .cghidEventTap)
+            let up = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)
+            up?.flags = []
+            up?.post(tap: .cghidEventTap)
         }
     }
 }

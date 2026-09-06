@@ -1,0 +1,137 @@
+{
+  "browser" : "chrome",
+  "category" : "arrive",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 134,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 134,
+          "kind" : "pressShell",
+          "shellLabel" : "Reload"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 1855,
+      "index" : 0,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Reloaded search the web for swift concurrency - Ecosia at ecosia.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "refresh",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 133,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 484,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 833,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1167,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1520,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1855,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        }
+      ],
+      "timeline" : [
+        "7ms  resolved Chrome",
+        "134ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "137ms  pressed Reload",
+        "1855ms  verified the page changed",
+        "1855ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:38:52Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "refresh-is-reload"
+}

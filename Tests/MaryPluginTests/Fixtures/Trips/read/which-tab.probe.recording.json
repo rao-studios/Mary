@@ -1,0 +1,65 @@
+{
+  "browser" : "chrome",
+  "category" : "read",
+  "legs" : [
+    {
+      "acts" : [
+
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 145,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "You're on Ski touring - Wikipedia - High memory usage - 1,001 MB, at wikipedia.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "which tab am I on",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 145,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Ski touring - Wikipedia - High memory usage - 1,001 MB"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "145ms  read the shell — Ski touring - Wikipedia - High memory usage - 1,001 MB · wikipedia"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-06T15:40:44Z",
+  "round" : "4",
+  "runner" : "probe",
+  "tripID" : "which-tab"
+}
