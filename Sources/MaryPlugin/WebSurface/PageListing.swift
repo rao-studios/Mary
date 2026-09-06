@@ -164,7 +164,9 @@ public struct PageRoster: Sendable {
         // a row. Getting this order wrong here and right at the seal is how the
         // two views come to describe different pages, which is the one thing
         // this function exists to prevent.
-        let placed = PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame)
+        let placed = PagePlayerDerivation.markOverlays(
+            rows: PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame),
+            pageFrame: pageFrame)
         let listed = PageListDerivation.lists(rows: placed, groups: groups)
         return (
             RowFactsDerivation.derive(rows: listed.rows, groups: listed.groups),

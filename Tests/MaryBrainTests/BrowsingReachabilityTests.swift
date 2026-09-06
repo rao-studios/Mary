@@ -32,6 +32,8 @@ import Testing
         "browsing.click-on-page", "browsing.fill-in-page",
         "browsing.scroll-to-on-page", "browsing.adjust-on-page", "browsing.search-web",
         "browsing.interact-with-page",
+        // The tabs a browser holds, and the words on the page in front. Round 8.
+        "browsing.switch-tab", "browsing.close-tab", "browsing.find-in-page",
     ]
 
     @Test func everyBrowsingSkillIsDeclaredAndExposed() throws {

@@ -3,15 +3,24 @@
   "id": "find-on-page",
   "legs": [
     {
-      "note": "Found by the browsing census \u2014 what a person says at a browser that the corpus had not written down, rehearsed on a real stage. reload_page at 0.70 on the confidence lane; find_in_page is round 3.",
-      "pending": "round 3",
+      "engine": {
+        "budgetMs": 6000,
+        "landed": false
+      },
+      "note": "Found by the browsing census: reload_page at 0.70 on the confidence lane, and find_in_page did not exist. It is the browser's own find bar now \u2014 a chord the package declares, aimed at the browser \u2014 delivered, not landed: what the bar found is drawn in the shell and not read back yet.",
       "routing": {
+        "intent": "operate",
+        "lane": "confidence",
         "mustNotReach": [
           "reload_page"
         ],
+        "shape": "singleString",
         "skill": "find_in_page"
       },
-      "say": "find the word budget on this page"
+      "say": "find the word budget on this page",
+      "speech": {
+        "silence": "forbidden"
+      }
     }
   ],
   "stage": {

@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "5cdd2b4151e9d71d8b7eb267cf6b8c6e038537d824192cb5b83c445ff9a55867"
+    "digest" : "a78f95a0255386e5250b948f30905ba32f61220c188ddcc405ef3c887068c1f5"
   },
   "interactions" : [
 
@@ -215,6 +215,10 @@
         "command"
       ],
       "backLabel" : "Go back",
+      "findKey" : "f",
+      "findModifiers" : [
+        "command"
+      ],
       "forwardLabel" : "Go forward",
       "pageFrameSource" : "webArea",
       "reloadLabel" : "Reload this page",

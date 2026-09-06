@@ -4,38 +4,93 @@
   "legs" : [
     {
       "acts" : [
-
+        {
+          "atMilliseconds" : 5,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 119,
+          "key" : "command+f",
+          "kind" : "key"
+        },
+        {
+          "atMilliseconds" : 386,
+          "kind" : "type",
+          "typedLength" : 6
+        },
+        {
+          "atMilliseconds" : 415,
+          "key" : "return",
+          "kind" : "key"
+        },
+        {
+          "atMilliseconds" : 415,
+          "kind" : "restoreCursor"
+        }
       ],
-      "because" : "waiting on round 3",
-      "elapsedMilliseconds" : 0,
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 416,
       "index" : 0,
       "landed" : false,
       "media" : [
 
       ],
-      "ok" : false,
-      "outcomeSpoken" : "",
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Looking for \"budget\" on the page.",
       "pageReads" : [
 
       ],
+      "providerApplicationID" : "chrome",
       "receipts" : [
-
+        {
+          "delivery" : "delivered",
+          "kind" : "typeText",
+          "landed" : false,
+          "receipt" : "none",
+          "spoken" : "typeText \"budget\" — no sign it did anything",
+          "target" : "budget"
+        }
       ],
       "routes" : [
 
       ],
       "say" : "find the word budget on this page",
       "shells" : [
-
+        {
+          "activeTabIndex" : 1,
+          "atMilliseconds" : 119,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 5,
+          "title" : "Ski touring - Wikipedia"
+        }
       ],
       "timeline" : [
-
+        "7ms  resolved Chrome",
+        "119ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "415ms  found \"budget\" on the page",
+        "415ms  receipt — typeText \"budget\" — no sign it did anything"
       ],
-      "verdict" : "pending"
+      "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:19:59Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-06T23:36:58Z",
+  "round" : "8",
   "runner" : "probe",
   "tripID" : "find-on-page"
 }

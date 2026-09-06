@@ -221,3 +221,45 @@ import Testing
         #expect(body.contains("search_web"))
     }
 }
+
+@Suite struct BrowsingWindowTests {
+
+    private static func node(
+        _ role: String, category: AXNodeCategory, children: [AXNodeSnapshot] = []
+    ) -> AXNodeSnapshot {
+        AXNodeSnapshot(
+            id: AXNodeID(raw: UInt.random(in: 1...100_000)), role: role,
+            category: category, children: children)
+    }
+
+    private static func window(
+        _ title: String, main: Bool, holdsPage: Bool
+    ) -> AXWindowSnapshot {
+        let inside = holdsPage
+            ? [node("AXToolbar", category: .container), node("AXWebArea", category: .webArea)]
+            : [node("AXTextField", category: .interactive)]
+        return AXWindowSnapshot(
+            id: AXNodeID(raw: UInt.random(in: 1...100_000)), title: title, frame: .zero,
+            isMain: main,
+            root: node("AXWindow", category: .container, children: inside))
+    }
+
+    /// A PANEL CAN BE THE MAIN WINDOW, AND THEN EVERY READ IS ABOUT THE PANEL.
+    /// MEASURED: after a find, Chrome's find bar takes `AXMain` and the shell
+    /// reported the page's title as "Find in page" with no tabs at all.
+    @Test func aPanelIsNotThePageEvenWhenItIsMain() {
+        let panel = Self.window("Find in page", main: true, holdsPage: false)
+        let page = Self.window("An Article", main: false, holdsPage: true)
+        #expect(WebSurfaceAX.browsingWindow(among: [panel, page])?.title == "An Article")
+    }
+
+    /// AND THE MAIN BROWSING WINDOW STILL WINS AMONG BROWSING WINDOWS.
+    @Test func theMainBrowsingWindowIsPreferred() {
+        let behind = Self.window("Another Page", main: false, holdsPage: true)
+        let front = Self.window("The Page", main: true, holdsPage: true)
+        #expect(WebSurfaceAX.browsingWindow(among: [behind, front])?.title == "The Page")
+        // Nothing holds a page: the main window is still the honest answer.
+        let bare = Self.window("Downloads", main: true, holdsPage: false)
+        #expect(WebSurfaceAX.browsingWindow(among: [bare])?.title == "Downloads")
+    }
+}

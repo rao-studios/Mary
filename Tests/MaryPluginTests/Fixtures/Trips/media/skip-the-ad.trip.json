@@ -1,0 +1,43 @@
+{
+  "category": "media",
+  "id": "skip-the-ad",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 12000,
+        "landed": true
+      },
+      "note": "The seal marks a small pressable row inside the picture `inOverlay` (`PagePlayerDerivation`), the same fact a consent wall's button carries, so the press credits it (+80) and a row behind it is demoted. Pending a staged page whose player shows an ad when it is opened: the seeded watch page has none, and a leg that expects an overlay press on a page with no overlay would measure the seed, not the router.",
+      "page": {
+        "verb": "press",
+        "winner": {
+          "affordance": "press",
+          "facts": [
+            "inOverlay"
+          ],
+          "factsAbsent": [
+            "behindOverlay"
+          ]
+        }
+      },
+      "pending": "a staged page with an ad",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "click_on_page"
+      },
+      "say": "skip the ad",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "mediaPlaying": true,
+    "pageClass": "watchPage"
+  },
+  "summary": "A control drawn over the picture is an overlay by geometry, and \"skip the ad\" reaches it through the one router with no verb of its own."
+}

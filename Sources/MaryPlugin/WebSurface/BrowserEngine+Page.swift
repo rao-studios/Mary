@@ -306,6 +306,144 @@ public extension BrowserEngine {
         return refuse(.elementNotFound(phrase))
     }
 
+    // MARK: - Tabs
+
+    /// How long a tab switch is given to show in the shell.
+    static let tabSwitchBudget: TimeInterval = 3
+
+    /// Bring a tab forward, named by its title, its position, or "the other one".
+    ///
+    /// PIN: THE SHELL'S OWN CONTROL, PRESSED. A tab is a button the browser
+    /// publishes with the page's title on it — the same walk that finds Back
+    /// finds it — and pressing it is what a person does. No chord, because a
+    /// chord counts tabs the way the browser does and a person counts them the
+    /// way they see them. Proved by the shell: the active tab is the one whose
+    /// name the window wears.
+    func switchTab(_ phrase: String, in target: BrowserTarget) async -> BrowserOutcome {
+        await staged(target, after: .kept) { shell, _ in
+            guard shell.tabs.count > 1 else {
+                return refuse(.elementNotFound(phrase))
+            }
+            guard let index = Self.tabIndex(for: phrase, in: shell) else {
+                return refuse(.elementNotFound(phrase))
+            }
+            if shell.activeTabIndex == index {
+                return BrowserOutcome(
+                    ok: true, spoken: "You're already on \(shell.tabs[index]).", shell: shell)
+            }
+            let label = index < shell.tabLabels.count ? shell.tabLabels[index] : shell.tabs[index]
+            if dryRun { return refuse(.dryRun("switched to \(shell.tabs[index])")) }
+            guard await seams.shell.press(
+                label: label, pid: target.processIdentifier, registration: target.registration)
+            else { return refuse(.elementNotFound(shell.tabs[index])) }
+            emit(.acted("pressed the tab \(shell.tabs[index])"))
+            // THE PROOF: the window wears the tab's name.
+            let deadline = seams.now().addingTimeInterval(Self.tabSwitchBudget)
+            var now: WebSurfaceAX.Reading?
+            while seams.now() < deadline {
+                await seams.sleep(.milliseconds(150))
+                now = await seams.shell.read(
+                    pid: target.processIdentifier, registration: target.registration)
+                if let now, now.activeTabIndex == index
+                    || now.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame {
+                    break
+                }
+            }
+            guard let after = now,
+                  after.activeTabIndex == index
+                    || after.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame
+            else {
+                return refuse(.stateUnchanged(
+                    expected: shell.tabs[index], observed: now?.title ?? "the same tab"))
+            }
+            lastChrome = after
+            retractSlate()
+            let receipt = PageCommandReceipt(
+                sourceIndex: 0, kind: .navigate, target: shell.tabs[index],
+                delivery: .delivered, effect: .verified(.navigation(title: after.title ?? "")))
+            emit(.receipt(receipt))
+            return BrowserOutcome(
+                ok: true, spoken: "Switched to \(shell.tabs[index]).", shell: after,
+                receipts: [receipt], landed: true)
+        }
+    }
+
+    /// Which tab a phrase means: a position ("the second tab"), "the other one"
+    /// when there are two, or a title. Nil when nothing answers.
+    static func tabIndex(for phrase: String, in shell: WebSurfaceAX.Reading) -> Int? {
+        let tabs = shell.tabs
+        if let ordinal = SpokenOrdinal.value(in: phrase) {
+            if ordinal == -1 { return tabs.isEmpty ? nil : tabs.count - 1 }
+            return (1...tabs.count).contains(ordinal) ? ordinal - 1 : nil
+        }
+        let words = RowFactsDerivation.folded(phrase).split(separator: " ").map(String.init)
+        if words.contains("other"), tabs.count == 2, let active = shell.activeTabIndex {
+            return 1 - active
+        }
+        // THE ASKING, REMOVED. "Switch to the blank tab" names a tab called
+        // something like "blank"; the verb and the word "tab" are how it was
+        // asked, and would drown a one-word title in a token match.
+        let named = words.filter { !tabAskingWords.contains($0) }.joined(separator: " ")
+        guard !named.isEmpty else { return nil }
+        // A PAGE TITLE IS PUNCTUATED AND A PERSON IS NOT. The title matcher
+        // folds punctuation AWAY rather than to a space — right for a song
+        // called "Rock & Roll", wrong for a tab called "about:blank", which
+        // becomes one token nobody can say. Every tab is spoken as its words
+        // before it is matched, and the answer comes back by position.
+        let spokenTabs: [String] = tabs.map { title in
+            String(String(title.map { $0.isLetter || $0.isNumber ? $0 : " " })
+                .split(separator: " ").joined(separator: " "))
+        }
+        switch SpokenTitleMatcher.resolve(named, in: spokenTabs) {
+        case .match(let title), .guessed(let title):
+            return spokenTabs.firstIndex(of: title)
+        case .ambiguous, .none:
+            return nil
+        }
+    }
+
+    /// The words a person asks to switch tabs with — never a tab's own name.
+    static let tabAskingWords: Set<String> = [
+        "switch", "go", "to", "the", "a", "tab", "tabs", "open", "show", "me", "bring",
+        "up", "back", "over", "one", "please", "can", "you", "on", "with",
+    ]
+
+    // MARK: - Find in page
+
+    /// Open the browser's own find bar and type the words into it.
+    ///
+    /// PIN: THE SHELL'S FIND, NOT A READ. Reading the page for a word answers
+    /// "is it there"; the person asked to be TAKEN to it, highlighted, with the
+    /// browser's own count beside it — which is what the find bar does and no
+    /// page read can. The chord is the browser's own menu command, declared by
+    /// its package, aimed at the browser. Delivered, not landed: what the find
+    /// bar found is drawn in the shell, and this lane does not read it back yet.
+    func findInPage(_ text: String, in target: BrowserTarget) async -> BrowserOutcome {
+        await staged(target, after: .kept) { shell, _ in
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return refuse(.notFillable("nothing to find")) }
+            if dryRun { return refuse(.dryRun("found \"\(trimmed)\" on the page")) }
+            guard let prefix = target.registration.bundleIdentifiers.first,
+                  await seams.keys.chord(
+                      target.registration.schema.findKey,
+                      modifiers: target.registration.schema.findModifiers,
+                      targetPrefix: prefix)
+            else { return refuse(.notImplemented("open the find bar")) }
+            await seams.sleep(.milliseconds(250))
+            guard await seams.keys.type(trimmed, targetPrefix: prefix) else {
+                return refuse(.interrupted(atCommand: 0))
+            }
+            _ = await seams.keys.press(.return)
+            emit(.acted("found \"\(trimmed)\" on the page"))
+            let receipt = PageCommandReceipt(
+                sourceIndex: 0, kind: .typeText, target: trimmed, delivery: .delivered)
+            emit(.receipt(receipt))
+            return BrowserOutcome(
+                ok: true, spoken: "Looking for \"\(trimmed)\" on the page.", shell: shell,
+                receipts: [receipt], landed: false)
+        }
+    }
+
     /// Search the web and open what was asked for.
     ///
     /// PIN: NO UTTERANCE PARAMETER, DELIBERATELY. `open_location` needs one — an address

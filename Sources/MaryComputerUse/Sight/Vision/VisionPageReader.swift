@@ -195,6 +195,9 @@ public enum VisionPageReader {
             // whether or not anybody is routing, and asking it at ranking time
             // meant asking it again for every goal.
             rows = PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame)
+            // AND WHAT IS DRAWN OVER THE PICTURE — a skip control, a prompt —
+            // which is an overlay by geometry. See `PagePlayerDerivation`.
+            rows = PagePlayerDerivation.markOverlays(rows: rows, pageFrame: pageFrame)
         }
         // THE SHIMS, DERIVED FROM THE ROWS RATHER THAN READ SEPARATELY, so the
         // old AX-shaped view and the new one cannot describe different pages.

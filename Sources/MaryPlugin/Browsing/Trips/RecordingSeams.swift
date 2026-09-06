@@ -233,6 +233,14 @@ struct RecordingKeys: BrowserKeys {
         await recorder.noteAct(RecordedAct(kind: .key, key: key.rawValue))
         return await inner.press(key)
     }
+
+    func chord(
+        _ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String
+    ) async -> Bool {
+        await recorder.noteAct(RecordedAct(
+            kind: .key, key: (modifiers.map(\.rawValue) + [key.rawValue]).joined(separator: "+")))
+        return await inner.chord(key, modifiers: modifiers, targetPrefix: targetPrefix)
+    }
 }
 
 struct RecordingStaging: BrowserStaging {

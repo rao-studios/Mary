@@ -4,38 +4,93 @@
   "legs" : [
     {
       "acts" : [
-
+        {
+          "atMilliseconds" : 5,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 168,
+          "kind" : "pressShell",
+          "shellLabel" : "about:blank"
+        },
+        {
+          "atMilliseconds" : 542,
+          "kind" : "restoreCursor"
+        }
       ],
-      "because" : "waiting on round 3",
-      "elapsedMilliseconds" : 0,
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 542,
       "index" : 0,
-      "landed" : false,
+      "landed" : true,
       "media" : [
 
       ],
-      "ok" : false,
-      "outcomeSpoken" : "",
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Switched to about:blank.",
       "pageReads" : [
 
       ],
+      "providerApplicationID" : "chrome",
       "receipts" : [
-
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate \"about:blank\" — the page became about:blank",
+          "target" : "about:blank"
+        }
       ],
       "routes" : [
 
       ],
-      "say" : "switch to the other tab",
+      "say" : "switch to the blank tab",
       "shells" : [
-
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 167,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 2,
+          "title" : "Ski touring - Wikipedia"
+        },
+        {
+          "activeTabIndex" : 1,
+          "atMilliseconds" : 542,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "tabCount" : 2,
+          "title" : "about:blank"
+        }
       ],
       "timeline" : [
-
+        "6ms  resolved Chrome",
+        "167ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "241ms  pressed the tab about:blank",
+        "542ms  receipt — navigate \"about:blank\" — the page became about:blank"
       ],
-      "verdict" : "pending"
+      "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:24:17Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-06T23:38:37Z",
+  "round" : "8",
   "runner" : "probe",
   "tripID" : "switch-by-name"
 }

@@ -464,25 +464,9 @@ public actor BrowserEngine {
     static func playerRegion(
         in reading: VisionPageReader.Reading, page: CGRect
     ) -> CGRect? {
-        let area = page.width * page.height
-        guard area > 0 else { return nil }
-        return reading.rows
-            .filter { row in
-                let frame = row.frame
-                guard frame.width > 0, frame.height > 0 else { return false }
-                guard frame.width * frame.height >= area * playerAreaShare else { return false }
-                let aspect = frame.width / frame.height
-                return aspect >= playerMinimumAspect && aspect <= playerMaximumAspect
-            }
-            .max { ($0.frame.width * $0.frame.height) < ($1.frame.width * $1.frame.height) }?
-            .frame
+        // The seal's own rule, shared — see `PagePlayerDerivation`.
+        PagePlayerDerivation.playerFrame(rows: reading.rows, pageFrame: page)
     }
-
-    /// How much of the page a row must cover before it can be the picture.
-    static let playerAreaShare: CGFloat = 0.2
-    /// The shape of video: wider than tall, and not a banner.
-    static let playerMinimumAspect: CGFloat = 1.2
-    static let playerMaximumAspect: CGFloat = 3.0
 
     /// Where each retry puts the pointer, as a fraction down the captured region.
     static let revealDepths: [Double] = [0.55, 0.22, 0.42]

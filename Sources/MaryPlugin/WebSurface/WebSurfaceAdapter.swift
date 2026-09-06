@@ -114,10 +114,57 @@ public struct WebSurfaceAdapter: MaryAdapter {
     }
 
     public var skillBindings: [SkillBinding] {
-        [pageContext, currentPage, listTabs, describeMedia, controlMedia,
+        [pageContext, currentPage, listTabs, switchTab, describeMedia, controlMedia,
          openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
          readPage, readPageText, clickOnPage, fillInPage, scrollToOnPage,
-         adjustOnPage, searchWeb, interactWithPage]
+         adjustOnPage, findInPage, searchWeb, interactWithPage]
+    }
+
+    private var switchTab: SkillBinding {
+        SkillBinding(
+            name: "switch_tab",
+            description: "Bring one of the browser's open tabs forward, named by its title, its position (\"the second tab\"), or \"the other one\".",
+            parameters: [
+                .init(
+                    name: "target", type: "string",
+                    description: "Which tab, in the person's words.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let phrase = arguments["target"], !phrase.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me which tab.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.switchTab(phrase, in: target)
+                }
+            },
+            stage: true,
+            preparesSurface: true)
+    }
+
+    private var findInPage: SkillBinding {
+        SkillBinding(
+            name: "find_in_page",
+            description: "Open the browser's find bar and search the current page for a word or phrase, highlighting it.",
+            parameters: [
+                .init(
+                    name: "text", type: "string",
+                    description: "The word or phrase to find on the page.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                // THE LANE HANDS THE SPAN — "find the word budget on this page" —
+                // and the asking is this verb's own English to remove.
+                guard let text = arguments["text"].flatMap(SpokenFindPhrase.needle(in:)) else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to look for on the page.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.findInPage(text, in: target)
+                }
+            },
+            stage: true)
     }
 
     /// The name a browser package's document channel is polled through. The
@@ -186,6 +233,10 @@ public struct WebSurfaceAdapter: MaryAdapter {
                           input: "browsing.browser-query", output: "browsing.page-report"),
                 operation("list_tabs", capability: "browser.tabs.read",
                           input: "browsing.browser-query", output: "browsing.page-report"),
+                operation("switch_tab", capability: "browser.tabs.switch",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
+                operation("find_in_page", capability: "browser.page.find",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
                 operation("describe_media", capability: "browser.media.read",
                           input: "browsing.browser-query", output: "browsing.media-report"),
                 operation("control_media", capability: "browser.media.control",

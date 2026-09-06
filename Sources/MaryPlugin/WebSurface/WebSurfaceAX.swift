@@ -38,6 +38,8 @@ public enum WebSurfaceAX {
         public var canGoForward: Bool?
         /// Tab names in bar order, browser noise removed.
         public var tabs: [String]
+        /// The same tabs as the browser labels them — what a press has to name.
+        public var tabLabels: [String] = []
         public var activeTabIndex: Int?
         public var windowID: CGWindowID?
         public var windowFrame: CGRect
@@ -77,8 +79,7 @@ public enum WebSurfaceAX {
         // and once the page's accessibility tree is awake `.exhaustive` walks
         // several thousand page nodes to reach a toolbar. See `Options.shell`.
         guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
-              let window = snapshot.windows.first(where: { $0.isMain })
-                ?? snapshot.windows.first,
+              let window = browsingWindow(among: snapshot.windows),
               let root = window.root
         else { return nil }
 
@@ -105,6 +106,7 @@ public enum WebSurfaceAX {
                 .filter { $0.role == tabRole && $0.label?.isEmpty == false }
                 .sorted { ($0.frame?.minX ?? 0) < ($1.frame?.minX ?? 0) }
             reading.tabs = tabs.map { registration.tabTitle(fromLabel: $0.label ?? "") }
+            reading.tabLabels = tabs.map { $0.label ?? "" }
             // The active tab is the one whose name the window wears.
             if let title = reading.title {
                 reading.activeTabIndex = reading.tabs.firstIndex {
@@ -126,6 +128,32 @@ public enum WebSurfaceAX {
         reading.url = url(
             pid: pid, nodes: nodes, webArea: webArea, registration: registration)
         return reading
+    }
+
+    /// The window a page is IN, among everything the browser has open.
+    ///
+    /// PIN: A PANEL CAN BE THE MAIN WINDOW, AND THEN EVERY READ IS ABOUT THE
+    /// PANEL. MEASURED: after `find_in_page`, Chrome's find bar is its own
+    /// accessibility window and takes `AXMain` — so the shell reported the page
+    /// title as "Find in page", published no tabs, and every later read in the
+    /// turn was about a strip forty points tall. A browsing window is the one
+    /// with the browser's own furniture in it: a toolbar, or the page itself.
+    /// Told apart by SHAPE, never by a title.
+    static func browsingWindow(among windows: [AXWindowSnapshot]) -> AXWindowSnapshot? {
+        func holdsThePage(_ window: AXWindowSnapshot) -> Bool {
+            guard let root = window.root else { return false }
+            var found = false
+            root.forEachNode { node in
+                guard !found else { return }
+                if node.role == toolbarRole || node.category == .webArea { found = true }
+            }
+            return found
+        }
+        let browsing = windows.filter(holdsThePage)
+        return browsing.first(where: \.isMain)
+            ?? browsing.first
+            ?? windows.first(where: \.isMain)
+            ?? windows.first
     }
 
     static let toolbarRole = "AXToolbar"

@@ -228,6 +228,33 @@ enum TripCommand {
             try? await Task.sleep(for: .seconds(3))
             print("  the video is playing")
         }
+        if trip.stage.twoTabs == true {
+            // IDEMPOTENT, BECAUSE A STAGE IS A STATE AND NOT A GESTURE. A first
+            // rule pressed the new-tab chord every run, and six runs left six
+            // tabs — three of them called the same thing, which made "the blank
+            // tab" genuinely ambiguous and the leg's refusal correct about a
+            // window nobody meant to build.
+            let open = await engine.readShell(target).shell?.tabs.count ?? 0
+            if open < 2 {
+                // THE BROWSER'S OWN NEW-TAB CHORD, aimed at it — the probe stages
+                // the machine; the engine owns no chords. A blank tab, so its
+                // name is a word a person can say.
+                guard let prefix = target.registration.bundleIdentifiers.first,
+                      KeyChordPress.press(key: .t, modifiers: [.command], targetPrefix: prefix)
+                else { return unstageable("a second tab has to be open") }
+                try? await Task.sleep(for: .milliseconds(600))
+                let blank = await engine.navigate(.open("about:blank"), in: target)
+                guard blank.ok else {
+                    return unstageable("a second tab has to be open — \(blank.spoken)")
+                }
+            }
+            // AND THE TRIP BEGINS ON THE PAGE IT IS ABOUT.
+            let back = await engine.switchTab("the first tab", in: target)
+            guard back.ok else {
+                return unstageable("the first tab has to be in front — \(back.spoken)")
+            }
+            print("  a second tab is open")
+        }
         if trip.stage.minimized == true {
             guard minimizeFrontWindow(of: target.processIdentifier) else {
                 return unstageable("the browser's window has to be minimized")

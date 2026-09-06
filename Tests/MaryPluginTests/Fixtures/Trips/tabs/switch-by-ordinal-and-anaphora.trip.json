@@ -8,15 +8,22 @@
       },
       "engine": {
         "budgetMs": 6000,
-        "landed": true
+        "landed": true,
+        "receipt": "navigation"
       },
-      "pending": "round 3",
       "routing": {
+        "arguments": {
+          "target": "the second tab"
+        },
         "intent": "operate",
         "lane": "confidence",
+        "shape": "singleString",
         "skill": "switch_tab"
       },
-      "say": "go to the second tab"
+      "say": "go to the second tab",
+      "speech": {
+        "silence": "forbidden"
+      }
     },
     {
       "ambient": {
@@ -37,7 +44,8 @@
   ],
   "stage": {
     "front": "browser",
-    "pageClass": "any"
+    "pageClass": "any",
+    "twoTabs": true
   },
   "summary": "Positions and back-references reach a tab the same way they reach a window."
 }

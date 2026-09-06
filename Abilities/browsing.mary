@@ -87,7 +87,10 @@
       "browsing.reload-page",
       "browsing.scroll-page",
       "browsing.scroll-to-on-page",
-      "browsing.search-web"
+      "browsing.search-web",
+      "browsing.switch-tab",
+      "browsing.find-in-page",
+      "browsing.close-tab"
     ],
     "summary" : "Browsing: which page you are on, going somewhere else, and the page's own video player.",
     "tint" : "#1A73E8",
@@ -440,6 +443,81 @@
       ],
       "summary" : "List a browser's open tabs.",
       "title" : "Read the Tabs",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.tabs.switch",
+      "inputType" : "browsing.page-target",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own tab control."
+        }
+      ],
+      "summary" : "Bring one open tab forward.",
+      "title" : "Switch Tabs",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.tabs.close",
+      "inputType" : "browsing.browser-query",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own close-tab command."
+        }
+      ],
+      "summary" : "Close the tab in front.",
+      "title" : "Close a Tab",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.page.find",
+      "inputType" : "browsing.page-target",
+      "outputType" : "browsing.operation-result",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Press the browser's own find command and type into its bar."
+        }
+      ],
+      "summary" : "Open the browser's find bar and search the page.",
+      "title" : "Find in the Page",
       "version" : "1.0.0"
     }
   ],
@@ -906,13 +984,133 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Jump to 1:30 in the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.switch-tab",
+      "id" : "switch-to-the-second-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Switch to the second tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.switch-tab",
+      "id" : "go-to-the-other-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Go to the other tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.switch-tab",
+      "id" : "switch-to-the-tab-about-the-weather",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Switch to the tab about the weather."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.switch-tab",
+      "id" : "show-me-the-first-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Show me the first tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.find-in-page",
+      "id" : "find-the-word-budget-on-this-page",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find the word budget on this page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.find-in-page",
+      "id" : "search-this-page-for-the-phrase-annual-report",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search this page for the phrase annual report."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.find-in-page",
+      "id" : "where-does-it-say-refund-on-this-page?",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Where does it say refund on this page?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.close-tab",
+      "id" : "close-this-tab",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Close this tab."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.close-tab",
+      "id" : "close-the-tab-i'm-on",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Close the tab I'm on."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.current-page",
+      "id" : "which-tab-am-i-on",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Which tab am I on?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.current-page",
+      "id" : "what-tab-is-this",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "What tab is this?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.current-page",
+      "id" : "which-page-am-i-looking-at",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Which page am I looking at?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "efc456f5dd149c0ea4ff4d765889778704c1f4f39972dd49e99ade2a09094df0"
+    "digest" : "4bc75eb8f866118621c92ba6fac31952ddb46746743b7fedcfd9a556a2fd6ac8"
   },
   "interactions" : [
 
@@ -2744,6 +2942,293 @@
       },
       "summary" : "Search the web and show the results, opening one when they said which.",
       "title" : "Search the Web",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "switch_tab",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.switch-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "switch_tab",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "target",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which tab, in the person's words — a title, \"the second tab\", \"the other one\".",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.tabs.switch"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 202
+      },
+      "summary" : "Bring one of the browser's open tabs forward — by its title, its position, or \"the other one\".",
+      "title" : "Switch to a Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "find_in_page",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.find-in-page",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "find_in_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "text",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "The word or phrase to find on the page.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.page.find"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 212
+      },
+      "summary" : "Open the browser's find bar and search the page in front for a word or phrase, highlighting it.",
+      "title" : "Find on the Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "confirm",
+      "execution" : {
+        "bindings" : [
+
+        ],
+        "kind" : "binding",
+        "realizationPolicy" : "pluginRealizations",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.close-tab",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "close_tab",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.tabs.close"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "eligibility" : {
+          "children" : [
+            {
+              "children" : [
+
+              ],
+              "kind" : "targetClass",
+              "value" : "web-page"
+            }
+          ],
+          "kind" : "any"
+        },
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 198
+      },
+      "summary" : "Close the tab the browser is showing. Realized by the browser's own package, not the web-surface adapter.",
+      "title" : "Close the Tab",
       "usesStage" : true,
       "version" : "1.0.0"
     }

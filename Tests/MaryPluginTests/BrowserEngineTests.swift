@@ -133,6 +133,14 @@ final class FakeKeys: BrowserKeys, @unchecked Sendable {
         pressed.append(key)
         return true
     }
+
+    var chords: [String] = []
+    func chord(
+        _ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String
+    ) async -> Bool {
+        chords.append((modifiers.map(\.rawValue) + [key.rawValue]).joined(separator: "+"))
+        return true
+    }
 }
 
 final class FakeStage: BrowserStaging, @unchecked Sendable {
@@ -420,6 +428,22 @@ enum BrowsingFixtures {
             return
         }
         #expect(what.contains("transport"))
+    }
+
+    // MARK: - Tabs
+
+    /// WHICH TAB A PHRASE MEANS: a position, "the other one", or a title with
+    /// the asking removed.
+    @Test func aTabIsNamedByPositionOtherOrTitle() {
+        var shell = BrowsingFixtures.shell()
+        shell.tabs = ["File:Big Buck Bunny 4K.webm - Wikimedia Commons", "about:blank"]
+        shell.activeTabIndex = 0
+        #expect(BrowserEngine.tabIndex(for: "the second tab", in: shell) == 1)
+        #expect(BrowserEngine.tabIndex(for: "go to the first tab", in: shell) == 0)
+        #expect(BrowserEngine.tabIndex(for: "the other one", in: shell) == 1)
+        #expect(BrowserEngine.tabIndex(for: "switch to the blank tab", in: shell) == 1)
+        #expect(BrowserEngine.tabIndex(for: "the big buck bunny tab", in: shell) == 0)
+        #expect(BrowserEngine.tabIndex(for: "the weather tab", in: shell) == nil)
     }
 
     // MARK: - A time, as a place on the track

@@ -441,6 +441,10 @@ public struct TripStage: Sendable, Equatable, Codable {
     /// through the engine's own verb, and the leg is unstageable if that
     /// does not land.
     public var mediaPlaying: Bool?
+    /// A second, blank tab is open behind the staged page — the state a person
+    /// is in when they say "switch to the other tab". The runner opens it
+    /// through the browser's own new-tab chord and comes back to the first.
+    public var twoTabs: Bool?
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -453,13 +457,14 @@ public struct TripStage: Sendable, Equatable, Codable {
         twoWindows = try container.decodeIfPresent(Bool.self, forKey: .twoWindows)
         minimized = try container.decodeIfPresent(Bool.self, forKey: .minimized)
         mediaPlaying = try container.decodeIfPresent(Bool.self, forKey: .mediaPlaying)
+        twoTabs = try container.decodeIfPresent(Bool.self, forKey: .twoTabs)
     }
 
     public init(
         pageClass: TripPageClass = .any, front: String = "browser",
         pin: String? = nil, handNavigateBeforeLeg: Int? = nil,
         musicPlaying: Bool? = nil, twoWindows: Bool? = nil, minimized: Bool? = nil,
-        mediaPlaying: Bool? = nil
+        mediaPlaying: Bool? = nil, twoTabs: Bool? = nil
     ) {
         self.pageClass = pageClass
         self.front = front
@@ -469,6 +474,7 @@ public struct TripStage: Sendable, Equatable, Codable {
         self.twoWindows = twoWindows
         self.minimized = minimized
         self.mediaPlaying = mediaPlaying
+        self.twoTabs = twoTabs
     }
 }
 

@@ -514,8 +514,15 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
 
     /// What a whole turn can answer for: which skill the words reached, on which
     /// lane, where the lead was, and whether anything was said.
+    ///
+    /// PIN: NOT THE CLOCK. A leg's budget is about the ENGINE's work — the read,
+    /// the act, the second look — and a turn spends most of its time in a
+    /// language model whose pace is nobody's finding. MEASURED: a find that
+    /// took 409ms through the probe took 44 seconds through the turn, and was
+    /// reported as a timing failure of a verb that had already answered in
+    /// under half a second. The probe holds the clock; the turn holds the words.
     public static let turnLayers: [TripFailureLayer] = [
-        .abilityRouting, .ambient, .speech, .timing,
+        .abilityRouting, .ambient, .speech,
     ]
 
     /// The best receipt this leg produced — the one `landed` rests on.

@@ -1035,6 +1035,62 @@ run the clock's OCR read 10:34 as 1:40, and "three minutes" clamped to the end o
 a video the reading believed was shorter — a destination past the end refuses and
 names the length now, which is right whether the video or the reading is short.
 
+#### Part 3b — the verbs the corpus waited five rounds for
+
+Thirteen legs had sat `pending: round 3` since the corpus was written, and the
+verbs they name were never built: switch a tab, close one, find a word on the
+page. The census had already measured what happens without them — "find the word
+budget on this page" reached `reload_page` at 0.70 on the confidence lane, which
+would have reloaded the page instead.
+
+`switch_tab` presses the tab the browser publishes, by title, by position, or as
+"the other one". A tab is a control with the page's name on it, found by the same
+shell walk that finds Back; a chord would count tabs the browser's way, and a
+person counts them the way they see them. Proved by the shell: the window wears
+the tab's name. `find_in_page` opens the browser's own find bar — a chord the
+package declares, aimed at the browser — and types into it; delivered, not
+landed, because what the bar found is drawn in the shell and this lane does not
+read it back. `close_tab` is Command-W through the browser's package, like the
+new tab beside it, and it is a **write**: the turn asks first, and the tab count
+does not move until somebody answers.
+
+Two rules came out of driving them. A page title is punctuated and a person is
+not — the title matcher folds punctuation AWAY rather than to a space, right for
+a song called "Rock & Roll" and wrong for a tab called "about:blank", which
+becomes one token nobody can say; every tab is spoken as its words before it is
+matched. And an act speaks its receipt: the confidence lane said nothing on a
+success, so "find the word budget" opened the find bar in 409 ms and the turn
+ended silent, which is the shape the person reported as not working.
+
+Three defects the driving found that no test would have:
+
+- **A panel can be the main window, and then every read is about the panel.**
+  After a find, Chrome's find bar is its own accessibility window and takes
+  `AXMain` — so the shell reported the page's title as "Find in page", published
+  no tabs at all, and every later read in the turn was about a strip forty points
+  tall. A browsing window is the one with the browser's own furniture in it: a
+  toolbar, or the page. Told apart by shape, never by a title.
+- **A stage is a state, not a gesture.** The two-tab staging pressed the new-tab
+  chord every run, and six runs left six tabs — three called the same thing, so
+  "the blank tab" was genuinely ambiguous and the leg's refusal was correct about
+  a window nobody meant to build. It opens a tab only when there are fewer than
+  two, and the trip begins on the page it is about.
+- **Closing the only tab closes the WINDOW.** The close-tab leg did exactly that,
+  and the browser then resolved to the person's own window — measured, and the
+  reason that leg is staged with a second tab now.
+
+The clock is the probe's, not the turn's: a find that took 409 ms through the
+engine took 44 seconds through a turn that spends most of itself in a language
+model, and was reported as a timing failure of a verb that had already answered.
+
+And **"skip the ad" needs no verb.** A small pressable row drawn inside the
+picture is an overlay by geometry — the same fact a consent wall's button
+carries — so the seal marks it and the router's existing overlay credit does the
+rest, through `click_on_page` with the person's own words. The rule is pinned in
+tests; the leg is `pending` a staged page whose player actually shows an ad,
+because a leg expecting an overlay press on a page with no overlay would measure
+the seed rather than the router.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |

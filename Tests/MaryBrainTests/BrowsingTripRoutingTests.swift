@@ -293,7 +293,6 @@ import Testing
         "describe-media[0] reached now_playing, not describe_media",
         "list-tabs[0] reached list_app_windows, not list_tabs",
         // A browser question answered by another surface.
-        "which-tab[0] reached list_playlists, not current_page",
         // A page skill offered with an editor in front.
         "page-question-from-an-editor[1] reached read_page_text, not read_enclosing_unit",
         // The peeling leaves the phrase that named the surface in the query.

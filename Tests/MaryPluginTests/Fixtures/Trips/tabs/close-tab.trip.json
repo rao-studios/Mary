@@ -7,13 +7,13 @@
         "frontContainerChanged": true
       },
       "engine": {
-        "budgetMs": 6000,
+        "budgetMs": 10000,
         "landed": true
       },
-      "note": "Media verbs are tweaks \u2014 pausing is undone by pressing the same button. A closed tab is not.",
-      "pending": "round 3",
+      "note": "Media verbs are tweaks \u2014 pausing is undone by pressing the same button. A closed tab is not. A write: the skill asks first, so the turn-level runner must answer the confirmation; the probe cannot dispatch a package-realized operation at all. Staged with a second tab: closing the only tab of a window closes the WINDOW, which is a different act and leaves the browser resolving to somebody else's.",
       "routing": {
         "intent": "operate",
+        "shape": "noRequiredArguments",
         "skill": "close_tab"
       },
       "say": "close this tab"
@@ -21,7 +21,8 @@
   ],
   "stage": {
     "front": "browser",
-    "pageClass": "any"
+    "pageClass": "any",
+    "twoTabs": true
   },
   "summary": "Closing a tab is the one write in this lane, so it asks first."
 }

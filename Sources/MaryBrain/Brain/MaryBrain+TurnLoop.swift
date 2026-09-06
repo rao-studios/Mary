@@ -530,16 +530,15 @@ extension MaryBrain {
                 "embed dispatch — invoke \(name, privacy: .public)")
             // A committed guess must speak — silence here would start
             // playing the wrong thing with no way to catch it.
-            // AND A LANDED ACT SPEAKS ITS RECEIPT. "Click the first link on
-            // this page" pressed the link, the page changed, and the turn ended
-            // without a word — measured through the bench, and reported by the
-            // person as a command that "did not work". An act the machine
-            // proved is the one thing worth a sentence: what it opened, what it
-            // paused. Silence stays for the act that only changed where the
-            // person is looking, which is its own receipt.
-            let spoken = (outcome.ok && !outcome.foundNothing && !outcome.committedGuess
-                          && !outcome.landed)
-                ? "" : outcome.summary
+            // AND AN ACT SPEAKS ITS RECEIPT. "Click the first link on this page"
+            // pressed the link, the page changed, and the turn ended without a
+            // word — measured through the bench, and reported by the person as a
+            // command that "did not work"; "find the word budget" opened the
+            // find bar and said nothing. What the machine did is the one thing
+            // worth a sentence: what it opened, what it paused, what it is
+            // looking for. A skill with nothing to say returns no summary, and
+            // that stays silent.
+            let spoken = outcome.summary
             closeSkillTurn(
                 spoken: spoken, exit: "embedding dispatch \(name)",
                 continuation: continuation, epoch: epoch)

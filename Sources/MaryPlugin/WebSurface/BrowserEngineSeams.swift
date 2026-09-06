@@ -79,6 +79,10 @@ public protocol BrowserHands: Sendable {
 public protocol BrowserKeys: Sendable {
     func type(_ text: String, targetPrefix: String) async -> Bool
     func press(_ key: PageInteractionKey) async -> Bool
+    /// A chord the browser's own shell answers — find, close a tab — aimed at
+    /// the browser so it can never land in whatever came forward. Never a
+    /// site's shortcut: the source scan reads every call.
+    func chord(_ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String) async -> Bool
 }
 
 public extension BrowserHands {
@@ -430,6 +434,12 @@ public struct LiveBrowserKeys: BrowserKeys {
         case .escape: return KeyChordPress.press(key: .escape, modifiers: [])
         case .tab: return KeyChordPress.press(key: .tab, modifiers: [])
         }
+    }
+
+    public func chord(
+        _ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String
+    ) async -> Bool {
+        KeyChordPress.press(key: key, modifiers: modifiers, targetPrefix: targetPrefix)
     }
 }
 

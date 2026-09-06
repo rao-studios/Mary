@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "42c5a09a160ee9ea62d474e756f8405a790423536b7351a78d79eff2a48ef933"
+    "digest" : "5dfad1f79352be682366386d66ee543f720beb8d51873468b3b562294d2574b3"
   },
   "interactions" : [
 
@@ -195,6 +195,29 @@
         "summary" : "Press Command-T while Chrome owns the stage.",
         "timeoutSeconds" : 10,
         "title" : "New Tab"
+      },
+      {
+        "adapterID" : "chrome.managed-ui",
+        "inputs" : [
+
+        ],
+        "operation" : "chrome_close_tab",
+        "postconditions" : [
+          "applicationFrontmost"
+        ],
+        "steps" : [
+          {
+            "id" : "chord",
+            "key" : "w",
+            "kind" : "keyChord",
+            "modifiers" : [
+              "command"
+            ]
+          }
+        ],
+        "summary" : "Press Command-W while Chrome owns the stage.",
+        "timeoutSeconds" : 10,
+        "title" : "Close Tab"
       }
     ],
     "realizations" : [
@@ -202,6 +225,14 @@
         "operation" : "chrome_new_tab",
         "preference" : 260,
         "skillID" : "browsing.new-tab",
+        "targetClasses" : [
+          "web-page"
+        ]
+      },
+      {
+        "operation" : "chrome_close_tab",
+        "preference" : 260,
+        "skillID" : "browsing.close-tab",
         "targetClasses" : [
           "web-page"
         ]
@@ -216,6 +247,10 @@
         "command"
       ],
       "backLabel" : "Back",
+      "findKey" : "f",
+      "findModifiers" : [
+        "command"
+      ],
       "forwardLabel" : "Forward",
       "pageFrameSource" : "windowBelowToolbar",
       "reloadLabel" : "Reload",
