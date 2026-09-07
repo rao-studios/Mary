@@ -13,7 +13,7 @@
 
       },
       "because" : "only its routing is stated, and a probe routes nothing",
-      "elapsedMilliseconds" : 236,
+      "elapsedMilliseconds" : 123,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -28,7 +28,7 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "MaryOS — An operating system for the generative age.\nThe Final Industry - Miro - High memory usage - 872 MB\nravynOS - Finesse of macOS. Freedom of Open Source.\nRitesh Pakala Rao (@riteshpakalarao) / X\nFAQ - ravynOS\nravynsoft/wiki: The ravynOS Wiki.\nPost by @rao.nyc — Bluesky\nFireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing",
+      "outcomeSpoken" : "Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing\nabout:blank",
       "pageReads" : [
 
       ],
@@ -43,25 +43,25 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 235,
+          "atMilliseconds" : 123,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "ai maryos",
-          "tabCount" : 8,
-          "title" : "MaryOS — An operating system for the generative age."
+          "site" : "youtube",
+          "tabCount" : 2,
+          "title" : "Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing"
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "235ms  read the shell — MaryOS — An operating system for the generative age. · ai maryos"
+        "6ms  resolved Chrome",
+        "123ms  read the shell — Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing · youtube"
       ],
       "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-07T06:34:25Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:22:54Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "how-many-tabs"
 }

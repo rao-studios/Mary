@@ -218,6 +218,13 @@ public struct PageRouteDomain: ArbitrationDomain {
     /// search itself landed and the answers are there; what failed is the pick,
     /// and saying so beats reporting a page full of results as empty.
     public func fallsBackWithNoGoal(_ rows: [PageRow]) -> Bool {
+        // A POSITION OVER NOTHING COUNTABLE IS A MISS, NOT THE PAGE'S FIRST
+        // ANSWER. "The second one" on a page whose results the seal could not
+        // count fell back to whatever ranked first — a shop's tile, measured in
+        // round 14 — and was opened as if it were the second. A name that
+        // matched nothing may take the page's own first answer; a number may
+        // not, because the number was the whole request.
+        if hasPick, !goalNamesSomething { return false }
         if case .openResult = verb { return true }
         return false
     }
@@ -457,6 +464,9 @@ public enum PageRouter {
     /// The facts that keep a row out of a count. PUBLIC so the trip classifier
     /// counts exactly as the router does — two counts that differ are a
     /// verdict about nothing (round 9 measured five of them).
+    /// A promoted row still COUNTS — an advert is a thing in the list, and a
+    /// "second" that skipped it would disagree with the person's. It only
+    /// ranks last among what was named.
     public static let uncountableForAPosition: RowFacts = [
         .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
         .behindOverlay, .echoOfQuery, .notDrawn,

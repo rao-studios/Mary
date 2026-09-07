@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 6,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 448,
+          "atMilliseconds" : 203,
           "kind" : "openLocation",
           "typedLength" : 58
         },
         {
-          "atMilliseconds" : 2422,
+          "atMilliseconds" : 1670,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 5075,
+          "atMilliseconds" : 4086,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 5076,
+      "elapsedMilliseconds" : 4087,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -43,10 +43,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
+      "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 18 links, 9 options, 7 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; link 2 — Sign in",
       "pageReads" : [
         {
-          "atMilliseconds" : 4739,
+          "atMilliseconds" : 3726,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -55,119 +55,154 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   1,
-                  2,
                   3,
                   4,
                   7,
-                  8,
                   9,
                   10,
-                  13,
+                  12,
                   14,
                   15,
                   16,
                   17,
-                  18,
                   19,
-                  20,
                   21,
                   23,
-                  24
+                  24,
+                  26,
+                  27,
+                  28
                 ]
               },
               {
                 "id" : 1,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  25
+                  29
                 ],
-                "title" : "+ Al Chat"
+                "title" : "© Web + Al Chat & Images"
               },
               {
                 "id" : 2,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  26,
-                  27,
-                  29,
                   30,
-                  32
+                  32,
+                  33
                 ],
-                "title" : "Search region: United States (English) v"
+                "title" : "Search region: United States (English) ~"
               },
               {
                 "id" : 3,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  34,
-                  35,
-                  36,
-                  37,
-                  39,
-                  40,
-                  41
+                  35
                 ],
-                "title" : "• Overviews"
+                "title" : "Millau Viaduct"
               },
               {
                 "id" : 4,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  44,
-                  45,
-                  46,
-                  48
+                  37,
+                  38
                 ],
-                "title" : "Is this helpful?"
+                "title" : "+ Overviews"
               },
               {
                 "id" : 5,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  49,
-                  50,
-                  51,
-                  52,
-                  53,
-                  55,
-                  57,
-                  58,
-                  59
+                  39
                 ],
-                "title" : "valley of the Tarn near Millau in the Aveyron"
+                "title" : "+ Overviews"
               },
               {
                 "id" : 6,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  60,
-                  62,
-                  64,
-                  65,
-                  66,
-                  67
-                ],
-                "title" : "Wikipedia"
+                  42,
+                  44
+                ]
               },
               {
                 "id" : 7,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  69,
-                  70,
-                  72
+                  45
                 ],
-                "title" : "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E"
+                "title" : "Explore more with Al Chat →"
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  48
+                ]
+              },
+              {
+                "id" : 9,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  49,
+                  50,
+                  52,
+                  53,
+                  54,
+                  55,
+                  56,
+                  57,
+                  59
+                ],
+                "title" : "Is this helpful?"
+              },
+              {
+                "id" : 10,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  61,
+                  62,
+                  63,
+                  64
+                ],
+                "title" : "YouTube"
+              },
+              {
+                "id" : 11,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  66,
+                  67,
+                  68,
+                  69,
+                  71,
+                  73,
+                  74,
+                  75,
+                  76
+                ],
+                "title" : "Wikipedia"
+              },
+              {
+                "id" : 12,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  80,
+                  81,
+                  83,
+                  84
+                ],
+                "title" : "YouTube"
               }
             ],
-            "labeledFraction" : 0.875,
+            "labeledFraction" : 0.8095238095238095,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 513,
+            "readMilliseconds" : 464,
             "rows" : [
               {
                 "affordance" : "none",
@@ -178,8 +213,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  249,
+                  -1808,
+                  227,
                   86,
                   34
                 ],
@@ -199,16 +234,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "band"
+
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1779,
-                  255,
+                  -1801,
+                  233,
                   70,
                   20
                 ],
-                "groupID" : 0,
                 "hints" : [
 
                 ],
@@ -232,8 +266,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1676,
-                  253,
+                  -1695,
+                  231,
                   435,
                   29
                 ],
@@ -258,8 +292,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1668,
-                  246,
+                  -1690,
+                  224,
                   557,
                   38
                 ],
@@ -284,10 +318,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1111,
-                  249,
+                  -1133,
+                  227,
                   32,
                   32
                 ],
@@ -311,10 +345,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1071,
-                  245,
+                  -1093,
+                  223,
                   40,
                   40
                 ],
@@ -332,17 +366,17 @@
                 "role" : "AXButton"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
                   "band"
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1065,
-                  253,
-                  27,
+                  -1085,
+                  231,
+                  25,
                   27
                 ],
                 "groupID" : 0,
@@ -350,28 +384,26 @@
 
                 ],
                 "isEnabled" : true,
-                "kind" : "button",
                 "label" : "Q",
                 "labelSource" : "textInside",
                 "ordinal" : 7,
                 "region" : "header",
-                "role" : "AXButton"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "band"
+
                 ],
                 "facts" : 41,
                 "frame" : [
-                  -849,
-                  245,
+                  -871,
+                  223,
                   105,
                   40
                 ],
-                "groupID" : 0,
                 "hints" : [
 
                 ],
@@ -388,26 +420,25 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
                   "band"
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -812,
-                  258,
-                  33,
-                  17
+                  -858,
+                  231,
+                  82,
+                  30
                 ],
                 "groupID" : 0,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 5",
-                "labelSource" : "synthesized",
+                "label" : "1 Sign in",
+                "labelSource" : "textInside",
                 "ordinal" : 9,
                 "region" : "header",
                 "role" : "AXStaticText"
@@ -421,8 +452,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -737,
-                  245,
+                  -759,
+                  223,
                   41,
                   40
                 ],
@@ -447,10 +478,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -689,
-                  245,
+                  -711,
+                  223,
                   113,
                   40
                 ],
@@ -468,16 +499,42 @@
                 "role" : "AXButton"
               },
               {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -680,
+                  231,
+                  41,
+                  27
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "3 8",
+                "labelSource" : "textInside",
+                "ordinal" : 12,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1791,
-                  304,
+                  -1813,
+                  282,
                   32,
                   24
                 ],
@@ -490,7 +547,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 12,
+                "ordinal" : 13,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -504,10 +561,10 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1684,
-                  292,
+                  -1705,
+                  269,
                   446,
-                  42
+                  43
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -515,9 +572,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat dE News @ Web",
+                "label" : "© Web + Al Chat & Images D Videos de News",
                 "labelSource" : "textInside",
-                "ordinal" : 13,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -530,8 +587,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1678,
-                  297,
+                  -1700,
+                  275,
                   75,
                   32
                 ],
@@ -545,7 +602,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 14,
+                "ordinal" : 15,
                 "region" : "main",
                 "role" : "AXMenuItem"
               },
@@ -558,10 +615,10 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1611,
-                  294,
-                  370,
-                  38
+                  -1692,
+                  279,
+                  250,
+                  28
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -569,39 +626,11 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat dE News",
+                "label" : "© Web + Al Chat & Images",
                 "labelSource" : "textInside",
-                "ordinal" : 15,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1602,
-                  297,
-                  93,
-                  32
-                ],
-                "groupID" : 0,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "AI Chat",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
                 "ordinal" : 16,
                 "region" : "main",
-                "role" : "AXMenuItem"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -612,10 +641,10 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1571,
-                  307,
+                  -1687,
+                  283,
                   50,
-                  12
+                  15
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -634,54 +663,25 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "band"
+
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1508,
-                  297,
-                  92,
+                  -1624,
+                  275,
+                  93,
                   32
                 ],
-                "groupID" : 0,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "option",
-                "label" : "Images",
+                "label" : "AI Chat",
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
                 "ordinal" : 18,
-                "region" : "main",
-                "role" : "AXMenuItem"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "band"
-                ],
-                "facts" : 2088,
-                "frame" : [
-                  -1415,
-                  297,
-                  90,
-                  32
-                ],
-                "groupID" : 0,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "Videos",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 19,
                 "region" : "main",
                 "role" : "AXMenuItem"
               },
@@ -694,9 +694,9 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1384,
-                  306,
-                  47,
+                  -1592,
+                  284,
+                  50,
                   13
                 ],
                 "groupID" : 0,
@@ -705,9 +705,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 14",
+                "label" : "item 11",
                 "labelSource" : "synthesized",
-                "ordinal" : 20,
+                "ordinal" : 19,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -716,55 +716,27 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "band"
+
                 ],
-                "facts" : 2088,
+                "facts" : 40,
                 "frame" : [
-                  -1324,
-                  297,
-                  81,
+                  -1530,
+                  275,
+                  92,
                   32
                 ],
-                "groupID" : 0,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "option",
-                "label" : "News",
+                "label" : "Images",
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 21,
+                "ordinal" : 20,
                 "region" : "main",
                 "role" : "AXMenuItem"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1227,
-                  297,
-                  77,
-                  32
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "More",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 22,
-                "region" : "main",
-                "role" : "AXPopUpButton"
               },
               {
                 "affordance" : "none",
@@ -775,10 +747,10 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1220,
-                  301,
-                  64,
-                  23
+                  -1518,
+                  283,
+                  69,
+                  17
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -786,7 +758,59 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "More v",
+                "label" : "item 12",
+                "labelSource" : "synthesized",
+                "ordinal" : 21,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1437,
+                  275,
+                  90,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Videos",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 22,
+                "region" : "main",
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1430,
+                  279,
+                  160,
+                  25
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "D Videos de News",
                 "labelSource" : "textInside",
                 "ordinal" : 23,
                 "region" : "main",
@@ -801,10 +825,10 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1216,
-                  307,
-                  35,
-                  12
+                  -1405,
+                  284,
+                  47,
+                  13
                 ],
                 "groupID" : 0,
                 "hints" : [
@@ -812,7 +836,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 18",
+                "label" : "item 14",
                 "labelSource" : "synthesized",
                 "ordinal" : 24,
                 "region" : "main",
@@ -823,13 +847,120 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "+ Al Chat",
+
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1346,
+                  275,
+                  81,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "News",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 25,
+                "region" : "main",
+                "role" : "AXMenuItem"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1335,
+                  282,
+                  59,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 15",
+                "labelSource" : "synthesized",
+                "ordinal" : 26,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1249,
+                  275,
+                  77,
+                  32
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "More",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 27,
+                "region" : "main",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1237,
+                  285,
+                  34,
+                  12
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 17",
+                "labelSource" : "synthesized",
+                "ordinal" : 28,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "© Web + Al Chat & Images",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  350,
+                  -1813,
+                  328,
                   304,
                   32
                 ],
@@ -843,134 +974,24 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 25,
-                "region" : "main",
-                "role" : "AXMenuItem"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Search region: United States (English) v",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1650,
-                  419,
-                  81,
-                  24
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "Overviews",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 26,
-                "region" : "main",
-                "role" : "AXPopUpButton"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Search region: United States (English) v",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1650,
-                  424,
-                  80,
-                  14
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 21",
-                "labelSource" : "synthesized",
-                "ordinal" : 27,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1108,
-                  411,
-                  41,
-                  40
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "Settings",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 28,
-                "region" : "main",
-                "role" : "AXPopUpButton"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Search region: United States (English) v",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1094,
-                  423,
-                  14,
-                  16
-                ],
-                "groupID" : 2,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 22",
-                "labelSource" : "synthesized",
                 "ordinal" : 29,
                 "region" : "main",
-                "role" : "AXStaticText"
+                "role" : "AXMenuItem"
               },
               {
                 "affordance" : "press",
                 "affordanceSource" : "grouping",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Search region: United States (English) v",
+                  "Search region: United States (English) ~",
                   "band"
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -998,
-                  409,
-                  169,
-                  31
+                  -1020,
+                  385,
+                  171,
+                  33
                 ],
                 "groupID" : 2,
                 "hints" : [
@@ -993,8 +1014,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -994,
-                  411,
+                  -1016,
+                  389,
                   327,
                   27
                 ],
@@ -1013,19 +1034,48 @@
                 "value" : 2
               },
               {
-                "affordance" : "none",
+                "affordance" : "press",
                 "affordanceSource" : "classifier",
-                "confidence" : 0,
+                "confidence" : 1,
                 "containerTrail" : [
-                  "Search region: United States (English) v",
+                  "Search region: United States (English) ~",
                   "band"
                 ],
-                "facts" : 2080,
+                "facts" : 40,
                 "frame" : [
-                  -997,
-                  437,
-                  281,
-                  25
+                  -1672,
+                  397,
+                  81,
+                  24
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Overviews",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 32,
+                "region" : "main",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Search region: United States (English) ~",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1671,
+                  401,
+                  80,
+                  15
                 ],
                 "groupID" : 2,
                 "hints" : [
@@ -1033,9 +1083,62 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
+                "label" : "item 20",
+                "labelSource" : "synthesized",
+                "ordinal" : 33,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1130,
+                  389,
+                  41,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Settings",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 34,
+                "region" : "main",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Millau Viaduct",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1021,
+                  415,
+                  283,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
                 "label" : "Cable-stayed bridge in Occitanie, France",
                 "labelSource" : "textInside",
-                "ordinal" : 32,
+                "ordinal" : 35,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1048,8 +1151,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -994,
-                  441,
+                  -1016,
+                  419,
                   327,
                   16
                 ],
@@ -1062,7 +1165,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 33,
+                "ordinal" : 36,
                 "region" : "trailing",
                 "role" : "AXHeading",
                 "value" : 3
@@ -1072,17 +1175,17 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "• Overviews",
+                  "+ Overviews",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1693,
-                  457,
+                  -1716,
+                  435,
                   589,
                   31
                 ],
-                "groupID" : 3,
+                "groupID" : 4,
                 "hints" : [
 
                 ],
@@ -1090,7 +1193,7 @@
                 "kind" : "link",
                 "label" : "The Millau Viaduct in France, the tallest bridge in Europe at 343 meters, was",
                 "labelSource" : "textInside",
-                "ordinal" : 34,
+                "ordinal" : 37,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1099,24 +1202,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "• Overviews",
+                  "+ Overviews",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1693,
-                  479,
+                  -1715,
+                  457,
                   491,
                   31
                 ],
-                "groupID" : 3,
+                "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "completed in 2004 after approximately 3 years of construction.",
                 "labelSource" : "textInside",
-                "ordinal" : 35,
+                "ordinal" : 38,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1125,17 +1228,17 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "• Overviews",
+                  "+ Overviews",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1694,
-                  533,
+                  -1713,
+                  509,
                   427,
-                  23
+                  25
                 ],
-                "groupID" : 3,
+                "groupID" : 5,
                 "hints" : [
 
                 ],
@@ -1143,7 +1246,7 @@
                 "kind" : "link",
                 "label" : "Responses can be inaccurate. We recommend you check important facts.",
                 "labelSource" : "textInside",
-                "ordinal" : 36,
+                "ordinal" : 39,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1152,17 +1255,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "• Overviews",
-                  "band"
+
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -951,
-                  476,
+                  -973,
+                  454,
                   241,
                   161
                 ],
-                "groupID" : 3,
                 "hints" : [
 
                 ],
@@ -1172,7 +1273,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 37,
+                "ordinal" : 40,
                 "region" : "trailing",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -1184,10 +1285,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 2056,
                 "frame" : [
-                  -1688,
-                  567,
+                  -1710,
+                  545,
                   194,
                   41
                 ],
@@ -1200,7 +1301,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 38,
+                "ordinal" : 41,
                 "region" : "main",
                 "role" : "AXButton"
               },
@@ -1209,25 +1310,24 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "• Overviews",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 2048,
                 "frame" : [
-                  -1626,
-                  577,
-                  121,
+                  -1647,
+                  555,
+                  123,
                   27
                 ],
-                "groupID" : 3,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Sources (4)v",
+                "label" : "Sources (4)~",
                 "labelSource" : "textInside",
-                "ordinal" : 39,
+                "ordinal" : 42,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1236,17 +1336,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "• Overviews",
-                  "band"
+
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1321,
-                  567,
+                  -1343,
+                  545,
                   254,
                   41
                 ],
-                "groupID" : 3,
                 "hints" : [
 
                 ],
@@ -1256,7 +1354,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 40,
+                "ordinal" : 43,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -1266,25 +1364,50 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "• Overviews",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1229,
-                  631,
-                  93,
-                  23
+                  -1331,
+                  555,
+                  231,
+                  27
                 ],
-                "groupID" : 3,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
+                "label" : "Explore more with Al Chat →",
+                "labelSource" : "textInside",
+                "ordinal" : 44,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Explore more with Al Chat →",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1254,
+                  607,
+                  95,
+                  25
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
                 "label" : "Is this helpful?",
                 "labelSource" : "textInside",
-                "ordinal" : 41,
+                "ordinal" : 45,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1297,8 +1420,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1131,
-                  624,
+                  -1153,
+                  602,
                   33,
                   33
                 ],
@@ -1311,7 +1434,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 42,
+                "ordinal" : 46,
                 "region" : "main",
                 "role" : "AXButton"
               },
@@ -1324,8 +1447,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1099,
-                  624,
+                  -1121,
+                  602,
                   33,
                   33
                 ],
@@ -1338,34 +1461,32 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 43,
+                "ordinal" : 47,
                 "region" : "main",
                 "role" : "AXButton"
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Is this helpful?",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -997,
-                  653,
+                  -1019,
+                  631,
                   317,
                   25
                 ],
-                "groupID" : 4,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
                 "label" : "The Millau Viaduct is a multispan cable-stayed",
                 "labelSource" : "textInside",
-                "ordinal" : 44,
+                "ordinal" : 48,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1379,19 +1500,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -997,
-                  673,
-                  297,
+                  -1021,
+                  651,
+                  299,
                   27
                 ],
-                "groupID" : 4,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "bridge completed in 2004 across the gorge",
                 "labelSource" : "textInside",
-                "ordinal" : 45,
+                "ordinal" : 49,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1405,12 +1526,12 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1696,
-                  687,
+                  -1716,
+                  663,
                   66,
-                  25
+                  27
                 ],
-                "groupID" : 4,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
@@ -1418,7 +1539,7 @@
                 "kind" : "link",
                 "label" : "Videos",
                 "labelSource" : "textInside",
-                "ordinal" : 46,
+                "ordinal" : 50,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1431,8 +1552,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1689,
-                  689,
+                  -1711,
+                  667,
                   623,
                   19
                 ],
@@ -1445,7 +1566,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 47,
+                "ordinal" : 51,
                 "region" : "main",
                 "role" : "AXHeading",
                 "value" : 2
@@ -1460,19 +1581,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1000,
-                  695,
-                  299,
-                  25
+                  -1024,
+                  671,
+                  303,
+                  29
                 ],
-                "groupID" : 4,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "valley of the Tarn near Millau in the Aveyron",
                 "labelSource" : "textInside",
-                "ordinal" : 48,
+                "ordinal" : 52,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1481,51 +1602,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "Is this helpful?",
                   "band"
                 ],
-                "facts" : 40,
+                "facts" : 8,
                 "frame" : [
-                  -1686,
-                  723,
+                  -1705,
+                  699,
                   61,
                   33
                 ],
-                "groupID" : 5,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "WHY",
                 "labelSource" : "textInside",
-                "ordinal" : 49,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
-                  "band"
-                ],
-                "facts" : 32,
-                "frame" : [
-                  -1520,
-                  725,
-                  395,
-                  31
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "The Bridge That Took 14 Years to Build -",
-                "labelSource" : "textInside",
-                "ordinal" : 50,
+                "ordinal" : 53,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1534,24 +1628,50 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "Is this helpful?",
                   "band"
                 ],
-                "facts" : 32,
+                "facts" : 0,
                 "frame" : [
-                  -997,
-                  717,
-                  329,
-                  25
+                  -1540,
+                  701,
+                  393,
+                  33
                 ],
-                "groupID" : 5,
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "The Bridge That Took 14 Years to Build -",
+                "labelSource" : "textInside",
+                "ordinal" : 54,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1019,
+                  693,
+                  329,
+                  27
+                ],
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "department in the Occitanie Region, in Southern",
                 "labelSource" : "textInside",
-                "ordinal" : 51,
+                "ordinal" : 55,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1560,24 +1680,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "Is this helpful?",
                   "band"
                 ],
-                "facts" : 40,
+                "facts" : 8,
                 "frame" : [
-                  -1690,
-                  733,
-                  106,
-                  49
+                  -1719,
+                  710,
+                  115,
+                  48
                 ],
-                "groupID" : 5,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "14 YEARS?",
+                "label" : "*14 YEAPS?",
                 "labelSource" : "textInside",
-                "ordinal" : 52,
+                "ordinal" : 56,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1586,24 +1706,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "Is this helpful?",
                   "band"
                 ],
-                "facts" : 2088,
+                "facts" : 2056,
                 "frame" : [
-                  -1518,
-                  752,
-                  92,
-                  28
+                  -1540,
+                  728,
+                  94,
+                  31
                 ],
-                "groupID" : 5,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 53,
+                "ordinal" : 57,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1616,8 +1736,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1513,
-                  723,
+                  -1535,
+                  701,
                   447,
                   61
                 ],
@@ -1630,7 +1750,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 54,
+                "ordinal" : 58,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "youtube"
@@ -1640,24 +1760,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "Is this helpful?",
                   "band"
                 ],
-                "facts" : 32,
+                "facts" : 0,
                 "frame" : [
-                  -999,
-                  737,
+                  -1022,
+                  715,
                   321,
-                  49
+                  45
                 ],
-                "groupID" : 5,
+                "groupID" : 9,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "France. The design team was led by engineer Michel Virlogeux and English architect Norman",
+                "label" : "Michel Virlogeux and English architect Norman France. The design team was led by engineer",
                 "labelSource" : "textInside",
-                "ordinal" : 55,
+                "ordinal" : 59,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1670,8 +1790,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1689,
-                  723,
+                  -1711,
+                  701,
                   161,
                   91
                 ],
@@ -1684,7 +1804,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 56,
+                "ordinal" : 60,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "youtube"
@@ -1694,52 +1814,104 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1542,
+                  759,
+                  72,
+                  25
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "YouTube",
+                "labelSource" : "textInside",
+                "ordinal" : 61,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1534,
+                  764,
+                  57,
+                  12
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 43",
+                "labelSource" : "synthesized",
+                "ordinal" : 62,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1021,
+                  777,
+                  77,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Wikipedia",
+                "labelSource" : "textInside",
+                "ordinal" : 63,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
                   "band"
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -997,
-                  779,
+                  -1019,
+                  757,
                   313,
                   25
                 ],
-                "groupID" : 5,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Foster. It was the tallest bridge in the world ...",
                 "labelSource" : "textInside",
-                "ordinal" : 57,
+                "ordinal" : 64,
                 "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
-                  "band"
-                ],
-                "facts" : 2088,
-                "frame" : [
-                  -1517,
-                  781,
-                  68,
-                  23
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "YouTube",
-                "labelSource" : "textInside",
-                "ordinal" : 58,
-                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1747,17 +1919,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
-                  "band"
+
                 ],
-                "facts" : 40,
+                "facts" : 2056,
                 "frame" : [
-                  -994,
-                  801,
+                  -1016,
+                  779,
                   65,
                   18
                 ],
-                "groupID" : 5,
                 "hints" : [
 
                 ],
@@ -1767,10 +1937,63 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 59,
+                "ordinal" : 65,
                 "region" : "trailing",
                 "role" : "AXLink",
                 "site" : "wikipedia"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1630,
+                  823,
+                  26,
+                  30
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 45",
+                "labelSource" : "synthesized",
+                "ordinal" : 66,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "shape",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1605,
+                  823,
+                  23,
+                  21
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "more",
+                "labelSource" : "icon",
+                "ordinal" : 67,
+                "region" : "main",
+                "role" : "AXLink"
               },
               {
                 "affordance" : "none",
@@ -1780,14 +2003,14 @@
                   "Wikipedia",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1517,
-                  847,
+                  -1539,
+                  823,
                   451,
-                  31
+                  33
                 ],
-                "groupID" : 6,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1795,7 +2018,33 @@
                 "kind" : "link",
                 "label" : "The Bridge That Changed the Map of Europe -",
                 "labelSource" : "textInside",
-                "ordinal" : 60,
+                "ordinal" : 68,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1201,
+                  828,
+                  19,
+                  17
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 47",
+                "labelSource" : "synthesized",
+                "ordinal" : 69,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1808,8 +2057,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1513,
-                  846,
+                  -1535,
+                  824,
                   447,
                   61
                 ],
@@ -1822,7 +2071,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 61,
+                "ordinal" : 70,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "youtube"
@@ -1835,21 +2084,21 @@
                   "Wikipedia",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1001,
-                  853,
-                  329,
-                  29
+                  -1022,
+                  831,
+                  327,
+                  27
                 ],
-                "groupID" : 6,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Millau Viaduct Viaduc de Millau (French)",
                 "labelSource" : "textInside",
-                "ordinal" : 62,
+                "ordinal" : 71,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1862,8 +2111,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1689,
-                  846,
+                  -1711,
+                  824,
                   161,
                   91
                 ],
@@ -1876,7 +2125,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 63,
+                "ordinal" : 72,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "youtube"
@@ -1889,21 +2138,21 @@
                   "Wikipedia",
                   "band"
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -1520,
-                  874,
+                  -1540,
+                  850,
                   94,
                   30
                 ],
-                "groupID" : 6,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 64,
+                "ordinal" : 73,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1915,21 +2164,21 @@
                   "Wikipedia",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -998,
-                  883,
-                  97,
+                  -1019,
+                  861,
+                  99,
                   23
                 ],
-                "groupID" : 6,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "Coordinates:",
                 "labelSource" : "textInside",
-                "ordinal" : 65,
+                "ordinal" : 74,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1941,14 +2190,14 @@
                   "Wikipedia",
                   "band"
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -1518,
-                  904,
+                  -1539,
+                  883,
                   68,
-                  24
+                  23
                 ],
-                "groupID" : 6,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
@@ -1956,8 +2205,34 @@
                 "kind" : "link",
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 66,
+                "ordinal" : 75,
                 "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Wikipedia",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1021,
+                  879,
+                  337,
+                  27
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                "labelSource" : "textInside",
+                "ordinal" : 76,
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1965,17 +2240,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "Wikipedia",
-                  "band"
+
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -994,
-                  903,
+                  -1016,
+                  881,
                   327,
                   40
                 ],
-                "groupID" : 6,
                 "hints" : [
 
                 ],
@@ -1985,7 +2258,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 67,
+                "ordinal" : 77,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "toolforge geohack"
@@ -1999,8 +2272,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -994,
-                  926,
+                  -1016,
+                  904,
                   17,
                   17
                 ],
@@ -2013,7 +2286,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 68,
+                "ordinal" : 78,
                 "region" : "footer",
                 "role" : "AXImage"
               },
@@ -2022,17 +2295,15 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
-                  "band"
+
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1689,
-                  952,
+                  -1711,
+                  930,
                   158,
                   33
                 ],
-                "groupID" : 7,
                 "hints" : [
 
                 ],
@@ -2042,7 +2313,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 69,
+                "ordinal" : 79,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -2052,17 +2323,44 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "YouTube",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -997,
-                  951,
-                  255,
+                  -1704,
+                  935,
+                  145,
                   21
                 ],
-                "groupID" : 7,
+                "groupID" : 12,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "D See more videos",
+                "labelSource" : "textInside",
+                "ordinal" : 80,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1019,
+                  927,
+                  255,
+                  23
+                ],
+                "groupID" : 12,
                 "hints" : [
 
                 ],
@@ -2070,7 +2368,7 @@
                 "kind" : "link",
                 "label" : "Carries: 4 lanes of the A75 autoroute",
                 "labelSource" : "textInside",
-                "ordinal" : 70,
+                "ordinal" : 81,
                 "region" : "footer",
                 "role" : "AXStaticText"
               },
@@ -2083,8 +2381,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -843,
-                  950,
+                  -865,
+                  928,
                   95,
                   21
                 ],
@@ -2097,35 +2395,61 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 71,
+                "ordinal" : 82,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "ecosia"
               },
               {
                 "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "YouTube",
+                  "band"
+                ],
+                "facts" : 2,
+                "frame" : [
+                  -1825,
+                  949,
+                  258,
+                  25
+                ],
+                "groupID" : 12,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "https://(an address)",
+                "labelSource" : "textInside",
+                "ordinal" : 83,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "YouTube",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -997,
-                  977,
-                  264,
-                  19
+                  -1021,
+                  953,
+                  267,
+                  21
                 ],
-                "groupID" : 7,
+                "groupID" : 12,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Croecee• Gorge vallev of the river Tarn",
+                "label" : "Crosses: Gorae vallev of the river Tarn",
                 "labelSource" : "textInside",
-                "ordinal" : 72,
+                "ordinal" : 84,
                 "region" : "footer",
                 "role" : "AXStaticText"
               },
@@ -2136,10 +2460,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -931,
-                  978,
+                  -953,
+                  956,
                   41,
                   15
                 ],
@@ -2152,7 +2476,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 73,
+                "ordinal" : 85,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -2164,10 +2488,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -887,
-                  978,
+                  -909,
+                  956,
                   39,
                   15
                 ],
@@ -2180,7 +2504,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 74,
+                "ordinal" : 86,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -2192,10 +2516,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -769,
-                  978,
+                  -791,
+                  956,
                   31,
                   15
                 ],
@@ -2208,7 +2532,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 75,
+                "ordinal" : 87,
                 "region" : "footer",
                 "role" : "AXLink",
                 "site" : "ecosia"
@@ -2235,7 +2559,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 249,
+          "atMilliseconds" : 131,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2246,7 +2570,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 448,
+          "atMilliseconds" : 203,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2257,7 +2581,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1425,
+          "atMilliseconds" : 937,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2268,7 +2592,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1941,
+          "atMilliseconds" : 1306,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2279,7 +2603,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2422,
+          "atMilliseconds" : 1670,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2290,7 +2614,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2626,
+          "atMilliseconds" : 1760,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2301,7 +2625,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3966,
+          "atMilliseconds" : 2983,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2312,25 +2636,25 @@
         }
       ],
       "timeline" : [
-        "39ms  resolved Chrome",
-        "249ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "249ms  resolved Chrome",
-        "448ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "910ms  typed an address",
-        "2422ms  verified the page changed",
-        "2422ms  receipt — navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia",
-        "2422ms  resolved Chrome",
-        "2626ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "3746ms  resolved Chrome",
-        "3966ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "4739ms  perceived 75 controls · —",
-        "4740ms  looked — 75 rows, 69 named, 8 groups"
+        "41ms  resolved Chrome",
+        "131ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "131ms  resolved Chrome",
+        "203ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "561ms  typed an address",
+        "1670ms  verified the page changed",
+        "1670ms  receipt — navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia",
+        "1673ms  resolved Chrome",
+        "1760ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "2876ms  resolved Chrome",
+        "2983ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "3726ms  perceived 87 controls · —",
+        "3726ms  looked — 87 rows, 77 named, 13 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:29:13Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:17:44Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "search-long-query"
 }

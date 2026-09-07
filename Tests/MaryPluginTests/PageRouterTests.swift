@@ -698,6 +698,21 @@ private func published(
         #expect(routed.winner?.ordinal == 2)
     }
 
+    /// A NUMBER THAT COUNTS TO NOTHING IS A MISS, not the page's first answer.
+    @Test func aPositionOverNothingCountableDoesNotFallBack() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+            Self.row(2, "Sign in to Ecosia"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+        let routed = PageRouter.arbitrate(
+            goal: "the second one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner == nil)
+        // A name that matches nothing may still take the first answer.
+        let named = PageRouter.arbitrate(
+            goal: "the boots review", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(named.winner != nil)
+    }
+
     /// AND IT DOES NOT COUNT WHAT NOBODY NAMED. A synthesized "item 33" is a
     /// position the reading invented, not a thing on screen.
     @Test func aPositionSkipsRowsNobodyNamed() {
@@ -787,6 +802,32 @@ private func published(
         let derived = RowFactsDerivation.derive(rows: rows, groups: [])
         #expect(derived[0].facts.contains(.inFurnitureBand))
         #expect(!derived[4].facts.contains(.inFurnitureBand))
+    }
+
+    /// Everything inside a promoted card is promoted — and still counted, as
+    /// an advert in the list is.
+    @Test func tilesInsideAPromotedCardArePromoted() {
+        func row(_ ordinal: Int, _ label: String, y: CGFloat) -> PageRow {
+            PageRow(
+                ordinal: ordinal, frame: CGRect(x: 100, y: y, width: 300, height: 30),
+                label: label, labelSource: .textInside, affordance: .press,
+                affordanceSource: .classifier, kind: .link, facts: [.inResultGroup])
+        }
+        let rows = [
+            row(1, "Sponsored · Shop related products", y: 100),
+            row(2, "Fischer Transalp touring boot", y: 140),
+            row(3, "Scarpa Maestrale RS boot", y: 180),
+            row(4, "Alpine touring boots reviewed by skiers", y: 400),
+            row(5, "The ten best touring boots of the year", y: 500),
+        ]
+        let groups = [PageGroup(id: 0, kind: .card, title: "Sponsored · Shop related products", memberOrdinals: [1, 2, 3])]
+        let derived = RowFactsDerivation.derive(rows: rows, groups: groups)
+        #expect(derived[1].facts.contains(.promoted))
+        #expect(!derived[3].facts.contains(.promoted))
+        let roster = PageRoster(rows: derived, pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+        let routed = PageRouter.arbitrate(
+            goal: "the second one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner?.ordinal == 2)
     }
 
     /// Two are a pair, a run of long names is a list of results, and rows in

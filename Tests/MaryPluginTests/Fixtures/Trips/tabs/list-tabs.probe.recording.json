@@ -12,7 +12,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 205,
+      "elapsedMilliseconds" : 138,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -27,7 +27,7 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "MaryOS — An operating system for the generative age.\nThe Final Industry - Miro - High memory usage - 872 MB\nravynOS - Finesse of macOS. Freedom of Open Source.\nRitesh Pakala Rao (@riteshpakalarao) / X\nFAQ - ravynOS\nravynsoft/wiki: The ravynOS Wiki.\nPost by @rao.nyc — Bluesky\nFireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing",
+      "outcomeSpoken" : "Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing\nabout:blank",
       "pageReads" : [
 
       ],
@@ -42,25 +42,25 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 204,
+          "atMilliseconds" : 138,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "ai maryos",
-          "tabCount" : 8,
-          "title" : "MaryOS — An operating system for the generative age."
+          "site" : "youtube",
+          "tabCount" : 2,
+          "title" : "Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing"
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "204ms  read the shell — MaryOS — An operating system for the generative age. · ai maryos"
+        "7ms  resolved Chrome",
+        "138ms  read the shell — Fireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing · youtube"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:34:28Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:22:57Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "list-tabs"
 }

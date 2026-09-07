@@ -5,26 +5,26 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 8,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 192,
+          "atMilliseconds" : 85,
           "key" : "command+f",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 459,
+          "atMilliseconds" : 347,
           "kind" : "type",
           "typedLength" : 6
         },
         {
-          "atMilliseconds" : 488,
+          "atMilliseconds" : 378,
           "key" : "return",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 489,
+          "atMilliseconds" : 378,
           "kind" : "restoreCursor"
         }
       ],
@@ -34,7 +34,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 489,
+      "elapsedMilliseconds" : 379,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -71,7 +71,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 192,
+          "atMilliseconds" : 85,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -82,16 +82,16 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "192ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "489ms  found \"budget\" on the page",
-        "489ms  receipt — typeText \"budget\" — no sign it did anything"
+        "9ms  resolved Chrome",
+        "85ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "378ms  found \"budget\" on the page",
+        "378ms  receipt — typeText \"budget\" — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:27:46Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:16:26Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "find-on-page"
 }

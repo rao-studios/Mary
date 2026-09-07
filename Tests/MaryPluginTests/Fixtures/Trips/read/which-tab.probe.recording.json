@@ -12,7 +12,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 136,
+      "elapsedMilliseconds" : 138,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -27,7 +27,7 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "You're on File:Big Buck Bunny 4K.webm - Wikimedia Commons - Audio playing, at wikimedia commons.",
+      "outcomeSpoken" : "You're on Ski touring - Wikipedia, at wikipedia.",
       "pageReads" : [
 
       ],
@@ -41,25 +41,26 @@
       "say" : "which tab am I on",
       "shells" : [
         {
-          "atMilliseconds" : 136,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 138,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
-          "pageFrameSource" : "web area clipped to the window",
-          "site" : "wikimedia commons",
-          "tabCount" : 2,
-          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons - Audio playing"
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Ski touring - Wikipedia"
         }
       ],
       "timeline" : [
         "6ms  resolved Chrome",
-        "136ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons - Audio playing · wikimedia commons"
+        "138ms  read the shell — Ski touring - Wikipedia · wikipedia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:32:41Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:21:18Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "which-tab"
 }

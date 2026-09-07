@@ -9,12 +9,12 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 205,
+          "atMilliseconds" : 93,
           "kind" : "pressShell",
-          "shellLabel" : "The Final Industry - Miro - High memory usage - 872 MB"
+          "shellLabel" : "about:blank"
         },
         {
-          "atMilliseconds" : 3360,
+          "atMilliseconds" : 407,
           "kind" : "restoreCursor"
         }
       ],
@@ -24,11 +24,9 @@
       "ambientBefore" : {
 
       },
-      "because" : "its best receipt was none, not navigation · refused stateUnchanged",
-      "elapsedMilliseconds" : 3360,
+      "elapsedMilliseconds" : 407,
       "index" : 0,
-      "landed" : false,
-      "layer" : "E",
+      "landed" : true,
       "media" : [
 
       ],
@@ -40,16 +38,22 @@
         "E",
         "T"
       ],
-      "ok" : false,
-      "outcomeSpoken" : "I pressed it, but it's still The Final Industry - Miro rather than The Final Industry - Miro - High memory usage - 872 MB.",
+      "ok" : true,
+      "outcomeSpoken" : "Switched to about:blank.",
       "pageReads" : [
 
       ],
       "providerApplicationID" : "chrome",
       "receipts" : [
-
+        {
+          "delivery" : "delivered",
+          "kind" : "navigate",
+          "landed" : true,
+          "receipt" : "navigation",
+          "spoken" : "navigate \"about:blank\" — the page became about:blank",
+          "target" : "about:blank"
+        }
       ],
-      "refusal" : "stateUnchanged",
       "routes" : [
 
       ],
@@ -57,113 +61,33 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 205,
+          "atMilliseconds" : 93,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
-          "tabCount" : 8,
+          "tabCount" : 2,
           "title" : "Ski touring - Wikipedia"
         },
         {
-          "atMilliseconds" : 638,
+          "activeTabIndex" : 1,
+          "atMilliseconds" : 407,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 971,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 1315,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 1663,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 2006,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 2350,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 2687,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 3018,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
-        },
-        {
-          "atMilliseconds" : 3360,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "miro",
-          "tabCount" : 8,
-          "title" : "The Final Industry - Miro"
+          "tabCount" : 2,
+          "title" : "about:blank"
         }
       ],
       "timeline" : [
-        "17ms  resolved Chrome",
-        "205ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "274ms  pressed the tab The Final Industry - Miro - High memory usage - 872 MB",
-        "3360ms  refused — I pressed it, but it's still The Final Industry - Miro rather than The Final Industry - Miro - High memory usage - 872 MB."
+        "16ms  resolved Chrome",
+        "93ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "161ms  pressed the tab about:blank",
+        "407ms  receipt — navigate \"about:blank\" — the page became about:blank"
       ],
-      "verdict" : "failed"
+      "verdict" : "passed"
     },
     {
       "acts" : [
@@ -197,8 +121,8 @@
       "verdict" : "pending"
     }
   ],
-  "recordedAt" : "2026-09-07T06:34:35Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:23:05Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "switch-by-ordinal-and-anaphora"
 }

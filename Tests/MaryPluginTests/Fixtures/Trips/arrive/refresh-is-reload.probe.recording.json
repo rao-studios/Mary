@@ -5,16 +5,16 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 5,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 278,
+          "atMilliseconds" : 126,
           "kind" : "pressShell",
           "shellLabel" : "Reload"
         },
         {
-          "atMilliseconds" : 2299,
+          "atMilliseconds" : 1640,
           "kind" : "restoreCursor"
         }
       ],
@@ -24,7 +24,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 2309,
+      "elapsedMilliseconds" : 1650,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -60,7 +60,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 277,
+          "atMilliseconds" : 126,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -71,7 +71,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 836,
+          "atMilliseconds" : 507,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -82,7 +82,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1331,
+          "atMilliseconds" : 888,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -93,7 +93,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1821,
+          "atMilliseconds" : 1261,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -104,7 +104,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2299,
+          "atMilliseconds" : 1640,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -115,17 +115,17 @@
         }
       ],
       "timeline" : [
-        "38ms  resolved Chrome",
-        "278ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "280ms  pressed Reload",
-        "2299ms  verified the page changed",
-        "2299ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia"
+        "33ms  resolved Chrome",
+        "126ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "134ms  pressed Reload",
+        "1640ms  verified the page changed",
+        "1640ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:29:08Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:17:39Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "refresh-is-reload"
 }

@@ -135,6 +135,25 @@ public enum RowFactsDerivation {
             if short * 2 > labels.count { furnitureOrdinals.formUnion(group.memberOrdinals) }
         }
 
+        // EVERYTHING INSIDE A PROMOTED CARD IS PROMOTED. A results page's
+        // shopping strip is one card titled for what it is ("Sponsored · Shop
+        // related products") and its tiles are rows of their own with no hint
+        // on them — measured, "the second one" opened a product tile that
+        // went nowhere. The card's title names the tiles inside its rectangle.
+        let frameByOrdinal = Dictionary(
+            rows.map { ($0.ordinal, $0.frame) }, uniquingKeysWith: { first, _ in first })
+        var promotedFrames: [CGRect] = []
+        for group in groups {
+            let title = (group.title ?? "").lowercased().split { !$0.isLetter }.map(String.init)
+            guard title.contains(where: promotionHints.contains) else { continue }
+            let frames = group.memberOrdinals.compactMap { frameByOrdinal[$0] }
+            guard let first = frames.first else { continue }
+            promotedFrames.append(frames.dropFirst().reduce(first) { $0.union($1) })
+        }
+        let promotedOrdinals = Set(rows.filter { row in
+            promotedFrames.contains { $0.insetBy(dx: -4, dy: -4).contains(row.frame) }
+        }.map(\.ordinal))
+
         // A ROW OF SHORT PRESSABLES ON ONE LINE IS A STRIP — "Article · Talk ·
         // Read · Edit", a pager's "1 2 3 Next" — whether or not the reading
         // grouped it. Measured in round 10: "the first link on this page"
@@ -161,7 +180,8 @@ public enum RowFactsDerivation {
             if row.label.lowercased().hasPrefix("http") { facts.insert(.bareAddress) }
             if isSeparatedStrip(row.label) { facts.insert(.separatedStrip) }
             if row.label.count < minimumResultLabel { facts.insert(.tooShortForTitle) }
-            if row.hints.contains(where: { promotionHints.contains($0.lowercased()) }) {
+            if row.hints.contains(where: { promotionHints.contains($0.lowercased()) })
+                || promotedOrdinals.contains(row.ordinal) {
                 facts.insert(.promoted)
             }
             if furnitureOrdinals.contains(row.ordinal) { facts.insert(.inFurnitureBand) }

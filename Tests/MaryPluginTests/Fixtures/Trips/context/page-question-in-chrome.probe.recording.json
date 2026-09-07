@@ -5,15 +5,15 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 10,
+          "atMilliseconds" : 8,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1534,
+          "atMilliseconds" : 1450,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1534,
+          "atMilliseconds" : 1450,
           "kind" : "restoreFront"
         }
       ],
@@ -24,7 +24,7 @@
 
       },
       "because" : "only its routing is stated, and a probe routes nothing",
-      "elapsedMilliseconds" : 1539,
+      "elapsedMilliseconds" : 1456,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -42,7 +42,7 @@
       "outcomeSpoken" : "On Ski touring - Wikipedia, 42 links, 13 buttons, 3 options, and 2 fields\nLaid out with 9 things across the top, 17 things down the left, 22 things in the page itself, 11 things down the right, and 1 thing along the bottom.\noption 1 — Main menu\nlink 1 — Wikipedia The Free Encyclopedia\nfield 1 — Q Search Wikipedia Search (form)\nfield 2 — Search Wikipedia (form)\nbutton 1 — Search (form)\nlink 2 — Donate Create account Log in (form)\nlink 3 — Donate (form)\nlink 4 — Create account\nlink 5 — Log in\noption 2 — 9 languages (25 years of the free encyclopedia)\n…and 50 more.",
       "pageReads" : [
         {
-          "atMilliseconds" : 1088,
+          "atMilliseconds" : 1002,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -71,14 +71,14 @@
                 "id" : 1,
                 "kind" : "form",
                 "memberOrdinals" : [
-                  2,
-                  4,
-                  5,
+                  1,
+                  3,
                   6,
                   7,
                   8,
                   9,
-                  12
+                  10,
+                  11
                 ]
               },
               {
@@ -120,14 +120,14 @@
                   45,
                   46,
                   48,
-                  52,
+                  53,
                   54,
-                  55,
-                  58,
+                  57,
+                  59,
                   60,
                   61,
                   62,
-                  63,
+                  64,
                   65
                 ],
                 "title" : "(Top)"
@@ -172,7 +172,7 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   90,
-                  92
+                  94
                 ],
                 "title" : "Ski touring is skiing in the backcountry on unmarked"
               },
@@ -180,10 +180,10 @@
                 "id" : 9,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  93,
+                  92,
                   95,
-                  98,
-                  100
+                  96,
+                  98
                 ],
                 "title" : "or unpatrolled areas. Touring is typically done off-piste"
               },
@@ -191,7 +191,7 @@
                 "id" : 10,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  101,
+                  99,
                   104,
                   106
                 ],
@@ -203,7 +203,7 @@
                 "memberOrdinals" : [
                   107,
                   108,
-                  109,
+                  110,
                   111
                 ],
                 "title" : "• Light"
@@ -247,8 +247,8 @@
                 "id" : 16,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  120,
-                  123
+                  121,
+                  122
                 ],
                 "title" : "reaching the mountain top or other destination,"
               },
@@ -274,40 +274,13 @@
             ],
             "labeledFraction" : 0.8118811881188119,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 474,
+            "readMilliseconds" : 468,
             "rows" : [
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1765,
-                  246,
-                  32,
-                  32
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "option",
-                "label" : "Main menu",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 1,
-                "region" : "header",
-                "role" : "AXPopUpButton"
-              },
               {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
@@ -317,8 +290,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1719,
-                  243,
+                  -1741,
+                  221,
                   140,
                   22
                 ],
@@ -332,7 +305,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 2,
+                "ordinal" : 1,
                 "region" : "header",
                 "role" : "AXImage",
                 "site" : "wikipedia"
@@ -344,10 +317,91 @@
                 "containerTrail" : [
 
                 ],
+                "facts" : 40,
+                "frame" : [
+                  -1787,
+                  224,
+                  32,
+                  32
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Main menu",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 2,
+                "region" : "header",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "form"
+                ],
+                "facts" : 1024,
+                "frame" : [
+                  -1745,
+                  243,
+                  151,
+                  21
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "25 years of the free encyclopedia",
+                "labelSource" : "textInside",
+                "ordinal" : 3,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
                 "facts" : 0,
                 "frame" : [
-                  -1719,
-                  243,
+                  -1741,
+                  248,
+                  140,
+                  11
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "The Free Encyclopedia",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 4,
+                "region" : "header",
+                "role" : "AXImage",
+                "site" : "wikipedia"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1741,
+                  221,
                   140,
                   38
                 ],
@@ -360,7 +414,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 3,
+                "ordinal" : 5,
                 "region" : "header",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -374,8 +428,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1538,
-                  245,
+                  -1560,
+                  223,
                   476,
                   34
                 ],
@@ -387,7 +441,7 @@
                 "kind" : "field",
                 "label" : "Q Search Wikipedia Search",
                 "labelSource" : "textInside",
-                "ordinal" : 4,
+                "ordinal" : 6,
                 "region" : "header",
                 "role" : "AXTextField"
               },
@@ -400,8 +454,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1537,
-                  246,
+                  -1559,
+                  224,
                   405,
                   32
                 ],
@@ -415,7 +469,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 5,
+                "ordinal" : 7,
                 "region" : "header",
                 "role" : "AXTextField"
               },
@@ -428,8 +482,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1502,
-                  256,
+                  -1524,
+                  234,
                   109,
                   14
                 ],
@@ -441,7 +495,7 @@
                 "kind" : "link",
                 "label" : "item 5",
                 "labelSource" : "synthesized",
-                "ordinal" : 6,
+                "ordinal" : 8,
                 "region" : "header",
                 "role" : "AXStaticText"
               },
@@ -452,10 +506,10 @@
                 "containerTrail" : [
                   "form"
                 ],
-                "facts" : 1032,
+                "facts" : 1064,
                 "frame" : [
-                  -1134,
-                  246,
+                  -1156,
+                  224,
                   71,
                   32
                 ],
@@ -469,7 +523,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 7,
+                "ordinal" : 9,
                 "region" : "header",
                 "role" : "AXButton"
               },
@@ -480,10 +534,10 @@
                 "containerTrail" : [
                   "form"
                 ],
-                "facts" : 1024,
+                "facts" : 1056,
                 "frame" : [
-                  -800,
-                  251,
+                  -822,
+                  229,
                   205,
                   23
                 ],
@@ -495,7 +549,7 @@
                 "kind" : "link",
                 "label" : "Donate Create account Log in",
                 "labelSource" : "textInside",
-                "ordinal" : 8,
+                "ordinal" : 10,
                 "region" : "header",
                 "role" : "AXLink"
               },
@@ -506,10 +560,10 @@
                 "containerTrail" : [
                   "form"
                 ],
-                "facts" : 1032,
+                "facts" : 1064,
                 "frame" : [
-                  -795,
-                  254,
+                  -817,
+                  232,
                   46,
                   16
                 ],
@@ -523,7 +577,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 11,
                 "region" : "header",
                 "role" : "AXLink",
                 "site" : "wikimedia donate"
@@ -535,10 +589,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -742,
-                  254,
+                  -764,
+                  232,
                   96,
                   16
                 ],
@@ -551,7 +605,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 10,
+                "ordinal" : 12,
                 "region" : "header",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -563,10 +617,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 9,
+                "facts" : 41,
                 "frame" : [
-                  -639,
-                  254,
+                  -661,
+                  232,
                   39,
                   16
                 ],
@@ -579,63 +633,9 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 11,
-                "region" : "header",
-                "role" : "AXLink",
-                "site" : "wikipedia"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "form"
-                ],
-                "facts" : 1024,
-                "frame" : [
-                  -1723,
-                  265,
-                  151,
-                  21
-                ],
-                "groupID" : 1,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "25 years of the free encyclopedia",
-                "labelSource" : "textInside",
-                "ordinal" : 12,
-                "region" : "header",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1719,
-                  270,
-                  140,
-                  11
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "image",
-                "label" : "The Free Encyclopedia",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
                 "ordinal" : 13,
                 "region" : "header",
-                "role" : "AXImage",
+                "role" : "AXLink",
                 "site" : "wikipedia"
               },
               {
@@ -648,8 +648,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1545,
-                  319,
+                  -1567,
+                  297,
                   155,
                   43
                 ],
@@ -673,8 +673,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1539,
-                  319,
+                  -1561,
+                  297,
                   587,
                   40
                 ],
@@ -702,8 +702,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -953,
-                  322,
+                  -975,
+                  300,
                   149,
                   33
                 ],
@@ -731,8 +731,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1750,
-                  365,
+                  -1772,
+                  343,
                   117,
                   26
                 ],
@@ -757,8 +757,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1743,
-                  365,
+                  -1765,
+                  343,
                   61,
                   24
                 ],
@@ -786,8 +786,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1743,
-                  371,
+                  -1765,
+                  349,
                   61,
                   12
                 ],
@@ -810,10 +810,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1671,
-                  365,
+                  -1693,
+                  343,
                   40,
                   23
                 ],
@@ -840,8 +840,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1663,
-                  371,
+                  -1685,
+                  349,
                   23,
                   11
                 ],
@@ -867,8 +867,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1545,
-                  363,
+                  -1567,
+                  341,
                   92,
                   25
                 ],
@@ -890,10 +890,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1539,
-                  358,
+                  -1561,
+                  336,
                   39,
                   33
                 ],
@@ -921,8 +921,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1539,
-                  369,
+                  -1561,
+                  347,
                   39,
                   12
                 ],
@@ -945,10 +945,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1485,
-                  358,
+                  -1507,
+                  336,
                   26,
                   33
                 ],
@@ -976,8 +976,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1485,
-                  369,
+                  -1507,
+                  347,
                   26,
                   12
                 ],
@@ -1003,8 +1003,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1017,
-                  361,
+                  -1039,
+                  339,
                   203,
                   27
                 ],
@@ -1026,10 +1026,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1013,
-                  358,
+                  -1035,
+                  336,
                   34,
                   33
                 ],
@@ -1057,8 +1057,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1013,
-                  369,
+                  -1035,
+                  347,
                   34,
                   12
                 ],
@@ -1081,10 +1081,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -964,
-                  358,
+                  -986,
+                  336,
                   25,
                   33
                 ],
@@ -1112,8 +1112,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -963,
-                  369,
+                  -985,
+                  347,
                   24,
                   12
                 ],
@@ -1136,10 +1136,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -924,
-                  358,
+                  -946,
+                  336,
                   76,
                   33
                 ],
@@ -1164,10 +1164,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -840,
-                  358,
+                  -862,
+                  336,
                   32,
                   33
                 ],
@@ -1194,8 +1194,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -780,
-                  367,
+                  -802,
+                  345,
                   134,
                   24
                 ],
@@ -1221,8 +1221,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -776,
-                  371,
+                  -798,
+                  349,
                   80,
                   15
                 ],
@@ -1245,10 +1245,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -684,
-                  365,
+                  -706,
+                  343,
                   39,
                   23
                 ],
@@ -1275,8 +1275,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -676,
-                  372,
+                  -698,
+                  350,
                   23,
                   10
                 ],
@@ -1302,8 +1302,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1749,
-                  405,
+                  -1771,
+                  383,
                   47,
                   25
                 ],
@@ -1328,8 +1328,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  401,
+                  -1765,
+                  379,
                   164,
                   29
                 ],
@@ -1357,8 +1357,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1543,
-                  399,
+                  -1565,
+                  377,
                   249,
                   25
                 ],
@@ -1384,8 +1384,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -781,
-                  405,
+                  -803,
+                  383,
                   38,
                   23
                 ],
@@ -1411,8 +1411,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1748,
-                  433,
+                  -1770,
+                  411,
                   53,
                   23
                 ],
@@ -1437,8 +1437,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  429,
+                  -1765,
+                  407,
                   164,
                   29
                 ],
@@ -1463,10 +1463,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -776,
-                  443,
+                  -798,
+                  421,
                   20,
                   21
                 ],
@@ -1494,8 +1494,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -758,
-                  443,
+                  -780,
+                  421,
                   47,
                   21
                 ],
@@ -1521,8 +1521,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1748,
-                  461,
+                  -1770,
+                  439,
                   88,
                   26
                 ],
@@ -1545,10 +1545,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -1743,
-                  457,
+                  -1765,
+                  435,
                   164,
                   29
                 ],
@@ -1576,8 +1576,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1390,
-                  449,
+                  -1412,
+                  427,
                   469,
                   27
                 ],
@@ -1600,10 +1600,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1052,
-                  452,
+                  -1074,
+                  430,
                   78,
                   19
                 ],
@@ -1628,10 +1628,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -970,
-                  448,
+                  -992,
+                  426,
                   47,
                   27
                 ],
@@ -1655,10 +1655,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1766,
-                  486,
+                  -1788,
+                  464,
                   22,
                   23
                 ],
@@ -1676,43 +1676,16 @@
                 "role" : "AXButton"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "(Top)",
-                  "band"
-                ],
-                "facts" : 2088,
-                "frame" : [
-                  -1764,
-                  489,
-                  96,
-                  26
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "• Equipment",
-                "labelSource" : "textInside",
-                "ordinal" : 52,
-                "region" : "leading",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -1743,
-                  485,
+                  -1765,
+                  463,
                   164,
                   29
                 ],
@@ -1725,7 +1698,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 53,
+                "ordinal" : 52,
                 "region" : "leading",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -1740,8 +1713,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1743,
-                  494,
+                  -1765,
+                  472,
                   67,
                   15
                 ],
@@ -1753,7 +1726,7 @@
                 "kind" : "link",
                 "label" : "item 33",
                 "labelSource" : "synthesized",
-                "ordinal" : 54,
+                "ordinal" : 53,
                 "region" : "leading",
                 "role" : "AXStaticText"
               },
@@ -1767,8 +1740,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1389,
-                  475,
+                  -1411,
+                  453,
                   455,
                   27
                 ],
@@ -1780,7 +1753,7 @@
                 "kind" : "link",
                 "label" : "or discuss these issues on the talk page. (Learn how and when to",
                 "labelSource" : "textInside",
-                "ordinal" : 55,
+                "ordinal" : 54,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1791,10 +1764,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1385,
-                  480,
+                  -1407,
+                  458,
                   444,
                   42
                 ],
@@ -1807,7 +1780,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 56,
+                "ordinal" : 55,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -1819,10 +1792,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1166,
-                  478,
+                  -1188,
+                  456,
                   70,
                   19
                 ],
@@ -1835,7 +1808,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 57,
+                "ordinal" : 56,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -1850,8 +1823,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -780,
-                  471,
+                  -802,
+                  449,
                   92,
                   28
                 ],
@@ -1862,7 +1835,7 @@
                 "isEnabled" : true,
                 "label" : "• Standard",
                 "labelSource" : "textInside",
-                "ordinal" : 58,
+                "ordinal" : 57,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1873,10 +1846,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -776,
-                  475,
+                  -798,
+                  453,
                   20,
                   21
                 ],
@@ -1889,7 +1862,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 59,
+                "ordinal" : 58,
                 "region" : "trailing",
                 "role" : "AXRadioButton",
                 "value" : 1
@@ -1904,8 +1877,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -752,
-                  480,
+                  -774,
+                  458,
                   57,
                   12
                 ],
@@ -1917,24 +1890,24 @@
                 "kind" : "link",
                 "label" : "item 31",
                 "labelSource" : "synthesized",
-                "ordinal" : 60,
+                "ordinal" : 59,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
+                "affordance" : "none",
                 "affordanceSource" : "classifier",
-                "confidence" : 1,
+                "confidence" : 0,
                 "containerTrail" : [
                   "(Top)",
                   "band"
                 ],
-                "facts" : 32,
+                "facts" : 2088,
                 "frame" : [
-                  -1731,
-                  513,
-                  152,
-                  29
+                  -1786,
+                  467,
+                  96,
+                  26
                 ],
                 "groupID" : 4,
                 "hints" : [
@@ -1942,14 +1915,11 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Styles of equipment",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 61,
+                "label" : "• Equipment",
+                "labelSource" : "textInside",
+                "ordinal" : 60,
                 "region" : "leading",
-                "role" : "AXLink",
-                "site" : "wikipedia"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -1961,8 +1931,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1389,
-                  503,
+                  -1411,
+                  481,
                   163,
                   25
                 ],
@@ -1974,7 +1944,7 @@
                 "kind" : "link",
                 "label" : "remove these messages)",
                 "labelSource" : "textInside",
-                "ordinal" : 62,
+                "ordinal" : 61,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -1988,8 +1958,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -781,
-                  505,
+                  -803,
+                  483,
                   71,
                   29
                 ],
@@ -2000,7 +1970,7 @@
                 "isEnabled" : true,
                 "label" : "O Large",
                 "labelSource" : "textInside",
-                "ordinal" : 63,
+                "ordinal" : 62,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2013,8 +1983,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -776,
-                  507,
+                  -798,
+                  485,
                   20,
                   21
                 ],
@@ -2027,7 +1997,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 64,
+                "ordinal" : 63,
                 "region" : "trailing",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -2042,8 +2012,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -752,
-                  512,
+                  -774,
+                  490,
                   36,
                   15
                 ],
@@ -2055,9 +2025,39 @@
                 "kind" : "link",
                 "label" : "item 36",
                 "labelSource" : "synthesized",
-                "ordinal" : 65,
+                "ordinal" : 64,
                 "region" : "trailing",
                 "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "(Top)",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1753,
+                  491,
+                  152,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Styles of equipment",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 65,
+                "region" : "leading",
+                "role" : "AXLink",
+                "site" : "wikipedia"
               },
               {
                 "affordance" : "none",
@@ -2069,8 +2069,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1381,
-                  531,
+                  -1403,
+                  509,
                   429,
                   25
                 ],
@@ -2095,8 +2095,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1180,
-                  534,
+                  -1202,
+                  512,
                   130,
                   19
                 ],
@@ -2124,8 +2124,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1738,
-                  545,
+                  -1760,
+                  523,
                   110,
                   27
                 ],
@@ -2150,8 +2150,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1731,
-                  541,
+                  -1753,
+                  519,
                   152,
                   29
                 ],
@@ -2179,8 +2179,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1366,
-                  555,
+                  -1388,
+                  533,
                   56,
                   27
                 ],
@@ -2205,8 +2205,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -781,
-                  549,
+                  -803,
+                  527,
                   49,
                   21
                 ],
@@ -2232,8 +2232,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1748,
-                  573,
+                  -1770,
+                  551,
                   66,
                   23
                 ],
@@ -2258,8 +2258,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  569,
+                  -1765,
+                  547,
                   164,
                   29
                 ],
@@ -2287,8 +2287,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1381,
-                  579,
+                  -1403,
+                  557,
                   389,
                   25
                 ],
@@ -2313,8 +2313,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1227,
-                  582,
+                  -1249,
+                  560,
                   110,
                   19
                 ],
@@ -2342,8 +2342,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -782,
-                  583,
+                  -804,
+                  561,
                   94,
                   29
                 ],
@@ -2368,8 +2368,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -776,
-                  586,
+                  -798,
+                  564,
                   20,
                   21
                 ],
@@ -2397,8 +2397,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -752,
-                  591,
+                  -774,
+                  569,
                   57,
                   12
                 ],
@@ -2424,8 +2424,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1750,
-                  601,
+                  -1772,
+                  579,
                   86,
                   25
                 ],
@@ -2450,8 +2450,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  597,
+                  -1765,
+                  575,
                   164,
                   29
                 ],
@@ -2479,8 +2479,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1743,
-                  606,
+                  -1765,
+                  584,
                   72,
                   12
                 ],
@@ -2506,8 +2506,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1749,
-                  629,
+                  -1771,
+                  607,
                   97,
                   25
                 ],
@@ -2530,10 +2530,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2048,
+                "facts" : 2080,
                 "frame" : [
-                  -1743,
-                  625,
+                  -1765,
+                  603,
                   164,
                   29
                 ],
@@ -2561,8 +2561,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1544,
-                  621,
+                  -1566,
+                  599,
                   387,
                   27
                 ],
@@ -2585,10 +2585,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1435,
-                  625,
+                  -1457,
+                  603,
                   41,
                   19
                 ],
@@ -2613,10 +2613,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1347,
-                  625,
+                  -1369,
+                  603,
                   88,
                   19
                 ],
@@ -2644,8 +2644,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -781,
-                  615,
+                  -803,
+                  593,
                   67,
                   29
                 ],
@@ -2668,10 +2668,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -776,
-                  618,
+                  -798,
+                  596,
                   20,
                   21
                 ],
@@ -2699,8 +2699,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -752,
-                  623,
+                  -774,
+                  601,
                   32,
                   12
                 ],
@@ -2726,8 +2726,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1545,
-                  649,
+                  -1567,
+                  627,
                   395,
                   29
                 ],
@@ -2752,8 +2752,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1191,
-                  651,
+                  -1213,
+                  629,
                   34,
                   19
                 ],
@@ -2776,13 +2776,68 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
+                  "or unpatrolled areas. Touring is typically done off-piste",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1565,
+                  653,
+                  359,
+                  27
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "and outside of ski resorts, and may extend over a",
+                "labelSource" : "textInside",
+                "ordinal" : 92,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1457,
+                  655,
+                  74,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "ski resorts",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 93,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "wikipedia"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
                   "Ski touring is skiing in the backcountry on unmarked",
                   "band"
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -779,
-                  659,
+                  -801,
+                  637,
                   45,
                   23
                 ],
@@ -2794,7 +2849,7 @@
                 "kind" : "link",
                 "label" : "Color",
                 "labelSource" : "textInside",
-                "ordinal" : 92,
+                "ordinal" : 94,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2808,63 +2863,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  675,
-                  359,
-                  27
-                ],
-                "groupID" : 9,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "and outside of ski resorts, and may extend over a",
-                "labelSource" : "textInside",
-                "ordinal" : 93,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1435,
-                  677,
-                  74,
-                  19
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "ski resorts",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 94,
-                "region" : "main",
-                "role" : "AXLink",
-                "site" : "wikipedia"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "or unpatrolled areas. Touring is typically done off-piste",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1543,
-                  701,
+                  -1565,
+                  679,
                   311,
                   27
                 ],
@@ -2881,62 +2881,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1125,
-                  622,
-                  308,
-                  193
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "To get missing image descriptions, open the context menu.",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 96,
-                "region" : "main",
-                "role" : "AXLink",
-                "site" : "wikipedia"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1122,
-                  625,
-                  302,
-                  187
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "image",
-                "label" : "To get missing image descriptions, open the context menu.",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 97,
-                "region" : "main",
-                "role" : "AXImage",
-                "site" : "wikimedia upload"
-              },
-              {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
@@ -2946,8 +2890,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -782,
-                  695,
+                  -804,
+                  673,
                   100,
                   27
                 ],
@@ -2959,7 +2903,7 @@
                 "kind" : "link",
                 "label" : "Automatic",
                 "labelSource" : "textInside",
-                "ordinal" : 98,
+                "ordinal" : 96,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2972,8 +2916,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -776,
-                  697,
+                  -798,
+                  675,
                   20,
                   21
                 ],
@@ -2986,7 +2930,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 99,
+                "ordinal" : 97,
                 "region" : "trailing",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -3001,8 +2945,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -752,
-                  702,
+                  -774,
+                  680,
                   63,
                   12
                 ],
@@ -3014,7 +2958,7 @@
                 "kind" : "link",
                 "label" : "item 53",
                 "labelSource" : "synthesized",
-                "ordinal" : 100,
+                "ordinal" : 98,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -3028,8 +2972,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1543,
-                  727,
+                  -1565,
+                  705,
                   389,
                   25
                 ],
@@ -3041,7 +2985,7 @@
                 "kind" : "link",
                 "label" : "backcountry skiing but excludes the use of a ski lift or",
                 "labelSource" : "textInside",
-                "ordinal" : 101,
+                "ordinal" : 99,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -3052,10 +2996,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -1539,
-                  729,
+                  -1561,
+                  707,
                   132,
                   19
                 ],
@@ -3068,7 +3012,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 102,
+                "ordinal" : 100,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -3080,10 +3024,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1221,
-                  729,
+                  -1243,
+                  707,
                   41,
                   19
                 ],
@@ -3096,10 +3040,66 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 103,
+                "ordinal" : 101,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "wikipedia"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2080,
+                "frame" : [
+                  -1147,
+                  600,
+                  308,
+                  193
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 102,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "wikipedia"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1144,
+                  603,
+                  302,
+                  187
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "To get missing image descriptions, open the context menu.",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 103,
+                "region" : "main",
+                "role" : "AXImage",
+                "site" : "wikimedia upload"
               },
               {
                 "affordance" : "none",
@@ -3111,8 +3111,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -781,
-                  727,
+                  -803,
+                  705,
                   67,
                   29
                 ],
@@ -3135,10 +3135,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -776,
-                  729,
+                  -798,
+                  707,
                   20,
                   21
                 ],
@@ -3166,8 +3166,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -752,
-                  734,
+                  -774,
+                  712,
                   31,
                   15
                 ],
@@ -3193,8 +3193,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  753,
+                  -1565,
+                  731,
                   401,
                   27
                 ],
@@ -3218,37 +3218,10 @@
                   "• Light",
                   "band"
                 ],
-                "facts" : 0,
-                "frame" : [
-                  -1544,
-                  779,
-                  399,
-                  25
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "suitable snow and terrain as well as reasonable means",
-                "labelSource" : "textInside",
-                "ordinal" : 108,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "• Light",
-                  "band"
-                ],
                 "facts" : 8,
                 "frame" : [
-                  -781,
-                  759,
+                  -803,
+                  737,
                   67,
                   27
                 ],
@@ -3260,7 +3233,7 @@
                 "kind" : "link",
                 "label" : "O Dark",
                 "labelSource" : "textInside",
-                "ordinal" : 109,
+                "ordinal" : 108,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -3273,8 +3246,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -776,
-                  761,
+                  -798,
+                  739,
                   20,
                   21
                 ],
@@ -3287,7 +3260,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 110,
+                "ordinal" : 109,
                 "region" : "trailing",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -3302,8 +3275,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -752,
-                  766,
+                  -774,
+                  744,
                   30,
                   12
                 ],
@@ -3315,8 +3288,35 @@
                 "kind" : "link",
                 "label" : "item 59",
                 "labelSource" : "synthesized",
-                "ordinal" : 111,
+                "ordinal" : 110,
                 "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "• Light",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1566,
+                  757,
+                  399,
+                  25
+                ],
+                "groupID" : 11,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "suitable snow and terrain as well as reasonable means",
+                "labelSource" : "textInside",
+                "ordinal" : 111,
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -3329,8 +3329,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  805,
+                  -1565,
+                  783,
                   399,
                   27
                 ],
@@ -3356,8 +3356,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1123,
-                  813,
+                  -1145,
+                  791,
                   275,
                   23
                 ],
@@ -3383,8 +3383,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1544,
-                  831,
+                  -1566,
+                  809,
                   197,
                   25
                 ],
@@ -3409,8 +3409,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1123,
-                  833,
+                  -1145,
+                  811,
                   269,
                   25
                 ],
@@ -3436,8 +3436,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  873,
+                  -1565,
+                  851,
                   375,
                   25
                 ],
@@ -3462,8 +3462,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1299,
-                  875,
+                  -1321,
+                  853,
                   47,
                   19
                 ],
@@ -3491,8 +3491,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1125,
-                  853,
+                  -1147,
+                  831,
                   307,
                   25
                 ],
@@ -3518,8 +3518,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1125,
-                  873,
+                  -1147,
+                  851,
                   309,
                   25
                 ],
@@ -3535,33 +3535,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "reaching the mountain top or other destination,",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1544,
-                  899,
-                  395,
-                  25
-                ],
-                "groupID" : 16,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "skiing and embraces such sub-disciplines as Telemark",
-                "labelSource" : "textInside",
-                "ordinal" : 120,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -3570,8 +3543,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1539,
-                  875,
+                  -1561,
+                  853,
                   365,
                   45
                 ],
@@ -3584,35 +3557,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 121,
-                "region" : "main",
-                "role" : "AXLink",
-                "site" : "wikipedia"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1219,
-                  901,
-                  65,
-                  19
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Telemark",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 122,
+                "ordinal" : 120,
                 "region" : "main",
                 "role" : "AXLink",
                 "site" : "wikipedia"
@@ -3627,8 +3572,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1123,
-                  891,
+                  -1145,
+                  869,
                   264,
                   23
                 ],
@@ -3639,9 +3584,64 @@
                 "isEnabled" : true,
                 "label" : "are fixated such that the skis behave like",
                 "labelSource" : "textInside",
-                "ordinal" : 123,
+                "ordinal" : 121,
                 "region" : "main",
                 "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "reaching the mountain top or other destination,",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1566,
+                  877,
+                  395,
+                  25
+                ],
+                "groupID" : 16,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "skiing and embraces such sub-disciplines as Telemark",
+                "labelSource" : "textInside",
+                "ordinal" : 122,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1241,
+                  879,
+                  65,
+                  19
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Telemark",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 123,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "wikipedia"
               },
               {
                 "affordance" : "none",
@@ -3653,8 +3653,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1123,
-                  913,
+                  -1145,
+                  891,
                   279,
                   23
                 ],
@@ -3678,8 +3678,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1072,
-                  914,
+                  -1094,
+                  892,
                   67,
                   17
                 ],
@@ -3707,8 +3707,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  925,
+                  -1565,
+                  903,
                   369,
                   27
                 ],
@@ -3734,8 +3734,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1124,
-                  933,
+                  -1146,
+                  911,
                   66,
                   21
                 ],
@@ -3760,8 +3760,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  951,
+                  -1565,
+                  929,
                   391,
                   25
                 ],
@@ -3787,8 +3787,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  977,
+                  -1565,
+                  955,
                   391,
                   19
                 ],
@@ -3820,7 +3820,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 325,
+          "atMilliseconds" : 206,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -3831,17 +3831,17 @@
         }
       ],
       "timeline" : [
-        "118ms  resolved Chrome",
-        "325ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "1088ms  perceived 129 controls · —",
-        "1088ms  looked — 129 rows, 111 named, 19 groups",
-        "1534ms  gave the stage back"
+        "111ms  resolved Chrome",
+        "206ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "1002ms  perceived 129 controls · —",
+        "1002ms  looked — 129 rows, 111 named, 19 groups",
+        "1450ms  gave the stage back"
       ],
       "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-07T06:29:48Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:18:15Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "page-question-in-chrome"
 }

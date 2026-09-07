@@ -5,18 +5,18 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 16,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 192,
+          "atMilliseconds" : 93,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -320,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 193,
+          "atMilliseconds" : 93,
           "kind" : "restoreCursor"
         }
       ],
@@ -26,7 +26,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 193,
+      "elapsedMilliseconds" : 93,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -56,7 +56,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 192,
+          "atMilliseconds" : 93,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -67,15 +67,15 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "192ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "193ms  scrolled"
+        "17ms  resolved Chrome",
+        "93ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "93ms  scrolled"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:28:22Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:16:59Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "scroll-down-this-page"
 }

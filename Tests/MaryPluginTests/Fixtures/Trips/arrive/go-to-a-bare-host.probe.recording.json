@@ -5,16 +5,16 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 238,
+          "atMilliseconds" : 127,
           "kind" : "openLocation",
           "typedLength" : 19
         },
         {
-          "atMilliseconds" : 1610,
+          "atMilliseconds" : 1139,
           "kind" : "restoreCursor"
         }
       ],
@@ -24,7 +24,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1611,
+      "elapsedMilliseconds" : 1139,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -60,7 +60,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 238,
+          "atMilliseconds" : 127,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -71,7 +71,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1150,
+          "atMilliseconds" : 780,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -82,7 +82,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1610,
+          "atMilliseconds" : 1139,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -93,17 +93,17 @@
         }
       ],
       "timeline" : [
-        "39ms  resolved Chrome",
-        "238ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
-        "641ms  typed an address",
-        "1610ms  verified the page changed",
-        "1610ms  receipt — navigate — the page became YouTube"
+        "40ms  resolved Chrome",
+        "127ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "416ms  typed an address",
+        "1139ms  verified the page changed",
+        "1139ms  receipt — navigate — the page became YouTube"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:28:53Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:17:26Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "go-to-a-bare-host"
 }

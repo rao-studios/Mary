@@ -211,6 +211,12 @@ import Testing
         // pressable row is in a result group at all. The recall belongs in the
         // seal's grouping, exactly as the sentence says.
         "site-search[1] P",
+        // BACK IN ROUND 14, AND THIS TIME THE P IS TRUE: the page's shopping
+        // tiles are promoted now (everything inside a promoted card is), a
+        // number no longer falls back to the page's first answer, and the
+        // organic results below the tiles are in no result group the seal
+        // made — its list recall on this layout, filed.
+        "search-then-open-second[1] P",
         // STRUCK BY ROUND 6: "search-then-open-second[1] P". It was never
         // perception either. `PageListDerivation` fires correctly on that page —
         // 55 of 107 rows eligible as results, measured live — and the read it was

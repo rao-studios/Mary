@@ -5,17 +5,35 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 8,
+          "atMilliseconds" : 17,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 205,
+          "atMilliseconds" : 955,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 2340,
+          "atMilliseconds" : 2267,
+          "atX" : 0.49368088467614535,
+          "atY" : 0.6758169934640523,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 2857,
+          "atX" : 0.49368088467614535,
+          "atY" : 0.6758169934640523,
+          "kind" : "click"
+        },
+        {
+          "atMilliseconds" : 3358,
+          "atX" : 0.5,
+          "atY" : 0.3503267973856209,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 5060,
           "kind" : "restoreCursor"
         }
       ],
@@ -25,14 +43,12 @@
       "ambientBefore" : {
 
       },
-      "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 2340,
+      "elapsedMilliseconds" : 5060,
       "index" : 0,
-      "landed" : false,
-      "layer" : "P",
+      "landed" : true,
       "media" : [
         {
-          "atMilliseconds" : 1586,
+          "atMilliseconds" : 2264,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -44,6 +60,24 @@
           "witnesses" : [
             "picture still (0.000)"
           ]
+        },
+        {
+          "atMilliseconds" : 4630,
+          "controlCount" : 6,
+          "controlsVisible" : true,
+          "hasFullscreen" : true,
+          "hasPlayPause" : true,
+          "hasProgress" : true,
+          "hasVolume" : true,
+          "hasVolumeTrack" : true,
+          "isMuted" : false,
+          "playback" : "playing",
+          "progressFraction" : 0.00778642936596218,
+          "witnesses" : [
+            "picture still (0.007)",
+            "clock held",
+            "pause glyph"
+          ]
         }
       ],
       "observableLayers" : [
@@ -54,11 +88,11 @@
         "E",
         "T"
       ],
-      "ok" : false,
-      "outcomeSpoken" : "I can see the player but not its progress control.",
+      "ok" : true,
+      "outcomeSpoken" : "Skipped to 0% — Playing, 10:34 of 10:35.",
       "pageReads" : [
         {
-          "atMilliseconds" : 2339,
+          "atMilliseconds" : 955,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -70,7 +104,7 @@
                   2,
                   3,
                   4,
-                  6,
+                  5,
                   7,
                   8,
                   9,
@@ -115,9 +149,9 @@
                   71,
                   72,
                   74,
+                  75,
                   76,
-                  77,
-                  79
+                  78
                 ]
               },
               {
@@ -128,7 +162,7 @@
                   2,
                   3,
                   4,
-                  6,
+                  5,
                   7,
                   8,
                   9,
@@ -193,9 +227,9 @@
                   71,
                   72,
                   74,
+                  75,
                   76,
-                  77,
-                  79
+                  78
                 ],
                 "title" : "Small"
               },
@@ -203,10 +237,10 @@
                 "id" : 5,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  80,
+                  79,
                   81,
                   82,
-                  83,
+                  84,
                   85,
                   86,
                   87,
@@ -275,13 +309,39 @@
             ],
             "labeledFraction" : 0.6097560975609756,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 435,
+            "readMilliseconds" : 465,
             "rows" : [
+              {
+                "affordance" : "press",
+                "affordanceSource" : "shape",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "row"
+                ],
+                "facts" : 2344,
+                "frame" : [
+                  -1541,
+                  231,
+                  17,
+                  17
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "search",
+                "labelSource" : "icon",
+                "ordinal" : 1,
+                "region" : "header",
+                "role" : "AXLink"
+              },
               {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
@@ -289,10 +349,10 @@
                 "containerTrail" : [
                   "row"
                 ],
-                "facts" : 264,
+                "facts" : 296,
                 "frame" : [
-                  -1765,
-                  246,
+                  -1787,
+                  224,
                   32,
                   32
                 ],
@@ -306,7 +366,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 1,
+                "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXPopUpButton"
               },
@@ -319,8 +379,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1758,
-                  254,
+                  -1780,
+                  232,
                   18,
                   16
                 ],
@@ -331,7 +391,7 @@
                 "isEnabled" : true,
                 "label" : "item 8",
                 "labelSource" : "synthesized",
-                "ordinal" : 2,
+                "ordinal" : 3,
                 "region" : "header",
                 "role" : "AXStaticText"
               },
@@ -342,10 +402,10 @@
                 "containerTrail" : [
                   "row"
                 ],
-                "facts" : 2304,
+                "facts" : 2336,
                 "frame" : [
-                  -1719,
-                  237,
+                  -1741,
+                  215,
                   175,
                   50
                 ],
@@ -359,7 +419,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 3,
+                "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXLink",
                 "site" : "wikimedia commons"
@@ -373,8 +433,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1713,
-                  238,
+                  -1735,
+                  216,
                   38,
                   49
                 ],
@@ -386,7 +446,7 @@
                 "kind" : "link",
                 "label" : "item 1",
                 "labelSource" : "synthesized",
-                "ordinal" : 4,
+                "ordinal" : 5,
                 "region" : "header",
                 "role" : "AXGroup"
               },
@@ -399,8 +459,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1659,
-                  246,
+                  -1681,
+                  224,
                   115,
                   32
                 ],
@@ -413,7 +473,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 5,
+                "ordinal" : 6,
                 "region" : "header",
                 "role" : "AXImage",
                 "site" : "wikimedia commons"
@@ -427,8 +487,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1529,
-                  245,
+                  -1551,
+                  223,
                   502,
                   34
                 ],
@@ -440,7 +500,7 @@
                 "kind" : "field",
                 "label" : "Search Search Wikimedia Commons",
                 "labelSource" : "textInside",
-                "ordinal" : 6,
+                "ordinal" : 7,
                 "region" : "header",
                 "role" : "AXTextField"
               },
@@ -453,8 +513,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1528,
-                  246,
+                  -1550,
+                  224,
                   431,
                   32
                 ],
@@ -468,35 +528,9 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 7,
-                "region" : "header",
-                "role" : "AXTextField"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "shape",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "row"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -1519,
-                  253,
-                  17,
-                  17
-                ],
-                "groupID" : 1,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "search",
-                "labelSource" : "icon",
                 "ordinal" : 8,
                 "region" : "header",
-                "role" : "AXLink"
+                "role" : "AXTextField"
               },
               {
                 "affordance" : "press",
@@ -505,10 +539,10 @@
                 "containerTrail" : [
                   "row"
                 ],
-                "facts" : 2312,
+                "facts" : 2344,
                 "frame" : [
-                  -1099,
-                  246,
+                  -1121,
+                  224,
                   71,
                   32
                 ],
@@ -533,10 +567,10 @@
                 "containerTrail" : [
                   "row"
                 ],
-                "facts" : 264,
+                "facts" : 296,
                 "frame" : [
-                  -903,
-                  246,
+                  -925,
+                  224,
                   101,
                   32
                 ],
@@ -564,8 +598,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -891,
-                  253,
+                  -913,
+                  231,
                   20,
                   19
                 ],
@@ -589,8 +623,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -800,
-                  251,
+                  -822,
+                  229,
                   205,
                   23
                 ],
@@ -612,10 +646,10 @@
                 "containerTrail" : [
                   "row"
                 ],
-                "facts" : 264,
+                "facts" : 296,
                 "frame" : [
-                  -795,
-                  254,
+                  -817,
+                  232,
                   46,
                   16
                 ],
@@ -641,10 +675,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -742,
-                  254,
+                  -764,
+                  232,
                   96,
                   16
                 ],
@@ -669,10 +703,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 9,
+                "facts" : 41,
                 "frame" : [
-                  -639,
-                  254,
+                  -661,
+                  232,
                   39,
                   16
                 ],
@@ -700,8 +734,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1546,
-                  321,
+                  -1568,
+                  299,
                   401,
                   39
                 ],
@@ -725,8 +759,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1539,
-                  319,
+                  -1561,
+                  297,
                   633,
                   40
                 ],
@@ -753,8 +787,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -892,
-                  330,
+                  -914,
+                  308,
                   20,
                   20
                 ],
@@ -781,8 +815,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -864,
-                  329,
+                  -886,
+                  307,
                   20,
                   21
                 ],
@@ -810,8 +844,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -836,
-                  329,
+                  -858,
+                  307,
                   20,
                   21
                 ],
@@ -840,8 +874,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1743,
-                  365,
+                  -1765,
+                  343,
                   61,
                   24
                 ],
@@ -868,10 +902,10 @@
                   "COMMONS WIKIMEDIA",
                   "row"
                 ],
-                "facts" : 256,
+                "facts" : 288,
                 "frame" : [
-                  -1671,
-                  365,
+                  -1693,
+                  343,
                   40,
                   23
                 ],
@@ -899,8 +933,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1544,
-                  365,
+                  -1566,
+                  343,
                   198,
                   22
                 ],
@@ -922,10 +956,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2056,
+                "facts" : 2088,
                 "frame" : [
-                  -1539,
-                  358,
+                  -1561,
+                  336,
                   23,
                   33
                 ],
@@ -953,8 +987,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1539,
-                  369,
+                  -1561,
+                  347,
                   23,
                   12
                 ],
@@ -977,10 +1011,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1501,
-                  358,
+                  -1523,
+                  336,
                   69,
                   33
                 ],
@@ -1008,8 +1042,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1501,
-                  369,
+                  -1523,
+                  347,
                   69,
                   12
                 ],
@@ -1032,10 +1066,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1417,
-                  358,
+                  -1439,
+                  336,
                   65,
                   33
                 ],
@@ -1063,8 +1097,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1417,
-                  369,
+                  -1439,
+                  347,
                   65,
                   12
                 ],
@@ -1090,8 +1124,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1018,
-                  363,
+                  -1040,
+                  341,
                   176,
                   26
                 ],
@@ -1113,10 +1147,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -1013,
-                  358,
+                  -1035,
+                  336,
                   34,
                   33
                 ],
@@ -1144,8 +1178,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1013,
-                  369,
+                  -1035,
+                  347,
                   34,
                   12
                 ],
@@ -1168,10 +1202,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -964,
-                  358,
+                  -986,
+                  336,
                   25,
                   33
                 ],
@@ -1199,8 +1233,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -963,
-                  369,
+                  -985,
+                  347,
                   24,
                   12
                 ],
@@ -1223,10 +1257,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 0,
+                "facts" : 32,
                 "frame" : [
-                  -924,
-                  358,
+                  -946,
+                  336,
                   76,
                   33
                 ],
@@ -1251,10 +1285,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 8,
+                "facts" : 40,
                 "frame" : [
-                  -840,
-                  358,
+                  -862,
+                  336,
                   32,
                   33
                 ],
@@ -1281,8 +1315,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -782,
-                  367,
+                  -804,
+                  345,
                   91,
                   23
                 ],
@@ -1306,10 +1340,10 @@
                   "COMMONS WIKIMEDIA",
                   "row"
                 ],
-                "facts" : 256,
+                "facts" : 288,
                 "frame" : [
-                  -684,
-                  365,
+                  -706,
+                  343,
                   39,
                   23
                 ],
@@ -1337,8 +1371,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1748,
-                  405,
+                  -1770,
+                  383,
                   80,
                   25
                 ],
@@ -1363,8 +1397,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  401,
+                  -1765,
+                  379,
                   164,
                   29
                 ],
@@ -1392,8 +1426,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1466,
-                  421,
+                  -1488,
+                  399,
                   62,
                   12
                 ],
@@ -1419,8 +1453,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1331,
-                  421,
+                  -1353,
+                  399,
                   72,
                   12
                 ],
@@ -1446,8 +1480,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1186,
-                  421,
+                  -1208,
+                  399,
                   72,
                   12
                 ],
@@ -1473,8 +1507,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1041,
-                  421,
+                  -1063,
+                  399,
                   72,
                   12
                 ],
@@ -1500,8 +1534,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -781,
-                  405,
+                  -803,
+                  383,
                   38,
                   23
                 ],
@@ -1527,8 +1561,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1747,
-                  433,
+                  -1769,
+                  411,
                   33,
                   21
                 ],
@@ -1553,8 +1587,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  429,
+                  -1765,
+                  407,
                   164,
                   29
                 ],
@@ -1581,8 +1615,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1529,
-                  407,
+                  -1551,
+                  385,
                   60,
                   61
                 ],
@@ -1609,8 +1643,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1529,
-                  407,
+                  -1551,
+                  385,
                   126,
                   61
                 ],
@@ -1637,8 +1671,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1471,
-                  417,
+                  -1493,
+                  395,
                   72,
                   43
                 ],
@@ -1664,8 +1698,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1460,
-                  443,
+                  -1482,
+                  421,
                   50,
                   12
                 ],
@@ -1691,8 +1725,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1394,
-                  407,
+                  -1416,
+                  385,
                   61,
                   61
                 ],
@@ -1720,8 +1754,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1394,
-                  407,
+                  -1416,
+                  385,
                   136,
                   61
                 ],
@@ -1748,8 +1782,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1336,
-                  417,
+                  -1358,
+                  395,
                   228,
                   43
                 ],
@@ -1774,8 +1808,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1330,
-                  444,
+                  -1352,
+                  422,
                   70,
                   11
                 ],
@@ -1801,8 +1835,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1249,
-                  407,
+                  -1271,
+                  385,
                   61,
                   61
                 ],
@@ -1830,8 +1864,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1249,
-                  407,
+                  -1271,
+                  385,
                   136,
                   61
                 ],
@@ -1858,8 +1892,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1178,
-                  443,
+                  -1200,
+                  421,
                   56,
                   12
                 ],
@@ -1885,8 +1919,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1104,
-                  407,
+                  -1126,
+                  385,
                   61,
                   61
                 ],
@@ -1914,8 +1948,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1104,
-                  407,
+                  -1126,
+                  385,
                   135,
                   61
                 ],
@@ -1943,8 +1977,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1046,
-                  417,
+                  -1068,
+                  395,
                   83,
                   44
                 ],
@@ -1970,8 +2004,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1035,
-                  443,
+                  -1057,
+                  421,
                   60,
                   12
                 ],
@@ -1997,8 +2031,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -776,
-                  443,
+                  -798,
+                  421,
                   20,
                   21
                 ],
@@ -2027,8 +2061,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -756,
-                  443,
+                  -778,
+                  421,
                   45,
                   21
                 ],
@@ -2054,8 +2088,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1748,
-                  461,
+                  -1770,
+                  439,
                   72,
                   23
                 ],
@@ -2080,8 +2114,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  457,
+                  -1765,
+                  435,
                   164,
                   29
                 ],
@@ -2109,8 +2143,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1748,
-                  489,
+                  -1770,
+                  467,
                   87,
                   21
                 ],
@@ -2135,8 +2169,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1743,
-                  485,
+                  -1765,
+                  463,
                   164,
                   29
                 ],
@@ -2163,8 +2197,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1529,
-                  467,
+                  -1551,
+                  445,
                   60,
                   61
                 ],
@@ -2191,8 +2225,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1529,
-                  467,
+                  -1551,
+                  445,
                   148,
                   61
                 ],
@@ -2220,8 +2254,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1463,
-                  477,
+                  -1485,
+                  455,
                   81,
                   21
                 ],
@@ -2247,8 +2281,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1372,
-                  487,
+                  -1394,
+                  465,
                   21,
                   21
                 ],
@@ -2276,8 +2310,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -776,
-                  471,
+                  -798,
+                  449,
                   20,
                   21
                 ],
@@ -2305,8 +2339,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -755,
-                  471,
+                  -777,
+                  449,
                   66,
                   21
                 ],
@@ -2323,34 +2357,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2056,
-                "frame" : [
-                  -1743,
-                  513,
-                  164,
-                  29
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Licensing",
-                "labelSource" : "classifier",
-                "maximumValue" : 0,
-                "minimumValue" : 0,
-                "ordinal" : 75,
-                "region" : "leading",
-                "role" : "AXLink",
-                "site" : "wikimedia commons"
-              },
-              {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
@@ -2360,8 +2366,8 @@
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1472,
-                  499,
+                  -1494,
+                  477,
                   95,
                   23
                 ],
@@ -2373,7 +2379,7 @@
                 "kind" : "link",
                 "label" : "about reusing",
                 "labelSource" : "textInside",
-                "ordinal" : 76,
+                "ordinal" : 75,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2387,8 +2393,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -781,
-                  497,
+                  -803,
+                  475,
                   71,
                   29
                 ],
@@ -2399,7 +2405,7 @@
                 "isEnabled" : true,
                 "label" : "• Large",
                 "labelSource" : "textInside",
-                "ordinal" : 77,
+                "ordinal" : 76,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2412,8 +2418,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -776,
-                  499,
+                  -798,
+                  477,
                   20,
                   21
                 ],
@@ -2426,7 +2432,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 78,
+                "ordinal" : 77,
                 "region" : "trailing",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -2441,8 +2447,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -752,
-                  504,
+                  -774,
+                  482,
                   36,
                   15
                 ],
@@ -2454,7 +2460,7 @@
                 "kind" : "link",
                 "label" : "item 50",
                 "labelSource" : "synthesized",
-                "ordinal" : 79,
+                "ordinal" : 78,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2468,8 +2474,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1748,
-                  515,
+                  -1770,
+                  493,
                   70,
                   28
                 ],
@@ -2481,9 +2487,37 @@
                 "kind" : "link",
                 "label" : "Licensing",
                 "labelSource" : "textInside",
-                "ordinal" : 80,
+                "ordinal" : 79,
                 "region" : "leading",
                 "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1765,
+                  491,
+                  164,
+                  29
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Licensing",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 80,
+                "region" : "leading",
+                "role" : "AXLink",
+                "site" : "wikimedia commons"
               },
               {
                 "affordance" : "none",
@@ -2495,8 +2529,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -782,
-                  531,
+                  -804,
+                  509,
                   153,
                   25
                 ],
@@ -2513,33 +2547,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Assessment",
-                  "band"
-                ],
-                "facts" : 32,
-                "frame" : [
-                  -777,
-                  536,
-                  143,
-                  28
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "This page always uses small font size",
-                "labelSource" : "textInside",
-                "ordinal" : 82,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
@@ -2549,8 +2556,8 @@
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -1748,
-                  545,
+                  -1770,
+                  523,
                   80,
                   25
                 ],
@@ -2562,7 +2569,7 @@
                 "kind" : "link",
                 "label" : "File history",
                 "labelSource" : "textInside",
-                "ordinal" : 83,
+                "ordinal" : 82,
                 "region" : "leading",
                 "role" : "AXLink"
               },
@@ -2575,8 +2582,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1743,
-                  541,
+                  -1765,
+                  519,
                   164,
                   29
                 ],
@@ -2589,7 +2596,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 84,
+                "ordinal" : 83,
                 "region" : "leading",
                 "role" : "AXLink",
                 "site" : "wikimedia commons"
@@ -2604,8 +2611,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -867,
-                  561,
+                  -889,
+                  539,
                   35,
                   25
                 ],
@@ -2616,6 +2623,33 @@
                 "isEnabled" : true,
                 "kind" : "link",
                 "label" : "CC",
+                "labelSource" : "textInside",
+                "ordinal" : 84,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Assessment",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -803,
+                  525,
+                  101,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "small font size",
                 "labelSource" : "textInside",
                 "ordinal" : 85,
                 "region" : "trailing",
@@ -2631,10 +2665,10 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -781,
-                  547,
-                  101,
-                  23
+                  -799,
+                  514,
+                  143,
+                  28
                 ],
                 "groupID" : 5,
                 "hints" : [
@@ -2642,7 +2676,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "small font size",
+                "label" : "This page always uses small font size",
                 "labelSource" : "textInside",
                 "ordinal" : 86,
                 "region" : "trailing",
@@ -2658,8 +2692,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1743,
-                  569,
+                  -1765,
+                  547,
                   164,
                   29
                 ],
@@ -2688,8 +2722,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1484,
-                  577,
+                  -1506,
+                  555,
                   22,
                   26
                 ],
@@ -2714,8 +2748,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1450,
-                  586,
+                  -1472,
+                  564,
                   16,
                   19
                 ],
@@ -2740,34 +2774,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1387,
-                  591,
-                  18,
-                  17
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "item 60",
-                "labelSource" : "synthesized",
-                "ordinal" : 90,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Assessment",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1360,
-                  588,
+                  -1382,
+                  566,
                   16,
                   17
                 ],
@@ -2778,7 +2786,7 @@
                 "isEnabled" : true,
                 "label" : "item 61",
                 "labelSource" : "synthesized",
-                "ordinal" : 91,
+                "ordinal" : 90,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2792,8 +2800,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -783,
-                  583,
+                  -805,
+                  561,
                   51,
                   25
                 ],
@@ -2805,7 +2813,7 @@
                 "kind" : "link",
                 "label" : "Width",
                 "labelSource" : "textInside",
-                "ordinal" : 92,
+                "ordinal" : 91,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2819,8 +2827,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -777,
-                  588,
+                  -799,
+                  566,
                   37,
                   12
                 ],
@@ -2832,7 +2840,7 @@
                 "kind" : "link",
                 "label" : "item 62",
                 "labelSource" : "synthesized",
-                "ordinal" : 93,
+                "ordinal" : 92,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2846,8 +2854,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1743,
-                  597,
+                  -1765,
+                  575,
                   164,
                   29
                 ],
@@ -2861,7 +2869,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 94,
+                "ordinal" : 93,
                 "region" : "leading",
                 "role" : "AXLink",
                 "site" : "wikimedia commons"
@@ -2876,8 +2884,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1502,
-                  591,
+                  -1524,
+                  569,
                   42,
                   40
                 ],
@@ -2887,6 +2895,32 @@
                 ],
                 "isEnabled" : true,
                 "label" : "item 59",
+                "labelSource" : "synthesized",
+                "ordinal" : 94,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Assessment",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1409,
+                  569,
+                  18,
+                  17
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 60",
                 "labelSource" : "synthesized",
                 "ordinal" : 95,
                 "region" : "main",
@@ -2902,8 +2936,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1539,
-                  616,
+                  -1561,
+                  594,
                   23,
                   23
                 ],
@@ -2928,8 +2962,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1360,
-                  624,
+                  -1382,
+                  602,
                   27,
                   18
                 ],
@@ -2954,8 +2988,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -776,
-                  621,
+                  -798,
+                  599,
                   20,
                   21
                 ],
@@ -2984,8 +3018,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -755,
-                  621,
+                  -777,
+                  599,
                   67,
                   23
                 ],
@@ -3011,8 +3045,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1484,
-                  641,
+                  -1506,
+                  619,
                   16,
                   18
                 ],
@@ -3037,8 +3071,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1442,
-                  649,
+                  -1464,
+                  627,
                   20,
                   16
                 ],
@@ -3063,8 +3097,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -837,
-                  650,
+                  -859,
+                  628,
                   21,
                   23
                 ],
@@ -3089,8 +3123,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -776,
-                  649,
+                  -798,
+                  627,
                   20,
                   21
                 ],
@@ -3119,8 +3153,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -758,
-                  649,
+                  -780,
+                  627,
                   43,
                   23
                 ],
@@ -3146,8 +3180,8 @@
                 ],
                 "facts" : 512,
                 "frame" : [
-                  -782,
-                  687,
+                  -804,
+                  665,
                   88,
                   25
                 ],
@@ -3173,8 +3207,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1217,
-                  716,
+                  -1239,
+                  694,
                   20,
                   21
                 ],
@@ -3199,8 +3233,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1180,
-                  731,
+                  -1202,
+                  709,
                   16,
                   16
                 ],
@@ -3225,8 +3259,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1136,
-                  729,
+                  -1158,
+                  707,
                   16,
                   21
                 ],
@@ -3251,8 +3285,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1099,
-                  716,
+                  -1121,
+                  694,
                   60,
                   44
                 ],
@@ -3277,8 +3311,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -776,
-                  724,
+                  -798,
+                  702,
                   20,
                   21
                 ],
@@ -3307,8 +3341,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -756,
-                  724,
+                  -778,
+                  702,
                   74,
                   22
                 ],
@@ -3333,8 +3367,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1539,
-                  541,
+                  -1561,
+                  519,
                   723,
                   408
                 ],
@@ -3361,8 +3395,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1437,
-                  751,
+                  -1459,
+                  729,
                   27,
                   22
                 ],
@@ -3387,8 +3421,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1176,
-                  738,
+                  -1198,
+                  716,
                   21,
                   23
                 ],
@@ -3414,8 +3448,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -846,
-                  749,
+                  -868,
+                  727,
                   20,
                   20
                 ],
@@ -3440,8 +3474,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -776,
-                  752,
+                  -798,
+                  730,
                   20,
                   21
                 ],
@@ -3470,8 +3504,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -760,
-                  753,
+                  -782,
+                  731,
                   45,
                   25
                 ],
@@ -3497,8 +3531,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1365,
-                  778,
+                  -1387,
+                  756,
                   19,
                   16
                 ],
@@ -3523,8 +3557,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -1229,
-                  774,
+                  -1251,
+                  752,
                   24,
                   17
                 ],
@@ -3549,8 +3583,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -922,
-                  774,
+                  -944,
+                  752,
                   36,
                   21
                 ],
@@ -3575,8 +3609,8 @@
                 ],
                 "facts" : 520,
                 "frame" : [
-                  -854,
-                  762,
+                  -876,
+                  740,
                   16,
                   22
                 ],
@@ -3601,8 +3635,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -776,
-                  780,
+                  -798,
+                  758,
                   20,
                   21
                 ],
@@ -3631,8 +3665,8 @@
                 ],
                 "facts" : 2568,
                 "frame" : [
-                  -755,
-                  781,
+                  -777,
+                  759,
                   39,
                   21
                 ],
@@ -3657,8 +3691,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -879,
-                  909,
+                  -901,
+                  887,
                   49,
                   25
                 ],
@@ -3684,8 +3718,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1543,
-                  957,
+                  -1565,
+                  935,
                   735,
                   21
                 ],
@@ -3711,8 +3745,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1539,
-                  961,
+                  -1561,
+                  939,
                   448,
                   13
                 ],
@@ -3737,8 +3771,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1307,
-                  960,
+                  -1329,
+                  938,
                   86,
                   15
                 ],
@@ -3765,8 +3799,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1120,
-                  960,
+                  -1142,
+                  938,
                   86,
                   15
                 ],
@@ -3793,8 +3827,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1026,
-                  960,
+                  -1048,
+                  938,
                   96,
                   15
                 ],
@@ -3821,8 +3855,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -921,
-                  960,
+                  -943,
+                  938,
                   105,
                   15
                 ],
@@ -3850,8 +3884,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1533,
-                  978,
+                  -1555,
+                  956,
                   105,
                   15
                 ],
@@ -3873,13 +3907,1456 @@
             ],
             "version" : 2
           }
+        },
+        {
+          "atMilliseconds" : 5057,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  11
+                ],
+                "title" : "WIKIMEDIA COMMONS"
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  12,
+                  13,
+                  15,
+                  16
+                ],
+                "title" : "Big Buck Bunny 4K.webm"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  17
+                ],
+                "title" : "Contents"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  18
+                ],
+                "title" : "Beginning"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  19,
+                  21
+                ],
+                "title" : "File"
+              },
+              {
+                "id" : 6,
+                "kind" : "card",
+                "memberOrdinals" : [
+                  20,
+                  22,
+                  23,
+                  24,
+                  25,
+                  26,
+                  27,
+                  28,
+                  29,
+                  30,
+                  31,
+                  32,
+                  33,
+                  34,
+                  35
+                ],
+                "title" : "idard"
+              },
+              {
+                "id" : 7,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  36
+                ]
+              },
+              {
+                "id" : 8,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  39,
+                  41,
+                  43,
+                  47
+                ]
+              },
+              {
+                "id" : 9,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  48,
+                  49,
+                  50
+                ],
+                "title" : "10:35"
+              }
+            ],
+            "labeledFraction" : 0.8222222222222222,
+            "pageFrame" : [
+              -1825,
+              206,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 325,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1544,
+                  227,
+                  215,
+                  25
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q Search Wikimedia Commons",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "shape",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1541,
+                  231,
+                  17,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "search",
+                "labelSource" : "icon",
+                "ordinal" : 2,
+                "region" : "header",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1780,
+                  232,
+                  18,
+                  16
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 8",
+                "labelSource" : "synthesized",
+                "ordinal" : 3,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1735,
+                  216,
+                  38,
+                  49
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 1",
+                "labelSource" : "synthesized",
+                "ordinal" : 4,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -1686,
+                  219,
+                  126,
+                  43
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "WIKIMEDIA COMMONS",
+                "labelSource" : "textInside",
+                "ordinal" : 5,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1120,
+                  225,
+                  69,
+                  30
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Search",
+                "labelSource" : "textInside",
+                "ordinal" : 6,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -919,
+                  227,
+                  89,
+                  29
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "JA English",
+                "labelSource" : "textInside",
+                "ordinal" : 7,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -913,
+                  231,
+                  20,
+                  19
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 10",
+                "labelSource" : "synthesized",
+                "ordinal" : 8,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -822,
+                  229,
+                  205,
+                  23
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Donate Create account Log inl",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1649,
+                  287,
+                  47,
+                  43
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Close media player",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 10,
+                "region" : "main",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "WIKIMEDIA COMMONS",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1648,
+                  288,
+                  898,
+                  43
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Big Buck Bunny 4K.webm",
+                "labelSource" : "textInside",
+                "ordinal" : 11,
+                "region" : "main",
+                "role" : "AXGroup"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Big Buck Bunny 4K.webm",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1770,
+                  345,
+                  72,
+                  21
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Contents",
+                "labelSource" : "textInside",
+                "ordinal" : 12,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Big Buck Bunny 4K.webm",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -1689,
+                  345,
+                  35,
+                  19
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "hide",
+                "labelSource" : "textInside",
+                "ordinal" : 13,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1639,
+                  339,
+                  37,
+                  37
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Obscur",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 14,
+                "region" : "main",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Big Buck Bunny 4K.webm",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -756,
+                  347,
+                  43,
+                  19
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ance",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Big Buck Bunny 4K.webm",
+                  "band"
+                ],
+                "facts" : 2088,
+                "frame" : [
+                  -703,
+                  345,
+                  35,
+                  19
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "hide",
+                "labelSource" : "textInside",
+                "ordinal" : 16,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Contents",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1770,
+                  383,
+                  80,
+                  23
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Beginning",
+                "labelSource" : "textInside",
+                "ordinal" : 17,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Beginning",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1772,
+                  411,
+                  35,
+                  23
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "File",
+                "labelSource" : "textInside",
+                "ordinal" : 18,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "File",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1770,
+                  439,
+                  72,
+                  24
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Summary",
+                "labelSource" : "textInside",
+                "ordinal" : 19,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1770,
+                  467,
+                  87,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Assessmentl",
+                "labelSource" : "textInside",
+                "ordinal" : 20,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "File",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -752,
+                  451,
+                  39,
+                  19
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "idard",
+                "labelSource" : "textInside",
+                "ordinal" : 21,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1770,
+                  495,
+                  70,
+                  24
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Licensing",
+                "labelSource" : "textInside",
+                "ordinal" : 22,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -755,
+                  511,
+                  105,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ge always uses",
+                "labelSource" : "textInside",
+                "ordinal" : 23,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1770,
+                  523,
+                  80,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "File history!",
+                "labelSource" : "textInside",
+                "ordinal" : 24,
+                "region" : "leading",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1456,
+                  472,
+                  523,
+                  148
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Big Buck",
+                "labelSource" : "textInside",
+                "ordinal" : 25,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -753,
+                  527,
+                  51,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "nt size",
+                "labelSource" : "textInside",
+                "ordinal" : 26,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1769,
+                  551,
+                  127,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "File usage on Coml",
+                "labelSource" : "textInside",
+                "ordinal" : 27,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1770,
+                  579,
+                  127,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "File usage on othe!",
+                "labelSource" : "textInside",
+                "ordinal" : 28,
+                "region" : "main",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -757,
+                  599,
+                  47,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "hdard",
+                "labelSource" : "textInside",
+                "ordinal" : 29,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1455,
+                  587,
+                  521,
+                  125
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "BUNNY",
+                "labelSource" : "textInside",
+                "ordinal" : 30,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1409,
+                  662,
+                  18,
+                  18
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 32",
+                "labelSource" : "synthesized",
+                "ordinal" : 31,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1257,
+                  600,
+                  104,
+                  105
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "image 1",
+                "labelSource" : "synthesized",
+                "ordinal" : 32,
+                "region" : "main",
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1025,
+                  642,
+                  50,
+                  31
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 31",
+                "labelSource" : "synthesized",
+                "ordinal" : 33,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -755,
+                  665,
+                  39,
+                  25
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "leta)",
+                "labelSource" : "textInside",
+                "ordinal" : 34,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "idard",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -755,
+                  703,
+                  51,
+                  21
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "bmatic",
+                "labelSource" : "textInside",
+                "ordinal" : 35,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1643,
+                  837,
+                  883,
+                  10
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 35",
+                "labelSource" : "synthesized",
+                "ordinal" : 36,
+                "region" : "main",
+                "role" : "AXGroup"
+              },
+              {
+                "affordance" : "adjust",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1639,
+                  839,
+                  879,
+                  5
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "slider",
+                "label" : "Progress Bar",
+                "labelSource" : "classifier",
+                "maximumValue" : 100,
+                "minimumValue" : 0,
+                "ordinal" : 37,
+                "region" : "main",
+                "role" : "AXSlider",
+                "value" : 0.10999999940395355
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1649,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Pause",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 38,
+                "region" : "main",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1649,
+                  861,
+                  900,
+                  29
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "cc 0:00 / 10:34",
+                "labelSource" : "textInside",
+                "ordinal" : 39,
+                "region" : "main",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1597,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Mute",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 40,
+                "region" : "main",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1546,
+                  861,
+                  90,
+                  23
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "0:00 / 10:34",
+                "labelSource" : "textInside",
+                "ordinal" : 41,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -959,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Captions",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 42,
+                "region" : "trailing",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -947,
+                  859,
+                  33,
+                  27
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "cc",
+                "labelSource" : "textInside",
+                "ordinal" : 43,
+                "region" : "trailing",
+                "role" : "AXLink"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -907,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Picture-in-Picture",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 44,
+                "region" : "trailing",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -855,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "option",
+                "label" : "Video quality",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 45,
+                "region" : "trailing",
+                "role" : "AXPopUpButton"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -803,
+                  851,
+                  53,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "Fullscreen",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 46,
+                "region" : "trailing",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -899,
+                  889,
+                  47,
+                  21
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "10:35",
+                "labelSource" : "textInside",
+                "ordinal" : 47,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "10:35",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1566,
+                  935,
+                  733,
+                  21
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Size of the above preview of this WEBM file: 960 x 540 pixels. Other resolutions: 330 x 186 pixels | 1,280 x 720 pixels | 3,840 x 2,160 pixels",
+                "labelSource" : "textInside",
+                "ordinal" : 48,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "10:35",
+                  "band"
+                ],
+                "facts" : 8,
+                "frame" : [
+                  -1561,
+                  939,
+                  448,
+                  13
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "item 39",
+                "labelSource" : "synthesized",
+                "ordinal" : 49,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "10:35",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1567,
+                  955,
+                  124,
+                  19
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "1 4,000 x 2.250 pixels.",
+                "labelSource" : "textInside",
+                "ordinal" : 50,
+                "region" : "footer",
+                "role" : "AXStaticText"
+              }
+            ],
+            "version" : 2
+          }
         }
       ],
       "providerApplicationID" : "chrome",
       "receipts" : [
-
+        {
+          "delivery" : "delivered",
+          "kind" : "click",
+          "landed" : true,
+          "receipt" : "mediaState",
+          "spoken" : "click \"the transport\" — it is playing",
+          "target" : "the transport"
+        }
       ],
-      "refusal" : "controlNotFound",
       "routes" : [
 
       ],
@@ -3887,7 +5364,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 205,
+          "atMilliseconds" : 104,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -3898,17 +5375,22 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "205ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1586ms  perceived 0 controls · paused",
-        "2339ms  perceived 131 controls · —",
-        "2340ms  refused — I can see the player but not its progress control."
+        "19ms  resolved Chrome",
+        "104ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "955ms  perceived 131 controls · —",
+        "2264ms  perceived 0 controls · paused",
+        "2267ms  the player has not started — playing is the start",
+        "2903ms  clicked the transport",
+        "4630ms  perceived 6 controls · playing",
+        "5057ms  perceived 50 controls · —",
+        "5060ms  verified it is playing",
+        "5060ms  receipt — click \"the transport\" — it is playing"
       ],
-      "verdict" : "failed"
+      "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:30:54Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:19:16Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "play-from-the-start"
 }

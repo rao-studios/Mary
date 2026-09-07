@@ -5,64 +5,64 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 8,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 818,
+          "atMilliseconds" : 731,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1335,
+          "atMilliseconds" : 1162,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 2044,
+          "atMilliseconds" : 1846,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 2762,
+          "atMilliseconds" : 2561,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 3456,
+          "atMilliseconds" : 3283,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 4339,
+          "atMilliseconds" : 4035,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 4712,
+          "atMilliseconds" : 4409,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 5085,
+          "atMilliseconds" : 4770,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 5455,
+          "atMilliseconds" : 5133,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : 612,
@@ -76,7 +76,7 @@
 
       },
       "because" : "only its routing is stated, and a probe routes nothing",
-      "elapsedMilliseconds" : 5822,
+      "elapsedMilliseconds" : 5489,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -94,7 +94,7 @@
       "outcomeSpoken" : "I couldn't find \"press the blue button\" on the page.",
       "pageReads" : [
         {
-          "atMilliseconds" : 717,
+          "atMilliseconds" : 630,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -214,12 +214,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 356,
+            "readMilliseconds" : 362,
             "rows" : [
               {
                 "affordance" : "none",
@@ -230,8 +230,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -256,8 +256,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -284,8 +284,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -310,8 +310,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -339,8 +339,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -366,8 +366,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -395,8 +395,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -413,33 +413,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -449,8 +422,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -464,10 +437,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -479,8 +479,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -506,8 +506,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -532,8 +532,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -561,8 +561,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -579,33 +579,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -615,8 +588,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -630,7 +603,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -645,8 +618,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -672,8 +672,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -699,8 +699,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -725,8 +725,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -755,8 +755,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -782,8 +782,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -808,8 +808,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -838,8 +838,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -865,8 +865,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -891,8 +891,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -921,8 +921,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -948,8 +948,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -974,8 +974,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -1004,8 +1004,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -1031,8 +1031,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -1056,8 +1056,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -1084,8 +1084,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -1113,8 +1113,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -1140,8 +1140,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -1164,7 +1164,7 @@
           }
         },
         {
-          "atMilliseconds" : 1329,
+          "atMilliseconds" : 1156,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1284,12 +1284,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 198,
+            "readMilliseconds" : 239,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1300,8 +1300,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -1326,8 +1326,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -1354,8 +1354,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -1380,8 +1380,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -1409,8 +1409,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -1436,8 +1436,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -1465,8 +1465,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -1483,33 +1483,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -1519,8 +1492,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -1534,10 +1507,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -1549,8 +1549,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -1576,8 +1576,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -1602,8 +1602,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -1631,8 +1631,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -1649,33 +1649,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -1685,8 +1658,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -1700,7 +1673,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -1715,8 +1688,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -1742,8 +1742,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -1769,8 +1769,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -1795,8 +1795,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -1825,8 +1825,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -1852,8 +1852,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -1878,8 +1878,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -1908,8 +1908,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -1935,8 +1935,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -1961,8 +1961,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -1991,8 +1991,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -2018,8 +2018,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -2044,8 +2044,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -2074,8 +2074,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -2101,8 +2101,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -2126,8 +2126,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -2154,8 +2154,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -2183,8 +2183,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -2210,8 +2210,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -2234,7 +2234,7 @@
           }
         },
         {
-          "atMilliseconds" : 2038,
+          "atMilliseconds" : 1841,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -2354,12 +2354,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 204,
+            "readMilliseconds" : 207,
             "rows" : [
               {
                 "affordance" : "none",
@@ -2370,8 +2370,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -2396,8 +2396,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -2424,8 +2424,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -2450,8 +2450,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -2479,8 +2479,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -2506,8 +2506,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -2535,8 +2535,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -2553,33 +2553,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -2589,8 +2562,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -2604,10 +2577,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -2619,8 +2619,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -2646,8 +2646,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -2672,8 +2672,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -2701,8 +2701,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -2719,33 +2719,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -2755,8 +2728,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -2770,7 +2743,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -2785,8 +2758,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -2812,8 +2812,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -2839,8 +2839,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -2865,8 +2865,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -2895,8 +2895,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -2922,8 +2922,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -2948,8 +2948,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -2978,8 +2978,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -3005,8 +3005,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -3031,8 +3031,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -3061,8 +3061,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -3088,8 +3088,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -3114,8 +3114,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -3144,8 +3144,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -3171,8 +3171,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -3196,8 +3196,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -3224,8 +3224,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -3253,8 +3253,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -3280,8 +3280,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -3304,7 +3304,7 @@
           }
         },
         {
-          "atMilliseconds" : 2757,
+          "atMilliseconds" : 2555,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3424,12 +3424,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 209,
+            "readMilliseconds" : 201,
             "rows" : [
               {
                 "affordance" : "none",
@@ -3440,8 +3440,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -3466,8 +3466,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -3494,8 +3494,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -3520,8 +3520,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -3549,8 +3549,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -3576,8 +3576,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -3605,8 +3605,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -3623,33 +3623,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -3659,8 +3632,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -3674,10 +3647,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -3689,8 +3689,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -3716,8 +3716,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -3742,8 +3742,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -3771,8 +3771,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -3789,33 +3789,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -3825,8 +3798,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -3840,7 +3813,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -3855,8 +3828,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -3882,8 +3882,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -3909,8 +3909,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -3935,8 +3935,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -3965,8 +3965,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -3992,8 +3992,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -4018,8 +4018,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -4048,8 +4048,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -4075,8 +4075,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -4101,8 +4101,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -4131,8 +4131,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -4158,8 +4158,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -4184,8 +4184,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -4214,8 +4214,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -4241,8 +4241,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -4266,8 +4266,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -4294,8 +4294,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -4323,8 +4323,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -4350,8 +4350,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -4374,7 +4374,7 @@
           }
         },
         {
-          "atMilliseconds" : 3450,
+          "atMilliseconds" : 3277,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -4494,12 +4494,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 214,
+            "readMilliseconds" : 212,
             "rows" : [
               {
                 "affordance" : "none",
@@ -4510,8 +4510,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -4536,8 +4536,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -4564,8 +4564,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -4590,8 +4590,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -4619,8 +4619,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -4646,8 +4646,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -4675,8 +4675,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -4693,33 +4693,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -4729,8 +4702,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -4744,10 +4717,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -4759,8 +4759,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -4786,8 +4786,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -4812,8 +4812,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -4841,8 +4841,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -4859,33 +4859,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -4895,8 +4868,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -4910,7 +4883,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -4925,8 +4898,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -4952,8 +4952,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -4979,8 +4979,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -5005,8 +5005,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -5035,8 +5035,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -5062,8 +5062,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -5088,8 +5088,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -5118,8 +5118,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -5145,8 +5145,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -5171,8 +5171,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -5201,8 +5201,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -5228,8 +5228,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -5254,8 +5254,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -5284,8 +5284,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -5311,8 +5311,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -5336,8 +5336,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -5364,8 +5364,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -5393,8 +5393,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -5420,8 +5420,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -5444,7 +5444,7 @@
           }
         },
         {
-          "atMilliseconds" : 4136,
+          "atMilliseconds" : 3944,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -5564,12 +5564,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 203,
+            "readMilliseconds" : 192,
             "rows" : [
               {
                 "affordance" : "none",
@@ -5580,8 +5580,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -5606,8 +5606,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -5634,8 +5634,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -5660,8 +5660,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -5689,8 +5689,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -5716,8 +5716,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -5745,8 +5745,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -5763,33 +5763,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -5799,8 +5772,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -5814,10 +5787,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -5829,8 +5829,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -5856,8 +5856,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -5882,8 +5882,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -5911,8 +5911,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -5929,33 +5929,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -5965,8 +5938,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -5980,7 +5953,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -5995,8 +5968,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -6022,8 +6022,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -6049,8 +6049,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -6075,8 +6075,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -6105,8 +6105,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -6132,8 +6132,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -6158,8 +6158,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -6188,8 +6188,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -6215,8 +6215,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -6241,8 +6241,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -6271,8 +6271,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -6298,8 +6298,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -6324,8 +6324,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -6354,8 +6354,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -6381,8 +6381,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -6406,8 +6406,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -6434,8 +6434,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -6463,8 +6463,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -6490,8 +6490,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -6521,7 +6521,7 @@
       "refusal" : "elementNotFound",
       "routes" : [
         {
-          "atMilliseconds" : 818,
+          "atMilliseconds" : 731,
           "decisions" : [
             {
               "affordance" : 0,
@@ -6615,30 +6615,30 @@
               "structure" : -50
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "isn't a button",
-              "semantic" : 260,
-              "structure" : -50
-            },
-            {
               "affordance" : 100,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
               "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "isn't a button",
+              "semantic" : 260,
+              "structure" : -50
             },
             {
               "affordance" : 0,
@@ -6693,30 +6693,30 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "isn't a button",
-              "semantic" : 279,
-              "structure" : -50
-            },
-            {
               "affordance" : 100,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
               "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "isn't a button",
+              "semantic" : 279,
+              "structure" : -50
             },
             {
               "affordance" : 0,
@@ -6975,7 +6975,7 @@
           "verb" : "press"
         },
         {
-          "atMilliseconds" : 1335,
+          "atMilliseconds" : 1162,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7069,29 +7069,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 260,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 260,
               "structure" : 0
             },
             {
@@ -7147,29 +7147,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 279,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 279,
               "structure" : 0
             },
             {
@@ -7429,7 +7429,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 2044,
+          "atMilliseconds" : 1846,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7523,29 +7523,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 260,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 260,
               "structure" : 0
             },
             {
@@ -7601,29 +7601,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 279,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 279,
               "structure" : 0
             },
             {
@@ -7883,7 +7883,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 2762,
+          "atMilliseconds" : 2561,
           "decisions" : [
             {
               "affordance" : 0,
@@ -7977,29 +7977,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 260,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 260,
               "structure" : 0
             },
             {
@@ -8055,29 +8055,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 279,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 279,
               "structure" : 0
             },
             {
@@ -8337,7 +8337,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 3456,
+          "atMilliseconds" : 3283,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8431,29 +8431,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 260,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 260,
               "structure" : 0
             },
             {
@@ -8509,29 +8509,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 279,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 279,
               "structure" : 0
             },
             {
@@ -8791,7 +8791,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 4142,
+          "atMilliseconds" : 3950,
           "decisions" : [
             {
               "affordance" : 0,
@@ -8885,29 +8885,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 260,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 360,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 260,
               "structure" : 0
             },
             {
@@ -8963,29 +8963,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 279,
-              "structure" : 0
-            },
-            {
               "affordance" : 40,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 396,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "nothing about it answers",
+              "semantic" : 279,
               "structure" : 0
             },
             {
@@ -9249,7 +9249,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 194,
+          "atMilliseconds" : 92,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9260,7 +9260,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1039,
+          "atMilliseconds" : 826,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9271,7 +9271,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 4339,
+          "atMilliseconds" : 4035,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9282,39 +9282,39 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "194ms  read the shell — httpbin.org/forms/post · httpbin",
-        "717ms  perceived 34 controls · —",
-        "717ms  looked — 34 rows, 27 named, 12 groups",
-        "818ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "818ms  refused — I couldn't find \"press the blue button\" on the page.",
-        "818ms  looking further down the page for \"press the blue button\"",
-        "818ms  resolved Chrome",
-        "1039ms  read the shell — httpbin.org/forms/post · httpbin",
-        "1329ms  perceived 34 controls · —",
-        "1329ms  looked — 34 rows, 27 named, 12 groups",
-        "1335ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "2038ms  perceived 34 controls · —",
-        "2038ms  looked — 34 rows, 27 named, 12 groups",
-        "2044ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "2757ms  perceived 34 controls · —",
-        "2757ms  looked — 34 rows, 27 named, 12 groups",
-        "2762ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "3450ms  perceived 34 controls · —",
-        "3450ms  looked — 34 rows, 27 named, 12 groups",
-        "3456ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "4136ms  perceived 34 controls · —",
-        "4136ms  looked — 34 rows, 27 named, 12 groups",
-        "4142ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
-        "4142ms  resolved Chrome",
-        "4339ms  read the shell — httpbin.org/forms/post · httpbin",
-        "5817ms  put the page back where it was"
+        "9ms  resolved Chrome",
+        "92ms  read the shell — httpbin.org/forms/post · httpbin",
+        "630ms  perceived 34 controls · —",
+        "630ms  looked — 34 rows, 27 named, 12 groups",
+        "731ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "731ms  refused — I couldn't find \"press the blue button\" on the page.",
+        "731ms  looking further down the page for \"press the blue button\"",
+        "731ms  resolved Chrome",
+        "826ms  read the shell — httpbin.org/forms/post · httpbin",
+        "1156ms  perceived 34 controls · —",
+        "1156ms  looked — 34 rows, 27 named, 12 groups",
+        "1162ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "1841ms  perceived 34 controls · —",
+        "1841ms  looked — 34 rows, 27 named, 12 groups",
+        "1846ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "2555ms  perceived 34 controls · —",
+        "2555ms  looked — 34 rows, 27 named, 12 groups",
+        "2561ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "3277ms  perceived 34 controls · —",
+        "3277ms  looked — 34 rows, 27 named, 12 groups",
+        "3283ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "3944ms  perceived 34 controls · —",
+        "3944ms  looked — 34 rows, 27 named, 12 groups",
+        "3950ms  routed \"press the blue button\" → nothing (27 of 34 eligible)",
+        "3950ms  resolved Chrome",
+        "4035ms  read the shell — httpbin.org/forms/post · httpbin",
+        "5488ms  put the page back where it was"
       ],
       "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-07T06:27:51Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:16:30Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "press-by-colour"
 }

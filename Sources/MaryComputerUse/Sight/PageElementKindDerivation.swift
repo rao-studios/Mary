@@ -66,6 +66,12 @@ public enum PageElementKindDerivation {
         hints: [String] = []
     ) -> PageElementKind? {
         if let role, role != "VXRegion" {
+            // A STATIC TEXT IS PROSE, WHATEVER THE PIXELS PRESSED. The tree
+            // emits a link and the text inside it as two rows; the pixel lane
+            // finds the text pressable, and "the third link" reached a
+            // "Searches related to…" heading that went nowhere (round 15).
+            // The link that carries the text is its own row, with its own role.
+            if role == "AXStaticText" { return nil }
             return kind(role: role, subrole: nil, url: nil, label: label, frame: .zero)
         }
         if hints.contains(where: hasDurationSignature) { return .video }

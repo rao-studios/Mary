@@ -1340,6 +1340,82 @@ legs, the blank-tab leg, both seeks and "play it from the start" all pass;
 a read against a window that is gone refuses by name; the person's window
 was not read.
 
+### Rounds 11 to 13 — the stage, three more times
+
+Three rounds, each measuring a stage fault that the table could not tell
+from an engine fault until the recording was read.
+
+**Round 11 (30%): the round's window "gone" after the eighth trip.** Chrome
+publishes its find bar as its own accessibility window carrying the page
+window's id, and the page window leaves the list until the bar closes; a
+minimized Chrome window leaves the list too. The pinned check read either as
+"gone" and every later trip was unstageable. `WebSurfaceAX.presence(of:pid:)`
+now tells a page from a panel from nothing; a panel is closed with one Escape
+and the read made again; the round script recovers a window that truly is
+gone by opening another and naming it; the runner stages the editor BEFORE it
+minimizes and minimizes the round's window, never the first one listed.
+
+**Round 12 (82%): media legs were a story about the trip before.** Opening
+the seed the browser is already on is a quiet arrival, so a modal player, a
+mute, a seek and a full screen carried from one media trip into the next.
+The stage reloads when it is on the seed. And the pixels' witnesses were
+wrong where the page's rows were right: the film's first ten seconds are a
+pink sky that barely moves and "play" read as "still paused" at 0:05; the
+crossed speaker read as sound on and "mute" unmuted; the play circle sat
+sixty points from where the pixels put it in a wide window. One elements
+read per media act now fills playback, the sound, the buttons' places, the
+slider and the clock from the page's own rows — a button offering to pause
+is a player that is playing — and a page that has placed the button spares
+the pixels their three retries (which had put "play" ten seconds over its
+budget). Every transport leg but full screen passes live.
+
+**Round 13 (89%, every category over 90% but search): the round's window
+came back from the Dock behind the person's.** The application was
+frontmost, cooperative activation counted that as won, and ⌘L and the
+typing went into the person's own address bar. A named window that is not
+in front now takes the raise road from the start; the raise sets the window
+main outright and says it again after the activation, which re-orders the
+windows on its own; no road wins while the named window is not main; and the
+shell refuses to open an address for a window that is not in front.
+Measured after the fix: the road reads `raised`, the named window is main
+four hundred milliseconds later, and the search legs pass after the
+minimized-window trip.
+
+**Still open, and filed.** Sand launched from a script never shows its
+window and never starts its trip; the turn-level half runs by hand. The
+site's own search page has no pressable row in a result group — the seal
+grouped its options panel as the list and its results as bands — and "open
+the first one" there stays a P. Full screen on the file page's player is
+one leg, unverified. Five minimized trip windows from rounds 9 and 10 sit in
+Chrome's Window menu; minimized Chrome windows are not reachable through
+Accessibility, so they are closed by hand.
+
+### Round 14 — 94%, and what stands between it and the gate
+
+Round 14 ran in one window from start to finish: 47 of 50 measured legs, every
+category at or above 90% but search. Three failures:
+
+- **"go full screen"** on the file page's player — one leg, its receipt
+  unverified: the bar the verdict compares is the modal's, and it is not there
+  after the press. Filed under media, which stands at 90%.
+- **"open the second one"** on the web search page — the seal grouped the
+  shop's tiles as the results, the second tile was pressed, and nothing moved.
+  Two changes: everything inside a card titled as promoted is promoted now
+  (the tiles carried no hint of their own), and a NUMBER that counts to nothing
+  no longer falls back to the page's first answer — a name that matched
+  nothing may take it, a number was the whole request. The leg is an honest P
+  from here: the organic results below the tiles are in no result group the
+  seal made. Adverts still count where they are in the list, as the doctrine
+  pins.
+- **"open the first one"** on the site's own search page — the same recall
+  fault in another shape, filed since round 9.
+
+So the gate — two consecutive rounds at 90% in every category — is held by
+one thing: the seal's list recall on two search-page layouts, both P, both
+filed against the detector rather than the router. The router's own rules
+are green on the recorded corpus and on every live leg that reached a
+countable row.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -1536,3 +1612,54 @@ Exit criterion not met: 63 leg(s) unstageable against 20 that ran — stage the 
 | **all** | **34** | **7** | **9** | **32** | **83%** | P 2 · E 5 |
 
 Exit criterion not met: media at 80% — under 90%; recovery at 50% — under 90%; search at 0% — under 90%.
+
+### Round 13 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 8 | 0 | 0 | 5 | 100% | — |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 0 | 0 | 13 | 100% | — |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 9 | 1 | 2 | 1 | 90% | E 1 |
+| read | 4 | 0 | 1 | 0 | 100% | — |
+| recovery | 5 | 0 | 5 | 1 | 100% | — |
+| search | 0 | 4 | 0 | 4 | 0% | P 1 · E 3 |
+| tabs | 1 | 0 | 1 | 4 | 100% | — |
+| **all** | **39** | **5** | **9** | **29** | **89%** | P 1 · E 4 |
+
+Exit criterion not met: search at 0% — under 90%.
+
+### Round 14 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 8 | 0 | 0 | 5 | 100% | — |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 0 | 0 | 13 | 100% | — |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 9 | 1 | 2 | 1 | 90% | E 1 |
+| read | 4 | 0 | 1 | 0 | 100% | — |
+| recovery | 5 | 0 | 5 | 1 | 100% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 1 · E 1 |
+| tabs | 3 | 0 | 2 | 1 | 100% | — |
+| **all** | **47** | **3** | **10** | **22** | **94%** | P 1 · E 2 |
+
+Exit criterion not met: search at 75% — under 90%.
+
+### Round 15 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 7 | 1 | 0 | 5 | 88% | E 1 |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 0 | 0 | 13 | 100% | — |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 9 | 1 | 2 | 1 | 90% | E 1 |
+| read | 4 | 0 | 1 | 0 | 100% | — |
+| recovery | 5 | 0 | 5 | 1 | 100% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 2 |
+| tabs | 3 | 0 | 2 | 1 | 100% | — |
+| **all** | **46** | **4** | **10** | **22** | **92%** | P 2 · E 2 |
+
+Exit criterion not met: act at 88% — under 90%; search at 75% — under 90%.

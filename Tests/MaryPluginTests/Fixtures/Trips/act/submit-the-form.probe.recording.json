@@ -9,23 +9,23 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 830,
+          "atMilliseconds" : 741,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1131,
+          "atMilliseconds" : 1036,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1632,
+          "atMilliseconds" : 1546,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 3229,
+          "atMilliseconds" : 2693,
           "kind" : "restoreCursor"
         }
       ],
@@ -36,7 +36,7 @@
 
       },
       "because" : "only its routing is stated, and a probe routes nothing",
-      "elapsedMilliseconds" : 3229,
+      "elapsedMilliseconds" : 2693,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -54,7 +54,7 @@
       "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"'json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
       "pageReads" : [
         {
-          "atMilliseconds" : 730,
+          "atMilliseconds" : 639,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -174,12 +174,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 377,
+            "readMilliseconds" : 383,
             "rows" : [
               {
                 "affordance" : "none",
@@ -190,8 +190,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1801,
-                  243,
+                  -1823,
+                  221,
                   119,
                   25
                 ],
@@ -216,8 +216,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1686,
-                  245,
+                  -1708,
+                  223,
                   154,
                   21
                 ],
@@ -244,8 +244,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1802,
-                  279,
+                  -1824,
+                  257,
                   86,
                   28
                 ],
@@ -270,8 +270,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1721,
-                  282,
+                  -1743,
+                  260,
                   154,
                   21
                 ],
@@ -299,8 +299,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  317,
+                  -1823,
+                  295,
                   113,
                   25
                 ],
@@ -326,8 +326,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1692,
-                  319,
+                  -1714,
+                  297,
                   154,
                   21
                 ],
@@ -355,8 +355,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1784,
-                  352,
+                  -1806,
+                  330,
                   80,
                   27
                 ],
@@ -373,33 +373,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Pizza Size",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1779,
-                  393,
-                  69,
-                  27
-                ],
-                "groupID" : 3,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Small",
-                "labelSource" : "textInside",
-                "ordinal" : 8,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -409,8 +382,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  398,
+                  -1796,
+                  376,
                   13,
                   14
                 ],
@@ -424,10 +397,37 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 9,
+                "ordinal" : 8,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Pizza Size",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1801,
+                  371,
+                  69,
+                  27
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Small",
+                "labelSource" : "textInside",
+                "ordinal" : 9,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -439,8 +439,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  400,
+                  -1776,
+                  378,
                   37,
                   13
                 ],
@@ -466,8 +466,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1782,
-                  429,
+                  -1804,
+                  407,
                   88,
                   27
                 ],
@@ -492,8 +492,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1774,
-                  434,
+                  -1796,
+                  412,
                   13,
                   14
                 ],
@@ -521,8 +521,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  436,
+                  -1776,
+                  414,
                   54,
                   13
                 ],
@@ -539,33 +539,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "O Small",
-                  "band"
-                ],
-                "facts" : 40,
-                "frame" : [
-                  -1782,
-                  465,
-                  71,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "O Large",
-                "labelSource" : "textInside",
-                "ordinal" : 14,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
@@ -575,8 +548,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1774,
-                  470,
+                  -1796,
+                  448,
                   13,
                   14
                 ],
@@ -590,7 +563,7 @@
                 "labelSource" : "classifier",
                 "maximumValue" : 0,
                 "minimumValue" : 0,
-                "ordinal" : 15,
+                "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXRadioButton",
                 "value" : 0
@@ -605,8 +578,35 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1754,
-                  472,
+                  -1804,
+                  443,
+                  71,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "O Large",
+                "labelSource" : "textInside",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "O Small",
+                  "band"
+                ],
+                "facts" : 40,
+                "frame" : [
+                  -1776,
+                  450,
                   37,
                   16
                 ],
@@ -632,8 +632,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1783,
-                  513,
+                  -1805,
+                  491,
                   111,
                   27
                 ],
@@ -659,8 +659,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1780,
-                  553,
+                  -1802,
+                  531,
                   72,
                   25
                 ],
@@ -685,8 +685,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  558,
+                  -1797,
+                  536,
                   13,
                   14
                 ],
@@ -715,8 +715,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  559,
+                  -1777,
+                  537,
                   41,
                   13
                 ],
@@ -742,8 +742,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1781,
-                  589,
+                  -1803,
+                  567,
                   119,
                   27
                 ],
@@ -768,8 +768,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1775,
-                  594,
+                  -1797,
+                  572,
                   13,
                   14
                 ],
@@ -798,8 +798,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1755,
-                  595,
+                  -1777,
+                  573,
                   85,
                   13
                 ],
@@ -825,8 +825,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  625,
+                  -1804,
+                  603,
                   74,
                   27
                 ],
@@ -851,8 +851,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  630,
+                  -1797,
+                  608,
                   13,
                   14
                 ],
@@ -881,8 +881,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  631,
+                  -1777,
+                  609,
                   40,
                   13
                 ],
@@ -908,8 +908,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1782,
-                  661,
+                  -1804,
+                  639,
                   103,
                   27
                 ],
@@ -934,8 +934,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1775,
-                  666,
+                  -1797,
+                  644,
                   13,
                   14
                 ],
@@ -964,8 +964,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1755,
-                  667,
+                  -1777,
+                  645,
                   70,
                   13
                 ],
@@ -991,8 +991,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1801,
-                  725,
+                  -1823,
+                  703,
                   245,
                   31
                 ],
@@ -1016,8 +1016,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1557,
-                  729,
+                  -1579,
+                  707,
                   21,
                   21
                 ],
@@ -1044,8 +1044,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1652,
-                  767,
+                  -1674,
+                  745,
                   183,
                   37
                 ],
@@ -1073,8 +1073,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1801,
-                  787,
+                  -1823,
+                  765,
                   153,
                   27
                 ],
@@ -1100,8 +1100,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1795,
-                  823,
+                  -1817,
+                  801,
                   93,
                   22
                 ],
@@ -1124,7 +1124,7 @@
           }
         },
         {
-          "atMilliseconds" : 2923,
+          "atMilliseconds" : 2382,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1152,13 +1152,13 @@
                 "memberOrdinals" : [
                   7
                 ],
-                "title" : "\"files\": ti. \"data\":"
+                "title" : "\"files\": ci. \"data\":"
               },
               {
                 "id" : 3,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  8
+                  9
                 ],
                 "title" : "\"form\": {"
               },
@@ -1166,7 +1166,7 @@
                 "id" : 4,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  9,
+                  8,
                   10,
                   11
                 ],
@@ -1185,7 +1185,10 @@
                 "id" : 6,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  14
+                  14,
+                  15,
+                  16,
+                  17
                 ],
                 "title" : "},"
               },
@@ -1193,37 +1196,37 @@
                 "id" : 7,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  15,
-                  16
+                  18,
+                  19,
+                  20,
+                  21,
+                  22
                 ],
-                "title" : "\"headers\": {"
+                "title" : "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\","
               },
               {
                 "id" : 8,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  17,
-                  18,
-                  19,
-                  20,
-                  21
+                  23,
+                  24
                 ],
-                "title" : "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language"
+                "title" : "\"Origin\": \"https://httpbin.org\","
               },
               {
                 "id" : 9,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  22,
-                  23
+                  26
                 ],
-                "title" : "\"Origin\": \"https://httpbin.org\","
+                "title" : "\"Referer\": \"https://httpbin.org/forms/post\""
               },
               {
                 "id" : 10,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  24
+                  25,
+                  27
                 ],
                 "title" : "\"Referer\": \"https://httpbin.org/forms/post\""
               },
@@ -1231,63 +1234,54 @@
                 "id" : 11,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  25,
-                  26
+                  28
                 ],
-                "title" : "\"Referer\": \"https://httpbin.org/forms/post\""
+                "title" : "\"Sec-Fetch-Dest\": \"document\","
               },
               {
                 "id" : 12,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  27
+                  29
                 ],
-                "title" : "\"Sec-Fetch-Dest\": \"document\","
+                "title" : "\"Sec-Fetch-Mode\": \"navigate\""
               },
               {
                 "id" : 13,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  28
+                  30,
+                  31,
+                  32
                 ],
-                "title" : "\"Sec-Fetch-Mode\": \"navigate\""
+                "title" : "\"Sec-Fetch-Site\": \"same-origin\","
               },
               {
                 "id" : 14,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  29,
-                  30,
-                  31
+                  33,
+                  34
                 ],
-                "title" : "\"Sec-Fetch-Site\": \"same-origin\","
+                "title" : "\"Upgrade-Insecure-Requests\": \"1\","
               },
               {
                 "id" : 15,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  32,
-                  33
-                ],
-                "title" : "\"Upgrade-Insecure-Requests\": \"1\","
-              },
-              {
-                "id" : 16,
-                "kind" : "band",
-                "memberOrdinals" : [
-                  34
+                  35
                 ],
                 "title" : "\"'json\": null,"
               }
             ],
             "labeledFraction" : 1,
             "pageFrame" : [
-              -1803,
-              228,
+              -1825,
+              206,
               1266,
               765
             ],
-            "readMilliseconds" : 421,
+            "readMilliseconds" : 298,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1298,8 +1292,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1807,
-                  227,
+                  -1829,
+                  205,
                   121,
                   23
                 ],
@@ -1323,8 +1317,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1803,
-                  228,
+                  -1825,
+                  206,
                   1266,
                   22
                 ],
@@ -1349,8 +1343,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1706,
-                  232,
+                  -1728,
+                  210,
                   14,
                   13
                 ],
@@ -1378,8 +1372,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  272,
+                  -1816,
+                  250,
                   98,
                   25
                 ],
@@ -1389,7 +1383,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"args\": 0},",
+                "label" : "\"args\": 0,",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
                 "region" : "header",
@@ -1405,8 +1399,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1796,
-                  287,
+                  -1818,
+                  265,
                   108,
                   42
                 ],
@@ -1415,7 +1409,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"files\": ti. \"data\":",
+                "label" : "\"files\": ci. \"data\":",
                 "labelSource" : "textInside",
                 "ordinal" : 5,
                 "region" : "main",
@@ -1431,8 +1425,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  317,
+                  -1816,
+                  295,
                   83,
                   23
                 ],
@@ -1452,13 +1446,13 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"files\": ti. \"data\":",
+                  "\"files\": ci. \"data\":",
                   "band"
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1778,
-                  331,
+                  -1800,
+                  309,
                   100,
                   25
                 ],
@@ -1478,22 +1472,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"form\": {",
+                  "\"comments\":",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  347,
-                  107,
-                  23
+                  -1800,
+                  339,
+                  130,
+                  27
                 ],
-                "groupID" : 3,
+                "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"custemail\":",
+                "label" : "\"custname\": ''\",",
                 "labelSource" : "textInside",
                 "ordinal" : 8,
                 "region" : "main",
@@ -1504,22 +1498,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"comments\":",
+                  "\"form\": {",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  361,
-                  130,
-                  27
+                  -1799,
+                  325,
+                  107,
+                  23
                 ],
-                "groupID" : 4,
+                "groupID" : 3,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"custname\": ''\",",
+                "label" : "\"custemail\":",
                 "labelSource" : "textInside",
                 "ordinal" : 9,
                 "region" : "main",
@@ -1535,8 +1529,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  385,
+                  -1800,
+                  363,
                   122,
                   32
                 ],
@@ -1561,8 +1555,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  377,
+                  -1799,
+                  355,
                   113,
                   23
                 ],
@@ -1587,8 +1581,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1791,
-                  409,
+                  -1813,
+                  387,
                   23,
                   25
                 ],
@@ -1613,8 +1607,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1794,
-                  421,
+                  -1816,
+                  399,
                   107,
                   25
                 ],
@@ -1639,8 +1633,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  437,
+                  -1800,
+                  415,
                   1170,
                   27
                 ],
@@ -1661,22 +1655,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"headers\": {",
+                  "},",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1773,
-                  451,
-                  377,
-                  43
+                  -1799,
+                  427,
+                  383,
+                  45
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                "label" : "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                 "labelSource" : "textInside",
                 "ordinal" : 15,
                 "region" : "main",
@@ -1687,17 +1681,17 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"headers\": {",
+                  "},",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  481,
+                  -1799,
+                  459,
                   239,
                   27
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
@@ -1710,26 +1704,25 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "},",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1780,
-                  505,
-                  421,
-                  35
+                  -1791,
+                  449,
+                  126,
+                  19
                 ],
-                "groupID" : 8,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "\"Content-Length\": \"49\", \"Content-Type\": \"application/x-ww-form-urtencoded\",",
+                "label" : "Accept-Language",
                 "labelSource" : "textInside",
                 "ordinal" : 17,
                 "region" : "main",
@@ -1737,25 +1730,26 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  497,
-                  191,
-                  25
+                  -1802,
+                  483,
+                  421,
+                  35
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Content-Length\": \"49\",",
+                "kind" : "link",
+                "label" : "\"Content-Length\": \"49\", \"Content-Type\": \"application/x-ww-form-urtencoded\",",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
                 "region" : "main",
@@ -1766,22 +1760,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1721,
-                  527,
-                  128,
+                  -1800,
+                  475,
+                  191,
                   25
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"httpbin.org\",",
+                "label" : "\"Content-Length\": \"49\",",
                 "labelSource" : "textInside",
                 "ordinal" : 19,
                 "region" : "main",
@@ -1792,22 +1786,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1780,
-                  541,
-                  263,
-                  31
+                  -1743,
+                  505,
+                  128,
+                  25
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Origin\": \"https://httpbin.org\",",
+                "label" : "\"httpbin.org\",",
                 "labelSource" : "textInside",
                 "ordinal" : 20,
                 "region" : "main",
@@ -1818,22 +1812,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  557,
-                  147,
-                  25
+                  -1802,
+                  519,
+                  263,
+                  31
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Priority\": \"u=0,",
+                "label" : "\"Origin\": \"https://httpbin.org\",",
                 "labelSource" : "textInside",
                 "ordinal" : 21,
                 "region" : "main",
@@ -1841,26 +1835,25 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Origin\": \"https://httpbin.org\",",
+                  "\"Accept-Encoding\": : \"en-, en-us 4..9; e/ gr-0.8\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  587,
-                  739,
+                  -1799,
+                  535,
+                  147,
                   25
                 ],
-                "groupID" : 9,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "\"Sec-Ch-Ua\": \"\"Chromium\\\"; v=\\\"152\\\", (\"Not?A_Brand\\\";v=\\\"24\\\", \\\"Google Chrome\\\"; v=\\\"152\\''',",
+                "label" : "\"Priority\": \"u=0,",
                 "labelSource" : "textInside",
                 "ordinal" : 22,
                 "region" : "main",
@@ -1876,12 +1869,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  573,
-                  349,
+                  -1799,
+                  551,
+                  347,
                   25
                 ],
-                "groupID" : 9,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
@@ -1894,25 +1887,26 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Referer\": \"https://httpbin.org/forms/post\"",
+                  "\"Origin\": \"https://httpbin.org\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1776,
-                  603,
-                  274,
-                  39
+                  -1800,
+                  565,
+                  739,
+                  25
                 ],
-                "groupID" : 10,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Sec-Ch-Ua-Platform\": \"\"macos!**, \"Sec-Ch-Ua-Mobile\": \"70\"",
+                "kind" : "link",
+                "label" : "\"Sec-Ch-Ua\": \"\"Chromium\\\"; v=\\\"152\\\", (\"Not?A_Brand\\\";v=\\\"24\\\", \\\"Google Chrome\\\"; v=\\\"152\\''',",
                 "labelSource" : "textInside",
                 "ordinal" : 24,
                 "region" : "main",
@@ -1928,12 +1922,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  633,
+                  -1799,
+                  611,
                   238,
                   25
                 ],
-                "groupID" : 11,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
@@ -1954,19 +1948,45 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  647,
+                  -1798,
+                  581,
+                  274,
+                  39
+                ],
+                "groupID" : 9,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "\"Sec-Ch-Ua-Platform\": \"\"macos!**, \"Sec-Ch-Ua-Mobile\": \"70\"",
+                "labelSource" : "textInside",
+                "ordinal" : 26,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "\"Referer\": \"https://httpbin.org/forms/post\"",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1800,
+                  625,
                   231,
                   25
                 ],
-                "groupID" : 11,
+                "groupID" : 10,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"Sec-Fetch-Mode\": \"navigate\"",
                 "labelSource" : "textInside",
-                "ordinal" : 26,
+                "ordinal" : 27,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1980,19 +2000,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  663,
+                  -1800,
+                  641,
                   261,
                   25
                 ],
-                "groupID" : 12,
+                "groupID" : 11,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"Sec-Fetch-Site\": \"same-origin\",",
                 "labelSource" : "textInside",
-                "ordinal" : 27,
+                "ordinal" : 28,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2006,19 +2026,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  677,
+                  -1799,
+                  655,
                   193,
                   27
                 ],
-                "groupID" : 13,
+                "groupID" : 12,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"Sec-Fetch-User\"; \"71\",",
                 "labelSource" : "textInside",
-                "ordinal" : 28,
+                "ordinal" : 29,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2032,19 +2052,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1777,
-                  693,
+                  -1799,
+                  671,
                   271,
                   25
                 ],
-                "groupID" : 14,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"Upgrade-Insecure-Requests\": \"1\",",
                 "labelSource" : "textInside",
-                "ordinal" : 29,
+                "ordinal" : 30,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2058,12 +2078,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  706,
+                  -1800,
+                  684,
                   1061,
                   28
                 ],
-                "groupID" : 14,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
@@ -2071,7 +2091,7 @@
                 "kind" : "link",
                 "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Applewebkit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36\",",
                 "labelSource" : "textInside",
-                "ordinal" : 30,
+                "ordinal" : 31,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2085,19 +2105,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1778,
-                  723,
+                  -1800,
+                  701,
                   489,
                   23
                 ],
-                "groupID" : 14,
+                "groupID" : 13,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9e5998-150558cf159b1b452fbc2d50\"",
+                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9e811a-30df7f5a76f54e2030967ed4\"",
                 "labelSource" : "textInside",
-                "ordinal" : 31,
+                "ordinal" : 32,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2111,12 +2131,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1796,
-                  738,
+                  -1818,
+                  716,
                   116,
                   42
                 ],
-                "groupID" : 15,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
@@ -2124,7 +2144,7 @@
                 "kind" : "link",
                 "label" : "\"'json\": null,",
                 "labelSource" : "textInside",
-                "ordinal" : 32,
+                "ordinal" : 33,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2138,19 +2158,19 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  767,
+                  -1813,
+                  745,
                   197,
                   27
                 ],
-                "groupID" : 15,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"origin\": \"73.63.235.7\",",
                 "labelSource" : "textInside",
-                "ordinal" : 33,
+                "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2164,12 +2184,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1794,
-                  783,
+                  -1816,
+                  761,
                   271,
                   25
                 ],
-                "groupID" : 16,
+                "groupID" : 15,
                 "hints" : [
 
                 ],
@@ -2177,7 +2197,7 @@
                 "kind" : "link",
                 "label" : "\"url\": \"https://httpbin.org/post\"",
                 "labelSource" : "textInside",
-                "ordinal" : 34,
+                "ordinal" : 35,
                 "region" : "main",
                 "role" : "AXStaticText"
               }
@@ -2199,7 +2219,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 830,
+          "atMilliseconds" : 741,
           "decisions" : [
             {
               "affordance" : 0,
@@ -2293,29 +2313,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Small",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 8,
-              "provenance" : 60,
-              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 303,
-              "structure" : 0
-            },
-            {
               "affordance" : 100,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Small",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 9,
+              "ordinal" : 8,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 233,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Small",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 9,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 303,
               "structure" : 0
             },
             {
@@ -2371,29 +2391,29 @@
               "structure" : 0
             },
             {
-              "affordance" : 0,
-              "disposition" : "belowFloor",
-              "facts" : 40,
-              "label" : "O Large",
-              "lexical" : 0,
-              "lexicalBasis" : "none",
-              "ordinal" : 14,
-              "provenance" : 60,
-              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 333,
-              "structure" : 0
-            },
-            {
               "affordance" : 100,
               "disposition" : "belowFloor",
               "facts" : 40,
               "label" : "Large",
               "lexical" : 0,
               "lexicalBasis" : "none",
-              "ordinal" : 15,
+              "ordinal" : 14,
               "provenance" : 100,
               "reason" : "nothing about it answers",
               "semantic" : 262,
+              "structure" : 0
+            },
+            {
+              "affordance" : 0,
+              "disposition" : "belowFloor",
+              "facts" : 40,
+              "label" : "O Large",
+              "lexical" : 0,
+              "lexicalBasis" : "none",
+              "ordinal" : 15,
+              "provenance" : 60,
+              "reason" : "was named but not offered, and does not answer closely enough to reach past that",
+              "semantic" : 333,
               "structure" : 0
             },
             {
@@ -2658,7 +2678,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 190,
+          "atMilliseconds" : 83,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2669,7 +2689,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1912,
+          "atMilliseconds" : 1634,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2680,7 +2700,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2419,
+          "atMilliseconds" : 1992,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2691,22 +2711,22 @@
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "190ms  read the shell — httpbin.org/forms/post · httpbin",
-        "730ms  perceived 34 controls · —",
-        "730ms  looked — 34 rows, 27 named, 12 groups",
-        "830ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
-        "830ms  matched \"submit the form\" → \"Submit order\"",
-        "1172ms  clicked Submit order",
-        "2923ms  perceived 34 controls · —",
-        "2923ms  looked — 34 rows, 34 named, 17 groups",
-        "3229ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
+        "8ms  resolved Chrome",
+        "83ms  read the shell — httpbin.org/forms/post · httpbin",
+        "639ms  perceived 34 controls · —",
+        "639ms  looked — 34 rows, 27 named, 12 groups",
+        "741ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
+        "741ms  matched \"submit the form\" → \"Submit order\"",
+        "1082ms  clicked Submit order",
+        "2382ms  perceived 35 controls · —",
+        "2382ms  looked — 35 rows, 35 named, 16 groups",
+        "2693ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
       ],
       "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-07T06:28:37Z",
-  "round" : "9",
+  "recordedAt" : "2026-09-07T09:17:12Z",
+  "round" : "15",
   "runner" : "probe",
   "tripID" : "submit-the-form"
 }
