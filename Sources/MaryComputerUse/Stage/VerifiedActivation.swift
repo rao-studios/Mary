@@ -176,7 +176,16 @@ public enum VerifiedActivation {
         }
 
         if running.isHidden { running.unhide() }
-        running.activate(options: [.activateAllWindows])
+        // A NAMED WINDOW THAT IS NOT IN FRONT IS THE RAISE ROAD'S, from the
+        // start. Cooperative activation orders nothing; measured, it "won"
+        // with the person's window still on top, and the next keystrokes went
+        // to their address bar.
+        if let window, !isFrontWindow(window, in: pid) {
+            return await raise(
+                running, within: max(raiseFloor, timeout),
+                requireVisibleWindow: requireVisibleWindow, window: window)
+        }
+        running.activate(options: window == nil ? [.activateAllWindows] : [])
         let cooperative = min(timeout, max(cooperativeShare, timeout * 0.4))
         switch await frontmost(pid: pid, within: cooperative) {
         case .arrived:
@@ -217,15 +226,28 @@ public enum VerifiedActivation {
         // activates what it is driving, and it is granted to a trusted process
         // whoever is active.
         setFrontmostThroughAccessibility(pid: pid)
-        running.activate(options: [.activateAllWindows])
+        running.activate(options: window == nil ? [.activateAllWindows] : [])
         switch await frontmost(pid: pid, within: budget) {
         case .arrived:
+            // A NAMED WINDOW HAS TO BE THE ONE IN FRONT, or the application
+            // being in front is worth nothing: measured, a window restored from
+            // the Dock came back BEHIND the person's, the application was
+            // frontmost, and the next keystrokes went into their address bar.
+            // AND SAID AGAIN AFTER THE ACTIVATION, which re-orders windows on
+            // its own — with `activateAllWindows` it put the person's window
+            // back in front of the one just raised, measured twice.
+            if let window {
+                raiseAWindow(pid: pid, preferring: window)
+                try? await Task.sleep(for: .milliseconds(150))
+                guard isFrontWindow(window, in: pid) else { return .lost(.refused) }
+            }
             return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow, window: window)
         case .cancelled: return .lost(.cancelled)
         case .timedOut: break
         }
         // One last read: a Space switch can land just past the deadline.
         guard await isFrontmost(pid: pid) else { return .lost(.refused) }
+        if let window, !isFrontWindow(window, in: pid) { return .lost(.refused) }
         return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow, window: window)
     }
 
@@ -394,6 +416,11 @@ public enum VerifiedActivation {
         else { return }
         try? AccessibilityWindowCore.restore(window.element)
         try? AccessibilityWindowCore.raise(window.element, title: window.title)
+        // AND MAIN, said outright: a raise alone left a restored window behind
+        // the one the person last clicked.
+        if wanted != nil {
+            AXUIElementSetAttributeValue(window.element, kAXMainAttribute as CFString, kCFBooleanTrue)
+        }
     }
 
     /// Ask the application, through Accessibility, to be frontmost. Checked;
@@ -421,6 +448,11 @@ public enum VerifiedActivation {
         window: CGWindowID? = nil
     ) async -> Activation {
         let pid = running.processIdentifier
+        // THE NAMED WINDOW IN FRONT, OR NOTHING WON — whichever road got here.
+        if let window, AXIsProcessTrusted(), !isFrontWindow(window, in: pid) {
+            raiseAWindow(pid: pid, preferring: window)
+            guard isFrontWindow(window, in: pid) else { return .lost(.refused) }
+        }
         guard requireVisibleWindow, AXIsProcessTrusted() else { return .won(road) }
         if hasUnminimizedWindow(pid: pid) { return .won(road) }
         // NOTHING ON SCREEN YET. Restore a window once before giving up on it —

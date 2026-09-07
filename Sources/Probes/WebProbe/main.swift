@@ -1039,6 +1039,27 @@ if let raw = value("--resize") {
     exit(0)
 }
 
+// `--activate` — the stage faculty, asked for the working window, with what
+// it answered and which window is main before, right after, and a moment
+// later. A diagnostic for a window that is "in front" and is not.
+if flag("--activate") {
+    heading("activating")
+    func mainWindow() -> String {
+        guard let windows = AXWindowRoster.axWindows(of: target.processIdentifier, standardOnly: true)
+        else { return "—" }
+        return windows.first { AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true }
+            .flatMap { AXWindowIdentity.windowID(of: $0.element).map(String.init) } ?? "none"
+    }
+    let window = await engine.snapshot().workingWindow
+    print("      · main before: \(mainWindow()) · frontmost app: \(NSWorkspace.shared.frontmostApplication?.localizedName ?? "—")")
+    let activation = await VerifiedActivation.bringForward(pid: target.processIdentifier, raising: window)
+    print("      · road: \(activation.road.map { "\($0)" } ?? "none") · failure: \(activation.failure.map { "\($0)" } ?? "none")")
+    print("      · main after: \(mainWindow())")
+    try? await Task.sleep(for: .milliseconds(400))
+    print("      · main 400ms later: \(mainWindow()) · frontmost app: \(NSWorkspace.shared.frontmostApplication?.localizedName ?? "—")")
+    exit(0)
+}
+
 // `--press-escape` — one Escape, aimed at the browser: how a person closes a
 // modal player or leaves a full screen. Stage hygiene for a hand-driven session.
 if flag("--press-escape") {

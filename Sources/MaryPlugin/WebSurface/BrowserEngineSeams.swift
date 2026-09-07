@@ -245,10 +245,25 @@ struct LiveBrowserShell: BrowserShellReading {
         await openLocation(address, pid: pid, registration: registration, within: nil)
     }
 
+    /// Whether the named window is the browser's main window right now. A
+    /// keystroke is aimed at the application; the application delivers it to
+    /// whichever window is main, so a window that is not main must not be
+    /// typed for. Measured: the round's window came back from the Dock behind
+    /// the person's, and "alpine touring boots" landed in their address bar.
+    static func isInFront(_ window: CGWindowID?, pid: pid_t) -> Bool {
+        guard let window else { return true }
+        guard let element = AXWindowIdentity.window(id: window, in: pid) else { return false }
+        return AXWindowRoster.copyBool(element, kAXMainAttribute) == true
+    }
+
     func openLocation(
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
         within window: CGWindowID?
     ) async -> Bool {
+        guard Self.isInFront(window, pid: pid) else {
+            Self.log.notice("address open refused — the working window is not in front")
+            return false
+        }
         guard await focusAddressField(pid: pid, registration: registration) else {
             Self.log.notice("address field focus chord refused")
             return false
