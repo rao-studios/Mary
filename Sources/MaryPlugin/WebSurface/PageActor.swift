@@ -29,15 +29,6 @@ import MaryFoundation
 
 extension BrowserEngine {
 
-    /// How long after a command before the page is believed to have reacted.
-    static let commandSettle = Duration.milliseconds(220)
-    /// A click gets longer, because a press that navigates needs the shell to catch up.
-    static let clickSettle = Duration.milliseconds(450)
-    /// How many times a shell that has NOT moved is asked again before it is believed.
-    /// Two, because a navigation commits its address within a few hundred milliseconds
-    /// and the settle before this has already spent that.
-    static let quietPolls = 2
-
     /// Run a plan against a page.
     public func act(
         _ plan: PageInteractionPlan,
@@ -93,6 +84,8 @@ extension BrowserEngine {
             }
             // SOMEBODY ELSE MAY HAVE TAKEN THE MACHINE. A plan that keeps pressing into
             // whatever came forward is worse than one that stops and says where it got to.
+            // Asked here for every command — a hover, a scroll, a key — and again by
+            // `press` at the moment a pointer command actually clicks.
             guard await seams.stage.holdsFocus(pid: target.processIdentifier) else {
                 receipts.append(PageCommandReceipt(
                     sourceIndex: command.sourceIndex, kind: command.kind,
@@ -138,7 +131,7 @@ extension BrowserEngine {
                     if case .typeText(let typing) = command.action, typing.submit,
                        let arrived = shellNow,
                        WebSearchRecipe.searched(for: typing.text, shell: arrived) {
-                        lastResultQuery = typing.text
+                        noteResultQuery(typing.text)
                     }
                 }
                 switch await read(target, shell: shellNow ?? shell) {
@@ -219,7 +212,7 @@ extension BrowserEngine {
         var latest = await read()
         var quiet = 0
         var stable = 0
-        while quiet < Self.quietPolls, stable < 2 {
+        while quiet < Self.shellQuietPolls, stable < 2 {
             if moved(latest) {
                 stable += 1
                 quiet = 0
@@ -265,11 +258,9 @@ extension BrowserEngine {
                 return .refused(.pageNotVisible)
             }
             if dryRun { return .refused(.dryRun("clicked \(name(element, click.location))")) }
-            await seams.hands.glide(to: point, pid: pid)
-            await seams.sleep(Self.pressSettle)
-            await seams.hands.click(
-                at: point, button: Self.pointerButton(click.button), count: click.count,
-                pid: pid)
+            guard await press(
+                at: point, in: target, button: Self.pointerButton(click.button), count: click.count)
+            else { return .refused(.interrupted(atCommand: command.sourceIndex)) }
             emit(.acted("clicked \(name(element, click.location))"))
             return .ran(resolved: element, point: point, typed: nil, holdPointer: false)
 
@@ -329,9 +320,9 @@ extension BrowserEngine {
             }
             if let element {
                 let point = CGPoint(x: element.frame.midX.rounded(), y: element.frame.midY.rounded())
-                await seams.hands.glide(to: point, pid: pid)
-                await seams.sleep(Self.pressSettle)
-                await seams.hands.click(at: point, button: .left, count: 1, pid: pid)
+                guard await press(at: point, in: target) else {
+                    return .refused(.interrupted(atCommand: command.sourceIndex))
+                }
                 await seams.sleep(Self.commandSettle)
             }
             guard await seams.keys.type(
@@ -353,9 +344,9 @@ extension BrowserEngine {
                 guard let to = point(alongTrack: element, fraction: adjust.resolvedFraction)
                 else { return .refused(.notAdjustable(adjust.target)) }
                 if dryRun { return .refused(.dryRun("set \(element.label)")) }
-                await seams.hands.glide(to: to, pid: pid)
-                await seams.sleep(Self.pressSettle)
-                await seams.hands.click(at: to, button: .left, count: 1, pid: pid)
+                guard await press(at: to, in: target) else {
+                    return .refused(.interrupted(atCommand: command.sourceIndex))
+                }
                 emit(.acted("set \(element.label)"))
                 return .ran(resolved: element, point: to, typed: nil, holdPointer: false)
             }
@@ -447,7 +438,7 @@ extension BrowserEngine {
         // THIS PAGE IS A LIST OF ANSWERS TO SOMETHING. Remembered for the next
         // bare "open the second one" — see `lastResultQuery`.
         if case .openResult(let query) = verb, !query.isEmpty {
-            lastResultQuery = query
+            noteResultQuery(query)
         }
         emit(.routed(arbitration.trace))
         return arbitration

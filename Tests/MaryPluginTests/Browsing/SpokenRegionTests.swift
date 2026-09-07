@@ -48,80 +48,58 @@ import Testing
             rows: rows, pageFrame: CGRect(x: 0, y: 0, width: 1000, height: 800))
     }
 
-    @Test func aPositionCountsInsideTheRegionThatWasNamed() throws {
-        let rows = Self.page()
-        // Sanity: the fixture really does have three places.
-        #expect(Set(rows.compactMap(\.region)) == [.header, .leading, .main])
+    /// The fixture really does have three places.
+    @Test func theFixtureHasThreePlaces() {
+        #expect(Set(Self.page().compactMap(\.region)) == [.header, .leading, .main])
+    }
 
-        let outcome = SpokenReference.resolve(
-            phrase: "the third link in the sidebar", among: rows)
-        guard case .one(let index) = outcome else {
-            Issue.record("\(outcome)"); return
+    /// A phrase over the page, and the row it must reach — or nil, when the
+    /// place it names must refuse.
+    struct Spoken: CustomTestStringConvertible {
+        let claim: String
+        let phrase: String
+        let reaches: String?
+        var testDescription: String { claim }
+    }
+
+    /// THE SAME WORDS, A DIFFERENT PLACE, A DIFFERENT ANSWER. A name said about
+    /// a place is still a name — PIN: THE REGION'S WORDS COME OUT OF THE NEEDLE
+    /// WITH THE KIND'S; a phrase still carrying "in the sidebar" matches no label
+    /// anywhere and would fall through every rung. A kind alone, inside a place
+    /// that holds one of them, resolves. A PLACE THE PAGE DOES NOT HAVE IS A
+    /// MISS, NOT A WIDENING — and so is a place it has that holds none of the
+    /// kind. WITHOUT A REGION NAMED, NOTHING CHANGES: the whole page counts,
+    /// exactly as it did before regions existed.
+    static let spoken: [Spoken] = [
+        Spoken(claim: "a position counts inside the region named",
+               phrase: "the third link in the sidebar", reaches: "References"),
+        Spoken(claim: "the same position in another region",
+               phrase: "the third link in the article", reaches: "Body link 3"),
+        Spoken(claim: "a name inside a region",
+               phrase: "the History link in the sidebar", reaches: "History"),
+        Spoken(claim: "a kind alone inside a region holding one",
+               phrase: "the search box at the top", reaches: "Search this site"),
+        Spoken(claim: "a region the page has none of",
+               phrase: "the second link at the bottom of the page", reaches: nil),
+        Spoken(claim: "a region holding none of the named kind",
+               phrase: "the second field in the sidebar", reaches: nil),
+        Spoken(claim: "no place named counts the whole page",
+               phrase: "the second link", reaches: "Contents"),
+    ]
+
+    @Test(arguments: spoken) func aPlaceAKindAndAPosition(_ spoken: Spoken) {
+        let rows = Self.page()
+        guard let label = spoken.reaches else {
+            #expect(
+                SpokenReference.reached(phrase: spoken.phrase, among: rows) == nil,
+                "\(spoken.claim)")
+            return
         }
-        #expect(rows[index].label == "References")
-    }
-
-    /// THE SAME WORDS, A DIFFERENT PLACE, A DIFFERENT ANSWER.
-    @Test func theSamePositionInAnotherRegionReachesAnotherRow() throws {
-        let rows = Self.page()
-        let outcome = SpokenReference.resolve(
-            phrase: "the third link in the article", among: rows)
+        let outcome = SpokenReference.resolve(phrase: spoken.phrase, among: rows)
         guard case .one(let index) = outcome else {
-            Issue.record("\(outcome)"); return
+            Issue.record("\(spoken.claim): \(outcome)")
+            return
         }
-        #expect(rows[index].label == "Body link 3")
-    }
-
-    /// A NAME SAID ABOUT A PLACE IS STILL A NAME.
-    ///
-    /// PIN: THE REGION'S WORDS COME OUT OF THE NEEDLE WITH THE KIND'S. A phrase
-    /// still carrying "in the sidebar" matches no label anywhere, so this would
-    /// fall through every rung and refuse.
-    @Test func aNameInsideARegionStillReachesItsRow() throws {
-        let rows = Self.page()
-        let outcome = SpokenReference.resolve(
-            phrase: "the History link in the sidebar", among: rows)
-        guard case .one(let index) = outcome else {
-            Issue.record("\(outcome)"); return
-        }
-        #expect(rows[index].label == "History")
-    }
-
-    /// A KIND ALONE, INSIDE A PLACE, WHEN THE PLACE HOLDS ONE OF THEM.
-    @Test func aKindAloneInsideARegionResolvesWhenItIsTheOnlyOne() throws {
-        let rows = Self.page()
-        let outcome = SpokenReference.resolve(
-            phrase: "the search box at the top", among: rows)
-        guard case .one(let index) = outcome else {
-            Issue.record("\(outcome)"); return
-        }
-        #expect(rows[index].label == "Search this site")
-    }
-
-    /// A PLACE THE PAGE DOES NOT HAVE IS A MISS, NOT A WIDENING.
-    @Test func aRegionThePageHasNoneOfRefuses() {
-        let rows = Self.page()
-        let reached = SpokenReference.reached(
-            phrase: "the second link at the bottom of the page", among: rows)
-        #expect(reached == nil)
-    }
-
-    /// AND A REGION IT HAS THAT HOLDS NONE OF THE KIND IS TOO.
-    @Test func aRegionHoldingNoneOfTheNamedKindRefuses() {
-        let rows = Self.page()
-        let reached = SpokenReference.reached(
-            phrase: "the second field in the sidebar", among: rows)
-        #expect(reached == nil)
-    }
-
-    /// WITHOUT A REGION NAMED, NOTHING CHANGES. The whole page counts, exactly
-    /// as it did before regions existed.
-    @Test func aPhraseNamingNoPlaceCountsTheWholePage() throws {
-        let rows = Self.page()
-        let outcome = SpokenReference.resolve(phrase: "the second link", among: rows)
-        guard case .one(let index) = outcome else {
-            Issue.record("\(outcome)"); return
-        }
-        #expect(rows[index].label == "Contents")
+        #expect(rows[index].label == label, "\(spoken.claim)")
     }
 }

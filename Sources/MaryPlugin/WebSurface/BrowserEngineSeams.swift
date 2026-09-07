@@ -21,21 +21,22 @@ import MaryComputerUse
 import MaryFoundation
 
 /// Reading and driving the browser's own shell.
+///
+/// PIN: EVERY CALL NAMES THE WINDOW IT MEANS — nil until the engine has read
+/// one, and then the working window for every read, press and address after
+/// it (see `AXWindowIdentity`). There is no window-less form: one existed, the
+/// engine never called it, and the defaults that bridged the two forwarded in
+/// opposite directions in the live shell and the fakes.
 public protocol BrowserShellReading: Sendable {
-    func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading?
-    /// The same read, of the window the engine works in when it names one.
     func read(
         pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
     ) async -> WebSurfaceAX.Reading?
-    func openLocation(_ address: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
-    /// The same, read back from the window the engine works in.
+    /// Type an address, commit it, and read it back — see `LiveBrowserShell`.
     func openLocation(
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
         within window: CGWindowID?
     ) async -> Bool
     /// Press a shell control by its declared label.
-    func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
-    /// The same press, kept inside the window the engine works in.
     func press(
         label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
     ) async -> Bool
@@ -43,25 +44,8 @@ public protocol BrowserShellReading: Sendable {
     func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence
 }
 
-/// A SHELL THAT KNOWS NO WINDOWS reads and presses as it always did — the
-/// fakes, and anything that has not learned the working window yet.
+/// A SHELL THAT KNOWS NO WINDOWS — the fakes — presents every window as a page.
 public extension BrowserShellReading {
-    func read(
-        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
-    ) async -> WebSurfaceAX.Reading? {
-        await read(pid: pid, registration: registration)
-    }
-    func press(
-        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
-    ) async -> Bool {
-        await press(label: label, pid: pid, registration: registration)
-    }
-    func openLocation(
-        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
-        within window: CGWindowID?
-    ) async -> Bool {
-        await openLocation(address, pid: pid, registration: registration)
-    }
     func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence { .page }
 }
 
@@ -93,7 +77,6 @@ public protocol PageSettling: Sendable {
 
 /// The pointer.
 public protocol BrowserHands: Sendable {
-    func move(to point: CGPoint, pid: pid_t) async
     func click(at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t) async
     func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async
     /// Put the pointer itself over a point. See PointerDriver.hover — a long approach,
@@ -171,9 +154,7 @@ public protocol BrowserStaging: Sendable {
     /// that answers a question gives the stage back to. Nil when nothing is owed.
     func frontmost() async -> pid_t?
     /// Take the stage for one act: the lease, the hold, and the window brought
-    /// forward and proved.
-    func bringForward(pid: pid_t) async -> Activation
-    /// The same, raising the window the engine works in when it names one.
+    /// forward and proved — the engine's working window when it names one.
     func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation
     /// The act is over. Release the stage, and put `previous` back in front when
     /// one is named.
@@ -183,19 +164,10 @@ public protocol BrowserStaging: Sendable {
     func holdsFocus(pid: pid_t) async -> Bool
 }
 
-public extension BrowserStaging {
-    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
-        await bringForward(pid: pid)
-    }
-}
-
 // MARK: - Live
 
 struct LiveBrowserShell: BrowserShellReading {
     private static let log = Logger(subsystem: "nyc.rao.mary", category: "browsing")
-    func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading? {
-        WebSurfaceAX.read(pid: pid, registration: registration)
-    }
 
     func read(
         pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
@@ -207,6 +179,18 @@ struct LiveBrowserShell: BrowserShellReading {
         WebSurfaceAX.presence(of: window, pid: pid)
     }
 
+    /// Press a shell control by its declared label — the control's OWN action
+    /// first, and a real click only if it has none.
+    ///
+    /// PIN: A PID-POSTED CLICK ON CHROME'S TOOLBAR DOES NOTHING. Measured live
+    /// and unambiguously: the Back button was found and clicked, and the title,
+    /// `canGoBack` and `canGoForward` were all identical five polls later — Mary
+    /// then said "Went back" about a page she had never left. `AXPress` is the
+    /// button's own action, it is what an assistive client is meant to send, and
+    /// it is less invasive than synthesizing input. The click stays as the
+    /// fallback for a control that publishes no press action, and goes through
+    /// the HID tap rather than the process, for the reason the page lane already
+    /// records: a posted click is invisible to rendered content.
     func press(
         label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
     ) async -> Bool {
@@ -220,6 +204,17 @@ struct LiveBrowserShell: BrowserShellReading {
     /// trusted — not measured, chosen to sit above `KeyboardTyper`'s 25ms inter-chunk
     /// gap with headroom for the omnibox's own reflow.
     static let addressVerifySettle = Duration.milliseconds(150)
+
+    /// Whether the named window is the browser's main window right now. A
+    /// keystroke is aimed at the application; the application delivers it to
+    /// whichever window is main, so a window that is not main must not be
+    /// typed for. Measured: the round's window came back from the Dock behind
+    /// the person's, and "alpine touring boots" landed in their address bar.
+    static func isInFront(_ window: CGWindowID?, pid: pid_t) -> Bool {
+        guard let window else { return true }
+        guard let element = AXWindowIdentity.window(id: window, in: pid) else { return false }
+        return AXWindowRoster.copyBool(element, kAXMainAttribute) == true
+    }
 
     /// Focus the address field, replace what is in it, and commit.
     ///
@@ -239,23 +234,6 @@ struct LiveBrowserShell: BrowserShellReading {
     /// between them), so the field is READ BACK and RETYPED here until it agrees with
     /// what was meant, the same "prove it by looking again" rule the rest of this file
     /// already lives by.
-    func openLocation(
-        _ address: String, pid: pid_t, registration: WebSurfaceRegistration
-    ) async -> Bool {
-        await openLocation(address, pid: pid, registration: registration, within: nil)
-    }
-
-    /// Whether the named window is the browser's main window right now. A
-    /// keystroke is aimed at the application; the application delivers it to
-    /// whichever window is main, so a window that is not main must not be
-    /// typed for. Measured: the round's window came back from the Dock behind
-    /// the person's, and "alpine touring boots" landed in their address bar.
-    static func isInFront(_ window: CGWindowID?, pid: pid_t) -> Bool {
-        guard let window else { return true }
-        guard let element = AXWindowIdentity.window(id: window, in: pid) else { return false }
-        return AXWindowRoster.copyBool(element, kAXMainAttribute) == true
-    }
-
     func openLocation(
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
         within window: CGWindowID?
@@ -380,22 +358,6 @@ struct LiveBrowserShell: BrowserShellReading {
             targetPrefix: registration.bundleIdentifiers.first)
     }
 
-    /// Press a shell control by its declared label — the control's OWN action
-    /// first, and a real click only if it has none.
-    ///
-    /// PIN: A PID-POSTED CLICK ON CHROME'S TOOLBAR DOES NOTHING. Measured live
-    /// and unambiguously: the Back button was found and clicked, and the title,
-    /// `canGoBack` and `canGoForward` were all identical five polls later — Mary
-    /// then said "Went back" about a page she had never left. `AXPress` is the
-    /// button's own action, it is what an assistive client is meant to send, and
-    /// it is less invasive than synthesizing input. The click stays as the
-    /// fallback for a control that publishes no press action, and goes through
-    /// the HID tap rather than the process, for the reason the page lane already
-    /// records: a posted click is invisible to rendered content.
-    func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
-        await press(label: label, pid: pid, registration: registration, scope: nil)
-    }
-
     private func press(
         label: String, pid: pid_t, registration: WebSurfaceRegistration, scope window: CGWindowID?
     ) async -> Bool {
@@ -498,10 +460,6 @@ struct LivePagePerception: PagePerceiving {
 public struct LiveBrowserHands: BrowserHands {
     public init() {}
 
-    public func move(to point: CGPoint, pid: pid_t) async {
-        PointerDriver.move(to: point, pid: pid)
-    }
-
     /// PIN: THROUGH THE SAME TAP A MOUSE USES, not posted to the process.
     ///
     /// A pid-posted click is invisible to rendered page content — measured repeatedly on
@@ -585,10 +543,6 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
 
     public func frontmost() async -> pid_t? {
         await VerifiedActivation.frontmostRegularApplication()
-    }
-
-    public func bringForward(pid: pid_t) async -> Activation {
-        await bringForward(pid: pid, raising: nil)
     }
 
     public func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {

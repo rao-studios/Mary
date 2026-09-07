@@ -13,7 +13,7 @@
 //
 //        WHICH SIGNAL ACTUALLY WORKS, ported from the reference port's measured
 //        comparison (Chrome 151.0.7922.109, 2026-08-12) and RE-MEASURED here
-//        before this file was trusted — see `docs/browsing-trips.md`, round 4:
+//        before this file was trusted (live browsing round 4; `docs/browser-engine.md`):
 //
 //          • `AXManualAccessibility` — the historically documented switch — is
 //            refused by Chrome outright (-25205, attributeUnsupported).

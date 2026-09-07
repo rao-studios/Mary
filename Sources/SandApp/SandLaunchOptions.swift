@@ -20,9 +20,6 @@
 //    ./scripts/sand.sh --target com.google.Chrome --read-page
 //    ./scripts/sand.sh --target com.google.Chrome --read-page \
 //        --say "open the first result" --auto
-//    ./scripts/sand.sh --target com.google.Chrome \
-//        --trip ~/.mary/trips/what-is-this-about.trip.json \
-//        --record /tmp/round0 --round 0
 //
 import CoreGraphics
 import Foundation
@@ -44,18 +41,7 @@ struct SandLaunchOptions {
     /// like every other verb here: a read claims the stage and moves the pointer, which
     /// is not something opening a bench should do on its own.
     var readPage = false
-    /// A browsing trip to take through the whole turn. See SandTripRunner.
-    var trip: String?
-    /// Where its recording goes. Nothing is written without it.
-    var record: String?
-    /// Which round this run belongs to, written into the recording.
-    var round: String?
-    /// Only this leg — how a round re-runs the one that failed.
-    var leg: Int?
-    /// Skip the legs whose stage needs a person: a hand on the page, a second
-    /// window, music playing. Without it the runner asks for them.
-    var staged = false
-    /// The browser window the run works in — see `AXWindowIdentity`. A round
+    /// The browser window the run works in — see `AXWindowIdentity`. A run
     /// names its window once; without it the first read takes the browser's
     /// main window, which is whichever the person last clicked.
     var window: CGWindowID?
@@ -85,21 +71,6 @@ struct SandLaunchOptions {
                 index += 1
             case "--read-page":
                 readPage = true
-                index += 1
-            case "--trip":
-                trip = value
-                index += 2
-            case "--record":
-                record = value
-                index += 2
-            case "--round":
-                round = value
-                index += 2
-            case "--leg":
-                leg = value.flatMap(Int.init)
-                index += 2
-            case "--staged":
-                staged = true
                 index += 1
             case "--window":
                 window = value.flatMap { CGWindowID($0) }

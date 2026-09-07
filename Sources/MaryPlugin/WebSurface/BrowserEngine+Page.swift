@@ -187,7 +187,7 @@ public extension BrowserEngine {
     /// settle for the answer without looking.
     /// Test seam: the judgement over a stated trace, so the rule can be pinned
     /// without a live element index to reach a row by meaning with.
-    func judgeReachForTests(trace: PageRouteTrace, outcome: BrowserOutcome) -> Bool {
+    internal func judgeReachForTests(trace: PageRouteTrace, outcome: BrowserOutcome) -> Bool {
         lastRoute = trace
         return weakReach(outcome)
     }
@@ -200,32 +200,59 @@ public extension BrowserEngine {
         return selected.evidence.lexicalBasis == .none
     }
 
-    /// Scroll a screen at a time until the phrase reaches a row, bounded, and
-    /// say how far it went so the page can be put back.
+    /// What a scroll-hunt for a phrase came to.
+    enum Hunt {
+        /// The row, on the page as it now reads, after this many screens.
+        case found(AXScreenElement, PageRoster, screens: Int)
+        /// Every screen looked at, nothing answering.
+        case notFound(screens: Int)
+        /// A read failed, or the time ran out, after this many screens.
+        case failed(BrowserRefusal, screens: Int)
+    }
+
+    /// Scroll a screen at a time until the phrase reaches a row, bounded.
+    ///
+    /// PIN: ONE LOOP, TWO CALLERS. `scrollToOnPage` says what it found; the
+    /// verbs that look further need only whether, and how far, so the page can
+    /// be put back. They were two copies of this body that had already drifted
+    /// in what they said on the way.
+    private func hunt(
+        for phrase: String, in target: BrowserTarget, shell: WebSurfaceAX.Reading, deadline: Date?
+    ) async -> Hunt {
+        var screens = 0
+        for attempt in 0 ... Self.scrollAttempts {
+            if let deadline, seams.now() >= deadline { return .failed(.outOfTime, screens: screens) }
+            switch await read(target, shell: shell) {
+            case .failure(let refusal):
+                return .failed(refusal, screens: screens)
+            case .success(let roster):
+                if case .success(let element) = route(phrase, verb: .reveal, in: roster) {
+                    return .found(element, roster, screens: screens)
+                }
+                guard attempt < Self.scrollAttempts else { return .notFound(screens: screens) }
+                await seams.hands.scroll(
+                    at: CGPoint(
+                        x: roster.pageFrame.midX.rounded(),
+                        y: roster.pageFrame.midY.rounded()),
+                    by: -roster.pageFrame.height * Self.scrollShare,
+                    pid: target.processIdentifier)
+                screens += 1
+                emit(.acted("scrolled looking for \"\(phrase)\""))
+                await seams.sleep(Self.scrollSettle)
+            }
+        }
+        return .notFound(screens: screens)
+    }
+
+    /// Whether the phrase is somewhere below, and how far down it was found.
     private func searchByScrolling(
         _ phrase: String, in target: BrowserTarget, deadline: Date?
     ) async -> (found: Bool, screens: Int) {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return (false, 0) }
-        var screens = 0
-        for attempt in 0 ... Self.scrollAttempts {
-            if let deadline, seams.now() >= deadline { return (false, screens) }
-            guard case .success(let roster) = await read(target, shell: shell)
-            else { return (false, screens) }
-            if case .success = route(phrase, verb: .reveal, in: roster) {
-                return (true, screens)
-            }
-            guard attempt < Self.scrollAttempts else { return (false, screens) }
-            await seams.hands.scroll(
-                at: CGPoint(
-                    x: roster.pageFrame.midX.rounded(),
-                    y: roster.pageFrame.midY.rounded()),
-                by: -roster.pageFrame.height * Self.scrollShare,
-                pid: target.processIdentifier)
-            screens += 1
-            await seams.sleep(Self.scrollSettle)
+        guard let shell = (await readShell(target)).shell else { return (false, 0) }
+        switch await hunt(for: phrase, in: target, shell: shell, deadline: deadline) {
+        case .found(_, _, let screens): return (true, screens)
+        case .notFound(let screens), .failed(_, let screens): return (false, screens)
         }
-        return (false, screens)
     }
 
     /// Put the page back where the person left it.
@@ -261,50 +288,32 @@ public extension BrowserEngine {
         _ phrase: String, in target: BrowserTarget, shell: WebSurfaceAX.Reading,
         deadline: Date?, restingAt cursor: CGPoint?
     ) async -> BrowserOutcome {
-        for attempt in 0 ... Self.scrollAttempts {
-            if let deadline, seams.now() >= deadline { return refuse(.outOfTime) }
-            switch await read(target, shell: shell) {
-            case .failure(let refusal):
-                await seams.hands.restoreCursor(to: cursor)
-                return refuse(refusal)
-            case .success(let roster):
-                if case .success(let element) = route(
-                    phrase, verb: .reveal, in: roster) {
-                    await seams.hands.restoreCursor(to: cursor)
-                    let visible = roster.pageFrame.intersects(element.frame)
-                    return BrowserOutcome(
-                        ok: true,
-                        spoken: visible
-                            ? "\(ScreenElementResolver.shortened(element.label, limit: 60)) is on screen."
-                            : "I found \(ScreenElementResolver.shortened(element.label, limit: 60)).",
-                        shell: shell,
-                        elements: roster.elements,
-                        map: roster.map,
-                        // A REVEAL CHANGES NOTHING, SO IT PROVES NOTHING.
-                        //
-                        // PIN: `landed` IS THE TOP THREE RECEIPTS AND NOTHING ELSE.
-                        // This returned true with an EMPTY receipt list — measured on
-                        // `scroll-to` in round 0 — which is `landed` from nothing at
-                        // all. Bringing something into view is delivered work and the
-                        // sentence says so; it is not proof that anything moved.
-                        landed: false)
-                }
-                guard attempt < Self.scrollAttempts else {
-                    await seams.hands.restoreCursor(to: cursor)
-                    return refuse(.elementNotFound(phrase))
-                }
-                await seams.hands.scroll(
-                    at: CGPoint(
-                        x: roster.pageFrame.midX.rounded(),
-                        y: roster.pageFrame.midY.rounded()),
-                    by: -roster.pageFrame.height * Self.scrollShare,
-                    pid: target.processIdentifier)
-                emit(.acted("scrolled looking for \"\(phrase)\""))
-                await seams.sleep(Self.scrollSettle)
-            }
-        }
+        let hunted = await hunt(for: phrase, in: target, shell: shell, deadline: deadline)
         await seams.hands.restoreCursor(to: cursor)
-        return refuse(.elementNotFound(phrase))
+        switch hunted {
+        case .failed(let refusal, _):
+            return refuse(refusal)
+        case .notFound:
+            return refuse(.elementNotFound(phrase))
+        case .found(let element, let roster, _):
+            let visible = roster.pageFrame.intersects(element.frame)
+            return BrowserOutcome(
+                ok: true,
+                spoken: visible
+                    ? "\(ScreenElementResolver.shortened(element.label, limit: 60)) is on screen."
+                    : "I found \(ScreenElementResolver.shortened(element.label, limit: 60)).",
+                shell: shell,
+                elements: roster.elements,
+                map: roster.map,
+                // A REVEAL CHANGES NOTHING, SO IT PROVES NOTHING.
+                //
+                // PIN: `landed` IS THE TOP THREE RECEIPTS AND NOTHING ELSE.
+                // This returned true with an EMPTY receipt list — measured on
+                // `scroll-to` in round 0 — which is `landed` from nothing at
+                // all. Bringing something into view is delivered work and the
+                // sentence says so; it is not proof that anything moved.
+                landed: false)
+        }
     }
 
     // MARK: - Tabs
@@ -340,24 +349,15 @@ public extension BrowserEngine {
             else { return refuse(.elementNotFound(shell.tabs[index])) }
             emit(.acted("pressed the tab \(shell.tabs[index])"))
             // THE PROOF: the window wears the tab's name.
-            let deadline = seams.now().addingTimeInterval(Self.tabSwitchBudget)
-            var now: WebSurfaceAX.Reading?
-            while seams.now() < deadline {
-                await seams.sleep(.milliseconds(150))
-                now = await seams.shell.read(
-                    pid: target.processIdentifier, registration: target.registration,
-                    preferring: workingWindow)
-                if let now, now.activeTabIndex == index
-                    || now.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame {
-                    break
-                }
+            let waited = await waitForShell(
+                target, budget: Self.tabSwitchBudget, poll: .milliseconds(150)
+            ) {
+                $0.activeTabIndex == index
+                    || $0.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame
             }
-            guard let after = now,
-                  after.activeTabIndex == index
-                    || after.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame
-            else {
+            guard let after = waited.settled else {
                 return refuse(.stateUnchanged(
-                    expected: shell.tabs[index], observed: now?.title ?? "the same tab"))
+                    expected: shell.tabs[index], observed: waited.latest?.title ?? "the same tab"))
             }
             lastChrome = after
             retractSlate()

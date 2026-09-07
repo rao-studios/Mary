@@ -38,6 +38,7 @@ address read aloud is unusable as speech and puts query strings into a transcrip
 | `Abilities/safari.mary`, `Abilities/chrome.mary` | The expertises. Each declares a `webSurface` block — the labels ITS browser uses — and realizes a browsing skill, which is what gives its profile the `browsing` ability. |
 | `Sources/MaryFoundation/Plugins/PluginWebSurfaceSchema.swift` | The grammar of that block. |
 | `Sources/MaryPlugin/WebSurface/` | `WebSurfaceRegistration` / `WebSurfaceSupport` (which browser), `WebSurfaceAX` (the shell), `BrowserEngine` (the turn), `WebSurfaceAdapter` (the skills), `SiteName`, `BrowserTargetResolution`. |
+| `Sources/MaryPlugin/WebSurface/BrowserEngine*.swift`, `PageActor.swift` | One actor, split by concern. `BrowserEngine` is the actor itself — seams, timings, state, the monitor, the stage, the shell read, and the one `press`. Beside it: `+Page` (the verbs), `PageActor` (the one executor every plan goes through), `+Media` and `+MediaClock` (the player, and a time as a place on the track), `+Navigation` (arrival, `settle`, `settleForResults`, `waitForShell`), `+Dialog` (the browser's own question), `+Challenge` (the human check). `WebSearchRecipe` and `WatchRecipe` orchestrate those verbs and hold no engine code; `Routing/` is `PageRouter`. |
 | `Sources/MaryComputerUse/Sight/Vision/` | `VisionPageReader` (the only file that imports VisionAX), `MediaControlReading`, `PagePerceptionPipeline`. |
 | `Sources/MaryComputerUse/Sight/WindowPixels.swift` | The one ScreenCaptureKit path, with a MEASURED scale. |
 | `Sources/Probes/WebProbe/` | `mary-web-probe` — the live instrument. |
@@ -368,6 +369,26 @@ after play — which is good enough to press and not good enough to read, so `is
 unknown unless a glyph actually said so, and a mute is verified by the button CHANGING
 rather than by what it changed to.
 
+## What the browser keeps while Mary works elsewhere
+
+Six invariants. "Hardened on its own" is the first three: the browser's
+model is written only by the browser's own poll, engine and navigation
+detection, and no other surface's turn can reach it. The engine's PINs cite
+them by number.
+
+1. **Nothing another surface does mutates the browser.** A music turn between two
+   page legs leaves the tab's result query and landings intact.
+2. **Only the browser invalidates the browser.** A hand navigation clears that
+   tab's session and retracts its scope; a lead change does not.
+3. **The browser is reachable from anywhere, and the person's place is given
+   back.** With an editor leading, "mute the video" resolves the browser by recent
+   evidence, lands, and leaves the editor in front.
+4. **The provider ladder is honoured**: named, then interaction, then pinned,
+   then focused, then habit.
+5. **The pre-read follows the lead, and a named surface overrides it.** "This
+   page" from an editor reads the page; "this function" reads the buffer.
+6. **A question never ends silent**, whichever surface leads.
+
 ## Watching it
 
 ```sh
@@ -383,6 +404,7 @@ swift run mary-web-probe --browser safari --hover-at 450,300     # does a hover 
 swift run mary-web-probe --browser safari --route "the first video" --verb press
 swift run mary-web-probe --browser safari --save-roster /tmp/page.json   # the read, recorded
 swift run mary-web-probe --fixture /tmp/page.json --route "accept all"   # argued offline
+swift run mary-web-probe --browser chrome --landscape            # every page seeded in ~/.mary/trips/stage.json, the same questions
 swift run mary-ax-probe --app Safari --tree --role toolbar       # measure a browser's shell
 ```
 

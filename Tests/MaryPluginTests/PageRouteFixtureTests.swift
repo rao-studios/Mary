@@ -21,11 +21,15 @@ import Testing
 
 @Suite struct PageRouteFixtureTests {
 
-    static func load(_ name: String) throws -> PageRosterFixture? {
+    /// A RECORDED PAGE THAT IS NOT THERE FAILS THE TEST THAT NEEDED IT. A load
+    /// that answered nil let seven tests return early and pass over a fixture
+    /// somebody had deleted — and a rule that cannot fail is a comment.
+    static func load(_ name: String) throws -> PageRosterFixture {
         let url = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .appendingPathComponent("Fixtures/PageRoutes/\(name).json")
-        guard let data = FileManager.default.contents(atPath: url.path) else { return nil }
+        let data = try #require(
+            FileManager.default.contents(atPath: url.path), "no recorded page at \(url.path)")
         return try JSONDecoder().decode(PageRosterFixture.self, from: data)
     }
 
@@ -39,7 +43,7 @@ import Testing
     /// There is no answer in that pool to pick, so the honest reply is that the results
     /// cannot be made out — and every row says which kind of thing it was instead.
     @Test func theRecordedResultsPageIsRefusedRatherThanGuessedAt() throws {
-        guard let fixture = try Self.load("results-page") else { return }
+        let fixture = try Self.load("results-page")
         let roster = fixture.roster()
         #expect(roster.elements.count == 80, "the recording is the whole page")
 
@@ -56,7 +60,7 @@ import Testing
     /// AND IT SAYS WHICH KIND OF THING EACH ROW WAS. A refusal nobody can read is a
     /// refusal nobody can fix, and these are the sentences that name the detector's gap.
     @Test func everyRefusedRowIsNamedForWhatItIs() throws {
-        guard let fixture = try Self.load("results-page") else { return }
+        let fixture = try Self.load("results-page")
         let routed = PageRouter.arbitrate(
             goal: "", verb: .openResult(query: "fred again video on youtube"),
             roster: fixture.roster())
@@ -73,7 +77,7 @@ import Testing
     /// video title. So "the first video" reaches nothing, and it must not answer with the
     /// first of whatever else was there, which is what counting rows at large did.
     @Test func aVideoIsNotPickedFromAPageThatHoldsNone() throws {
-        guard let fixture = try Self.load("video-results") else { return }
+        let fixture = try Self.load("video-results")
         let roster = fixture.roster()
         #expect(roster.elements.count > 100, "the recording is the whole page")
 
@@ -90,7 +94,7 @@ import Testing
     /// site's search field "Search or ask a question" and declined to call it fillable;
     /// naming what it says still reaches it, which is what the candidate rung is for.
     @Test func aNamedFieldIsReachedByTheWordsThePageWrote() throws {
-        guard let fixture = try Self.load("video-results") else { return }
+        let fixture = try Self.load("video-results")
         let roster = fixture.roster()
         guard roster.elements.contains(where: {
             $0.label.localizedCaseInsensitiveContains("search or ask")
@@ -109,7 +113,7 @@ import Testing
     /// used to refuse a real answer a person named precisely. Naming it exactly still
     /// has to reach it; guessing among the page's furniture still must not.
     @Test func aRealTitleMisgroupedAsToolbarIsReachedByName() throws {
-        guard let fixture = try Self.load("site-search-results") else { return }
+        let fixture = try Self.load("site-search-results")
         let roster = fixture.roster()
         #expect(roster.elements.count > 90, "the recording is the whole page")
         guard roster.elements.contains(where: {
@@ -131,7 +135,7 @@ import Testing
     /// URLs; a recorded page must not be the one place a query string survives.
     @Test func aRecordedPageHoldsNoAddresses() throws {
         for name in ["results-page", "site-search-results"] {
-            guard let fixture = try Self.load(name) else { continue }
+            let fixture = try Self.load(name)
             for row in fixture.rows where row.label.lowercased().hasPrefix("http") {
                 // The scheme is kept so the rule that turns an address away can still
                 // fire; the host and everything after it is what must not be here.
@@ -144,7 +148,7 @@ import Testing
 
     /// A RECORDING IS THE READ, so what comes back out of it is what went in.
     @Test func aRecordedPageRoundTrips() throws {
-        guard let fixture = try Self.load("results-page") else { return }
+        let fixture = try Self.load("results-page")
         let roster = fixture.roster()
         let again = PageRosterFixture(roster: roster).roster()
 

@@ -224,16 +224,18 @@ import Testing
         #expect(PageMapProjection.factWords(for: credited) == nil)
     }
 
-    /// AND THE OVERLAY DRAWS THE SAME ROWS THE PANEL COUNTS. Drawing from the
-    /// AX-shaped shim while the panel beside it counted rows was two views of one
-    /// page in one file.
-    @Test func theOverlayAndTheOfferPanelDescribeOnePage() {
+    /// AND THE OVERLAY DRAWS THE SAME ROWS THE PANEL COUNTS, AND THE CAPTION
+    /// COUNTS THEM TOO. Drawing from the AX-shaped shim while the panel beside it
+    /// counted rows was two views of one page in one file; the caption counting
+    /// `elements` and re-deriving "named" from the side-car was the third.
+    @Test func theOverlayThePanelAndTheCaptionDescribeOnePage() {
         let page = roster([
             (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
             (role: "AXTextField", label: "Search", affordance: .fill),
         ])
         let drawn = PageMapProjection.rows(for: page, plane: plane, size: size)
         #expect(drawn.map(\.id) == page.rows.map(\.ordinal))
+        #expect(PageMapProjection.caption(for: page).hasPrefix("2 rows · 2 named"))
     }
 
     // MARK: - Was the reading any good
@@ -265,17 +267,6 @@ import Testing
         var unmeasured = page
         unmeasured.readDuration = nil
         #expect(!PageMapProjection.caption(for: unmeasured).contains("ms"))
-    }
-
-    /// THE CAPTION COUNTS THE ROWS THE OVERLAY DRAWS. It counted `elements` and
-    /// re-derived "named" from the side-car, which is the third place in this file
-    /// that read the page through the shim rather than through its rows.
-    @Test func theCaptionCountsTheSameRowsTheOverlayDraws() {
-        let page = roster([
-            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
-            (role: "AXTextField", label: "Search", affordance: .fill),
-        ])
-        #expect(PageMapProjection.caption(for: page).hasPrefix("2 rows · 2 named"))
     }
 
     private static func row(_ ordinal: Int, _ label: String) -> PageRow {

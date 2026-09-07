@@ -51,10 +51,6 @@ final class NoScenarioShortcutsTests: XCTestCase {
                 at: directory, includingPropertiesForKeys: nil)
             else { continue }
             for url in walk.compactMap({ $0 as? URL }) where url.pathExtension == "swift" {
-                // THE TRIP MACHINERY IS NOT THE LANE. It exists to hold this
-                // vocabulary — the fact names, the refusal names, the page
-                // classes — and scanning it would forbid the grammar itself.
-                guard !url.path.contains("/Trips/") else { continue }
                 found.append((
                     url.lastPathComponent,
                     try String(contentsOf: url, encoding: .utf8)))

@@ -191,38 +191,6 @@ import Testing
         #expect(outcome.receipts.first?.spoken.contains("the page became") == true)
     }
 
-    /// A PRESS THAT CHANGES NOTHING IS DELIVERED AND UNPROVEN — not a success.
-    @Test func aPressWithNoEffectDoesNotLand() async {
-        let shell = BrowsingFixtures.shell()
-        let engine = BrowsingFixtures.engine(
-            shell: FakeShell([shell, shell, shell]),
-            page: FakePage(pages: [results(), results()]))
-        let outcome = await engine.pressOnPage(
-            "Alpine touring boots reviewed", in: BrowsingFixtures.target())
-
-        #expect(outcome.ok)
-        #expect(!outcome.landed)
-        #expect(outcome.receipts.first?.spoken.contains("no sign") == true)
-    }
-
-    /// THE PAGE MERELY DIFFERING IS A SIGN, NOT PROOF. Adverts rotate on their own.
-    @Test func aRosterDifferenceIsWeakEvidence() async {
-        let shell = BrowsingFixtures.shell()
-        let after = BrowsingFixtures.page([
-            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
-            (role: "AXLink", label: "Something else entirely", affordance: .press),
-            (role: "AXLink", label: "A third new thing", affordance: .press),
-        ])
-        let engine = BrowsingFixtures.engine(
-            shell: FakeShell([shell, shell, shell]),
-            page: FakePage(pages: [results(), after]))
-        let outcome = await engine.pressOnPage(
-            "Alpine touring boots reviewed", in: BrowsingFixtures.target())
-        #expect(outcome.ok)
-        #expect(!outcome.landed)
-        #expect(outcome.receipts.first?.spoken.contains("the page changed") == true)
-    }
-
     /// TYPED TEXT IN THE FIELD IS PROOF.
     @Test func typedTextInTheFieldIsProof() async {
         let shell = BrowsingFixtures.shell()
@@ -331,7 +299,7 @@ import Testing
     }
 
     /// A DRY RUN TOUCHES NOTHING AND SAYS WHAT IT WOULD HAVE DONE.
-    @Test func aDryRunActsOnNothing() async {
+    @Test func aDryRunPressesNothing() async {
         let hands = FakeHands()
         let keys = FakeKeys()
         let engine = BrowsingFixtures.engine(

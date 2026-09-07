@@ -155,10 +155,9 @@ import Testing
     /// above still has to leave these three real pages answering the way the
     /// live runs said they should.
     @Test func theRecordedPagesStillAnswerAsMeasured() throws {
-        guard let results = try PageRouteFixtureTests.load("results-page"),
-              let video = try PageRouteFixtureTests.load("video-results"),
-              let site = try PageRouteFixtureTests.load("site-search-results")
-        else { return }
+        let results = try PageRouteFixtureTests.load("results-page")
+        let video = try PageRouteFixtureTests.load("video-results")
+        let site = try PageRouteFixtureTests.load("site-search-results")
 
         // A POOL NOTHING VOUCHES FOR IS NOT A WEAKER POOL — it is a different
         // page from the one the person is looking at. Refused, not guessed at.

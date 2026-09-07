@@ -34,17 +34,6 @@ import MaryFoundation
 
 public enum WebSearchRecipe {
 
-    /// How long the results have to draw before they are read.
-    static let resultsSettle = Duration.milliseconds(900)
-    /// How often the settle asks the tree. Sized under the old flat wait so a
-    /// page that IS ready is read sooner than it used to be, not later.
-    static let settleInterval = Duration.milliseconds(150)
-    /// How many times before it gives up and reads whatever is there — 900ms of
-    /// polling, the same budget the flat sleep spent.
-    static let settlePolls = 6
-    /// Two readings the same is a page that has stopped arriving. The same number
-    /// the navigation settle uses, for the same reason.
-    static let quietPolls = 2
     /// A row shorter than this is chrome — a "next" or a breadcrumb, not a result.
     static let minimumResultLabel = 12
 
@@ -103,8 +92,7 @@ public enum WebSearchRecipe {
         // is the results when this engine put them there.
         let standing = await engine.readShell(target)
         let opened: BrowserOutcome
-        if let here = standing.shell, await engine.resultQueryStanding() == asked,
-           searched(for: asked, shell: here) {
+        if let here = standing.shell, await engine.resultsStanding(for: asked, shell: here) {
             await engine.emitJourney("already showing results for that")
             let receipt = PageCommandReceipt(
                 sourceIndex: 0, kind: .navigate, target: nil, delivery: .delivered,
@@ -119,7 +107,7 @@ public enum WebSearchRecipe {
         }
         guard opened.ok, let shell = opened.shell else { return opened }
         guard searched(for: asked, shell: shell) else {
-            return await engine.refusing(.searchCompletedElsewhere)
+            return await engine.refuse(.searchCompletedElsewhere)
         }
 
         await engine.settleForResults(in: target)
@@ -173,7 +161,7 @@ public enum WebSearchRecipe {
             pick, verb: .openResult(query: asked), in: roster)
         guard let choice = routed.winner else {
             if let refusal = routed.refusal, case .ambiguousElement = refusal {
-                return await engine.refusing(refusal)
+                return await engine.refuse(refusal)
             }
             // THE SEARCH LANDED EVEN THOUGH THE RESULTS DID NOT READ. What is
             // proven is the navigation that carried it; the reading is a separate
@@ -239,69 +227,4 @@ public enum WebSearchRecipe {
     /// The one folding this lane compares with — the SEAL's, so a query judged a
     /// match here and an echo there cannot disagree about what the words were.
     static func fold(_ value: String) -> String { RowFactsDerivation.folded(value) }
-}
-
-extension BrowserEngine {
-    /// A refusal from outside the actor's own body.
-    func refusing(_ refusal: BrowserRefusal) -> BrowserOutcome {
-        refuse(refusal)
-    }
-
-    /// THIS PAGE IS A LIST OF ANSWERS TO SOMETHING.
-    ///
-    /// PIN: THE SEARCH KNOWS, EVEN WHEN NOBODY NAMED A RESULT. This used to be
-    /// set only inside an `.openResult` arbitration — so when a bare search
-    /// stopped arbitrating (round 1 E), it stopped remembering, and the next
-    /// "open the second one" routed as a bare press over the whole page. The
-    /// recipe has just PROVED it made a results page; saying so is its own job.
-    /// Which road a journey took, for the trip that judges it and the bench
-    /// that draws it. Cleared with the slate, like every other verdict about a
-    /// page that may be gone.
-    func noteWatchRoad(_ road: WatchRecipe.Road) {
-        lastWatchRoad = road
-        emit(.acted("took the \(road.rawValue) road"))
-    }
-
-    /// One line of a journey's own narration.
-    func emitJourney(_ line: String) { emit(.acted(line)) }
-
-    func noteResultQuery(_ query: String) {
-        lastResultQuery = query
-    }
-
-    /// The query whose results this engine last put in front, if any.
-    func resultQueryStanding() -> String? { lastResultQuery }
-
-    /// Time for results to draw before they are read.
-    /// WAIT FOR THE PAGE TO STOP ARRIVING, then read it once.
-    ///
-    /// PIN: A FLAT SLEEP READ A HALF-DRAWN PAGE. Measured across a round: the same
-    /// search recorded readings of 79, 104, 107 and 108 rows, and on the 79 the
-    /// results had not been grouped yet — so `openResult` had nothing to pick and
-    /// the leg was filed as the detector's recall. This polls the browser's own
-    /// tree, which is cheap, until the count holds still twice running, and only
-    /// then hands over to the expensive read. The old sleep is the floor and the
-    /// budget both: a page that never settles is read anyway, at the same moment
-    /// it would have been before.
-    func settleForResults(in target: BrowserTarget? = nil) async {
-        guard let target, let frame = (await readShell(target)).shell?.pageFrame else {
-            await seams.sleep(WebSearchRecipe.resultsSettle)
-            return
-        }
-        var stable = 0
-        var last: Int?
-        for _ in 0..<WebSearchRecipe.settlePolls {
-            await seams.sleep(WebSearchRecipe.settleInterval)
-            guard let now = await seams.settling.offering(
-                pid: target.processIdentifier, pageFrame: frame)
-            else {
-                // NO SIGNAL IS NOT A SETTLED PAGE. Wait out the old budget.
-                await seams.sleep(WebSearchRecipe.resultsSettle)
-                return
-            }
-            if now == last { stable += 1 } else { stable = 0 }
-            last = now
-            if stable >= WebSearchRecipe.quietPolls { return }
-        }
-    }
 }

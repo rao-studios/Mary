@@ -64,15 +64,6 @@ struct SandTurnView: View {
     }
 
     private func sayIfAsked() {
-        // A TRIP IS A WHOLE JOURNEY, NOT ONE SENTENCE. It drives the same host
-        // this pane drives, leg by leg, and answers its own rounds — so `--say`
-        // and `--auto` stay out of its way.
-        if !autoRan, SandLaunchOptions.current.trip != nil,
-           !runtimeHost.packages.isEmpty {
-            autoRan = true
-            SandTripRunner.runIfAsked(host: host, runtimeHost: runtimeHost)
-            return
-        }
         guard !autoRan, let wanted = SandLaunchOptions.current.say,
               !runtimeHost.packages.isEmpty
         else { return }
@@ -94,7 +85,6 @@ struct SandTurnView: View {
     /// to do?" as a permission failure. The first offer whose required parameters are all
     /// in hand answers; when none is, the round stays parked and the story says why.
     private func answerIfAsked() {
-        guard SandLaunchOptions.current.trip == nil else { return }
         guard SandLaunchOptions.current.auto, let round = host.round else { return }
         let supplied = SandLaunchOptions.current.arguments
         guard let chosen = round.skills.first(where: {

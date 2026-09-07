@@ -11,8 +11,6 @@
 //             [--scroll-to "<phrase>"] [--plan <file.json>]
 //             [--roundtrip "<phrase>"] [--roundtrip-search "<query>" [--open-result "…"]]
 //             [--route "<goal>" [--verb press|fill|adjust|reveal|result] [--query "<q>"]]
-//             [--trip <path.trip.json> [--leg N] [--record <dir>] [--staged] [--yes]]
-//             [--score <dir> [--write <doc.md>]] [--round <name>]
 //             [--save-roster <path.json>] [--fixture <path.json>]
 //             [--dry-run] [--watch] [--save <path.png>] [--settle ms] [--hover-at x,y]
 //        The shell read always runs — it is what everything else is aimed with.
@@ -96,17 +94,6 @@ func value(_ name: String) -> String? {
     guard let index = arguments.firstIndex(of: name), index + 1 < arguments.count
     else { return nil }
     return arguments[index + 1]
-}
-
-// MARK: - Offline: what a round of trips found
-//
-// Scoring reads recordings and writes a table. No browser, no grant, no screen —
-// the same reason `--fixture` sits above the trust gate.
-if let root = value("--score") {
-    exit(Int32(TripCommand.score(
-        root: URL(fileURLWithPath: root),
-        writing: value("--write"),
-        round: value("--round"))))
 }
 
 // MARK: - Offline: a recorded page, re-argued
@@ -209,15 +196,7 @@ check(true, "resolved a browser", "\(registration.displayName) (pid \(pid))")
 check(true, "its page-content lane",
       "\(registration.host(pid: pid).rawValue) · frame from \(registration.schema.pageFrameSource.rawValue)")
 
-// THE RECORDER SITS ON THE SEAMS, and only when a trip asked for one — an
-// ordinary probe run must be the run it has always been.
-let tripPath = value("--trip")
-let recorder = TripRecorder()
-let engine = tripPath == nil
-    ? BrowserEngine(dryRun: flag("--dry-run"))
-    : BrowserEngine(
-        seams: BrowserEngine.Seams.live.recording(into: recorder),
-        dryRun: flag("--dry-run"))
+let engine = BrowserEngine(dryRun: flag("--dry-run"))
 if flag("--watch") {
     Task.detached {
         for await event in await engine.events() { print("      · \(event)") }
@@ -231,77 +210,6 @@ if let raw = value("--window"), let id = CGWindowID(raw) {
     print("  ·  working in window \(id)")
 }
 
-// MARK: - A whole journey
-
-if let tripPath {
-    let url = URL(fileURLWithPath: tripPath)
-    let trip: BrowsingTrip
-    do {
-        trip = try BrowsingTrip.load(from: url)
-    } catch {
-        print("  ✗  could not read a trip from \(tripPath) — \(error)")
-        exit(1)
-    }
-    let issues = BrowsingTripValidator.validate(trip)
-    guard issues.isEmpty else {
-        heading("the trip")
-        for issue in issues { print("  ✗  \(issue)") }
-        exit(1)
-    }
-
-    heading("the trip — \(trip.id)")
-    print("  \(trip.summary)")
-    print("  stage: \(trip.stage.pageClass.rawValue) · \(trip.stage.front) in front"
-          + (trip.navigates ? " · NAVIGATES" : ""))
-    // A STAGE A PROBE CANNOT SET IS SAID OUT LOUD RATHER THAN PRETENDED AWAY.
-    if trip.stage.handNavigateBeforeLeg != nil {
-        print("  needs a hand on the page between legs — run this one through Sand")
-    }
-    if trip.stage.musicPlaying == true { print("  needs something playing in the music app") }
-    if trip.stage.twoWindows == true { print("  needs a second browser window") }
-    print("")
-
-    let runner = TripRunner(recorder: recorder)
-    await runner.watch(await engine.events())
-    let adapter = WebSurfaceAdapter(support: .shared, engine: engine)
-    let recording = await TripCommand.run(
-        trip: trip,
-        adapter: adapter,
-        engine: engine,
-        target: target,
-        runner: runner,
-        setup: TripRunner.Setup(
-            round: value("--round") ?? "0",
-            runner: "probe",
-            browser: registration.applicationID,
-            staged: flag("--staged"),
-            onlyLeg: value("--leg").flatMap(Int.init)),
-        assumeYes: flag("--yes"))
-
-    let failed = recording.legs.filter { $0.verdict == .failed }
-    check(failed.isEmpty, "the trip held together",
-          failed.isEmpty
-              ? "\(recording.legs.count) leg(s)"
-              : failed.compactMap { $0.layer?.rawValue }.joined(separator: ", "))
-
-    if let directory = value("--record") {
-        let folder = URL(fileURLWithPath: directory)
-        let destination = folder.appendingPathComponent(recording.fileName)
-        do {
-            // THE DIRECTORY IS PART OF THE ASK. A round names where its evidence
-            // goes; failing after the browsing is done, because a folder was not
-            // there, throws away the only expensive part of the run.
-            try FileManager.default.createDirectory(
-                at: folder, withIntermediateDirectories: true)
-            try recording.encoded().write(to: destination, options: .atomic)
-            check(true, "recorded", destination.lastPathComponent)
-        } catch {
-            check(false, "recorded", "\(error)")
-        }
-    }
-    await engine.closeObservers()
-    exit(failures == 0 ? 0 : 1)
-}
 
 // MARK: - The shell
 
@@ -517,9 +425,18 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
 /// place, a kind, a position — and none of them names a site, so the same run
 /// answers for a page nobody has seen yet.
 /// THE ADDRESSES ARE THE MACHINE'S, NOT THE REPOSITORY'S. `~/.mary/trips/stage.json`
-/// seeds them, exactly as the trips are staged, so this file holds no URL.
+/// seeds them, so this file holds no URL.
+func stagedPages() -> [String: String] {
+    // `{ "resultsPage": "https://…", … }`, plus a `phrases` object the sweep ignores.
+    let url = URL(fileURLWithPath: NSHomeDirectory())
+        .appendingPathComponent(".mary/trips/stage.json")
+    guard let data = FileManager.default.contents(atPath: url.path),
+          let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return [:] }
+    return object.compactMapValues { $0 as? String }
+}
 if flag("--landscape") {
-    let seeds = TripStaging.seeds()
+    let seeds = stagedPages()
     let wanted = value("--pages")?.split(separator: ",").map(String.init)
     let pages = seeds
         .filter { $0.key != "phrases" }

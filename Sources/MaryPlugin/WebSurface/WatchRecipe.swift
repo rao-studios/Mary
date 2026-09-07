@@ -16,8 +16,8 @@
 //        meant is whatever their own words match among the sites the page's own
 //        rows lead to (`PageRouteDomain.siteNamedInGoal`); the second road opens
 //        that row and uses the page's own search box, exactly as `site-search`
-//        does. A file that knew what YouTube was would be the hard-coding the
-//        whole corpus exists to refuse.
+//        does. A file that knew what YouTube was would be the hard-coding this
+//        lane exists to refuse.
 //        THE STAGE IS HELD FOR THE WHOLE JOURNEY, once, by the caller.
 //
 
@@ -66,6 +66,9 @@ public enum WatchRecipe {
               let door = frontDoor(to: site, among: roster.rows)
         else { return opened }
 
+        // THE ROAD IS NOTED WHEN IT IS TAKEN, not when it lands: a journey that
+        // turned this way and then failed its last press still took it.
+        await engine.noteWatchRoad(.siteSearch)
         await engine.emitJourney("no result went to \(site) — opening it instead")
         let arrived = await engine.pressOnPage(door.label, in: target, deadline: deadline)
         guard arrived.landed else { return opened }
@@ -103,7 +106,6 @@ public enum WatchRecipe {
         }
         let pressed = await engine.pressOnPage(choice.label, in: target, deadline: deadline)
         guard pressed.landed else { return pressed }
-        await engine.noteWatchRoad(.siteSearch)
         return await spoken(pressed, in: target, engine: engine)
     }
 
