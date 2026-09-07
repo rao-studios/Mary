@@ -38,6 +38,7 @@ enum TripCommand {
         case .failed: mark = "✗"
         case .pending: mark = "·"
         case .unstageable: mark = "~"
+        case .unmeasured: mark = "·"
         }
         let layer = record.layer.map { " [\($0.rawValue)]" } ?? ""
         let said = record.say.count > 46
@@ -359,6 +360,15 @@ enum TripCommand {
                     providerApplicationID: outcome.applicationID),
                 before: before, after: after)
             record.observableLayers = TripLegRecording.probeLayers
+            // A LEG THAT ASSERTS ONLY WHERE ITS WORDS SHOULD GO IS NOT THIS
+            // RUNNER'S TO PASS. See `TripVerdict.unmeasured`.
+            if leg.routing != nil, leg.page == nil, leg.engine == nil, leg.ambient == nil {
+                record.verdict = .unmeasured
+                record.because = "only its routing is stated, and a probe routes nothing"
+                recording.legs.append(record)
+                print(line(record))
+                continue
+            }
             // WHICH ROAD A JOURNEY TOOK, asked of the engine that took it.
             record.journeyRoad = await engine.snapshot().lastWatchRoad
             let judged = TripLayer.judge(leg: leg, recording: record)

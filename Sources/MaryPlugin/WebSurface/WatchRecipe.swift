@@ -53,7 +53,7 @@ public enum WatchRecipe {
             query, pick: query, in: target, engine: engine, deadline: deadline)
         if opened.landed {
             await engine.noteWatchRoad(.results)
-            return await spoken(opened, road: .results, in: target, engine: engine)
+            return await spoken(opened, in: target, engine: engine)
         }
         guard opened.ok else { return opened }
 
@@ -75,7 +75,14 @@ public enum WatchRecipe {
         let wanted = withoutSite(site, in: query)
         let searched = await engine.fillOnPage(
             nil, text: wanted, submit: true, in: target, deadline: deadline)
-        guard searched.landed || searched.ok else { return searched }
+        // A SUBMIT THAT DID NOT LAND HAS NO RESULTS TO READ. The site is open and
+        // that is worth saying; pretending the search happened is not.
+        guard searched.landed else {
+            var arrivedAtTheSite = arrived
+            arrivedAtTheSite.spoken =
+                "I opened \(site), but I couldn't search it for \(wanted). \(arrived.spoken)"
+            return arrivedAtTheSite
+        }
         await engine.noteResultQuery(wanted)
         await engine.settleForResults(in: target)
 
@@ -97,7 +104,7 @@ public enum WatchRecipe {
         let pressed = await engine.pressOnPage(choice.label, in: target, deadline: deadline)
         guard pressed.landed else { return pressed }
         await engine.noteWatchRoad(.siteSearch)
-        return await spoken(pressed, road: .siteSearch, in: target, engine: engine)
+        return await spoken(pressed, in: target, engine: engine)
     }
 
     /// The row that leads to a site's own front door, among the results.
@@ -133,7 +140,7 @@ public enum WatchRecipe {
     /// What arriving is worth saying — and what the player is doing, since
     /// somebody who asked to watch something wants to know it is playing.
     static func spoken(
-        _ arrival: BrowserOutcome, road: Road,
+        _ arrival: BrowserOutcome,
         in target: BrowserTarget, engine: BrowserEngine
     ) async -> BrowserOutcome {
         let described = await engine.describeMedia(in: target)

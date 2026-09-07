@@ -290,6 +290,7 @@ final class SandTripRunner {
         case .failed: mark = "✗"
         case .pending: mark = "·"
         case .unstageable: mark = "~"
+        case .unmeasured: mark = "·"
         }
         let said = record.say.count > 46
             ? String(record.say.prefix(46)) + "…" : record.say

@@ -29,10 +29,12 @@ public struct TripScoreboard: Sendable {
         public var failed: Int
         public var pending: Int
         public var unstageable: Int
+        /// Legs this runner cannot answer for — the other one does.
+        public var unmeasured: Int = 0
         /// How many failures each layer owns.
         public var byLayer: [TripFailureLayer: Int]
 
-        public var total: Int { passed + failed + pending + unstageable }
+        public var total: Int { passed + failed + pending + unstageable + unmeasured }
         /// Of the legs that could run, how many passed.
         public var rate: Double {
             let live = passed + failed
@@ -70,6 +72,7 @@ public struct TripScoreboard: Sendable {
                     }
                 case .pending: row.pending += 1
                 case .unstageable: row.unstageable += 1
+                case .unmeasured: row.unmeasured += 1
                 }
             }
             byCategory[recording.category] = row
@@ -90,6 +93,7 @@ public struct TripScoreboard: Sendable {
             total.failed += row.failed
             total.pending += row.pending
             total.unstageable += row.unstageable
+            total.unmeasured += row.unmeasured
             for (layer, count) in row.byLayer {
                 total.byLayer[layer, default: 0] += count
             }

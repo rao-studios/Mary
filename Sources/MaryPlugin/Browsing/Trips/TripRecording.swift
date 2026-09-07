@@ -418,6 +418,15 @@ public enum TripVerdict: String, Sendable, Equatable, Codable, CaseIterable {
     /// The machine could not be put in the state the leg needs — no seed for
     /// the page class, no phrase for a keyed leg, no browser running.
     case unstageable
+    /// THIS RUNNER CANNOT ANSWER FOR WHAT THIS LEG ASSERTS.
+    ///
+    /// PIN: NOT A PASS, AND NOT A DEFECT EITHER. Thirteen legs in the corpus
+    /// state only where their words should GO — the R1 half — and the probe
+    /// dispatches the binding directly, so it never routes anything. Judged by
+    /// it they passed, because nothing else about them could fail, and a live
+    /// rate counted them as engine work that had gone well. The other runner
+    /// answers for them; this one says so.
+    case unmeasured
 }
 
 /// One leg's whole story.

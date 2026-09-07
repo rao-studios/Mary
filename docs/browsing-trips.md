@@ -157,6 +157,11 @@ Legs marked `pending` are waiting on a round that has not landed. They are
 counted as pending, never as passed or failed — a corpus authored ahead of the
 engine has to distinguish "not built yet" from "built and wrong".
 
+A leg that states only where its words should go is **unmeasured** by the probe,
+which routes nothing. Thirteen of them used to pass there, because nothing else
+about them could fail, and the live rate counted them as engine work that had
+gone well. The turn-level runner answers for them; the probe says so.
+
 ## The exit criterion
 
 Two consecutive rounds where: categories other than `context` pass at 90% or
