@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Hosted unit annotator over Seer `/v1/complete`.
-//  IN:   InferenceUnitAnnotator declines (Mary's engine is always exclusive)
+//  IN:   the corpus crawl, when a unit settles
 //  OUT:  précis / labels via bounded complete route, not chat
 //
 import Foundation
@@ -40,11 +40,11 @@ public struct SeerUnitAnnotator: UnitAnnotating {
             Self.log.debug("annotation skipped: seer not ready")
             return .seerUnavailable
         }
-        let prompt = InferenceUnitAnnotator.prompt(for: request)
+        let prompt = UnitAnnotationPrompt.prompt(for: request)
         let text: String
         do {
             text = try await complete.complete(
-                instructions: InferenceUnitAnnotator.systemPrompt,
+                instructions: UnitAnnotationPrompt.systemPrompt,
                 messages: [SeerChatMessage(role: "user", content: prompt)])
         } catch let error as SeerCompleteError {
             switch error {
@@ -65,7 +65,7 @@ public struct SeerUnitAnnotator: UnitAnnotating {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return .empty
         }
-        guard let annotation = InferenceUnitAnnotator.parse(text) else {
+        guard let annotation = UnitAnnotationPrompt.parse(text) else {
             Self.log.error(
                 """
                 annotation unparsable for \(request.relativePath, privacy: .public): \

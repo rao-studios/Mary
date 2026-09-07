@@ -301,7 +301,7 @@ struct AbilityStudioSkillDrafter {
     //
     // A tiny utility model writes `"required": "true"` and a bare `-300` for a
     // scroll delta as readily as the shapes the prompt asked for. Every sibling
-    // reader in Mary shrugs that off — `InferenceUnitAnnotator.parse`,
+    // reader in Mary shrugs that off — `UnitAnnotationPrompt.parse`,
     // `AbilityRuntime.stringArguments`, `SkillCallTextInterceptor` — and this
     // one used to throw a whole usable draft away over a single quoted bool.
     //

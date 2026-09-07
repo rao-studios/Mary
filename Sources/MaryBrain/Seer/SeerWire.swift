@@ -58,6 +58,8 @@ enum SeerWire {
         var instructions: String?
         /// Identifies Mary to Seer: the server switches retrieved context to SUPPORT framing (background for the current request
         var client = "mary"
+        /// WHICH BACKEND SEER USES for this turn. Nil = Seer's own default.
+        var provider: LLMEngineChoice?
         /// Who she is on this request. Seer's prompt otherwise says
         /// "Your name is Seer". Rides both transports — the realtime
         /// turn.start wraps this same request.
@@ -65,7 +67,7 @@ enum SeerWire {
         var seer: SeerScope
 
         enum CodingKeys: String, CodingKey {
-            case messages, model, temperature, stream, stop, instructions, seer, client, persona
+            case messages, model, temperature, stream, stop, instructions, seer, client, persona, provider
             case maxTokens = "max_tokens"
             case topP = "top_p"
             case repetitionPenalty = "repetition_penalty"
@@ -241,9 +243,11 @@ enum SeerWire {
         var messages: [SeerChatMessage]
         var maxTokens: Int?
         var temperature: Float?
+        /// Which backend answers. Nil = Seer's default.
+        var provider: LLMEngineChoice?
 
         enum CodingKeys: String, CodingKey {
-            case instructions, messages, temperature
+            case instructions, messages, temperature, provider
             case maxTokens = "max_tokens"
         }
     }
@@ -320,9 +324,11 @@ enum SeerWire {
         var tools: [SkillTool]?
         var maxTokens: Int?
         var temperature: Float?
+        /// Which backend synthesizes the invocation. Nil = Seer's default.
+        var provider: LLMEngineChoice?
 
         enum CodingKeys: String, CodingKey {
-            case instructions, messages, tools, temperature
+            case instructions, messages, tools, temperature, provider
             case maxTokens = "max_tokens"
         }
     }

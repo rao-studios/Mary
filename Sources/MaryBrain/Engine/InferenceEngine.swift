@@ -4,7 +4,7 @@
 //
 //  WHAT: Seam — one round of (system, history, skills) → EngineEvent stream.
 //  IN:   MaryBrain turn loop
-//  OUT:  MaryLocalEngine / MarySeerSkillEngine / coding engines
+//  OUT:  MarySeerSkillEngine / coding engines (all Seer-backed)
 //  PIN:  Conversation only. Adapters, schemas and gated JSON belong to
 //        MaryLifeEngine — an engine that talks should not carry a codec.
 //  PIN:  The protocol and its event stream only. What flows THROUGH it lives

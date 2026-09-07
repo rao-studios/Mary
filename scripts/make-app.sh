@@ -1,9 +1,8 @@
 #!/bin/bash
 # WHAT: Assemble Mary.app from a release build with its own TCC identity.
-# OUT:  build/Mary.app — binary, mlx.metallib, Info.plist, Abilities, Kokoro and
+# OUT:  build/Mary.app — binary, Info.plist, Abilities, Kokoro and
 #       VisionAX resource bundles.
 # PIN:  Stable codesign (same as sign-binary.sh). Ad-hoc cdhash breaks TCC.
-#       metallib is required; omitting it dies at first GPU use.
 #
 #   ./scripts/make-app.sh          → build/Mary.app
 #
@@ -20,17 +19,12 @@ echo "▸ swift build -c $CONFIG --product Mary"
 # Runtime through MaryComputerUse now, and this script needs exactly one binary.
 swift build -c $CONFIG --product Mary
 
-# Required — not optional. GPU load needs mlx.metallib next to the binary.
-echo "▸ mlx.metallib"
-./scripts/build-metallib.sh $CONFIG
 
 echo "▸ assembling $APP_DIR"
 rm -rf "$APP_DIR"
 mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 
 cp ".build/$CONFIG/Mary" "$APP_DIR/Contents/MacOS/Mary"
-# MLX first search rung is the binary's own directory (Contents/MacOS).
-cp ".build/$CONFIG/mlx.metallib" "$APP_DIR/Contents/MacOS/mlx.metallib"
 cp "Support/Info.plist" "$APP_DIR/Contents/Info.plist"
 
 # Plugin packages are runtime data. Distributable copy under Resources/Abilities.

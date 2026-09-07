@@ -249,32 +249,38 @@ struct HomeSessionView: View {
 
         let engine = config.state.llmEngine
         let skillEngine = config.state.skillEngine
-        let warmingStatus: String
-        switch (engine, skillEngine) {
-        case (.local, .local):
-            warmingStatus = "warming the on-device model (first run downloads ~4 GB)…"
-        case (.hosted, .local):
-            warmingStatus =
-                "checking the Seer server, warming the on-device model for skills (first run downloads ~4 GB)…"
-        case (_, .hosted):
-            warmingStatus = "checking the Seer server for voice and skill synthesis…"
-        }
-        setReadiness(warmingStatus, ready: false)
+        let coding = config.state.codingEngine
+        // THE BOXES BEFORE THE STACK. `bootSeerStack` reads them (through
+        // connectSeerToBrain's rewire), and the on-device warm below needs the
+        // sign-in that same call performs — so the order is: record, connect,
+        // then apply.
+        MaryRuntime.recordEngineChoices(
+            voice: engine, skills: skillEngine, coding: coding)
+        setReadiness("checking the Seer server…", ready: false)
+        await bootSeerStack()
+
+        let onDevice = engine.isOnDevice || skillEngine.isOnDevice
+        setReadiness(
+            onDevice
+                ? "warming Seer's on-device model (first run downloads ~4 GB)…"
+                : "checking the Seer server for voice and skill synthesis…",
+            ready: false)
         if let error = await MaryRuntime.applyEngine(
             engine,
             skillEngine: skillEngine,
-            localModelID: config.state.localModelID,
-            seerEnabled: config.state.seerEnabled
+            seerEnabled: config.state.seerEnabled,
+            progress: { status in
+                Task { @MainActor in setReadiness(status, ready: false) }
+            }
         ) {
             setReadiness(error, ready: false)
             return
         }
         if config.state.codingAgentEnabled {
-            setReadiness("warming the on-device coding model…", ready: false)
+            setReadiness("preparing the coding agent…", ready: false)
             if let error = await MaryRuntime.applyCodingAgent(
                 enabled: true,
-                engine: config.state.codingEngine,
-                modelID: config.state.codingAgentModelID,
+                engine: coding,
                 seerEnabled: config.state.seerEnabled)
             {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
@@ -283,8 +289,7 @@ struct HomeSessionView: View {
         } else {
             _ = await MaryRuntime.applyCodingAgent(
                 enabled: false,
-                engine: config.state.codingEngine,
-                modelID: config.state.codingAgentModelID,
+                engine: coding,
                 seerEnabled: config.state.seerEnabled)
         }
 
@@ -298,8 +303,7 @@ struct HomeSessionView: View {
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)
         MaryRuntime.styleSelection = config.state.speechStyle
         await MaryRuntime.speaker.setStyle(config.state.speechStyle.style)
-        // Seer stack before TTS: default backend is Seer /v1/speak (needs sign-in).
-        await bootSeerStack()
+        // The Seer stack came up before the engines — see bootRuntimeAfterVoice.
         // Per-chunk voice degrade → chat mirror. Hook is off-actor; hop to MainActor.
         MaryRuntime.onVoiceDegrade = { note in
             Task { @MainActor in

@@ -53,6 +53,7 @@ public actor SeerSkillClient: SeerSkillProviding {
     private var baseURL: URL
     private let session: SeerSession
     private let transport: any SeerSkillTransport
+    private var provider: LLMEngineChoice?
 
     public init(
         baseURL: URL,
@@ -66,6 +67,12 @@ public actor SeerSkillClient: SeerSkillProviding {
 
     public func configure(baseURL: URL) {
         self.baseURL = baseURL
+    }
+
+    /// Which backend Seer uses for this lane. Separate from `configure`: the
+    /// servers applier must not reset the user's choice.
+    public func setProvider(_ provider: LLMEngineChoice?) {
+        self.provider = provider
     }
 
     public func isReady() async -> Bool {
@@ -86,7 +93,8 @@ public actor SeerSkillClient: SeerSkillProviding {
             messages: messages,
             tools: skills.isEmpty ? nil : skills.map(SeerWire.SkillTool.from),
             maxTokens: 800,
-            temperature: 0))
+            temperature: 0,
+            provider: provider))
 
         var attempt = try await open(body: body, bearer: token)
         if attempt.status == 401 {

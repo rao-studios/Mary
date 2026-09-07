@@ -72,6 +72,7 @@ public actor SeerCompleteClient: SeerCompleteProviding {
     private var baseURL: URL
     private let session: SeerSession
     private let transport: any SeerCompleteTransport
+    private var provider: LLMEngineChoice?
 
     public init(
         baseURL: URL,
@@ -85,6 +86,12 @@ public actor SeerCompleteClient: SeerCompleteProviding {
 
     public func configure(baseURL: URL) {
         self.baseURL = baseURL
+    }
+
+    /// Which backend answers annotation and the Studio drafter. Separate from
+    /// `configure` for the same reason as the other lanes.
+    public func setProvider(_ provider: LLMEngineChoice?) {
+        self.provider = provider
     }
 
     public func isReady() async -> Bool {
@@ -104,7 +111,8 @@ public actor SeerCompleteClient: SeerCompleteProviding {
             instructions: instructions,
             messages: messages,
             maxTokens: maxTokens,
-            temperature: 0))
+            temperature: 0,
+            provider: provider))
 
         var attempt = try await open(body: body, bearer: token)
         if attempt.status == 401 {

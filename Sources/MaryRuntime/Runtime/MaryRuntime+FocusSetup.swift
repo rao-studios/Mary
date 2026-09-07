@@ -51,17 +51,15 @@ extension MaryRuntime {
         OSAllocatedUnfairLock<Bool>(initialState: false)
     static let totemArchivingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
-    /// Brain card choice as applyEngine last applied. Service layer has no config singleton.
-    /// `.hosted` initially, matching the config default.
+    /// Which backend Seer uses per lane, as applyEngine last applied. Service
+    /// layer has no config singleton. `.mistral` initially, matching the
+    /// config defaults.
     static let engineChoiceBox =
-        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .hosted)
-    /// Lane B. `.local` initially — acting stayed on-device when speech went to Seer.
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .mistral)
     static let skillEngineChoiceBox =
-        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .local)
-    static let localModelIDBox =
-        OSAllocatedUnfairLock<String>(initialState: MaryLocalEngine.defaultModelID)
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .mistral)
     static let codingEngineChoiceBox =
-        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .local)
+        OSAllocatedUnfairLock<LLMEngineChoice>(initialState: .mistral)
     static let codingEnabledBox =
         OSAllocatedUnfairLock<Bool>(initialState: false)
     static let seerStackEnabledBox =

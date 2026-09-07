@@ -383,6 +383,9 @@ public enum LifeEngineError: Error, Sendable, Equatable {
     case invalidSchema
     case modelMismatch(expected: String, got: String)
     case noAdapter
+    /// The adapter lives in Fleet now; a server that will not answer is a
+    /// different failure from an adapter that answered badly.
+    case fleetUnreachable(String)
 }
 
 // MARK: - Seams

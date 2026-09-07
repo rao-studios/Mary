@@ -69,6 +69,26 @@ public struct FleetTrainProgress: Sendable, Equatable {
     }
 }
 
+/// One gated completion, as Fleet answered it.
+public struct FleetCompletion: Sendable, Equatable {
+    public var outputJSON: String
+    public var rawText: String
+    public var forcedFraction: Double
+    public var promptTokens: Int
+    public var cid: String
+
+    public init(
+        outputJSON: String, rawText: String, forcedFraction: Double,
+        promptTokens: Int, cid: String
+    ) {
+        self.outputJSON = outputJSON
+        self.rawText = rawText
+        self.forcedFraction = forcedFraction
+        self.promptTokens = promptTokens
+        self.cid = cid
+    }
+}
+
 public actor FleetDirectClient {
     private let host: String
     private let port: Int
@@ -93,6 +113,32 @@ public actor FleetDirectClient {
         request.abilityID = abilityID
         return try await withStub(timeout: .seconds(15)) { stub, options in
             Self.slot(from: try await stub.adapterStatus(request, options: options))
+        }
+    }
+
+    /// One gated completion through a ready slot — the Life engine's round.
+    /// Fleet holds the weights and the schema; Mary sends the input document.
+    public func complete(
+        totemID: String,
+        abilityID: String,
+        cid: String,
+        inputJSON: String
+    ) async throws -> FleetCompletion {
+        var request = Fleet_V1_CompleteRequest()
+        request.totemID = totemID
+        request.abilityID = abilityID
+        request.cid = cid
+        request.inputJson = inputJSON
+        // Generous — a cold slot loads a base model — but finite, so a wedged
+        // server cannot pin an idle pulse forever.
+        return try await withStub(timeout: .seconds(180)) { stub, options in
+            let response = try await stub.complete(request, options: options)
+            return FleetCompletion(
+                outputJSON: response.outputJson,
+                rawText: response.rawText,
+                forcedFraction: response.forcedFraction,
+                promptTokens: Int(response.promptTokens),
+                cid: response.cid)
         }
     }
 

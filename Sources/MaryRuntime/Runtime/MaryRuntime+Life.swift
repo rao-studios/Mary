@@ -63,7 +63,10 @@ extension MaryRuntime {
         slots: lifeSlots,
         conditions: LifeConditionsProvider(),
         world: LifeWorldProvider(),
-        sessionMaker: FleetAdapterSessionMaker(modelID: MaryLocalEngine.defaultModelID),
+        sessionMaker: FleetRemoteAdapterSessionMaker(
+            modelID: LifeBaseModel.defaultModelID,
+            totemID: { totemNodeIDBox.withLock { $0 } },
+            fleet: { makeFleetClient() }),
         behavior: brainWiring.behavior,
         mode: .off)
 

@@ -30,6 +30,9 @@ struct SettingsSheet: View {
     @State var codingDownloadProgress: Double = 1
     @State var codingPrepared = false
     @State var codingStatus: String?
+    /// What Seer reports for each backend. Empty until the first read.
+    @State var providerStatuses: [SeerProviderStatus] = []
+    @State var warmingLocal = false
 
     var voices: [String] {
         guard let dir = KokoroAssets.modelsDirectory() else { return ["af_heart"] }
@@ -151,7 +154,6 @@ struct SettingsSheet: View {
                 chat.center.setReadiness.send(
                     ChatService.SetReadiness.Meta(status: "switching engine…", ready: false)
                 )
-                let modelID = config.state.localModelID
                 // THE SERVER SIDE IS READ NOW, the choice is passed as chosen:
                 // the config update above has not landed yet, so reading
                 // `llmEngine` back inside the task would apply the OLD value.
@@ -161,8 +163,11 @@ struct SettingsSheet: View {
                     let error = await MaryRuntime.applyEngine(
                         choice,
                         skillEngine: skillEngine,
-                        localModelID: modelID,
-                        seerEnabled: seerEnabled)
+                        seerEnabled: seerEnabled,
+                        progress: { status in
+                            chat.center.setReadiness.send(
+                                ChatService.SetReadiness.Meta(status: status, ready: false))
+                        })
                     chat.center.setReadiness.send(
                         ChatService.SetReadiness.Meta(status: error, ready: error == nil)
                     )
@@ -179,27 +184,22 @@ struct SettingsSheet: View {
                 chat.center.setReadiness.send(
                     ChatService.SetReadiness.Meta(status: "switching skill engine…", ready: false)
                 )
-                let modelID = config.state.localModelID
                 let seerEnabled = config.state.seerEnabled
                 let spoken = config.state.llmEngine
                 Task {
                     let error = await MaryRuntime.applyEngine(
                         spoken,
                         skillEngine: choice,
-                        localModelID: modelID,
-                        seerEnabled: seerEnabled)
+                        seerEnabled: seerEnabled,
+                        progress: { status in
+                            chat.center.setReadiness.send(
+                                ChatService.SetReadiness.Meta(status: status, ready: false))
+                        })
                     chat.center.setReadiness.send(
                         ChatService.SetReadiness.Meta(status: error, ready: error == nil)
                     )
                 }
             }
-        )
-    }
-
-    var localModelBinding: Binding<String> {
-        Binding(
-            get: { config.state.localModelID },
-            set: { config.center.update.send(ConfigService.Update.Meta(localModelID: $0)) }
         )
     }
 
@@ -209,18 +209,15 @@ struct SettingsSheet: View {
             set: { enabled in
                 config.center.update.send(
                     ConfigService.Update.Meta(codingAgentEnabled: enabled))
-                let modelID = config.state.codingAgentModelID
                 let engine = config.state.codingEngine
                 let seerEnabled = config.state.seerEnabled
                 Task {
-                    let hosted = engine == .hosted
-                    if enabled, !hosted { codingDownloading = true }
+                    if enabled, engine.isOnDevice { codingDownloading = true }
                     let error = await MaryRuntime.applyCodingAgent(
                         enabled: enabled,
                         engine: engine,
-                        modelID: modelID,
                         seerEnabled: seerEnabled)
-                    if enabled, !hosted { codingDownloading = false }
+                    codingDownloading = false
                     codingStatus = error
                     codingPrepared = error == nil && enabled
                     if enabled, error != nil {
@@ -238,14 +235,12 @@ struct SettingsSheet: View {
             set: { choice in
                 config.center.update.send(ConfigService.Update.Meta(codingEngine: choice))
                 guard config.state.codingAgentEnabled else { return }
-                let modelID = config.state.codingAgentModelID
                 let seerEnabled = config.state.seerEnabled
                 Task {
-                    if choice == .local { codingDownloading = true }
+                    if choice.isOnDevice { codingDownloading = true }
                     let error = await MaryRuntime.applyCodingAgent(
                         enabled: true,
                         engine: choice,
-                        modelID: modelID,
                         seerEnabled: seerEnabled)
                     codingDownloading = false
                     codingStatus = error
@@ -259,49 +254,34 @@ struct SettingsSheet: View {
         )
     }
 
-    var codingAgentModelBinding: Binding<String> {
-        Binding(
-            get: { config.state.codingAgentModelID },
-            set: { config.center.update.send(ConfigService.Update.Meta(codingAgentModelID: $0)) }
-        )
-    }
-
     func refreshCodingAgentStatus() async {
         codingPrepared = await CodingAgentSessions.shared.isPrepared()
         codingDownloadProgress = await CodingAgentSessions.shared.downloadProgress()
     }
 
-    func downloadCodingModel() {
-        let modelID = config.state.codingAgentModelID.trimmingCharacters(in: .whitespaces)
-        let resolved = modelID.isEmpty ? MaryCodingEngine.defaultModelID : modelID
-        config.center.update.send(ConfigService.Update.Meta(
-            codingAgentModelID: resolved))
-        codingDownloading = true
-        codingStatus = nil
+    /// What Seer says about each backend, for the on-device status rows.
+    func refreshProviderStatuses() async {
+        providerStatuses = await MaryRuntime.providerStatuses()
+    }
+
+    /// The row for one backend, or nil while Seer has not answered yet.
+    func providerStatus(_ choice: LLMEngineChoice) -> SeerProviderStatus? {
+        providerStatuses.first { $0.choice == choice }
+    }
+
+    func warmOnDeviceModel() {
+        warmingLocal = true
         Task {
-            let error = await MaryRuntime.applyCodingAgent(
-                enabled: true,
-                engine: .local,
-                modelID: resolved,
-                seerEnabled: config.state.seerEnabled)
-            codingDownloading = false
-            codingStatus = error
-            if error == nil {
-                config.center.update.send(
-                    ConfigService.Update.Meta(codingAgentEnabled: true))
-                codingPrepared = true
+            let error = await MaryRuntime.warmLocalProvider { status in
+                chat.center.setReadiness.send(
+                    ChatService.SetReadiness.Meta(status: status, ready: false))
             }
+            warmingLocal = false
+            chat.center.setReadiness.send(
+                ChatService.SetReadiness.Meta(status: error, ready: error == nil))
+            await refreshProviderStatuses()
         }
     }
-
-    func restoreDefaultCodingModel() {
-        config.center.update.send(ConfigService.Update.Meta(
-            codingAgentModelID: MaryCodingEngine.defaultModelID))
-    }
-
-
-
-
 
     var historyLimitBinding: Binding<Int> {
         Binding(

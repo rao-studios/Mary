@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Shared jailed pair-coding loop.
-//  IN:   MaryCodingEngine / MarySeerCodingEngine
+//  IN:   MarySeerCodingEngine
 //  OUT:  CodingAgentWorkspace dispatch
 //  PIN:  Engines only swap synthesis; dispatch stays on device.
 //

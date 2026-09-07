@@ -1,96 +1,27 @@
 //
-//  InferenceUnitAnnotator.swift
+//  UnitAnnotationPrompt.swift
 //  MaryBrain
 //
-//  WHAT: One-sentence précis + concept labels for a corpus unit.
-//  IN:   unit structure → local InferenceEngine
-//  OUT:  précis / labels for neighbourhood reach
-//  PIN:  Refuses on exclusive (MLX) generation so it cannot steal the turn path.
+//  WHAT: The prompt a corpus unit is described with, and the strict parse of
+//        the answer. No engine — annotation runs through Seer's /v1/complete.
+//  IN:   SeerUnitAnnotator
+//  OUT:  UnitAnnotation
+//  PIN:  Was InferenceUnitAnnotator's statics, which also held an on-device
+//        engine that always refused. The prompt outlived the engine.
 //
 import MaryAmbient
 import Foundation
-import os
 
-public actor InferenceUnitAnnotator: UnitAnnotating {
+public enum UnitAnnotationPrompt {
 
-    /// Generous — this is background work with no one waiting — but finite, so
-    /// a wedged endpoint cannot pin the annotation chain forever.
-    public static let timeoutNanoseconds: UInt64 = 45_000_000_000
     /// Labels past this are dropped. A file that "expresses" fifteen concepts
     /// expresses none of them.
     public static let maximumLabels = 5
     public static let maximumPrecisLength = 240
 
-    private let engine: any InferenceEngine
-    private static let log = Logger(subsystem: "nyc.rao.mary", category: "unit-index")
-
-    public init(engine: any InferenceEngine) {
-        self.engine = engine
-    }
-
-    /// Declines by POLICY, not by failure, when the engine is the on-device one
-    public nonisolated var refusesToAnnotate: Bool {
-        engine.requiresExclusiveGeneration
-    }
-
-    public func annotate(_ request: UnitAnnotationRequest) async -> UnitAnnotation? {
-        if case .annotated(let annotation) = await annotationAttempt(request) {
-            return annotation
-        }
-        return nil
-    }
-
-    public func annotationAttempt(
-        _ request: UnitAnnotationRequest
-    ) async -> UnitAnnotationAttempt {
-        guard !engine.requiresExclusiveGeneration else {
-            Self.log.debug("annotation skipped: engine requires exclusive generation")
-            return .failed(nil)
-        }
-        guard let raw = await complete(prompt: Self.prompt(for: request)) else {
-            return .empty
-        }
-        guard let annotation = Self.parse(raw) else {
-            return .unparsable
-        }
-        return .annotated(annotation)
-    }
-
-    // MARK: - The round
-
-    private func complete(prompt: String) async -> String? {
-        await withTaskGroup(of: String?.self) { group in
-            group.addTask { [engine] in
-                var text = ""
-                do {
-                    for try await event in engine.stream(
-                        system: Self.systemPrompt, history: [.init(role: .user, text: prompt)],
-                        skills: []
-                    ) {
-                        switch event {
-                        case .text(let chunk): text += chunk
-                        case .skillInvocation: continue
-                        case .done: break
-                        }
-                    }
-                } catch {
-                    return text.isEmpty ? nil : text
-                }
-                return text.isEmpty ? nil : text
-            }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: Self.timeoutNanoseconds)
-                return nil
-            }
-            let first = await group.next() ?? nil
-            group.cancelAll()
-            return first
-        }
-    }
-
     // MARK: - Prompt
 
-    static let systemPrompt = """
+    public static let systemPrompt = """
         You describe one source file for a personal code index. Answer with \
         JSON only, no prose around it, in exactly this shape:
 
@@ -104,7 +35,7 @@ public actor InferenceUnitAnnotator: UnitAnnotating {
         an entirely different kind of work, not names taken from this code.
         """
 
-    static func prompt(for request: UnitAnnotationRequest) -> String {
+    public static func prompt(for request: UnitAnnotationRequest) -> String {
         var lines = [
             "Project: \(request.projectName)",
             "File: \(request.relativePath)",
@@ -135,7 +66,7 @@ public actor InferenceUnitAnnotator: UnitAnnotating {
     // MARK: - Parsing
 
     /// Tolerant on the way in, strict on the way out.
-    static func parse(_ raw: String) -> UnitAnnotation? {
+    public static func parse(_ raw: String) -> UnitAnnotation? {
         guard let data = jsonObject(in: raw),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { return nil }

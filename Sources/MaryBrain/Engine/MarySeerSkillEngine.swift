@@ -2,32 +2,33 @@
 //  MarySeerSkillEngine.swift
 //  MaryBrain
 //
-//  WHAT: Lane B hosted — one POST to `/v1/skills/complete` per acting round.
+//  WHAT: Lane B — one POST to `/v1/skills/complete` per acting round.
 //  IN:   orchestrator lane
-//  OUT:  invocation synthesis; dispatch on-device
-//  PIN:  If Seer is unready, optional local MLX carries the round.
+//  OUT:  invocation synthesis; dispatch stays on this Mac
+//  PIN:  There is no local fallback any more: on-device generation lives in
+//        Seer, so an unready server is an error, not a quieter engine. The
+//        `choice` is stored because it is WHICH BACKEND Seer will use, and the
+//        behavioral record and the Life gate both read it.
 //
 import Foundation
 
 public actor MarySeerSkillEngine: InferenceEngine {
 
-    public nonisolated var choice: LLMEngineChoice { .hosted }
+    public nonisolated let choice: LLMEngineChoice
     public nonisolated var requiresExclusiveGeneration: Bool { false }
-    public nonisolated let displayName = "Hosted skills (via Seer)"
+    public nonisolated let displayName: String
 
     private let client: any SeerSkillProviding
-    private let fallback: MaryLocalEngine?
 
-    public init(client: any SeerSkillProviding, fallback: MaryLocalEngine? = nil) {
+    public init(client: any SeerSkillProviding, choice: LLMEngineChoice = .mistral) {
         self.client = client
-        self.fallback = fallback
+        self.choice = choice
+        self.displayName = "Skills via Seer — \(choice.displayName)"
     }
 
-    public func warmup() async throws {
-        if let fallback {
-            try await fallback.warmup()
-        }
-    }
+    /// Nothing to warm here: the model, if there is one, lives in Seer and is
+    /// warmed through `/v1/providers/local/warm`.
+    public func warmup() async throws {}
 
     public nonisolated func stream(
         system: String,
@@ -85,18 +86,13 @@ public actor MarySeerSkillEngine: InferenceEngine {
             continuation.yield(.done)
             return
         }
-        guard let fallback else {
-            throw SeerSkillError.notAuthenticated
-        }
-        for try await event in fallback.stream(
-            system: system, history: history, skills: skills)
-        {
-            continuation.yield(event)
-        }
+        // NO SILENT SECOND ENGINE. On-device now means Seer's backend, so an
+        // unreachable or signed-out server is reported rather than papered over.
+        throw SeerSkillError.notAuthenticated
     }
 
     /// Mistral-family templates reject a bare tool role, so skill results
-    /// ride as labeled user text — the same mapping as MaryLocalEngine.
+    /// ride as labeled user text — the same mapping Seer applies on-device.
     static func messages(from history: [BrainTurn]) -> [SeerChatMessage] {
         var mapped: [(role: String, text: String)] = []
         for turn in history {

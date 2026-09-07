@@ -105,8 +105,10 @@ package enum MaryRuntime {
         tokenProvider: { await seerSession.validToken() })
     package static let speaker = KokoroStreamSpeaker(engine: kokoro)
     /// Process-wide stores → brain. Uninjected (tests) get fresh stores.
+    /// Lane B before any applier runs. Seer-backed from the first instant:
+    /// Mary loads no model of her own.
     package static let brain = MaryBrain(
-        engine: MaryLocalEngine(),
+        engine: MarySeerSkillEngine(client: seerSkill),
         wiring: brainWiring)
 
     /// The process-wide stores, named once.
@@ -187,6 +189,10 @@ package enum MaryRuntime {
     /// Vectors, not generation — the tier under Apple's on-device model.
     /// `MaryEmbeddings` decides whether anything asks it.
     static let seerEmbedding = SeerEmbeddingClient(
+        baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
+        session: seerSession)
+    /// Which backends Seer can serve, and warming the on-device one.
+    static let seerProviders = SeerProvidersClient(
         baseURL: URL(string: "http://127.0.0.1:\(ServerSpec.Defaults.seerPort)")!,
         session: seerSession)
     // No session: /v1/totems is open; Totems pane works before sign-in.

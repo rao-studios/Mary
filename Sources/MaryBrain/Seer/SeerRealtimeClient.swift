@@ -41,6 +41,8 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
     private var personalTotemID: String?
     /// Empty = Seer's default chat model (drives the grounded pass).
     private var chatModel: String = ""
+    /// Which backend Seer uses. Set by `setProvider`, not `configure`.
+    private var provider: LLMEngineChoice?
     /// Mistral voice slug for the server-side TTS lane.
     private var voiceID: String = "fr_marie_neutral"
     private let transport: any SeerWSTransport
@@ -73,6 +75,11 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
         self.chatModel = chatModel
         self.voiceID = voiceID
         if let retrievalScope { self.retrievalScope = retrievalScope }
+    }
+
+    /// The lane's backend. Separate from `configure` — see `provider`.
+    public func setProvider(_ provider: LLMEngineChoice?) {
+        self.provider = provider
     }
 
     /// Character change from Settings — NARROWER than `configure` on purpose: identity, scope
@@ -137,6 +144,7 @@ public actor SeerRealtimeClient: SeerRealtimeProviding {
                     messages: messages,
                     model: chatModel.isEmpty ? nil : chatModel,
                     instructions: instructions,
+                    provider: provider,
                     seer: scope
                 ),
                 tts: .init(voiceID: voiceID)
