@@ -57,6 +57,9 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
         /// recording made before it existed, which reads as a page whose seal
         /// named no places, exactly as it was.
         public var region: String?
+        /// The site this row leads to, as a person would say it. A NAME, never
+        /// an address — the same reason `maskedAddress` exists.
+        public var site: String?
         /// An adjustable control's state and range, when the page published
         /// them — a progress bar's value and the video's length. Absent in a
         /// recording made before they were carried.
@@ -147,6 +150,7 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 facts: seen?.0,
                 kind: seen?.1,
                 region: seen?.2,
+                site: rowsByOrdinal[element.ordinal]?.site,
                 value: rowsByOrdinal[element.ordinal]?.value,
                 minimumValue: rowsByOrdinal[element.ordinal]?.minimumValue,
                 maximumValue: rowsByOrdinal[element.ordinal]?.maximumValue)
@@ -234,6 +238,7 @@ public struct PageRosterFixture: Codable, Sendable, Equatable {
                 facts: RowFacts(rawValue: row.facts ?? 0),
                 region: row.region.flatMap { PageRegion(rawValue: $0) },
                 provenance: .seen,
+                site: row.site,
                 value: row.value,
                 minimumValue: row.minimumValue,
                 maximumValue: row.maximumValue)

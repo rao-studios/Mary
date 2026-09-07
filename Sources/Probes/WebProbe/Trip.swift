@@ -359,6 +359,8 @@ enum TripCommand {
                     providerApplicationID: outcome.applicationID),
                 before: before, after: after)
             record.observableLayers = TripLegRecording.probeLayers
+            // WHICH ROAD A JOURNEY TOOK, asked of the engine that took it.
+            record.journeyRoad = await engine.snapshot().lastWatchRoad
             let judged = TripLayer.judge(leg: leg, recording: record)
             record.verdict = judged.verdict
             record.layer = judged.layer

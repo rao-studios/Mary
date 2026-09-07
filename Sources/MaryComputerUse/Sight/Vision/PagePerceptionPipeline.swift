@@ -236,6 +236,9 @@ public enum PagePerceptionPipeline {
             // WALKED, NOT SEEN. There is an element behind this row to press by
             // name, and the frame is the one its own tree reports.
             provenance: .accessibility,
+            // WHERE THIS ROW GOES, as a person would say it. The tree publishes
+            // a link's address; the lane speaks a site.
+            site: element.url.flatMap(SiteName.spoken(url:)),
             value: element.numericValue,
             minimumValue: element.minimumValue,
             maximumValue: element.maximumValue)

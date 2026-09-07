@@ -1,10 +1,10 @@
 //
 //  SiteName.swift
-//  MaryPlugin
+//  MaryComputerUse
 //
 //  WHAT: The site a URL belongs to, as a person would say it.
-//  IN:   WebSurfaceAX.Reading.url
-//  OUT:  spoken summaries
+//  IN:   a shell reading's address; a page row's own link
+//  OUT:  spoken summaries; the site a row belongs to, at the seal
 //  PIN:  A URL IS HELD, NEVER SPOKEN. Reading an address aloud is unusable as speech
 //        and leaks query strings into a transcript; the site's name is what a person
 //        actually asked about. Pure derivation, no table — a site is named by its host,

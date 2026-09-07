@@ -348,6 +348,17 @@ public struct TripSpeechExpectation: Sendable, Equatable, Codable {
 }
 
 /// One utterance, and the shape of what must happen.
+/// WHICH ROAD A JOURNEY TOOK. A journey is several verbs said as one sentence,
+/// and the thing worth pinning about it is the SEQUENCE: whether the results
+/// answered, or whether the site the person named had to be opened and asked.
+public struct TripJourneyExpectation: Sendable, Equatable, Codable {
+    /// `results`, `siteSearch`, or `any` when either is a fair answer to this
+    /// stage — a live search engine may or may not show the site's own row.
+    public var road: String
+
+    public init(road: String = "any") { self.road = road }
+}
+
 public struct TripLeg: Sendable, Equatable, Codable {
     /// THE PERSON'S OWN WORDS. Anything at all — this is what they said.
     public var say: String
@@ -367,6 +378,8 @@ public struct TripLeg: Sendable, Equatable, Codable {
     public var engine: TripEngineExpectation?
     public var ambient: TripAmbientExpectation?
     public var speech: TripSpeechExpectation?
+    /// The road a journey leg took. See `TripJourneyExpectation`.
+    public var journey: TripJourneyExpectation?
     /// ARGUMENTS AN ENGINE-LEVEL RUN NEEDS THAT A TURN GETS FROM THE MODEL.
     ///
     /// PIN: NOT THE SAME TABLE AS `routing.arguments`, AND THE DIFFERENCE IS A
@@ -398,6 +411,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         engine: TripEngineExpectation? = nil,
         ambient: TripAmbientExpectation? = nil,
         speech: TripSpeechExpectation? = nil,
+        journey: TripJourneyExpectation? = nil,
         dispatch: [String: String]? = nil,
         dispatchKeys: [String: String]? = nil,
         pending: String? = nil,
@@ -411,6 +425,7 @@ public struct TripLeg: Sendable, Equatable, Codable {
         self.engine = engine
         self.ambient = ambient
         self.speech = speech
+        self.journey = journey
         self.dispatch = dispatch
         self.dispatchKeys = dispatchKeys
         self.pending = pending
@@ -524,6 +539,8 @@ public struct BrowsingTrip: Sendable, Equatable, Codable {
 
     public static let categories: Set<String> = [
         "arrive", "search", "read", "act", "media", "tabs", "recovery", "context",
+        // Several verbs said as one sentence. Round 8.
+        "journey",
     ]
 
     /// Every leg that is not waiting on a round.

@@ -117,7 +117,37 @@ public struct WebSurfaceAdapter: MaryAdapter {
         [pageContext, currentPage, listTabs, switchTab, describeMedia, controlMedia,
          openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
          readPage, readPageText, clickOnPage, fillInPage, scrollToOnPage,
-         adjustOnPage, findInPage, searchWeb, interactWithPage]
+         adjustOnPage, findInPage, searchWeb, watchVideo, interactWithPage]
+    }
+
+    /// THE FIRST JOURNEY: several verbs said as one sentence. See `WatchRecipe`.
+    private var watchVideo: SkillBinding {
+        SkillBinding(
+            name: "watch_video",
+            description: """
+                Find something to watch and start it: search the web, open the result that \
+                answers both what they asked for and the site they named, and if no result \
+                goes there, open that site and search it. Use for "watch a fireplace video \
+                on YouTube", "put on the Boiler Room set".
+                """,
+            parameters: [
+                .init(
+                    name: "query", type: "string",
+                    description: "What to watch, in their own words — including the site, when they named one.",
+                    required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let query = arguments["query"], !query.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what you'd like to watch.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.watch(query, in: target)
+                }
+            },
+            stage: true,
+            preparesSurface: true)
     }
 
     private var switchTab: SkillBinding {
@@ -264,6 +294,8 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 operation("adjust_on_page", capability: "browser.page.act",
                           input: "browsing.page-fill", output: "browsing.operation-result"),
                 operation("search_web", capability: "browser.page.search",
+                          input: "browsing.search-query", output: "browsing.page-listing"),
+                operation("watch_video", capability: "browser.watch",
                           input: "browsing.search-query", output: "browsing.page-listing"),
                 operation("interact_with_page", capability: "browser.page.act",
                           input: "browsing.page-plan", output: "browsing.operation-result"),

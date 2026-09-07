@@ -50,6 +50,73 @@ private func published(
 
 @Suite struct PageRouterTests {
 
+    // MARK: - The site a person named
+
+    /// A ROW'S OWN LINK SAYS WHERE IT GOES, and "watch it on youtube" is a
+    /// person choosing between destinations. The site is recognised from the
+    /// PAGE — a word is a site here because a row on this page leads to one by
+    /// that name — so nothing in this repository holds a list of sites.
+    @Test func aNamedSiteOutranksTheSameResultElsewhere() {
+        func result(_ ordinal: Int, _ label: String, site: String?) -> PageRow {
+            PageRow(
+                ordinal: ordinal,
+                frame: CGRect(x: 140, y: 240 + CGFloat(ordinal) * 60, width: 500, height: 40),
+                label: label, labelSource: .classifier, affordance: .press,
+                affordanceSource: .classifier, kind: .video,
+                group: PageGroupRef(id: 1, kind: .list), confidence: 1,
+                facts: [.inResultGroup], provenance: .accessibility, site: site)
+        }
+        // Titles that ANSWER the query rather than repeat it — a row that is the
+        // query said back is refused as an echo, by a rule older than this one.
+        let rows = [
+            result(1, "Boiler Room London, the whole broadcast", site: "example"),
+            result(2, "Boiler Room London, recorded live", site: "youtube"),
+            result(3, "An interview about the night", site: nil),
+        ]
+        let page = PageRoster(
+            rows: rows,
+            groups: [PageGroup(id: 1, kind: .list, memberOrdinals: [1, 2, 3])],
+            pageFrame: BrowsingFixtures.pageFrame)
+
+        let routed = PageRouter.arbitrate(
+            goal: "boiler room london on youtube",
+            verb: .openResult(query: "fred again"), roster: page)
+        #expect(routed.winner?.ordinal == 2)
+        // AND THE ROW THAT SAYS NOTHING ABOUT WHERE IT GOES IS NOT DEMOTED FOR IT.
+        let quiet = routed.trace.decisions.first { $0.id == 3 }
+        #expect(quiet?.reason.contains("goes to") != true)
+        // A ROW THAT GOES SOMEWHERE ELSE IS NOT AN ANSWER — a gate, like a place.
+        let elsewhere = routed.trace.decisions.first { $0.id == 1 }
+        #expect(elsewhere?.disposition == .ineligible)
+        #expect(elsewhere?.reason.contains("goes to example, not youtube") == true)
+    }
+
+    /// AND A SITE NOBODY NAMED CHANGES NOTHING: the same page, no site in the
+    /// goal, ranks exactly as it did before.
+    @Test func aSiteNobodyNamedIsNotWeighed() {
+        func result(_ ordinal: Int, _ label: String, site: String?) -> PageRow {
+            PageRow(
+                ordinal: ordinal,
+                frame: CGRect(x: 140, y: 240 + CGFloat(ordinal) * 60, width: 500, height: 40),
+                label: label, labelSource: .classifier, affordance: .press,
+                affordanceSource: .classifier, kind: .video,
+                group: PageGroupRef(id: 1, kind: .list), confidence: 1,
+                facts: [.inResultGroup], provenance: .accessibility, site: site)
+        }
+        let page = PageRoster(
+            rows: [
+                result(1, "Boiler Room London, the whole broadcast", site: "example"),
+                result(2, "Boiler Room London, recorded live", site: "youtube"),
+            ],
+            groups: [PageGroup(id: 1, kind: .list, memberOrdinals: [1, 2])],
+            pageFrame: BrowsingFixtures.pageFrame)
+        let routed = PageRouter.arbitrate(
+            goal: "the whole broadcast",
+            verb: .openResult(query: "fred again"), roster: page)
+        #expect(routed.winner?.ordinal == 1)
+        #expect(routed.trace.decisions.allSatisfy { !$0.reason.contains("goes to") })
+    }
+
     // MARK: - The record
 
     /// EVERY ROW GETS A DECISION. A row missing from the trace is a row nobody can ask

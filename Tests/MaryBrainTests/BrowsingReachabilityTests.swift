@@ -34,6 +34,8 @@ import Testing
         "browsing.interact-with-page",
         // The tabs a browser holds, and the words on the page in front. Round 8.
         "browsing.switch-tab", "browsing.close-tab", "browsing.find-in-page",
+        // The first journey: several verbs said as one sentence. Round 8.
+        "browsing.watch-video",
     ]
 
     @Test func everyBrowsingSkillIsDeclaredAndExposed() throws {

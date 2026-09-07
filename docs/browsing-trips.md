@@ -1091,6 +1091,69 @@ tests; the leg is `pending` a staged page whose player actually shows an ad,
 because a leg expecting an overlay press on a page with no overlay would measure
 the seed rather than the router.
 
+#### Part 4 — a journey, and the site a person named
+
+"OK can we watch Fred again video on YouTube" searched and listed results, and
+the corpus had asked the same thing in round 0: `search_web`'s `open` was an
+optional string no lane could fill, so a sentence that names both WHAT and WHERE
+could only ever be half answered. Nothing in the lane weighed where a result
+went.
+
+A row's own link is the missing fact. The accessibility lane already reads it;
+the seal now turns it into the SITE, as a person would say it — a name, never an
+address, so a recording still holds no URLs. What makes "youtube" a site is that
+a row on THIS page leads to one by that name: the page vouches for the word and
+nothing in the repository holds a list of sites.
+
+**A site is a gate, not a credit** — the rule a place already keeps, for the same
+measured reason. First it was a ranking term, and the naming ladder is compared
+before the structure: a related-search suggestion literally spelled "youtube
+fireplace 24 hours" outranked every actual YouTube result and the journey opened
+another results page. A person who says where has narrowed the page.
+
+`watch_video` is the first journey: several verbs said as one sentence, deciding
+from the reading rather than from a plan. It searches, arbitrates the results for
+what and where together, and — when no result goes to the site they named — opens
+that site's own row and uses its search box, which is `site-search`'s machinery.
+Nothing in it presses or types by itself; every step is a verb that already
+refuses by name and records its own route. The trip grammar gained a `journey`
+block and the classifier a **J** layer: a journey is judged on its SEQUENCE, and
+every step underneath it may be right.
+
+Three defects the driving found, each older than the journey:
+
+- **A roster rebuilt from `elements` loses what only a row carries.** The
+  AX-shaped pair is kept for the callers that still read it, and a row's site,
+  its slider range and its provenance are not in it — so the recipe handed the
+  router a page whose results all went nowhere in particular, and the site gate
+  had nothing to gate on. The engine publishes the real rows a moment earlier;
+  they are what the route is argued from now.
+- **A search whose results are already in front has arrived.** Running the same
+  journey twice typed the query into a browser already showing that query's
+  results, nothing changed because nothing could, and the whole navigation budget
+  was spent before reporting "the page didn't finish loading". This is `settle`'s
+  own arrival rule one level up, proved by the same evidence.
+- **Two rows that lead to the same place under the same name are one answer.**
+  A search engine prints its top video twice, in a carousel and in the list, and
+  Mary asked which of the two identical rows the person meant. "A tie is a
+  question, not a coin flip" is about rivals; these are not rivals. The trace
+  says so too, rather than recording a clarification nobody was asked for.
+
+Live, from a blank page: *watch a fireplace video on youtube* → the results, the
+YouTube result chosen over the suggestion that merely says "youtube", the watch
+page open, and `describe_media` reporting **"Playing, 0:00 of 1:25."** — 8.4 s
+end to end. The dictated sentence reaches the journey too. What the corpus
+change cost, and it is worth naming: three sentences that used to be `search_web`
+now name the journey, because "find me a clip on youtube" is not a request to see
+a list; and the transport needed fixtures of its own — "mute the video", "play
+the video" — to keep the sentences that ARE about the player.
+
+**"Skip the ad" still has no live leg.** A pressable row drawn inside the picture
+is an overlay by geometry now, which the router already credits, and the rule is
+pinned in tests — but the seeded watch page shows no ad, and a leg asserting an
+overlay press on a page with no overlay would measure the seed rather than the
+router.
+
 ### Round 1 — 2026-09-06
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |

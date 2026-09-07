@@ -158,6 +158,12 @@ public extension PageRouter {
         case .adjust, .reveal:
             break
         }
+
+        // THE SITE THE PERSON NAMED, credited among the rows that survived the
+        // gate. The gate does the refusing (see `PageRouter+Gates`); this only
+        // separates a row that PROVES it goes there from one whose destination
+        // nothing published, which the gate deliberately lets through.
+        if let wanted = domain.siteNamedInGoal, row.site == wanted { score += 70 }
         return (score, note)
     }
 

@@ -509,11 +509,21 @@ private extension String {
         // THE DIRECTION THAT ACTS: a search must pick search_web, and nothing else — the
         // confidence lane dispatches on a unique win, so a tie here costs a model round and
         // a wrong pick navigates somebody's tab.
-        let searches = [
-            "Can you go to a fred again video on youtube",
-            "find me a fred again clip on youtube",
-            "look up a fireplace video for me",
-            "search the web for alpine boots",
+        // THE JOURNEY TOOK THREE OF THESE, AND IS THE BETTER ANSWER TO THEM.
+        //
+        // PIN: ROUND 8 GAVE THE LANE A VERB FOR "FIND SOMETHING AND OPEN IT".
+        // These four all used to be `search_web`, because searching was the only
+        // thing the lane could do — and three of them are not asking to see a
+        // list. "Find me a clip on youtube" asks to WATCH it: it names a subject
+        // and a site, which is precisely what `watch_video` searches with and
+        // chooses on. What still belongs to `search_web` is the sentence that
+        // asks for the results themselves. Both must still be an OPERATE turn
+        // reaching ONE winner, which is what this block was written to hold.
+        let searches: [(String, String)] = [
+            ("Can you go to a fred again video on youtube", "watch_video"),
+            ("find me a fred again clip on youtube", "watch_video"),
+            ("look up a fireplace video for me", "watch_video"),
+            ("search the web for alpine boots", "search_web"),
         ]
         // THE SITE PATH, REPORTED. Every round of a turn projects the roster from the same
         // sentence, so the chain (open the site, fill its search box, press the first
@@ -529,7 +539,7 @@ private extension String {
 
         var report: [String] = []
         var wrong: [String] = []
-        for utterance in searches {
+        for (utterance, wanted) in searches {
             let verdict = TurnTriage.verdict(
                 query: utterance, registry: snapshot, offeredNames: offered, habits: store)
             let picked = verdict.uniqueSkill?.reference.invocationName
@@ -538,8 +548,8 @@ private extension String {
             if verdict.intent != .operate {
                 wrong.append("[\(utterance)] read as \(verdict.intent?.rawValue ?? "nil"), not operate")
             }
-            if picked != "search_web" {
-                wrong.append("[\(utterance)] picked \(picked ?? "none"), expected search_web")
+            if picked != wanted {
+                wrong.append("[\(utterance)] picked \(picked ?? "none"), expected \(wanted)")
             }
         }
         for utterance in sitePath {

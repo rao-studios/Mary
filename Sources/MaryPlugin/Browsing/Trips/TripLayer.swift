@@ -67,12 +67,32 @@ public enum TripLayer {
         let checks: [(TripFailureLayer, (TripLeg, TripLegRecording) -> Judgement?)] = [
             (.abilityRouting, routing), (.ambient, ambient),
             (.perception, perception), (.pageRouting, pageRouting),
+            (.journey, journey),
             (.execution, execution), (.speech, speech), (.timing, timing),
         ]
         for (layer, check) in checks where recording.canJudge(layer) {
             if let judgement = check(leg, recording) { return judgement }
         }
         return .passed
+    }
+
+    // MARK: - J — which road a journey took
+
+    /// A JOURNEY IS JUDGED ON ITS SEQUENCE, and every step under it may be
+    /// right. "Watch it on youtube" that searched and opened a result took one
+    /// road; one that had to open the site and use its own box took the other,
+    /// and which is correct depends on what the results actually offered — so
+    /// a leg may name a road, or say `any` and assert only that a road was
+    /// taken at all.
+    static func journey(_ leg: TripLeg, _ recording: TripLegRecording) -> Judgement? {
+        guard let wanted = leg.journey else { return nil }
+        guard let took = recording.journeyRoad else {
+            return .failed(.journey, "no journey ran — nothing said which road it took")
+        }
+        guard wanted.road == "any" || wanted.road == took else {
+            return .failed(.journey, "took the \(took) road, not \(wanted.road)")
+        }
+        return nil
     }
 
     // MARK: - R1 — which skill, on which lane

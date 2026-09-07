@@ -396,6 +396,11 @@ public enum TripFailureLayer: String, Sendable, Equatable, Codable, CaseIterable
     /// address that does not hold what the leg names, or a phrase the page uses
     /// twice. Both are fixed by staging, which is why it is its own column.
     case stage = "X"
+    /// The journey went a road the leg did not name — it searched where it
+    /// should have gone to the site, or the other way about. A layer of its
+    /// own because every step underneath it may be right: the acts landed,
+    /// the router chose well, and the SEQUENCE was not the one asked for.
+    case journey = "J"
     /// The route was right and the act was not.
     case execution = "E"
     /// It landed and nobody heard.
@@ -456,6 +461,8 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
     /// a media leg as passing when nothing checked that it landed, which is the
     /// exact defect the corpus exists to catch. Nil means "judge everything",
     /// which is what a hand-written recording in a test wants.
+    /// Which road a journey took — `WatchRecipe.Road`, when one ran.
+    public var journeyRoad: String?
     public var observableLayers: [TripFailureLayer]?
     /// The engine's own words, timestamped — one vocabulary for every watcher.
     public var timeline: [String]
@@ -472,6 +479,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
         acts: [RecordedAct] = [], receipts: [RecordedReceipt] = [],
         ok: Bool = false, landed: Bool = false, refusal: String? = nil,
         outcomeSpoken: String = "", speech: RecordedSpeech? = nil,
+        journeyRoad: String? = nil,
         observableLayers: [TripFailureLayer]? = nil,
         timeline: [String] = [], elapsedMilliseconds: Int = 0
     ) {
@@ -496,6 +504,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
         self.refusal = refusal
         self.outcomeSpoken = outcomeSpoken
         self.speech = speech
+        self.journeyRoad = journeyRoad
         self.observableLayers = observableLayers
         self.timeline = timeline
         self.elapsedMilliseconds = elapsedMilliseconds
@@ -509,7 +518,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
     /// What the probe can answer for: it drives the bindings, so it sees the
     /// page, the act and the clock — and no turn happened, so it sees no routing.
     public static let probeLayers: [TripFailureLayer] = [
-        .ambient, .perception, .pageRouting, .execution, .timing,
+        .ambient, .perception, .pageRouting, .journey, .execution, .timing,
     ]
 
     /// What a whole turn can answer for: which skill the words reached, on which

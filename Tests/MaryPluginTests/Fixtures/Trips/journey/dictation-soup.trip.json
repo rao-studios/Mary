@@ -1,0 +1,33 @@
+{
+  "category": "journey",
+  "id": "dictation-soup",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 60000
+      },
+      "journey": {
+        "road": "any"
+      },
+      "note": "Reported verbatim: it reached search_web and listed results. A journey is what it asks for, and the words are a mess on purpose \u2014 this leg pins WHERE the sentence goes, not what a search engine makes of it.",
+      "routing": {
+        "intent": "operate",
+        "mustNotReach": [
+          "open_location",
+          "navigate_back"
+        ],
+        "skill": "watch_video"
+      },
+      "say": "OK can we watch Fred again video on YouTube I wanna watch Arun's roof",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "The sentence as dictation actually delivers it \u2014 two thoughts run together, a name misheard, no punctuation."
+}

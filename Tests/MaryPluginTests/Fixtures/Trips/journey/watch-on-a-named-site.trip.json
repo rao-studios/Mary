@@ -1,0 +1,33 @@
+{
+  "category": "journey",
+  "id": "watch-on-a-named-site",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 45000,
+        "landed": true,
+        "receipt": "navigation"
+      },
+      "journey": {
+        "road": "any"
+      },
+      "note": "The corpus asked this in round 0 and the engine could only search: `open` was an optional string no lane could fill, and nothing weighed WHERE a result went. The road is `any` because which one is right depends on what the results actually offer \u2014 a search engine that shows the site's own row lets the first road answer, and one that does not makes the second road correct.",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "watch_video"
+      },
+      "say": "watch a fireplace video on youtube",
+      "speech": {
+        "silence": "forbidden"
+      }
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "front": "browser",
+    "pageClass": "any"
+  },
+  "summary": "Several verbs said as one sentence: search, choose a result that answers both what and where, and if none goes to the site they named, open it and search there."
+}

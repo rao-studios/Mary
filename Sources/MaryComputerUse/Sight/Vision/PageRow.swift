@@ -178,6 +178,15 @@ public struct PageRow: Sendable, Equatable, Identifiable {
     /// today every row is `.seen`.
     public var provenance: AXElementProvenance
 
+    /// THE SITE THIS ROW LEADS TO, as a person would say it — "youtube",
+    /// "wikipedia". Nil for a row that is not a link, and for a link within
+    /// the page's own site whose address the tree did not publish.
+    ///
+    /// PIN: THE SITE, NEVER THE ADDRESS. A row's own link is how "watch it on
+    /// youtube" tells one result from another, and the whole lane speaks site
+    /// names and holds no URLs — so what crosses the seal is the name.
+    public var site: String?
+
     /// An adjustable control's numeric state and range, when the page publishes
     /// them — a slider's value and bounds. A player's progress bar is a slider
     /// whose range is the video's length, which is how a spoken time becomes a
@@ -202,10 +211,12 @@ public struct PageRow: Sendable, Equatable, Identifiable {
         facts: RowFacts = [],
         region: PageRegion? = nil,
         provenance: AXElementProvenance = .seen,
+        site: String? = nil,
         value: Double? = nil,
         minimumValue: Double? = nil,
         maximumValue: Double? = nil
     ) {
+        self.site = site
         self.value = value
         self.minimumValue = minimumValue
         self.maximumValue = maximumValue

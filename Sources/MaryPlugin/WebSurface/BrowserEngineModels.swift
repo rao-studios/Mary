@@ -396,6 +396,8 @@ public struct BrowserEngineSnapshot: Sendable {
     public var dryRun: Bool
     public var lastBrowser: String?
     public var lastChrome: WebSurfaceAX.Reading?
+    /// Which road the last journey took — see `WatchRecipe.Road`.
+    public var lastWatchRoad: String?
     public var lastMedia: MediaControlReading?
     /// The last page read, whole — the same roster the slate was published from.
     ///
@@ -415,7 +417,8 @@ public struct BrowserEngineSnapshot: Sendable {
 
     public init(
         startedAt: Date, dryRun: Bool, lastBrowser: String? = nil,
-        lastChrome: WebSurfaceAX.Reading? = nil, lastMedia: MediaControlReading? = nil,
+        lastChrome: WebSurfaceAX.Reading? = nil, lastWatchRoad: String? = nil,
+        lastMedia: MediaControlReading? = nil,
         lastRoster: PageRoster? = nil, lastRoute: PageRouteTrace? = nil,
         lastRefusal: BrowserRefusal? = nil, acts: Int = 0, refusals: Int = 0,
         perceptions: Int = 0, recent: [String] = []
@@ -424,6 +427,7 @@ public struct BrowserEngineSnapshot: Sendable {
         self.dryRun = dryRun
         self.lastBrowser = lastBrowser
         self.lastChrome = lastChrome
+        self.lastWatchRoad = lastWatchRoad
         self.lastMedia = lastMedia
         self.lastRoster = lastRoster
         self.lastRoute = lastRoute

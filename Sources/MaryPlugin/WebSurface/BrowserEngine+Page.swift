@@ -463,6 +463,17 @@ public extension BrowserEngine {
                 query, pick: pick, in: target, engine: self, deadline: deadline)
         }
     }
+
+    /// Watch something: search, choose a result that answers what AND where,
+    /// and failing that, go to the site they named and search it. One stage for
+    /// the whole journey — see `WatchRecipe`.
+    func watch(
+        _ query: String, in target: BrowserTarget, deadline: Date? = nil
+    ) async -> BrowserOutcome {
+        await journey(target, after: .kept) {
+            await WatchRecipe.watch(query, in: target, engine: self, deadline: deadline)
+        }
+    }
 }
 
 public extension BrowserEngine {

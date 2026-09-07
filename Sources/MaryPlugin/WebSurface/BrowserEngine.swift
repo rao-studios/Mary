@@ -132,6 +132,8 @@ public actor BrowserEngine {
     /// lifetime as the slate, and for the same reason: the moment the page
     /// changes, this describes a list that is no longer on screen.
     var lastResultQuery: String?
+    /// Which road the last journey took — the results, or the site's own search.
+    var lastWatchRoad: WatchRecipe.Road?
     private var lastRefusal: BrowserRefusal?
     private var acts = 0
     private var refusals = 0
@@ -159,6 +161,7 @@ public actor BrowserEngine {
             dryRun: dryRun,
             lastBrowser: lastBrowser,
             lastChrome: lastChrome,
+            lastWatchRoad: lastWatchRoad?.rawValue,
             lastMedia: lastMedia,
             lastRoster: lastRoster,
             lastRoute: lastRoute,

@@ -84,7 +84,29 @@ public enum WebSearchRecipe {
                 spoken: "\"\(asked)\" looks like a site rather than something to search for — say \"go to\" and I'll open it.")
         }
 
-        let opened = await engine.navigate(.open(asked), in: target)
+        // THE RESULTS MAY ALREADY BE IN FRONT, and typing the same query again
+        // cannot prove anything.
+        //
+        // PIN: MEASURED — a second run of the same journey typed the query into
+        // a browser already showing that query's results, nothing changed
+        // (nothing could), and the whole navigation budget was spent before
+        // reporting "the page didn't finish loading" about a page that was
+        // exactly where it was asked to be. This is `settle`'s arrival rule one
+        // level up: the receipt is the page in front, and the same evidence
+        // proves it — the browser's own title and address, asked of the query.
+        let standing = await engine.readShell(target)
+        let opened: BrowserOutcome
+        if let here = standing.shell, searched(for: asked, shell: here) {
+            await engine.emitJourney("already showing results for that")
+            opened = BrowserOutcome(
+                ok: true, spoken: standing.spoken, shell: here,
+                receipts: [PageCommandReceipt(
+                    sourceIndex: 0, kind: .navigate, target: nil, delivery: .delivered,
+                    effect: .verified(.navigation(title: here.title ?? "")))],
+                landed: true)
+        } else {
+            opened = await engine.navigate(.open(asked), in: target)
+        }
         guard opened.ok, let shell = opened.shell else { return opened }
         guard searched(for: asked, shell: shell) else {
             return await engine.refusing(.searchCompletedElsewhere)
@@ -102,7 +124,18 @@ public enum WebSearchRecipe {
         // and the next "open the second one" routed as a bare press over the
         // whole page — measured on two trips. Order is the whole fix.
         await engine.noteResultQuery(asked)
-        let roster = PageRoster(
+        // THE READ'S OWN ROWS, NOT THE AX-SHAPED SHIM.
+        //
+        // PIN: A ROSTER REBUILT FROM `elements` LOSES WHAT ONLY A ROW CARRIES.
+        // `AXScreenElement` is the old pair kept for the callers that still read
+        // it, and a row's site, its slider range and its provenance are not in
+        // it — so rebuilding here handed the router a page whose results all
+        // went nowhere in particular. MEASURED: "watch a fireplace video on
+        // youtube" opened a related-search suggestion literally spelled
+        // "youtube fireplace 24 hours", because the site gate had no sites to
+        // gate on. The engine published the real rows a moment ago; they are
+        // what the route is argued from.
+        let roster = await engine.snapshot().lastRoster ?? PageRoster(
             elements: read.elements, map: read.map ?? PageMapSummary(),
             pageFrame: read.shell?.pageFrame ?? .zero)
 
@@ -211,6 +244,17 @@ extension BrowserEngine {
     /// stopped arbitrating (round 1 E), it stopped remembering, and the next
     /// "open the second one" routed as a bare press over the whole page. The
     /// recipe has just PROVED it made a results page; saying so is its own job.
+    /// Which road a journey took, for the trip that judges it and the bench
+    /// that draws it. Cleared with the slate, like every other verdict about a
+    /// page that may be gone.
+    func noteWatchRoad(_ road: WatchRecipe.Road) {
+        lastWatchRoad = road
+        emit(.acted("took the \(road.rawValue) road"))
+    }
+
+    /// One line of a journey's own narration.
+    func emitJourney(_ line: String) { emit(.acted(line)) }
+
     func noteResultQuery(_ query: String) {
         lastResultQuery = query
     }

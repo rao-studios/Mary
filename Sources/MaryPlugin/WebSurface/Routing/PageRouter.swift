@@ -70,16 +70,28 @@ public struct PageRouteDomain: ArbitrationDomain {
     /// See `PageRouter.clearsFloor`.
     public let goalNamesSomething: Bool
 
+    /// THE SITE THE PERSON NAMED, when the page holds rows that lead there.
+    ///
+    /// PIN: RECOGNISED FROM THE PAGE, NEVER FROM A LIST. "Watch it on youtube"
+    /// names a site, and nothing in this repository may hold a table of sites —
+    /// so what makes "youtube" a site here is that a row on THIS page leads to
+    /// one by that name. The page vouches for the word; the goal only has to
+    /// contain it. A page whose rows lead nowhere named answers nil, and every
+    /// row ranks exactly as it did before.
+    public let siteNamedInGoal: String?
+
     public init(
         verb: PageRouteVerb,
         kindNamedInGoal: PageElementKind?,
         hasFillableRow: Bool,
         hasPick: Bool,
         regionNamedInGoal: PageRegion?? = nil,
-        goalNamesSomething: Bool = false
+        goalNamesSomething: Bool = false,
+        siteNamedInGoal: String? = nil
     ) {
         self.regionNamedInGoal = regionNamedInGoal
         self.goalNamesSomething = goalNamesSomething
+        self.siteNamedInGoal = siteNamedInGoal
         self.verb = verb
         self.kindNamedInGoal = kindNamedInGoal
         self.hasFillableRow = hasFillableRow
@@ -266,6 +278,35 @@ public enum PageRouter {
         if let winner = result.winner {
             return PageRouteArbitration(winner: winner, trace: result.trace)
         }
+        // TWO ROWS THAT LEAD TO THE SAME PLACE UNDER THE SAME NAME ARE ONE
+        // ANSWER, NOT A QUESTION.
+        //
+        // PIN: "A TIE IS A QUESTION, NOT A COIN FLIP" IS ABOUT RIVALS, and these
+        // are not rivals. MEASURED on a search engine that prints its top video
+        // twice — once in a carousel, once in the list: identical title,
+        // identical destination, and Mary asked which of the two the person
+        // meant. Pressing either does the same thing, so asking is a question
+        // with one answer. Same name AND same site, or it is a real ambiguity
+        // and the refusal stands.
+        if !result.rivals.isEmpty,
+           let first = result.rivals.first, first.site != nil,
+           result.rivals.allSatisfy({
+               $0.site == first.site
+                   && RowFactsDerivation.folded($0.label) == RowFactsDerivation.folded(first.label)
+           }) {
+            // THE RECORD SAYS WHAT HAPPENED. A trace still reporting a
+            // clarification nobody was asked for would be evidence of a turn
+            // that did not occur — the one thing a recording may never be.
+            var trace = result.trace
+            trace.decisions = trace.decisions.map { decision in
+                guard decision.id == first.ordinal else { return decision }
+                var decided = decision
+                decided.disposition = .selected
+                decided.reason = "the same page in the same place, twice"
+                return decided
+            }
+            return PageRouteArbitration(winner: first, trace: trace)
+        }
         if !result.rivals.isEmpty {
             return PageRouteArbitration(
                 refusal: .ambiguousElement(
@@ -339,7 +380,35 @@ public enum PageRouter {
             regionNamedInGoal: regionNamed,
             // A POSITION IS NOT A NAME, and neither is an empty goal.
             goalNamesSomething: !goal.isEmpty
-                && !PageElementKindDerivation.namesOnlyAPosition(goal))
+                && !PageElementKindDerivation.namesOnlyAPosition(goal),
+            siteNamedInGoal: siteNamed(in: goal, verb: verb, among: rows))
+    }
+
+    /// The site a goal names, vouched for by the page's own rows.
+    ///
+    /// A site's spoken name is its host's words ("youtube", "ycombinator news"),
+    /// and a goal names it when every one of those words is in the goal — so
+    /// "watch fred again on youtube" names youtube, and "the video about
+    /// youtube's history" names it too, which is the honest reading of a word
+    /// somebody said out loud.
+    static func siteNamed(
+        in goal: String, verb: PageRouteVerb, among rows: [PageRow]
+    ) -> String? {
+        var asked = RowFactsDerivation.folded(goal)
+        if case .openResult(let query) = verb, !query.isEmpty {
+            asked += " " + RowFactsDerivation.folded(query)
+        }
+        let words = Set(asked.split(separator: " ").map(String.init))
+        guard !words.isEmpty else { return nil }
+        let sites = Set(rows.compactMap(\.site))
+        return sites
+            .filter { site in
+                let parts = RowFactsDerivation.folded(site)
+                    .split(separator: " ").map(String.init)
+                return !parts.isEmpty && parts.allSatisfy(words.contains)
+            }
+            // The most specific name the goal covers: "google docs" over "google".
+            .max { $0.count < $1.count }
     }
 
     /// Cosine per slate key, or nothing at all in degraded mode.

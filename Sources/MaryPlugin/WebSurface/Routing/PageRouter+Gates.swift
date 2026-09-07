@@ -60,6 +60,21 @@ public extension PageRouter {
                 return .mismatched("isn't \(wanted.spokenPlace)")
             }
         }
+        // AND WHICH SITE THEY SAID, WHICH IS THE SAME KIND OF NARROWING.
+        //
+        // PIN: A SITE IS A GATE, NOT A CREDIT — the rule a place already keeps,
+        // for the same measured reason. "Watch a fireplace video on youtube" on
+        // a search engine's results: the naming ladder is compared BEFORE the
+        // structure, so a related-search suggestion literally spelled "youtube
+        // fireplace 24 hours" outranked every actual YouTube result, and the
+        // journey opened another results page. A person who says where has
+        // narrowed the page; a row that goes somewhere else is not a worse
+        // answer to that question, it is not an answer. Only ever applied when
+        // the page ITSELF vouches for the word (see `siteNamedInGoal`), and
+        // never against a row whose destination nothing published.
+        if let wanted = domain.siteNamedInGoal, let site = row.site, site != wanted {
+            return .mismatched("goes to \(site), not \(wanted)")
+        }
 
         switch verb {
         case .press:

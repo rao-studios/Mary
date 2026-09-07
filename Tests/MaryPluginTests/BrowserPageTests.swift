@@ -411,6 +411,8 @@ import Testing
     /// a half-typed query into somebody's history is the only way to notice this.
     @Test func aCompletedAddressIsRefusedNotReportedAsResults() async {
         let shell = FakeShell([
+            // The standing read — the recipe asks where it is before it types.
+            BrowsingFixtures.shell(title: "Home", url: "https://example.com/"),
             BrowsingFixtures.shell(title: "Home", url: "https://example.com/"),
             BrowsingFixtures.shell(title: "A Bank", url: "https://bank.example/login"),
         ])
@@ -547,6 +549,8 @@ import Testing
         let hands = FakeHands()
         let engine = BrowsingFixtures.engine(
             shell: FakeShell([
+                // The standing read, then the typing, then the results.
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
                 BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
                 BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
                 BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
@@ -568,6 +572,8 @@ import Testing
         let hands = FakeHands()
         let engine = BrowsingFixtures.engine(
             shell: FakeShell([
+                // The standing read, then the typing, then the results.
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
                 BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
                 BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
                 BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),

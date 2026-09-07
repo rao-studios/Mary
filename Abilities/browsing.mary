@@ -90,7 +90,8 @@
       "browsing.search-web",
       "browsing.switch-tab",
       "browsing.find-in-page",
-      "browsing.close-tab"
+      "browsing.close-tab",
+      "browsing.watch-video"
     ],
     "summary" : "Browsing: which page you are on, going somewhere else, and the page's own video player.",
     "tint" : "#1A73E8",
@@ -519,6 +520,35 @@
       "summary" : "Open the browser's find bar and search the page.",
       "title" : "Find in the Page",
       "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "true"
+        },
+        {
+          "kind" : "allowedTargetClass",
+          "value" : "web-page"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "browser.watch",
+      "inputType" : "browsing.search-query",
+      "outputType" : "browsing.page-listing",
+      "permissions" : [
+        {
+          "kind" : "accessibility",
+          "reason" : "Type into the browser's address bar and the page's own search box."
+        },
+        {
+          "kind" : "screenRecording",
+          "reason" : "Read the results and the player from the page's pixels."
+        }
+      ],
+      "summary" : "Search for something to watch and open it, going to the site they named when the results do not.",
+      "title" : "Watch Something",
+      "version" : "1.0.0"
     }
   ],
   "dependencies" : [
@@ -584,26 +614,6 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Fill in my email address on this page."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "find-a-cat-video",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Find me a video of a cat on youtube."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "find-a-video-on-youtube",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Find me a fireplace video on youtube."
     },
     {
       "expectedDisposition" : "route",
@@ -737,16 +747,6 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "pull-up-a-video-on-youtube",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Pull up a fred again video on youtube."
-    },
-    {
-      "expectedDisposition" : "route",
       "expectedSkill" : "browsing.read-page-text",
       "id" : "read-me-the-first-paragraph-of-this-page",
       "interactions" : [
@@ -864,16 +864,6 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Type fred again into the search box and press return."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "browsing.search-web",
-      "id" : "watch-a-video-on-youtube",
-      "interactions" : [
-
-      ],
-      "targetClass" : "web-page",
-      "utterance" : "Watch a fireplace video on youtube."
     },
     {
       "expectedDisposition" : "route",
@@ -1104,13 +1094,183 @@
       ],
       "targetClass" : "web-page",
       "utterance" : "Which page am I looking at?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "watch-a-fireplace-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Watch a fireplace video on YouTube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "can-we-watch-the-boiler-room-set-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Can we watch the Boiler Room set on YouTube?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "i-want-to-watch-the-trailer-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "I want to watch the trailer on YouTube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "find-me-a-fireplace-video-on-youtube-to-watch",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Find me a fireplace video on YouTube to watch."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "pull-up-a-fred-again-video-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Pull up a Fred again video on YouTube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.watch-video",
+      "id" : "watch-something-about-sourdough-on-youtube",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Watch something about sourdough on YouTube."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "search-the-web-for-touring-boot-reviews",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Search the web for touring boot reviews."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.search-web",
+      "id" : "look-up-when-the-shop-closes",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Look up when the shop closes."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "mute-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Mute the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "turn-the-sound-off-on-this-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Turn the sound off on this video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "unmute-it",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Unmute it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "turn-the-volume-down-on-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Turn the volume down on the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "unmute-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Unmute the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "turn-the-sound-back-on-for-this-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Turn the sound back on for this video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "play-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Play the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "skip-to-the-middle-of-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Skip to the middle of the video."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.control-media",
+      "id" : "stop-the-video",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Stop the video."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4bc75eb8f866118621c92ba6fac31952ddb46746743b7fedcfd9a556a2fd6ac8"
+    "digest" : "065520dc3e341965264764ca6c99ced926b10591e10dbc4e136c9f69f332a2f8"
   },
   "interactions" : [
 
@@ -3229,6 +3389,100 @@
       },
       "summary" : "Close the tab the browser is showing. Realized by the browser's own package, not the web-surface adapter.",
       "title" : "Close the Tab",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "web-surface",
+            "operation" : "watch_video",
+            "preference" : 100,
+            "targetClasses" : [
+              "web-page"
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "browsing.watch-video",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "watch_video",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "query",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "What they want to watch, in their own words — including the site, when they named one.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "app",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "Which browser. Omit for the one they're using.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "browser.watch"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+          "perception.page-context"
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 242
+      },
+      "summary" : "Search for something to watch and open it: the result that answers both what they asked for and the site they named, or that site's own search when no result goes there. Not the player's controls — this FINDS a video, it does not drive one.",
+      "title" : "Find Something to Watch",
       "usesStage" : true,
       "version" : "1.0.0"
     }

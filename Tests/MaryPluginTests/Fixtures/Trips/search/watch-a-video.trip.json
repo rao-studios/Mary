@@ -8,10 +8,12 @@
         "landed": true,
         "receipt": "navigation"
       },
-      "note": "Round 0: search_web's `open` is an optional string, so the confidence lane cannot fill it and this costs a model round. Round 3 declares impliedArguments on the watch verb and this becomes lane confidence.",
+      "note": "Round 0 recorded this as search_web with an `open` no lane could fill. Round 8 makes it a journey: the same sentence names a verb that searches AND chooses.",
       "routing": {
         "intent": "operate",
-        "skill": "search_web"
+        "lane": "confidence",
+        "shape": "singleString",
+        "skill": "watch_video"
       },
       "say": "watch a fireplace video on youtube",
       "speech": {
@@ -24,5 +26,5 @@
     "front": "browser",
     "pageClass": "any"
   },
-  "summary": "Search and open in one sentence \u2014 the composite the confidence lane cannot fill until a verb implies its arguments."
+  "summary": "Search and open in one sentence \u2014 the composite that became a journey."
 }
