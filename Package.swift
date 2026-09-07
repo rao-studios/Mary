@@ -343,7 +343,7 @@ let package = Package(
         // The dance, from a shader file: admission, rehearsal, the beat, the tidy-up.
         .executableTarget(
             name: "DanceProbe",
-            dependencies: ["MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
+            dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/DanceProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),

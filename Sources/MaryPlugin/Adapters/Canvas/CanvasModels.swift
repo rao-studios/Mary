@@ -52,6 +52,16 @@ public enum CanvasPlacement: Sendable, Equatable {
         }
     }
 
+    /// A centred window `fraction` of the screen on each side — what a page
+    /// that must not be the monitor itself asks for.
+    public static func centered(_ fraction: Double, on screen: CGRect) -> CanvasPlacement {
+        let f = min(max(fraction, 0.1), 0.95)
+        let size = CGSize(width: screen.width * f, height: screen.height * f)
+        return .rect(CGRect(
+            x: screen.midX - size.width / 2, y: screen.midY - size.height / 2,
+            width: size.width, height: size.height))
+    }
+
     /// The model-facing spelling, when there is one.
     public init?(spoken: String) {
         switch spoken.lowercased().replacingOccurrences(of: "-", with: "_") {

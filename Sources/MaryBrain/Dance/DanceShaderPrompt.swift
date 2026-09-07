@@ -59,8 +59,11 @@ public enum DanceShaderPrompt {
         var lines: [String] = []
         switch brief.subject {
         case .dance:
-            lines.append("Compose a shader to dance to — energy and movement, several windows of it opening and closing to a beat.")
+            lines.append("Compose a shader to dance to — energy and movement, several windows opening and closing to a beat, each with a shader of its own.")
             lines.append("The FEELING line says what the dance feels like, in your own voice.")
+            if let variant = brief.variant {
+                lines.append("This is shader \(variant.index) of \(variant.of) for the same dance. Make it unlike the others: a different palette, a different kind of motion, a different form — the motifs below are yours alone.")
+            }
         case .mary:
             lines.append("They asked how you feel. Compose a shader that shows it, and say the feeling in one honest sentence.")
         case .person:

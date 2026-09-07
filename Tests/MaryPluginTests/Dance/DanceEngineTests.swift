@@ -99,11 +99,15 @@ enum DanceFixtures {
         #expect(outcome == .started(feeling: "Restless, mostly."))
         let started = await engine.snapshot()
         #expect(started.phase == .dancing || started.phase == .idle)
-        #expect(composer.briefs.count == 1)
         #expect(composer.briefs[0].motifs.count == 3, "motifs are filled in by the engine")
-        #expect(windows.prepared.count == 5, "five pages, prepared before the first beat")
+        #expect(composer.briefs[0].variant == nil)
 
         let finished = await DanceFixtures.settle(engine, until: .idle)
+        // ONE SHADER PER WINDOW: the first, then four variants composed together.
+        #expect(composer.briefs.count == 5, "one composition and four variants")
+        #expect(Set(composer.briefs.dropFirst().compactMap { $0.variant?.index }) == [2, 3, 4, 5])
+        #expect(composer.briefs.dropFirst().allSatisfy { $0.variant?.of == 5 })
+        #expect(windows.prepared.count == 5, "five pages, one per shader")
         #expect(finished.phase == .idle)
         #expect(finished.beats > 10, "fifteen seconds at half a second a beat — \(finished.recent)")
         #expect(finished.windows.isEmpty)
@@ -112,11 +116,38 @@ enum DanceFixtures {
         #expect(windows.peakVisible >= 2, "a dance shows more than one window")
         #expect(stage.currentOwner() == nil)
 
+        // NEVER THE MONITOR ITSELF: every window fits on the screen and none is it.
         let screen = windows.screen!
+        #expect(!windows.shown.isEmpty)
         for shown in windows.shown {
             let frame = shown.placement.frame(on: screen)
-            #expect(screen.contains(frame) || frame == screen, "\(frame) is off screen")
+            #expect(screen.contains(frame), "\(frame) is off screen")
+            #expect(frame.width < screen.width && frame.height < screen.height, "\(frame) is the monitor")
+            #expect(frame.width <= screen.width * DanceEngine.largestFraction + 1)
         }
+    }
+
+    /// A variant that will not compose takes the first shader with its own seed,
+    /// so the troupe is still five.
+    @Test func aVariantThatFailsFallsBackToTheFirstShader() async {
+        let composer = FakeComposer([
+            .success(FakeComposer.good),
+            .failure(.failed("Seer is unreachable")),
+        ])
+        let windows = FakeCanvasWindows()
+        let (engine, _) = DanceFixtures.engine(composer: composer, windows: windows)
+        let events = await engine.events()
+        _ = await engine.dance(DanceFixtures.brief)
+        let finished = await DanceFixtures.settle(engine, until: .idle)
+        #expect(finished.phase == .idle)
+        #expect(windows.prepared.count == 5, "the troupe is whole")
+        var joined: [Bool] = []
+        for await event in events {
+            if case .joined(_, let distinct) = event { joined.append(distinct) }
+            if case .finished = event { break }
+        }
+        #expect(joined.count == 4)
+        #expect(joined.allSatisfy { !$0 }, "every failed variant fell back to the first shader")
     }
 
     @Test func aStopTakesEverythingDown() async {
@@ -229,7 +260,9 @@ enum DanceFixtures {
         #expect(snapshot.showing == 1)
         #expect(snapshot.beats == 0)
         #expect(windows.prepared.first?.title == "How you feel")
-        #expect(windows.shown.first?.placement == .fullScreen)
+        let frame = windows.shown.first!.placement.frame(on: windows.screen!)
+        #expect(frame.width < windows.screen!.width, "a mood is a large window, not the monitor")
+        #expect(abs(frame.midX - windows.screen!.midX) < 1, "and it is centred")
         #expect(await canvas.snapshot().holdsStage)
         #expect(await engine.stop())
         #expect(await engine.snapshot().phase == .idle)

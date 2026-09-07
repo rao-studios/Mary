@@ -73,6 +73,10 @@ import Testing
         #expect(prompt.contains("they: long day"))
         #expect(prompt.contains("was refused: The shader has no main()."))
         #expect(prompt.contains("1: float a;"), "the previous shader is numbered the way the compiler counts")
+        let variant = DanceShaderPrompt.prompt(
+            for: DanceBrief(subject: .dance, utterance: "Let's dance.", motifs: ["teal"], variant: (3, 5)))
+        #expect(variant.contains("shader 3 of 5"))
+        #expect(variant.contains("unlike the others"))
         #expect(DanceShaderPrompt.systemPrompt.contains("gl_FragColor"))
         #expect(DanceShaderPrompt.systemPrompt.contains("no textures"))
     }

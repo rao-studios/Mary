@@ -66,6 +66,8 @@ public enum DanceEvent: Sendable, Equatable {
     case rehearsed(ready: Bool, log: String?)
     case started(DancePhase)
     case beat(Int, shown: CanvasWindowID?, hidden: CanvasWindowID?)
+    /// A troupe window joined the dance — with its own shader, or the first one again.
+    case joined(Int, distinct: Bool)
     case finished(beats: Int)
     case stopped
     case dismissed(by: CanvasDismissal)
@@ -171,6 +173,8 @@ public actor DanceEngine {
         case .started(let phase): line = "started \(phase.rawValue)"
         case .beat(let n, let shown, let hidden):
             line = "beat \(n)" + (shown.map { " shown \($0)" } ?? "") + (hidden.map { " hidden \($0)" } ?? "")
+        case .joined(let index, let distinct):
+            line = "joined \(index)" + (distinct ? " with its own shader" : " with the first shader")
         case .finished(let beats): line = "finished after \(beats) beats"
         case .stopped: line = "stopped"
         case .dismissed(let by): line = "dismissed by \(by)"
@@ -207,32 +211,96 @@ public actor DanceEngine {
         }
         guard generation == mine else { return refuse(.alreadyDancing) }
 
-        // THE REST OF THE TROUPE, prepared now so a beat is orderFront, not a
-        // web-content launch.
-        var prepared = [rehearsal.first]
-        for index in 1..<max(1, seams.maximumWindows) {
-            let seed = seams.random(0...1000)
-            let page = ShaderPage.make(
-                shader: rehearsal.fragment, title: "Mary dances · \(index + 1)", seed: seed, scale: 0.5)
-            if case .success(let receipt) = await seams.canvas.prepare(
-                page, placement: .fullScreen, onDismiss: dismissHook())
-            {
-                prepared.append(receipt.id)
-            }
-        }
-        windows = prepared
+        windows = [rehearsal.first]
         feeling = rehearsal.feeling
         phase = .dancing
         beats = 0
         startedAt = seams.now()
         endsAt = startedAt.map { $0.addingTimeInterval(Self.seconds(seams.danceLength)) }
-        await seams.canvas.show(rehearsal.first, placement: .fullScreen)
+        await seams.canvas.show(rehearsal.first, placement: await randomPlacement())
         emit(.started(.dancing))
 
+        // THE REST OF THE TROUPE — a different shader in every window, composed
+        // together once the first is up, so the dance starts on the first and
+        // fills out over its opening beats. One that fails to compose or compile
+        // falls back to the first shader with a seed of its own.
+        let troupe = Task { [weak self] in
+            await self?.composeTroupe(around: rehearsal.fragment, brief: brief, generation: mine)
+        }
         loop = Task { [weak self] in
             await self?.beat(generation: mine)
+            troupe.cancel()
         }
         return .started(feeling: rehearsal.feeling)
+    }
+
+    /// Variants 2…n, composed concurrently, each prepared as it arrives.
+    private func composeTroupe(around first: GLSLFragment, brief: DanceBrief, generation mine: Int) async {
+        let count = max(1, seams.maximumWindows)
+        guard count > 1 else { return }
+        let seams = self.seams
+        let variants: [(index: Int, brief: DanceBrief)] = (2...count).map { index in
+            var variant = brief
+            variant.motifs = DanceMotifs.pick(random: seams.random)
+            variant.repair = nil
+            variant.variant = (index, count)
+            return (index, variant)
+        }
+        await withTaskGroup(of: (Int, Result<(fragment: GLSLFragment, feeling: String), DanceRefusal>).self) { group in
+            for variant in variants {
+                group.addTask { [weak self] in
+                    guard let self else { return (variant.index, .failure(.alreadyDancing)) }
+                    return (variant.index, await self.composeAdmitted(variant.brief))
+                }
+            }
+            for await (index, composed) in group {
+                guard generation == mine, phase == .dancing else { return }
+                let shader: GLSLFragment
+                switch composed {
+                case .success(let admitted):
+                    shader = admitted.fragment
+                case .failure(let refusal):
+                    emit(.refused(refusal))
+                    shader = first
+                }
+                await join(shader, index: index, fallback: first, generation: mine)
+            }
+        }
+    }
+
+    /// Prepare one troupe window; a page that fails to compile takes the
+    /// first shader instead, so the troupe is whole either way.
+    private func join(_ shader: GLSLFragment, index: Int, fallback: GLSLFragment, generation mine: Int) async {
+        for candidate in shader == fallback ? [fallback] : [shader, fallback] {
+            let seed = seams.random(0...1000)
+            let page = ShaderPage.make(shader: candidate, title: "Mary dances · \(index)", seed: seed, scale: 0.5)
+            guard case .success(let receipt) = await seams.canvas.prepare(
+                page, placement: .panel, onDismiss: dismissHook())
+            else { return }
+            guard generation == mine, phase == .dancing else {
+                _ = await seams.canvas.dismiss(receipt.id)
+                return
+            }
+            if let mended = receipt.ready ? nil : receipt.log.flatMap(candidate.repaired(from:)) {
+                _ = await seams.canvas.dismiss(receipt.id)
+                let retry = ShaderPage.make(shader: mended, title: "Mary dances · \(index)", seed: seed, scale: 0.5)
+                if case .success(let again) = await seams.canvas.prepare(
+                    retry, placement: .panel, onDismiss: dismissHook()), again.ready
+                {
+                    windows.append(again.id)
+                    emit(.joined(index, distinct: candidate != fallback))
+                    return
+                }
+                continue
+            }
+            guard receipt.ready else {
+                _ = await seams.canvas.dismiss(receipt.id)
+                continue
+            }
+            windows.append(receipt.id)
+            emit(.joined(index, distinct: candidate != fallback))
+            return
+        }
     }
 
     /// Compose, rehearse, show one window, and hold it.
@@ -254,7 +322,8 @@ public actor DanceEngine {
             phase = .mood
             startedAt = seams.now()
             endsAt = nil
-            await seams.canvas.show(ready.first, placement: .fullScreen)
+            let screen = await seams.canvas.screenFrame() ?? CGRect(x: 0, y: 0, width: 1440, height: 900)
+            await seams.canvas.show(ready.first, placement: .centered(Self.moodFraction, on: screen))
             emit(.started(.mood))
             return .started(feeling: ready.feeling)
         }
@@ -303,7 +372,7 @@ public actor DanceEngine {
             let seed = seams.random(0...1000)
             let page = ShaderPage.make(shader: attempt.fragment, title: title, seed: seed, scale: scale)
             let receipt: CanvasReceipt
-            switch await seams.canvas.prepare(page, placement: .fullScreen, onDismiss: dismissHook()) {
+            switch await seams.canvas.prepare(page, placement: .panel, onDismiss: dismissHook()) {
             case .failure(let refusal): return .failure(.canvas(refusal))
             case .success(let prepared): receipt = prepared
             }
@@ -316,7 +385,7 @@ public actor DanceEngine {
             if let log = receipt.log, let mended = attempt.fragment.repaired(from: log) {
                 let retry = ShaderPage.make(shader: mended, title: title, seed: seed, scale: scale)
                 if case .success(let again) = await seams.canvas.prepare(
-                    retry, placement: .fullScreen, onDismiss: dismissHook())
+                    retry, placement: .panel, onDismiss: dismissHook())
                 {
                     emit(.rehearsed(ready: again.ready, log: again.log.map { "after Mary's own repair: \($0)" }))
                     if again.ready { return .success((mended, attempt.feeling, again.id)) }
@@ -415,13 +484,16 @@ public actor DanceEngine {
         return ids[min(max(index, 0), ids.count - 1)]
     }
 
-    /// The whole screen one time in five; otherwise a rect a quarter to all
-    /// of it on each side, somewhere it fits.
+    /// NEVER THE MONITOR ITSELF. A dance window is a quarter to
+    /// `largestFraction` of the screen on each side, somewhere it fits.
+    static let largestFraction = 0.7
+    /// And a mood is a large centred window, not the whole screen.
+    static let moodFraction = 0.72
+
     private func randomPlacement() async -> CanvasPlacement {
-        guard let screen = await seams.canvas.screenFrame() else { return .fullScreen }
-        if seams.random(0...1) < 0.2 { return .fullScreen }
-        let width = screen.width * seams.random(0.25...1)
-        let height = screen.height * seams.random(0.25...1)
+        guard let screen = await seams.canvas.screenFrame() else { return .panel }
+        let width = screen.width * seams.random(0.25...Self.largestFraction)
+        let height = screen.height * seams.random(0.25...Self.largestFraction)
         let x = screen.minX + seams.random(0...max(0, screen.width - width))
         let y = screen.minY + seams.random(0...max(0, screen.height - height))
         return .rect(CGRect(x: x, y: y, width: width, height: height))

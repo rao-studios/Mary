@@ -33,6 +33,9 @@ public struct DanceBrief: Sendable, Equatable {
     public var motifs: [String]
     /// A previous attempt and what was wrong with it, for one repair round.
     public var repair: Repair?
+    /// Which shader of a troupe this is (2, 3, …) and how many there are, when
+    /// a dance wants several that differ. Nil for a single shader.
+    public var variant: (index: Int, of: Int)?
 
     public struct Repair: Sendable, Equatable {
         public var glsl: String
@@ -45,13 +48,21 @@ public struct DanceBrief: Sendable, Equatable {
 
     public init(
         subject: DanceSubject, utterance: String, moodHint: String? = nil,
-        motifs: [String] = [], repair: Repair? = nil
+        motifs: [String] = [], repair: Repair? = nil, variant: (index: Int, of: Int)? = nil
     ) {
         self.subject = subject
         self.utterance = utterance
         self.moodHint = moodHint
         self.motifs = motifs
         self.repair = repair
+        self.variant = variant
+    }
+
+    public static func == (lhs: DanceBrief, rhs: DanceBrief) -> Bool {
+        lhs.subject == rhs.subject && lhs.utterance == rhs.utterance
+            && lhs.moodHint == rhs.moodHint && lhs.motifs == rhs.motifs
+            && lhs.repair == rhs.repair && lhs.variant?.index == rhs.variant?.index
+            && lhs.variant?.of == rhs.variant?.of
     }
 }
 

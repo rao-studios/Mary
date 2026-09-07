@@ -57,12 +57,16 @@ synchronous draw after link, then starts its frames when it is seen.
   way `LookingPlugin` takes its describer), admitted (`GLSLFragment.admit`: WebGL1,
   no textures, no `#version`, a `main()` that writes `gl_FragColor`), rehearsed hidden,
   then five windows to a random beat of 0.25–0.9 s for fifteen seconds, and every window
-  down. Two repair rounds if admission refuses, two if the page fails to compile (the
+  down. **A different shader in every window**: the dance starts on the first and the
+  other four are composed together while it plays, each joining as it arrives (a variant
+  that fails takes the first shader with its own seed). **Never the monitor itself**: a
+  dance window is a quarter to seven tenths of the screen on each side, a mood a large
+  centred window. Two repair rounds if admission refuses, two if the page fails to compile (the
   compiler's log, with its line numbers moved back onto the shader's own lines — and an
   int where a float belongs on the named line, a bare literal or a loop counter, is
   floated by Mary herself before any model round); after that a refusal that says why.
   **No shader, no window.**
-- `show_mood` — the same, held still in one full-screen window until dismissed. "How are
+- `show_mood` — the same, held still in one large centred window until dismissed. "How are
   you feeling?" is Mary's; "what do you think I feel like?" is the person's, read off the
   pronouns.
 - `stop_dance` — everything down.
@@ -88,6 +92,7 @@ MARY_EMBEDDING_CALIBRATION=1 swift test --filter DanceCalibrationTests
 ```sh
 swift run mary-canvas-probe --html card.html --panel --seconds 5 --watch
 swift run mary-dance-probe --shader plasma.glsl --watch            # fifteen seconds, five windows
+swift run mary-dance-probe --seer --watch                          # the real composer: a troupe of five shaders
 swift run mary-dance-probe --shader plasma.glsl --mood --seconds 4
 swift run mary-dance-probe --shader broken.glsl --mood             # the compiler's log, then a refusal
 swift run mary-dance-probe --shader plasma.glsl --dry-run          # the beat, on paper

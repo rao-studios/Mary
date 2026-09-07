@@ -200,5 +200,6 @@ import Testing
         #expect(CanvasPlacement(spoken: "full_screen") == .fullScreen)
         #expect(CanvasPlacement(spoken: "Panel") == .panel)
         #expect(CanvasPlacement(spoken: "sideways") == nil)
+        #expect(CanvasPlacement.centered(0.5, on: screen) == .rect(CGRect(x: 250, y: 125, width: 500, height: 250)))
     }
 }
