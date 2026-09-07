@@ -41,36 +41,35 @@ echo "  working in window ${WINDOW:-?}"
 
 mkdir -p "$RECORD"
 echo "▸ driving the corpus"
+drive() {
+    .build/debug/mary-web-probe --browser chrome --trip "$1" \
+        ${WINDOW:+--window "$WINDOW"} \
+        --record "$RECORD" --round "$ROUND" --yes > "$2" 2>&1 || true
+}
 for trip in Tests/MaryPluginTests/Fixtures/Trips/*/*.trip.json; do
     name="$(basename "$trip" .trip.json)"
-    .build/debug/mary-web-probe --browser chrome --trip "$trip" \
-        ${WINDOW:+--window "$WINDOW"} \
-        --record "$RECORD" --round "$ROUND" --yes > "$RECORD/$name.log" 2>&1 || true
+    drive "$trip" "$RECORD/$name.log"
+    # THE ROUND'S WINDOW CAN VANISH UNDER IT — closed by a hand, or by a trip
+    # that closed the last tab. The engine refuses rather than moving into the
+    # person's window (round 10); the round's answer is a fresh window, named
+    # again, and the trip once more. Measured in round 11: one lost window
+    # turned sixty-three legs unstageable.
+    if grep -q "working in is gone" "$RECORD/$name.log"; then
+        echo "  ▸ the round's window is gone — opening another"
+        open -na "Google Chrome" --args --new-window "about:blank"
+        sleep 3
+        WINDOW="$(.build/debug/mary-web-probe --browser chrome --front-window 2>/dev/null | tail -1)"
+        echo "  working in window ${WINDOW:-?}"
+        drive "$trip" "$RECORD/$name.log"
+    fi
     sed -n '/the trip —/,$p' "$RECORD/$name.log" | grep -E '^  [✓✗~·] ' || true
 done
 
-# THE TURN-LEVEL HALF. Every context and journey trip is a turn fact — said
-# from another application, judged on what the whole loop did — so Sand
-# drives them too, in the same window. Sand is a bench and never exits on its
-# own: each run is given ninety seconds to write its recording, then put away.
-echo "▸ driving the turn-level trips through Sand"
-swift build --product Sand > /dev/null
-./scripts/sign-binary.sh .build/debug/Sand > /dev/null
-for trip in Tests/MaryPluginTests/Fixtures/Trips/context/*.trip.json \
-            Tests/MaryPluginTests/Fixtures/Trips/journey/*.trip.json; do
-    name="$(basename "$trip" .trip.json)"
-    .build/debug/Sand --target com.google.Chrome --trip "$trip" --staged \
-        ${WINDOW:+--window "$WINDOW"} \
-        --record "$RECORD" --round "$ROUND" > "$RECORD/$name.turn.log" 2>&1 &
-    SAND=$!
-    for _ in $(seq 1 90); do
-        [ -f "$RECORD/$name.turn.recording.json" ] && break
-        kill -0 "$SAND" 2>/dev/null || break
-        sleep 1
-    done
-    kill "$SAND" 2>/dev/null; wait "$SAND" 2>/dev/null || true
-    grep -E '^  [✓✗~·] ' "$RECORD/$name.turn.log" || true
-done
+# THE TURN-LEVEL HALF IS STILL BY HAND. Sand launched from a script never
+# shows its window and never starts the trip (measured after round 11: alive
+# two minutes, nothing printed, no window on either display); until it can be
+# driven headless, the context and journey trips are run through Sand by hand
+# with the same --window, and their recordings copied beside the probe's.
 
 echo "▸ scoring"
 .build/debug/mary-web-probe --score "$RECORD" --write docs/browsing-trips.md --round "$ROUND"

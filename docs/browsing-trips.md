@@ -1298,6 +1298,48 @@ a poster, one play circle, a duration badge, no bar until the first play —
 refused "not its progress control". Pressing play is playing it from the
 start; the seek to the beginning with no track and a centre glyph is a play.
 
+### Round 10 — the round's window closed, and everything after ran in the person's
+
+Round 10 was the first round in a named window and scored 82% — the best
+yet — and its recordings still carried the same fault as round 9 in a new
+form: the window the script had named closed partway through, every read
+after it fell back to the browser's main window, and that window was the
+person's. Chrome's "main" is whichever window was clicked last; a fallback
+to it is a fallback into somebody's reading.
+
+**A pinned window, or nothing.** `adopt(window:)` now pins: a shell read
+that comes back about any other window is `workingWindowGone`, a refusal,
+never a new working window. And a named window that is not the front one is
+not "already forward" — the raise road runs and raises it, because an
+application in front with the wrong window on top is exactly how ⌘L went
+into the person's omnibox. The address open reads its typing back from the
+working window (it read the main window's field and said "I couldn't find
+the address bar" about a field it had just typed into). Sand takes
+`--window` too; the probe can close a window it opened
+(`--close-window`), and the round script closes its own at the end.
+
+**The clock, from the page's own rows.** Three seconds into a video the OCR
+made out only "10:34", or nothing — the elapsed sits in a highlighted box —
+and a seek refused "I can't tell how long the video is" with the length on
+screen. The elements read the slider lookup already makes carries "Current
+Time 0:22" and "Duration 10:34" as text, so the clock is taken from the rows
+beside the bar before the pixels; and one lone time with the track's fraction
+is a whole clock (at the start it is the length; further in, the division).
+
+**A strip is furniture.** "The first link on this page" reached "Article" —
+the page's own tab, which does nothing. A row of pressables on one baseline,
+in one region, most of them named too shortly to be answers, is a strip
+(`RowFactsDerivation.strips`), whether or not the reading grouped it.
+
+**A blank tab, not merely a second one.** The two-tab stage counted a window
+that earlier trips had left with two pages as staged, and "switch to the
+blank tab" found no blank tab.
+
+Proved live in a fresh pinned window before round 11: the two first-link
+legs, the blank-tab leg, both seeks and "play it from the start" all pass;
+a read against a window that is gone refuses by name; the person's window
+was not read.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -1460,3 +1502,20 @@ Exit criterion not met: act at 75% — under 90%; media at 60% — under 90%; re
 | **all** | **36** | **8** | **7** | **33** | **82%** | P 2 · E 6 |
 
 Exit criterion not met: act at 88% — under 90%; media at 70% — under 90%; search at 75% — under 90%; tabs at 67% — under 90%; context has 1 failing leg(s).
+
+### Round 11 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 4 | 0 | 0 | 11 | 100% | — |
+| arrive | 0 | 8 | 0 | 1 | 0% | E 8 |
+| context | 0 | 0 | 0 | 17 | 0% | — |
+| journey | 0 | 2 | 0 | 0 | 0% | J 2 |
+| media | 0 | 0 | 0 | 13 | 0% | — |
+| read | 1 | 0 | 0 | 6 | 100% | — |
+| recovery | 0 | 0 | 4 | 7 | 0% | — |
+| search | 0 | 4 | 0 | 4 | 0% | R2 1 · E 3 |
+| tabs | 1 | 0 | 1 | 4 | 100% | — |
+| **all** | **6** | **14** | **5** | **63** | **30%** | R2 1 · J 2 · E 11 |
+
+Exit criterion not met: 63 leg(s) unstageable against 20 that ran — stage the machine before reading this table; no leg ran in context, media, recovery; arrive at 0% — under 90%; journey at 0% — under 90%; search at 0% — under 90%; 1 page-routing failure(s) on the recorded corpus.
