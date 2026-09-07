@@ -2,7 +2,9 @@
 //  EngineChoiceTests.swift
 //  MaryRuntimeTests
 //
-//  WHAT: Hosted engine only when the server is allowed AND the user chose it.
+//  WHAT: The three-way backend choice — its wire contract with Seer, its
+//        tolerance of a config written before the split, and the rule that
+//        every lane rides Seer.
 //  OUT:  LLMEngineChoice / applyEngine
 //
 
@@ -13,111 +15,150 @@ import MaryBrain
 
 @Suite struct EngineChoiceTests {
 
+    // MARK: - The wire
+
+    /// These strings ARE the contract with Seer's `LLMProvider`. A rename on
+    /// either side silently reroutes every turn, so both sides pin them.
+    @Test func rawValuesMatchSeersProviderEnum() {
+        #expect(LLMEngineChoice.mistral.rawValue == "mistral")
+        #expect(LLMEngineChoice.local.rawValue == "local")
+        #expect(LLMEngineChoice.tinker.rawValue == "tinker")
+        #expect(Set(LLMEngineChoice.allCases.map(\.rawValue)) == Set(["mistral", "local", "tinker"]))
+    }
+
     // MARK: - The rule
 
+    /// EVERY LANE RIDES SEER NOW. The choice says which backend Seer uses; it
+    /// never decides whether Seer is used, because there is no second engine
+    /// in this process any more.
     @Test(arguments: [
-        (LLMEngineChoice.hosted, true, true),
-        (LLMEngineChoice.hosted, false, false),
-        (LLMEngineChoice.local, true, false),
+        (LLMEngineChoice.mistral, true, true),
+        (LLMEngineChoice.mistral, false, false),
+        (LLMEngineChoice.local, true, true),
         (LLMEngineChoice.local, false, false),
+        (LLMEngineChoice.tinker, true, true),
+        (LLMEngineChoice.tinker, false, false),
     ])
-    func onlyHostedAndEnabledSendsTheTurnToSeer(
+    func onlyTheServerToggleDecidesWhetherSeerCarriesTheTurn(
         _ engine: LLMEngineChoice, _ seerEnabled: Bool, _ expected: Bool
     ) {
         #expect(
-            MaryRuntime.seerCarriesTurns(engine: engine, seerEnabled: seerEnabled)
-                == expected)
-    }
-
-    /// THE ONE THAT WAS BROKEN, called out on its own because a row in a table
-    /// is easy to read past. Choosing on-device must keep the turn on the
-    /// device even when the server is up, signed in and perfectly willing.
-    @Test func choosingOnDeviceKeepsTheTurnOffSeerEvenWhenSeerIsAvailable() {
+            MaryRuntime.seerCarriesTurns(engine: engine, seerEnabled: seerEnabled) == expected)
         #expect(
-            MaryRuntime.seerCarriesTurns(engine: .local, seerEnabled: true) == false)
-    }
-
-    // MARK: - The default
-
-    /// HOSTED IS THE DEFAULT because it is what the build already did:
-    /// `seerEnabled` and `autoStartServers` default true and the turn loop
-    /// takes the Seer path whenever the server answers. A fresh install that
-    /// read "Local (on device)" was describing a turn that had gone to Seer.
-    @Test func aFreshInstallPrefersSeer() {
-        #expect(ConfigService.Center.State().llmEngine == .hosted)
-        #expect(ConfigService.Center.State().seerEnabled)
+            MaryRuntime.seerCarriesSkills(engine: engine, seerEnabled: seerEnabled) == expected)
         #expect(
-            MaryRuntime.seerCarriesTurns(
-                engine: ConfigService.Center.State().llmEngine,
-                seerEnabled: ConfigService.Center.State().seerEnabled))
+            MaryRuntime.seerCarriesCoding(engine: engine, seerEnabled: seerEnabled) == expected)
     }
 
-    /// A STORED CONFIG FROM BEFORE THIS CHANGE has no `llmEngine` key only if
-    /// it never had one; anything already written keeps what it says. The
-    /// tolerant decode's fallback is what a fresh restore lands on, and it must
-    /// agree with the struct's own default or the two disagree about a first
-    /// run depending on whether a file existed.
+    /// On-device is a Seer backend, not a bypass: choosing it must still leave
+    /// the turn on the server, which is the whole point of the move.
+    @Test func choosingOnDeviceStillGoesThroughSeer() {
+        #expect(MaryRuntime.seerCarriesTurns(engine: .local, seerEnabled: true))
+        #expect(LLMEngineChoice.local.isOnDevice)
+        #expect(!LLMEngineChoice.mistral.isOnDevice)
+    }
+
+    // MARK: - The defaults
+
+    @Test func aFreshInstallUsesMistralOnEveryLane() {
+        let state = ConfigService.Center.State()
+        #expect(state.llmEngine == .mistral)
+        #expect(state.skillEngine == .mistral)
+        #expect(state.codingEngine == .mistral)
+        #expect(state.seerEnabled)
+        #expect(state.codingAgentEnabled == false)
+    }
+
     @Test func theDecodeFallbackAgreesWithTheDeclaredDefault() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self, from: Data("{}".utf8))
         #expect(restored.llmEngine == ConfigService.Center.State().llmEngine)
         #expect(restored.skillEngine == ConfigService.Center.State().skillEngine)
+        #expect(restored.codingEngine == ConfigService.Center.State().codingEngine)
     }
 
-    @Test func aFreshInstallKeepsSkillsOnDevice() {
-        #expect(ConfigService.Center.State().skillEngine == .local)
-        #expect(
-            MaryRuntime.seerCarriesSkills(
-                engine: ConfigService.Center.State().skillEngine,
-                seerEnabled: ConfigService.Center.State().seerEnabled) == false)
-    }
+    // MARK: - The migration
 
-    @Test(arguments: [
-        (LLMEngineChoice.hosted, true, true),
-        (LLMEngineChoice.hosted, false, false),
-        (LLMEngineChoice.local, true, false),
-        (LLMEngineChoice.local, false, false),
-    ])
-    func onlyHostedAndEnabledSendsSkillsToSeer(
-        _ engine: LLMEngineChoice, _ seerEnabled: Bool, _ expected: Bool
-    ) {
-        #expect(
-            MaryRuntime.seerCarriesSkills(engine: engine, seerEnabled: seerEnabled)
-                == expected)
-    }
-
-    @Test func anExplicitHostedSkillChoiceSurvivesRestore() throws {
+    /// A CONFIG WRITTEN BEFORE THE SPLIT SAYS "hosted". Decoding must not
+    /// throw: Granite re-seeds every setting when a stored State fails to
+    /// decode, so a strict enum here would wipe voices, projects and servers.
+    @Test func theOldHostedValueBecomesMistralWithoutLosingTheRest() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self,
-            from: Data(#"{"skillEngine":"hosted"}"#.utf8))
-        #expect(restored.skillEngine == .hosted)
-        #expect(restored.llmEngine == .hosted)
+            from: Data(#"{"llmEngine":"hosted","skillEngine":"hosted","codingEngine":"hosted","voice":"af_bella","seerPort":9999}"#.utf8))
+        #expect(restored.llmEngine == .mistral)
+        #expect(restored.skillEngine == .mistral)
+        #expect(restored.codingEngine == .mistral)
+        // The rest of the file survived, which is what the tolerance is for.
+        #expect(restored.voice == "af_bella")
+        #expect(restored.seerPort == 9999)
     }
 
-    /// AND AN EXPLICIT CHOICE SURVIVES THE ROUND TRIP — the default must not
-    /// quietly overwrite a person who went and picked on-device.
-    @Test func anExplicitOnDeviceChoiceIsNotOverriddenByTheNewDefault() throws {
+    /// The pre-split on-device value keeps its meaning — it now names Seer's
+    /// on-device backend rather than an in-process one.
+    @Test func theOldLocalValueStillMeansOnDevice() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self,
-            from: Data(#"{"llmEngine":"local"}"#.utf8))
+            from: Data(#"{"llmEngine":"local","skillEngine":"local"}"#.utf8))
         #expect(restored.llmEngine == .local)
         #expect(restored.skillEngine == .local)
     }
 
-    @Test func aFreshInstallKeepsCodingOnDeviceAndOff() {
-        #expect(ConfigService.Center.State().codingEngine == .local)
-        #expect(ConfigService.Center.State().codingAgentEnabled == false)
-        #expect(
-            MaryRuntime.seerCarriesCoding(
-                engine: ConfigService.Center.State().codingEngine,
-                seerEnabled: true) == false)
-    }
-
-    @Test func anExplicitHostedCodingChoiceSurvivesRestore() throws {
+    @Test func anUnknownBackendFallsBackRatherThanDiscardingTheConfig() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self,
-            from: Data(#"{"codingEngine":"hosted"}"#.utf8))
-        #expect(restored.codingEngine == .hosted)
-        #expect(restored.codingAgentEnabled == false)
+            from: Data(#"{"llmEngine":"gemini","seerPort":8123}"#.utf8))
+        #expect(restored.llmEngine == .mistral)
+        #expect(restored.seerPort == 8123)
+    }
+
+    @Test func anExplicitChoiceSurvivesRestore() throws {
+        let restored = try JSONDecoder().decode(
+            ConfigService.Center.State.self,
+            from: Data(#"{"llmEngine":"tinker","skillEngine":"local"}"#.utf8))
+        #expect(restored.llmEngine == .tinker)
+        #expect(restored.skillEngine == .local)
+    }
+}
+
+/// The Metal library a GPU-serving checkout needs beside its binary. SwiftPM
+/// has no Metal step, so building a server means building this too — without
+/// it the first model load dies inside MLX, past any Swift error handling.
+@Suite struct StackMetallibTests {
+
+    @Test func aCheckoutWithNoScriptNeedsNoMetalStep() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        #expect(LocalStackManager.metallibScript(in: directory.path) == nil)
+    }
+
+    @Test(arguments: ["scripts/build-metallib.sh", "build-metallib.sh"])
+    func theScriptIsFoundAtEitherPlaceTheSiblingsKeepIt(_ relative: String) throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        let script = directory.appendingPathComponent(relative)
+        try FileManager.default.createDirectory(
+            at: script.deletingLastPathComponent(), withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try Data("#!/bin/bash\n".utf8).write(to: script)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o755], ofItemAtPath: script.path)
+        #expect(LocalStackManager.metallibScript(in: directory.path) == script.path)
+    }
+
+    /// A script that is present but not executable would fail at spawn time;
+    /// reporting "no metal step" for it hides the real problem.
+    @Test func aNonExecutableScriptIsNotTreatedAsUsable() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let script = directory.appendingPathComponent("build-metallib.sh")
+        try Data("#!/bin/bash\n".utf8).write(to: script)
+        try FileManager.default.setAttributes(
+            [.posixPermissions: 0o644], ofItemAtPath: script.path)
+        #expect(LocalStackManager.metallibScript(in: directory.path) == nil)
     }
 }

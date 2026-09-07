@@ -199,6 +199,84 @@ import Testing
         #expect(PageMapProjection.caption(for: old, at: now).contains("STALE"))
     }
 
+    // MARK: - What is true of a row
+
+    /// THE ANSWER WHEN NO GOAL WAS SPOKEN. A plain `read_page` produces no route,
+    /// and that is exactly the case a person tuning this lane is looking at:
+    /// "why does this page offer four icons when I can see sixty titles".
+    @Test func aRowCarriesTheFactsThatExplainARefusal() {
+        var promoted = Self.row(1, "Alpine touring boots reviewed")
+        promoted.facts = [.promoted, .inFurnitureBand]
+        #expect(PageMapProjection.factWords(for: promoted) == "promoted · furniture band")
+    }
+
+    /// A HEALTHY ROW DRAWS NO ANNOTATION. Nil rather than an empty string, so the
+    /// overlay has nothing to render rather than an empty label to lay out.
+    @Test func aRowWithNothingAgainstItSaysNothing() {
+        #expect(PageMapProjection.factWords(for: Self.row(1, "Alpine touring boots")) == nil)
+    }
+
+    /// CREDITS ARE NOT EXPLANATIONS. Sitting in a result group is why a row is
+    /// GOOD; a reader scanning for the reason a page read badly wants demotions.
+    @Test func aCreditIsNotReportedAsAReason() {
+        var credited = Self.row(1, "Alpine touring boots reviewed")
+        credited.facts = [.inResultGroup, .inOverlay]
+        #expect(PageMapProjection.factWords(for: credited) == nil)
+    }
+
+    /// AND THE OVERLAY DRAWS THE SAME ROWS THE PANEL COUNTS, AND THE CAPTION
+    /// COUNTS THEM TOO. Drawing from the AX-shaped shim while the panel beside it
+    /// counted rows was two views of one page in one file; the caption counting
+    /// `elements` and re-deriving "named" from the side-car was the third.
+    @Test func theOverlayThePanelAndTheCaptionDescribeOnePage() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+            (role: "AXTextField", label: "Search", affordance: .fill),
+        ])
+        let drawn = PageMapProjection.rows(for: page, plane: plane, size: size)
+        #expect(drawn.map(\.id) == page.rows.map(\.ordinal))
+        #expect(PageMapProjection.caption(for: page).hasPrefix("2 rows · 2 named"))
+    }
+
+    // MARK: - Was the reading any good
+
+    /// THE ONE FINDING A BAD PAGE LOOKS EXACTLY LIKE. Without the model installed
+    /// the map still reads a page — edges, words and geometry are the rows — but
+    /// every role is a shape's best guess, so the page simply looks BAD. A bench
+    /// that cannot tell that from a hard page is no use for "is VisionAX doing
+    /// its job", and this was dropped at the engine's read and reached nobody.
+    @Test func theCaptionSaysWhenNoClassifierRan() {
+        let page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+        ])
+        var unclassified = page
+        unclassified.classified = false
+        #expect(!PageMapProjection.caption(for: page).contains("NO CLASSIFIER"))
+        #expect(PageMapProjection.caption(for: unclassified).contains("NO CLASSIFIER"))
+    }
+
+    /// AND WHAT THE READ COST, because the reading already measured it and a bench
+    /// that has the number and hides it asks a person to time it by hand.
+    @Test func theCaptionSaysWhatTheReadCost() {
+        var page = roster([
+            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
+        ])
+        page.readDuration = .milliseconds(224)
+        #expect(PageMapProjection.caption(for: page).contains("224ms"))
+        // A roster with no measurement says nothing rather than "0ms".
+        var unmeasured = page
+        unmeasured.readDuration = nil
+        #expect(!PageMapProjection.caption(for: unmeasured).contains("ms"))
+    }
+
+    private static func row(_ ordinal: Int, _ label: String) -> PageRow {
+        PageRow(
+            ordinal: ordinal,
+            frame: CGRect(x: 0, y: CGFloat(ordinal) * 40, width: 400, height: 30),
+            label: label,
+            labelSource: .textInside,
+            affordance: .press)
+    }
 }
 
 /// The words a watcher is given for something that already happened.
@@ -257,4 +335,5 @@ import Testing
     @Test func anOrdinaryOutcomeHasNoReceiptWords() {
         #expect(SkillOutcome(ok: true, summary: "Done.").receiptWords.isEmpty)
     }
+
 }

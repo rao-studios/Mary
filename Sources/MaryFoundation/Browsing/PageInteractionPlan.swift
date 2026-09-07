@@ -23,6 +23,25 @@ public enum PageInteractionCommandKind: String, Codable, Hashable, Sendable, Cas
     case adjust
     case scroll
     case wait
+    /// THE ENGINE'S OWN ACT, WHICH NO PLAN MAY NAME.
+    ///
+    /// PIN: A RECEIPT KIND, NOT A COMMAND. A navigation is receipt rank one —
+    /// "the browser went somewhere and stayed" — and it had no kind to be
+    /// reported under, so `settle` returned success carrying NO receipt at all
+    /// and every `open_location`, `navigate_back`, `reload_page` and `search_web`
+    /// reported its work as unproven. Measured across six legs of round 0: the
+    /// continuation nudge then asks the model for work that is already done.
+    /// It is engine-only for the same reason a browser chord is: a model-authored
+    /// plan that could say "navigate" would be steering the browser through a
+    /// grammar meant for acting INSIDE a page. `PageInteractionPlanValidator`
+    /// refuses it exactly as it refuses a kind that does not exist.
+    case navigate
+
+    /// Kinds the engine reports but a plan may not author.
+    public static let engineOnly: Set<PageInteractionCommandKind> = [.navigate]
+
+    /// Whether a model-authored plan may name this kind.
+    public var isAuthorable: Bool { !Self.engineOnly.contains(self) }
 }
 
 /// A unit point in the visible page: (0, 0) is upper-leading, (1, 1) lower-trailing.

@@ -102,6 +102,40 @@ public enum AccessibilityWindowCore {
         ComputerUseMonitor.shared.note(lane: .windows, act: "restore")
     }
 
+    /// Minimize with a CHECKED write; a no-op on a window already minimized.
+    /// The counterpart of `restore`, so a runner can stage the state the
+    /// activation ladder's raise road exists for.
+    /// Give a window a size, through its own attributes. Stage hygiene for a
+    /// runner: a page laid out in a window twice as wide reads differently,
+    /// and a round that compares itself with the last needs the same frame.
+    public static func resize(_ element: AXUIElement, to size: CGSize) throws {
+        var value = size
+        guard let boxed = AXValueCreate(.cgSize, &value),
+              AXUIElementSetAttributeValue(element, kAXSizeAttribute as CFString, boxed) == .success
+        else {
+            ComputerUseMonitor.shared.note(
+                lane: .windows, refused: "resize",
+                reason: .other("the window refused to resize"))
+            throw WindowManagementError.operationFailed(
+                "Accessibility couldn't resize that window.")
+        }
+        ComputerUseMonitor.shared.note(lane: .windows, act: "resize")
+    }
+
+    public static func minimize(_ element: AXUIElement) throws {
+        if copyBool(element, kAXMinimizedAttribute) == true { return }
+        guard AXUIElementSetAttributeValue(
+            element, kAXMinimizedAttribute as CFString, kCFBooleanTrue) == .success
+        else {
+            ComputerUseMonitor.shared.note(
+                lane: .windows, refused: "minimize",
+                reason: .other("the window refused to minimize"))
+            throw WindowManagementError.operationFailed(
+                "Accessibility couldn't minimize that window.")
+        }
+        ComputerUseMonitor.shared.note(lane: .windows, act: "minimize")
+    }
+
     /// Activate and WAIT until the process is actually frontmost.
     public static func activate(pid: pid_t) async -> Bool {
         // The two roads now live in `VerifiedActivation`, at the contract root — extracted

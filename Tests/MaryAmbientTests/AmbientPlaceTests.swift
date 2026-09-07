@@ -146,6 +146,39 @@ import Testing
         }
     }
 
+    /// THE BROWSER WORKSPACE IS BACKED BY A BROWSER'S REGISTRATION. No package
+    /// registers under the id "browser", so the place answered nil for its
+    /// registration and everything derived from one — class, eyes, craft —
+    /// answered as though no browser were installed. It could never lead, and
+    /// naming it did nothing.
+    @Test func theBrowserWorkspaceIsBackedByABrowsingRegistration() {
+        let chrome = ApplicationRegistration(
+            id: "chrome",
+            profile: ApplicationProfile(
+                id: "chrome", title: "Google Chrome", summary: "Browser.",
+                abilities: [.browsing]),
+            bundleIdentifiers: ["com.google.Chrome"],
+            placeClass: .workspace,
+            displayName: "Chrome",
+            perception: ApplicationPerception(
+                kind: .workspace, documentOperation: "page_context", pollSeconds: 15))
+        let sketch = sketch(placeClass: .dataSource)
+        withRoster([sketch, chrome]) {
+            let place = AmbientPlaceResolver.browserPlace
+            #expect(place.registration?.id == "chrome")
+            #expect(place.placeClass == .workspace)
+            #expect(place.hasEyes)
+            #expect(place.ability == .browsing)
+        }
+        // AND NOTHING ELSE BORROWS THE RULE: a place nobody registered stays unbacked.
+        withRoster([chrome]) {
+            #expect(AmbientPlace.application("sketch").registration == nil)
+        }
+        withRoster([sketch]) {
+            #expect(AmbientPlaceResolver.browserPlace.registration == nil)
+        }
+    }
+
     @Test func aRegisteredApplicationMintsItsOwnHandles() {
         let registry = ContainerRegistry()
         let handle = registry.handle(

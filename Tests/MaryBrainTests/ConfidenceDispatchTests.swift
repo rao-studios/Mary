@@ -38,18 +38,43 @@ import Testing
                 == .singleString)
     }
 
-    /// STRUCTURED DATA IS NOT A SPOKEN SPAN, and composed content is not a
-    /// span at all — both keep their model round.
-    @Test func enumsAndComposedContentDoNotQualify() {
+    /// COMPOSED CONTENT IS NOT A SPAN AT ALL, and a number is not spoken —
+    /// both keep their model round whatever the sentence says.
+    @Test func composedContentAndNonStringsDoNotQualify() {
         #expect(
             EmbeddingRouting.confidenceShape(
-                of: Self.skill(required: [("mode", "string", ["a", "b"], false)])) == nil)
+                of: Self.skill(required: [("text", "string", [], true)]),
+                utterance: "write it up") == nil)
         #expect(
             EmbeddingRouting.confidenceShape(
-                of: Self.skill(required: [("text", "string", [], true)])) == nil)
+                of: Self.skill(required: [("count", "number", [], false)]),
+                utterance: "three of them") == nil)
+    }
+
+    /// AN ENUM VALUE THE PERSON ACTUALLY NAMED IS A THING THEY SAID.
+    ///
+    /// THE BUG THIS FIXES: enums were excluded wholesale as "structured data,
+    /// not a spoken span" — true of the span, wrong about the value. "pause" IS
+    /// the enum member, said out loud. The exclusion is what made every "can you
+    /// pause the music" cost a model round, and a small model with two
+    /// near-identical transport skills in front of it is exactly where that
+    /// round goes wrong. The gate is now the sentence, not the type.
+    @Test func anEnumValueTheSentenceNamesQualifies() {
+        let skill = Self.skill(required: [("mode", "string", ["pause", "play"], false)])
         #expect(
-            EmbeddingRouting.confidenceShape(
-                of: Self.skill(required: [("count", "number", [], false)])) == nil)
+            EmbeddingRouting.confidenceShape(of: skill, utterance: "pause it")
+                == .singleEnum)
+    }
+
+    /// AND NOTHING ELSE DOES. No value named, or two named, still goes to the
+    /// model — including the shape-only ask, which has no sentence to read.
+    @Test func anEnumWithoutOneNamedValueDoesNot() {
+        let skill = Self.skill(required: [("mode", "string", ["pause", "play"], false)])
+        #expect(EmbeddingRouting.confidenceShape(of: skill) == nil)
+        #expect(EmbeddingRouting.confidenceShape(of: skill, utterance: "do it") == nil)
+        #expect(
+            EmbeddingRouting.confidenceShape(of: skill, utterance: "pause it then play it")
+                == nil)
     }
 
     /// Two required arguments is a form, not an utterance.
@@ -70,11 +95,26 @@ import Testing
         "list my windows then bring them forward",
         "bring them forward, also hide the rest",
         "bring my windows forward plus tidy the desktop",
-        "what windows do I have open?",
         "could you please go through and bring every single one of my open windows forward now",
+        // A "?" in the MIDDLE really is two utterances run together.
+        "is that up? bring them forward",
     ])
-    func acompoundOrQuestioningSentenceKeepsItsLane(_ utterance: String) {
+    func acompoundSentenceKeepsItsLane(_ utterance: String) {
         #expect(!EmbeddingRouting.isSingleClause(utterance), "[\(utterance)]")
+    }
+
+    /// A TRAILING QUESTION MARK ENDS A SENTENCE; IT DOES NOT JOIN TWO.
+    ///
+    /// Dictation punctuates. "Can you go back?" is one clause and one act, and
+    /// refusing it for its final character sent a plain request to the model
+    /// while the identical sentence without the mark acted immediately.
+    @Test(arguments: [
+        "can you go back?",
+        "bring all my windows forward?",
+        "exit full screen?",
+    ])
+    func aDictatedQuestionMarkIsStillOneClause(_ utterance: String) {
+        #expect(EmbeddingRouting.isSingleClause(utterance), "[\(utterance)]")
     }
 
     @Test(arguments: [

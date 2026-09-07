@@ -38,11 +38,28 @@ extension AbilityRosterArbitrator {
         context: AbilityRoutingContext,
         skillID: SkillID? = nil
     ) -> AbilityRoutingEvidenceScore {
+        // DIRECT-INTERACTION EVIDENCE IS AN INTERACTION THAT IS ACTUALLY HERE.
+        //
+        // PIN: MEASURED, AND IT IS THE SAME FAULT AS THE ABILITY ELECTION ONE
+        // TIER UP. `?? 1` credited a Skill for merely DECLARING an optional
+        // interaction, present or not — so `bring_window_forward`, which
+        // declares `interaction.window-reference`, scored 1 on a turn with no
+        // window reference at all. One member scoring above zero is what makes
+        // `resolvedPolicy` choose `preferDirectInteraction`, whose rank vector
+        // compares this term FIRST — so "bring all my windows forward", which
+        // matches its own Skill's corpus exactly (1.00 against 0.64), lost its
+        // conflict group on a pointing gesture nobody made. Found by the
+        // executable fixture test: the package stated the promise, and nothing
+        // had ever run it.
+        //
+        // The clamp stays: an interaction that IS present but carries no
+        // recorded rank is worth 1, which is what "present, unranked" means.
         let directIDs = Set(requirements?.interactions ?? [])
             .union(requirements?.optionalInteractions ?? [])
             .union(policy.eligibility.map {
                 positiveInteractionIDs(in: $0, context: context)
             } ?? [])
+            .filter { context.interactions.contains($0) }
         let direct = directIDs.reduce(0) { partial, id in
             partial + min(max(context.interactionEvidenceRanks[id] ?? 1, 1), 10_000)
         }

@@ -35,22 +35,44 @@ public enum SpokenArgumentExtractor {
         triggers: AbilityTriggerSchema,
         applicationAliases: Set<String>
     ) -> String {
+        peeled(utterance, triggers: triggers, applicationAliases: applicationAliases).value
+    }
+
+    /// The same peeling, SAYING WHAT IT DID. A shortcut that dispatches with no
+    /// model round is trusted entirely on the span this produced, and until now
+    /// the only visible evidence was the final string — so a wrong argument and
+    /// a right one looked identical. Each entry is one stage that actually
+    /// changed the text; a stage that backed off says nothing.
+    public static func peeled(
+        _ utterance: String,
+        triggers: AbilityTriggerSchema,
+        applicationAliases: Set<String>
+    ) -> (value: String, stages: [String]) {
         let aliasWords = Set(applicationAliases.flatMap(letterWords))
+        var stages: [String] = []
+        func note(_ label: String, _ from: String, _ to: String) {
+            guard from != to else { return }
+            stages.append("\(label): \"\(to)\"")
+        }
 
         let stage1 = EditIntentClassifier.stripPreamble(
             utterance, applicationAliases: applicationAliases)
-        guard let base1 = nonEmpty(stage1) else { return utterance }
+        guard let base1 = nonEmpty(stage1) else { return (utterance, stages) }
+        note("preamble", utterance, base1)
 
         let stage2 = strippingLeadingOpenClause(base1, aliasWords: aliasWords)
         let base2 = nonEmpty(stage2) ?? base1
+        note("open clause", base1, base2)
 
         let stage3 = strippingLeadingCommandPhrase(base2, triggers: triggers)
         let base3 = nonEmpty(stage3) ?? base2
+        note("trigger", base2, base3)
 
         let stage4 = strippingTrailingAppContext(base3, aliasWords: aliasWords)
         let base4 = nonEmpty(stage4) ?? base3
+        note("trailing app", base3, base4)
 
-        return base4
+        return (base4, stages)
     }
 
     private static func nonEmpty(_ text: String) -> String? {

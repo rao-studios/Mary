@@ -23,6 +23,9 @@ extension MaryBrain {
         epoch: UInt64,
         superseding: Bool
     ) async {
+        turnClockStart = DispatchTime.now()
+        turnMarks = []
+        defer { logTurnClock() }
         // A request owns the exact source selection that existed before the request UI became frontmost.
         // Workspace deactivation is delivered asynchronously.
         await SelectionHandoffCoordinator.shared.capturePendingSourceAsync()
@@ -373,10 +376,12 @@ extension MaryBrain {
         // route lands. Two projections, because there are genuinely two
         // rosters in a turn body, not because either is asked twice.
         let offeredNames = dispatcher?.projectRoster().names ?? []
+        mark("roster")
         let triage = TurnTriage.verdict(
             query: routingQuery,
             registry: turnRegistry,
             offeredNames: offeredNames)
+        mark("triage")
         let embeddingIntent = triage.intent
         // Revision is STRUCTURE, so it ORs in rather than being embedded.
         var actionTurn = editIntent != nil || triage.isActionShaped
@@ -410,10 +415,18 @@ extension MaryBrain {
         // THE ROUTED ROSTER, as the circuit log has always seen it: after the
         // route, before the referent.
         let routedProjection = dispatcher?.projectRoster()
+        mark("roster")
         // And as a watcher sees it — from in here, where the turn's signals and
         // task-locals are still standing. A confidence-lane dispatch returns before the
         // second projection below, so for that path this is the only one there is.
-        if let trace = routedProjection?.trace { rosterProjectionObserver?(trace) }
+        //
+        // THE SEMANTIC READ RIDES ALONG. `triage` already holds the intent, its
+        // score, its runner-up and the unique pick, computed once above; without
+        // this it reached os_log and nothing else, and a bench could see WHICH
+        // skills were offered but never what the words were judged to mean.
+        if let trace = routedProjection?.trace {
+            rosterProjectionObserver?(trace.carrying(triage.verdictValue()))
+        }
         actionTurn = route.isActionTurn
         let offeredAffinities = triage.skillAffinities
         let uniqueSkill = triage.uniqueSkill
@@ -483,7 +496,7 @@ extension MaryBrain {
            decisionOutcome == nil, editIntent == nil, !hadPendingAction,
            route.intent == .operate,
            let skill = uniqueSkill,
-           let shape = EmbeddingRouting.confidenceShape(of: skill),
+           let shape = EmbeddingRouting.confidenceShape(of: skill, utterance: userText),
            // A verb carrying no span claims the WHOLE sentence, so it only
            // acts on a whole simple one. A skill extracting a span already
            // reads around the joiners it finds.
@@ -491,9 +504,20 @@ extension MaryBrain {
             let name = skill.reference.invocationName
             let applicationID = route.gate.applications.count == 1
                 ? route.gate.applications.first : nil
-            let argumentsJSON = EmbeddingRouting.argumentsJSON(
+            let filled = EmbeddingRouting.filledArguments(
                 for: skill, utterance: userText, applicationID: applicationID,
                 applicationProfiles: applicationProfiles)
+            let argumentsJSON = filled.json
+            // WHAT THE SHORTCUT DID, said where somebody can read it. A dispatch
+            // with no model round is the hardest lane to trust on sight: the only
+            // evidence it was right is the peeling that produced its arguments.
+            if let trace = routedProjection?.trace {
+                rosterProjectionObserver?(trace.carrying(triage.verdictValue(
+                    lane: .confidence(
+                        invocationName: name,
+                        argumentsJSON: argumentsJSON,
+                        stages: filled.stages))))
+            }
             let outcome = await performSkillTurn(
                 dispatcher: dispatcher,
                 name: name,
@@ -512,8 +536,15 @@ extension MaryBrain {
                 "embed dispatch — invoke \(name, privacy: .public)")
             // A committed guess must speak — silence here would start
             // playing the wrong thing with no way to catch it.
-            let spoken = (outcome.ok && !outcome.foundNothing && !outcome.committedGuess)
-                ? "" : outcome.summary
+            // AND AN ACT SPEAKS ITS RECEIPT. "Click the first link on this page"
+            // pressed the link, the page changed, and the turn ended without a
+            // word — measured through the bench, and reported by the person as a
+            // command that "did not work"; "find the word budget" opened the
+            // find bar and said nothing. What the machine did is the one thing
+            // worth a sentence: what it opened, what it paused, what it is
+            // looking for. A skill with nothing to say returns no summary, and
+            // that stays silent.
+            let spoken = outcome.summary
             closeSkillTurn(
                 spoken: spoken, exit: "embedding dispatch \(name)",
                 continuation: continuation, epoch: epoch)
@@ -534,7 +565,10 @@ extension MaryBrain {
         // here; they were adjacent arguments to the same initializer, each
         // arbitrating all 105 Skills to the identical verdict.
         let tracedProjection = dispatcher?.projectRoster()
-        if let trace = tracedProjection?.trace { rosterProjectionObserver?(trace) }
+        mark("roster")
+        if let trace = tracedProjection?.trace {
+            rosterProjectionObserver?(trace.carrying(triage.verdictValue(lane: .model)))
+        }
 
         // World veto unarmed in this cut.
         let worldVetoArming: WorldVeto.Arming? = nil
@@ -714,13 +748,13 @@ extension MaryBrain {
     ) -> String? {
         guard let application else { return nil }
         if profiles.contains(where: { $0.id == application }) { return application }
-        if application == AmbientPlaceResolver.browserApplicationID {
-            // The logical browser workspace can be served by more than one profile once chrome.mary installs beside safari.
-            let evidenced = focusTracker
-                .evidenceProcess(for: AmbientPlaceResolver.browserPlace)
+        if let place = AmbientPlaceResolver.logicalPlace(forApplication: application) {
+            // A logical workspace can be served by more than one profile; the
+            // focus ledger's evidence says which. The resolver owns which ids
+            // are logical and who serves them — nothing here names a browser.
+            let evidenced = focusTracker.evidenceProcess(for: place)
                 ?? focusTracker.evidenceProcess(
-                    for: AmbientPlaceResolver.browserPlace,
-                    within: WorkspaceFocusTracker.signalHorizon)
+                    for: place, within: WorkspaceFocusTracker.signalHorizon)
             if let evidenced,
                let owner = profiles.first(where: { profile in
                    profile.applicationIdentifiers.contains { id in
@@ -730,11 +764,11 @@ extension MaryBrain {
                 return owner
             }
             // No evidence either way. A candidate may still fall back to the
-            // first browser profile; a LEAD may not — see `requireEvidence`.
+            // first serving profile; a LEAD may not — see `requireEvidence`.
             guard !requireEvidence else { return nil }
             return profiles.first { profile in
                 profile.applicationIdentifiers.contains { id in
-                    AmbientPlaceResolver.isBrowser(bundleID: id)
+                    AmbientPlaceResolver.serves(place, bundleID: id)
                 }
             }?.id
         }

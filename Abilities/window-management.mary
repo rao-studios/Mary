@@ -439,7 +439,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "12740f13db859df5444df5b70f9b9744190f32dfd48bd043fad2cebf289b83d1"
+    "digest" : "dedb018f197acffebee23713c91aa71acf157864b62d35da8c21fbf81cad5730"
   },
   "interactions" : [
     {
@@ -526,8 +526,8 @@
       "execution" : {
         "bindings" : [
           {
-            "adapterID" : "mac",
-            "operation" : "open_app",
+            "adapterID" : "window-management",
+            "operation" : "bring_application_forward",
             "preference" : 100,
             "targetClasses" : [
               "macos-application"
@@ -561,6 +561,9 @@
             "name" : "app_name",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Application name only. Never use this parameter to satisfy a named, titled, or referred window request.",
             "type" : "string"
           }
@@ -685,6 +688,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Application name or bundle identifier; omit for frontmost.",
             "type" : "string"
           }
@@ -789,6 +795,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Owning application; omit when the window reference proves it.",
             "type" : "string"
           },
@@ -799,6 +808,9 @@
             "name" : "window",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Stable handle, exact unambiguous title, or conversation-established anaphoric window reference.",
             "type" : "string"
           }
@@ -905,6 +917,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Application name or bundle identifier; omit for frontmost.",
             "type" : "string"
           }
@@ -1009,6 +1024,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Owning application; omit when the window reference proves it.",
             "type" : "string"
           },
@@ -1019,6 +1037,9 @@
             "name" : "window",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Stable window handle or exact unambiguous title.",
             "type" : "string"
           }
@@ -1116,6 +1137,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Owning application; omit for the frontmost one.",
             "type" : "string"
           },
@@ -1126,6 +1150,9 @@
             "name" : "window",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Stable window handle or exact title; omit for the window in front.",
             "type" : "string"
           }
@@ -1224,6 +1251,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Owning application; omit for the frontmost one.",
             "type" : "string"
           },
@@ -1234,6 +1264,9 @@
             "name" : "window",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Stable window handle or exact title; omit for the window in front.",
             "type" : "string"
           }

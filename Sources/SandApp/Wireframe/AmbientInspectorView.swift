@@ -149,7 +149,11 @@ struct AmbientInspectorView: View {
                 // THE GAP IS THE DIAGNOSIS. A results page offering four icons while
                 // sixty rows carry real names is the failure this pane exists to show,
                 // and the router reaches the second number where nothing else could.
-                Text("\(offers.count) of \(roster.elements.count) rows"
+                // THE ROWS THE READING PRODUCED, which is what the overlay draws
+                // and what `offerLines` counts. This said `elements.count` — the
+                // AX-shaped shim — so the panel and the stage were counting two
+                // views of one page.
+                Text("\(offers.count) of \(roster.rows.count) rows"
                     + (candidates.isEmpty ? "" : " · \(candidates.count) named"))
             }
             Text(PageMapProjection.caption(for: roster))

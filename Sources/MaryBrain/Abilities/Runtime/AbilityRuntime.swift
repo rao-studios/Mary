@@ -13,7 +13,7 @@
 import Foundation
 import os
 
-public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
+public final class AbilityRuntime: AbilityDispatching, SightServing, @unchecked Sendable {
 
     public static let confirmSkillName = "confirm_pending_skill"
     public static let cancelSkillName = "cancel_pending_skill"
@@ -49,6 +49,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         initialState: .init())
     /// turnLog roster line once per beginTurn — schemas is read every round.
     let codingRosterLogged = OSAllocatedUnfairLock<Bool>(initialState: false)
+    /// The adapters this registry was built from, for the per-turn hook.
+    let adapters: [any MaryAdapter]
 
     struct InFlightRun {
         /// Canceller for the in-flight worker (native or workflow — types differ).
@@ -88,6 +90,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     /// Awareness bindings, learned from whichever adapters declare them.
     /// PIN: the brain asks for "awareness"; only this table knows the names.
     let awarenessReads: [AwarenessRead]
+    /// The same reads, by the owner whose world they describe.
+    let awarenessReadsByOwner: [String: AwarenessRead]
     /// Plugin id → its revision verb, and plugin id → its half of the passage contract.
     let targetedEdits: [String: (binding: String, parameter: String)]
     let passageBackings: [String: PassageBacking]
@@ -97,6 +101,15 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     let contextProvider: @Sendable () -> AbilityExecutionContext
     /// Plugin whose Skills hoist to the front of the roster. Nil keeps natural order.
     let focusProvider: (@Sendable () -> String?)?
+    /// THE PLACE THE PERSON PLANTED A FLAG IN, when they planted one.
+    ///
+    /// PIN: INJECTED LIKE `focusProvider`, AND FOR ITS REASON. The provider
+    /// ladder has always spelled `named > interaction > pinned > focused >
+    /// habit`, and the pinned rung was hard-wired nil with a comment saying "no
+    /// pinning surface exists yet" — while `WorkspaceFocusTracker.pin` had been
+    /// the debugger's focus-correction control the whole time. A rung the spec
+    /// declares and nothing fills is a ladder with a hole in it.
+    let pinnedProvider: (@Sendable () -> String?)?
     let pendingStore: PendingSkillStore
     /// Session ledger for real executions — leaves only, so parked confirms stay off it.
     let executionLog: AbilityExecutionLog
@@ -123,6 +136,13 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     let semanticSkillAffinityCache = OSAllocatedUnfairLock<
         (utterance: String, affinities: [SkillID: Float])?
     >(initialState: nil)
+    /// THE TURN'S ROSTER, ARBITRATED ONCE. `projectRoster()` is asked three
+    /// times per turn, once per lane round and once per DISPATCH — Mary's own
+    /// pre-reads included — and each arbitrated every Skill against the same
+    /// inputs. Keyed on those inputs; cleared with the other turn memos.
+    let rosterArbitrationCache = OSAllocatedUnfairLock<RosterArbitrationMemo?>(initialState: nil)
+    /// How many times the roster was actually arbitrated — the test's proof.
+    let rosterArbitrations = OSAllocatedUnfairLock<Int>(initialState: 0)
     /// Where settled outcomes are recorded. `.shared` (persist: true) in
     /// production; a unit test that dispatches must not write to
     /// `~/Library/Application Support/Mary/routing-habits.json`.
@@ -146,6 +166,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         plugins: [any MaryAdapter],
         standalone: [SkillBinding] = [],
         focusProvider: (@Sendable () -> String?)? = nil,
+        pinnedProvider: (@Sendable () -> String?)? = nil,
         executionLog: AbilityExecutionLog = .shared,
         behavior: BehavioralAssembler? = nil,
         world: AmbientWorld = .shared,
@@ -166,6 +187,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             attributedBindings.append(AttributedSkillBinding(owner: owner, binding: binding))
         }
         self.behavior = behavior
+        self.adapters = plugins
         self.nativeAttributed = attributedBindings
         self.nativeProfiles = plugins.map(\.applicationProfile)
         var reads: [String: (binding: String, parameter: String)] = [:]
@@ -178,13 +200,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
                 attentions[plugin.name] = served
             }
             if let targeted = plugin.targetedRead {
-                reads[plugin.name] = targeted
-                if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
-                    reads[served.pluginOwner] = targeted
-                }
-                for alias in plugin.targetedReadAliases where alias != plugin.name {
-                    reads[alias] = targeted
-                }
+                for key in Self.readOwnerKeys(for: plugin) { reads[key] = targeted }
             }
             // Both halves or neither: verb without backing cannot locate; backing without verb cannot send.
             if let verb = plugin.targetedEdit {
@@ -192,18 +208,59 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             }
         }
         self.awarenessReads = plugins.compactMap(\.awarenessRead)
+        // WHICH FACULTY SERVES WHICH WORLD. Two adapters declare an awareness
+        // read — the code/prose one and the browsing one — and `fetchAwareness`
+        // took whichever came first in the catalog, which is an ordering
+        // accident rather than an answer about the work in front of someone.
+        //
+        // PIN: THE SAME KEYS THE TARGETED TABLE USES, and that is the whole
+        // repair. This was keyed by the plugin's NAME ALONE while `targetedReads`
+        // was keyed by name, served attention and declared aliases — so the
+        // lookup, which asks with a PLACE token, could never hit for an adapter
+        // whose place is spelled differently from its name. Measured: a browser
+        // leads as `"browser"`, the browsing adapter is called `"web-surface"`,
+        // the dictionary missed every time, and "what is this page about?" fell
+        // through to catalog order and pre-read the CODE buffer — which answers
+        // nothing about a page, so the turn spoke with nothing in hand.
+        var awarenessByOwner: [String: AwarenessRead] = [:]
+        for plugin in plugins {
+            guard let read = plugin.awarenessRead else { continue }
+            for key in Self.readOwnerKeys(for: plugin) where awarenessByOwner[key] == nil {
+                awarenessByOwner[key] = read
+            }
+        }
+        self.awarenessReadsByOwner = awarenessByOwner
         self.targetedReads = reads
         self.targetedEdits = edits
         self.passageBackings = backings
         self.servedAttentions = attentions
         self.contextProvider = contextProvider
         self.focusProvider = focusProvider
+        self.pinnedProvider = pinnedProvider
         self.executionLog = executionLog
         self.world = world
         self.passages = passages
         self.containers = containers
         self.applicationsOverride = applications
         self.pendingStore = PendingSkillStore()
+    }
+
+    /// EVERY NAME AN ADAPTER ANSWERS TO, as a fetch-first owner key.
+    ///
+    /// PIN: ONE LIST, BOTH TABLES, BECAUSE THEY ARE ASKED THE SAME QUESTION.
+    /// `readNamedPart` and `fetchAwareness` both look up the LEAD PLACE'S token
+    /// — `world.store.referent()?.place.memoryToken ?? focusProvider()` — so the
+    /// key is a place's spelling, not an adapter's. An adapter whose place is
+    /// named differently from itself must be registered under both, or it is
+    /// unreachable through whichever table forgot. Kept as one function so the
+    /// two can never disagree again.
+    static func readOwnerKeys(for plugin: any MaryAdapter) -> [String] {
+        var keys = [plugin.name]
+        if let served = plugin.servedAttention, served.pluginOwner != plugin.name {
+            keys.append(served.pluginOwner)
+        }
+        keys.append(contentsOf: plugin.readOwnerAliases.filter { $0 != plugin.name })
+        return keys
     }
 
     /// The user-facing ceiling for one ordinary dispatch. See

@@ -21,10 +21,9 @@ extension MaryBrain {
         epoch: UInt64
     ) async -> SkillOutcome? {
         guard let dispatcher else { return nil }
-        let skillName = "act_on_screen"
-        let argumentsJSON = (try? JSONSerialization.data(
-            withJSONObject: ["goal": goal], options: [.sortedKeys]))
-            .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        // The plugin names its own Skill and its own argument shape.
+        let skillName = AffordancePlugin.actSkillName
+        let argumentsJSON = AffordancePlugin.actArguments(goal: goal)
         let invocation = ModelSkillInvocation(
             id: "afford-\(UUID().uuidString)",
             name: skillName,

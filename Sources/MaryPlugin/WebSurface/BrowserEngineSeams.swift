@@ -13,17 +13,41 @@
 //
 
 import AppKit
+import os
+import OSLog
 import CoreGraphics
 import Foundation
+import MaryAmbient
 import MaryComputerUse
 import MaryFoundation
 
 /// Reading and driving the browser's own shell.
+///
+/// PIN: EVERY CALL NAMES THE WINDOW IT MEANS — nil until the engine has read
+/// one, and then the working window for every read, press and address after
+/// it (see `AXWindowIdentity`). There is no window-less form: one existed, the
+/// engine never called it, and the defaults that bridged the two forwarded in
+/// opposite directions in the live shell and the fakes.
 public protocol BrowserShellReading: Sendable {
-    func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading?
-    func openLocation(_ address: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading?
+    /// Type an address, commit it, and read it back — see `LiveBrowserShell`.
+    func openLocation(
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
+    ) async -> Bool
     /// Press a shell control by its declared label.
-    func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool
+    /// How a named window presents itself right now — see `WebSurfaceAX.presence`.
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence
+}
+
+/// A SHELL THAT KNOWS NO WINDOWS — the fakes — presents every window as a page.
+public extension BrowserShellReading {
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence { .page }
 }
 
 /// Reading the page itself.
@@ -35,9 +59,25 @@ public protocol PagePerceiving: Sendable {
     ) async throws -> VisionPageReader.Reading
 }
 
+/// HOW MUCH THE PAGE IS OFFERING RIGHT NOW, cheaply.
+///
+/// PIN: A SETTLE NEEDS A SIGNAL, NOT A SLEEP, AND THE SIGNAL MUST BE CHEAP. A
+/// results page was read after a flat 900ms and the reading came back with 79
+/// rows where a read a moment later found 107 — no result groups formed, the
+/// openResult class unanswerable, and the failure filed against the detector's
+/// recall. Reading the whole page twice to find that out would double the cost
+/// of every search, so the settle polls the browser's OWN accessibility tree,
+/// which is a bounded walk of a few hundred nodes, and the expensive read
+/// happens once, after the count stops moving.
+public protocol PageSettling: Sendable {
+    /// How many things the page's own tree publishes, or nil when it cannot say
+    /// — a host with no web content, a tree that never woke. Nil settles nothing
+    /// and the caller falls back to waiting.
+    func offering(pid: pid_t, pageFrame: CGRect) async -> Int?
+}
+
 /// The pointer.
 public protocol BrowserHands: Sendable {
-    func move(to point: CGPoint, pid: pid_t) async
     func click(at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t) async
     func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async
     /// Put the pointer itself over a point. See PointerDriver.hover — a long approach,
@@ -60,6 +100,10 @@ public protocol BrowserHands: Sendable {
 public protocol BrowserKeys: Sendable {
     func type(_ text: String, targetPrefix: String) async -> Bool
     func press(_ key: PageInteractionKey) async -> Bool
+    /// A chord the browser's own shell answers — find, close a tab — aimed at
+    /// the browser so it can never land in whatever came forward. Never a
+    /// site's shortcut: the source scan reads every call.
+    func chord(_ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String) async -> Bool
 }
 
 public extension BrowserHands {
@@ -99,18 +143,68 @@ public extension BrowserHands {
 }
 
 /// Who holds the machine.
+///
+/// PIN: THE STAGE IS TAKEN AND GIVEN BACK, AND THE REASON IT COULD NOT BE TAKEN
+/// IS KEPT. This used to answer `Bool`, so five different conditions — not
+/// running, no window on screen, another act holding the stage, cancelled,
+/// refused — reached the person as one sentence. And nothing ever put the
+/// previous application back: "mute the video" said from an editor left the
+/// browser in front, which the doctrine (invariant 3) says it must not.
 public protocol BrowserStaging: Sendable {
-    func bringForward(pid: pid_t) async -> Bool
+    /// The regular application in front before anything moves — what an act
+    /// that answers a question gives the stage back to. Nil when nothing is owed.
+    func frontmost() async -> pid_t?
+    /// Take the stage for one act: the lease, the hold, and the window brought
+    /// forward and proved — the engine's working window when it names one.
+    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation
+    /// The act is over. Release the stage, and put `previous` back in front when
+    /// one is named.
+    func standDown(givingBackTo previous: pid_t?) async
     /// Is this still the process in front? A plan that keeps pressing into whatever
     /// came forward is worse than one that stops and says where it got to.
     func holdsFocus(pid: pid_t) async -> Bool
+    /// Another act has asked for the stage. The engine checks this at every
+    /// wait and before every press, and stops at the next safe point — so a
+    /// staged dispatch that follows a browsing act never waits out the
+    /// arbiter's whole budget twice. Default: nobody asked.
+    func preemptRequested() async -> Bool
+}
+
+public extension BrowserStaging {
+    func preemptRequested() async -> Bool { false }
 }
 
 // MARK: - Live
 
 struct LiveBrowserShell: BrowserShellReading {
-    func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading? {
-        WebSurfaceAX.read(pid: pid, registration: registration)
+    private static let log = Logger(subsystem: "nyc.rao.mary", category: "browsing")
+
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading? {
+        WebSurfaceAX.read(pid: pid, registration: registration, preferring: window)
+    }
+
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence {
+        WebSurfaceAX.presence(of: window, pid: pid)
+    }
+
+    /// Press a shell control by its declared label — the control's OWN action
+    /// first, and a real click only if it has none.
+    ///
+    /// PIN: A PID-POSTED CLICK ON CHROME'S TOOLBAR DOES NOTHING. Measured live
+    /// and unambiguously: the Back button was found and clicked, and the title,
+    /// `canGoBack` and `canGoForward` were all identical five polls later — Mary
+    /// then said "Went back" about a page she had never left. `AXPress` is the
+    /// button's own action, it is what an assistive client is meant to send, and
+    /// it is less invasive than synthesizing input. The click stays as the
+    /// fallback for a control that publishes no press action, and goes through
+    /// the HID tap rather than the process, for the reason the page lane already
+    /// records: a posted click is invisible to rendered content.
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool {
+        await press(label: label, pid: pid, registration: registration, scope: window)
     }
 
     /// Once, then verified. `openLocation` retries this whole exchange rather than
@@ -120,6 +214,17 @@ struct LiveBrowserShell: BrowserShellReading {
     /// trusted — not measured, chosen to sit above `KeyboardTyper`'s 25ms inter-chunk
     /// gap with headroom for the omnibox's own reflow.
     static let addressVerifySettle = Duration.milliseconds(150)
+
+    /// Whether the named window is the browser's main window right now. A
+    /// keystroke is aimed at the application; the application delivers it to
+    /// whichever window is main, so a window that is not main must not be
+    /// typed for. Measured: the round's window came back from the Dock behind
+    /// the person's, and "alpine touring boots" landed in their address bar.
+    static func isInFront(_ window: CGWindowID?, pid: pid_t) -> Bool {
+        guard let window else { return true }
+        guard let element = AXWindowIdentity.window(id: window, in: pid) else { return false }
+        return AXWindowRoster.copyBool(element, kAXMainAttribute) == true
+    }
 
     /// Focus the address field, replace what is in it, and commit.
     ///
@@ -140,23 +245,63 @@ struct LiveBrowserShell: BrowserShellReading {
     /// what was meant, the same "prove it by looking again" rule the rest of this file
     /// already lives by.
     func openLocation(
-        _ address: String, pid: pid_t, registration: WebSurfaceRegistration
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
     ) async -> Bool {
-        guard await focusAddressField(pid: pid, registration: registration) else { return false }
+        guard Self.isInFront(window, pid: pid) else {
+            Self.log.notice("address open refused — the working window is not in front")
+            return false
+        }
+        guard await focusAddressField(pid: pid, registration: registration) else {
+            Self.log.notice("address field focus chord refused")
+            return false
+        }
         for attempt in 1...Self.addressTypingAttempts {
+            // THE FIELD ITSELF, WHEN THE CHORD DID NOT TAKE. Measured: a page
+            // whose modal player trapped the keyboard swallowed ⌘L, the typing
+            // went into the page, and three readbacks showed the old address.
+            // Focus set on the field through Accessibility is honoured by the
+            // toolkit whatever the page holds.
+            if attempt > 1, let application = AXUIElementCreateApplication(pid) as AXUIElement?,
+               let scope: AXUIElement = window.flatMap({ AXWindowIdentity.window(id: $0, in: pid) })
+                   ?? AX.attribute(application, kAXMainWindowAttribute as String).map({ $0 as! AXUIElement }),
+               let field = Self.control(
+                   named: WebSurfaceRegistration.folded(registration.schema.addressFieldLabel), in: scope) {
+                _ = PageElementActions.focus(control: field, pid: pid, detail: "address field")
+                try? await Task.sleep(for: .milliseconds(150))
+            }
             // Select all, so typing replaces rather than appends.
-            guard KeyChordPress.press(key: .a, modifiers: [.command]) else { return false }
+            // AIMED, like the focus chord above it: ⌘A in somebody else's window
+            // selects their document, and the typing that follows replaces it.
+            guard KeyChordPress.press(
+                key: .a, modifiers: [.command],
+                targetPrefix: registration.bundleIdentifiers.first)
+            else { return false }
             let typed = await KeyboardTyper.type(
                 address, targetPrefix: registration.bundleIdentifiers.first ?? "")
             // A PARTIAL ADDRESS MUST NOT BE COMMITTED. Losing focus halfway through
             // leaves half a URL in the field, and pressing Return then navigates
             // somewhere nobody asked for — worse than not navigating at all.
-            guard case .completed = typed else { return false }
+            guard case .completed = typed else {
+                Self.log.notice("address typing did not complete — \(String(describing: typed))")
+                return false
+            }
             try? await Task.sleep(for: Self.addressVerifySettle)
-            let landed = Self.addressLanded(
-                intended: address,
-                fieldValue: WebSurfaceAX.addressFieldValue(pid: pid, registration: registration))
+            // READ BACK FROM THE WORKING WINDOW. Measured in round 10: the
+            // readback came from the browser's main window — the person's —
+            // and "I couldn't find the address bar" was said about a field
+            // that had just been typed into, in another window.
+            let readback = WebSurfaceAX.addressFieldValue(
+                pid: pid, registration: registration, preferring: window)
+            let landed = Self.addressLanded(intended: address, fieldValue: readback)
             guard landed else {
+                // SAY WHY, WITHOUT SAYING WHAT. A refused readback used to be a
+                // silent `continue` three times and then "couldn't find the
+                // address bar" — a sentence about a control that was found and
+                // typed into. The shape of the mismatch is the diagnosis; the
+                // address itself is held, never logged, like everywhere else.
+                Self.log.notice(
+                    "address readback refused — attempt \(attempt) typed \(address.count) read \(readback?.count ?? -1) scheme=\(readback?.lowercased().hasPrefix("http") == true) empty=\(readback?.isEmpty ?? true)")
                 if attempt == Self.addressTypingAttempts { return false }
                 continue
             }
@@ -170,8 +315,10 @@ struct LiveBrowserShell: BrowserShellReading {
             // the shape of fix this needs — it cannot damage the honest case. It is a
             // text-editing key inside a text field, not a page shortcut; see
             // NoSiteShortcutsTests, which admits it for that reason.
-            _ = KeyChordPress.press(key: .forwardDelete, modifiers: [])
-            return KeyChordPress.press(key: .return, modifiers: [])
+            let aimed = registration.bundleIdentifiers.first
+            _ = KeyChordPress.press(
+                key: .forwardDelete, modifiers: [], targetPrefix: aimed)
+            return KeyChordPress.press(key: .return, modifiers: [], targetPrefix: aimed)
         }
         return false
     }
@@ -181,7 +328,30 @@ struct LiveBrowserShell: BrowserShellReading {
     /// because that is exactly the part a chunk-boundary race wipes.
     static func addressLanded(intended: String, fieldValue: String?) -> Bool {
         guard let fieldValue else { return false }
-        return fieldValue.hasPrefix(intended)
+        if fieldValue.hasPrefix(intended) { return true }
+        // CHROME ELIDES WHAT IT DISPLAYS. The moment the omnibox recognises a
+        // typed address it shows it without its scheme, and without a leading
+        // "www." — so the field reads "en.wikipedia.org/…" for a typed
+        // "https://en.wikipedia.org/…", and the literal prefix test above called
+        // a correct type a failed one, three times over, and refused the whole
+        // navigation as "couldn't find the address bar". MEASURED LIVE: it
+        // worked while the address was new and failed once it was in history and
+        // being completed. What is compared is the typed address with the same
+        // elisions applied, and nothing looser — a completion to a DIFFERENT
+        // address still has to fail here so forward-delete can remove it.
+        let elided = Self.displayForm(intended)
+        return fieldValue.hasPrefix(elided) || Self.displayForm(fieldValue).hasPrefix(elided)
+    }
+
+    /// An address as the omnibox displays it: no scheme, no leading "www.".
+    static func displayForm(_ address: String) -> String {
+        var value = address
+        for scheme in ["https://", "http://"] where value.lowercased().hasPrefix(scheme) {
+            value = String(value.dropFirst(scheme.count))
+            break
+        }
+        if value.lowercased().hasPrefix("www.") { value = String(value.dropFirst(4)) }
+        return value
     }
 
     private func focusAddressField(
@@ -192,27 +362,93 @@ struct LiveBrowserShell: BrowserShellReading {
         // discipline turns on.
         KeyChordPress.press(
             key: registration.schema.addressFocusKey,
-            modifiers: registration.schema.addressFocusModifiers)
+            modifiers: registration.schema.addressFocusModifiers,
+            // AIMED, so it can never land in whatever came forward. See
+            // `KeyChordPress.press(key:modifiers:targetPrefix:)`.
+            targetPrefix: registration.bundleIdentifiers.first)
     }
 
-    func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
-        guard let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive) else { return false }
-        var target: AXNodeSnapshot?
-        for window in snapshot.windows {
-            window.root?.forEachNode { node in
-                guard target == nil else { return }
-                if WebSurfaceRegistration.folded(node.label ?? "")
-                    == WebSurfaceRegistration.folded(label), node.isEnabled {
-                    target = node
+    private func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, scope window: CGWindowID?
+    ) async -> Bool {
+        let wanted = WebSurfaceRegistration.folded(label)
+        guard let application = AXUIElementCreateApplication(pid) as AXUIElement?
+        else { return false }
+        // THE WINDOW THE SHELL WAS READ FROM, BEFORE ANY OTHER. Measured in
+        // round 9: "go to the second tab" read the tabs of the window in front
+        // and pressed a tab of the same name in the window BEHIND it — the
+        // person's own — because the walk started at the application and took
+        // the first match. The engine's working window is the one the read
+        // was about (`AXWindowIdentity`); the main window stands in when none
+        // is named; the rest of the application is a fallback for a control
+        // that lives outside every window.
+        let scope: AXUIElement? = window.flatMap { AXWindowIdentity.window(id: $0, in: pid) }
+            ?? AX.attribute(application, kAXMainWindowAttribute as String).map { $0 as! AXUIElement }
+        guard let control = scope.flatMap({ Self.control(named: wanted, in: $0) })
+            ?? Self.control(named: wanted, in: application)
+        else { return false }
+
+        // Through Hands, so the monitor sees it — the seam locates, the machine
+        // layer acts.
+        if PageElementActions.press(control: control, pid: pid, detail: "shell \(label)") {
+            return true
+        }
+        guard let frame = AX.frame(of: control), frame.width > 1, frame.height > 1
+        else { return false }
+        return PointerDriver.clickThroughHID(
+            at: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
+            button: .left, count: 1)
+    }
+
+    /// The live control whose folded label matches, walked from the application.
+    ///
+    /// PIN: A LIVE ELEMENT, NOT A SNAPSHOT NODE. The walk this replaced produced
+    /// plain Sendable values, which carry a frame and no way to send the control
+    /// its own action — which is why the press was a coordinate click at all.
+    static func control(named wanted: String, in application: AXUIElement) -> AXUIElement? {
+        var found: AXUIElement?
+        var seen = 0
+        func walk(_ element: AXUIElement) {
+            guard found == nil, seen < 4_000 else { return }
+            seen += 1
+            let label = (AX.string(element, kAXTitleAttribute as String) ?? "")
+                + " " + (AX.string(element, kAXDescriptionAttribute as String) ?? "")
+            if WebSurfaceRegistration.folded(label) == wanted
+                || WebSurfaceRegistration.folded(
+                    AX.string(element, kAXTitleAttribute as String) ?? "") == wanted {
+                // A DISABLED CONTROL IS NOT THE ONE. There is nowhere to go.
+                if AX.attribute(element, kAXEnabledAttribute as String) as? Bool != false {
+                    found = element
+                    return
                 }
             }
+            for child in AX.children(element, kAXChildrenAttribute as String) {
+                walk(child)
+            }
         }
-        guard let target, let frame = target.frame, frame.width > 1, frame.height > 1
-        else { return false }
-        // A shell button is a real control: click its middle, posted to this process.
-        return PointerDriver.click(
-            at: CGPoint(x: frame.midX.rounded(), y: frame.midY.rounded()),
-            button: .left, count: 1, pid: pid)
+        walk(application)
+        return found
+    }
+}
+
+/// THE DEFAULT, WHICH SETTLES NOTHING. A caller that has not been given a signal
+/// waits out its budget exactly as it did before this seam existed — the fakes get
+/// this, and so does anything constructing seams by hand.
+public struct NothingToSettle: PageSettling {
+    public init() {}
+    public func offering(pid: pid_t, pageFrame: CGRect) async -> Int? { nil }
+}
+
+struct LivePageSettling: PageSettling {
+    func offering(pid: pid_t, pageFrame: CGRect) async -> Int? {
+        let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        let readiness = await BrowserAXReadiness.ensureWebContentAX(
+            pid: pid, bundleID: bundleID,
+            timeout: BrowserAXReadiness.readSettleTimeout)
+        guard readiness.walkable else { return nil }
+        let rows = PageElementReader.readWebContent(
+            in: AXUIElementCreateApplication(pid), pageFrame: pageFrame)
+        return rows.isEmpty ? nil : rows.count
     }
 }
 
@@ -233,10 +469,6 @@ struct LivePagePerception: PagePerceiving {
 
 public struct LiveBrowserHands: BrowserHands {
     public init() {}
-
-    public func move(to point: CGPoint, pid: pid_t) async {
-        PointerDriver.move(to: point, pid: pid)
-    }
 
     /// PIN: THROUGH THE SAME TAP A MOUSE USES, not posted to the process.
     ///
@@ -296,18 +528,78 @@ public struct LiveBrowserKeys: BrowserKeys {
         case .tab: return KeyChordPress.press(key: .tab, modifiers: [])
         }
     }
+
+    public func chord(
+        _ key: PluginKey, modifiers: [PluginKeyModifier], targetPrefix: String
+    ) async -> Bool {
+        KeyChordPress.press(key: key, modifiers: modifiers, targetPrefix: targetPrefix)
+    }
 }
 
-public struct LiveBrowserStaging: BrowserStaging {
+/// The live stage: the same lease and the same hold the typer and the
+/// affordance recipes take, and the same activation faculty every act uses.
+///
+/// PIN: THE BROWSER TOOK NEITHER, AND COULD BE PREEMPTED MID-PLAN. `StageArbiter`
+/// is how one act keeps another off the machine while it is driving; the
+/// self-driving hold is how the focus tracker knows the activations it sees are
+/// Mary's ceremony and not the person's intent. Every other lane that stages
+/// takes both; the browser stages more than any of them and took none.
+public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
+    private let lock = NSLock()
+    private var lease: UUID?
+    private var hold: UUID?
+    /// Set by the arbiter's `onPreempt` — the newcomer asked; the act steps
+    /// aside at its next safe point. Typing already does this; browsing passed
+    /// `{}` and made every staged dispatch after it wait the full two seconds.
+    private let preempted = OSAllocatedUnfairLock(initialState: false)
+
     public init() {}
 
-    public func bringForward(pid: pid_t) async -> Bool {
-        await VerifiedActivation.bringForward(pid: pid).succeeded
+    public func frontmost() async -> pid_t? {
+        await VerifiedActivation.frontmostRegularApplication()
+    }
+
+    public func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
+        preempted.withLock { $0 = false }
+        let preempted = preempted
+        guard let taken = await StageArbiter.shared.acquire(
+            owner: "browsing", onPreempt: { preempted.withLock { $0 = true } })
+        else {
+            return .lost(.stageHeld(StageArbiter.shared.currentOwner() ?? "another act"))
+        }
+        let holding = WorkspaceFocusTracker.shared.beginSelfDriving()
+        lock.withLock {
+            lease = taken
+            hold = holding
+        }
+        let activation = await VerifiedActivation.bringForward(pid: pid, raising: window)
+        if !activation.succeeded { await standDown(givingBackTo: nil) }
+        return activation
+    }
+
+    public func standDown(givingBackTo previous: pid_t?) async {
+        let held = lock.withLock { () -> (UUID?, UUID?) in
+            defer {
+                lease = nil
+                hold = nil
+            }
+            return (lease, hold)
+        }
+        if let previous {
+            // THE PERSON'S PLACE, GIVEN BACK. Not proved to a visible window —
+            // it was in front a moment ago and is being handed what it had.
+            await VerifiedActivation.bringForward(pid: previous, requireVisibleWindow: false)
+        }
+        if let lease = held.0 { StageArbiter.shared.release(lease) }
+        if let hold = held.1 { WorkspaceFocusTracker.shared.endSelfDriving(hold) }
+        preempted.withLock { $0 = false }
     }
 
     public func holdsFocus(pid: pid_t) async -> Bool {
-        await MainActor.run {
-            NSWorkspace.shared.frontmostApplication?.processIdentifier == pid
-        }
+        await VerifiedActivation.isFrontmost(pid: pid)
+    }
+
+    public func preemptRequested() async -> Bool {
+        preempted.withLock { $0 }
     }
 }

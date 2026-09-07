@@ -36,6 +36,25 @@ extension MaryBrain {
         Self.turnLog.info("turn exited — \(reason, privacy: .public)")
     }
 
+    /// Stamp a stage of the running turn: milliseconds since `runTurn` began.
+    /// Printed as one line when the turn ends, so a slow turn says where.
+    func mark(_ label: String) {
+        guard let start = turnClockStart else { return }
+        let ms = (DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds) / 1_000_000
+        turnMarks.append((label, ms))
+    }
+
+    /// The clock line, once, at the end of the turn.
+    func logTurnClock() {
+        guard let start = turnClockStart else { return }
+        let total = (DispatchTime.now().uptimeNanoseconds &- start.uptimeNanoseconds) / 1_000_000
+        let marks = turnMarks.map { "\($0.label) \($0.ms)" }.joined(separator: " · ")
+        let line = "turn clock — total \(total)ms" + (marks.isEmpty ? "" : " · " + marks)
+        Self.turnLog.info("\(line, privacy: .public)")
+        turnClockStart = nil
+        turnMarks = []
+    }
+
     /// Xcode running, live file, route, and whether coding would project.
     /// `rosterTrace` comes from the turn body's one projection — reading
     /// `abilityRosterTrace` here arbitrated all 105 Skills a second time to

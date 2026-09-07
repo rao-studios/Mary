@@ -34,7 +34,7 @@ extension MaryBrain {
         let speakable = grounded.filter {
             $0.ok && !$0.foundNothing
                 && !(servedByPreRead
-                     && dispatcher?.isLookSkill($0.skillName) == true)
+                     && sight?.isLookSkill($0.skillName) == true)
         }
         // ON A CONFIRM TURN THE QUESTION IS THE WHOLE REPLY.
         let confirmPending = result.confirmQuestion != nil
@@ -46,7 +46,8 @@ extension MaryBrain {
                 && grounded.allSatisfy { dispatcher?.isReadOnly($0.skillName) == true }
             let block = readOnly
                 ? Self.readPassageBlock(outcomes: speakable)
-                : Self.groundedResultsBlock(outcomes: grounded)
+                : Self.groundedResultsBlock(
+                    outcomes: grounded, isRead: { dispatcher?.isReadOnly($0) == true })
             let pass = readOnly
                 ? SeerPass(readPassages: [block], readReport: true, assertedFocus: originFocus)
                 : SeerPass(groundedResults: block, assertedFocus: originFocus)
@@ -138,14 +139,31 @@ extension MaryBrain {
             }
             if !seerSpoke {
                 // SAME EXCLUSION AS `speakable`, for the same reason.
-                let line = Self.fallbackFollowUpLine(
-                    outcomes: grounded.filter {
-                        !(servedByPreRead
-                          && dispatcher?.isLookSkill($0.skillName) == true)
-                    })
-                // A deterministic line that restates what the turn already said is dropped, not spoken
-                if Self.addsNothing(line, over: originSpokenText) {
+                let usable = grounded.filter {
+                    !(servedByPreRead
+                      && sight?.isLookSkill($0.skillName) == true)
+                }
+                // A READ'S FALLBACK IS THE PASSAGE, AND IT IS NEVER DROPPED.
+                //
+                // PIN: THE VOICE SPOKE WITHOUT IT, WHICH IS WHY IT CANNOT BE A
+                // RESTATEMENT. The `addsNothing` guard exists to stop a
+                // deterministic receipt repeating what the turn already said —
+                // sound reasoning for an act. For a read it is the exact wrong
+                // rule: Lane A answered a question about a page having never
+                // seen the page, so the passage is the one thing it did NOT
+                // say, and dropping it ended the turn in silence with the
+                // person still waiting. Measured as "follow-up line dropped —
+                // already said in-turn" on a turn that then said nothing at all.
+                let readBack = readOnly ? Self.spokenReadBack(outcomes: usable) : ""
+                let line = readBack.isEmpty
+                    ? Self.fallbackFollowUpLine(outcomes: usable)
+                    : readBack
+                if readBack.isEmpty, Self.addsNothing(line, over: originSpokenText) {
                     Self.laneLog.info("follow-up line dropped — already said in-turn")
+                    readLedger.record(ReadDelivery(
+                        route: .droppedAsRestating,
+                        detail: usable.map(\.skillName).joined(separator: ", "),
+                        characters: line.count))
                 } else {
                     // Replaces any partial tokens rather than appending to them
                     spoken = line

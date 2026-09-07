@@ -2,7 +2,7 @@
 # WHAT: Build + stable-sign + run.
 # PIN:  Not `swift run`. SwiftPM ad-hoc-signs; the identity is the cdhash,
 #       which changes every build and Accessibility stops matching.
-# OUT:  build-metallib.sh, then sign-binary.sh, then exec .build/$CONFIG/Mary
+# OUT:  sign-binary.sh, then exec .build/$CONFIG/Mary
 #
 #   ./scripts/dev.sh
 #   CONFIG=release ./scripts/dev.sh
@@ -20,9 +20,6 @@ else
     swift build
 fi
 
-# OUT: mlx.metallib next to the binary. Skips when shaders are current.
-echo "▸ mlx.metallib"
-"$REPO_ROOT/scripts/build-metallib.sh" "$CONFIG"
 
 BIN="$REPO_ROOT/.build/$CONFIG/Mary"
 

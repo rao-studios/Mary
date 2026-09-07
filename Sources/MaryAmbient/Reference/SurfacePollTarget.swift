@@ -55,10 +55,14 @@ public enum SurfacePollTarget {
     public struct Process: Equatable, Sendable {
         public var bundleID: String
         public var pid: pid_t
+        /// A regular application, as opposed to a helper that answers to the
+        /// family's prefix and can never be frontmost.
+        public var isRegular: Bool
 
-        public init(bundleID: String, pid: pid_t) {
+        public init(bundleID: String, pid: pid_t, isRegular: Bool = true) {
             self.bundleID = bundleID
             self.pid = pid
+            self.isRegular = isRegular
         }
     }
 
@@ -86,10 +90,23 @@ public enum SurfacePollTarget {
     }
 
     /// Pure pid lookup over an injected running-process list.
+    ///
+    /// PIN: THE REGULAR MEMBER OF THE FAMILY, NEVER A HELPER. A claim owns a
+    /// bundle family by prefix, and a browser's renderers and GPU helpers answer
+    /// to that prefix too; the first process met was whichever the system
+    /// listed first, and a helper can never come forward — measured as an
+    /// activation that "refused" forever. A helper is taken only when no
+    /// regular member is running at all, which is a claim about a process that
+    /// exists, not about one that can be staged.
     public static func pid(
         of claim: some SurfaceClaim, running: [Process]
     ) -> pid_t? {
-        running.first { claim.owns(bundleID: $0.bundleID) }?.pid
+        process(ownedBy: claim, running: running)?.pid
+    }
+
+    static func process<C: SurfaceClaim>(ownedBy claim: C, running: [Process]) -> Process? {
+        let owned = running.filter { claim.owns(bundleID: $0.bundleID) }
+        return owned.first(where: \.isRegular) ?? owned.first
     }
 
     /// Live `NSWorkspace` snapshot for Support wrappers and production polls.
@@ -98,7 +115,9 @@ public enum SurfacePollTarget {
     ) -> [Process] {
         applications.compactMap { application in
             guard let bundleID = application.bundleIdentifier else { return nil }
-            return Process(bundleID: bundleID, pid: application.processIdentifier)
+            return Process(
+                bundleID: bundleID, pid: application.processIdentifier,
+                isRegular: application.activationPolicy == .regular)
         }
     }
 
@@ -114,7 +133,7 @@ public enum SurfacePollTarget {
         unpreferredFallback: Bool = true
     ) -> Hit? {
         func process(ownedBy claim: C) -> Process? {
-            running.first { claim.owns(bundleID: $0.bundleID) }
+            Self.process(ownedBy: claim, running: running)
         }
 
         if let frontmostBundleID,

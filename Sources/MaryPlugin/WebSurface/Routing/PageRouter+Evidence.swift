@@ -70,7 +70,7 @@ public extension PageRouter {
 
     /// How well the row's affordance fits the verb.
     static func affordanceScore(
-        _ row: PageRosterRow, verb: PageRouteVerb, standing: Standing
+        _ row: PageRow, verb: PageRouteVerb, standing: ArbitrationStanding
     ) -> Int {
         guard standing == .offered else { return 0 }
         if let wanted = verb.wantedAffordance {
@@ -87,7 +87,7 @@ public extension PageRouter {
     /// PIN: `confidence` IS NEUTRAL AT ZERO. The reader does not populate it yet, so a
     /// term that punished zero would punish every row on every page equally, which is the
     /// same as punishing none and is a lie in the trace.
-    static func provenanceScore(_ row: PageRosterRow) -> Int {
+    static func provenanceScore(_ row: PageRow) -> Int {
         var score: Int
         switch row.labelSource {
         case .classifier: score = 40
@@ -106,48 +106,51 @@ public extension PageRouter {
     }
 
     /// What the row's place on the page says about it, for and against.
+    ///
+    /// PIN: READS FACTS, DOES NOT DERIVE THEM. Every question here — is it in a
+    /// result group, behind a dialog, in a strip of furniture, marked as paid for
+    /// — was answered once at the seal. This weighs the answers.
     static func structureScore(
-        _ row: PageRosterRow, verb: PageRouteVerb, in context: PageRouteContext
+        _ row: PageRow, verb: PageRouteVerb, in domain: PageRouteDomain
     ) -> (score: Int, note: String?) {
         var score = 0
         var note: String?
-        let groups = context.groupKinds(forOrdinal: row.ordinal)
 
-        // NOTHING BEHIND A DIALOG CAN BE REACHED WHILE IT IS THERE — and this is a prior,
-        // not a gate, because an overlay is itself a guess about geometry.
-        if context.hasOverlay, !context.isInOverlay(row.ordinal) {
+        // NOTHING BEHIND A DIALOG CAN BE REACHED WHILE IT IS THERE — and this is a
+        // prior, not a gate, because an overlay is itself a guess about geometry.
+        if row.facts.contains(.behindOverlay) {
             score -= 200
             note = "is behind the dialog"
         }
 
         switch verb {
         case .openResult:
-            if groups.contains(where: resultGroupKinds.contains) { score += 60 }
+            if row.facts.contains(.inResultGroup) { score += 60 }
             if row.affordanceSource == .grouping { score += 40 }
-            if groups.contains("toolbar") { score -= 80 }
-            if groups.contains("form") { score -= 60 }
-            if context.isFurnitureBand(row.ordinal) {
+            if row.facts.contains(.inToolbar) { score -= 80 }
+            if row.facts.contains(.inForm) { score -= 60 }
+            if row.facts.contains(.inFurnitureBand) {
                 score -= 60
                 note = note ?? "is a strip of page furniture"
             }
-            if row.hints.contains(where: promotionHints.contains) {
+            if row.facts.contains(.promoted) {
                 score -= 100
                 note = note ?? "is marked as promoted"
             }
-            if let named = context.kindNamedInGoal, row.kind != named {
+            if let named = domain.kindNamedInGoal, row.kind != named {
                 score -= 50
                 note = note ?? "isn't a \(named.spokenWord)"
             }
 
         case .fill:
             if row.kind == .field { score += 60 }
-            if groups.contains("form") { score += 40 }
+            if row.facts.contains(.inForm) { score += 40 }
             // A LABEL BESIDE A BOX IS A FORM'S LABEL FOR ITS FIELD.
             if row.labelSource == .textAdjacent { score += 20 }
 
         case .press:
-            if context.hasOverlay, context.isInOverlay(row.ordinal) { score += 80 }
-            if let named = context.kindNamedInGoal, row.kind != named {
+            if row.facts.contains(.inOverlay) { score += 80 }
+            if let named = domain.kindNamedInGoal, row.kind != named {
                 score -= 50
                 note = note ?? "isn't a \(named.spokenWord)"
             }
@@ -155,13 +158,14 @@ public extension PageRouter {
         case .adjust, .reveal:
             break
         }
+
+        // THE SITE THE PERSON NAMED, credited among the rows that survived the
+        // gate. The gate does the refusing (see `PageRouter+Gates`); this only
+        // separates a row that PROVES it goes there from one whose destination
+        // nothing published, which the gate deliberately lets through.
+        if let wanted = domain.siteNamedInGoal, row.site == wanted { score += 70 }
         return (score, note)
     }
-
-    /// What a page calls a row it was paid to show.
-    static let promotionHints: Set<String> = [
-        "sponsored", "ad", "ads", "promoted", "advertisement",
-    ]
 
     // MARK: - Ranking
 

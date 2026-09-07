@@ -58,6 +58,16 @@ final class SandTurnHost: ObservableObject {
     @Published private(set) var reply: String = ""
     /// True once a round has been asked for — the turn reached the model.
     @Published private(set) var askedTheModel = false
+    /// WHAT THE TURN ACTUALLY DISPATCHED, in order.
+    ///
+    /// PIN: FOR A MEASUREMENT, NOT FOR THE PANE. The story rows already say this
+    /// to a reader; a browsing trip has to compare it with what it expected, and
+    /// re-deriving "which skill answered" from the rendered entries would be a
+    /// second account of the turn that could disagree with the first.
+    @Published private(set) var dispatchedNames: [String] = []
+    /// The arguments the first dispatch went out with — the confidence lane's
+    /// own filling, when it was the one that answered.
+    @Published private(set) var dispatchedArguments: [String: String] = [:]
 
     /// Which embedding backend decides the roster, printed rather than assumed.
     var engineWord: String {
@@ -128,13 +138,19 @@ final class SandTurnHost: ObservableObject {
                 MaryPrompts.system(plugins: adapters, projects: [:])
             }
             // The turn's own preparer. Mary refreshes its observers here; Sand
-            // publishes the one surface it already walked — and the same two declared
-            // perceptions, so a turn about a player or a page is arbitrated with the
-            // evidence Mary would have had. Accessibility only: no pixels on a turn's
-            // own schedule.
+            // publishes the one surface it already walked — and whatever the
+            // adapters declare they perceive, so a turn about a player or a page is
+            // arbitrated with the evidence Mary would have had. Accessibility only:
+            // no pixels on a turn's own schedule.
+            //
+            // PIN: SAND'S OWN ADAPTERS, NOT THE CATALOG'S. This bench dispatches
+            // through `MaryAdapterCatalog.adapters() + [AffordancePlugin()]`, and a
+            // preparer that published from the catalog alone would arbitrate a turn
+            // with evidence from a different set than the one that answers it — the
+            // exact way a bench stops being a rehearsal.
             await brain.setTurnContextPreparer { [weak self] in
                 await self?.publishStagedSurface()
-                TurnPerceptionPublisher.publishAll()
+                await TurnPerceptionPublisher.publishAll(adapters: adapters)
             }
             // THE ROSTER THE TURN USED, not one arbitrated afterwards. See
             // `refreshRouteAndTrace`, which now reads only the route.
@@ -155,6 +171,8 @@ final class SandTurnHost: ObservableObject {
         reply = ""
         route = nil
         trace = .empty
+        dispatchedNames = []
+        dispatchedArguments = [:]
         append(.began(utterance: text))
 
         turnTask = Task { [weak self] in
@@ -183,6 +201,51 @@ final class SandTurnHost: ObservableObject {
         engine?.answer(answer, for: round.id)
     }
 
+    // MARK: - Keeping what the bench learned
+
+    /// Record this turn's sentence as a route fixture on the Skill that should
+    /// have answered it.
+    ///
+    /// PIN: THE BENCH THAT FINDS A MIS-ROUTE COULD NOT RECORD ONE. Ability
+    /// Studio could keep a sentence and Sand could not — so the tool that runs
+    /// real turns, where a mis-route actually shows up, was the one with no way
+    /// to write down what it found, and the fix had to be retyped into another
+    /// window from memory. A route fixture is also the only lever that moves the
+    /// skill tier at all (an ability's phrases feed the ability tier alone), so
+    /// this is not a convenience: it is the repair.
+    /// TAKES EFFECT ON THE NEXT LOAD. The indexes are built at registry reload,
+    /// which is what the returned sentence says.
+    func keepAsFixture(
+        utterance: String,
+        decision: AbilityRosterDecision,
+        targetClass: String?
+    ) -> String {
+        let library = AbilityLibrary.shared
+        let packageID = decision.reference.packageID
+        do {
+            let session = try library.beginEditingPackage(id: packageID)
+            guard let data = session.draftJSON.data(using: .utf8) else {
+                return "the package draft is not UTF-8"
+            }
+            let package = try AbilityPackageCodec.decode(data, verifyIntegrity: false)
+            let updated = package.addingFixture(
+                utterance: utterance,
+                expectedSkill: decision.reference.skillID,
+                targetClass: targetClass)
+            guard updated.fixtures.count != package.fixtures.count else {
+                return "\(packageID.rawValue) already says this"
+            }
+            let encoded = try AbilityPackageCodec.encoded(updated)
+            guard let json = String(data: encoded, encoding: .utf8) else {
+                return "could not re-encode \(packageID.rawValue)"
+            }
+            _ = try library.saveEditedPackage(json: json, session: session)
+            return "kept in \(packageID.rawValue) — reaches the corpus on the next load"
+        } catch {
+            return "could not keep it: \(error.localizedDescription)"
+        }
+    }
+
     /// A line the bench itself puts on the story — `--auto` declining a round it cannot
     /// answer honestly, for instance. Same lane as the turn's own notes, so it reads in order.
     func note(_ text: String) {
@@ -201,6 +264,13 @@ final class SandTurnHost: ObservableObject {
                 name: reference.invocationName,
                 argumentsJSON: argumentsJSON,
                 runID: runID))
+            dispatchedNames.append(reference.invocationName)
+            if dispatchedArguments.isEmpty,
+               let data = argumentsJSON.data(using: .utf8),
+               let table = try? JSONSerialization.jsonObject(with: data)
+                as? [String: String] {
+                dispatchedArguments = table
+            }
             // Key the act timeline on the brain's own run id, so the acts and
             // the ledger row belong to the same identity.
             trace_?.beginRun(

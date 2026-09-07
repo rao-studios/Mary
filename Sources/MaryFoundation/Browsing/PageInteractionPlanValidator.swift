@@ -83,7 +83,11 @@ public enum PageInteractionPlanValidator {
                     message: "kind must be a string.", to: &issues)
                 continue
             }
-            guard let kind = PageInteractionCommandKind(rawValue: kindText) else {
+            // AN ENGINE-ONLY KIND IS NOT A KIND A PLAN HAS. Refused with the same
+            // sentence as a name nobody declared, because from the author's side
+            // that is exactly what it is — see `PageInteractionCommandKind.navigate`.
+            guard let kind = PageInteractionCommandKind(rawValue: kindText),
+                  kind.isAuthorable else {
                 append(
                     .unknownKind, sourceIndex: sourceIndex, field: "kind",
                     message: "There is no command kind called \(kindText).", to: &issues)

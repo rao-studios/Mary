@@ -30,7 +30,7 @@ enum ProbeSeer {
         let arguments = CommandLine.arguments
         guard let flagIndex = arguments.firstIndex(of: "--probe-seer"),
               flagIndex + 1 < arguments.count else {
-            print("Usage: Mary --probe-seer <text> [--engine mistral] [--transport classic|realtime] [--speak]")
+            print("Usage: Mary --probe-seer <text> [--engine mistral|local|tinker] [--transport classic|realtime] [--speak]")
             return 1
         }
         let text = arguments[flagIndex + 1]
@@ -40,7 +40,7 @@ enum ProbeSeer {
         if let thenIndex = arguments.firstIndex(of: "--then"), thenIndex + 1 < arguments.count {
             thenText = arguments[thenIndex + 1]
         }
-        var engineName = "mistral-api"
+        var engineName = "mistral"
         if let engineIndex = arguments.firstIndex(of: "--engine"), engineIndex + 1 < arguments.count {
             engineName = arguments[engineIndex + 1]
         }
@@ -84,12 +84,11 @@ enum ProbeSeer {
         let owner = await MaryRuntime.seerSession.userID ?? "?"
         print("[auth] signed in as \(owner)")
 
-        // 3. Brain wiring — same shape the app boot uses.
-        let engine: any InferenceEngine
-        switch engineName {
-        case "mistral": engine = MaryLocalEngine()
-        default:
-            print("Unknown engine '\(engineName)' — use tinker, mistral, or mistral-api.")
+        // 3. Brain wiring — same shape the app boot uses. `--engine` now names
+        // WHICH BACKEND SEER USES; every lane rides Seer either way, and
+        // applyEngine is what sets the boxes connectSeerToBrain's rewire reads.
+        guard let engine = LLMEngineChoice(rawValue: engineName) else {
+            print("Unknown engine '\(engineName)' — use mistral, local, or tinker.")
             return 1
         }
         if speak {
@@ -103,7 +102,6 @@ enum ProbeSeer {
                 print("[tts] speaking through Seer /v1/speak")
             }
         }
-        await MaryRuntime.brain.setEngine(engine)
         let projects = ["mary": FileManager.default.currentDirectoryPath]
         await MaryRuntime.installBrainConfiguration(projects: projects)
         // THE PROBE ALWAYS WIRES SEER, whatever the Brain card says — it
@@ -111,6 +109,16 @@ enum ProbeSeer {
         // would make it probe nothing.
         await MaryRuntime.connectSeerToBrain(
             chat: true, archiving: true, stackEnabled: true)
+        if let error = await MaryRuntime.applyEngine(
+            engine,
+            skillEngine: engine,
+            seerEnabled: true,
+            progress: { print("[engine] \($0)") }
+        ) {
+            print("[engine] \(error)")
+            return 1
+        }
+        print("[engine] chat=\(engine.rawValue) skills=\(engine.rawValue)")
         await MaryRuntime.applySeerTransport(transport)
         print("[transport] \(transport.rawValue)")
 

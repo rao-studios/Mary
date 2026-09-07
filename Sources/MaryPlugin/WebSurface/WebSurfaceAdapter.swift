@@ -36,6 +36,10 @@ public struct WebSurfaceAdapter: MaryAdapter {
     }
 
     public var abilities: Set<AbilityID> { [.browsing] }
+
+    /// WHERE THIS TURN'S SEARCHES ALREADY LANDED — cleared per turn, by the
+    /// adapter that keeps it. See `BrowserTurnMemo`.
+    public func beginTurn() { BrowserTurnMemo.shared.beginTurn() }
     // NO ALIASES. "the browser" belongs to the packages that teach one; claiming it here
     // shadows their routing identity and the whole graph refuses to activate.
     public var applicationAliases: Set<String> { [] }
@@ -48,9 +52,9 @@ public struct WebSurfaceAdapter: MaryAdapter {
         click_on_page, fill_in_page and scroll_to_on_page take those words back. To \
         search the web use search_web, which types the query into the browser's own \
         address bar; to search WITHIN a site, open it and fill_in_page its search box \
-        with submit. Drive a video with control_media — never a site's keyboard \
-        shortcut, and never the system media keys, which reach whatever holds \
-        now-playing rather than this tab.
+        with submit. Drive a video INSIDE THIS PAGE with control_media — never a site's \
+        keyboard shortcut. For the music app, or for whatever is playing \
+        system-wide, control_playback is the one that reaches it.
         """
     }
 
@@ -58,15 +62,180 @@ public struct WebSurfaceAdapter: MaryAdapter {
         (binding: "current_page", parameter: "app")
     }
 
+    /// THE PLACE A BROWSER LEADS AS, which is not this adapter's name.
+    ///
+    /// PIN: EVERY BROWSER COLLAPSES TO ONE WORKSPACE — `AmbientPlaceResolver`
+    /// resolves Safari, Chrome and every Chromium variant to the single logical
+    /// application `"browser"`, deliberately. Fetch-first looks a read up by the
+    /// LEAD PLACE'S token, so without this the browsing reads were addressed by
+    /// a name no place is ever spelled with, and `fetchAwareness` fell through
+    /// to catalog order — pre-reading the code buffer for a question about a
+    /// page. See `AbilityRuntime.readOwnerKeys`.
+    public var readOwnerAliases: [String] {
+        [AmbientPlaceResolver.browserApplicationID]
+    }
+
+    /// MARY'S OWN READ OF A PAGE, before either lane speaks.
+    ///
+    /// PIN: THE BROWSING HALF OF THE FETCH-FIRST LANE, which existed only for
+    /// code and prose. "What do you think about this code" reads the buffer
+    /// first; "what do you think of this article" read nothing at all, so the
+    /// answer was about a title. The unit is what the page SAYS; the
+    /// surroundings are which page it is. `fetchAwareness`'s own gates decide
+    /// when — a question or a deictic remark, never an action turn, so
+    /// "click that link" still does its own reading inside the skill.
+    public var awarenessRead: AwarenessRead? {
+        AwarenessRead(unit: "read_page_text", surroundings: "current_page")
+    }
+
+    /// WHICH PAGE THE BROWSER IS ON, every turn.
+    ///
+    /// PIN: THE SHELL, NEVER THE PAGE. Title and site come from Accessibility;
+    /// what is INSIDE the page is pixels, and pixels are read when a Skill asks
+    /// and at no other time. THE SITE, NOT THE ADDRESS — a URL in a transcript
+    /// is both unreadable and more than was asked for.
+    /// The same sentence `current_page` answers with, so the prompt line and
+    /// the spoken answer never drift.
+    public func turnPerceptions() async -> [DeclaredPerception] {
+        guard let (registration, pid) = support.resolve(nil),
+              let reading = WebSurfaceAX.read(pid: pid, registration: registration)
+        else { return [] }
+        return [DeclaredPerception(
+            schemaID: "perception.page-context",
+            value: ValueEnvelope(
+                typeID: "browsing.page-report",
+                value: .string(
+                    BrowserEngine.spoken(reading, browser: registration.displayName)),
+                // Scope = process read. Two browsers hold two readings.
+                scope: SourceScope(
+                    applicationID: registration.applicationID, processID: pid),
+                provenance: .init(operation: "current_page"),
+                privacy: .private))]
+    }
+
     public var refusals: [String] {
         ["I can't fill in a page that shows me no field to type into."]
     }
 
     public var skillBindings: [SkillBinding] {
-        [currentPage, listTabs, describeMedia, controlMedia,
+        [pageContext, currentPage, listTabs, switchTab, describeMedia, controlMedia,
          openLocation, navigateBack, navigateForward, reloadPage, scrollPage,
-         readPage, clickOnPage, fillInPage, scrollToOnPage, adjustOnPage,
-         searchWeb, interactWithPage]
+         readPage, readPageText, clickOnPage, fillInPage, scrollToOnPage,
+         adjustOnPage, findInPage, searchWeb, watchVideo, interactWithPage]
+    }
+
+    /// THE FIRST JOURNEY: several verbs said as one sentence. See `WatchRecipe`.
+    private var watchVideo: SkillBinding {
+        SkillBinding(
+            name: "watch_video",
+            description: """
+                Find something to watch and start it: search the web, open the result that \
+                answers both what they asked for and the site they named, and if no result \
+                goes there, open that site and search it. Use for "watch a fireplace video \
+                on YouTube", "put on the Boiler Room set".
+                """,
+            parameters: [
+                .init(
+                    name: "query", type: "string",
+                    description: "What to watch, in their own words — including the site, when they named one.",
+                    required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let query = arguments["query"], !query.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me what you'd like to watch.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.watch(query, in: target)
+                }
+            },
+            stage: true,
+            preparesSurface: true)
+    }
+
+    private var switchTab: SkillBinding {
+        SkillBinding(
+            name: "switch_tab",
+            description: "Bring one of the browser's open tabs forward, named by its title, its position (\"the second tab\"), or \"the other one\".",
+            parameters: [
+                .init(
+                    name: "target", type: "string",
+                    description: "Which tab, in the person's words.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                guard let phrase = arguments["target"], !phrase.isEmpty else {
+                    return SkillOutcome(ok: false, summary: "Tell me which tab.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.switchTab(phrase, in: target)
+                }
+            },
+            stage: true,
+            preparesSurface: true)
+    }
+
+    private var findInPage: SkillBinding {
+        SkillBinding(
+            name: "find_in_page",
+            description: "Open the browser's find bar and search the current page for a word or phrase, highlighting it.",
+            parameters: [
+                .init(
+                    name: "text", type: "string",
+                    description: "The word or phrase to find on the page.", required: true),
+                browserParameter,
+            ],
+            access: .tweak,
+            backing: .native { arguments, _ in
+                // THE LANE HANDS THE SPAN — "find the word budget on this page" —
+                // and the asking is this verb's own English to remove.
+                guard let text = arguments["text"].flatMap(SpokenFindPhrase.needle(in:)) else {
+                    return SkillOutcome(ok: false, summary: "Tell me what to look for on the page.")
+                }
+                return await self.run(arguments["app"]) { target in
+                    await self.engine.findInPage(text, in: target)
+                }
+            },
+            stage: true)
+    }
+
+    /// The name a browser package's document channel is polled through. The
+    /// plugin compiler stamps the same spelling on every package with a web
+    /// surface; the two must agree.
+    public static let pageContextOperation = "page_context"
+
+    /// THE BROWSER'S DOCUMENT CHANNEL — what the machine-wide poll reads.
+    ///
+    /// PIN: THE SHELL, NEVER THE PAGE, AND NEVER AN ADDRESS. A workspace is
+    /// polled through a read-only operation the package declares; for a
+    /// browser that is which page, which site, how many tabs and windows —
+    /// Accessibility facts, nothing from pixels, nothing from a URL. It is not
+    /// a skill: no model is offered it and no sentence routes to it. It exists
+    /// so a browser compiles as a workspace with eyes and a discipline, which
+    /// is what lets it lead and be named.
+    private var pageContext: SkillBinding {
+        SkillBinding(
+            name: Self.pageContextOperation,
+            description: "Which page and site the browser is on, and how many tabs it holds — the shell only, never an address.",
+            parameters: [browserParameter],
+            access: .read,
+            backing: .native { arguments, _ in
+                await self.run(arguments["app"]) { target in
+                    let outcome = await self.engine.readShell(target)
+                    guard let shell = outcome.shell else { return outcome }
+                    let tabs = shell.tabs.count
+                    let counted = tabs > 0 ? " \(tabs) tab\(tabs == 1 ? "" : "s") open." : ""
+                    // THE BROWSER'S OWN QUESTION IS PART OF WHERE THEY ARE.
+                    let asking = shell.dialog.map { " \($0.spoken)" } ?? ""
+                    return BrowserOutcome(
+                        ok: true,
+                        spoken: BrowserEngine.spoken(shell, browser: target.spokenName)
+                            + counted + asking,
+                        shell: shell)
+                }
+            })
     }
 
     public var adapterManifest: InstalledAdapterManifest {
@@ -92,10 +261,19 @@ public struct WebSurfaceAdapter: MaryAdapter {
             title: "Web Surface",
             transport: .accessibility,
             operations: [
+                // The document channel: produces the page-context perception,
+                // does not observe it.
+                operation(Self.pageContextOperation, capability: "browser.page.read",
+                          input: "browsing.browser-query", output: "browsing.page-report",
+                          observes: false),
                 operation("current_page", capability: "browser.page.read",
                           input: "browsing.browser-query", output: "browsing.page-report"),
                 operation("list_tabs", capability: "browser.tabs.read",
                           input: "browsing.browser-query", output: "browsing.page-report"),
+                operation("switch_tab", capability: "browser.tabs.switch",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
+                operation("find_in_page", capability: "browser.page.find",
+                          input: "browsing.page-target", output: "browsing.operation-result"),
                 operation("describe_media", capability: "browser.media.read",
                           input: "browsing.browser-query", output: "browsing.media-report"),
                 operation("control_media", capability: "browser.media.control",
@@ -112,6 +290,8 @@ public struct WebSurfaceAdapter: MaryAdapter {
                           input: "browsing.media-request", output: "browsing.operation-result"),
                 operation("read_page", capability: "browser.page.read",
                           input: "browsing.page-query", output: "browsing.page-listing"),
+                operation("read_page_text", capability: "browser.page.read",
+                          input: "browsing.page-query", output: "browsing.page-listing"),
                 operation("click_on_page", capability: "browser.page.press",
                           input: "browsing.page-target", output: "browsing.operation-result"),
                 operation("fill_in_page", capability: "browser.page.fill",
@@ -121,6 +301,8 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 operation("adjust_on_page", capability: "browser.page.act",
                           input: "browsing.page-fill", output: "browsing.operation-result"),
                 operation("search_web", capability: "browser.page.search",
+                          input: "browsing.search-query", output: "browsing.page-listing"),
+                operation("watch_video", capability: "browser.watch",
                           input: "browsing.search-query", output: "browsing.page-listing"),
                 operation("interact_with_page", capability: "browser.page.act",
                           input: "browsing.page-plan", output: "browsing.operation-result"),
@@ -223,7 +405,7 @@ public struct WebSurfaceAdapter: MaryAdapter {
                     ]),
                 .init(
                     name: "position", type: "string",
-                    description: "For seek, how far through; for volume, how loud. 0 to 1.",
+                    description: "For seek, a time (\"two minutes\", \"1:30\", \"back thirty seconds\") or how far through, 0 to 1; for volume, how loud, 0 to 1.",
                     required: false),
                 browserParameter,
             ],
@@ -254,14 +436,22 @@ public struct WebSurfaceAdapter: MaryAdapter {
                 case "seek":
                     // A SEEK WITHOUT A POSITION IS NOT A SEEK. Picking one would move
                     // somebody's video to a place nobody asked for.
-                    guard let fraction = arguments["position"].flatMap(Double.init),
-                          (0 ... 1).contains(fraction)
-                    else {
+                    // A TIME FIRST, THEN A FRACTION. "Back two minutes", "to 1:30",
+                    // "three minutes in" are how a person says where; a fraction is
+                    // how a model says it. The lane hands the sentence's span here.
+                    if let spoken = arguments["position"].flatMap(SpokenDuration.seek(in:)) {
+                        switch spoken {
+                        case .to(let seconds): action = .seekTo(seconds: seconds)
+                        case .by(let seconds): action = .seekBy(seconds: seconds)
+                        }
+                    } else if let fraction = arguments["position"].flatMap(Double.init),
+                              (0 ... 1).contains(fraction) {
+                        action = .seek(fraction: fraction)
+                    } else {
                         return SkillOutcome(
                             ok: false,
-                            summary: "Tell me how far through to skip to — halfway, or a quarter in.")
+                            summary: "Tell me where to go in the video — back two minutes, to 1:30, or halfway.")
                     }
-                    action = .seek(fraction: fraction)
                 default: action = nil
                 }
                 guard let action else {
@@ -383,6 +573,24 @@ public struct WebSurfaceAdapter: MaryAdapter {
             },
             // READING A PAGE MEANS READING ITS PIXELS, and pixels of a window behind
             // another window are the other window's.
+            stage: true)
+    }
+
+    private var readPageText: SkillBinding {
+        SkillBinding(
+            name: "read_page_text",
+            description: """
+                Read what the page SAYS — its headings and prose, top to bottom — \
+                so you can answer a question about it, summarise it, or give a view \
+                on it. read_page is the other one: what can be pressed.
+                """,
+            parameters: [browserParameter],
+            access: .read,
+            backing: .native { arguments, _ in
+                await self.run(arguments["app"]) { target in
+                    await self.engine.readPageText(in: target)
+                }
+            },
             stage: true)
     }
 
@@ -596,6 +804,20 @@ public struct WebSurfaceAdapter: MaryAdapter {
         }
         let target = BrowserTarget(registration: registration, processIdentifier: pid)
         let outcome = await body(target)
+        // A BROWSING ACT IS REAL WORK IN A PLACE.
+        //
+        // PIN: THE LEDGER IS WHAT KEEPS A PAGE IN THE CONVERSATION. `stickyLead`
+        // and `admittedPlaceMentions` both key on `.activity` evidence, and only
+        // the code, prose and corpus observers ever stamped it — so the moment
+        // any other window came forward, the browser stopped leading and every
+        // browsing skill fell out of the roster mid-conversation. Reading a page
+        // or acting on one is exactly the "user was just here" this evidence
+        // means. Stamped on a real outcome only: a refusal reached nothing.
+        if outcome.ok {
+            WorkspaceFocusTracker.shared.noteWork(
+                place: AmbientPlaceResolver.browserPlace,
+                processBundleID: registration.bundleIdentifiers.first)
+        }
         return SkillOutcome(
             ok: outcome.ok,
             summary: outcome.spoken,
@@ -603,6 +825,7 @@ public struct WebSurfaceAdapter: MaryAdapter {
             // A REFUSAL THAT FOUND NOTHING IS A MISS, NOT A FAILURE — no player on the
             // page is an answer, and a turn that says so beats one reporting an error.
             foundNothing: outcome.refusal.map(Self.isMiss) ?? false,
+            asksThePerson: outcome.refusal?.asksThePerson ?? false,
             // PROVEN, NEVER MERELY ATTEMPTED. The continuation nudge reads this to
             // decide whether the asked-for change happened; a hopeful `true` is how a
             // turn closes on work it did not do.

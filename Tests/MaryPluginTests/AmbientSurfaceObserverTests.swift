@@ -295,4 +295,139 @@ final class AmbientSurfaceObserverTests: XCTestCase {
         let place = AmbientPlaceResolver.applicationPlace(forBundleID: "com.example.app")
         XCTAssertEqual(slate(index, place), ["Publish"])
     }
+
+    // MARK: - The standing sweep
+
+    /// A REGISTRATION WITH EYES, RUNNING BEHIND THE FRONT WINDOW, HOLDS A
+    /// SURFACE. The store has always been plural — one per place — and only ever
+    /// held one, because the only thing walked was whatever was frontmost.
+    func testTheSweepGivesABackgroundTaughtApplicationASurface() {
+        let store = AmbientContextStore()
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                self.context(
+                    pid: pid,
+                    bundleID: pid == 42 ? "com.apple.dt.Xcode" : "com.example.front",
+                    appName: pid == 42 ? "Xcode" : "Front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+
+        let xcodePlace = AmbientPlaceResolver.applicationPlace(
+            forBundleID: "com.apple.dt.Xcode")
+        XCTAssertNotNil(
+            store.surface(place: xcodePlace, at: epoch),
+            "a taught application running behind the front window has no surface")
+        // AND THE FRONT WINDOW STILL HAS ITS OWN — the sweep adds, never replaces.
+        XCTAssertNotNil(
+            store.surface(
+                place: AmbientPlaceResolver.applicationPlace(
+                    forBundleID: "com.example.front"),
+                at: epoch))
+    }
+
+    /// ONLY SIGHTED REGISTRATIONS, and that is the blast radius. A running
+    /// process nothing declared is never walked.
+    func testTheSweepWalksNothingUndeclared() {
+        let store = AmbientContextStore()
+        var walked: [pid_t] = []
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                walked.append(pid)
+                return self.context(pid: pid, bundleID: "com.example.front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.random.app", pid: 99)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        XCTAssertFalse(walked.contains(99), "an undeclared process was walked")
+    }
+
+    /// THE SWEEP KEEPS ITS OWN CLOCK. The poll is coalesced and re-entrant, so a
+    /// sweep riding every poke would pay an exhaustive AX walk per poke.
+    func testTheSweepDoesNotRunOnEveryPoll() {
+        let store = AmbientContextStore()
+        var xcodeWalks = 0
+        let observer = AmbientSurfaceObserver(
+            store: store,
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                if pid == 42 { xcodeWalks += 1 }
+                return self.context(
+                    pid: pid,
+                    bundleID: pid == 42 ? "com.apple.dt.Xcode" : "com.example.front")
+            },
+            frontmost: { (1, "com.example.front") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        observer.pollOnce(at: epoch.addingTimeInterval(1))
+        observer.pollOnce(at: epoch.addingTimeInterval(5))
+        XCTAssertEqual(xcodeWalks, 1, "the sweep ran more than once inside its window")
+
+        observer.pollOnce(
+            at: epoch.addingTimeInterval(AmbientSurfaceObserver.sweepInterval + 1))
+        XCTAssertEqual(xcodeWalks, 2, "the sweep never ran again")
+    }
+
+    /// THE FRONT WINDOW IS NOT SWEPT — it is already polled every 10s, and
+    /// walking it twice in one tick is the cost this bound exists to avoid.
+    func testTheSweepSkipsTheFrontmostApplication() {
+        var walks: [pid_t] = []
+        let observer = AmbientSurfaceObserver(
+            store: AmbientContextStore(),
+            elementIndex: AmbientElementIndexStore(),
+            capture: { pid in
+                walks.append(pid)
+                return self.context(pid: pid, bundleID: "com.apple.dt.Xcode")
+            },
+            frontmost: { (42, "com.apple.dt.Xcode") },
+            trusted: { true },
+            standingClaims: { [Self.sightedXcode] },
+            standingRunning: {
+                [SurfacePollTarget.Process(bundleID: "com.apple.dt.Xcode", pid: 42)]
+            },
+            standingPreferred: { [] },
+            maryBundleID: "nyc.rao.mary")
+
+        observer.pollOnce(at: epoch)
+        XCTAssertEqual(walks, [42], "the frontmost application was walked twice")
+    }
+
+    /// A registration that declared how it may be observed — `hasEyes`.
+    private static var sightedXcode: ApplicationRegistration {
+        ApplicationRegistration(
+            id: "xcode",
+            profile: ApplicationProfile(
+                id: "xcode", title: "Xcode", summary: "One code editor.",
+                abilities: ["coding"]),
+            bundleIdentifiers: ["com.apple.dt.Xcode"],
+            placeClass: .workspace,
+            perception: ApplicationPerception(
+                documentOperation: "xcode_current_file", pollSeconds: 30))
+    }
 }

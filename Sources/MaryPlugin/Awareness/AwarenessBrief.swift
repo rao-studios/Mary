@@ -63,6 +63,71 @@ public enum AwarenessBrief {
         return clipped(lines.joined(separator: "\n"), to: standingBudget)
     }
 
+    // MARK: - A page
+
+    /// The standing brief for a page: which page, and what it is offering.
+    ///
+    /// PIN: WHAT IS KNOWN, AND WHEN IT WAS KNOWN. The offers come from a read a
+    /// SKILL made, not from anything this poll did, so the brief says how long
+    /// ago — a list of buttons with no age on it invites acting on a page that
+    /// has since moved. A page nobody has read says so plainly and names the
+    /// verb that would read it, which is more useful than silence and more
+    /// honest than a guess.
+    public static func page(
+        shell: WebSurfaceAX.Reading,
+        roster: PageRoster?,
+        age: TimeInterval?,
+        browser: String
+    ) -> String {
+        var lines: [String] = []
+        let title = shell.title ?? "an untitled page"
+        if let site = shell.siteName {
+            lines.append("What they are looking at: \(title), at \(site), in \(browser).")
+        } else {
+            lines.append("What they are looking at: \(title), in \(browser).")
+        }
+        // THE BROWSER IS ASKING, AND THAT COMES BEFORE THE PAGE. A modal question
+        // stands in front of everything below; a brief that listed the page's
+        // rows without it would invite acts the page cannot take. The choices
+        // are the vocabulary: one of them, said back, is the answer.
+        if let dialog = shell.dialog {
+            lines.append(
+                "\(dialog.spoken) Until it is answered nothing on the page can be read or "
+                + "pressed; a choice said back — through click_on_page — answers it.")
+            return lines.joined(separator: "\n")
+        }
+        if let roster, !roster.actionable.isEmpty {
+            // HOW THE PAGE IS LAID OUT, BEFORE WHAT IS ON IT.
+            //
+            // PIN: THE BRIEF IS THE VOCABULARY, AND THAT IS THE WHOLE POINT.
+            // A person who cannot see the page has to be told its SHAPE before
+            // any of the words they would naturally point with mean anything —
+            // "the search box at the top", "the third link in the sidebar". This
+            // sentence names exactly the places `PageRegion.named(in:among:)`
+            // will accept back, so what Mary says the page looks like and what
+            // she can be asked about it are the same list. A brief that
+            // described the page in words the resolver did not take would invite
+            // requests it then had to refuse.
+            if let landscape = PageListing.landscape(roster) { lines.append(landscape) }
+            let tail = PageListing.tail(roster)
+            if !tail.isEmpty {
+                lines.append(ageWords(age).map { "Read \($0). \(tail)" } ?? tail)
+            }
+        } else {
+            lines.append(
+                "I have not read this page yet — read_page lists what is on it, "
+                + "and read_page_text reads what it says.")
+        }
+        return clipped(lines.joined(separator: "\n"), to: standingBudget)
+    }
+
+    /// "12 seconds ago" / "3 minutes ago". Nil when there is no reading to date.
+    static func ageWords(_ age: TimeInterval?) -> String? {
+        guard let age, age >= 0 else { return nil }
+        if age < 90 { return "\(Int(age.rounded())) seconds ago" }
+        return "\(Int((age / 60).rounded())) minutes ago"
+    }
+
     /// The asked block: the same bearings, plus wherever the words landed.
     public static func surroundings(
         unit: EnclosingUnit?,

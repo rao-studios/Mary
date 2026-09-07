@@ -61,6 +61,21 @@ enum TurnTriage {
             uniqueSkill: nil,
             promotedByUniqueSkill: false)
 
+        /// THE SAME READ, AS A VALUE A BENCH CAN RENDER. Everything here was
+        /// already computed for the log line below; this is the same facts
+        /// crossing out of MaryBrain rather than a second opinion.
+        func verdictValue(lane: SemanticTurnLane? = nil) -> SemanticTurnVerdict {
+            SemanticTurnVerdict(
+                intent: intent?.rawValue,
+                intentScore: intentScore,
+                intentRunnerUp: intentRunnerUp?.rawValue,
+                promotedByUniqueSkill: promotedByUniqueSkill,
+                floor: EmbeddingRouting.floor,
+                margin: EmbeddingRouting.margin,
+                uniqueSkill: uniqueSkill?.reference.invocationName,
+                lane: lane)
+        }
+
         /// What the log and the trace quote, so both say the same thing.
         var intentDescription: String {
             guard let intent else { return "intent=lexical" }
@@ -89,7 +104,19 @@ enum TurnTriage {
             // action" — it is "I cannot say".
             return .abstained
         }
-        let classified = intentIndex.classify(query, habits: habits)
+        // THE INTENT IS READ OFF THE BARE REQUEST FIRST. Round 4 found that a
+        // politeness frame and a named surface cost 0.06–0.21 of sentence
+        // similarity and bared the SKILL read; the intent read kept scoring the
+        // frame. MEASURED at the turn: "Can you click on the first link" read
+        // as PERCEIVE (0.69) — a question, by its shape — while its own words
+        // reached `click_on_page` at 0.89, and nothing was dispatched. The bare
+        // form is the request; the frame is how it was asked. When the bare
+        // form classifies, it is the verdict; the framed sentence answers only
+        // when the bare one cannot.
+        let bare = RoutingQuery.bareRequest(
+            query, surfaces: registry.semanticSkillIndex?.surfaces ?? [])
+        let classified = bare.flatMap { intentIndex.classify($0, habits: habits) }
+            ?? intentIndex.classify(query, habits: habits)
 
         // Habits reach BOTH tiers. `classify` took them and `affinities`
         // silently fell back to `.shared`, so an injected store only half

@@ -325,8 +325,15 @@ package actor LocalStackManager {
 
     // MARK: - Build on demand
 
-    /// Runs `swift build -c release` in the checkout, streaming output lines.
-    /// The stream finishes when the build exits; check `snapshot()` after.
+    /// Runs `swift build -c release` in the checkout, then — for a server that
+    /// runs models on the GPU — its `build-metallib.sh`, streaming both.
+    ///
+    /// SWIFTPM HAS NO METAL STEP. Seer's on-device backend and Fleet's LoRA
+    /// decoder both load `mlx.metallib` from beside their binary, and a fresh
+    /// `.build/release` has none: the first model load then dies inside MLX
+    /// with "Failed to load the default metallib", which is not a Swift error
+    /// anything here could catch. Building it is part of building the server.
+    /// The stream finishes when both exit; check `snapshot()` after.
     package func build(_ kind: ServerSpec.Kind) -> AsyncStream<String> {
         guard let managed = servers[kind] else {
             return AsyncStream { $0.finish() }
@@ -363,6 +370,26 @@ package actor LocalStackManager {
                 pipe.fileHandleForReading.readabilityHandler = nil
                 let ok = finished.terminationStatus == 0
                 continuation.yield(ok ? "Build complete." : "Build failed (exit \(finished.terminationStatus)).")
+                if ok, let script = Self.metallibScript(in: checkout) {
+                    continuation.yield("Compiling mlx.metallib…")
+                    let metal = Process()
+                    metal.executableURL = URL(fileURLWithPath: "/bin/bash")
+                    metal.arguments = [script, "release"]
+                    metal.currentDirectoryURL = URL(fileURLWithPath: checkout)
+                    metal.standardOutput = FileHandle.nullDevice
+                    metal.standardError = FileHandle.nullDevice
+                    do {
+                        try metal.run()
+                        metal.waitUntilExit()
+                        continuation.yield(
+                            metal.terminationStatus == 0
+                                ? "mlx.metallib ready."
+                                : "mlx.metallib FAILED — on-device work in this server will abort.")
+                    } catch {
+                        continuation.yield(
+                            "Couldn't run build-metallib.sh: \(error.localizedDescription)")
+                    }
+                }
                 continuation.finish()
                 guard let self else { return }
                 Task { await self.buildFinished(kind, success: ok) }
@@ -375,6 +402,16 @@ package actor LocalStackManager {
                 Task { [weak self] in await self?.buildFinished(kind, success: false) }
             }
         }
+    }
+
+    /// The checkout's own metallib script, at either place the siblings keep
+    /// it. Nil when the server needs no GPU (Totem).
+    static func metallibScript(in checkout: String) -> String? {
+        for candidate in ["scripts/build-metallib.sh", "build-metallib.sh"] {
+            let path = (checkout as NSString).appendingPathComponent(candidate)
+            if FileManager.default.isExecutableFile(atPath: path) { return path }
+        }
+        return nil
     }
 
     private func buildFinished(_ kind: ServerSpec.Kind, success: Bool) {

@@ -28,6 +28,8 @@ struct SandBenchView: View {
     @State private var arguments: [String: String] = [:]
     @State private var observing = false
     @State private var runID: String?
+    /// What the target did, either side of the last dispatch.
+    @State private var effect: AXSnapshotDifference?
     @State private var observer = SandObserverTail()
     /// `--run` fires once, after the graph has loaded and a target is on the
     /// stage. Guarded so a re-render never runs an ability twice.
@@ -68,6 +70,7 @@ struct SandBenchView: View {
             VStack(alignment: .leading, spacing: 8) {
                 runControls
                 outcomeBanner
+                effectCard
                 stepList
             }
             .padding(12)
@@ -420,12 +423,22 @@ struct SandBenchView: View {
         let identity = UUID().uuidString
         runID = identity
         trace.beginRun(runnable, runID: identity)
+        // WHAT THE TARGET LOOKED LIKE BEFORE ANYONE TOUCHED IT. Held here
+        // rather than read afterwards, because afterwards is too late.
+        let before = model.latest
+        effect = nil
         // The recipe is about to move the target. Look harder while it does.
         model.setCadence(.running)
         Task {
             let outcome = await host.dispatch(
                 name: runnable.invocation, arguments: arguments, runID: identity)
             trace.endRun(outcome: outcome, host: host, runID: identity)
+            // AND LOOK AGAIN. A settle first: an application does not repaint
+            // the instant a dispatch returns, and a read taken too early reports
+            // the state the act just changed — the most confusing answer there
+            // is. The media lane's own 350ms, for its own reason.
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            effect = AXSnapshotDifference.between(before, model.latest)
             model.setCadence(.watching)
             runID = nil
         }
@@ -434,6 +447,59 @@ struct SandBenchView: View {
     private func stop() {
         guard let runID else { return }
         host.cancel(runID: runID)
+    }
+
+    /// WHAT THE APPLICATION DID, as opposed to what the skill said it did.
+    ///
+    /// PIN: EVERY `.mary` macUI RECIPE REPORTS SUCCESS ON THE ABSENCE OF A
+    /// REFUSAL — `PluginManagedUIExecutor` returns `ok: true` with `landed`
+    /// left false and never looks at the app again. So a recipe that did
+    /// nothing and one that worked produce the same banner. This is the second
+    /// look.
+    @ViewBuilder
+    private var effectCard: some View {
+        if let effect {
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Effect").font(.caption.bold())
+                    Spacer()
+                    Text(effect.isEmpty ? "nothing read differently" : "the target moved")
+                        .font(.system(size: 9, design: .monospaced))
+                        .foregroundStyle(effect.isEmpty ? Color.orange : Color.green)
+                }
+                if effect.windowTitleBefore != effect.windowTitleAfter {
+                    row("window",
+                        "\(effect.windowTitleBefore ?? "—")  →  \(effect.windowTitleAfter ?? "—")")
+                }
+                if effect.focusBefore != effect.focusAfter {
+                    row("focus", "\(effect.focusBefore ?? "—")  →  \(effect.focusAfter ?? "—")")
+                }
+                ForEach(effect.labelChanges) { change in
+                    row(change.role, "\"\(change.before)\"  →  \"\(change.after)\"")
+                }
+                if effect.added > 0 || effect.removed > 0 {
+                    row("elements", "+\(effect.added) / -\(effect.removed)")
+                }
+                if let outcome = trace.lastOutcome {
+                    row("landed", outcome.landed ? "yes — proven effect" : "not claimed")
+                }
+            }
+            .font(.system(size: 10, design: .monospaced))
+            .padding(8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.secondary.opacity(0.08)))
+        }
+    }
+
+    /// Label and value, the shape every other fact pane here uses.
+    private func row(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .top) {
+            Text(label).foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            Text(value).multilineTextAlignment(.trailing)
+        }
     }
 
     @ViewBuilder

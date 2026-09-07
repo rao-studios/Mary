@@ -200,11 +200,35 @@ public protocol MaryAdapter: Sendable {
     /// Binding that reads a named part, plus the phrase parameter.
     /// PIN: brain never learns Skill names; pre-read reuses the model's targeting.
     var targetedRead: (binding: String, parameter: String)? { get }
-    /// Extra owner keys that share this adapter's `targetedRead`.
-    var targetedReadAliases: [String] { get }
+    /// Called at the start of every user turn. See the default.
+    func beginTurn()
+    /// Extra owner keys this adapter answers to — the names a PLACE is spelled
+    /// with when they differ from the adapter's own.
+    ///
+    /// PIN: KEYS EVERY FETCH-FIRST TABLE, not just the targeted read. It was
+    /// named `targetedReadAliases` and fed one of the two; the awareness table
+    /// was keyed by the adapter's name alone, so a browser — which leads as the
+    /// place `"browser"`, never as `"web-surface"` — was reachable through one
+    /// and invisible to the other. See `AbilityRuntime.readOwnerKeys`.
+    var readOwnerAliases: [String] { get }
     /// Bindings that answer what the user is looking at, and what surrounds it.
     /// Nil for every provider that is not an awareness faculty.
     var awarenessRead: AwarenessRead? { get }
+
+    /// The declared perceptions this adapter publishes at the TOP of a turn,
+    /// before anything is routed.
+    ///
+    /// PIN: THE ADAPTER SAYS WHAT IT PERCEIVES; THE BRAIN ONLY ASKS. This was
+    /// two hard-coded functions inside MaryBrain that named `MediaSurfaceAX`,
+    /// `WebSurfaceAX`, `BrowserEngine` and two literal type ids — so the brain
+    /// knew what a browser was, and a third surface could not publish without
+    /// editing it. Empty by default: an adapter that perceives nothing says
+    /// nothing and costs nothing.
+    /// A SHELL, NEVER CONTENTS. Whatever is returned here runs on EVERY turn,
+    /// so it must be a cheap read of what is already visible — a player's
+    /// transport, a browser's title. Reading a page means reading pixels, and
+    /// pixels are read when a Skill asks.
+    func turnPerceptions() async -> [DeclaredPerception]
     /// Addressable containers. Nil for a single-document world.
     /// OUT: ReferenceResolver. PIN: ContainerRoster.cached must not spawn.
     var containerRoster: ContainerRoster? { get }
@@ -223,6 +247,10 @@ public protocol MaryAdapter: Sendable {
 }
 
 public extension MaryAdapter {
+    /// A NEW TURN. Whatever an adapter remembers for exactly one turn is
+    /// cleared here, by the adapter — the runtime clears "whatever adapters
+    /// keep" and names none of them. Default: nothing kept.
+    func beginTurn() {}
     var promptFragment: String? { nil }
     /// Honest minimal manifest for compiled adapters. Empty typed lists mean
     /// "not yet specified", not "cannot carry a Value". Override for a full contract.
@@ -242,8 +270,9 @@ public extension MaryAdapter {
     var applicationAliases: Set<String> { [name] }
     var applicationIdentifiers: Set<String> { [] }
     var targetedRead: (binding: String, parameter: String)? { nil }
-    var targetedReadAliases: [String] { [] }
+    var readOwnerAliases: [String] { [] }
     var awarenessRead: AwarenessRead? { nil }
+    func turnPerceptions() async -> [DeclaredPerception] { [] }
     var containerRoster: ContainerRoster? { nil }
     var refusals: [String] { [] }
 

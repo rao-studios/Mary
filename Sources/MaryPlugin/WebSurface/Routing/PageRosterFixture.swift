@@ -20,9 +20,9 @@ import CoreGraphics
 import Foundation
 import MaryComputerUse
 
-public struct PageRosterFixture: Codable, Sendable {
+public struct PageRosterFixture: Codable, Sendable, Equatable {
 
-    public struct Row: Codable, Sendable {
+    public struct Row: Codable, Sendable, Equatable {
         public var ordinal: Int
         public var role: String
         public var label: String
@@ -35,9 +35,40 @@ public struct PageRosterFixture: Codable, Sendable {
         public var hints: [String]
         public var groupID: Int?
         public var confidence: Double
+        /// WHAT THE SEAL DECIDED ABOUT THIS ROW, as `RowFacts.rawValue`.
+        ///
+        /// PIN: RECORDED, NOT RE-DERIVED. A replay exists to argue with the
+        /// evidence the live read actually produced; re-deriving the facts on
+        /// the way back in would replay a page the router never saw, and a rule
+        /// change would then silently rewrite its own fixtures. Absent in a v1
+        /// recording, where the facts are derived on demand exactly as they were.
+        public var facts: Int?
+        /// The kind the reading named, when it named one.
+        public var kind: String?
+        /// WHERE ON THE PAGE THE SEAL PUT IT — see `PageRegion`.
+        ///
+        /// PIN: RECORDED FOR THE SAME REASON `facts` IS, and missing for two
+        /// rounds without anyone noticing. A region is decided at the seal from
+        /// the page's own geometry; a recording that dropped it replayed a page
+        /// with no places in it at all, so every rule that reads one — the gate
+        /// that refuses "the third link in the sidebar" on a page with no
+        /// sidebar, the list derivation that only groups the page's own column —
+        /// was inert offline and could not be regression-tested. Absent in a
+        /// recording made before it existed, which reads as a page whose seal
+        /// named no places, exactly as it was.
+        public var region: String?
+        /// The site this row leads to, as a person would say it. A NAME, never
+        /// an address — the same reason `maskedAddress` exists.
+        public var site: String?
+        /// An adjustable control's state and range, when the page published
+        /// them — a progress bar's value and the video's length. Absent in a
+        /// recording made before they were carried.
+        public var value: Double?
+        public var minimumValue: Double?
+        public var maximumValue: Double?
     }
 
-    public struct Group: Codable, Sendable {
+    public struct Group: Codable, Sendable, Equatable {
         public var id: Int
         public var kind: String
         public var title: String?
@@ -48,6 +79,14 @@ public struct PageRosterFixture: Codable, Sendable {
     public var rows: [Row]
     public var groups: [Group]
     public var labeledFraction: Double
+    /// 1 = the AX-shaped pair alone; 2 = rows carrying their own facts.
+    public var version: Int?
+    /// WHETHER A ROLE CLASSIFIER RAN. Without it the map still reads a page and
+    /// every role is a shape's best guess, so the page simply looks bad — the
+    /// one failure a reader must not mistake for a hard page.
+    public var classified: Bool?
+    /// What the read cost. ~220ms is the documented budget; seconds is a finding.
+    public var readMilliseconds: Int?
 
     /// What a row's label is replaced with when it is an address.
     ///
@@ -58,11 +97,42 @@ public struct PageRosterFixture: Codable, Sendable {
     /// which is the half that carries a site name and a query string.
     public static let maskedAddress = "https://(an address)"
 
+    /// Stated directly — for a test naming a page by hand, and for a runner
+    /// re-encoding an older recording.
+    public init(
+        pageFrame: [Double] = [0, 0, 0, 0],
+        rows: [Row] = [],
+        groups: [Group] = [],
+        labeledFraction: Double = 1,
+        version: Int? = 2,
+        classified: Bool? = true,
+        readMilliseconds: Int? = nil
+    ) {
+        self.pageFrame = pageFrame
+        self.rows = rows
+        self.groups = groups
+        self.labeledFraction = labeledFraction
+        self.version = version
+        self.classified = classified
+        self.readMilliseconds = readMilliseconds
+    }
+
     public init(roster: PageRoster) {
         pageFrame = PageRosterFixture.numbers(roster.pageFrame)
         labeledFraction = roster.map.labeledFraction
+        version = 2
+        classified = roster.classified
+        readMilliseconds = roster.readDuration.map(PageRosterFixture.milliseconds)
+        let rowsByOrdinal = Dictionary(
+            roster.rows.map { ($0.ordinal, $0) }, uniquingKeysWith: { first, _ in first })
+        let factsByOrdinal = Dictionary(
+            roster.rows.map {
+                ($0.ordinal, ($0.facts.rawValue, $0.kind?.rawValue, $0.region?.rawValue))
+            },
+            uniquingKeysWith: { first, _ in first })
         rows = roster.elements.map { element in
             let annotation = roster.annotation(for: element)
+            let seen = factsByOrdinal[element.ordinal]
             return Row(
                 ordinal: element.ordinal,
                 role: element.role,
@@ -76,7 +146,14 @@ public struct PageRosterFixture: Codable, Sendable {
                 labelSource: (annotation?.labelSource ?? .textInside).rawValue,
                 hints: annotation?.hints ?? [],
                 groupID: annotation?.groupID,
-                confidence: annotation?.confidence ?? 0)
+                confidence: annotation?.confidence ?? 0,
+                facts: seen?.0,
+                kind: seen?.1,
+                region: seen?.2,
+                site: rowsByOrdinal[element.ordinal]?.site,
+                value: rowsByOrdinal[element.ordinal]?.value,
+                minimumValue: rowsByOrdinal[element.ordinal]?.minimumValue,
+                maximumValue: rowsByOrdinal[element.ordinal]?.maximumValue)
         }
         groups = roster.map.groups.map {
             Group(id: $0.id, kind: $0.kind, title: $0.title, memberOrdinals: $0.memberOrdinals)
@@ -109,17 +186,78 @@ public struct PageRosterFixture: Codable, Sendable {
                 containerTrail: row.containerTrail,
                 provenance: .seen)
         }
+        let map = PageMapSummary(
+            groups: groups.map {
+                SeenGroup(
+                    id: $0.id, kind: $0.kind, title: $0.title,
+                    memberOrdinals: $0.memberOrdinals)
+            },
+            annotations: annotations,
+            labeledFraction: labeledFraction)
+        let frame = PageRosterFixture.rect(pageFrame)
+        // A V1 RECORDING HAS NO ROWS TO GIVE, so the roster derives them on
+        // demand — the same answer it gives a test that states a page by hand.
+        guard (version ?? 1) >= 2 else {
+            return PageRoster(
+                elements: elements, map: map, pageFrame: frame,
+                classified: classified ?? true,
+                readDuration: readMilliseconds.map { .milliseconds($0) })
+        }
         return PageRoster(
-            elements: elements,
-            map: PageMapSummary(
-                groups: groups.map {
-                    SeenGroup(
-                        id: $0.id, kind: $0.kind, title: $0.title,
-                        memberOrdinals: $0.memberOrdinals)
+            rows: pageRows(), groups: pageGroups(),
+            elements: elements, map: map, pageFrame: frame,
+            classified: classified ?? true,
+            readDuration: readMilliseconds.map { .milliseconds($0) })
+    }
+
+    /// The rows a v2 recording carries, facts and all.
+    public func pageRows() -> [PageRow] {
+        let groupByID = Dictionary(
+            groups.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        return rows.map { row in
+            let group = row.groupID.flatMap { groupByID[$0] }
+            return PageRow(
+                ordinal: row.ordinal,
+                frame: PageRosterFixture.rect(row.frame),
+                label: row.label,
+                labelSource: SeenLabelSource(rawValue: row.labelSource) ?? .textInside,
+                affordance: SeenAffordance(rawValue: row.affordance) ?? .none,
+                affordanceSource: SeenAffordanceSource(rawValue: row.affordanceSource)
+                    ?? .unknown,
+                kind: row.kind.flatMap { PageElementKind(rawValue: $0) },
+                role: row.role.isEmpty ? nil : row.role,
+                group: group.map {
+                    PageGroupRef(
+                        id: $0.id,
+                        kind: SeenGroupKind(rawValue: $0.kind) ?? .band,
+                        title: $0.title)
                 },
-                annotations: annotations,
-                labeledFraction: labeledFraction),
-            pageFrame: PageRosterFixture.rect(pageFrame))
+                hints: row.hints,
+                confidence: row.confidence,
+                isEnabled: row.isEnabled,
+                facts: RowFacts(rawValue: row.facts ?? 0),
+                region: row.region.flatMap { PageRegion(rawValue: $0) },
+                provenance: .seen,
+                site: row.site,
+                value: row.value,
+                minimumValue: row.minimumValue,
+                maximumValue: row.maximumValue)
+        }
+    }
+
+    public func pageGroups() -> [PageGroup] {
+        groups.map {
+            PageGroup(
+                id: $0.id,
+                kind: SeenGroupKind(rawValue: $0.kind) ?? .band,
+                title: $0.title,
+                memberOrdinals: $0.memberOrdinals)
+        }
+    }
+
+    static func milliseconds(_ duration: Duration) -> Int {
+        let parts = duration.components
+        return Int(parts.seconds) * 1_000 + Int(parts.attoseconds / 1_000_000_000_000_000)
     }
 
     static func numbers(_ rect: CGRect) -> [Double] {

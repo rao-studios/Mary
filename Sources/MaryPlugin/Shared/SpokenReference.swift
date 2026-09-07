@@ -13,6 +13,15 @@ import MaryComputerUse
 public protocol SpokenReferable {
     var spokenLabel: String { get }
     var spokenKind: PageElementKind? { get }
+    /// WHERE ON THE PAGE IT SITS. Nil for a lane that has no page to sit on —
+    /// a native window's roster — and the filter is skipped whenever no element
+    /// in the pool has one, so a region word in a phrase about a window is
+    /// treated as part of the name, exactly as it was before regions existed.
+    var spokenRegion: PageRegion? { get }
+}
+
+extension SpokenReferable {
+    public var spokenRegion: PageRegion? { nil }
 }
 
 public enum SpokenReference {
@@ -32,6 +41,38 @@ public enum SpokenReference {
 
     /// See `PageElementResolver.resolve` for the full rationale of
     /// `preferShortestOnTie`; this is that same ladder, rung for rung.
+    /// THE POOL A PHRASE IS ASKING ABOUT: the rows of the kind it named, in the
+    /// part of the page it named.
+    ///
+    /// PIN: TWO FILTERS, ONE PLACE, so `resolve` and `reached` cannot disagree
+    /// about what "the third link in the sidebar" is counting. Either filter
+    /// applies only when the phrase names something the pool actually holds —
+    /// see `PageRegion.named(in:among:)` for why naming a region a page has none
+    /// of has to be a miss rather than a silent widening.
+    /// `indices` is nil when the phrase named a PLACE this page does not have —
+    /// a miss, not a pool. Widening back to the whole page there is how "the
+    /// third link in the sidebar" would come to open the third link in the
+    /// article, which is the wrong row said confidently.
+    static func pool<Element: SpokenReferable>(
+        phrase rawPhrase: String, among elements: [Element]
+    ) -> (kind: PageElementKind?, region: PageRegion?, indices: [Int]?) {
+        let kind = offeredKind(namedIn: rawPhrase, among: elements)
+        let present = Set(elements.compactMap(\.spokenRegion))
+        let region = present.isEmpty
+            ? nil : PageRegion.named(in: rawPhrase, among: present)
+        // NAMED A PLACE, JUST NOT ONE OF THESE. Only asked of a pool that HAS
+        // places: a native window's roster has none, and a phrase saying "on the
+        // right" about one is a name, exactly as it was before regions existed.
+        if region == nil, !present.isEmpty,
+           PageRegion.named(in: rawPhrase, among: Set(PageRegion.allCases)) != nil {
+            return (kind, nil, nil)
+        }
+        var indices = Array(elements.indices)
+        if let kind { indices = indices.filter { elements[$0].spokenKind == kind } }
+        if let region { indices = indices.filter { elements[$0].spokenRegion == region } }
+        return (kind, region, indices)
+    }
+
     public static func resolve<Element: SpokenReferable>(
         phrase rawPhrase: String,
         among elements: [Element],
@@ -40,10 +81,8 @@ public enum SpokenReference {
         let phrase = normalized(rawPhrase)
         guard !phrase.isEmpty, !elements.isEmpty else { return .none }
 
-        let kind = offeredKind(namedIn: rawPhrase, among: elements)
-        let poolIndices = kind.map { k in
-            elements.indices.filter { elements[$0].spokenKind == k }
-        } ?? Array(elements.indices)
+        let (kind, region, pooled) = pool(phrase: rawPhrase, among: elements)
+        guard let poolIndices = pooled else { return .none }
 
         // 1 — position. "The third video" / "the last one".
         if let ordinal = SpokenOrdinal.value(in: rawPhrase) {
@@ -53,7 +92,7 @@ public enum SpokenReference {
             return .one(poolIndices[ordinal - 1])
         }
 
-        let needle = stripped(phrase, of: kind)
+        let needle = stripped(phrase, of: kind, in: region)
         guard !needle.isEmpty else {
             // They named only a category: unambiguous only if the pool
             // holds exactly one of them.
@@ -132,7 +171,8 @@ public enum SpokenReference {
         let phrase = normalized(rawPhrase)
         guard !phrase.isEmpty, !elements.isEmpty else { return nil }
 
-        let kind = offeredKind(namedIn: rawPhrase, among: elements)
+        let (kind, region, pooled) = pool(phrase: rawPhrase, among: elements)
+        guard let poolIndices = pooled else { return nil }
         // A KIND THE PAGE DOES NOT HOLD IS NOT A POOL TO COUNT.
         //
         // PIN: MEASURED. "The first video" on a page whose rows the reading classified as
@@ -147,9 +187,9 @@ public enum SpokenReference {
                namedIn: rawPhrase, offering: Set(PageElementKind.allCases)) != nil {
             return nil
         }
-        let poolIndices = kind.map { k in
-            elements.indices.filter { elements[$0].spokenKind == k }
-        } ?? Array(elements.indices)
+        // A REGION THE PAGE DOES NOT HOLD IS A MISS FOR THE SAME REASON — and
+        // one it DOES hold that is empty of the named kind is too.
+        if region != nil, poolIndices.isEmpty { return nil }
 
         if let ordinal = SpokenOrdinal.value(in: rawPhrase) {
             guard !poolIndices.isEmpty else { return nil }
@@ -158,7 +198,7 @@ public enum SpokenReference {
             return (.ordinal, [poolIndices[ordinal - 1]])
         }
 
-        let needle = stripped(phrase, of: kind)
+        let needle = stripped(phrase, of: kind, in: region)
         guard !needle.isEmpty else {
             return poolIndices.isEmpty ? nil : (.kindOnly, poolIndices)
         }
@@ -212,10 +252,26 @@ public enum SpokenReference {
 
     /// Remove the words that classified the target rather than named it — the kind word
     /// itself and the determiners around it.
-    static func stripped(_ phrase: String, of kind: PageElementKind?) -> String {
+    /// PIN: THE REGION'S WORDS COME OUT WITH THE KIND'S, and the preposition
+    /// that led to them. "The Donate link in the sidebar" is a NAME — "Donate" —
+    /// said about a part of the page, and a needle still carrying "in the
+    /// sidebar" matches no label anywhere.
+    static func stripped(
+        _ phrase: String, of kind: PageElementKind?, in region: PageRegion? = nil
+    ) -> String {
         var value = phrase
+        if region != nil {
+            for preposition in ["in the", "on the", "at the", "down the", "across the",
+                                "along the", "inside the", "in", "on", "at"] {
+                value = value.replacingOccurrences(
+                    of: "\\b\(NSRegularExpression.escapedPattern(for: preposition))\\b",
+                    with: " ",
+                    options: .regularExpression)
+            }
+        }
         let noise = ["the", "that", "this", "a", "an", "one", "please"]
             + (kind?.admittingWords.flatMap { [$0, $0 + "s"] } ?? [])
+            + (region?.admittingWords.flatMap { [$0, $0 + "s"] } ?? [])
         for word in noise.sorted(by: { $0.count > $1.count }) {
             value = value.replacingOccurrences(
                 of: "\\b\(NSRegularExpression.escapedPattern(for: word))\\b",

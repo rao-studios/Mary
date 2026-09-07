@@ -166,6 +166,34 @@ import Testing
         #expect(EmbeddingRouting.confidenceShape(of: skill) == .singleString)
     }
 
+    /// AN OPTIONAL STRING THE PACKAGE SAYS THE SENTENCE FILLS. "Go back two
+    /// minutes in the video" names the seek AND how far; the enum took "go
+    /// back", and the span that remains is the time. An optional plain string
+    /// was unfillable by construction, so every seek cost a model round.
+    @Test func aSpokenSpanFillsAnOptionalString() throws {
+        let skill = Self.fixtureSkill(
+            skillID: "fixture.seek", invocationName: "control_media",
+            parameters: [
+                .init(
+                    name: "action", type: "string", summary: "", required: true,
+                    enumValues: ["seek", "pause"],
+                    spokenValues: ["seek": ["go back", "skip ahead"]]),
+                .init(
+                    name: "position", type: "string", summary: "", required: false,
+                    spokenSpan: true),
+                .init(name: "note", type: "string", summary: "", required: false),
+            ])
+        let filled = EmbeddingRouting.filledArguments(
+            for: skill, utterance: "Can you go back two minutes in the video", applicationID: nil)
+        let arguments = try #require(
+            try JSONSerialization.jsonObject(with: Data(filled.json.utf8)) as? [String: String])
+        #expect(arguments["action"] == "seek")
+        #expect(arguments["position"]?.contains("two minutes") == true)
+        // An optional string NOT marked is left alone — a span nobody asked for.
+        #expect(arguments["note"] == nil)
+        #expect(filled.stages.contains { $0.hasPrefix("span position") })
+    }
+
     private static func fixtureSkill(
         skillID: String, invocationName: String, parameters: [ModelParameterSchema]
     ) -> AbilityRuntimeSkill {

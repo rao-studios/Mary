@@ -5,6 +5,7 @@
 //  WHAT: Post a key chord. Not media keys (those are MediaTransport).
 //  OUT:  recipe grammar | ProseSurfaceWriter fallback
 
+import AppKit
 import CoreGraphics
 import Foundation
 import MaryFoundation
@@ -14,9 +15,34 @@ public enum KeyChordPress {
     /// Press one chord. False when the key has no keycode on this layout or
     /// the events could not be created — never a claim about what the
     /// application did with it.
+    /// `targetPrefix` — the bundle id this chord is FOR.
+    ///
+    /// PIN: THE TYPER ALREADY REFUSES TO TYPE INTO THE WRONG APPLICATION AND THIS
+    /// DID NOT. `KeyboardTyper` checks the frontmost bundle before every chunk;
+    /// a chord posted to the HID tap goes wherever focus happens to be, and the
+    /// two are used one after the other by the same code. MEASURED: during a
+    /// back-to-back corpus run the browser lost the stage between trips and ⌘L
+    /// went to whatever had it — the navigation then reported "I couldn't find
+    /// the address bar" about a browser it had never reached, and the failure was
+    /// filed against the engine. A chord is a stronger gesture than a keystroke,
+    /// not a weaker one: ⌘W in the wrong window closes somebody's document.
+    /// NIL IS THE OLD BEHAVIOUR, deliberately — a caller with no application in
+    /// mind (a system chord, a media key) is not made to invent one.
     @discardableResult
-    public static func press(key: PluginKey, modifiers: [PluginKeyModifier]) -> Bool {
+    public static func press(
+        key: PluginKey,
+        modifiers: [PluginKeyModifier],
+        targetPrefix: String? = nil,
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost
+    ) -> Bool {
         let spelling = (modifiers.map(\.rawValue) + [key.rawValue]).joined(separator: "+")
+        if case .lost(let front) = FrontmostGuard.check(
+            targetPrefix: targetPrefix, frontmost: frontmost) {
+            ComputerUseMonitor.shared.note(
+                lane: .keyboard, refused: "keyChord",
+                reason: .targetLostFocus(front))
+            return false
+        }
         guard let code = keyCode(for: key) else {
             ComputerUseMonitor.shared.note(lane: .keyboard, refused: "keyChord", reason: .noKeyCode(key.rawValue))
             return false
@@ -36,6 +62,23 @@ public enum KeyChordPress {
         up.flags = flags
         down.post(tap: .cghidEventTap)
         up.post(tap: .cghidEventTap)
+        // AND THE MODIFIER IS PUT DOWN AGAIN.
+        //
+        // PIN: A CHORD THAT NEVER RELEASES ITS MODIFIER LATCHES THE SESSION.
+        // `CGEventSource.flagsState(.combinedSessionState)` folds in what has
+        // been POSTED, and the key-up above carries the chord's flags — which
+        // says "the key came up while Command was still held" and leaves Command
+        // held, with nothing anywhere to lower it. Every later event created
+        // with a nil source then inherits it. MEASURED LIVE after a round of
+        // browsing: Command was latched, `KeyChordPress` still worked because it
+        // sets its own flags, and `KeyboardTyper` — which did not — typed
+        // nothing at all. This posts the empty flags state that a real hand
+        // leaving the keys would produce.
+        if !flags.isEmpty, let cleared = CGEvent(source: nil) {
+            cleared.type = .flagsChanged
+            cleared.flags = []
+            cleared.post(tap: .cghidEventTap)
+        }
         ComputerUseMonitor.shared.note(lane: .keyboard, act: "keyChord", detail: spelling)
         return true
     }

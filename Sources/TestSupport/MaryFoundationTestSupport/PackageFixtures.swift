@@ -129,6 +129,16 @@ public enum PackageFixtures {
                 ambientExcerptCharacters: 280))
     }
 
+    /// Well-formed web surface — a world that shows PAGES rather than documents.
+    public static var webSurface: PluginWebSurfaceSchema {
+        PluginWebSurfaceSchema(
+            addressFieldLabel: "Address and search bar",
+            backLabel: "Back",
+            forwardLabel: "Forward",
+            reloadLabel: "Reload",
+            watch: .init(activeSeconds: 3, idleSeconds: 15))
+    }
+
     /// Well-formed code surface for single-field breakage.
     public static var codeSurface: PluginCodeSurfaceSchema {
         PluginCodeSurfaceSchema(

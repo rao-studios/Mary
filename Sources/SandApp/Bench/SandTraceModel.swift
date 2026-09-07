@@ -79,7 +79,12 @@ final class SandTraceModel: ObservableObject {
     @Published private(set) var isRunning = false
     /// The last run's outcome, kept after the run so the banner survives. `receipt` is
     /// the four facts that say whether the summary is true — see `receiptWords`.
-    @Published private(set) var lastOutcome: (ok: Bool, summary: String, receipt: String)?
+    /// `landed` is the ONLY field written on a proven effect rather than on the
+    /// absence of a refusal — see `SkillOutcome.landed`. Carried so the Effect
+    /// card can say whether the skill claimed proof, beside what the target
+    /// actually did.
+    @Published private(set) var lastOutcome:
+        (ok: Bool, summary: String, receipt: String, landed: Bool)?
 
     /// How many rows the timeline keeps. Long enough for a whole recipe and
     /// its refusals, short enough that it is never a recording.
@@ -177,7 +182,9 @@ final class SandTraceModel: ObservableObject {
     func endRun(record: BehavioralActionRecord) {
         isRunning = false
         let ok = record.disposition == .succeeded
-        lastOutcome = (ok, record.summary, record.receiptWords)
+        // A LEDGER ROW HAS NO `landed`: the brain consumed the outcome that
+        // carried it. The turn lane's proof is the record's own receipt words.
+        lastOutcome = (ok, record.summary, record.receiptWords, false)
         append(.runEnded(summary: record.summary, ok: ok))
         append(.record(record))
         if let mark = Self.mark(for: record) { add(mark) }
@@ -218,7 +225,7 @@ final class SandTraceModel: ObservableObject {
         let ok = outcome?.ok ?? false
         let summary = outcome?.summary ?? "the runtime answered nothing"
         let receipt = outcome?.receiptWords ?? ""
-        lastOutcome = (ok, summary, receipt)
+        lastOutcome = (ok, summary, receipt, outcome?.landed ?? false)
         append(.runEnded(summary: summary, ok: ok))
         if !receipt.isEmpty { append(.note(receipt)) }
         // The ledger row lands from inside `dispatch`, which has already

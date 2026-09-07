@@ -81,7 +81,7 @@ One SwiftPM package, targets under `Sources/`, layered strictly:
 | `MaryComputerUse` | The machine layer: the accessibility tree engine (tier 0), derived sight, hands (keyboard, pointer, elements, windows, menus, media keys), stage arbitration, subprocess, and one monitor. The only target that posts an input event, performs an accessibility action, or captures pixels — and a test reads every source file to keep that true. |
 | `MaryPlugin` | The adapter contract and the generic adapters (surface, typer, prose-surface, window management, media, corpus). Adapters translate what a Skill needs into hands and sight; they do not reach the machine themselves. |
 | `MaryVoice` | Mic → VAD → transcription → a `LanguageResponder` seam → speech, every stage observable. |
-| `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients, one on-device MLX engine. The only target that may name Frigate. |
+| `MaryBrain` | Reasoning: the dual-lane turn, the Plugin pipeline, the Seer clients. Every generation rides Seer — Mistral, Thinking Machines, or Seer's own on-device model — so no model is ever loaded in this process. |
 | `MaryTotem` | The gRPC facade onto the local Totem node. Consumed only by the runtime and the app. |
 | `MaryRuntime` | The composition root, long-lived actors, and Granite services. |
 | `Mary` | The SwiftUI app. |

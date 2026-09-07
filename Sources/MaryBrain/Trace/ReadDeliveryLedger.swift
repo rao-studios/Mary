@@ -34,6 +34,10 @@ public enum ReadRoute: String, Sendable, Equatable, CaseIterable {
     case supersededToTranscript
     /// THE FOLLOW-UP CHAIN GAVE WAY. Either a chain entry stopped waiting for a wedged predecessor
     case chainStalled
+    /// THE DETERMINISTIC LINE WAS JUDGED A RESTATEMENT AND DROPPED. Correct for
+    /// an act's receipt, and the shape of a turn that ends in silence when it
+    /// is wrong — so it is a ROW rather than a log line nobody reads.
+    case droppedAsRestating
 
     public var displayName: String {
         switch self {
@@ -49,6 +53,8 @@ public enum ReadRoute: String, Sendable, Equatable, CaseIterable {
             return "superseded read → transcript only (not spoken)"
         case .chainStalled:
             return "follow-up chain stalled — the queue moved on without it"
+        case .droppedAsRestating:
+            return "follow-up dropped — judged a restatement of what was said"
         }
     }
 
@@ -93,20 +99,39 @@ public final class ReadDeliveryLedger: @unchecked Sendable {
 
     public static let shared = ReadDeliveryLedger()
 
-    private let box = OSAllocatedUnfairLock<ReadDelivery?>(initialState: nil)
+    /// The newest delivery, and a short tail behind it.
+    ///
+    /// PIN: A TURN DELIVERS MORE THAN ONE READ. This held a single slot, which
+    /// answers "what happened to the last read" and cannot answer "did any read
+    /// this turn stall" — the question a browsing trip actually asks, and the
+    /// one the reported silent-page defect turns on. The tail is bounded because
+    /// this is a diagnostic, not a history: what a debugger draws and a trip
+    /// asserts is the handful of reads one turn made.
+    private let box = OSAllocatedUnfairLock<[ReadDelivery]>(initialState: [])
+
+    /// How many deliveries are kept behind the newest.
+    static let tail = 16
 
     public init() {}
 
     public func record(_ delivery: ReadDelivery) {
-        box.withLock { $0 = delivery }
+        box.withLock { deliveries in
+            deliveries.append(delivery)
+            if deliveries.count > Self.tail { deliveries.removeFirst() }
+        }
     }
 
     public func latest() -> ReadDelivery? {
-        box.withLock { $0 }
+        box.withLock { $0.last }
+    }
+
+    /// Every route recorded lately, newest last.
+    public func recentRoutes() -> [String] {
+        box.withLock { $0.map(\.route.rawValue) }
     }
 
     /// Test isolation — the process-wide box must never leak between suites.
     public func clear() {
-        box.withLock { $0 = nil }
+        box.withLock { $0 = [] }
     }
 }

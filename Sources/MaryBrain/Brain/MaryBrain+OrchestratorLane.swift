@@ -245,6 +245,7 @@ extension MaryBrain {
                 let pendingBeforeDispatch = dispatcher.pendingSkillConfirmationID
                 var roundTurns = [BrainTurn(role: .assistant, text: "", skillInvocations: skillInvocations)]
                 var lastOutcomes: [String] = []
+                let outcomesBefore = result.outcomes.count
                 for call in skillInvocations {
                     if Task.isCancelled {
                         // Superseded mid-round — stop issuing calls; synthetic results keep the pair.
@@ -298,6 +299,28 @@ extension MaryBrain {
                         lastOutcomes.append(redirect)
                         continue
                     }
+                    // THE SAME CALL THAT JUST FAILED IS NOT TRIED AGAIN, and one that
+                    // ran unproven waits for a look. See MaryBrain+RepeatGuard.
+                    if let prior = Self.alreadyFailed(call, in: result.outcomes) {
+                        let line = Self.repeatedFailureLine(call.name, prior: prior)
+                        roundTurns.append(BrainTurn(
+                            role: .skillResult, text: line,
+                            skillInvocationID: call.id, skillName: call.name))
+                        lastOutcomes.append(line)
+                        result.repeatedFailedCall = true
+                        Self.laneLog.info("repeat of a failed call refused — the lane ends")
+                        continue
+                    }
+                    if Self.alreadyRanUnproven(
+                        call, in: result.outcomes, isRead: dispatcher.isReadOnly) != nil {
+                        let line = Self.unprovenRepeatLine(call.name)
+                        roundTurns.append(BrainTurn(
+                            role: .skillResult, text: line,
+                            skillInvocationID: call.id, skillName: call.name))
+                        lastOutcomes.append(line)
+                        Self.laneLog.info("repeat of an unproven act held — look first")
+                        continue
+                    }
                     let startedAt = Date()
                     let outcome = await RoutingHabitRecordingContext.withGrant(routingHabitGrant) {
                         await dispatcher.dispatch(
@@ -329,7 +352,9 @@ extension MaryBrain {
                     lastOutcomes.append(outcome.summary)
                     result.outcomes.append(LaneOutcome(
                         skillName: reference.bindingOperation ?? call.name,
-                        outcome: outcome))
+                        outcome: outcome,
+                        invocation: call.name,
+                        argumentsJSON: call.argumentsJSON))
                     archive(
                         reference: reference,
                         skillName: reference.bindingOperation ?? call.name,
@@ -351,6 +376,16 @@ extension MaryBrain {
                 result.laneTurns.append(contentsOf: roundTurns)
 
                 if Task.isCancelled { return result }
+
+                // A QUESTION TO THE PERSON ENDS THE LANE — the question is the reply.
+                // PIN: THE ONLY OTHER THING THAT PARKS A TURN IS A CONFIRMATION, and
+                // an ambiguity is not one: nothing is replayed on "yes". The next
+                // utterance ("the second one") is a fresh turn.
+                if let asked = result.outcomes[outcomesBefore...].first(where: \.asksThePerson) {
+                    result.question = asked.summary
+                    return result
+                }
+                if result.repeatedFailedCall { return result }
 
                 // Stored pending action only — "CONFIRM:" text can be forged by echoed Skill output.
                 if let pendingAfterDispatch = dispatcher.pendingSkillConfirmationID,

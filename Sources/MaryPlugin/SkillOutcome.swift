@@ -56,6 +56,13 @@ public struct SkillOutcome: Sendable {
     /// The look ran and what was asked for is not there. `ok` stays true.
     /// PIN: not `ok: false` — that would speak a failure and invite a retry.
     public var foundNothing: Bool
+    /// The summary is a question only the person can answer — "Which one?",
+    /// "What would you like me to do?" — and it IS the reply.
+    /// PIN: NOT A FAILURE TO RETRY, NOT A CONFIRMATION TO REPLAY. A lane that
+    /// took this as `ok: false` asked the model what next, and the model
+    /// answered by running the same call again — measured: "skip the ad" three
+    /// times, two of them refused as ambiguous. The lane ends on it instead.
+    public var asksThePerson: Bool
     /// Passage this result is about — `[S1]`, minted by PassageRegistry.
     /// OUT: AmbientFact / AbilityRuntime.registerRead (files the world's fact).
     public var passageHandle: String?
@@ -102,6 +109,7 @@ public struct SkillOutcome: Sendable {
         deferred: Bool = false,
         archivePolicy: ArchivePolicy = .episodic,
         foundNothing: Bool = false,
+        asksThePerson: Bool = false,
         passageHandle: String? = nil,
         skillReference: AbilitySkillReference? = nil,
         typedOutputs: [String: ValueEnvelope] = [:],
@@ -120,6 +128,7 @@ public struct SkillOutcome: Sendable {
         self.deferred = deferred
         self.archivePolicy = archivePolicy
         self.foundNothing = foundNothing
+        self.asksThePerson = asksThePerson
         self.passageHandle = passageHandle
         self.skillReference = skillReference
         self.typedOutputs = typedOutputs

@@ -19,7 +19,7 @@
 	</array>
 	<!-- WHICH BINARY LAUNCHES. Absent, Launch Services guesses from the
 	     bundle name and happens to be right — but Contents/MacOS also holds
-	     mlx.metallib (MLX searches beside the executable), so the directory
+	     resources (Kokoro voices and Abilities), so the directory
 	     is not a single-candidate fallback and the guess is luck rather than
 	     contract. -->
 	<key>CFBundleExecutable</key>

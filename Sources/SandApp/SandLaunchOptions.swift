@@ -21,6 +21,7 @@
 //    ./scripts/sand.sh --target com.google.Chrome --read-page \
 //        --say "open the first result" --auto
 //
+import CoreGraphics
 import Foundation
 
 struct SandLaunchOptions {
@@ -40,6 +41,10 @@ struct SandLaunchOptions {
     /// like every other verb here: a read claims the stage and moves the pointer, which
     /// is not something opening a bench should do on its own.
     var readPage = false
+    /// The browser window the run works in — see `AXWindowIdentity`. A run
+    /// names its window once; without it the first read takes the browser's
+    /// main window, which is whichever the person last clicked.
+    var window: CGWindowID?
     /// `--arg name=value`, applied to BOTH lanes: the direct run's arguments, and the
     /// skill `--auto` answers with (filtered there to what that skill declares).
     var arguments: [String: String] = [:]
@@ -67,6 +72,9 @@ struct SandLaunchOptions {
             case "--read-page":
                 readPage = true
                 index += 1
+            case "--window":
+                window = value.flatMap { CGWindowID($0) }
+                index += 2
             case "--arg":
                 // name=value. A value containing "=" keeps it: only the first
                 // separator is structural.

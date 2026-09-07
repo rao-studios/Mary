@@ -16,6 +16,18 @@ extension AbilityRuntime {
     public var applicationProfiles: [ApplicationProfile] {
         nativeProfiles + abilitySnapshot.plugins.applicationProfiles
     }
+    /// The pinned application, as a PROFILE id.
+    ///
+    /// PIN: RESOLVED THROUGH THE PROFILES, like the focused rung beside it — a
+    /// pin names a registration's logical id, and a rung that answered with an
+    /// id no profile knows would assert a provider nothing can serve.
+    public var pinnedApplicationID: String? {
+        guard let pinned = pinnedProvider?() else { return nil }
+        return applicationProfiles.first {
+            $0.id.caseInsensitiveCompare(pinned) == .orderedSame
+        }?.id
+    }
+
     public var focusedApplicationID: String? {
         // Injected focus resolver — the turn's already-arbitrated answer.
         if let resolvedOwner = focusProvider?(),

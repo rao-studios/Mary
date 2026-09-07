@@ -38,18 +38,23 @@ public enum WebSurfaceAX {
         public var canGoForward: Bool?
         /// Tab names in bar order, browser noise removed.
         public var tabs: [String]
+        /// The same tabs as the browser labels them — what a press has to name.
+        public var tabLabels: [String] = []
         public var activeTabIndex: Int?
         public var windowID: CGWindowID?
         public var windowFrame: CGRect
         /// Whether this browser's page content reaches Accessibility at all today.
         public var pageReachableByAX: Bool
+        /// A question the browser itself is asking, standing in front of the page.
+        /// Nil is the ordinary state; see `Dialog`.
+        public var dialog: Dialog?
 
         public init(
             title: String? = nil, url: String? = nil, pageFrame: CGRect? = nil,
             pageFrameSource: String = "none", canGoBack: Bool? = nil,
             canGoForward: Bool? = nil, tabs: [String] = [], activeTabIndex: Int? = nil,
             windowID: CGWindowID? = nil, windowFrame: CGRect = .zero,
-            pageReachableByAX: Bool = false
+            pageReachableByAX: Bool = false, dialog: Dialog? = nil
         ) {
             self.title = title
             self.url = url
@@ -62,19 +67,186 @@ public enum WebSurfaceAX {
             self.windowID = windowID
             self.windowFrame = windowFrame
             self.pageReachableByAX = pageReachableByAX
+            self.dialog = dialog
         }
 
         /// The site, as a person would say it. The URL itself never leaves this type.
         public var siteName: String? { url.flatMap(SiteName.spoken(url:)) }
     }
 
+    /// THE BROWSER ASKING SOMETHING OF ITS OWN — a form resubmission, a
+    /// "leave this site?", a permission, a script's alert — modal over the
+    /// page, so nothing on the page can be read or pressed until it is answered.
+    ///
+    /// PIN: MEASURED IN CHROME, AND IT IS NOT A WINDOW. "Confirm Form
+    /// Resubmission" is published INSIDE the browsing window as an `AXGroup`
+    /// with the `AXApplicationDialog` subrole: a heading, a static text and two
+    /// buttons ("Cancel", "Continue"), left to right. `browsingWindow` still
+    /// finds the page's window, the page's own tree is still there underneath,
+    /// and a reload while it is up settled as "Reloaded" — a page nobody could
+    /// see. A dialog is a fact of the shell, read where the tabs are read, and
+    /// its buttons are shell controls the shell press already reaches.
+    ///
+    /// NEVER PRESSED ON MARY'S OWN INITIATIVE. The choices are what the person
+    /// is told; one of them said back is what answers it.
+    public struct Dialog: Sendable, Equatable {
+        /// What it is asking, as the browser titles it.
+        public var title: String
+        /// The longer text under the title, when the browser publishes one.
+        public var message: String?
+        /// The buttons, as labelled, left to right.
+        public var choices: [String]
+
+        public init(title: String, message: String? = nil, choices: [String]) {
+            self.title = title
+            self.message = message
+            self.choices = choices
+        }
+
+        /// The browser's words alone: the title, and the body when there is one.
+        public var question: String { message.map { "\(title) — \($0)" } ?? title }
+
+        /// The question as Mary asks it back: the browser's words, then the choices.
+        public var spoken: String {
+            let offered = choices.map { "\"\($0)\"" }
+            switch offered.count {
+            case 0: return "The browser is asking: \(question)"
+            case 1: return "The browser is asking: \(question) It offers \(offered[0])."
+            default:
+                return "The browser is asking: \(question) "
+                    + "\(offered.dropLast().joined(separator: ", ")) or \(offered.last!)?"
+            }
+        }
+    }
+
+    /// The subroles and roles a modal question is published under. Platform
+    /// vocabulary — an assistive client's, not any one site's.
+    static let dialogSubroles: Set<String> = ["AXApplicationDialog", "AXDialog", "AXSystemDialog"]
+    static let dialogRoles: Set<String> = ["AXSheet"]
+    /// How much of a dialog's body is worth saying.
+    static let dialogMessageCap = 240
+
+    /// The dialog standing in `window`, if one is. `nodes` is the window's
+    /// flattened tree, so the dialog's subtree is found by walking down from
+    /// the node itself rather than by searching again.
+    static func dialog(in root: AXNodeSnapshot, pid: pid_t) -> Dialog? {
+        var found: AXNodeSnapshot?
+        root.forEachNode { node in
+            guard found == nil, node.id != root.id else { return }
+            if dialogSubroles.contains(node.subrole ?? "") || dialogRoles.contains(node.role) {
+                found = node
+            }
+        }
+        guard let found else { return nil }
+        return dialog(from: found, message: {
+            guard let read = AXEngine.detail(pid: pid, nodeID: found.id, options: .shell)
+            else { return nil }
+            return read.detail.nodes.values.compactMap(\.textValue)
+        })
+    }
+
+    /// PURE — the dialog's shape from its subtree, with the body text handed in
+    /// so the offline reader needs no live element.
+    static func dialog(from node: AXNodeSnapshot, message: () -> [String]?) -> Dialog? {
+        var heading: String?
+        var buttons: [AXNodeSnapshot] = []
+        node.forEachNode { child in
+            if child.role == "AXHeading", heading == nil,
+               let label = child.label, !label.isEmpty { heading = label }
+            if child.role == "AXButton", let label = child.label, !label.isEmpty,
+               child.isEnabled { buttons.append(child) }
+        }
+        let title = [node.label, heading].compactMap { $0 }.first { !$0.isEmpty }
+        guard let title else { return nil }
+        let choices = buttons
+            .sorted { ($0.frame?.minX ?? 0) < ($1.frame?.minX ?? 0) }
+            .map { $0.label! }
+        var body = (message() ?? [])
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && $0.caseInsensitiveCompare(title) != .orderedSame }
+            .joined(separator: " ")
+        if body.count > dialogMessageCap {
+            body = String(body.prefix(dialogMessageCap)).trimmingCharacters(in: .whitespaces) + "…"
+        }
+        return Dialog(title: title, message: body.isEmpty ? nil : body, choices: choices)
+    }
+
+    /// How a named window is presenting itself to Accessibility right now.
+    ///
+    /// PIN: A FIND BAR TAKES THE WINDOW'S PLACE. Measured after `find_in_page`:
+    /// Chrome publishes its find bar as its own accessibility window carrying
+    /// the SAME window-server id as the page's window, and the page's window
+    /// leaves the list until the bar closes. A read that then fell back to
+    /// "the main window" moved into another window; a read that refused said
+    /// the window was gone about a window that was right there.
+    public enum Presence: Equatable { case page, panel, gone }
+
+    public static func presence(of window: CGWindowID, pid: pid_t) -> Presence {
+        guard AXIsProcessTrusted(),
+              let snapshot = AXEngine.snapshot(pid: pid, options: .shell)
+        else { return .gone }
+        let same = snapshot.windows.filter { $0.windowID == window }
+        guard !same.isEmpty else { return .gone }
+        return same.contains(where: holdsThePage) ? .page : .panel
+    }
+
+    /// A window with the page in it, or the browser's own furniture around
+    /// where a page goes: a toolbar AND a tab strip. A find bar has a toolbar
+    /// of its own and nothing else (measured: it was read as the page, with
+    /// its own title, when it carried the page window's id).
+    static func holdsThePage(_ window: AXWindowSnapshot) -> Bool {
+        guard let root = window.root else { return false }
+        var webArea = false, toolbar = false, tabs = false
+        root.forEachNode { node in
+            if node.category == .webArea { webArea = true }
+            if node.role == toolbarRole { toolbar = true }
+            if node.role == "AXTabGroup" || node.subrole == "AXTabButton" || node.role == "AXTab" {
+                tabs = true
+            }
+        }
+        return webArea || (toolbar && tabs)
+    }
+
     // MARK: - Reading
 
-    public static func read(pid: pid_t, registration: WebSurfaceRegistration) -> Reading? {
+    /// `preferring` names the window the caller works in — see
+    /// `browsingWindow(among:preferring:identify:)`.
+    public static func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring wanted: CGWindowID? = nil
+    ) -> Reading? {
         guard AXIsProcessTrusted() else { return nil }
-        guard let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive),
-              let window = snapshot.windows.first(where: { $0.isMain })
-                ?? snapshot.windows.first,
+        // THE SHELL PRESET. Every read in this file is about the browser's own
+        // window — title, tabs, history, the address field, the page's frame —
+        // and once the page's accessibility tree is awake `.exhaustive` walks
+        // several thousand page nodes to reach a toolbar. See `Options.shell`.
+        //
+        // ONE WALK. The address lives on the web area's DETAIL, and fetching it
+        // was a second full snapshot after the first — `AXEngine.detail` by
+        // node id re-walks the application. `detail(select:)` walks once and
+        // decorates the node this read picks. Measured structurally: a click
+        // reads the shell four times, so this was eight walks, now four.
+        let walked: (snapshot: AXAppSnapshot, url: String?)
+        if registration.schema.urlSource == .webArea,
+           let result = AXEngine.detail(
+               pid: pid, options: .shell, budget: .probe,
+               select: { app in
+                   guard let window = browsingWindow(
+                             among: app.windows, preferring: wanted, identify: \.windowID),
+                         let root = window.root
+                   else { return nil }
+                   var area: AXNodeID?
+                   root.forEachNode { if area == nil, $0.category == .webArea { area = $0.id } }
+                   return area
+               }) {
+            walked = (result.snapshot, result.detail.nodes[result.detail.rootID]?.url)
+        } else if let snapshot = AXEngine.snapshot(pid: pid, options: .shell) {
+            walked = (snapshot, nil)
+        } else {
+            return nil
+        }
+        let snapshot = walked.snapshot
+        guard let window = browsingWindow(
+                  among: snapshot.windows, preferring: wanted, identify: \.windowID),
               let root = window.root
         else { return nil }
 
@@ -101,6 +273,7 @@ public enum WebSurfaceAX {
                 .filter { $0.role == tabRole && $0.label?.isEmpty == false }
                 .sorted { ($0.frame?.minX ?? 0) < ($1.frame?.minX ?? 0) }
             reading.tabs = tabs.map { registration.tabTitle(fromLabel: $0.label ?? "") }
+            reading.tabLabels = tabs.map { $0.label ?? "" }
             // The active tab is the one whose name the window wears.
             if let title = reading.title {
                 reading.activeTabIndex = reading.tabs.firstIndex {
@@ -117,11 +290,50 @@ public enum WebSurfaceAX {
             source: registration.schema.pageFrameSource)
         reading.pageFrame = frame
         reading.pageFrameSource = source
-        reading.windowID = windowIdentifier(pid: pid, frame: window.frame)
+        // THE ELEMENT'S OWN ID, and the window list's guess only for a
+        // snapshot that has none — four windows a round opens all sit at the
+        // same origin, and the origin named the wrong one.
+        reading.windowID = window.windowID
+            ?? windowIdentifier(pid: pid, frame: window.frame, title: window.title)
 
         reading.url = url(
-            pid: pid, nodes: nodes, webArea: webArea, registration: registration)
+            webAreaURL: walked.url, pid: pid, registration: registration,
+            window: reading.windowID)
+        // THE QUESTION IN FRONT OF THE PAGE, if the browser is asking one.
+        reading.dialog = dialog(in: root, pid: pid)
         return reading
+    }
+
+    /// The window a page is IN, among everything the browser has open.
+    ///
+    /// PIN: A PANEL CAN BE THE MAIN WINDOW, AND THEN EVERY READ IS ABOUT THE
+    /// PANEL. MEASURED: after `find_in_page`, Chrome's find bar is its own
+    /// accessibility window and takes `AXMain` — so the shell reported the page
+    /// title as "Find in page", published no tabs, and every later read in the
+    /// turn was about a strip forty points tall. A browsing window is the one
+    /// with the browser's own furniture in it: a toolbar, or the page itself.
+    /// Told apart by SHAPE, never by a title.
+    ///
+    /// AND THE WINDOW MARY WORKS IN COMES BEFORE THE ONE THE BROWSER CALLS
+    /// MAIN. The browser's main window is whichever the person last clicked;
+    /// measured in round 9, a session that read "the main window" moved into
+    /// the person's own window the moment they touched it, opened tabs there
+    /// and played a video in it. `preferring` is the window the caller has
+    /// been working in, identified by `identify` (its window-server id); it
+    /// is chosen whenever it is still there, main or not.
+    static func browsingWindow(
+        among windows: [AXWindowSnapshot],
+        preferring wanted: CGWindowID? = nil,
+        identify: (AXWindowSnapshot) -> CGWindowID? = { _ in nil }
+    ) -> AXWindowSnapshot? {
+        let browsing = windows.filter(holdsThePage)
+        if let wanted, let kept = browsing.first(where: { identify($0) == wanted }) {
+            return kept
+        }
+        return browsing.first(where: \.isMain)
+            ?? browsing.first
+            ?? windows.first(where: \.isMain)
+            ?? windows.first
     }
 
     static let toolbarRole = "AXToolbar"
@@ -170,17 +382,17 @@ public enum WebSurfaceAX {
     /// browser with a live web area publishes AXURL on it; one whose page tree is
     /// asleep leaves only what its address field is showing.
     private static func url(
+        webAreaURL: String?,
         pid: pid_t,
-        nodes: [AXNodeSnapshot],
-        webArea: AXNodeSnapshot?,
-        registration: WebSurfaceRegistration
+        registration: WebSurfaceRegistration,
+        window: CGWindowID? = nil
     ) -> String? {
-        if registration.schema.urlSource == .webArea, let webArea,
-           let found = AXEngine.detail(pid: pid, nodeID: webArea.id, budget: .probe),
-           let url = found.detail.nodes[webArea.id]?.url, !url.isEmpty {
-            return url
+        // The web area's own address came with the one walk — see `read`.
+        if registration.schema.urlSource == .webArea, let webAreaURL, !webAreaURL.isEmpty {
+            return webAreaURL
         }
-        guard let value = addressFieldValue(pid: pid, registration: registration),
+        guard let value = addressFieldValue(
+                  pid: pid, registration: registration, preferring: window),
               !value.isEmpty
         else { return nil }
         return value
@@ -195,28 +407,50 @@ public enum WebSurfaceAX {
     /// is that branch, pulled out so `openLocation` can call it mid-flight rather than
     /// only ever seeing the address after a whole shell re-read.
     public static func addressFieldValue(
-        pid: pid_t, registration: WebSurfaceRegistration
+        pid: pid_t, registration: WebSurfaceRegistration, preferring wanted: CGWindowID? = nil
     ) -> String? {
         guard AXIsProcessTrusted(),
-              let snapshot = AXEngine.snapshot(pid: pid, options: .exhaustive),
-              let window = snapshot.windows.first(where: { $0.isMain })
-                ?? snapshot.windows.first,
+              // THE SHELL PRESET, NOT `.exhaustive` — see `Options.shell`. This
+              // is the browser's toolbar; the page below it is read by the page
+              // lane, when a skill asks, and never on the way to a text field.
+              let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
+              // THE WORKING WINDOW'S FIELD, not the main window's — see `read`.
+              let window = browsingWindow(
+                  among: snapshot.windows, preferring: wanted, identify: \.windowID),
               let root = window.root
         else { return nil }
         var nodes: [AXNodeSnapshot] = []
         root.forEachNode { nodes.append($0) }
-        guard let field = nodes.first(where: { registration.isAddressLabel($0.label) }),
-              let found = AXEngine.detail(pid: pid, nodeID: field.id, budget: .probe)
+        // THE FIELD THAT IS FOCUSED, THEN THE ONE THAT IS DRAWN. Measured: a
+        // window published two address fields, and the first in tree order
+        // was not the one just typed into — three readbacks disagreed with
+        // three typings, and "I couldn't find the address bar" was said
+        // about a bar that had the address in it.
+        let fields = nodes.filter { registration.isAddressLabel($0.label) }
+        guard let field = fields.first(where: \.isFocused)
+                ?? fields.first(where: { ($0.frame?.width ?? 0) > 0 })
+                ?? fields.first,
+              let found = AXEngine.detail(
+                pid: pid, nodeID: field.id, options: .shell, budget: .probe)
         else { return nil }
         return found.detail.nodes[field.id]?.textValue
     }
 
     /// The window's CGWindowID, so a capture takes the window this walk described.
-    private static func windowIdentifier(pid: pid_t, frame: CGRect?) -> CGWindowID? {
+    /// The window-server id of the window at `frame` with `title`.
+    ///
+    /// PIN: THE TITLE TELLS STACKED WINDOWS APART. Every window a round opens
+    /// sits at the same origin as the last, so the origin alone named the
+    /// wrong one; the window list carries each window's name where the
+    /// screen-recording grant allows, and a name that is there has to agree.
+    private static func windowIdentifier(
+        pid: pid_t, frame: CGRect?, title: String? = nil
+    ) -> CGWindowID? {
         guard let frame, let windows = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
             as? [[String: Any]]
         else { return nil }
+        var atTheOrigin: CGWindowID?
         for window in windows {
             guard window[kCGWindowOwnerPID as String] as? pid_t == pid,
                   let boundsDictionary = window[kCGWindowBounds as String] as? [String: Any],
@@ -225,8 +459,12 @@ public enum WebSurfaceAX {
                   abs(bounds.origin.y - frame.origin.y) < 2,
                   let number = window[kCGWindowNumber as String] as? CGWindowID
             else { continue }
-            return number
+            if let title, let name = window[kCGWindowName as String] as? String, !name.isEmpty {
+                if name == title { return number }
+                continue
+            }
+            if atTheOrigin == nil { atTheOrigin = number }
         }
-        return nil
+        return atTheOrigin
     }
 }

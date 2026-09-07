@@ -34,8 +34,36 @@ public enum VisionPageReader {
         case elements
     }
 
+    /// What one page read cost, by stage. `perceive` is what `Reading.duration`
+    /// always was; the rest is what it never counted — and on a busy page the
+    /// rest is most of it.
+    public struct Timing: Sendable, Equatable {
+        /// Waking the page's accessibility tree (a Chromium host, once per process).
+        public var readiness: Duration = .zero
+        /// The accessibility walk of the page.
+        public var walk: Duration = .zero
+        /// Screen capture — the ScreenCaptureKit round trips.
+        public var capture: Duration = .zero
+        /// OCR, regions and the classifier.
+        public var perceive: Duration = .zero
+        /// Publishing the rows as a slate — the embeddings.
+        public var publish: Duration = .zero
+        public init() {}
+        public var total: Duration { readiness + walk + capture + perceive + publish }
+    }
+
     public struct Reading: Sendable {
+        /// THE PAGE, IN READING ORDER — the one shape everything above the seal
+        /// should read. Screen points, facts already derived.
+        public var rows: [PageRow]
+        /// The groups those rows sit in.
+        public var groups: [PageGroup]
         /// Rows in reading order, screen points, `provenance == .seen`.
+        ///
+        /// PIN: A SHIM WHILE THE BROWSING LANE MOVES TO `rows`. An AX-shaped
+        /// element with an invented role, kept so the old layer compiles; it is
+        /// derived from `rows` rather than read separately, so the two cannot
+        /// describe different pages.
         public var elements: [AXScreenElement]
         public var media: MediaControlReading?
         /// The region that was read, in screen points.
@@ -47,16 +75,23 @@ public enum VisionPageReader {
         public var classified: Bool
         /// What the map said about each row, keyed by ordinal.
         public var map: PageMapSummary
+        /// Where the read's time went. Nil for a fake or a fixture.
+        public var timing: Timing?
 
         public init(
+            rows: [PageRow] = [],
+            groups: [PageGroup] = [],
             elements: [AXScreenElement] = [],
             media: MediaControlReading? = nil,
             pageFrame: CGRect,
             pixelsPerPoint: Double,
             duration: Duration = .zero,
             classified: Bool = false,
-            map: PageMapSummary = PageMapSummary()
+            map: PageMapSummary = PageMapSummary(),
+            timing: Timing? = nil
         ) {
+            self.rows = rows
+            self.groups = groups
             self.elements = elements
             self.media = media
             self.pageFrame = pageFrame
@@ -64,6 +99,7 @@ public enum VisionPageReader {
             self.duration = duration
             self.classified = classified
             self.map = map
+            self.timing = timing
         }
     }
 
@@ -130,7 +166,9 @@ public enum VisionPageReader {
             earlier = WindowPixels.crop(first, to: pageFrame)
             try? await Task.sleep(for: motionInterval)
         }
+        let captureStart = ContinuousClock.now
         let frame = try await capture(pid: pid, windowID: windowID, pageFrame: pageFrame)
+        let captureElapsed = captureStart.duration(to: .now)
         guard let cropped = WindowPixels.crop(frame, to: pageFrame) else {
             ComputerUseMonitor.shared.note(
                 lane: .sight, refused: "perceive", pid: pid, reason: .pageNotVisible)
@@ -170,12 +208,27 @@ public enum VisionPageReader {
         let media = scene.media.map {
             reading(from: $0, scene: scene, pageFrame: pageFrame, capturedAt: scene.capturedAt)
         }
-        var elements: [AXScreenElement] = []
-        var summary = PageMapSummary()
+        var rows: [PageRow] = []
+        var groups: [PageGroup] = []
+        var labeledFraction = 0.0
         if intent == .elements {
-            (elements, summary) = rows(
+            (rows, groups, labeledFraction) = Self.rows(
                 from: scene, pid: pid, appName: appName, windowTitle: windowTitle)
+            // WHERE EACH ROW SITS, DECIDED ONCE, at the seal and beside the
+            // facts — for the reason `RowFacts` gives: it is true of the row
+            // whether or not anybody is routing, and asking it at ranking time
+            // meant asking it again for every goal.
+            rows = PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame)
+            // AND WHAT IS DRAWN OVER THE PICTURE — a skip control, a prompt —
+            // which is an overlay by geometry. See `PagePlayerDerivation`.
+            rows = PagePlayerDerivation.markOverlays(rows: rows, pageFrame: pageFrame)
         }
+        // THE SHIMS, DERIVED FROM THE ROWS RATHER THAN READ SEPARATELY, so the
+        // old AX-shaped view and the new one cannot describe different pages.
+        let elements = Self.legacyElements(
+            rows, pid: pid, appName: appName, windowTitle: windowTitle)
+        let summary = Self.legacyMap(
+            rows, groups: groups, labeledFraction: labeledFraction)
 
         ComputerUseMonitor.shared.note(
             lane: .sight, act: "perceive", pid: pid,
@@ -187,13 +240,21 @@ public enum VisionPageReader {
                 + (media.map { " · \($0.others.count) controls · \($0.playback.rawValue)" } ?? "")
                 + " · \(elapsed)")
         return Reading(
+            rows: rows,
+            groups: groups,
             elements: elements,
             media: media,
             pageFrame: pageFrame,
             pixelsPerPoint: frame.pixelsPerPoint,
             duration: elapsed,
             classified: classifier != nil,
-            map: summary)
+            map: summary,
+            timing: {
+                var timing = Timing()
+                timing.capture = captureElapsed
+                timing.perceive = elapsed
+                return timing
+            }())
     }
 
     private static func capture(
@@ -289,59 +350,218 @@ public enum VisionPageReader {
     static func rows(
         from scene: VisionScene, pid: pid_t, appName: String, windowTitle: String,
         limit: Int = 160
-    ) -> ([AXScreenElement], PageMapSummary) {
+    ) -> (rows: [PageRow], groups: [PageGroup], labeledFraction: Double) {
         let map = scene.pageMap()
-        var rows: [AXScreenElement] = []
-        var annotations: [Int: SeenElementAnnotation] = [:]
+        var rows: [PageRow] = []
         var ordinalByID: [UInt: Int] = [:]
 
         for element in map.elements.prefix(limit) {
             let ordinal = rows.count + 1
+            let group = map.group(element.groupID).map {
+                PageGroupRef(id: $0.id, kind: groupKind($0.kind), title: $0.title)
+            }
             let role = element.role
-                ?? (element.affordance == .press ? "AXLink" : "AXStaticText")
-            let group = map.group(element.groupID)
-            rows.append(AXScreenElement(
+            rows.append(PageRow(
                 ordinal: ordinal,
-                id: AXNodeID(raw: element.id.raw),
+                frame: scene.projection.screenRect(element.frame),
+                label: element.label,
+                labelSource: labelSource(element.labelSource),
+                affordance: affordance(element.affordance),
+                affordanceSource: affordanceSource(element.affordanceSource),
+                // THE KIND, FROM WHAT THE MAP ACTUALLY KNOWS. Never from a role
+                // this seal invented for it — see `PageRow.role`.
+                kind: PageElementKindDerivation.kind(
+                    role: role,
+                    affordance: affordance(element.affordance),
+                    label: element.label,
+                    hints: element.hints),
+                role: role,
+                group: group,
+                hints: element.hints,
+                confidence: element.confidence,
+                isEnabled: element.isEnabled,
+                // SEEN, NOT WALKED. There is no element behind this row to press
+                // by name — only a place on screen to click.
+                provenance: .seen))
+            ordinalByID[element.id.raw] = ordinal
+        }
+
+        // ONE CONTROL, NOT TWO. See `collapsingNestedDuplicates`.
+        let collapsed = collapsingNestedDuplicates(rows, ordinalByID: &ordinalByID)
+        rows = collapsed
+
+        let groups = map.groups.map { group in
+            PageGroup(
+                id: group.id,
+                kind: groupKind(group.kind),
+                title: group.title,
+                memberOrdinals: group.memberIDs.compactMap { ordinalByID[$0.raw] }.sorted())
+        }
+        // ONE PASS, AT THE SEAL. Every consumer sees the same answers to the same
+        // questions — see `RowFacts`.
+        return (
+            RowFactsDerivation.derive(rows: rows, groups: groups),
+            groups,
+            map.labeledFraction)
+    }
+
+    /// A ROW NESTED INSIDE A ROW WITH THE SAME WORDS IS THE SAME CONTROL.
+    ///
+    /// PIN: MEASURED ON A LIVE RESULTS PAGE. The reading emitted the site's own
+    /// "Images" tab twice — an outer box at 82×26 and an inner one at 68×17,
+    /// wholly inside it, carrying the identical label — so naming it asked a
+    /// question ("answers to that as well as one other") about one control the
+    /// person can see once. Both rows were then marked `duplicateLabel`, which
+    /// made the page look as though it held two of everything.
+    /// GEOMETRY AND WORDS, NEVER A SITE. Two rows collapse only when one frame
+    /// CONTAINS the other and their folded labels are identical — a heading
+    /// beside its link keeps both, because neither contains the other, and two
+    /// results that happen to share a title keep both, because neither nests.
+    /// THE OUTER ONE SURVIVES: it is the whole control, and its frame is what a
+    /// press should aim at.
+    static func collapsingNestedDuplicates(
+        _ rows: [PageRow], ordinalByID: inout [UInt: Int]
+    ) -> [PageRow] {
+        var dropped = Set<Int>()
+        for outer in rows {
+            let label = RowFactsDerivation.folded(outer.label)
+            guard !label.isEmpty else { continue }
+            for inner in rows where inner.ordinal != outer.ordinal
+                && !dropped.contains(inner.ordinal)
+                && !dropped.contains(outer.ordinal) {
+                guard RowFactsDerivation.folded(inner.label) == label,
+                      outer.frame.contains(inner.frame),
+                      outer.frame != inner.frame
+                else { continue }
+                dropped.insert(inner.ordinal)
+            }
+        }
+        guard !dropped.isEmpty else { return rows }
+
+        // RENUMBERED IN READING ORDER, because an ordinal is a position a listing
+        // speaks and a resolver counts — a gap in it would number the page wrongly.
+        var renumbered: [PageRow] = []
+        var newOrdinalByOld: [Int: Int] = [:]
+        for row in rows where !dropped.contains(row.ordinal) {
+            var row = row
+            let old = row.ordinal
+            row.ordinal = renumbered.count + 1
+            newOrdinalByOld[old] = row.ordinal
+            renumbered.append(row)
+        }
+        // A GROUP'S MEMBERS ARE NAMED BY THE OLD ORDINALS, so the identity table
+        // the groups are built from moves with them.
+        ordinalByID = ordinalByID.compactMapValues { newOrdinalByOld[$0] }
+        return renumbered
+    }
+
+    // MARK: - Re-sealing a merged reading
+
+    /// A reading whose rows a second lane changed, sealed again.
+    ///
+    /// PIN: THE SHIMS ARE DERIVED, SO THEY MUST BE RE-DERIVED. `elements` and
+    /// `map` are projections of `rows`, joined by ordinal — a merge that renames
+    /// a row and renumbers the page would otherwise leave the old layer reading
+    /// the old names against the new numbers, which is worse than either lane
+    /// alone. One function, so the day a third field is derived from rows there
+    /// is one place that forgets it.
+    /// `labeledFraction` IS THE PIXEL LANE'S OWN NUMBER and is carried through
+    /// unchanged: it answers "how much of what I SAW could I name", and a walked
+    /// row is not something the pixel lane saw.
+    public static func sealing(
+        _ reading: Reading,
+        merged: (rows: [PageRow], groups: [PageGroup]),
+        pid: pid_t,
+        appName: String,
+        windowTitle: String
+    ) -> Reading {
+        var sealed = reading
+        let placed = PageRegionDerivation.assign(
+            rows: merged.rows, pageFrame: reading.pageFrame)
+        // AND THE LISTS THE READING DID NOT FIND. After the regions, because a
+        // list is only a list in the page's own column — see `PageListDerivation`.
+        let listed = PageListDerivation.lists(rows: placed, groups: merged.groups)
+        sealed.rows = RowFactsDerivation.derive(
+            rows: listed.rows, groups: listed.groups)
+        sealed.groups = listed.groups
+        sealed.elements = legacyElements(
+            sealed.rows, pid: pid, appName: appName, windowTitle: windowTitle)
+        sealed.map = legacyMap(
+            sealed.rows, groups: listed.groups,
+            labeledFraction: reading.map.labeledFraction)
+        return sealed
+    }
+
+    // MARK: - The shims
+
+    /// `PageRow` as the AX-shaped element the old browsing layer still reads.
+    ///
+    /// PIN: TEMPORARY, AND DERIVED — NOT A SECOND READING. The role is invented
+    /// here exactly as it used to be invented at the seal, but now it is invented
+    /// LAST, out of a row that already knows its own kind, rather than first and
+    /// then mined for one. Deleted with the old layer.
+    static func legacyElements(
+        _ rows: [PageRow], pid: pid_t, appName: String, windowTitle: String
+    ) -> [AXScreenElement] {
+        rows.map { row in
+            let role = row.role
+                ?? (row.affordance == .press ? "AXLink" : "AXStaticText")
+            return AXScreenElement(
+                ordinal: row.ordinal,
+                id: AXNodeID(raw: UInt(row.ordinal)),
                 pid: pid,
                 appName: appName,
                 windowID: AXNodeID(raw: 1),
                 windowTitle: windowTitle,
                 role: role,
-                subrole: element.subrole,
-                category: AXNodeCategory.category(role: role, subrole: element.subrole),
-                label: element.label,
-                frame: scene.projection.screenRect(element.frame),
-                isEnabled: element.isEnabled,
+                subrole: nil,
+                category: AXNodeCategory.category(role: role, subrole: nil),
+                label: row.label,
+                frame: row.frame,
+                isEnabled: row.isEnabled,
                 isFocused: false,
-                // THE GROUP IS THE ROW'S CONTEXT, and it is what lets a listing say
-                // which of four "Watch" buttons is meant.
-                containerTrail: [group?.title, group.map { $0.kind.rawValue }]
+                containerTrail: [row.group?.title, row.group?.kind.rawValue]
                     .compactMap { $0 }
                     .filter { !$0.isEmpty },
-                // SEEN, NOT WALKED. There is no element behind this row to press by
-                // name — only a place on screen to click.
-                provenance: .seen))
-            annotations[ordinal] = SeenElementAnnotation(
-                affordance: affordance(element.affordance),
-                affordanceSource: affordanceSource(element.affordanceSource),
-                labelSource: labelSource(element.labelSource),
-                hints: element.hints,
-                groupID: element.groupID,
-                confidence: element.confidence)
-            ordinalByID[element.id.raw] = ordinal
+                provenance: row.provenance)
         }
+    }
 
-        let groups = map.groups.map { group in
-            SeenGroup(
-                id: group.id,
-                kind: group.kind.rawValue,
-                title: group.title,
-                memberOrdinals: group.memberIDs.compactMap { ordinalByID[$0.raw] }.sorted())
+    /// The side-car the old layer joins by ordinal. Same origin, same answers.
+    static func legacyMap(
+        _ rows: [PageRow], groups: [PageGroup], labeledFraction: Double
+    ) -> PageMapSummary {
+        var annotations: [Int: SeenElementAnnotation] = [:]
+        for row in rows {
+            annotations[row.ordinal] = SeenElementAnnotation(
+                affordance: row.affordance,
+                affordanceSource: row.affordanceSource,
+                labelSource: row.labelSource,
+                hints: row.hints,
+                groupID: row.group?.id,
+                confidence: row.confidence)
         }
-        return (rows, PageMapSummary(
-            groups: groups, annotations: annotations,
-            labeledFraction: map.labeledFraction))
+        return PageMapSummary(
+            groups: groups.map {
+                SeenGroup(
+                    id: $0.id, kind: $0.kind.rawValue, title: $0.title,
+                    memberOrdinals: $0.memberOrdinals)
+            },
+            annotations: annotations,
+            labeledFraction: labeledFraction)
+    }
+
+    /// Vocabulary conversion, spelled out for the reason the others are.
+    private static func groupKind(_ value: PageGroupKind) -> SeenGroupKind {
+        switch value {
+        case .row: return .row
+        case .card: return .card
+        case .list: return .list
+        case .form: return .form
+        case .toolbar: return .toolbar
+        case .overlay: return .overlay
+        case .band: return .band
+        }
     }
 
     /// Vocabulary conversions, spelled out for the same reason the glyph one is: both

@@ -138,7 +138,7 @@ package actor LifeTrainer {
             let stream = await fleet.train(
                 totemID: job.totemID,
                 abilityID: job.abilityID.rawValue,
-                modelID: MaryLocalEngine.defaultModelID,
+                modelID: LifeBaseModel.defaultModelID,
                 ownerID: job.ownerID,
                 groupIDs: job.groupIDs)
             for try await tick in stream {

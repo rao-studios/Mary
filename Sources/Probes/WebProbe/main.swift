@@ -73,7 +73,7 @@ func printRoute(_ arbitration: PageRouteArbitration) {
     for decision in ordered {
         let evidence = decision.evidence
         print(String(format: "  %-4d %-22@ %5d %5d %5d %5d %5d  %@",
-                     decision.ordinal,
+                     decision.id,
                      decision.disposition.rawValue as NSString,
                      evidence.lexical, evidence.semantic, evidence.structure,
                      evidence.affordance, evidence.provenance,
@@ -202,6 +202,14 @@ if flag("--watch") {
         for await event in await engine.events() { print("      · \(event)") }
     }
 }
+// THE ROUND'S WINDOW, BEFORE THE FIRST READ. `--window <id>` pins the engine
+// to a window a runner opened; a read of any other window is then a refusal,
+// never a quiet move into the person's own. See `--front-window`.
+if let raw = value("--window"), let id = CGWindowID(raw) {
+    await engine.adopt(window: id)
+    print("  ·  working in window \(id)")
+}
+
 
 // MARK: - The shell
 
@@ -220,6 +228,9 @@ check(shell.pageFrame != nil, "the page was located",
         ?? "no frame")
 check(shell.windowID != nil, "the window has a capture id",
       shell.windowID.map(String.init) ?? "none — capture will pair by geometry")
+if let dialog = shell.dialog {
+    print("      · asking: \(dialog.title) — \(dialog.choices.joined(separator: " / "))")
+}
 print("      · history: back \(shell.canGoBack.map(String.init) ?? "unreadable")"
       + " · forward \(shell.canGoForward.map(String.init) ?? "unreadable")")
 print("      · tabs: \(shell.tabs.isEmpty ? "none published" : "\(shell.tabs.count)")")
@@ -234,9 +245,11 @@ if let path = value("--save"), let pageFrame = shell.pageFrame {
     heading("the capture")
     // The same staging AND reveal the engine performs, so the saved crop is the one it
     // reads — an inactive window shows no transport at all.
-    let forward = await LiveBrowserStaging().bringForward(pid: pid)
-    check(forward, "the window came forward",
-          NSWorkspace.shared.frontmostApplication?.localizedName ?? "nothing frontmost")
+    // The faculty itself, not the engine's seam: a probe holds no lease.
+    let forward = await VerifiedActivation.bringForward(pid: pid)
+    check(forward.succeeded, "the window came forward",
+          forward.reason(app: "the browser")
+              ?? NSWorkspace.shared.frontmostApplication?.localizedName ?? "nothing frontmost")
 
     await LiveBrowserHands().reveal(over: pageFrame, pid: pid)
     // The same settle the engine allows, unless the caller is measuring that.
@@ -287,6 +300,11 @@ if flag("--perceive") || value("--media") != nil {
         check(media.playback != .unknown, "playback was decided", media.playback.rawValue)
         print("      · witnesses: \(media.witnesses.joined(separator: " · "))")
         print("      · transport: \(media.playPause.map { "\($0.glyph.rawValue) at (\(Int($0.clickPoint.x)), \(Int($0.clickPoint.y)))" } ?? "not found")")
+        print("      · centre:    "
+              + (media.centerGlyph.map {
+                  "\($0.glyph.rawValue) at (\(Int($0.clickPoint.x)), \(Int($0.clickPoint.y)))"
+                      + String(format: " conf %.2f", $0.confidence)
+              } ?? "not found"))
         print("      · volume:    \(media.volume.map(\.glyph.rawValue) ?? "not found")")
         print("      · fullscreen:\(media.fullscreen.map { " \($0.glyph.rawValue)" } ?? " not found")")
         if let elapsed = media.elapsed {
@@ -306,7 +324,17 @@ if let requested = value("--media") {
 
     let action: MediaAction?
     if requested.hasPrefix("seek=") {
-        action = Double(requested.dropFirst(5)).map { MediaAction.seek(fraction: $0) }
+        // A fraction, or a spoken time: seek=0.5, "seek=back two minutes", "seek=to 1:30".
+        let spelled = String(requested.dropFirst(5))
+        if let fraction = Double(spelled) {
+            action = .seek(fraction: fraction)
+        } else {
+            switch SpokenDuration.seek(in: spelled) {
+            case .to(let seconds)?: action = .seekTo(seconds: seconds)
+            case .by(let seconds)?: action = .seekBy(seconds: seconds)
+            case nil: action = nil
+            }
+        }
     } else if requested.hasPrefix("volume=") {
         action = Double(requested.dropFirst(7)).map { MediaAction.volume(fraction: $0) }
     } else {
@@ -341,7 +369,7 @@ if let requested = value("--media") {
         case .unmute: reverse = .mute
         // A seek or a volume cannot be undone without knowing where it was; say so
         // rather than guessing a position back.
-        case .seek, .fullscreen, .volume: reverse = nil
+        case .seek, .seekTo, .seekBy, .fullscreen, .volume: reverse = nil
         }
         if let reverse {
             let restored = await engine.controlMedia(reverse, in: target)
@@ -364,20 +392,228 @@ if let spec = value("--hover-at"), let pageFrame = shell.pageFrame {
     guard parts.count == 2 else {
         check(false, "--hover-at takes x,y in capture coordinates"); exit(1)
     }
-    _ = await LiveBrowserStaging().bringForward(pid: pid)
+    _ = await VerifiedActivation.bringForward(pid: pid)
     let point = CGPoint(x: pageFrame.minX + parts[0], y: pageFrame.minY + parts[1])
     PointerDriver.hover(at: point, pid: pid)
     try? await Task.sleep(for: .milliseconds(600))
+    // WHERE IT LANDS IS THE CALLER'S, with a temp-directory default. A path
+    // baked in here was one machine's scratch directory from the session that
+    // wrote this block, and it fails on every other machine.
+    let hoverPath = value("--save")
+        ?? URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("mary-hover-at.png").path
     if let captured = try? await WindowPixels.capture(pid: pid, windowID: shell.windowID),
        let cropped = WindowPixels.crop(captured, to: pageFrame),
        let destination = CGImageDestinationCreateWithURL(
-        URL(fileURLWithPath: "/private/tmp/claude-501/-Users-ritesh-Documents-rao-repositories-Mary/ba4bc841-f15c-4595-bdbf-ccdc3e8459f9/scratchpad/hover-at.png") as CFURL,
+        URL(fileURLWithPath: hoverPath) as CFURL,
         "public.png" as CFString, 1, nil) {
         CGImageDestinationAddImage(destination, cropped, nil)
         _ = CGImageDestinationFinalize(destination)
         check(true, "hovered and captured",
-              "(\(Int(parts[0])), \(Int(parts[1]))) → hover-at.png")
+              "(\(Int(parts[0])), \(Int(parts[1]))) → \(hoverPath)")
     }
+}
+
+// MARK: - The landscape, across every page shape the machine is seeded with
+
+/// `--landscape` — drive every seeded page in turn and ask the same questions.
+///
+/// PIN: ONE PAGE PROVES A READ; SEVERAL PROVE A RULE. The region derivation is
+/// geometry over whatever a site drew, so the only way to know it means the same
+/// thing on an encyclopedia, a search engine and a feed is to put all three in
+/// front of it and print what it says. Every question below is generic — a
+/// place, a kind, a position — and none of them names a site, so the same run
+/// answers for a page nobody has seen yet.
+/// THE ADDRESSES ARE THE MACHINE'S, NOT THE REPOSITORY'S. `~/.mary/trips/stage.json`
+/// seeds them, so this file holds no URL.
+func stagedPages() -> [String: String] {
+    // `{ "resultsPage": "https://…", … }`, plus a `phrases` object the sweep ignores.
+    let url = URL(fileURLWithPath: NSHomeDirectory())
+        .appendingPathComponent(".mary/trips/stage.json")
+    guard let data = FileManager.default.contents(atPath: url.path),
+          let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return [:] }
+    return object.compactMapValues { $0 as? String }
+}
+if flag("--landscape") {
+    let seeds = stagedPages()
+    let wanted = value("--pages")?.split(separator: ",").map(String.init)
+    let pages = seeds
+        .filter { $0.key != "phrases" }
+        .filter { wanted?.contains($0.key) ?? true }
+        .sorted { $0.key < $1.key }
+    // EACH QUESTION WITH THE VERB A PERSON WOULD BE ASKING IT WITH. A search box
+    // is something to type into, and asking for it with `.press` was measuring
+    // the gate rather than the landscape.
+    let questions: [(String, PageRouteVerb)] = [
+        ("the first link", .press),
+        ("the third link in the page itself", .press),
+        ("the search box at the top", .fill),
+        ("the link at the bottom of the page", .press),
+        ("the first link in the sidebar", .press),
+    ]
+    for (name, address) in pages {
+        heading("the landscape — \(name)")
+        let opened = await engine.navigate(.open(address), in: target)
+        guard opened.ok else {
+            check(false, "staged \(name)", opened.refusal.map { "\($0)" } ?? "no")
+            continue
+        }
+        let outcome = await engine.readPage(in: target, query: nil)
+        guard outcome.ok, let map = outcome.map, let frame = outcome.shell?.pageFrame else {
+            check(false, "read \(name)"); continue
+        }
+        let roster = PageRoster(elements: outcome.elements, map: map, pageFrame: frame)
+        check(true, "read", "\(outcome.elements.count) rows · \(roster.actionable.count) offered")
+        print("      " + (PageListing.landscape(roster) ?? "one column — nothing to lay out."))
+        for (question, verb) in questions {
+            let route = PageRouter.arbitrate(goal: question, verb: verb, roster: roster)
+            let answer = route.winner.map { row -> String in
+                let label = row.label.count > 40
+                    ? String(row.label.prefix(40)) + "…" : row.label
+                return "\(row.kindWord) \"\(label)\" [\(row.region?.rawValue ?? "—")]"
+            } ?? "— nothing"
+            print(String(format: "      %-38@ -> %@", question as NSString, answer as NSString))
+        }
+    }
+}
+
+// MARK: - What the shell walk costs, and whether it can still see its toolbar
+
+/// `--shell-walk` — the measurement `AXSnapshotBuilder.Options.shell` stands on.
+///
+/// PIN: THE READ THAT BROKE WHEN THE PAGE WOKE UP. A browser window is about
+/// seventy accessibility nodes until the web-content tree is built and several
+/// thousand afterwards, and the shell's own address-field lookup walked all of
+/// them. This prints both halves — how many nodes each window holds, and what
+/// the address field reads and how long it took — so the claim is a number on
+/// the machine in front of you rather than a story in a comment.
+if flag("--shell-walk") {
+    heading("the shell walk")
+    guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell) else {
+        check(false, "a snapshot came back"); exit(1)
+    }
+    check(true, "windows", "\(snapshot.windows.count)")
+    for window in snapshot.windows {
+        var nodes: [AXNodeSnapshot] = []
+        window.root?.forEachNode { nodes.append($0) }
+        let field = nodes.first { registration.isAddressLabel($0.label) }
+        print("      \(window.isMain ? "main " : "     ")\"\(window.title ?? "—")\""
+            + " — \(nodes.count) nodes, address field: "
+            + (field.map { "\"\($0.label ?? "")\"" } ?? "NOT FOUND"))
+    }
+    let started = Date()
+    let value = WebSurfaceAX.addressFieldValue(pid: pid, registration: registration)
+    check(
+        value?.isEmpty == false, "the address field read back",
+        "\(Int(Date().timeIntervalSince(started) * 1000)) ms")
+    let held = CGEventSource.flagsState(.combinedSessionState)
+    let names = [
+        (CGEventFlags.maskCommand, "command"), (.maskShift, "shift"),
+        (.maskAlternate, "option"), (.maskControl, "control"),
+        (.maskSecondaryFn, "fn"), (.maskAlphaShift, "capslock"),
+    ].filter { held.contains($0.0) }.map(\.1)
+    check(names.isEmpty, "no modifier is stuck down", names.joined(separator: ", "))
+}
+
+// MARK: - The page, through accessibility
+
+/// `--page-ax` — what the AX lane sees, and what it cost to wake it.
+///
+/// PIN: THE MEASUREMENT THE WAKE'S DOCTRINE STANDS ON. Every claim in
+/// `WebAXWakeup`'s header is a number this flag prints on the machine in front
+/// of you: whether a web area answered before the signals, how long after them
+/// it appeared, and how many rows with real roles the walk then found. A ported
+/// recipe nobody re-measured is a story.
+if flag("--page-ax") {
+    heading("the page, through accessibility")
+    let application = AXUIElementCreateApplication(pid)
+    let host = WebContentHost.classify(pid: pid, bundleID: registration.bundleIdentifiers.first)
+    check(host != .none, "the host builds web content", host.rawValue)
+    let before = Date()
+    let readiness = await BrowserAXReadiness.ensureWebContentAX(
+        pid: pid, bundleID: registration.bundleIdentifiers.first)
+    let waited = Date().timeIntervalSince(before)
+    check(
+        readiness.walkable, "the web-content tree answers",
+        "\(readiness.rawValue) after \(Int(waited * 1000)) ms")
+    let rows = PageElementReader.readWebContent(
+        in: application, pageFrame: shell.pageFrame)
+    check(!rows.isEmpty, "the walk found rows", "\(rows.count) elements")
+    // HOW MUCH OF THE PAGE IS BELOW THE FOLD, and does the tree publish it at
+    // all? The walk clips to the rendered viewport, so this asks the same
+    // question with the clip removed.
+    if let page = shell.pageFrame {
+        let everything = PageElementReader.readWebContent(
+            in: application, pageFrame: nil, limit: 4000,
+            budget: .init(maxDepth: 80, maxNodes: 60000))
+        let off = everything.filter { !page.intersects($0.frame) }
+        let above = off.filter { $0.frame.maxY <= page.minY }
+        check(
+            !off.isEmpty, "the tree publishes rows off the screen",
+            "\(off.count) of \(everything.count) — \(above.count) above, "
+                + "\(off.count - above.count) below")
+        // WHY EACH CANDIDATE WAS DROPPED — the walk's own arithmetic, so
+        // "Chrome does not publish it" is told apart from "we filtered it".
+        var visited = 0, collected = 0, noFrame = 0, tooSmall = 0, noLabel = 0
+        for area in WebAreaLocator.webAreasForProbe(inApp: application) {
+            AXTreeWalker.walk(
+                from: area, budget: .init(maxDepth: 80, maxNodes: 60000)
+            ) { element, _ in
+                visited += 1
+                guard let role = AX.string(element, kAXRoleAttribute),
+                      PageElementReader.collectedRoles.contains(role) else { return }
+                collected += 1
+                guard let frame = AX.frame(of: element) else { noFrame += 1; return }
+                guard frame.width >= 8, frame.height >= 8 else {
+                    tooSmall += 1
+                    if tooSmall <= 8 {
+                        let name = AX.string(element, kAXTitleAttribute)
+                            ?? AX.string(element, kAXDescriptionAttribute) ?? ""
+                        print(String(
+                            format: "      small: %@ %.0fx%.0f at %.0f,%.0f \"%@\"",
+                            role, frame.width, frame.height, frame.minX, frame.minY,
+                            String(name.prefix(40))))
+                    }
+                    return
+                }
+                if AX.string(element, kAXTitleAttribute)?.isEmpty != false,
+                   AX.string(element, kAXDescriptionAttribute)?.isEmpty != false,
+                   AX.string(element, kAXValueAttribute)?.isEmpty != false {
+                    noLabel += 1
+                }
+            }
+        }
+        check(
+            true, "the walk's arithmetic",
+            "\(visited) nodes · \(collected) of a collected role · "
+                + "\(noFrame) no frame · \(tooSmall) too small · \(noLabel) unnamed")
+        for row in off.prefix(8) {
+            print("      \(row.kind.rawValue) \"\(row.label.prefix(46))\""
+                + String(format: "  (y %.0f, page %.0f…%.0f)",
+                         row.frame.midY, page.minY, page.maxY))
+        }
+    }
+    var byKind: [String: Int] = [:]
+    for row in rows { byKind[row.kind.rawValue, default: 0] += 1 }
+    print("      kinds: " + byKind.sorted { $0.key < $1.key }
+        .map { "\($0.key) \($0.value)" }.joined(separator: ", "))
+    for row in rows.prefix(30) {
+        let frame = String(
+            format: "%.0f,%.0f %.0fx%.0f",
+            row.frame.minX, row.frame.minY, row.frame.width, row.frame.height)
+        var line = "      \(row.ordinal). \(row.kind.rawValue) \"\(row.label)\"  (\(frame))"
+        // WHAT A CONTROL PUBLISHES ABOUT ITS STATE — a slider's value and range,
+        // which is how a progress bar says how long the video is.
+        if row.numericValue != nil || row.maximumValue != nil {
+            let value = row.numericValue.map { String(format: "%.1f", $0) } ?? "—"
+            let low = row.minimumValue.map { String(format: "%.1f", $0) } ?? "—"
+            let high = row.maximumValue.map { String(format: "%.1f", $0) } ?? "—"
+            line += "  value \(value) in \(low)…\(high)\(row.isValueSettable ? " settable" : "")"
+        }
+        print(line)
+    }
+    if rows.count > 30 { print("      …and \(rows.count - 30) more.") }
 }
 
 // MARK: - The page
@@ -398,6 +634,28 @@ if flag("--map") {
         }
         // What the model would be shown, verbatim.
         for line in outcome.spoken.split(separator: "\n") { print("      \(line)") }
+        // THE LANDSCAPE, ROW BY ROW. The spoken sentence says how many things sit
+        // where; this says WHICH, because the question a driven run has to answer
+        // is whether "the third link in the sidebar" counts the rows a person
+        // would count.
+        let roster = PageRoster(
+            elements: outcome.elements, map: map,
+            pageFrame: outcome.shell?.pageFrame ?? .zero)
+        let offeredOrdinals = Set(roster.actionable.map(\.ordinal))
+        for region in PageRegion.allCases {
+            let here = roster.rows.filter {
+                $0.region == region && offeredOrdinals.contains($0.ordinal)
+            }
+            guard !here.isEmpty else { continue }
+            print("      \(region.rawValue) (\(here.count)):")
+            for row in here.prefix(6) {
+                let kind = row.kind?.rawValue ?? "—"
+                let label = row.label.count > 58
+                    ? String(row.label.prefix(58)) + "…" : row.label
+                print("        \(row.ordinal). \(kind) \"\(label)\"")
+            }
+            if here.count > 6 { print("        …and \(here.count - 6) more.") }
+        }
         // And where each name came from, which is the number that says whether the map
         // is working on this page.
         var sources: [String: Int] = [:]
@@ -594,6 +852,176 @@ if value("--route") != nil || value("--save-roster") != nil {
 }
 
 // MARK: - Navigating
+
+// MARK: - The window
+
+// `--front-window` prints the id of the browser's main window and stops — a
+// runner that has just opened a window for a round asks this once and hands
+// the id to every trip as `--window`, so the round works in ITS window however
+// many times the person clicks their own. `--window <id>` adopts it.
+// `--address-check` — what the address-field path sees in the working
+// window: the window list's bounds (a full-screen window has no bar to find),
+// whether the field is in the tree, and how long its value is. A diagnostic
+// for "I couldn't find the address bar" said about a window that has one.
+if flag("--address-check") {
+    heading("the address field")
+    let window = await engine.snapshot().workingWindow
+    if let window, let windows = CGWindowListCopyWindowInfo(
+        [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]],
+       let entry = windows.first(where: { $0[kCGWindowNumber as String] as? CGWindowID == window }),
+       let bounds = entry[kCGWindowBounds as String] as? [String: Any] {
+        print("      · window \(window) bounds \(bounds)")
+    }
+    let value = WebSurfaceAX.addressFieldValue(
+        pid: target.processIdentifier, registration: target.registration, preferring: window)
+    print("      · field value: \(value.map { "\($0.count) chars" } ?? "not found")")
+    if let snapshot = AXEngine.snapshot(pid: target.processIdentifier, options: .shell) {
+        for w in snapshot.windows {
+            var fields: [String] = []
+            w.root?.forEachNode { node in
+                guard let label = node.label, target.registration.isAddressLabel(label) else { return }
+                let value = AXEngine.detail(
+                    pid: target.processIdentifier, nodeID: node.id, options: .shell, budget: .probe)?
+                    .detail.nodes[node.id]?.textValue
+                fields.append("\(node.role) \(node.frame.map { "\(Int($0.width))×\(Int($0.height))" } ?? "no frame")"
+                    + " focused=\(node.isFocused) enabled=\(node.isEnabled) value=\(value.map { "\($0.count) chars" } ?? "—")")
+            }
+            print("      · window \(w.windowID.map(String.init) ?? "—") \(w.isMain ? "main " : "")\"\(w.title)\"")
+            for field in fields { print("        – \(field)") }
+        }
+    }
+    exit(0)
+}
+
+if flag("--front-window") {
+    guard let windows = AXWindowRoster.axWindows(of: target.processIdentifier, standardOnly: true),
+          let main = windows.first(where: {
+              AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true
+          }) ?? windows.first,
+          let id = AXWindowIdentity.windowID(of: main.element)
+    else {
+        print("  ✗  no window to name")
+        exit(1)
+    }
+    if flag("--windows") {
+        // EVERY WINDOW, BY ID — the roster's element and the snapshot's stamp
+        // side by side, so a window the two disagree about is visible.
+        for window in windows {
+            let main = AXWindowRoster.copyBool(window.element, kAXMainAttribute) == true
+            print("  roster   \(AXWindowIdentity.windowID(of: window.element).map(String.init) ?? "—")\(main ? " main" : "")  \(window.title)")
+        }
+        let served = (CGWindowListCopyWindowInfo(
+            [.optionAll, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]) ?? []
+        for entry in served where entry[kCGWindowOwnerPID as String] as? pid_t == target.processIdentifier
+            && (entry[kCGWindowLayer as String] as? Int) == 0 {
+            let onScreen = entry[kCGWindowIsOnscreen as String] as? Bool ?? false
+            print("  server   \(entry[kCGWindowNumber as String] ?? "?")\(onScreen ? "" : " off-screen")  \(entry[kCGWindowName as String] ?? "")")
+        }
+        if let snapshot = AXEngine.snapshot(pid: target.processIdentifier, options: .shell) {
+            for window in snapshot.windows {
+                let bounds = served.first { $0[kCGWindowNumber as String] as? CGWindowID == window.windowID }
+                    .flatMap { $0[kCGWindowBounds as String] as? [String: Any] }
+                    .flatMap { CGRect(dictionaryRepresentation: $0 as CFDictionary) }
+                print("  snapshot \(window.windowID.map(String.init) ?? "—")\(window.isMain ? " main" : "")  \(window.title)")
+                print("           ax \(window.frame.map { "\(Int($0.minX)),\(Int($0.minY)) \(Int($0.width))×\(Int($0.height))" } ?? "—")"
+                      + " · server \(bounds.map { "\(Int($0.minX)),\(Int($0.minY)) \(Int($0.width))×\(Int($0.height))" } ?? "—")")
+            }
+        }
+        for screen in NSScreen.screens {
+            print("  screen \(Int(screen.frame.minX)),\(Int(screen.frame.minY)) \(Int(screen.frame.width))×\(Int(screen.frame.height)) scale \(screen.backingScaleFactor)")
+        }
+        exit(0)
+    }
+    print(id)
+    exit(0)
+}
+// `--resize WxH` — the working window, given the round's frame. A round's
+// pages are read at one size; a window twice as wide is a different page.
+if let raw = value("--resize") {
+    let parts = raw.lowercased().split(separator: "x").compactMap { Double($0) }
+    guard parts.count == 2,
+          let window = await engine.snapshot().workingWindow,
+          let element = AXWindowIdentity.window(id: window, in: target.processIdentifier)
+    else {
+        print("  ✗  --resize needs WxH and a working window")
+        exit(1)
+    }
+    do {
+        try AccessibilityWindowCore.resize(element, to: CGSize(width: parts[0], height: parts[1]))
+        check(true, "resized window \(window) to \(Int(parts[0]))×\(Int(parts[1]))")
+    } catch {
+        check(false, "resized window \(window)", "\(error)")
+        exit(1)
+    }
+    exit(0)
+}
+
+// `--activate` — the stage faculty, asked for the working window, with what
+// it answered and which window is main before, right after, and a moment
+// later. A diagnostic for a window that is "in front" and is not.
+if flag("--activate") {
+    heading("activating")
+    func mainWindow() -> String {
+        guard let windows = AXWindowRoster.axWindows(of: target.processIdentifier, standardOnly: true)
+        else { return "—" }
+        return windows.first { AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true }
+            .flatMap { AXWindowIdentity.windowID(of: $0.element).map(String.init) } ?? "none"
+    }
+    let window = await engine.snapshot().workingWindow
+    print("      · main before: \(mainWindow()) · frontmost app: \(NSWorkspace.shared.frontmostApplication?.localizedName ?? "—")")
+    let activation = await VerifiedActivation.bringForward(pid: target.processIdentifier, raising: window)
+    print("      · road: \(activation.road.map { "\($0)" } ?? "none") · failure: \(activation.failure.map { "\($0)" } ?? "none")")
+    print("      · main after: \(mainWindow())")
+    try? await Task.sleep(for: .milliseconds(400))
+    print("      · main 400ms later: \(mainWindow()) · frontmost app: \(NSWorkspace.shared.frontmostApplication?.localizedName ?? "—")")
+    exit(0)
+}
+
+// `--press-escape` — one Escape, aimed at the browser: how a person closes a
+// modal player or leaves a full screen. Stage hygiene for a hand-driven session.
+if flag("--press-escape") {
+    let pressed = KeyChordPress.press(
+        key: .escape, modifiers: [], targetPrefix: target.registration.bundleIdentifiers.first)
+    check(pressed, "pressed escape")
+    exit(pressed ? 0 : 1)
+}
+
+// `--close-window <id>` — a window a round opened, put away: the round's own
+// tidying, through the window's close button and nothing else.
+if let raw = value("--close-window"), let id = CGWindowID(raw) {
+    guard let window = AXWindowIdentity.window(id: id, in: target.processIdentifier),
+          let button = AX.attribute(window, kAXCloseButtonAttribute as String)
+    else {
+        print("  ✗  no window \(id)")
+        exit(1)
+    }
+    let closed = PageElementActions.press(
+        control: button as! AXUIElement, pid: target.processIdentifier, detail: "close window \(id)")
+    check(closed, "closed window \(id)")
+    exit(closed ? 0 : 1)
+}
+
+// MARK: - The history
+
+// `--navigate back|forward|reload` — the shell verbs, so a person driving the
+// probe can reproduce what a person does: submit something, then go back.
+if let direction = value("--navigate") {
+    heading("the history")
+    let request: NavigationRequest?
+    switch direction {
+    case "back": request = .back
+    case "forward": request = .forward
+    case "reload": request = .reload
+    default: request = nil
+    }
+    guard let request else {
+        check(false, "unknown direction \"\(direction)\" — back|forward|reload")
+        exit(1)
+    }
+    let outcome = await engine.navigate(request, in: target)
+    check(outcome.ok, "the page settled", outcome.spoken)
+    if let refusal = outcome.refusal { print("      · refusal: \(refusal)") }
+}
 
 if let address = value("--open") {
     heading("navigating")

@@ -156,7 +156,7 @@ extension MaryRuntime {
             }
             // Declared perceptions — dispatch asks what Mary observes now. In MaryBrain
             // so the bench publishes the same two (see TurnPerceptionPublisher).
-            TurnPerceptionPublisher.publishAll()
+            await TurnPerceptionPublisher.publishAll(adapters: adapters)
         }
         await brain.setSeerInstructionsProvider { pass in
             seerInstructionsText(pass: pass, deps: deps)
@@ -178,6 +178,10 @@ extension MaryRuntime {
             AbilityRuntime(
                 plugins: adapters,
                 focusProvider: { resolveFocus(deps: deps).leadOwner },
+                // THE PINNED RUNG, FILLED. The tracker's pin is the one user
+                // gesture that already changes routing; the provider ladder
+                // declared a place for it and was handed nil.
+                pinnedProvider: { WorkspaceFocusTracker.shared.pinned()?.applicationID },
                 behavior: brainWiring.behavior
             ) {
                 AbilityExecutionContext(projects: projects)
@@ -280,13 +284,27 @@ extension MaryRuntime {
             guard record.package.dependencies.contains(where: {
                 activated[$0.packageID]?.ability.id == .awareness
             }) else { return nil }
+            // A PAGE IS FOLLOWED WITHOUT A CORPUS, whatever a discipline
+            // dependency would otherwise have donated. `browsing.mary` declares
+            // none today, but inheritance is a graph rule and a future donor
+            // must not be able to point a project crawl at the web.
+            // PIN: THE RULE IS THE TYPE'S NOW. `.page` carries no corpus, so
+            // the `isPage ? nil : …` guard this line used to need cannot be
+            // forgotten here or in the snapshot's own derivation.
+            // PIN: THE PAGE HALF ALSO EXISTS ON THE SNAPSHOT, as
+            // `awarenessPageRegistrations()`, so a bench that cannot link
+            // MaryRuntime still follows a page. This derivation stays the whole
+            // answer for the app — it is the one that consults inheritance.
+            let surface: AwarenessRegistration.Surface = plugin.webSurface != nil
+                ? .page
+                : .document(corpus: plugin.corpus
+                    ?? Self.inheritedCorpus(for: record.package, activated: activated))
             return AwarenessRegistration(
                 applicationID: plugin.application.id,
                 bundleIdentifiers: plugin.application.bundleIdentifiers,
                 bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
                 displayName: plugin.application.title,
-                corpus: plugin.corpus
-                    ?? Self.inheritedCorpus(for: record.package, activated: activated),
+                surface: surface,
                 hasCodeSurface: plugin.codeSurface != nil,
                 hasProseSurface: plugin.proseSurface != nil)
         }

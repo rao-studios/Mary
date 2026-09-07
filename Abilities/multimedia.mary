@@ -339,6 +339,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "can-you-pause-the-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Can you pause the music?"
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.play-playlist",
       "id" : "can-you-play-a-named-playlist-in-the-app",
       "interactions" : [
@@ -409,6 +419,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "mute-the-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Mute the music."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.open-player",
       "id" : "open-the-player",
       "interactions" : [
@@ -426,6 +446,16 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "Pause the music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "pause-the-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Pause the song."
     },
     {
       "expectedDisposition" : "route",
@@ -489,6 +519,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "skip-this-track",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Skip this track."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.play-playlist",
       "id" : "start-a-playlist",
       "interactions" : [
@@ -496,6 +536,16 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "Start my Workout playlist."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.control-playback",
+      "id" : "turn-the-music-down",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Turn the music down."
     },
     {
       "expectedDisposition" : "route",
@@ -512,7 +562,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4b3d03b045694376da83a7598f567b21ac5883cdb63d1e8f7959b422a085e94d"
+    "digest" : "35597c508964a4894c383c0cc0d495d2678832f0d4d3bdb7c528a7ae8d0b7863"
   },
   "interactions" : [
 
@@ -572,6 +622,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -668,6 +721,56 @@
             "name" : "action",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+              "louder" : [
+                "louder",
+                "turn it up",
+                "turn the volume up",
+                "volume up",
+                "turn up"
+              ],
+              "mute" : [
+                "mute",
+                "silence",
+                "unmute"
+              ],
+              "next" : [
+                "next",
+                "skip",
+                "next song",
+                "next track",
+                "skip this",
+                "skip song",
+                "skip track"
+              ],
+              "pause" : [
+                "pause",
+                "hold"
+              ],
+              "play" : [
+                "play",
+                "resume",
+                "continue",
+                "unpause",
+                "start"
+              ],
+              "previous" : [
+                "previous",
+                "back",
+                "go back",
+                "last song",
+                "previous track",
+                "previous song"
+              ],
+              "quieter" : [
+                "quieter",
+                "softer",
+                "turn it down",
+                "turn the volume down",
+                "volume down",
+                "turn down"
+              ]
+            },
             "summary" : "What to do.",
             "type" : "string"
           },
@@ -678,6 +781,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player to start if nothing is playing. Omit for the one that's running.",
             "type" : "string"
           }
@@ -728,7 +834,7 @@
         ],
         "preference" : 210
       },
-      "summary" : "Play, pause, skip or change the volume of whatever is playing.",
+      "summary" : "Pause, play, skip or change the volume of the music, or of whatever is playing system-wide.",
       "title" : "Control Playback",
       "usesStage" : false,
       "version" : "1.0.0"
@@ -768,6 +874,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to look for.",
             "type" : "string"
           },
@@ -778,6 +887,9 @@
             "name" : "artist",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Artist hint.",
             "type" : "string"
           }
@@ -856,6 +968,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to play.",
             "type" : "string"
           },
@@ -866,6 +981,9 @@
             "name" : "artist",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Artist hint.",
             "type" : "string"
           }
@@ -1007,6 +1125,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1097,6 +1218,9 @@
             "name" : "playlist",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which playlist.",
             "type" : "string"
           },
@@ -1107,6 +1231,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1197,6 +1324,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The playlist name to look for.",
             "type" : "string"
           },
@@ -1207,6 +1337,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }
@@ -1297,6 +1430,9 @@
             "name" : "playlist",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which playlist.",
             "type" : "string"
           },
@@ -1307,6 +1443,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which player. Omit for the one that's running.",
             "type" : "string"
           }

@@ -111,9 +111,20 @@ public enum AmbientPlace: Sendable, Equatable, Hashable {
     // MARK: - The taxonomy
 
     /// Registration backing this place, if any. Resolved through the installed index, not held.
+    ///
+    /// PIN: THE BROWSER WORKSPACE IS BACKED BY A BROWSER'S REGISTRATION. Every
+    /// browser collapses to the one place `"browser"`, which no package
+    /// registers under that id — so this answered nil for it, and everything
+    /// derived from a registration (class, eyes, discipline) answered as though
+    /// no browser were installed: the place could never lead, and naming it did
+    /// nothing. The browser the ledger evidences answers for the place; failing
+    /// that, any package realizing browsing does, since what is asked here is
+    /// the same for all of them.
     public var registration: ApplicationRegistration? {
         guard case .application(let id) = self else { return nil }
-        return AmbientApplicationIndexProvider.current.registration(id: id)
+        if let own = AmbientApplicationIndexProvider.current.registration(id: id) { return own }
+        guard id == AmbientPlaceResolver.browserApplicationID else { return nil }
+        return AmbientPlaceResolver.browserRegistration()
     }
 
     /// Taxonomy class. Registration's answer when one owns this lane — host class describes the host.

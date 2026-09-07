@@ -105,6 +105,7 @@ extension AbilityRuntime {
         let wasStopped = wasStopRequested(runIdentity)
         let executeMs = (DispatchTime.now().uptimeNanoseconds
             &- executeStart.uptimeNanoseconds) / 1_000_000
+        Self.timing?.executeMs = executeMs
         let executeLine = "execute \(binding.name) — \(executeMs)ms"
             + (outcome == nil ? " (BUDGET EXPIRED at \(Int(unscaledBudget))s)" : "")
             + (wasStopped ? " (STOPPED)" : "")
@@ -138,7 +139,10 @@ extension AbilityRuntime {
     ) async -> SkillOutcome {
         // Stage Skills preempt the current stage holder first.
         if binding.stage {
+            let preemptStart = DispatchTime.now()
             await StageArbiter.shared.preemptForNewClaim()
+            Self.timing?.preemptMs = (DispatchTime.now().uptimeNanoseconds
+                &- preemptStart.uptimeNanoseconds) / 1_000_000
         }
         do {
             switch binding.backing {
@@ -170,14 +174,18 @@ extension AbilityRuntime {
     /// with it — measured on the Sand bench, where an empty `goal` read as a permission
     /// problem. A hint explains why an act failed; a question is not an act that failed.
     static func hinted(_ outcome: SkillOutcome, _ binding: SkillBinding) -> SkillOutcome {
+        var shaped = outcome
+        // AND A QUESTION IS SAID TO BE ONE. The rule already lived here to
+        // suppress the hint; carrying it on the outcome is what lets the lane
+        // end on it rather than ask the model what to try next.
+        if !outcome.ok, isQuestion(outcome.summary) { shaped.asksThePerson = true }
         guard !outcome.ok,
               let hint = binding.spokenFailureHint,
               !outcome.summary.contains(hint),
-              !isQuestion(outcome.summary)
-        else { return outcome }
-        var spoken = outcome
-        spoken.summary += " — \(hint)"
-        return spoken
+              !shaped.asksThePerson
+        else { return shaped }
+        shaped.summary += " — \(hint)"
+        return shaped
     }
 
     /// The summary asks the person for something rather than reporting what went wrong.

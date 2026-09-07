@@ -9,6 +9,15 @@
 //  PIN:  Not a simulation. And the lever it points at is a FIXTURE: an ability's
 //        phrases feed the ability tier only, so they can never separate two
 //        skills inside one ability.
+//        AND NOW THE ROSTER TOO. The tiers answer "which skill does this sound
+//        like"; they cannot answer "would it have been OFFERED", which is a
+//        different question with different answers — a skill can lead its corpus
+//        and still be withheld for being unready, for a Capability allowlist, or
+//        for its whole Ability losing an election to whatever is in front. That
+//        last one is why "pause the music" failed with a browser fronted, and
+//        this sheet could not have shown it. `AbilityRosterRehearsal` runs the
+//        real arbitrator under a chosen stage; see its own header for the two
+//        gates a rehearsal cannot run.
 //
 
 import MaryBrain
@@ -45,6 +54,13 @@ struct AbilityStudioRehearsal {
         let conflictPolicy: RoutingConflictPolicy?
         let preference: Int?
         let readiness: SkillReadiness?
+        /// What the REAL roster did with it, under the chosen stage. Nil when
+        /// the arbitrator was not asked (no stage, no registry).
+        var disposition: AbilityRosterDisposition?
+        var rosterReason: String?
+
+        /// Offered to the model this turn — the question the tiers cannot answer.
+        var wasOffered: Bool { disposition == .selected }
 
         var color: Color {
             switch standing {
@@ -74,8 +90,13 @@ struct AbilityStudioRehearsal {
     }
 
     let utterance: String
+    /// The application whose target classes were put in front, or nil for
+    /// "nothing in front".
+    let stage: Stage?
     let abilities: [Candidate]
     let skills: [Candidate]
+    /// How each Ability fared in the election, when a roster was run.
+    let election: [AbilityElectionRow]
     /// Who inherits the winning Skill's discipline, ranked by habit. Nil when
     /// the winner's ability is not a discipline or nothing extends it.
     let expertise: ExpertiseResolution.Verdict?
@@ -84,6 +105,13 @@ struct AbilityStudioRehearsal {
     /// fixture added now changes them only after Save.
     let revision: String
 
+    /// An application to rehearse "as if this were in front".
+    struct Stage: Identifiable, Hashable {
+        let id: String
+        let title: String
+        let targetClasses: Set<String>
+    }
+
     static let floor = EmbeddingRouting.floor
     static let margin = EmbeddingRouting.margin
 
@@ -91,15 +119,18 @@ struct AbilityStudioRehearsal {
     /// backend" rather than drawing zeros.
     static func run(
         utterance: String,
-        snapshot: AbilityRuntime.Snapshot
+        snapshot: AbilityRuntime.Snapshot,
+        stage: Stage? = nil
     ) -> AbilityStudioRehearsal {
         let revision = String(snapshot.revision.uuidString.prefix(8))
         let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
         guard MaryEmbeddings.vectorizer() != nil, !trimmed.isEmpty else {
             return AbilityStudioRehearsal(
                 utterance: trimmed,
+                stage: stage,
                 abilities: [],
                 skills: [],
+                election: [],
                 expertise: nil,
                 verdict: trimmed.isEmpty ? .nothingMatched : .noBackend,
                 revision: revision)
@@ -109,7 +140,18 @@ struct AbilityStudioRehearsal {
             .affinities(in: trimmed, habits: .shared) ?? [:]
         let abilityAffinities = snapshot.abilityAffinities(in: trimmed)
 
-        let skills = rankedSkills(skillAffinities, snapshot: snapshot)
+        // THE ROSTER ITSELF, under whatever is in front. This is the half the
+        // tiers cannot answer.
+        let roster = AbilityRosterRehearsal.trace(
+            snapshot: snapshot,
+            utterance: trimmed,
+            targetClasses: stage?.targetClasses ?? [],
+            namedApplications: stage.map { [$0.id] } ?? [])
+        let verdicts = Dictionary(
+            roster.decisions.map { ($0.reference.skillID, $0) },
+            uniquingKeysWith: { first, _ in first })
+
+        let skills = rankedSkills(skillAffinities, snapshot: snapshot, verdicts: verdicts)
         let abilities = rankedAbilities(abilityAffinities, snapshot: snapshot)
 
         // THE THIRD TIER, resolved by the SAME function the dispatch uses. It
@@ -130,8 +172,10 @@ struct AbilityStudioRehearsal {
 
         return AbilityStudioRehearsal(
             utterance: trimmed,
+            stage: stage,
             abilities: abilities,
             skills: skills,
+            election: roster.election,
             expertise: expertise,
             verdict: verdict(
                 for: skills, utterance: trimmed, affinities: skillAffinities,
@@ -153,7 +197,8 @@ struct AbilityStudioRehearsal {
 
     private static func rankedSkills(
         _ affinities: [SkillID: Float],
-        snapshot: AbilityRuntime.Snapshot
+        snapshot: AbilityRuntime.Snapshot,
+        verdicts: [SkillID: AbilityRosterDecision] = [:]
     ) -> [Candidate] {
         let ranked = affinities.sorted { $0.value > $1.value }
         let best = ranked.first?.value ?? 0
@@ -173,7 +218,9 @@ struct AbilityStudioRehearsal {
                     ?? runtime?.ability.routing.conflictGroup,
                 conflictPolicy: runtime?.skill.routing.conflictPolicy,
                 preference: runtime?.skill.routing.preference,
-                readiness: runtime?.availability.readiness)
+                readiness: runtime?.availability.readiness,
+                disposition: verdicts[skillID]?.disposition,
+                rosterReason: verdicts[skillID]?.reason)
         }
     }
 
@@ -234,7 +281,13 @@ struct AbilityStudioRehearsal {
         if let winner = EmbeddingRouting.uniqueWinner(
             affinities: affinities,
             snapshot: snapshot) {
-            guard let shape = EmbeddingRouting.confidenceShape(of: winner) else {
+            // THE SENTENCE DECIDES AN ENUM, so the shape gate must be asked
+            // WITH it: "pause the music" names a value and dispatches, while
+            // "do that to the music" names none and goes to the model. Asking
+            // shape-only would report every enum skill as a model round, which
+            // is what this rehearsal used to promise and is no longer true.
+            guard let shape = EmbeddingRouting.confidenceShape(
+                of: winner, utterance: utterance) else {
                 return .modelFills(leader: winner.skill.title, in: landing)
             }
             if shape == .noRequiredArguments,
@@ -278,6 +331,9 @@ struct AbilityStudioRehearsal {
     }
 
     var isClean: Bool {
+        // A LEADER THE ROSTER WITHHELD IS NEVER CLEAN, whatever the tiers say.
+        // This is the case the sheet used to show a green tick for.
+        guard rosterWord == nil else { return false }
         switch verdict {
         // A model round that reaches the right Skill in the right application
         // is a correct routing outcome, not a fault — the banner must not
@@ -314,6 +370,31 @@ struct AbilityStudioRehearsal {
         let hours = minutes / 60
         if hours < 24 { return "\(hours)h ago" }
         return "\(hours / 24)d ago"
+    }
+
+    /// WHAT THE ROSTER DID WITH THE LEADER, when it disagrees with the tiers.
+    ///
+    /// Nil when the leading skill was offered, because then the tiers already
+    /// told the whole story. Non-nil is the case worth shouting about: the
+    /// corpus picked it and the turn would still not have it — which reads as
+    /// "routing is broken" to everyone who has ever hit it, and is usually one
+    /// specific, nameable gate.
+    var rosterWord: String? {
+        guard let leader = skills.first(where: { $0.standing != .belowFloor }),
+              let disposition = leader.disposition, disposition != .selected
+        else { return nil }
+        let name = leader.invocation ?? leader.title
+        let place = stage.map { " while \($0.title) is in front" } ?? ""
+        switch disposition {
+        case .inactiveAbility:
+            let rival = election.first { $0.isActive }?.abilityTitle
+            let lost = rival.map { " to \($0)" } ?? ""
+            return "\(name) leads the corpus, but its Ability lost the election\(lost)\(place) — so none of its skills reached the model."
+        case .conflictLost:
+            return "\(name) leads the corpus, but a sibling skill outranked it\(place)."
+        default:
+            return "\(name) leads the corpus, but was withheld\(place): \(leader.rosterReason ?? disposition.rawValue)."
+        }
     }
 
     /// The crowder, when there is one — the row a fixture is meant to separate.

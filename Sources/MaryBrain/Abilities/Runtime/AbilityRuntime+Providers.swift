@@ -33,7 +33,7 @@ extension AbilityRuntime {
         let signals = ApplicationProviderSignals(
             namedApplicationIDs: named,
             interactionApplicationID: interaction,
-            pinnedApplicationID: nil,
+            pinnedApplicationID: pinnedApplicationID,
             focusedApplicationID: focusedApplicationID,
             // Only a settled habit — `resolve` reports `.habitual` solely when
             // one player leads the decayed tally, so a cold start falls

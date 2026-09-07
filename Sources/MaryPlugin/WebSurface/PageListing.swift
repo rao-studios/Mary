@@ -17,24 +17,166 @@
 //        something it never said.
 //
 
+import CoreGraphics
 import Foundation
 import MaryComputerUse
 
 /// One page read, ready to be spoken about.
 public struct PageRoster: Sendable {
+    /// THE PAGE, IN READING ORDER — the one shape the router and the slate read.
+    ///
+    /// PIN: STORED WHEN A READING PRODUCED IT, DERIVED WHEN ONLY THE SHIM EXISTS.
+    /// A real read hands over rows whose facts were decided once at the seal, and
+    /// those are kept as they are. A roster built from the AX-shaped pair — a
+    /// recorded fixture, a test stating a page by hand — has no rows to keep, so
+    /// they are derived on demand from `elements` and `map`, which is what the
+    /// old computed property did and what keeps a caller that EDITS those two
+    /// honest. Both branches go when the shim does.
+    public var rows: [PageRow] {
+        storedRows ?? Self.derivedRows(
+            elements: elements, map: map, pageFrame: pageFrame).rows
+    }
+
+    /// The groups those rows sit in.
+    public var groups: [PageGroup] {
+        storedGroups ?? Self.derivedRows(
+            elements: elements, map: map, pageFrame: pageFrame).groups
+    }
+
+    private var storedRows: [PageRow]?
+    private var storedGroups: [PageGroup]?
+
+    /// The AX-shaped view, for the parts of this lane that still read it.
+    /// PIN: A SHIM, deleted with the old executor.
     public var elements: [AXScreenElement]
     public var map: PageMapSummary
     public var pageFrame: CGRect
     public var capturedAt: Date
 
+    /// WHETHER A ROLE CLASSIFIER RAN.
+    ///
+    /// PIN: FALSE IS NOT "THE PAGE IS EMPTY", AND A BENCH THAT CANNOT TELL THEM
+    /// APART IS NO USE. Without the model installed the map still reads a page —
+    /// edges, words and geometry are the rows — but every role is a shape's best
+    /// guess, so names get thinner, affordances get less certain, and the page
+    /// simply looks BAD. That is the one failure a person checking "is VisionAX
+    /// doing its job" must not mistake for a hard page, and it was dropped at the
+    /// engine's read and never reached anybody.
+    public var classified: Bool
+    /// What the read cost. ~220ms is the documented page budget; several seconds
+    /// is a finding, and the number is free — the reading already measured it.
+    public var readDuration: Duration?
+    /// The whole read, by stage — `readDuration` is only its perceive slice.
+    public var readTiming: VisionPageReader.Timing?
+
+    /// The real one: a reading's own rows, facts already derived.
     public init(
-        elements: [AXScreenElement], map: PageMapSummary = PageMapSummary(),
-        pageFrame: CGRect = .zero, capturedAt: Date = Date()
+        rows: [PageRow],
+        groups: [PageGroup] = [],
+        elements: [AXScreenElement] = [],
+        map: PageMapSummary = PageMapSummary(),
+        pageFrame: CGRect = .zero,
+        capturedAt: Date = Date(),
+        classified: Bool = true,
+        readDuration: Duration? = nil,
+        readTiming: VisionPageReader.Timing? = nil
     ) {
+        self.classified = classified
+        self.readDuration = readDuration
+        self.readTiming = readTiming
+        // NO ROWS BUT ELEMENTS IS THE SHIM CASE, whoever built it. A reading
+        // that filled only the AX-shaped pair — a fake in a suite, a recorded
+        // fixture, an older caller — has no rows to keep, and storing its empty
+        // list would describe a page with nothing on it. Deriving is the honest
+        // answer, and it is the same one the elements-only initializer gives.
+        let hasRows = !rows.isEmpty || elements.isEmpty
+        self.storedRows = hasRows ? rows : nil
+        self.storedGroups = hasRows ? groups : nil
         self.elements = elements
         self.map = map
         self.pageFrame = pageFrame
         self.capturedAt = capturedAt
+    }
+
+    /// THE INVERSE SHIM: an AX-shaped reading, joined back into rows on demand.
+    ///
+    /// PIN: IT REVERSES EXACTLY WHAT `VisionPageReader.legacyElements`/`legacyMap`
+    /// PRODUCED, so a roster built either way describes the same page.
+    public init(
+        elements: [AXScreenElement],
+        map: PageMapSummary = PageMapSummary(),
+        pageFrame: CGRect = .zero,
+        capturedAt: Date = Date(),
+        classified: Bool = true,
+        readDuration: Duration? = nil,
+        readTiming: VisionPageReader.Timing? = nil
+    ) {
+        self.storedRows = nil
+        self.storedGroups = nil
+        self.classified = classified
+        self.readDuration = readDuration
+        self.readTiming = readTiming
+        self.elements = elements
+        self.map = map
+        self.pageFrame = pageFrame
+        self.capturedAt = capturedAt
+    }
+
+    static func derivedRows(
+        elements: [AXScreenElement], map: PageMapSummary, pageFrame: CGRect = .zero
+    ) -> (rows: [PageRow], groups: [PageGroup]) {
+        let groups = map.groups.map { group in
+            PageGroup(
+                id: group.id,
+                kind: SeenGroupKind(rawValue: group.kind) ?? .band,
+                title: group.title,
+                memberOrdinals: group.memberOrdinals)
+        }
+        let groupByOrdinal = Dictionary(
+            groups.flatMap { group in
+                group.memberOrdinals.map {
+                    ($0, PageGroupRef(id: group.id, kind: group.kind, title: group.title))
+                }
+            },
+            uniquingKeysWith: { first, _ in first })
+        let rows = elements.map { element -> PageRow in
+            let annotation = map.annotation(forOrdinal: element.ordinal)
+            return PageRow(
+                ordinal: element.ordinal,
+                frame: element.frame,
+                label: element.label,
+                // NO ANNOTATION IS NOT A GUESSED NAME. A row the map said nothing
+                // about still carries whatever the reading put in its label, and
+                // the fixtures that state pages by hand rely on that.
+                labelSource: annotation?.labelSource ?? .textInside,
+                affordance: annotation?.affordance ?? .none,
+                affordanceSource: annotation?.affordanceSource ?? .unknown,
+                kind: element.spokenKind,
+                role: element.role,
+                group: groupByOrdinal[element.ordinal],
+                hints: annotation?.hints ?? [],
+                confidence: annotation?.confidence ?? 0,
+                isEnabled: element.isEnabled,
+                provenance: element.provenance)
+        }
+        // THE REGIONS AND THE LISTS TOO, for the reason this whole function
+        // exists: a roster rebuilt from the AX-shaped shim must describe the
+        // same page as one that never left `PageRow`. Both are no-ops on a zero
+        // page frame, which is what a hand-written fixture has.
+        //
+        // PIN: THE SEAL'S ORDER, NOT A CONVENIENT ONE. Regions first, because a
+        // list is only a list in the page's own column; facts last, because
+        // `inResultGroup` reads the group a list derivation may just have given
+        // a row. Getting this order wrong here and right at the seal is how the
+        // two views come to describe different pages, which is the one thing
+        // this function exists to prevent.
+        let placed = PagePlayerDerivation.markOverlays(
+            rows: PageRegionDerivation.assign(rows: rows, pageFrame: pageFrame),
+            pageFrame: pageFrame)
+        let listed = PageListDerivation.lists(rows: placed, groups: groups)
+        return (
+            RowFactsDerivation.derive(rows: listed.rows, groups: listed.groups),
+            listed.groups)
     }
 
     /// Only what can be acted on. What a phrase is resolved against.
@@ -97,6 +239,7 @@ public enum PageListing {
 
         let head = pageName.map { "On \($0), " } ?? ""
         lines.append("\(head)\(offeringSentence(rows))")
+        if query == nil, let landscape = landscape(roster) { lines.append(landscape) }
         lines.append(contentsOf: numbered(rows, roster: roster, limit: limit))
         if rows.count > limit {
             lines.append("…and \(rows.count - limit) more.")
@@ -104,7 +247,74 @@ public enum PageListing {
         return lines.joined(separator: "\n")
     }
 
+    /// HOW THE PAGE IS LAID OUT, in one sentence.
+    ///
+    /// PIN: THE MISSING HALF OF "WHAT IS ON THIS PAGE". A numbered list answers
+    /// "what can I press"; it does not answer "what am I looking at", and a
+    /// person who cannot see the page has to be told its SHAPE before any of the
+    /// words they would naturally point with — "the search box at the top", "the
+    /// third link in the sidebar" — mean anything. This is that shape, and it is
+    /// also the vocabulary: every place named here is a place
+    /// `PageRegion.named(in:among:)` will accept back.
+    /// ONLY WHEN THERE IS A SHAPE TO SPEAK. A one-column page is all `main`, and
+    /// saying so would be noise on every read.
+    public static func landscape(_ roster: PageRoster) -> String? {
+        var counts: [PageRegion: Int] = [:]
+        let offered = Set(roster.actionable.map(\.ordinal))
+        for row in roster.rows where offered.contains(row.ordinal) {
+            guard let region = row.region else { continue }
+            counts[region, default: 0] += 1
+        }
+        guard counts.count > 1 else { return nil }
+        let parts = PageRegion.allCases.compactMap { region -> String? in
+            guard let count = counts[region], count > 0 else { return nil }
+            return "\(count) \(count == 1 ? "thing" : "things") \(region.spokenPlace)"
+        }
+        guard parts.count > 1 else { return nil }
+        return "Laid out with " + SpokenReference.spokenList(parts) + "."
+    }
+
     /// The same, compressed to ride along at the end of an act's own sentence.
+    /// How much of a page's prose one question is worth. `AwarenessBrief`'s
+    /// asked-block budget, for the same reason: a passage, not a document.
+    public static let textBudget = 2400
+
+    /// WHAT THE PAGE SAYS, top to bottom.
+    ///
+    /// PIN: THE ROWS THE ACTING LISTING THROWS AWAY. `spoken` and `tail` render
+    /// what can be PRESSED — the text rows are furniture to them. To a question
+    /// about the page they are the entire answer, so this reads the same roster
+    /// the other way round. Reading order is the roster's own order, which the
+    /// reading already put in reading order.
+    /// DUPLICATES COLLAPSE. The page reader emits some elements twice (once for
+    /// an outer link, once for the text inside it) — measured, pervasive, and
+    /// harmless to a listing that numbers rows but absurd in a passage, which
+    /// would say everything twice.
+    public static func text(
+        _ roster: PageRoster, pageName: String?, budget: Int = textBudget
+    ) -> String {
+        var seen = Set<String>()
+        var lines: [String] = []
+        for element in roster.elements {
+            let label = element.label.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard label.count > 1 else { continue }
+            let key = SpokenReference.normalized(label)
+            guard !key.isEmpty, seen.insert(key).inserted else { continue }
+            lines.append(label)
+        }
+        guard !lines.isEmpty else {
+            return pageName.map { "I can read nothing on \($0)." }
+                ?? "I can read nothing on this page."
+        }
+        var passage = pageName.map { "The visible part of \($0), top to bottom:" }
+            ?? "The visible part of the page, top to bottom:"
+        for line in lines {
+            guard passage.count + line.count + 1 <= budget else { break }
+            passage += "\n" + line
+        }
+        return passage
+    }
+
     public static func tail(_ roster: PageRoster, limit: Int = tailLimit) -> String {
         let rows = filtered(roster, query: nil)
         guard !rows.isEmpty else { return "" }

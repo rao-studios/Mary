@@ -14,9 +14,13 @@
 //        `package static` on MaryRuntime, which the app and the probes link and
 //        Sand's bench deliberately does not — it wants the ability graph and
 //        the hands, not Granite, Totem or a model. They read nothing but the
-//        snapshot's own records, so they belong beside it. Corpus and awareness
-//        stay in MaryRuntime: they consult inheritance and habits, and they
-//        start crawls.
+//        snapshot's own records, so they belong beside it. Corpus stays in
+//        MaryRuntime: it consults inheritance and habits, and it starts crawls.
+//        AWARENESS IS SPLIT, and the split is the crawl. Following a DOCUMENT
+//        means walking a project, which is MaryRuntime's to install; following
+//        a PAGE walks nothing at all — it reads a browser's chrome through
+//        Accessibility and reports the roster a skill already produced. The
+//        page half therefore belongs here, where a bench can have it too.
 //
 
 import Foundation
@@ -24,6 +28,49 @@ import MaryFoundation
 import MaryPlugin
 
 public extension AbilityRuntime.Snapshot {
+
+    /// Applications that asked to be followed AND show pages — the awareness
+    /// registrations that need no project and start no crawl.
+    ///
+    /// PIN: NEVER A CORPUS. A page is not a project; see
+    /// `AwarenessRegistration.corpus`. The document half of this derivation
+    /// lives in `MaryRuntime.awarenessRegistrations`, which also consults
+    /// inheritance — the thing that could hand a walk grammar to a browser if
+    /// nothing forbade it.
+    func awarenessPageRegistrations() -> [AwarenessRegistration] {
+        let activated = Dictionary(
+            records
+                .filter(\.validation.isValid)
+                .map { ($0.package.package.id, $0.package) },
+            uniquingKeysWith: { first, _ in first })
+        guard activated.values.contains(where: { $0.ability.id == .awareness }) else {
+            return []
+        }
+        return records.compactMap { record -> AwarenessRegistration? in
+            guard record.validation.isValid,
+                  let plugin = record.package.plugin,
+                  plugin.webSurface != nil,
+                  !plugin.application.bundleIdentifiers.isEmpty
+            else { return nil }
+            let required = record.package.dependencies.filter { !$0.optional }
+            guard required.allSatisfy({ activated[$0.packageID] != nil }) else {
+                return nil
+            }
+            guard record.package.dependencies.contains(where: {
+                activated[$0.packageID]?.ability.id == .awareness
+            }) else { return nil }
+            return AwarenessRegistration(
+                applicationID: plugin.application.id,
+                bundleIdentifiers: plugin.application.bundleIdentifiers,
+                bundleIdentifierPrefix: plugin.application.bundleIdentifierPrefix,
+                displayName: plugin.application.title,
+                // A PAGE HAS NO CORPUS TO GIVE — the case carries none, so the
+                // rule this comment used to assert is now the type's.
+                surface: .page,
+                hasCodeSurface: plugin.codeSurface != nil,
+                hasProseSurface: plugin.proseSurface != nil)
+        }
+    }
 
     /// Declared transports — every package that carries a `mediaSurface`.
     func mediaSurfaceRegistrations() -> [MediaSurfaceRegistration] {

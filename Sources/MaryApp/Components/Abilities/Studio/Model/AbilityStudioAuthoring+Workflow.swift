@@ -308,26 +308,19 @@ extension AbilityStudioAuthoringDocument {
 
     /// A routing fixture is a whole sentence the author states this skill should
     /// answer. It is also the only lever that moves the skill embedding tier.
+    /// PIN: THE BODY MOVED TO `MaryAbilityPackage.addingFixture`, so Sand's
+    /// roster pane can keep a sentence the same way this sheet does. What stays
+    /// here is the draft transaction, which is the Studio's own.
     mutating func addFixture(
         utterance: String,
-        expectedSkill: SkillID?
+        expectedSkill: SkillID?,
+        targetClass: String? = nil
     ) throws {
-        let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
         try commit { candidate in
-            guard !candidate.fixtures.contains(where: {
-                $0.utterance.caseInsensitiveCompare(trimmed) == .orderedSame
-            }) else { return }
-            let stem = AbilityStudioPackageFactory.portableStem(trimmed, fallback: "fixture")
-            let owned = Set(candidate.fixtures.map(\.id))
-            let id = owned.contains(stem)
-                ? abilityStudioFirstUnusedName(stem: stem, existing: owned)
-                : stem
-            candidate.fixtures.append(.init(
-                id: String(id.prefix(80)),
-                utterance: trimmed,
+            candidate = candidate.addingFixture(
+                utterance: utterance,
                 expectedSkill: expectedSkill,
-                expectedDisposition: "route"))
+                targetClass: targetClass)
         }
     }
 }

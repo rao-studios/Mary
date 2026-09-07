@@ -1015,7 +1015,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "b6f110cf05b9d0d76442f3650aa9974935743d43eca370e823314240dce84c64"
+    "digest" : "1120d95a3f61ae414ab419a5be1a6a892271e741af4a253e69d8221fcede0079"
   },
   "interactions" : [
     {
@@ -1195,6 +1195,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           },
@@ -1205,6 +1208,9 @@
             "name" : "find",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Return only the part around this phrase.",
             "type" : "string"
           }
@@ -1283,6 +1289,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1361,6 +1370,9 @@
             "name" : "text",
             "required" : true,
             "requiresComposition" : true,
+            "spokenValues" : {
+
+            },
             "summary" : "The replacement code, exactly as it should read — including any revision you were asked to make.",
             "type" : "string"
           },
@@ -1371,6 +1383,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1701,6 +1716,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor. Omit for the one in front.",
             "type" : "string"
           }
@@ -1782,6 +1800,9 @@
             "name" : "instruction",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "How the highlighted code should change.",
             "type" : "string"
           }
@@ -1879,6 +1900,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -1957,6 +1981,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to read.",
             "type" : "string"
           },
@@ -1967,6 +1994,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -2045,6 +2075,9 @@
             "name" : "start",
             "required" : true,
             "requiresComposition" : true,
+            "spokenValues" : {
+
+            },
             "summary" : "First line number.",
             "type" : "string"
           },
@@ -2055,6 +2088,9 @@
             "name" : "end",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Last line number.",
             "type" : "string"
           },
@@ -2065,6 +2101,9 @@
             "name" : "app",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which editor.",
             "type" : "string"
           }
@@ -2143,6 +2182,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to replace.",
             "type" : "string"
           },
@@ -2153,6 +2195,9 @@
             "name" : "new_source",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The complete new declaration.",
             "type" : "string"
           }
@@ -2231,6 +2276,9 @@
             "name" : "source",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The code to add.",
             "type" : "string"
           },
@@ -2241,6 +2289,9 @@
             "name" : "after_symbol",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Insert after this name.",
             "type" : "string"
           }
@@ -2319,6 +2370,9 @@
             "name" : "find",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Exact text to find.",
             "type" : "string"
           },
@@ -2329,6 +2383,9 @@
             "name" : "replace",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Replacement text.",
             "type" : "string"
           }
@@ -2407,6 +2464,9 @@
             "name" : "path",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Project-relative path.",
             "type" : "string"
           },
@@ -2417,6 +2477,9 @@
             "name" : "contents",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "File contents.",
             "type" : "string"
           }
@@ -2495,6 +2558,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which project.",
             "type" : "string"
           }
@@ -2573,6 +2639,9 @@
             "name" : "query",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The word or phrase.",
             "type" : "string"
           },
@@ -2583,6 +2652,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which project.",
             "type" : "string"
           }
@@ -2661,6 +2733,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to locate.",
             "type" : "string"
           }
@@ -2739,6 +2814,9 @@
             "name" : "symbol",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The name to search for.",
             "type" : "string"
           }
@@ -2886,6 +2964,9 @@
             "name" : "file",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "File, or all.",
             "type" : "string"
           }
@@ -2964,6 +3045,9 @@
             "name" : "count",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "How many.",
             "type" : "string"
           }
@@ -3042,6 +3126,9 @@
             "name" : "file",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "File, or all.",
             "type" : "string"
           }
@@ -3189,6 +3276,9 @@
             "name" : "message",
             "required" : true,
             "requiresComposition" : true,
+            "spokenValues" : {
+
+            },
             "summary" : "Commit message.",
             "type" : "string"
           }
@@ -3405,6 +3495,9 @@
             "name" : "filter",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Optional test name.",
             "type" : "string"
           }
@@ -3552,6 +3645,9 @@
             "name" : "note",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to remember.",
             "type" : "string"
           }
@@ -3630,6 +3726,9 @@
             "name" : "task",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What the agent should do.",
             "type" : "string"
           }
@@ -3719,6 +3818,9 @@
             "name" : "task",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "A clear, self-contained description of the planned change.",
             "type" : "string"
           },
@@ -3729,6 +3831,9 @@
             "name" : "plan",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Workflow plan port; used when task is empty.",
             "type" : "string"
           }
@@ -3895,6 +4000,9 @@
             "name" : "task",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Complete coding outcome the user wants.",
             "type" : "string"
           }
@@ -4128,6 +4236,9 @@
             "name" : "task",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "What to do.",
             "type" : "string"
           },
@@ -4138,6 +4249,9 @@
             "name" : "project",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Project name.",
             "type" : "string"
           }
@@ -4216,6 +4330,9 @@
             "name" : "session",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Handle like C1.",
             "type" : "string"
           }
@@ -4363,6 +4480,9 @@
             "name" : "session",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Handle like C1.",
             "type" : "string"
           },
@@ -4373,6 +4493,9 @@
             "name" : "message",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Follow-up.",
             "type" : "string"
           }
@@ -4451,6 +4574,9 @@
             "name" : "session",
             "required" : false,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Handle like C1.",
             "type" : "string"
           }

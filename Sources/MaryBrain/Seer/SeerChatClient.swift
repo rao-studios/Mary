@@ -34,6 +34,10 @@ public actor SeerChatClient: SeerChatProviding {
     private var personalTotemID: String?
     /// Empty = Seer's default model. Sent as the request `model` otherwise.
     private var chatModel: String = ""
+    /// Which backend Seer uses for this lane. Set by `setProvider`, never by
+    /// `configure`: the servers applier runs on its own schedule and must not
+    /// silently reset the user's choice.
+    private var provider: LLMEngineChoice?
     private let transport: any SeerSSETransport
     /// Read at REQUEST time, not configure time: "is a document focused" is a per-turn fact, and `configure` only runs when Settings change.
     private var retrievalScope: @Sendable (String) -> RetrievalScope = { _ in .general }
@@ -63,6 +67,12 @@ public actor SeerChatClient: SeerChatProviding {
     }
 
     // MARK: - SeerChatProviding
+
+    /// The lane's backend. Separate from `configure` on purpose — see the
+    /// `provider` property.
+    public func setProvider(_ provider: LLMEngineChoice?) {
+        self.provider = provider
+    }
 
     public func isReady() async -> Bool {
         await session.isAuthenticated
@@ -122,6 +132,7 @@ public actor SeerChatClient: SeerChatProviding {
                 messages: messages,
                 model: chatModel.isEmpty ? nil : chatModel,
                 instructions: instructions,
+                provider: provider,
                 seer: scope
             ))
 

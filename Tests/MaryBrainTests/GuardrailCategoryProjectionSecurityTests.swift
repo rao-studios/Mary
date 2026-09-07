@@ -142,8 +142,14 @@ import Testing
 
         let ambient = AmbientContextStore()
 
-        try await AmbientApplicationIndexProvider.$scoped.withValue(
-            AmbientApplicationRoster([
+        // THE ROSTER AND THE DISCIPLINE GRAPH TRAVEL TOGETHER — see
+        // `withScopedWorld`. Scoping the roster alone left `AmbientPlace.ability`
+        // asking whichever global graph some other suite had installed, so this
+        // test passed in a full parallel run and failed on its own: `xcode` had
+        // no craft, the turn did not read as a coding workspace, and nothing
+        // was offered. Order-dependence in a security test is worth nothing.
+        try await withScopedWorld(
+            roster: AmbientApplicationRoster([
                 ApplicationRegistration(
                     id: "xcode", profile: xcodeProfile,
                     bundleIdentifiers: ["com.apple.dt.Xcode"],

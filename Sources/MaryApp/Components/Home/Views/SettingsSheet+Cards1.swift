@@ -26,28 +26,16 @@ extension SettingsSheet {
                 .pickerStyle(.radioGroup)
                 .labelsHidden()
 
-                switch config.state.skillEngine {
-                case .local:
-                    TextField("MLX model id", text: localModelBinding)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.maryMono(11))
-                    Text("Skill invocations are decided on this machine (on-device MLX). The skills themselves still run here. Spoken replies are Voice (Lane A).")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                case .hosted:
-                    SeerSignInRow(
-                        signedIn: seerSignedIn,
-                        account: config.state.seerEmail,
-                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
-                    Text("Skill invocations are synthesized through the Seer server on this machine (not the spoken chat lane, not corpus annotation). The skills still run on this Mac. Needs Chat through Seer in the Servers panel.")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                    if config.state.llmEngine == .local {
-                        Text("Voice is on-device, so this loop also supplies any spoken wrap-up — Seer persona and retrieval stay off.")
-                            .font(.marySans(10))
-                            .foregroundStyle(Color.maryInk.opacity(0.45))
-                    }
-                }
+                SeerSignInRow(
+                    signedIn: seerSignedIn,
+                    account: config.state.seerEmail,
+                    whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
+                backendCaption(
+                    config.state.skillEngine,
+                    lane: "Skill invocations are synthesized")
+                Text("The skills themselves always run on this Mac. Spoken replies are Voice (Lane A).")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
 
                 Divider().overlay(Color.maryBorder)
 
@@ -68,7 +56,10 @@ extension SettingsSheet {
                     .foregroundStyle(Color.maryInk.opacity(0.45))
             }
         }
-        .task { await refreshSeerSignIn() }
+        .task {
+            await refreshSeerSignIn()
+            await refreshProviderStatuses()
+        }
     }
 
     var modelCallPriceBinding: Binding<Double> {
@@ -80,8 +71,8 @@ extension SettingsSheet {
             })
     }
 
-    /// Pair-coding faculty. On/off is separate from WHERE synthesis runs —
-    /// on-device MLX or Seer's `/v1/code/complete`. Edits stay on this Mac.
+    /// Pair-coding faculty. On/off is separate from WHICH BACKEND synthesizes
+    /// the rounds; every one of them rides Seer. Edits stay on this Mac.
     var codingAgentCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
@@ -101,39 +92,16 @@ extension SettingsSheet {
                 .labelsHidden()
                 .disabled(codingDownloading)
 
-                switch config.state.codingEngine {
-                case .local:
-                    Text("Invocations are decided on this Mac. Download a model, then switch the faculty on — selecting a downloaded snapshot is what turns local coding on.")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                    TextField("MLX Hub id", text: codingAgentModelBinding)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.maryMono(11))
-                        .disabled(codingDownloading)
-                    HStack(spacing: .layer3) {
-                        Button("Download") { downloadCodingModel() }
-                            .buttonStyle(.mary)
-                            .disabled(codingDownloading)
-                        Button("Default model") { restoreDefaultCodingModel() }
-                            .buttonStyle(.maryQuiet)
-                            .disabled(codingDownloading)
-                        Spacer()
-                    }
-                    if codingDownloading {
-                        ProgressView(value: codingDownloadProgress, total: 1)
-                        Text("Downloading \(Int(codingDownloadProgress * 100))% — about 6.7 GB the first time.")
-                            .font(.marySans(10))
-                            .foregroundStyle(Color.maryInk.opacity(0.45))
-                    }
-                case .hosted:
-                    SeerSignInRow(
-                        signedIn: seerSignedIn,
-                        account: config.state.seerEmail,
-                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
-                    Text("Invocations are synthesized through Seer (model chosen on the server, not here). File tools still run on this Mac, jailed to the project. Needs Chat through Seer in the Servers panel.")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                }
+                SeerSignInRow(
+                    signedIn: seerSignedIn,
+                    account: config.state.seerEmail,
+                    whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
+                backendCaption(
+                    config.state.codingEngine,
+                    lane: "Coding rounds are synthesized")
+                Text("File tools still run on this Mac, jailed to the project.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
 
                 if codingPrepared || config.state.codingAgentEnabled {
                     Text("Ready. The coding agent will edit the focused project on disk.")
@@ -155,7 +123,10 @@ extension SettingsSheet {
             }
             await refreshCodingAgentStatus()
         }
-        .task { await refreshCodingAgentStatus() }
+        .task {
+            await refreshCodingAgentStatus()
+            await refreshProviderStatuses()
+        }
     }
 
     /// WHAT SHE LEARNS FROM YOUR WORK — corpus indexing of project shape
@@ -260,28 +231,22 @@ extension SettingsSheet {
                 .pickerStyle(.radioGroup)
                 .labelsHidden()
 
-                switch config.state.llmEngine {
-                case .local:
-                    Text("Spoken replies are produced on this machine. Skill invocations have their own control under Skills (Lane B).")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                case .hosted:
-                    SeerSignInRow(
-                        signedIn: seerSignedIn,
-                        account: config.state.seerEmail,
-                        whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
-                    Text("Spoken replies stream from Seer (SSE or realtime below). Skills are separate — Lane B.")
-                        .font(.marySans(10))
-                        .foregroundStyle(Color.maryInk.opacity(0.45))
-                }
+                SeerSignInRow(
+                    signedIn: seerSignedIn,
+                    account: config.state.seerEmail,
+                    whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
+                backendCaption(config.state.llmEngine, lane: "Spoken replies are produced")
+                Text("Skill invocations are separate — Lane B.")
+                    .font(.marySans(10))
+                    .foregroundStyle(Color.maryInk.opacity(0.45))
 
                 Picker("Chat transport", selection: seerTransportBinding) {
                     ForEach(SeerTransportChoice.allCases, id: \.self) { choice in
                         Text(choice.displayName).tag(choice)
                     }
                 }
-                Text(config.state.llmEngine == .local
-                     ? "Transport applies when spoken replies are hosted. On-device Voice does not use this socket."
+                Text(false
+                     ? ""
                      : (config.state.seerTransport == .realtime
                         ? "Realtime streams Seer's own voice over one socket — speech starts in about a second while retrieval catches up. Falls back to Classic if the route can't connect."
                         : "Classic streams text and synthesizes speech with the backend below."))
@@ -342,6 +307,67 @@ extension SettingsSheet {
         .task { await refreshSeerSignIn() }
     }
 
+    /// One sentence naming which backend serves this lane, plus the honest
+    /// on-device row: whether Seer has the model, and what to do if not.
+    @ViewBuilder
+    func backendCaption(_ choice: LLMEngineChoice, lane: String) -> some View {
+        switch choice {
+        case .mistral:
+            Text("\(lane) by Mistral's hosted API, reached by the Seer server on this machine.")
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+        case .tinker:
+            Text("\(lane) by Thinking Machines, reached by the Seer server on this machine. Seer needs TINKER_API_KEY in its .env.")
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+        case .local:
+            Text("\(lane) on this machine, by Seer's on-device model. Nothing leaves the Mac for this lane; speech, vision and embeddings are separate.")
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryInk.opacity(0.45))
+            onDeviceStatusRow
+        }
+    }
+
+    /// What Seer says about its on-device backend, and a way to load it now.
+    @ViewBuilder
+    var onDeviceStatusRow: some View {
+        let status = providerStatus(.local)
+        HStack(spacing: .layer2) {
+            StatusDot(color: status == nil
+                ? Color.maryInk.opacity(0.35)
+                : status?.state == "ready" ? .maryGreen
+                    : status?.available == true ? .maryGold : .maryError)
+            Text(onDeviceStatusText(status))
+                .font(.marySans(11))
+                .foregroundStyle(Color.maryInk.opacity(0.7))
+            Spacer()
+            if status?.state != "ready" {
+                Button("Warm now") { warmOnDeviceModel() }
+                    .buttonStyle(.maryQuiet)
+                    .disabled(warmingLocal || status?.available == false)
+            }
+        }
+        if let reason = status?.reason {
+            Text(reason)
+                .font(.marySans(10))
+                .foregroundStyle(Color.maryError)
+        }
+        Text("The model lives in Seer, not in Mary — one copy serves every lane.")
+            .font(.marySans(10))
+            .foregroundStyle(Color.maryInk.opacity(0.45))
+    }
+
+    func onDeviceStatusText(_ status: SeerProviderStatus?) -> String {
+        guard let status else { return "Checking Seer's on-device backend…" }
+        switch status.state {
+        case "ready": return "Loaded and ready — \(status.model)"
+        case "loading":
+            let percent = status.progress.map { " (\(Int($0 * 100))%)" } ?? ""
+            return "Seer is loading the model\(percent)…"
+        case "cold": return "Not loaded yet — the first turn will load it."
+        default: return "Unavailable"
+        }
+    }
 }
 
 /// Seer sign-in row; nil means still checking (actor hop).

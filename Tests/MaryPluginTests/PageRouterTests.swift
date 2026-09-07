@@ -50,6 +50,73 @@ private func published(
 
 @Suite struct PageRouterTests {
 
+    // MARK: - The site a person named
+
+    /// A ROW'S OWN LINK SAYS WHERE IT GOES, and "watch it on youtube" is a
+    /// person choosing between destinations. The site is recognised from the
+    /// PAGE — a word is a site here because a row on this page leads to one by
+    /// that name — so nothing in this repository holds a list of sites.
+    @Test func aNamedSiteOutranksTheSameResultElsewhere() {
+        func result(_ ordinal: Int, _ label: String, site: String?) -> PageRow {
+            PageRow(
+                ordinal: ordinal,
+                frame: CGRect(x: 140, y: 240 + CGFloat(ordinal) * 60, width: 500, height: 40),
+                label: label, labelSource: .classifier, affordance: .press,
+                affordanceSource: .classifier, kind: .video,
+                group: PageGroupRef(id: 1, kind: .list), confidence: 1,
+                facts: [.inResultGroup], provenance: .accessibility, site: site)
+        }
+        // Titles that ANSWER the query rather than repeat it — a row that is the
+        // query said back is refused as an echo, by a rule older than this one.
+        let rows = [
+            result(1, "Boiler Room London, the whole broadcast", site: "example"),
+            result(2, "Boiler Room London, recorded live", site: "youtube"),
+            result(3, "An interview about the night", site: nil),
+        ]
+        let page = PageRoster(
+            rows: rows,
+            groups: [PageGroup(id: 1, kind: .list, memberOrdinals: [1, 2, 3])],
+            pageFrame: BrowsingFixtures.pageFrame)
+
+        let routed = PageRouter.arbitrate(
+            goal: "boiler room london on youtube",
+            verb: .openResult(query: "fred again"), roster: page)
+        #expect(routed.winner?.ordinal == 2)
+        // AND THE ROW THAT SAYS NOTHING ABOUT WHERE IT GOES IS NOT DEMOTED FOR IT.
+        let quiet = routed.trace.decisions.first { $0.id == 3 }
+        #expect(quiet?.reason.contains("goes to") != true)
+        // A ROW THAT GOES SOMEWHERE ELSE IS NOT AN ANSWER — a gate, like a place.
+        let elsewhere = routed.trace.decisions.first { $0.id == 1 }
+        #expect(elsewhere?.disposition == .ineligible)
+        #expect(elsewhere?.reason.contains("goes to example, not youtube") == true)
+    }
+
+    /// AND A SITE NOBODY NAMED CHANGES NOTHING: the same page, no site in the
+    /// goal, ranks exactly as it did before.
+    @Test func aSiteNobodyNamedIsNotWeighed() {
+        func result(_ ordinal: Int, _ label: String, site: String?) -> PageRow {
+            PageRow(
+                ordinal: ordinal,
+                frame: CGRect(x: 140, y: 240 + CGFloat(ordinal) * 60, width: 500, height: 40),
+                label: label, labelSource: .classifier, affordance: .press,
+                affordanceSource: .classifier, kind: .video,
+                group: PageGroupRef(id: 1, kind: .list), confidence: 1,
+                facts: [.inResultGroup], provenance: .accessibility, site: site)
+        }
+        let page = PageRoster(
+            rows: [
+                result(1, "Boiler Room London, the whole broadcast", site: "example"),
+                result(2, "Boiler Room London, recorded live", site: "youtube"),
+            ],
+            groups: [PageGroup(id: 1, kind: .list, memberOrdinals: [1, 2])],
+            pageFrame: BrowsingFixtures.pageFrame)
+        let routed = PageRouter.arbitrate(
+            goal: "the whole broadcast",
+            verb: .openResult(query: "fred again"), roster: page)
+        #expect(routed.winner?.ordinal == 1)
+        #expect(routed.trace.decisions.allSatisfy { !$0.reason.contains("goes to") })
+    }
+
     // MARK: - The record
 
     /// EVERY ROW GETS A DECISION. A row missing from the trace is a row nobody can ask
@@ -64,7 +131,7 @@ private func published(
             goal: "alpine touring boots reviewed", verb: .press, roster: page)
 
         #expect(routed.trace.decisions.count == 3)
-        #expect(routed.trace.decisions.map(\.ordinal) == [1, 2, 3])
+        #expect(routed.trace.decisions.map(\.id) == [1, 2, 3])
         #expect(routed.trace.decisions.allSatisfy { !$0.reason.isEmpty })
         #expect(routed.winner?.label == "Alpine touring boots reviewed")
         #expect(routed.trace.selected.first?.disposition == .selected)
@@ -393,7 +460,7 @@ private func published(
 
         #expect(routed.winner == nil, "nothing on this page may be pressed")
         let reasons = Dictionary(
-            uniqueKeysWithValues: routed.trace.decisions.map { ($0.ordinal, $0.reason) })
+            uniqueKeysWithValues: routed.trace.decisions.map { ($0.id, $0.reason) })
         #expect(reasons[1] == "was named but sits in no result group")
         #expect(reasons[2] == "is an address, not a title")
         #expect(reasons[3] == "was named but sits in no result group")
@@ -445,11 +512,11 @@ private func published(
     /// named well enough to look exactly like an answer. A title that happens to carry a
     /// separator has two segments and a long one, so the same test leaves it alone.
     @Test func aRowOfShortNamesJoinedBySeparatorsIsAStrip() {
-        #expect(PageRouter.isSeparatedStrip("News + AI Chat & Images · Videos · Web"))
-        #expect(PageRouter.isSeparatedStrip("Home • About • Contact • Jobs"))
-        #expect(!PageRouter.isSeparatedStrip(
+        #expect(RowFactsDerivation.isSeparatedStrip("News + AI Chat & Images · Videos · Web"))
+        #expect(RowFactsDerivation.isSeparatedStrip("Home • About • Contact • Jobs"))
+        #expect(!RowFactsDerivation.isSeparatedStrip(
             "Fred again.. Boiler Room London · 1:02:33"))
-        #expect(!PageRouter.isSeparatedStrip("Alpine touring boots reviewed"))
+        #expect(!RowFactsDerivation.isSeparatedStrip("Alpine touring boots reviewed"))
     }
 
     /// AND WHERE THE PAGE DOES LAY ITS ANSWERS OUT, the same rows are reachable. The
@@ -558,10 +625,220 @@ private func published(
 
         #expect(routed.winner?.label == "Alpine touring boots reviewed")
         let reasons = Dictionary(
-            uniqueKeysWithValues: routed.trace.decisions.map { ($0.ordinal, $0.reason) })
+            uniqueKeysWithValues: routed.trace.decisions.map { ($0.id, $0.reason) })
         #expect(reasons[1] == "is too short to be a result")
         #expect(reasons[2] == "is a call to action")
         #expect(reasons[3] == "is the query echoed back")
         #expect(reasons[4] == "is the page's own first answer")
+    }
+}
+@Suite struct PositionalPoolTests {
+
+    static func row(
+        _ ordinal: Int, _ label: String, facts: RowFacts = [],
+        affordance: SeenAffordance = .press, kind: PageElementKind? = .link,
+        source: SeenLabelSource = .textInside
+    ) -> PageRow {
+        PageRow(
+            ordinal: ordinal,
+            frame: CGRect(x: 0, y: Double(ordinal) * 40, width: 400, height: 30),
+            label: label, labelSource: source, affordance: affordance,
+            affordanceSource: .classifier, kind: kind, facts: facts)
+    }
+
+    /// A count over a page, and where "the second one" lands on it.
+    struct Counted: CustomTestStringConvertible {
+        let claim: String
+        let rows: [PageRow]
+        let verb: PageRouteVerb
+        let reaches: Int?
+        var testDescription: String { claim }
+    }
+
+    /// A POSITION COUNTS THE PAGE'S CONTENT, NOT ITS FURNITURE.
+    ///
+    /// PIN: MEASURED ON THREE LEGS OF ROUND 0, ALL PICKING THE SAME ROW — a
+    /// site's own navigation strip, sitting in a form, second in the eligible
+    /// list. Nobody counts that when they say "the second one".
+    /// AND IT DOES NOT COUNT WHAT NOBODY NAMED: a synthesized "item 33" is a
+    /// position the reading invented, not a thing on screen. AN ADVERT IS STILL
+    /// A THING IN THE LIST — skipping it would make Mary's "second" disagree
+    /// with the person's. A POSITION OVER NOTHING COUNTABLE IS A MISS, not a
+    /// fallback to the wider list — the same answer "the first video" gets on a
+    /// page holding none.
+    static let counted: [Counted] = [
+        Counted(claim: "furniture is skipped", rows: [
+            row(1, "News · Videos · Web", facts: [.inForm]),
+            row(2, "Alpine touring boots reviewed"),
+            row(3, "The ten best touring boots"),
+        ], verb: .press, reaches: 3),
+        Counted(claim: "rows nobody named are skipped", rows: [
+            row(1, "Alpine touring boots reviewed"),
+            row(2, "item 33", source: .synthesized),
+            row(3, "The ten best touring boots"),
+        ], verb: .press, reaches: 3),
+        Counted(claim: "a promoted row counts", rows: [
+            row(1, "Maestrale touring boot, on offer", facts: [.promoted, .inResultGroup]),
+            row(2, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+        ], verb: .openResult(query: "touring boots"), reaches: 2),
+        Counted(claim: "nothing countable reaches nothing", rows: [
+            row(1, "News · Videos · Web", facts: [.inForm]),
+            row(2, "Sign in", facts: [.inToolbar]),
+        ], verb: .press, reaches: nil),
+    ]
+
+    @Test(arguments: counted) func theSecondOneCountsTheContent(_ counted: Counted) {
+        let roster = PageRoster(
+            rows: counted.rows, pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+        let routed = PageRouter.arbitrate(goal: "the second one", verb: counted.verb, roster: roster)
+        #expect(routed.winner?.ordinal == counted.reaches, "\(counted.claim)")
+    }
+
+    /// AND ONLY THE PAGE'S OWN COLUMN IS COUNTED. Measured on a results page:
+    /// "the third link" reached the site's logo in the header, a skip-link and
+    /// a related-search chip in the right column before any result.
+    @Test func aPositionCountsOnlyTheMainColumn() {
+        func placed(_ ordinal: Int, _ label: String, in region: PageRegion) -> PageRow {
+            var row = Self.row(ordinal, label)
+            row.region = region
+            return row
+        }
+        let roster = PageRoster(rows: [
+            placed(1, "Site Homepage", in: .header),
+            placed(2, "Alpine touring boots reviewed", in: .main),
+            placed(3, "ski touring boots vs alpine boots", in: .trailing),
+            placed(4, "The ten best touring boots", in: .main),
+            placed(5, "Where to buy touring boots", in: .main),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "the third link", verb: .press, roster: roster)
+        #expect(routed.winner?.ordinal == 5)
+    }
+
+    /// A RESULT IS SOMETHING THAT OPENS. A static text inside a list-shaped
+    /// panel was "the first one" on a site's own search page.
+    @Test func aResultPositionCountsOnlyWhatCanBePressed() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Search in: (Article) ×", facts: [.inResultGroup], affordance: .none, kind: nil),
+            Self.row(2, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+            Self.row(3, "The ten best touring boots", facts: [.inResultGroup]),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(
+            goal: "the first one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner?.ordinal == 2)
+    }
+
+    /// A NUMBER THAT COUNTS TO NOTHING IS A MISS, not the page's first answer.
+    @Test func aPositionOverNothingCountableDoesNotFallBack() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+            Self.row(2, "Sign in to Ecosia"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+        let routed = PageRouter.arbitrate(
+            goal: "the second one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner == nil)
+        // A name that matches nothing may still take the first answer.
+        let named = PageRouter.arbitrate(
+            goal: "the boots review", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(named.winner != nil)
+    }
+
+    /// A NAME STILL REACHES FURNITURE. "A person naming something is evidence the
+    /// map does not have" — only the counting rungs are narrowed.
+    ///
+    /// PIN: THE NAME HERE IS DELIBERATELY NOT A KIND. "Images" would not do:
+    /// `image` is a `PageElementKind`, so the ladder reads that word as naming a
+    /// CATEGORY and counts image rows rather than matching the label — measured
+    /// live on a results page, where it then reached nothing because every image
+    /// row was unnamed. That collision is real and is its own finding; this test
+    /// is about furniture, so it uses a word only one row wears.
+    @Test func aNameStillReachesTheStrip() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Preferences", facts: [.inForm]),
+            Self.row(2, "Alpine touring boots reviewed"),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "Preferences", verb: .press, roster: roster)
+        #expect(routed.winner?.ordinal == 1)
+    }
+
+}
+
+// MARK: - A strip is furniture
+
+@Suite struct PageStripTests {
+
+    private static func row(
+        _ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat, width: CGFloat = 40,
+        affordance: SeenAffordance = .press, region: PageRegion = .main
+    ) -> PageRow {
+        var row = PageRow(
+            ordinal: ordinal, frame: CGRect(x: x, y: y, width: width, height: 30),
+            label: label, labelSource: .textInside, affordance: affordance,
+            affordanceSource: .classifier, kind: .link, facts: [])
+        row.region = region
+        return row
+    }
+
+    /// "Article · Talk · Read · Edit · View history" on one line are the page's
+    /// own tabs, and "the first link" is not one of them. Measured in round 10.
+    @Test func shortPressablesOnOneLineAreAStrip() {
+        let rows = [
+            Self.row(1, "Article", x: 0, y: 100),
+            Self.row(2, "Talk", x: 50, y: 100),
+            Self.row(3, "Read", x: 400, y: 101),
+            Self.row(4, "Edit", x: 450, y: 100),
+            Self.row(5, "Ski touring is a form of skiing", x: 0, y: 200, width: 400),
+        ]
+        let strip = RowFactsDerivation.strips(in: rows)
+        #expect(strip == [1, 2, 3, 4])
+        let derived = RowFactsDerivation.derive(rows: rows, groups: [])
+        #expect(derived[0].facts.contains(.inFurnitureBand))
+        #expect(!derived[4].facts.contains(.inFurnitureBand))
+    }
+
+    /// Everything inside a promoted card is promoted — and still counted, as
+    /// an advert in the list is.
+    @Test func tilesInsideAPromotedCardArePromoted() {
+        func row(_ ordinal: Int, _ label: String, y: CGFloat) -> PageRow {
+            PageRow(
+                ordinal: ordinal, frame: CGRect(x: 100, y: y, width: 300, height: 30),
+                label: label, labelSource: .textInside, affordance: .press,
+                affordanceSource: .classifier, kind: .link, facts: [.inResultGroup])
+        }
+        let rows = [
+            row(1, "Sponsored · Shop related products", y: 100),
+            row(2, "Fischer Transalp touring boot", y: 140),
+            row(3, "Scarpa Maestrale RS boot", y: 180),
+            row(4, "Alpine touring boots reviewed by skiers", y: 400),
+            row(5, "The ten best touring boots of the year", y: 500),
+        ]
+        let groups = [PageGroup(id: 0, kind: .card, title: "Sponsored · Shop related products", memberOrdinals: [1, 2, 3])]
+        let derived = RowFactsDerivation.derive(rows: rows, groups: groups)
+        #expect(derived[1].facts.contains(.promoted))
+        #expect(!derived[3].facts.contains(.promoted))
+        let roster = PageRoster(rows: derived, pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+        let routed = PageRouter.arbitrate(
+            goal: "the second one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner?.ordinal == 2)
+    }
+
+    /// Two are a pair, a run of long names is a list of results, and rows in
+    /// different regions on the same line are not one strip.
+    @Test func aStripNeedsThreeShortNamesCloseTogetherInOneRegion() {
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "Read", x: 0, y: 100), Self.row(2, "Edit", x: 50, y: 100),
+        ]).isEmpty)
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "The best touring boots of the year", x: 0, y: 100, width: 300),
+            Self.row(2, "Ten boots reviewed by people who ski", x: 320, y: 100, width: 300),
+            Self.row(3, "Where to buy alpine touring boots", x: 640, y: 100, width: 300),
+        ]).isEmpty)
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "File", x: 0, y: 100, region: .leading),
+            Self.row(2, "Talk", x: 50, y: 100),
+            Self.row(3, "Read", x: 100, y: 100),
+        ]).isEmpty)
     }
 }

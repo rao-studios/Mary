@@ -41,6 +41,11 @@ public enum MediaAction: Sendable, Equatable {
     case fullscreen
     /// Jump to a proportion of the video.
     case seek(fraction: Double)
+    /// Jump to a time from the start. Resolved against the video's length into
+    /// a `seek(fraction:)` before anything is pressed — see `BrowserEngine.drove`.
+    case seekTo(seconds: TimeInterval)
+    /// Move by a length of time from wherever it is; negative is backwards.
+    case seekBy(seconds: TimeInterval)
     /// Set the sound to a proportion of the volume track.
     case volume(fraction: Double)
 
@@ -53,8 +58,21 @@ public enum MediaAction: Sendable, Equatable {
         case .unmute: return "Unmuted"
         case .fullscreen: return "Went full screen"
         case .seek(let fraction): return "Skipped to \(Int((fraction * 100).rounded()))%"
+        case .seekTo(let seconds): return "Went to \(SpokenDuration.clock(seconds))"
+        case .seekBy(let seconds):
+            return seconds < 0
+                ? "Went back \(SpokenDuration.clock(seconds))"
+                : "Skipped ahead \(SpokenDuration.clock(seconds))"
         case .volume(let fraction):
             return "Set the volume to \(Int((fraction * 100).rounded()))%"
+        }
+    }
+
+    /// A time seek, before it is resolved into a place on the track.
+    public var isTimeSeek: Bool {
+        switch self {
+        case .seekTo, .seekBy: return true
+        default: return false
         }
     }
 }
@@ -83,6 +101,11 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The act landed and nothing moved. The receipt that failed.
     case stateUnchanged(expected: String, observed: String)
     case navigationDidNotSettle
+    /// A human-verification interstitial stands between the person and the page
+    /// they asked for, and pressing its visible control did not clear it. NOT a
+    /// failure to try — see PageChallenge — but the point at which the honest
+    /// answer is to hand it back.
+    case humanCheck
     case addressFieldNotFound
     case elementNotFound(String)
     /// Several things answer to that phrase. Carries the rivals so the refusal names them.
@@ -97,10 +120,34 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     case notFillable(String)
     case notAdjustable(String)
     case outOfTime
-    case activationRefused(String)
+    /// The browser could not be staged, and why — the stage faculty's own
+    /// reason, so five different conditions are not one sentence.
+    case activationRefused(String, Activation.Failure?)
+    /// THE WINDOW THIS SESSION WAS TOLD TO WORK IN IS GONE. A runner named it;
+    /// falling back to whichever window the browser calls main would put the
+    /// act in the person's own window — measured in round 10, when the round's
+    /// window closed and every trip after it ran in theirs.
+    case workingWindowGone
+    /// THE BROWSER ITSELF IS ASKING SOMETHING, and until it is answered the
+    /// page cannot be read or acted on. Carries what it asks and the choices it
+    /// offers, so the person can answer in one word.
+    case browserIsAsking(question: String, choices: [String])
+    /// A time was asked for and no lane could read how long the video is.
+    case videoLengthUnknown
+    /// A time past the end of the video, as the reading measures it.
+    case beyondTheEnd(TimeInterval)
     case notImplemented(String)
     /// The engine was asked to observe, not act.
     case dryRun(String)
+
+    /// The refusal is a question only the person can answer — which of the
+    /// rivals, which browser, the browser's own dialog, a human check.
+    public var asksThePerson: Bool {
+        switch self {
+        case .ambiguousElement, .ambiguousBrowser, .browserIsAsking, .humanCheck: return true
+        default: return false
+        }
+    }
 
     public var summary: String {
         switch self {
@@ -122,6 +169,8 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
             return "I pressed it, but it's still \(observed) rather than \(expected)."
         case .navigationDidNotSettle:
             return "The page didn't finish loading."
+        case .humanCheck:
+            return "There's a \"verify you are human\" step on this page — could you click it? I'd rather not get that one wrong."
         case .addressFieldNotFound:
             return "I couldn't find the address bar."
         case .elementNotFound(let phrase):
@@ -141,8 +190,20 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
             return "\"\(phrase)\" isn't a slider, so there's nothing to set."
         case .outOfTime:
             return "That was taking too long, so I stopped partway."
-        case .activationRefused(let name):
-            return "\(name) wouldn't come forward."
+        case .activationRefused(let name, let failure):
+            return failure.flatMap { Activation.lost($0).reason(app: name) }
+                ?? "\(name) wouldn't come forward."
+        case .workingWindowGone:
+            return "The browser window I was working in is gone."
+        case .browserIsAsking(let question, let choices):
+            let offered = choices.isEmpty
+                ? ""
+                : " — " + choices.map { "\"\($0)\"" }.joined(separator: " or ")
+            return "The browser is asking: \(question)\(offered). Which?"
+        case .videoLengthUnknown:
+            return "I can't tell how long the video is, so I can't go to a time in it."
+        case .beyondTheEnd(let duration):
+            return "The video is only \(SpokenDuration.clock(duration)) long."
         case .notImplemented(let what):
             return "I can't \(what) yet."
         case .dryRun(let what):
@@ -169,10 +230,13 @@ public enum PageEffectEvidence: Sendable, Equatable {
     case rosterChanged(added: Int, removed: Int)
     /// The player moved. The media lane's own witness.
     case mediaState(String)
+    /// The browser's own question was answered with this choice, and it is gone.
+    case dialogAnswered(String)
 
     public var spoken: String {
         switch self {
         case .navigation(let title): return "the page became \(title)"
+        case .dialogAnswered(let choice): return "the browser's question was answered with \(choice)"
         case .targetChanged(_, let after):
             return after.isEmpty ? "it is gone from the page" : "it now says \(after)"
         case .textAppeared(let field): return "the text is in \(field)"
@@ -185,7 +249,7 @@ public enum PageEffectEvidence: Sendable, Equatable {
     /// Whether this is proof, or only a sign.
     public var isProof: Bool {
         switch self {
-        case .navigation, .targetChanged, .textAppeared, .mediaState: return true
+        case .navigation, .targetChanged, .textAppeared, .mediaState, .dialogAnswered: return true
         case .rosterChanged: return false
         }
     }
@@ -306,6 +370,9 @@ public enum BrowserEngineEvent: Sendable {
     case acted(String)
     case verified(String)
     case refused(BrowserRefusal)
+    /// How long a step took — the stage, a shell read, a page read, a settle.
+    /// The numbers the reconstruction of a slow act had to guess at.
+    case timed(String, Duration)
 }
 
 public extension BrowserEngineEvent {
@@ -324,8 +391,8 @@ public extension BrowserEngineEvent {
             return "resolved \(browser)"
         case .shellRead(let title, let site, _):
             return "read the shell — \(title ?? "untitled")\(site.map { " · \($0)" } ?? "")"
-        case .perceived(let controls, let playback, _):
-            return "perceived \(controls) controls · \(playback)"
+        case .perceived(let controls, let playback, let duration):
+            return "perceived \(controls) controls · \(playback) · \(duration.milliseconds)ms"
         case .read(let rows, let named, let groups):
             return "looked — \(rows) rows, \(named) named, \(groups) groups"
         case .routed(let trace):
@@ -343,6 +410,8 @@ public extension BrowserEngineEvent {
             return "verified \(what)"
         case .refused(let refusal):
             return "refused — \(refusal.summary)"
+        case .timed(let what, let duration):
+            return "\(what) took \(duration.milliseconds)ms"
         }
     }
 
@@ -360,6 +429,8 @@ public struct BrowserEngineSnapshot: Sendable {
     public var dryRun: Bool
     public var lastBrowser: String?
     public var lastChrome: WebSurfaceAX.Reading?
+    /// Which road the last journey took — see `WatchRecipe.Road`.
+    public var lastWatchRoad: String?
     public var lastMedia: MediaControlReading?
     /// The last page read, whole — the same roster the slate was published from.
     ///
@@ -368,6 +439,8 @@ public struct BrowserEngineSnapshot: Sendable {
     /// a roster is a photograph and the page has moved on. Nil is the honest answer
     /// whenever the slate is retracted — a navigation makes both wrong at once.
     public var lastRoster: PageRoster?
+    /// The window the engine works in, once one has been read.
+    public var workingWindow: CGWindowID?
     /// The last goal routed against that roster. Cleared with it, for its reason.
     public var lastRoute: PageRouteTrace?
     public var lastRefusal: BrowserRefusal?
@@ -379,8 +452,10 @@ public struct BrowserEngineSnapshot: Sendable {
 
     public init(
         startedAt: Date, dryRun: Bool, lastBrowser: String? = nil,
-        lastChrome: WebSurfaceAX.Reading? = nil, lastMedia: MediaControlReading? = nil,
+        lastChrome: WebSurfaceAX.Reading? = nil, lastWatchRoad: String? = nil,
+        lastMedia: MediaControlReading? = nil,
         lastRoster: PageRoster? = nil, lastRoute: PageRouteTrace? = nil,
+        workingWindow: CGWindowID? = nil,
         lastRefusal: BrowserRefusal? = nil, acts: Int = 0, refusals: Int = 0,
         perceptions: Int = 0, recent: [String] = []
     ) {
@@ -388,8 +463,10 @@ public struct BrowserEngineSnapshot: Sendable {
         self.dryRun = dryRun
         self.lastBrowser = lastBrowser
         self.lastChrome = lastChrome
+        self.lastWatchRoad = lastWatchRoad
         self.lastMedia = lastMedia
         self.lastRoster = lastRoster
+        self.workingWindow = workingWindow
         self.lastRoute = lastRoute
         self.lastRefusal = lastRefusal
         self.acts = acts

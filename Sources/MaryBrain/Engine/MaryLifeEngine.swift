@@ -668,6 +668,8 @@ public actor MaryLifeEngine {
             return "the adapter's schema did not decode"
         case .modelMismatch(let expected, let got):
             return "adapter was trained on \(got), engine runs \(expected)"
+        case .fleetUnreachable(let reason):
+            return "Fleet could not answer: \(reason)"
         case .noAdapter:
             return "no adapter"
         }

@@ -1,9 +1,6 @@
 import AppKit
 
-if ProbeChat.shouldRun() {
-    // Headless one-turn chat; never returns.
-    ProbeChat.start()
-} else if ProbeServers.shouldRun() {
+if ProbeServers.shouldRun() {
     // Headless local-server stack; never returns.
     ProbeServers.start()
 } else if ProbeSeer.shouldRun() {

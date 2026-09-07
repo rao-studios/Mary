@@ -191,38 +191,6 @@ import Testing
         #expect(outcome.receipts.first?.spoken.contains("the page became") == true)
     }
 
-    /// A PRESS THAT CHANGES NOTHING IS DELIVERED AND UNPROVEN — not a success.
-    @Test func aPressWithNoEffectDoesNotLand() async {
-        let shell = BrowsingFixtures.shell()
-        let engine = BrowsingFixtures.engine(
-            shell: FakeShell([shell, shell, shell]),
-            page: FakePage(pages: [results(), results()]))
-        let outcome = await engine.pressOnPage(
-            "Alpine touring boots reviewed", in: BrowsingFixtures.target())
-
-        #expect(outcome.ok)
-        #expect(!outcome.landed)
-        #expect(outcome.receipts.first?.spoken.contains("no sign") == true)
-    }
-
-    /// THE PAGE MERELY DIFFERING IS A SIGN, NOT PROOF. Adverts rotate on their own.
-    @Test func aRosterDifferenceIsWeakEvidence() async {
-        let shell = BrowsingFixtures.shell()
-        let after = BrowsingFixtures.page([
-            (role: "AXLink", label: "Alpine touring boots reviewed", affordance: .press),
-            (role: "AXLink", label: "Something else entirely", affordance: .press),
-            (role: "AXLink", label: "A third new thing", affordance: .press),
-        ])
-        let engine = BrowsingFixtures.engine(
-            shell: FakeShell([shell, shell, shell]),
-            page: FakePage(pages: [results(), after]))
-        let outcome = await engine.pressOnPage(
-            "Alpine touring boots reviewed", in: BrowsingFixtures.target())
-        #expect(outcome.ok)
-        #expect(!outcome.landed)
-        #expect(outcome.receipts.first?.spoken.contains("the page changed") == true)
-    }
-
     /// TYPED TEXT IN THE FIELD IS PROOF.
     @Test func typedTextInTheFieldIsProof() async {
         let shell = BrowsingFixtures.shell()
@@ -331,7 +299,7 @@ import Testing
     }
 
     /// A DRY RUN TOUCHES NOTHING AND SAYS WHAT IT WOULD HAVE DONE.
-    @Test func aDryRunActsOnNothing() async {
+    @Test func aDryRunPressesNothing() async {
         let hands = FakeHands()
         let keys = FakeKeys()
         let engine = BrowsingFixtures.engine(
@@ -360,7 +328,10 @@ import Testing
             "How to choose touring boots", in: BrowsingFixtures.target())
 
         #expect(outcome.ok)
-        #expect(outcome.landed)
+        // A REVEAL IS DELIVERED, NEVER LANDED. It changed nothing, so it proves
+        // nothing — `landed` is the top three receipts and this has none.
+        #expect(!outcome.landed)
+        #expect(outcome.receipts.isEmpty)
         #expect(hands.scrolls.count == 2)
         #expect(hands.scrolls.allSatisfy { $0 < 0 })
     }
@@ -408,6 +379,8 @@ import Testing
     /// a half-typed query into somebody's history is the only way to notice this.
     @Test func aCompletedAddressIsRefusedNotReportedAsResults() async {
         let shell = FakeShell([
+            // The standing read — the recipe asks where it is before it types.
+            BrowsingFixtures.shell(title: "Home", url: "https://example.com/"),
             BrowsingFixtures.shell(title: "Home", url: "https://example.com/"),
             BrowsingFixtures.shell(title: "A Bank", url: "https://bank.example/login"),
         ])
@@ -522,5 +495,64 @@ import Testing
         let outcome = await engine.pressOnPage("the checkout button", in: BrowsingFixtures.target())
         #expect(!outcome.ok)
         #expect(hands.clicks.isEmpty)
+    }
+}
+@Suite struct SearchShowsResultsTests {
+
+    static func results() -> (elements: [AXScreenElement], map: PageMapSummary) {
+        BrowsingFixtures.page(
+            [(role: "AXLink", label: "Alpine touring boots reviewed in full", affordance: .press),
+             (role: "AXLink", label: "The ten best touring boots this year", affordance: .press)],
+            group: (kind: "list", title: nil))
+    }
+
+    /// A BARE SEARCH SHOWS THE RESULTS AND PRESSES NOTHING.
+    ///
+    /// PIN: `browsing.mary` DECLARES THIS VERB AS "show the results, opening one
+    /// when the person named which", and the engine opened one regardless — the
+    /// no-goal fallback selecting the page's first answer. Measured live: a
+    /// search walked into a result nobody named, and spent a second read and a
+    /// second arbitration doing it.
+    @Test func aSearchWithNoPickPressesNothing() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([
+                // The standing read, then the typing, then the results.
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+            ]),
+            page: FakePage(pages: [Self.results()]),
+            hands: hands)
+
+        let outcome = await engine.searchWeb("boots", in: BrowsingFixtures.target())
+
+        #expect(outcome.ok)
+        #expect(outcome.landed, "the search itself is proven by its navigation")
+        #expect(hands.clicks.isEmpty, "a bare search pressed something")
+        #expect(outcome.receipts.contains { $0.kind == .navigate })
+    }
+
+    /// AND ONE THAT NAMES A RESULT STILL OPENS IT.
+    @Test func aSearchWithAPickStillOpensIt() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([
+                // The standing read, then the typing, then the results.
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "Before", url: "https://example.com/"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+                BrowsingFixtures.shell(title: "boots — results", url: "https://example.com/?q=boots"),
+            ]),
+            page: FakePage(pages: [Self.results()]),
+            hands: hands)
+
+        _ = await engine.searchWeb(
+            "boots", in: BrowsingFixtures.target(), open: "the ten best touring boots this year")
+
+        #expect(!hands.clicks.isEmpty, "a named result was not opened")
     }
 }

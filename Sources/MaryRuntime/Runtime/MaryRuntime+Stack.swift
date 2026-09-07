@@ -121,6 +121,8 @@ extension MaryRuntime {
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerTotems.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
+        await seerProviders.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
         await seerEmbedding.configure(
             baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
             model: ServerSpec.Defaults.seerEmbeddingModel)
@@ -140,6 +142,18 @@ extension MaryRuntime {
     /// the same client. Spoken turns stay on seerChat — do not reuse as voice.
     package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
         SeerUnitAnnotator(complete: seerComplete)
+    }
+
+    /// What Seer says about each backend. Empty when it cannot be reached —
+    /// the Settings row then reads "checking…" rather than inventing a state.
+    package static func providerStatuses() async -> [SeerProviderStatus] {
+        (try? await seerProviders.statuses()) ?? []
+    }
+
+    /// Point annotation and the Studio drafter at one backend. `applyEngine`
+    /// does this for the app; the corpus probe does it on its own.
+    package static func setAnnotationProvider(_ choice: LLMEngineChoice) async {
+        await seerComplete.setProvider(choice)
     }
 
     /// The same bounded route, for Ability Studio's skill drafter. One request,
@@ -199,99 +213,128 @@ extension MaryRuntime {
         await rewireCodingAgent(seerEnabled: stackEnabled)
     }
 
-    /// Does Seer chat carry turns? seerEnabled (server) AND engineChoiceBox
-    /// (where words go). Either off → on-device. Box, not config — picker hasn't landed.
+    /// EVERY LANE RIDES SEER NOW, so "does Seer carry this" is one question:
+    /// is the stack switched on. The engine choice says WHICH BACKEND Seer
+    /// uses, never whether Seer is used — the parameter stays so the truth
+    /// table reads the same and callers need no edit.
     package static func seerCarriesTurns(seerEnabled: Bool) -> Bool {
-        seerCarriesTurns(
-            engine: engineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+        seerEnabled
     }
 
-    /// The rule itself, free of the box — so a test can state the truth table
-    /// without writing to a global that every other suite shares.
     package static func seerCarriesTurns(
         engine: LLMEngineChoice, seerEnabled: Bool
     ) -> Bool {
-        engine == .hosted && seerEnabled
+        seerEnabled
     }
 
-    /// Lane B: skill-invocation synthesis through Seer, same two gates as
-    /// spoken turns — the stack is the user's to use, and they asked for it.
     package static func seerCarriesSkills(seerEnabled: Bool) -> Bool {
-        seerCarriesSkills(
-            engine: skillEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+        seerEnabled
     }
 
     package static func seerCarriesSkills(
         engine: LLMEngineChoice, seerEnabled: Bool
     ) -> Bool {
-        engine == .hosted && seerEnabled
+        seerEnabled
     }
 
-    /// Swap Lane B onto Seer or local without a full warmup — used when the
-    /// Servers toggle flips after `applyEngine` already warmed the model.
+    /// Seed the boxes from config before the stack comes up. `bootSeerStack`
+    /// reads them (connectSeerToBrain → rewire*), so they must be current
+    /// BEFORE it runs, and applyEngine runs after the sign-in the on-device
+    /// warm needs.
+    package static func recordEngineChoices(
+        voice: LLMEngineChoice, skills: LLMEngineChoice, coding: LLMEngineChoice
+    ) {
+        engineChoiceBox.withLock { $0 = voice }
+        skillEngineChoiceBox.withLock { $0 = skills }
+        codingEngineChoiceBox.withLock { $0 = coding }
+    }
+
+    /// Swap Lane B's backend without a full apply — used when the Servers
+    /// toggle flips after `applyEngine` already ran.
     static func rewireSkillEngine(seerEnabled: Bool) async {
-        let skillChoice = skillEngineChoiceBox.withLock { $0 }
-        let modelID = localModelIDBox.withLock { $0 }
         await installSkillEngine(
-            skillChoice: skillChoice, localModelID: modelID, seerEnabled: seerEnabled)
+            skillChoice: skillEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
     }
 
     static func installSkillEngine(
-        skillChoice: LLMEngineChoice, localModelID: String, seerEnabled: Bool
+        skillChoice: LLMEngineChoice, seerEnabled: Bool
     ) async {
-        let local = MaryLocalEngine(modelID: localModelID)
-        let gpuOK = MaryGPU.report().isSatisfied
-        if seerCarriesSkills(engine: skillChoice, seerEnabled: seerEnabled) {
-            await brain.setEngine(MarySeerSkillEngine(
-                client: seerSkill, fallback: gpuOK ? local : nil))
-        } else {
-            await brain.setEngine(local)
-        }
+        await seerSkill.setProvider(skillChoice)
+        await brain.setEngine(MarySeerSkillEngine(client: seerSkill, choice: skillChoice))
     }
 
     /// Apply Lane A (spoken, seerChat) and Lane B (skills, /v1/skills/complete).
-    /// On-device is fallback; annotator follows Lane A (/v1/complete).
+    /// Both ride Seer; the choices say which backend Seer uses. On-device is
+    /// warmed here, so the first turn does not wait on a model load.
     package static func applyEngine(
         _ choice: LLMEngineChoice,
-        skillEngine skillChoice: LLMEngineChoice = .local,
-        localModelID: String,
-        seerEnabled: Bool
+        skillEngine skillChoice: LLMEngineChoice = .mistral,
+        seerEnabled: Bool,
+        progress: (@Sendable (String) -> Void)? = nil
     ) async -> String? {
         engineChoiceBox.withLock { $0 = choice }
         skillEngineChoiceBox.withLock { $0 = skillChoice }
-        localModelIDBox.withLock { $0 = localModelID }
         await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
 
-        let local = MaryLocalEngine(modelID: localModelID)
-        await installSkillEngine(
-            skillChoice: skillChoice, localModelID: localModelID, seerEnabled: seerEnabled)
+        await seerChat.setProvider(choice)
+        await seerRealtime.setProvider(choice)
+        await seerComplete.setProvider(choice)
+        await installSkillEngine(skillChoice: skillChoice, seerEnabled: seerEnabled)
 
-        let hostedVoice = seerCarriesTurns(engine: choice, seerEnabled: seerEnabled)
-        await unitIndexer.setAnnotator(
-            hostedVoice ? makeSeerUnitAnnotator() : InferenceUnitAnnotator(engine: local))
+        // Annotation is a bounded /v1/complete job either way — the backend
+        // behind it follows the voice lane.
+        await unitIndexer.setAnnotator(makeSeerUnitAnnotator())
         await unitIndexer.setManifestLoader { projectID in
             await totemContext.loadUnitManifest(projectID: projectID)
         }
 
-        let skillsHosted = seerCarriesSkills(engine: skillChoice, seerEnabled: seerEnabled)
-        let gpuOK = MaryGPU.report().isSatisfied
-        if !gpuOK {
-            guard skillsHosted else { return MaryGPU.remedy() }
+        // THERE IS NO ENGINE WITHOUT SEER ANY MORE. On-device generation moved
+        // into the server, so a stack switched off has nothing to fall back to
+        // and says so instead of failing at the first turn.
+        guard seerEnabled else {
+            return "Chat through Seer is off in the Servers panel — no engine is available."
         }
+        if choice.isOnDevice || skillChoice.isOnDevice {
+            return await warmLocalProvider(progress: progress)
+        }
+        return nil
+    }
+
+    /// Ask Seer to load the on-device model, then follow it to ready. Returns
+    /// Seer's own reason when the backend cannot serve.
+    package static func warmLocalProvider(
+        progress: (@Sendable (String) -> Void)? = nil,
+        attempts: Int = 600
+    ) async -> String? {
         do {
-            try await brain.warmup()
-            return nil
+            try await seerProviders.warmLocal()
         } catch {
-            return error.localizedDescription
+            return "On-device backend: \(error.localizedDescription)"
         }
+        for _ in 0..<attempts {
+            let statuses = (try? await seerProviders.statuses()) ?? []
+            guard let local = statuses.first(where: { $0.choice == .local }) else {
+                return "Seer did not report an on-device backend."
+            }
+            if local.state == "ready" { return nil }
+            if let reason = local.reason, !local.available, !local.isLoading {
+                return reason
+            }
+            if let fraction = local.progress {
+                progress?("Seer is loading the on-device model (\(Int(fraction * 100))%)…")
+            } else {
+                progress?("Seer is loading the on-device model…")
+            }
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        }
+        return "The on-device model did not finish loading."
     }
 
     /// Install or tear down the coding engine. Local still needs a Hub
     /// snapshot and Metal; hosted uses `/v1/code/complete` and skips both.
     package static func applyCodingAgent(
         enabled: Bool,
-        engine: LLMEngineChoice = .local,
-        modelID: String,
+        engine: LLMEngineChoice = .mistral,
         seerEnabled: Bool = true
     ) async -> String? {
         startCodingFollowUpBridge()
@@ -302,41 +345,39 @@ extension MaryRuntime {
             await CodingAgentSessions.shared.install(backend: nil)
             return nil
         }
-        return await installCodingBackend(engine: engine, modelID: modelID)
+        return await installCodingBackend(engine: engine, seerEnabled: seerEnabled)
     }
 
     package static func seerCarriesCoding(
         engine: LLMEngineChoice, seerEnabled: Bool
     ) -> Bool {
-        engine == .hosted && seerEnabled
+        seerEnabled
     }
 
     static func rewireCodingAgent(seerEnabled: Bool) async {
         seerStackEnabledBox.withLock { $0 = seerEnabled }
         guard codingEnabledBox.withLock({ $0 }) else { return }
-        let engine = codingEngineChoiceBox.withLock { $0 }
-        guard engine == .hosted else { return }
-        _ = await installCodingBackend(engine: engine, modelID: "")
+        _ = await installCodingBackend(
+            engine: codingEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
     }
 
+    /// Coding always rides `/v1/code/complete`; the choice says which backend
+    /// Seer synthesizes with. File tools still run on this Mac.
     static func installCodingBackend(
-        engine: LLMEngineChoice, modelID: String
+        engine: LLMEngineChoice, seerEnabled: Bool
     ) async -> String? {
-        if engine == .hosted {
-            await CodingAgentSessions.shared.install(
-                backend: MarySeerCodingEngine(
-                    client: seerCode,
-                    stackEnabled: { seerStackEnabledBox.withLock { $0 } }))
-            return nil
+        await seerCode.setProvider(engine)
+        await CodingAgentSessions.shared.install(
+            backend: MarySeerCodingEngine(
+                client: seerCode,
+                stackEnabled: { seerStackEnabledBox.withLock { $0 } }))
+        guard seerEnabled else {
+            return "Chat through Seer is off in the Servers panel — the coding agent needs it."
         }
-        await CodingAgentSessions.shared.install(backend: MaryCodingEngine.shared)
-        guard MaryGPU.report().isSatisfied else { return MaryGPU.remedy() }
-        do {
-            try await CodingAgentSessions.shared.prepare(modelID: modelID)
-            return nil
-        } catch {
-            return error.localizedDescription
+        if engine.isOnDevice {
+            return await warmLocalProvider()
         }
+        return nil
     }
 
 }

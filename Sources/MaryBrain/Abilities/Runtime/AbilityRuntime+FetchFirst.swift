@@ -143,12 +143,37 @@ extension AbilityRuntime {
     /// in an editor stays an idle remark, and only a sentence that actually
     /// lands somewhere in their project turns into a read.
     public func fetchAwareness(query: String) async -> AwarenessSight? {
-        guard let read = awarenessReads.first(where: { candidate in
+        func live(_ candidate: AwarenessRead) -> Bool {
             skillBindings.contains { $0.name == candidate.unit }
                 && skillBindings.contains { $0.name == candidate.surroundings }
-        }) else { return nil }
-
+        }
+        // THE LEADING WORLD'S OWN READ FIRST.
+        //
+        // PIN: WITH ONE FACULTY THIS WAS A LIST OF ONE AND `first` WAS AN
+        // ANSWER. A browser declares an awareness read now too, so `first`
+        // became catalog order — which would read a page while somebody asks
+        // about the code in front of them, or the reverse. The lead place
+        // already decides every other fetch-first road (see `readNamedPart`
+        // and `wouldServeLook`); it decides this one too.
         let route = AmbientRouteTurnContext.state?.current() ?? world.store.route()
+        // A NAMED SURFACE HAS CHOSEN ITS READER. "What's on this page in Chrome"
+        // said with an editor in front is a question about the page, and the
+        // lead place answers "the editor". A place the sentence names — by its
+        // name, or by what it is showing — comes before the lead; the lead
+        // decides only what nobody named. `page-question-from-an-editor` had
+        // asserted this for seven rounds and nothing implemented it.
+        let namedOwners = (route?.namedPlaces.map(\.memoryToken) ?? [])
+            + (route?.gate.applications ?? [])
+        let named = namedOwners.lazy
+            .compactMap { self.awarenessReadsByOwner[$0] }
+            .first(where: live)
+        let owner = world.store.referent()?.place.memoryToken ?? focusProvider?()
+        let read = named
+            ?? owner
+                .flatMap { awarenessReadsByOwner[$0] }
+                .flatMap { live($0) ? $0 : nil }
+            ?? awarenessReads.first(where: live)
+        guard let read else { return nil }
         // The turn already decided it wants something done. Leave it alone.
         if route?.isActionTurn == true || route?.verdicts.editIntent != nil { return nil }
 

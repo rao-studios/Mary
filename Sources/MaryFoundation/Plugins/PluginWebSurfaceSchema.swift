@@ -47,6 +47,11 @@ public struct PluginWebSurfaceSchema: Codable, Hashable, Sendable {
     public var addressFocusKey: PluginKey
     public var addressFocusModifiers: [PluginKeyModifier]
 
+    /// The chord that opens the browser's own find bar. The same rule as the
+    /// address chord: a BROWSER menu command, never a site's shortcut.
+    public var findKey: PluginKey
+    public var findModifiers: [PluginKeyModifier]
+
     public var backLabel: String
     public var forwardLabel: String
     public var reloadLabel: String
@@ -74,6 +79,8 @@ public struct PluginWebSurfaceSchema: Codable, Hashable, Sendable {
         addressFieldLabel: String,
         addressFocusKey: PluginKey = .l,
         addressFocusModifiers: [PluginKeyModifier] = [.command],
+        findKey: PluginKey = .f,
+        findModifiers: [PluginKeyModifier] = [.command],
         backLabel: String,
         forwardLabel: String,
         reloadLabel: String,
@@ -87,6 +94,8 @@ public struct PluginWebSurfaceSchema: Codable, Hashable, Sendable {
         self.addressFieldLabel = addressFieldLabel
         self.addressFocusKey = addressFocusKey
         self.addressFocusModifiers = addressFocusModifiers
+        self.findKey = findKey
+        self.findModifiers = findModifiers
         self.backLabel = backLabel
         self.forwardLabel = forwardLabel
         self.reloadLabel = reloadLabel
@@ -102,6 +111,8 @@ public struct PluginWebSurfaceSchema: Codable, Hashable, Sendable {
         case addressFieldLabel
         case addressFocusKey
         case addressFocusModifiers
+        case findKey
+        case findModifiers
         case backLabel
         case forwardLabel
         case reloadLabel
@@ -121,6 +132,9 @@ public struct PluginWebSurfaceSchema: Codable, Hashable, Sendable {
             PluginKey.self, forKey: .addressFocusKey) ?? .l
         addressFocusModifiers = try values.decodeIfPresent(
             [PluginKeyModifier].self, forKey: .addressFocusModifiers) ?? [.command]
+        findKey = try values.decodeIfPresent(PluginKey.self, forKey: .findKey) ?? .f
+        findModifiers = try values.decodeIfPresent(
+            [PluginKeyModifier].self, forKey: .findModifiers) ?? [.command]
         backLabel = try values.decode(String.self, forKey: .backLabel)
         forwardLabel = try values.decode(String.self, forKey: .forwardLabel)
         reloadLabel = try values.decode(String.self, forKey: .reloadLabel)

@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "0ecb8f12df92f5bece329e591083055481517c3dbbb688443b57a6077be81fef"
+    "digest" : "00d3283821b94f49ac685c91c2baed255323f696c44ec86deb48527970e2f42e"
   },
   "interactions" : [
 
@@ -374,6 +374,9 @@
             "name" : "title",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "The reminder.",
             "type" : "string"
           }
@@ -452,6 +455,9 @@
             "name" : "title",
             "required" : true,
             "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
             "summary" : "Which reminder.",
             "type" : "string"
           }

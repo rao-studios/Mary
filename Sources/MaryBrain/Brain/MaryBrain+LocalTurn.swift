@@ -65,6 +65,7 @@ extension MaryBrain {
         var worldVeto = WorldVeto(arming: worldVetoArming)
         // G4's fuel. The local loop never needed settled outcomes before — it speaks from the model's own prose
         var outcomes: [LaneOutcome] = []
+        var repeatedFailedCall = false
 
         do {
             var round = 0
@@ -268,6 +269,32 @@ extension MaryBrain {
                         return
                     }
                     var reply = roundText
+                    // A QUESTION NEVER ENDS IN SILENCE.
+                    //
+                    // PIN: THE READ RAN; ONLY THE SENTENCE ABOUT IT IS MISSING.
+                    // A non-action turn streams the model's prose as it arrives,
+                    // so an empty round here means the model read the page (or
+                    // the buffer) and then said nothing — and this exit would
+                    // complete with an empty `fullText`, leaving the person
+                    // looking at "Listening" with their question unanswered.
+                    // The passage is in hand and is the honest answer, so it is
+                    // spoken rather than dropped. The one round the empty-retry
+                    // above already spent is what makes this the last resort
+                    // rather than the first.
+                    if fullText.isEmpty, reply.isEmpty, !outcomes.isEmpty {
+                        let readBack = Self.spokenReadBack(outcomes: outcomes)
+                        if !readBack.isEmpty {
+                            reply = readBack
+                            fullText += readBack
+                            continuation.yield(.token(readBack))
+                            Self.laneLog.info(
+                                "local turn read and said nothing — speaking the passage")
+                            readLedger.record(ReadDelivery(
+                                route: .spokenDetached,
+                                detail: outcomes.map(\.skillName).joined(separator: ", "),
+                                characters: readBack.count))
+                        }
+                    }
                     if let sentence = revisionReport(
                         intent: editIntent, target: target,
                         writingTarget: writingTarget,
@@ -289,6 +316,7 @@ extension MaryBrain {
 
                 // Execute the commands and record results. Chained rounds run silently — the subshell way: run one command, read its result, decide the next.
                 let pendingBeforeDispatch = dispatcher.pendingSkillConfirmationID
+                let outcomesBefore = outcomes.count
                 var roundTurns = [BrainTurn(
                     role: .assistant, text: sanitizedSpoken(roundText), skillInvocations: skillInvocations)]
                 for call in skillInvocations {
@@ -340,6 +368,26 @@ extension MaryBrain {
                             skillInvocationID: call.id, skillName: call.name))
                         continue
                     }
+                    // THE SAME CALL THAT JUST FAILED IS NOT TRIED AGAIN, and one that
+                    // ran unproven waits for a look. See MaryBrain+RepeatGuard.
+                    if let prior = Self.alreadyFailed(call, in: outcomes) {
+                        let line = Self.repeatedFailureLine(call.name, prior: prior)
+                        roundTurns.append(BrainTurn(
+                            role: .skillResult, text: line,
+                            skillInvocationID: call.id, skillName: call.name))
+                        repeatedFailedCall = true
+                        Self.laneLog.info("repeat of a failed call refused — the turn wraps up")
+                        continue
+                    }
+                    if Self.alreadyRanUnproven(
+                        call, in: outcomes, isRead: dispatcher.isReadOnly) != nil {
+                        let line = Self.unprovenRepeatLine(call.name)
+                        roundTurns.append(BrainTurn(
+                            role: .skillResult, text: line,
+                            skillInvocationID: call.id, skillName: call.name))
+                        Self.laneLog.info("repeat of an unproven act held — look first")
+                        continue
+                    }
                     let startedAt = Date()
                     let outcome = await RoutingHabitRecordingContext.withGrant(routingHabitGrant) {
                         await dispatcher.dispatch(
@@ -370,7 +418,9 @@ extension MaryBrain {
                     ))
                     outcomes.append(LaneOutcome(
                         skillName: reference.bindingOperation ?? call.name,
-                        outcome: outcome))
+                        outcome: outcome,
+                        invocation: call.name,
+                        argumentsJSON: call.argumentsJSON))
                 }
                 appendHistory(contentsOf: roundTurns, epoch: epoch)
                 if Task.isCancelled {
@@ -378,6 +428,21 @@ extension MaryBrain {
                     continuation.finish()
                     return
                 }
+                // A QUESTION TO THE PERSON ENDS THE LANE — spoken as a question,
+                // never as "that didn't go through". See the orchestrator lane.
+                if let asked = outcomes[outcomesBefore...].first(where: \.asksThePerson) {
+                    let question = asked.summary
+                    continuation.yield(.token(question))
+                    fullText = question
+                    appendHistory(
+                        BrainTurn(role: .assistant, text: sanitizedSpoken(question)),
+                        epoch: epoch)
+                    pruneSyntheticTurns()
+                    continuation.yield(.completed(fullText: fullText))
+                    continuation.finish()
+                    return
+                }
+                if repeatedFailedCall { break }
                 // Only a genuinely-stored pending action triggers the relay —
                 // "CONFIRM:" text alone can be forged by echoed Skill output.
                 if let pendingAfterDispatch = dispatcher.pendingSkillConfirmationID,
@@ -405,7 +470,10 @@ extension MaryBrain {
             // Budget exhausted with the model still running commands — force a spoken wrap-up.
             if actionTurn {
                 var reply = ""
-                if let failure = Self.unrecoveredFailure(in: outcomes) {
+                if let asked = Self.openQuestion(in: outcomes) {
+                    reply = asked.summary
+                    continuation.yield(.token(reply))
+                } else if let failure = Self.unrecoveredFailure(in: outcomes) {
                     reply = "That didn't go through — \(failure.summary)"
                     continuation.yield(.token(reply))
                 } else if let sentence = revisionReport(

@@ -309,7 +309,7 @@ import Testing
     /// carries none of them.
     @Test func frigateInferenceOnlyThroughBrain() throws {
         let manifest = try Self.manifest()
-        for name in Self.plannedTargets where name != "MaryBrain" {
+        for name in Self.plannedTargets {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             for product in Self.frigateInferenceProducts {
                 #expect(
@@ -324,21 +324,38 @@ import Testing
             if name != "MaryComputerUse" {
                 #expect(
                     !target.contains("Frigate"),
-                    "\(name)'s target block names Frigate — only MaryBrain and MaryComputerUse may.")
+                    "\(name)'s target block names Frigate — only MaryComputerUse may.")
             }
         }
     }
 
-    /// ONLY MARYBRAIN NAMES FLEET. JSONGate / StructuredSession live behind
-    /// MaryBrain; Runtime dials Fleet through MaryTotem's generated facade.
-    @Test func onlyBrainNamesFleet() throws {
+    /// NO MODEL RUNS IN THIS PROCESS. On-device generation moved into Seer,
+    /// so MaryBrain must no longer name an inference product at all — the
+    /// rule above is now universal rather than "everyone but MaryBrain", and
+    /// this states the half that changed.
+    @Test func maryBrainNamesNoInferenceProduct() throws {
         let manifest = try Self.manifest()
-        for name in Self.plannedTargets where name != "MaryBrain" {
+        let target = try #require(Self.targetBlock(manifest, named: "MaryBrain"))
+        for product in Self.frigateInferenceProducts {
+            #expect(
+                !target.contains(product),
+                "MaryBrain names \(product) — generation belongs to Seer now.")
+        }
+        #expect(!target.contains("Frigate"))
+    }
+
+    /// NOTHING NAMES FLEET. `StructuredSession` ran a LoRA in this process;
+    /// the Life engine now dials Fleet's Complete RPC through MaryTotem's
+    /// generated facade, so no target links the package at all.
+    @Test func nothingNamesFleet() throws {
+        let manifest = try Self.manifest()
+        for name in Self.plannedTargets {
             guard let target = Self.targetBlock(manifest, named: name) else { continue }
             #expect(
                 !Self.dependencyNames(target).contains(where: { $0.contains("Fleet") }),
-                "\(name) depends on Fleet — only MaryBrain may hold that edge.")
+                "\(name) depends on Fleet — the Life adapter answers over gRPC now.")
         }
+        #expect(!manifest.contains("package(path: \"../Fleet\")"))
     }
 
     /// NOTHING NAMES WHISPERKIT.

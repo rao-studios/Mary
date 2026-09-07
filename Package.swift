@@ -30,7 +30,6 @@ let package = Package(
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
         .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
-        .executable(name: "mary-gpu-probe", targets: ["GPUProbe"]),
         .executable(name: "mary-life-probe", targets: ["LifeProbe"]),
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
@@ -44,7 +43,6 @@ let package = Package(
         // Conduit: local checkout, same wire as the Seer/Totem node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
-        .package(path: "../Fleet"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
         .package(url: "https://github.com/grpc/grpc-swift-nio-transport.git", from: "1.0.0"),
     ],
@@ -185,11 +183,6 @@ let package = Package(
                 "MaryComputerUse",
                 "MaryPlugin",
                 "MaryVoice",
-                .product(name: "MLX", package: "Frigate"),
-                .product(name: "MLXLMCommon", package: "Frigate"),
-                .product(name: "MLXLLM", package: "Frigate"),
-                .product(name: "FleetCore", package: "Fleet"),
-                .product(name: "FleetInference", package: "Fleet"),
             ],
             path: "Sources/MaryBrain",
             swiftSettings: [.swiftLanguageMode(.v5)]
@@ -310,7 +303,6 @@ let package = Package(
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // Live corpus: shipped declaration vs a real editor project.
-        // GPUProbe (below): Metal GPU check before a 4 GB model download.
         .executableTarget(
             name: "CorpusProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
@@ -322,12 +314,6 @@ let package = Package(
             name: "LifeProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryFoundation"],
             path: "Sources/Probes/LifeProbe",
-            swiftSettings: [.swiftLanguageMode(.v5)]
-        ),
-        .executableTarget(
-            name: "GPUProbe",
-            dependencies: ["MaryBrain"],
-            path: "Sources/Probes/GPUProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // Live media: package transport labels vs a player's AX tree.

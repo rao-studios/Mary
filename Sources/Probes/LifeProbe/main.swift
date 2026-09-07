@@ -4,8 +4,11 @@
 //
 //  WHAT: What the idle engine sees, decides, and holds — without the app.
 //  OUT:  CLI: mary-life-probe [--node <uuid>] [--port 9093] [--watch]
+//                             [--complete <abilityID>]
 //  PIN:  DRY BY DEFAULT. This probe never lets the engine dispatch; watching
-//        an engine must not be a way to make it act.
+//        an engine must not be a way to make it act. `--complete` runs ONE
+//        adapter round through Fleet and prints what came back — inference,
+//        never dispatch, which is the same promise.
 //
 
 import Foundation
@@ -31,6 +34,8 @@ func option(_ name: String) -> String? {
 }
 
 let watching = arguments.contains("--watch")
+/// One real round through Fleet's Complete RPC, for the ability named.
+let completeAbility = option("--complete")
 let nodeID = option("--node") ?? ProcessInfo.processInfo.environment["MARY_TOTEM_NODE_ID"] ?? ""
 let port = Int(option("--port") ?? "") ?? ServerSpec.Defaults.fleetGRPCPort
 
@@ -118,6 +123,38 @@ row("phase", snapshot.phaseDetail.isEmpty
 row("adapters ready", "\(snapshot.readyCount) of \(snapshot.adapters.count)")
 row("decisions kept", "\(snapshot.recent.count)")
 for failure in snapshot.errorTail.prefix(3) { row("error", failure) }
+
+// One adapter round, over the wire. The engine's own gates decide when a
+// pulse acts; this asks the question directly so the lane can be proven.
+if let completeAbility {
+    heading("one round through Fleet")
+    let slots = await MaryRuntime.lifeSlots.lastKnown().slots
+    guard let slot = slots[AbilityID(completeAbility)] else {
+        row("adapter", "no slot for \(completeAbility)")
+        exit(1)
+    }
+    row("adapter", "\(completeAbility) · \(String(slot.cid.prefix(8))) · \(slot.ready ? "ready" : "not ready")")
+    let maker = FleetRemoteAdapterSessionMaker(
+        modelID: LifeBaseModel.defaultModelID,
+        totemID: { nodeID },
+        fleet: { MaryRuntime.makeFleetClient() })
+    do {
+        let session = try maker.makeSession(adapter: LifeAdapterRef(slot: slot))
+        let started = Date()
+        let completion = try await session.complete(
+            input: BehavioralTrainingInput(input: BehavioralInput(query: "idle")),
+            schemaJSON: slot.schemaJSON)
+        row("elapsed", String(format: "%.1fs", Date().timeIntervalSince(started)))
+        row("prompt tokens", "\(completion.promptTokens)")
+        row("actions", "\(completion.output.actions.count)")
+        for action in completion.output.actions.prefix(3) {
+            row("  action", "\(action.invocationName) · \(action.disposition)")
+        }
+    } catch {
+        row("failed", String(describing: error))
+        exit(1)
+    }
+}
 
 if watching {
     heading("watching (ctrl-c to stop)")

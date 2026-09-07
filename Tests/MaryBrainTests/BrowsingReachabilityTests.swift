@@ -26,10 +26,16 @@ import Testing
         "browsing.control-media", "browsing.open-location", "browsing.navigate-back",
         "browsing.navigate-forward", "browsing.reload-page", "browsing.scroll-page",
         "browsing.new-tab",
-        // The page itself — read it, then act on what it named.
-        "browsing.read-page", "browsing.click-on-page", "browsing.fill-in-page",
+        // The page itself — read what it OFFERS or what it SAYS, then act on
+        // what it named.
+        "browsing.read-page", "browsing.read-page-text",
+        "browsing.click-on-page", "browsing.fill-in-page",
         "browsing.scroll-to-on-page", "browsing.adjust-on-page", "browsing.search-web",
         "browsing.interact-with-page",
+        // The tabs a browser holds, and the words on the page in front. Round 8.
+        "browsing.switch-tab", "browsing.close-tab", "browsing.find-in-page",
+        // The first journey: several verbs said as one sentence. Round 8.
+        "browsing.watch-video",
     ]
 
     @Test func everyBrowsingSkillIsDeclaredAndExposed() throws {

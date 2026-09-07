@@ -8,6 +8,8 @@
 //  PIN:  A key that is itself a declared parameter is never a loose spelling
 //        of another one.
 //
+import MaryFoundation
+import MaryPlugin
 import Foundation
 
 extension AbilityRuntime {
@@ -21,6 +23,35 @@ extension AbilityRuntime {
               let text = String(data: canonical, encoding: .utf8)
         else { return argumentsJSON }
         return text
+    }
+
+    /// The dispatched binding's enum parameters, carrying the package's own
+    /// spoken words for their values.
+    ///
+    /// TWO SCHEMAS DESCRIBE ONE PARAMETER and only one of them can hold
+    /// authoring: the adapter's `ModelSkillSchema.Parameter` is what the model
+    /// was offered and what the binding will read, while `spokenValues` is
+    /// package data on `ModelParameterSchema`. Joined by name here so a native
+    /// binding with no package schema still repairs from its own enum values,
+    /// which are words a person can say too.
+    static func enumParameters(
+        binding: SkillBinding,
+        declared: AbilityRuntimeSkill?
+    ) -> [ModelParameterSchema] {
+        let spoken = Dictionary(
+            (declared?.skill.modelExposure.parameters ?? [])
+                .map { ($0.name, $0.spokenValues) },
+            uniquingKeysWith: { first, _ in first })
+        return binding.parameters.compactMap { parameter in
+            guard let values = parameter.enumValues, !values.isEmpty else { return nil }
+            return ModelParameterSchema(
+                name: parameter.name,
+                type: parameter.type,
+                summary: parameter.description,
+                required: parameter.required,
+                enumValues: values,
+                spokenValues: spoken[parameter.name] ?? [:])
+        }
     }
 
     // MARK: - Argument tolerance (ported verbatim)

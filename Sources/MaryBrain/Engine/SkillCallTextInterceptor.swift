@@ -266,7 +266,7 @@ struct SkillCallTextInterceptor {
         return names.contains(where: { $0.hasPrefix(token) }) ? index : nil
     }
 
-    // MARK: - Parsers (moved from MaryLocalEngine)
+    // MARK: - Parsers (shared with Seer's own recovery of the same shape)
 
     /// Weak models sometimes parrot the "[tool result — name]:" label the
     /// engine uses internally for tool turns. Strip it from spoken replies.

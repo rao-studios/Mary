@@ -48,9 +48,24 @@ struct CGKeyEventPoster: KeyEventPosting {
             var units = Array(run.utf16)
             let down = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: true)
             down?.keyboardSetUnicodeString(stringLength: units.count, unicodeString: &units)
+            // TYPED TEXT IS TYPED TEXT, WHATEVER IS BEING HELD.
+            //
+            // PIN: A NEW `CGEvent` INHERITS THE SESSION'S CURRENT MODIFIERS, and
+            // this one never said otherwise — so a held Command turned every
+            // character Mary typed into a menu shortcut and nothing reached the
+            // field. MEASURED LIVE: a browsing round left Command latched in
+            // `combinedSessionState` (see `KeyChordPress`, which is where it came
+            // from), after which ⌘L and ⌘A still worked — they set their own
+            // flags — and forty-one typed characters vanished into shortcuts,
+            // three attempts running, reported as "I couldn't find the address
+            // bar" about a field that was focused and selected on screen.
+            // It is also the honest rule with nothing stuck: a person resting a
+            // hand on Command while Mary types must not have her text eaten.
+            down?.flags = []
             down?.post(tap: .cghidEventTap)
-            CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)?
-                .post(tap: .cghidEventTap)
+            let up = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: false)
+            up?.flags = []
+            up?.post(tap: .cghidEventTap)
         }
     }
 }
@@ -104,9 +119,7 @@ public enum KeyboardTyper {
         _ text: String,
         targetPrefix: String,
         poster: KeyEventPosting = CGKeyEventPoster(),
-        frontmost: @Sendable () -> String? = {
-            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        },
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost,
         shouldPause: @Sendable () -> Bool = { false },
         interChunkNanoseconds: UInt64 = 25_000_000
     ) async -> TypeResult {
@@ -114,8 +127,8 @@ public enum KeyboardTyper {
         for token in tokens(for: text) {
             if Task.isCancelled { return .stopped(typedCharacters: typed) }
             if shouldPause() { return .paused(typedCharacters: typed) }
-            let front = frontmost()
-            guard front?.hasPrefix(targetPrefix) == true else {
+            if case .lost(let front) = FrontmostGuard.check(
+                targetPrefix: targetPrefix, frontmost: frontmost) {
                 return .lostFocus(typedCharacters: typed, frontmost: front)
             }
             poster.post(token)
@@ -136,9 +149,7 @@ public enum KeyboardTyper {
         count: Int,
         targetPrefix: String,
         poster: KeyEventPosting = CGKeyEventPoster(),
-        frontmost: @Sendable () -> String? = {
-            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
-        },
+        frontmost: @Sendable () -> String? = FrontmostGuard.liveFrontmost,
         interChunkNanoseconds: UInt64 = 25_000_000
     ) async -> TypeResult {
         guard count > 0 else { return .completed(typedCharacters: 0) }
@@ -146,8 +157,8 @@ public enum KeyboardTyper {
         let chunk = 16
         while removed < count {
             if Task.isCancelled { return .stopped(typedCharacters: removed) }
-            let front = frontmost()
-            guard front?.hasPrefix(targetPrefix) == true else {
+            if case .lost(let front) = FrontmostGuard.check(
+                targetPrefix: targetPrefix, frontmost: frontmost) {
                 return .lostFocus(typedCharacters: removed, frontmost: front)
             }
             let step = min(chunk, count - removed)

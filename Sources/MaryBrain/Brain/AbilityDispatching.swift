@@ -69,10 +69,6 @@ public protocol AbilityDispatching: Sendable {
     var pendingSkillConfirmationPreview: String? { get }
     /// True for query Skills (`.read`) that shouldn't be archived into the Totem context
     func isReadOnly(_ skillName: String) -> Bool
-    /// The screen look, identified structurally — its summary IS the answer's
-    /// content, so the routine settle policy must never silence it the way a
-    /// deposited machine receipt is silenced. Default false.
-    func isLookSkill(_ skillName: String) -> Bool
     /// WHETHER THIS SKILL MAY RUN WITH NOBODY WATCHING — the Life engine's
     /// only question about an act it is about to perform unattended. A read
     /// and a cognitive activation change nothing; a `.write` binding parks
@@ -95,15 +91,6 @@ public protocol AbilityDispatching: Sendable {
     func attention(ofSkill skillName: String) -> AmbientAttention?
     /// FETCH-FIRST: read the named part of whatever the user is looking at, synchronously, before the speaking lane spawns
     func readNamedPart(_ phrase: String) async -> String?
-    /// THE PRE-LANE LOOK — `readNamedPart`'s sibling for sight: run the screen look synchronously before either lane spawns
-    func lookAtScreen(_ query: String?) async -> String?
-    /// Whether a pre-lane look WOULD run right now (look_at_screen is
-    /// installed). Targeted reads are not eyes. Default false.
-    func wouldServeLook() -> Bool
-    /// Fetch-first: selection read, buffer/document inspect, then look —
-    /// before either lane speaks. `isRead` tells the caller whether the
-    /// passage came from a genuine read (Lane B already holds it) or a look.
-    func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)?
     /// FETCH-FIRST FOR THE CRAFT ITSELF: the unit the user is inside, and what
     /// reaches it. Nil when nothing followed is in front, when the turn is not
     /// one this should serve, or when there is nothing true to say.
@@ -115,6 +102,26 @@ public protocol AbilityDispatching: Sendable {
     func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage?
     // THE ARTIFACT LANE IS NOT IN THIS CUT. Five members used to sit here
     func targetedReadInvocation(forAttention attention: AmbientAttention) -> (binding: String, parameter: String)?
+}
+
+/// THE EYES, APART FROM THE DISPATCHER. These four exist only for sight — the
+/// screen look, and the fetch-first ladder that ends in it — and lived on the
+/// generic dispatcher, where every turn rung and every stub had to know them.
+/// The runtime conforms; the brain asks `sight` and takes silence as "no eyes".
+public protocol SightServing: Sendable {
+    /// The screen look, identified structurally — its summary IS the answer's
+    /// content, so the routine settle policy must never silence it the way a
+    /// deposited machine receipt is silenced.
+    func isLookSkill(_ skillName: String) -> Bool
+    /// THE PRE-LANE LOOK — `readNamedPart`'s sibling for sight: run the screen look synchronously before either lane spawns
+    func lookAtScreen(_ query: String?) async -> String?
+    /// Whether a pre-lane look WOULD run right now (look_at_screen is
+    /// installed). Targeted reads are not eyes.
+    func wouldServeLook() -> Bool
+    /// Fetch-first: selection read, buffer/document inspect, then look —
+    /// before either lane speaks. `isRead` tells the caller whether the
+    /// passage came from a genuine read (Lane B already holds it) or a look.
+    func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)?
 }
 
 public extension AbilityDispatching {
@@ -196,7 +203,6 @@ public extension AbilityDispatching {
     }
     var pendingSkillConfirmationPreview: String? { nil }
     func isReadOnly(_ skillName: String) -> Bool { false }
-    func isLookSkill(_ skillName: String) -> Bool { false }
     func isNonEffectful(_ skillName: String) -> Bool { false }
     func isUnattendedSafe(_ skillName: String) -> Bool {
         isReadOnly(skillName) || isNonEffectful(skillName)
@@ -205,9 +211,6 @@ public extension AbilityDispatching {
     func place(ofSkill skillName: String) -> AmbientPlace? { nil }
     func attention(ofSkill skillName: String) -> AmbientAttention? { place(ofSkill: skillName)?.attention }
     func readNamedPart(_ phrase: String) async -> String? { nil }
-    func lookAtScreen(_ query: String?) async -> String? { nil }
-    func wouldServeLook() -> Bool { false }
-    func fetchDeclaredEditorSight(query: String?) async -> (passage: String, isRead: Bool)? { nil }
     func fetchAwareness(query: String) async -> AwarenessSight? { nil }
     func locatePassage(_ intent: EditIntent) async -> LocatedPassage? { nil }
     func locatePassage(_ intent: EditIntent, attentionHint: AmbientAttention?) async -> LocatedPassage? {

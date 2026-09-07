@@ -181,5 +181,11 @@ public final class AwarenessObserver: MaryObserver, @unchecked Sendable {
 
 /// The support bundle, matching the other observers' shape.
 public enum AwarenessObserverSupport {
-    public static var all: [any MaryObserver] { [AwarenessObserver.shared] }
+    /// TWO WORLDS, TWO OBSERVERS. One follows a unit inside a document; the
+    /// other follows a page. They share a discipline and nothing else — a page
+    /// has no file, no caret and no project to walk — so they are siblings here
+    /// rather than branches inside one poll.
+    public static var all: [any MaryObserver] {
+        [AwarenessObserver.shared, AwarenessPageObserver.shared]
+    }
 }

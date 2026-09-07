@@ -108,6 +108,25 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
     /// message, replacement prose, a computed line number. Confidence-dispatch
     /// skips extraction eligibility for it and falls through to the model.
     public var requiresComposition: Bool
+    /// THE WORDS A PERSON SAYS FOR EACH ENUM VALUE, keyed by the value.
+    ///
+    /// PIN: DATA, NOT A SWITCH — this is the whole reason it lives on the schema.
+    /// An enum value is a machine word ("previous"); a person says "go back" or
+    /// "last song". Bonnie carried that mapping as a Swift synonym table inside
+    /// the music adapter, which meant every other platform's enum had none. Here
+    /// the package that declares the enum declares how it is spoken, so a skill in
+    /// any world gets the same treatment and no Swift file learns a verb.
+    /// Empty is honest: an enum whose values ARE the words needs nothing here,
+    /// because the value's own name is always matched first.
+    public var spokenValues: [String: [String]]
+
+    /// AN OPTIONAL STRING THE SENTENCE ITSELF FILLS. The no-model lane fills
+    /// one required string, the enums a sentence names, and the application;
+    /// an optional plain string was unfillable by construction, so a seek
+    /// ("go back two minutes") and a result pick cost a model round every
+    /// time. A parameter marked so receives the sentence's remaining span —
+    /// the same peel the required string gets — and the binding parses it.
+    public var spokenSpan: Bool
 
     public init(
         name: String,
@@ -115,7 +134,9 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         summary: String,
         required: Bool,
         enumValues: [String] = [],
-        requiresComposition: Bool = false
+        requiresComposition: Bool = false,
+        spokenValues: [String: [String]] = [:],
+        spokenSpan: Bool = false
     ) {
         self.name = name
         self.type = type
@@ -123,10 +144,13 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         self.required = required
         self.enumValues = enumValues
         self.requiresComposition = requiresComposition
+        self.spokenValues = spokenValues
+        self.spokenSpan = spokenSpan
     }
 
     private enum CodingKeys: String, CodingKey {
         case name, type, summary, required, enumValues, requiresComposition
+        case spokenValues, spokenSpan
     }
 
     /// Tolerant decode — a package sealed before this field existed must
@@ -140,6 +164,24 @@ public struct ModelParameterSchema: Codable, Hashable, Sendable {
         enumValues = try container.decodeIfPresent([String].self, forKey: .enumValues) ?? []
         requiresComposition = try container.decodeIfPresent(
             Bool.self, forKey: .requiresComposition) ?? false
+        spokenValues = try container.decodeIfPresent(
+            [String: [String]].self, forKey: .spokenValues) ?? [:]
+        spokenSpan = try container.decodeIfPresent(Bool.self, forKey: .spokenSpan) ?? false
+    }
+
+    /// A NEW KEY IS WRITTEN ONLY WHEN IT SAYS SOMETHING. Every sealed package
+    /// carries a digest of its own encoding; a field that encodes `false` into
+    /// packages that never declared it would change every digest at once.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(type, forKey: .type)
+        try container.encode(summary, forKey: .summary)
+        try container.encode(required, forKey: .required)
+        try container.encode(enumValues, forKey: .enumValues)
+        try container.encode(requiresComposition, forKey: .requiresComposition)
+        try container.encode(spokenValues, forKey: .spokenValues)
+        if spokenSpan { try container.encode(spokenSpan, forKey: .spokenSpan) }
     }
 }
 

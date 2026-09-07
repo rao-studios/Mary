@@ -8,9 +8,9 @@
 
 import ApplicationServices
 
-enum WebAreaLocator {
+public enum WebAreaLocator {
 
-    static let webAreaRole = "AXWebArea"
+    public static let webAreaRole = "AXWebArea"
 
     /// The wake lane's probe: does this application currently expose a page?
     static func firstWebArea(inApp application: AXUIElement) -> AXUIElement? {
@@ -18,6 +18,15 @@ enum WebAreaLocator {
                 ?? AX.element(application, kAXMainWindowAttribute)
         else { return nil }
         return webAreas(inWindow: window, budget: .standard, limit: 1).first
+    }
+
+    /// The same, for a probe that has only the application element. Named apart
+    /// from `firstWebArea` so nothing on the hot path grows a second entry point.
+    public static func webAreasForProbe(inApp application: AXUIElement) -> [AXUIElement] {
+        guard let window = AX.element(application, kAXFocusedWindowAttribute)
+                ?? AX.element(application, kAXMainWindowAttribute)
+        else { return [] }
+        return webAreas(inWindow: window, budget: .standard)
     }
 
     /// Every web area under one window, in breadth-first order.

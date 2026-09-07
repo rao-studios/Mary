@@ -29,32 +29,25 @@ import MaryFoundation
 
 extension BrowserEngine {
 
-    /// How long after a command before the page is believed to have reacted.
-    static let commandSettle = Duration.milliseconds(220)
-    /// A click gets longer, because a press that navigates needs the shell to catch up.
-    static let clickSettle = Duration.milliseconds(450)
-    /// How many times a shell that has NOT moved is asked again before it is believed.
-    /// Two, because a navigation commits its address within a few hundred milliseconds
-    /// and the settle before this has already spent that.
-    static let quietPolls = 2
-
     /// Run a plan against a page.
     public func act(
         _ plan: PageInteractionPlan,
         in target: BrowserTarget,
         deadline: Date? = nil
     ) async -> BrowserOutcome {
-        let shellOutcome = await readShell(target)
-        guard let shell = shellOutcome.shell else { return shellOutcome }
-        guard await seams.stage.bringForward(pid: target.processIdentifier) else {
-            return refuse(.activationRefused(target.spokenName))
+        // Acting on the page keeps the stage: what the press did is there to see.
+        await staged(target, after: .kept, asking: .answered) { shell, cursor in
+            // THE BROWSER IS ASKING. A single press whose words name one of the
+            // choices answers it; anything else is put back as the question.
+            if let dialog = shell.dialog {
+                guard plan.commands.count == 1, let command = plan.commands.first,
+                      command.kind == .click, let phrase = command.action.target
+                else { return asked(dialog, shell: shell) }
+                return await answer(dialog, with: phrase, in: target, shell: shell)
+            }
+            return await perform(
+                plan, in: target, shell: shell, deadline: deadline, restingAt: cursor)
         }
-        // Restored in order, never in a deferred Task — see `describeMedia`.
-        let cursor = await seams.hands.cursorLocation()
-        let outcome = await perform(
-            plan, in: target, shell: shell, deadline: deadline, restingAt: cursor)
-        await seams.hands.restoreCursor(to: cursor)
-        return outcome
     }
 
     /// `restingAt` is where the pointer was before any of this — where it goes back to
@@ -91,6 +84,8 @@ extension BrowserEngine {
             }
             // SOMEBODY ELSE MAY HAVE TAKEN THE MACHINE. A plan that keeps pressing into
             // whatever came forward is worse than one that stops and says where it got to.
+            // Asked here for every command — a hover, a scroll, a key — and again by
+            // `press` at the moment a pointer command actually clicks.
             guard await seams.stage.holdsFocus(pid: target.processIdentifier) else {
                 receipts.append(PageCommandReceipt(
                     sourceIndex: command.sourceIndex, kind: command.kind,
@@ -123,8 +118,23 @@ extension BrowserEngine {
                 // is published, so nothing can be offered from the page that just left.
                 if PageReceipts.navigation(before.shell, shellNow) != nil {
                     retractSlate()
+                    // A SUBMIT THAT MADE A RESULTS PAGE IS A LIST OF ANSWERS TOO.
+                    //
+                    // PIN: ONLY `search_web` USED TO REMEMBER. Searching a site
+                    // through its OWN box — fill the field, press return — lands
+                    // on results exactly as the address bar does, and the next
+                    // "open the first one" then routed as a bare press over the
+                    // whole page, counting the site's chrome among the answers.
+                    // The evidence is the same the search recipe already trusts:
+                    // the typed words, folded, showing up in the page that
+                    // arrived. No site name, no address kept.
+                    if case .typeText(let typing) = command.action, typing.submit,
+                       let arrived = shellNow,
+                       WebSearchRecipe.searched(for: typing.text, shell: arrived) {
+                        noteResultQuery(typing.text)
+                    }
                 }
-                switch await read(target, shell: shellNow ?? shell) {
+                switch await read(target, shell: shellNow ?? shell, publish: false) {
                 case .failure(let refusal):
                     receipts.append(PageCommandReceipt(
                         sourceIndex: command.sourceIndex, kind: command.kind,
@@ -183,7 +193,8 @@ extension BrowserEngine {
     ) async -> WebSurfaceAX.Reading? {
         func read() async -> WebSurfaceAX.Reading? {
             await seams.shell.read(
-                pid: target.processIdentifier, registration: target.registration)
+                pid: target.processIdentifier, registration: target.registration,
+                preferring: workingWindow)
         }
         let mayNavigate: Bool
         switch command.action {
@@ -201,7 +212,7 @@ extension BrowserEngine {
         var latest = await read()
         var quiet = 0
         var stable = 0
-        while quiet < Self.quietPolls, stable < 2 {
+        while quiet < Self.shellQuietPolls, stable < 2 {
             if moved(latest) {
                 stable += 1
                 quiet = 0
@@ -241,17 +252,15 @@ extension BrowserEngine {
         let pid = target.processIdentifier
         switch command.action {
         case .click(let click):
-            let placed = place(click.location, in: roster, verb: .press)
+            let placed = place(click.location, in: roster, verb: pressVerb(for: click.location))
             guard case .success(let (point, element)) = placed else {
                 if case .failure(let refusal) = placed { return .refused(refusal) }
                 return .refused(.pageNotVisible)
             }
             if dryRun { return .refused(.dryRun("clicked \(name(element, click.location))")) }
-            await seams.hands.glide(to: point, pid: pid)
-            await seams.sleep(Self.pressSettle)
-            await seams.hands.click(
-                at: point, button: Self.pointerButton(click.button), count: click.count,
-                pid: pid)
+            guard await press(
+                at: point, in: target, button: Self.pointerButton(click.button), count: click.count)
+            else { return .refused(.interrupted(atCommand: command.sourceIndex)) }
             emit(.acted("clicked \(name(element, click.location))"))
             return .ran(resolved: element, point: point, typed: nil, holdPointer: false)
 
@@ -311,9 +320,9 @@ extension BrowserEngine {
             }
             if let element {
                 let point = CGPoint(x: element.frame.midX.rounded(), y: element.frame.midY.rounded())
-                await seams.hands.glide(to: point, pid: pid)
-                await seams.sleep(Self.pressSettle)
-                await seams.hands.click(at: point, button: .left, count: 1, pid: pid)
+                guard await press(at: point, in: target) else {
+                    return .refused(.interrupted(atCommand: command.sourceIndex))
+                }
                 await seams.sleep(Self.commandSettle)
             }
             guard await seams.keys.type(
@@ -335,9 +344,9 @@ extension BrowserEngine {
                 guard let to = point(alongTrack: element, fraction: adjust.resolvedFraction)
                 else { return .refused(.notAdjustable(adjust.target)) }
                 if dryRun { return .refused(.dryRun("set \(element.label)")) }
-                await seams.hands.glide(to: to, pid: pid)
-                await seams.sleep(Self.pressSettle)
-                await seams.hands.click(at: to, button: .left, count: 1, pid: pid)
+                guard await press(at: to, in: target) else {
+                    return .refused(.interrupted(atCommand: command.sourceIndex))
+                }
                 emit(.acted("set \(element.label)"))
                 return .ran(resolved: element, point: to, typed: nil, holdPointer: false)
             }
@@ -362,22 +371,44 @@ extension BrowserEngine {
     // MARK: - Reading
 
     /// One look at the page, published as what the screen is offering.
+    /// `publish: false` is the read after a command — see `deferSlate`.
     func read(
-        _ target: BrowserTarget, shell: WebSurfaceAX.Reading
+        _ target: BrowserTarget, shell: WebSurfaceAX.Reading, publish: Bool = true
     ) async -> Result<PageRoster, BrowserRefusal> {
+        readSequence += 1
+        let readStart = ContinuousClock.now
         switch await perceive(target, shell: shell, intent: .elements, reveal: false) {
         case .failure(let refusal): return .failure(refusal)
         case .success(let reading):
-            let roster = PageRoster(
-                elements: reading.elements, map: reading.map,
-                pageFrame: reading.pageFrame)
+            // THE READING'S OWN ROWS, whose facts were decided once at the seal.
+            // The AX-shaped pair rides along for the parts of this lane that
+            // still read it, and goes with them.
+            var roster = PageRoster(
+                rows: reading.rows,
+                groups: reading.groups,
+                elements: reading.elements,
+                map: reading.map,
+                pageFrame: reading.pageFrame,
+                // WHAT THE READ WAS, carried so a bench can tell a hard page from
+                // a machine with no classifier installed.
+                classified: reading.classified,
+                readDuration: reading.duration,
+                readTiming: reading.timing)
             emit(.read(
                 rows: roster.elements.count,
                 named: roster.elements.count - roster.elements.filter {
                     roster.annotation(for: $0)?.labelSource == .synthesized
                 }.count,
                 groups: roster.map.groups.count))
-            publishSlate(roster)
+            if publish {
+                let publishStart = ContinuousClock.now
+                publishSlate(roster)
+                roster.readTiming?.publish = publishStart.duration(to: .now)
+                lastRoster = roster
+            } else {
+                deferSlate(roster)
+            }
+            emit(.timed("page read", readStart.duration(to: .now)))
             return .success(roster)
         }
     }
@@ -398,7 +429,12 @@ extension BrowserEngine {
         let arbitration = arbitrate(phrase, verb: verb, in: roster)
         if let winner = arbitration.winner {
             emit(.matched(phrase: phrase, to: winner.label))
-            return .success(winner)
+            // THE ROUTER ANSWERS IN ROWS; the executor and its receipts still
+            // speak the AX-shaped element. Looked up by ordinal, which is the one
+            // identity both views share. Both halves go with the shim.
+            if let element = roster.elements.first(where: { $0.ordinal == winner.ordinal }) {
+                return .success(element)
+            }
         }
         return .failure(arbitration.refusal ?? .elementNotFound(phrase))
     }
@@ -411,6 +447,11 @@ extension BrowserEngine {
         let arbitration = PageRouter.arbitrate(
             goal: phrase, verb: verb, roster: roster, store: seams.slate)
         lastRoute = arbitration.trace
+        // THIS PAGE IS A LIST OF ANSWERS TO SOMETHING. Remembered for the next
+        // bare "open the second one" — see `lastResultQuery`.
+        if case .openResult(let query) = verb, !query.isEmpty {
+            noteResultQuery(query)
+        }
         emit(.routed(arbitration.trace))
         return arbitration
     }
@@ -422,6 +463,23 @@ extension BrowserEngine {
     /// PIN: THE REFUSAL COMES BACK WITH IT, rather than being re-derived by asking
     /// again. Resolving twice can answer differently — the slate moves between the two
     /// calls — and the second answer would then describe a miss that never happened.
+    /// Which verb a click routes with: an ordinary press, or opening one of the
+    /// answers this page is already a list of.
+    ///
+    /// PIN: ONLY WHEN THE PHRASE SAYS NOTHING BUT WHICH ONE. "Open the second
+    /// one" and "the first video" name a position within a category and nothing
+    /// else — they can only mean the answers. A phrase that NAMES something
+    /// ("click the Boiler Room link") is a name, and `.press` reaches a row by
+    /// name anywhere on the page, which is the wider and correct pool for it.
+    /// The scoping is `.openResult`'s own; this only decides when to ask for it.
+    func pressVerb(for location: PageInteractionPointerLocation) -> PageRouteVerb {
+        guard case .target(let phrase) = location,
+              let query = lastResultQuery, !query.isEmpty,
+              PageElementKindDerivation.namesOnlyAPosition(phrase)
+        else { return .press }
+        return .openResult(query: query)
+    }
+
     func place(
         _ location: PageInteractionPointerLocation, in roster: PageRoster,
         verb: PageRouteVerb

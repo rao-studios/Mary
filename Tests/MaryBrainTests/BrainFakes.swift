@@ -146,6 +146,8 @@ enum BrainFakes {
         /// rungs refuse to talk over. Empty by default, so every pre-existing
         /// turn keeps the `landed: false` a plain dispatch reports.
         var landedTools: Set<String> = []
+        /// Tools whose outcome is a question to the person — `asksThePerson`.
+        var askingTools: Set<String> = []
         /// Directly settable — flipped by tests and by confirm/cancel dispatch.
         var pending = false
         /// Optional packaged registry for archive/projection integration tests.
@@ -264,6 +266,7 @@ enum BrainFakes {
             let ok = !failingTools.contains(name)
             let foundNothing = foundNothingTools.contains(name)
             let landed = landedTools.contains(name)
+            let asking = askingTools.contains(name)
             let policy: ArchivePolicy = unrememberedTools.contains(name)
                 ? .none
                 : (stateSnapshotTools.contains(name) ? .stateSnapshot : .episodic)
@@ -274,6 +277,7 @@ enum BrainFakes {
                 // mirrors that so the lane's requested flag is exercised here.
                 status: summary.hasPrefix("CONFIRM:") ? .requested : nil,
                 deferred: deferred, archivePolicy: policy, foundNothing: foundNothing,
+                asksThePerson: asking,
                 landed: landed)
             guard let snapshotOverride else { return outcome }
             return AbilityRuntime.applyingTotemArchivePolicy(

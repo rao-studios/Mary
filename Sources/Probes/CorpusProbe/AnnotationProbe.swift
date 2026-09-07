@@ -42,11 +42,11 @@ enum AnnotationProbe {
         // is a fresh install's answer, and the whole question here is what
         // THIS machine is set to.
         let stored = PersistedConfig.load()
-        var engine = stored?.engine ?? .hosted
+        var engine = stored?.engine ?? .mistral
         let seerEnabled = stored?.seerEnabled ?? true
         if let override = value("--engine") {
             guard let parsed = LLMEngineChoice(rawValue: override) else {
-                print("Unknown engine '\(override)' — use local or hosted.")
+                print("Unknown engine '\(override)' — use mistral, local, or tinker.")
                 return 1
             }
             engine = parsed
@@ -57,8 +57,8 @@ enum AnnotationProbe {
         print("      llmEngine: \(engine.rawValue)   seerEnabled: \(seerEnabled)")
 
         let hosted = MaryRuntime.seerCarriesTurns(engine: engine, seerEnabled: seerEnabled)
-        print("      → the annotator the app wires here: "
-            + (hosted ? "SeerUnitAnnotator" : "InferenceUnitAnnotator"))
+        print("      → annotation always rides Seer's /v1/complete; the backend "
+            + "behind it is \(engine.displayName)")
 
         // MARK: - The annotator
 
@@ -71,7 +71,7 @@ enum AnnotationProbe {
             defaults.seerPassword = stored.seerPassword
         }
         let annotator: any UnitAnnotating
-        if hosted {
+        if true {
             // SIGN IN FIRST. `SeerUnitAnnotator` answers nil when the session
             // is not authenticated, and a probe that skipped this would report
             // the boot race as if it were the steady state.
@@ -84,10 +84,8 @@ enum AnnotationProbe {
             }
             let owner = await MaryRuntime.seerSession.userID ?? "?"
             check(true, "signed in to Seer", owner)
+            await MaryRuntime.setAnnotationProvider(engine)
             annotator = MaryRuntime.makeSeerUnitAnnotator()
-        } else {
-            annotator = InferenceUnitAnnotator(engine: MaryLocalEngine(
-                modelID: stored?.localModelID ?? MaryLocalEngine.defaultModelID))
         }
         let refuses = annotator.refusesToAnnotate
         print("      refusesToAnnotate: \(refuses)")
@@ -221,7 +219,6 @@ enum PersistedConfig {
     struct Values {
         var engine: LLMEngineChoice
         var seerEnabled: Bool
-        var localModelID: String
         var seerPort: Int
         var seerEmail: String
         var seerPassword: String
@@ -243,7 +240,6 @@ enum PersistedConfig {
             engine: (state["llmEngine"] as? String).flatMap(LLMEngineChoice.init(rawValue:))
                 ?? defaults.llmEngine,
             seerEnabled: state["seerEnabled"] as? Bool ?? defaults.seerEnabled,
-            localModelID: state["localModelID"] as? String ?? defaults.localModelID,
             seerPort: state["seerPort"] as? Int ?? defaults.seerPort,
             seerEmail: state["seerEmail"] as? String ?? defaults.seerEmail,
             seerPassword: state["seerPassword"] as? String ?? defaults.seerPassword)

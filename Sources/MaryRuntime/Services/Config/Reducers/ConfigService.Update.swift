@@ -28,7 +28,6 @@ extension ConfigService {
             skillEngine: LLMEngineChoice? = nil,
             lifeMode: LifeMode? = nil,
             lifeTurnDisciplines: [String]? = nil,
-            localModelID: String? = nil,
             sttBackend: STTBackend? = nil,
             ttsBackend: TTSBackend? = nil,
             voice: String? = nil,
@@ -60,7 +59,6 @@ extension ConfigService {
             seerChatModel: String? = nil,
             seerTransport: SeerTransportChoice? = nil,
             codingAgentEnabled: Bool? = nil,
-            codingAgentModelID: String? = nil,
             codingEngine: LLMEngineChoice? = nil,
             skillRunTimeoutSeconds: Double? = nil,
             modelCallPriceUSD: Double? = nil
@@ -69,7 +67,6 @@ extension ConfigService {
             self.skillEngine = skillEngine
             self.lifeMode = lifeMode
             self.lifeTurnDisciplines = lifeTurnDisciplines
-            self.localModelID = localModelID
             self.sttBackend = sttBackend
             self.ttsBackend = ttsBackend
             self.voice = voice
@@ -101,7 +98,6 @@ extension ConfigService {
             self.seerChatModel = seerChatModel
             self.seerTransport = seerTransport
             self.codingAgentEnabled = codingAgentEnabled
-            self.codingAgentModelID = codingAgentModelID
             self.codingEngine = codingEngine
             self.skillRunTimeoutSeconds = skillRunTimeoutSeconds
             self.modelCallPriceUSD = modelCallPriceUSD
@@ -110,7 +106,6 @@ extension ConfigService {
             package var skillEngine: LLMEngineChoice? = nil
             package var lifeMode: LifeMode? = nil
             package var lifeTurnDisciplines: [String]? = nil
-            package var localModelID: String? = nil
             package var sttBackend: STTBackend? = nil
             package var ttsBackend: TTSBackend? = nil
             package var voice: String? = nil
@@ -144,7 +139,6 @@ extension ConfigService {
             package var seerChatModel: String? = nil
             package var seerTransport: SeerTransportChoice? = nil
             package var codingAgentEnabled: Bool? = nil
-            package var codingAgentModelID: String? = nil
             package var codingEngine: LLMEngineChoice? = nil
             package var skillRunTimeoutSeconds: Double? = nil
             package var modelCallPriceUSD: Double? = nil
@@ -158,7 +152,6 @@ extension ConfigService {
             if let value = meta.skillEngine { state.skillEngine = value }
             if let value = meta.lifeMode { state.lifeMode = value }
             if let value = meta.lifeTurnDisciplines { state.lifeTurnDisciplines = value }
-            if let value = meta.localModelID, !value.isEmpty { state.localModelID = value }
             if let value = meta.sttBackend { state.sttBackend = value }
             if let value = meta.ttsBackend { state.ttsBackend = value }
             if let value = meta.voice, !value.isEmpty { state.voice = value }
@@ -172,7 +165,6 @@ extension ConfigService {
                 state.enabledPlugins = MaryAdapterCatalog.adapters().map(\.name)
                     .filter { !state.disabledPlugins.contains($0) }
             }
-            // Empty is meaningful here (clears the custom id), unlike localModelID.
             // Empty is meaningful here too: custom with no alias follows config.
             if let value = meta.historyMessageLimit, value >= 4 { state.historyMessageLimit = value }
             if let value = meta.ambientCorpusIndexing { state.ambientCorpusIndexing = value }
@@ -198,9 +190,6 @@ extension ConfigService {
             if let value = meta.seerChatModel { state.seerChatModel = value }
             if let value = meta.seerTransport { state.seerTransport = value }
             if let value = meta.codingAgentEnabled { state.codingAgentEnabled = value }
-            if let value = meta.codingAgentModelID, !value.isEmpty {
-                state.codingAgentModelID = value
-            }
             if let value = meta.codingEngine { state.codingEngine = value }
             if let value = meta.modelCallPriceUSD, value >= 0 {
                 state.modelCallPriceUSD = value

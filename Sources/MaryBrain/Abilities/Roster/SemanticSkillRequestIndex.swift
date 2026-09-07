@@ -29,6 +29,11 @@ public struct SemanticSkillRequestIndex: Sendable {
     private let entries: [Entry]
     private let vectorizer: any UtteranceVectorizer
     private let threshold: Float
+    /// Every registered application's spoken names, as folded word arrays.
+    /// Learned from the same records the corpus is; see `surfaceNames`.
+    /// The installed surfaces' names, for stripping a named one out of a request.
+    /// Shared with the intent read — see `TurnTriage.verdict`.
+    let surfaces: [[String]]
 
     public var entryCount: Int { entries.count }
 
@@ -78,30 +83,83 @@ public struct SemanticSkillRequestIndex: Sendable {
         MaryBrain.turnLog.info(
             "embed generate — skills=\(entries.count, privacy: .public) dim=\(dim, privacy: .public) skipped=\(skipped, privacy: .public) habits=\(RoutingHabitStore.shared.count, privacy: .public)")
         return SemanticSkillRequestIndex(
-            entries: entries, vectorizer: vectorizer, threshold: threshold)
+            entries: entries, vectorizer: vectorizer, threshold: threshold,
+            surfaces: surfaceNames(records: records))
     }
 
     private init(
-        entries: [Entry], vectorizer: any UtteranceVectorizer, threshold: Float
+        entries: [Entry], vectorizer: any UtteranceVectorizer, threshold: Float,
+        surfaces: [[String]]
     ) {
         self.entries = entries
         self.vectorizer = vectorizer
         self.threshold = threshold
+        self.surfaces = surfaces
+    }
+
+    /// EVERY NAME AN INSTALLED APPLICATION ANSWERS TO, from the packages
+    /// themselves — the title a package declares, its aliases, and the aliases
+    /// of the Ability that teaches it.
+    ///
+    /// PIN: THE LIST IS THE INSTALLATION'S, NOT THIS FILE'S. `bareRequest` drops
+    /// a named surface from the sentence it vectorizes because the arbitrator has
+    /// already read it as `namedApplications` — so the two must be reading the
+    /// same names, and the only way to guarantee that is to take them from the
+    /// same declarations. A word nothing installed answers to is content.
+    static func surfaceNames(records: [AbilityPackageRecord]) -> [[String]] {
+        var names: Set<[String]> = []
+        func learn(_ value: String) {
+            let words = RoutingQuery.foldedWords(value)
+            guard !words.isEmpty else { return }
+            names.insert(words)
+        }
+        for record in records {
+            // AN APPLICATION'S OWN NAMES, and only those. An Ability's aliases
+            // are ways of naming the WORK ("browse the web"), which is exactly
+            // what the sentence is supposed to be about.
+            for application in record.package.ability.applications ?? [] {
+                learn(application.title)
+            }
+            guard let application = record.package.plugin?.application else { continue }
+            learn(application.title)
+            application.aliases.forEach(learn)
+            application.bundleNames.forEach { learn($0.replacingOccurrences(of: ".app", with: "")) }
+        }
+        return names.filter { !$0.isEmpty }.sorted { $0.count > $1.count }
     }
 
     /// Best similarity per Skill, for every Skill that clears the floor.
     /// Habits join the authored positives (ok) or suppress (not ok).
+    ///
+    /// `floor` overrides the index's own threshold for this call ONLY. Pass zero
+    /// to see where everything sits — the diagnostic read the calibration suite
+    /// already builds a whole second index for, and the one a trace needs so a
+    /// missed Skill can say 0.61 rather than "no". IT DOES NOT MOVE THE GATE:
+    /// the caller that gates still asks with the index's own threshold.
     public func affinities(
         in utterance: String,
-        habits: RoutingHabitStore = .shared
+        habits: RoutingHabitStore = .shared,
+        floor: Float? = nil
     ) -> [SkillID: Float] {
         guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(utterance)) else { return [:] }
+        // THE SAME REQUEST WITHOUT THE FRAME AROUND IT. See `RoutingQuery
+        // .bareRequest` for the measurement: politeness and a named surface each
+        // cost enough similarity to drop a correctly-ranked Skill under the
+        // floor. Scored as a SECOND reading of one sentence and taken at its
+        // best, never replacing the first — a request that needs its own words
+        // to be understood keeps them.
+        let bare = RoutingQuery.bareRequest(utterance, surfaces: surfaces)
+            .flatMap { vectorizer.vector(for: $0) }
+            .map(Self.normalized)
         let query = Self.normalized(raw)
         var affinities: [SkillID: Float] = [:]
         for entry in entries {
             let positives = entry.positives
                 + habits.vectors(skillID: entry.skillID.rawValue, ok: true, vectorizer: vectorizer)
-            let best = positives.map { Self.dot($0, query) }.max() ?? -1
+            var best = positives.map { Self.dot($0, query) }.max() ?? -1
+            if let bare {
+                best = max(best, positives.map { Self.dot($0, bare) }.max() ?? -1)
+            }
             let negatives = habits.vectors(
                 skillID: entry.skillID.rawValue, ok: false, vectorizer: vectorizer)
             let bestNegative = negatives.map { Self.dot($0, query) }.max() ?? -1
@@ -109,7 +167,7 @@ public struct SemanticSkillRequestIndex: Sendable {
                best - bestNegative < SemanticAbilityRequestIndex.defaultNegativeMargin {
                 continue
             }
-            guard best >= threshold else { continue }
+            guard best >= (floor ?? threshold) else { continue }
             affinities[entry.skillID] = best
         }
         return affinities

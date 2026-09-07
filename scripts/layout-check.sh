@@ -24,7 +24,6 @@ if [ "$CONFIG" = "release" ]; then
 else
     swift build
 fi
-"$REPO_ROOT/scripts/build-metallib.sh" "$CONFIG"
 BIN="$REPO_ROOT/.build/$CONFIG/Mary"
 "$REPO_ROOT/scripts/sign-binary.sh" "$BIN"
 

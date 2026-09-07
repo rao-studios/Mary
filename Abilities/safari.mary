@@ -96,6 +96,11 @@
   "dependencies" : [
     {
       "minimumVersion" : "1.0.0",
+      "optional" : true,
+      "packageID" : "awareness"
+    },
+    {
+      "minimumVersion" : "1.0.0",
       "optional" : false,
       "packageID" : "browsing"
     },
@@ -112,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "740d77c3959e7b56bcea06fe6a1b63dbe60516721cd26e9bbd7684ff8a9c71d6"
+    "digest" : "a78f95a0255386e5250b948f30905ba32f61220c188ddcc405ef3c887068c1f5"
   },
   "interactions" : [
 
@@ -210,6 +215,10 @@
         "command"
       ],
       "backLabel" : "Go back",
+      "findKey" : "f",
+      "findModifiers" : [
+        "command"
+      ],
       "forwardLabel" : "Go forward",
       "pageFrameSource" : "webArea",
       "reloadLabel" : "Reload this page",

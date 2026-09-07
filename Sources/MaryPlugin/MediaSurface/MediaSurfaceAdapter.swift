@@ -33,6 +33,50 @@ public struct MediaSurfaceAdapter: MaryAdapter {
          listPlaylists, findPlaylist, playPlaylist, shufflePlaylist]
     }
 
+    /// WHAT IS PLAYING, read from the player's own shell, every turn.
+    ///
+    /// PIN: THE SAME SENTENCE `now_playing` ANSWERS WITH, so the prompt line and
+    /// the spoken answer can never drift. Accessibility only — a transport is a
+    /// control the player publishes, and nothing here looks at pixels. This
+    /// lived in MaryBrain as a hard-coded function naming this adapter's own
+    /// types; an adapter says what it perceives and the brain only asks.
+    public func turnPerceptions() async -> [DeclaredPerception] {
+        guard let (registration, pid) = support.resolve(nil),
+              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+        else { return [] }
+        return [DeclaredPerception(
+            schemaID: "perception.player-transport",
+            value: ValueEnvelope(
+                typeID: "multimedia.now-playing-report",
+                value: .string(Self.spoken(reading, registration: registration)),
+                // Scope = process read. Two players hold two readings.
+                scope: SourceScope(
+                    applicationID: registration.applicationID, processID: pid),
+                provenance: .init(operation: "now_playing"),
+                privacy: .private))]
+    }
+
+    /// WHAT THIS ADAPTER REACHES, SAID ONCE — because the only sentence in the
+    /// whole system prompt about pausing anything used to be the browsing
+    /// adapter's, and it told the model not to do this.
+    ///
+    /// PIN: MEASURED, AND IT IS MOST OF WHY "can you pause the music" NEVER
+    /// WORKED. `WebSurfaceAdapter.promptFragment` said "never the system media
+    /// keys, which reach whatever holds now-playing" — which is precisely and
+    /// only what `control_playback` does. With two near-identically described
+    /// transport skills offered and standing prose arguing against one of them,
+    /// a small model picked the other or called nothing at all. Bonnie carried
+    /// exactly this fragment, for exactly this reason; the port dropped it.
+    public var promptFragment: String? {
+        """
+        control_playback drives whatever holds now-playing — the music app, a \
+        podcast, a video playing in some other window — so pause, play, next \
+        and previous for THE MUSIC, or for playback in general, always go \
+        there. control_media is only for a video inside a page you are \
+        driving. Say what played.
+        """
+    }
+
     /// Typed handshake, declared rather than defaulted.
     /// PIN: operations must implement `media-player` or inventory refuses them.
     public var adapterManifest: InstalledAdapterManifest {
@@ -238,27 +282,135 @@ public struct MediaSurfaceAdapter: MaryAdapter {
                     _ = await MediaSurfaceLaunch.resolveOrLaunch(
                         named: arguments["app"], support: support)
                 }
+                // WHAT THE PLAYER WAS DOING BEFORE, so the answer afterwards can
+                // be about what changed rather than about what was sent. See
+                // `movement(from:to:for:)`.
+                let before = Self.reading(support: support, named: arguments["app"])
+                // ALREADY THERE — SO DO NOT PRESS.
+                //
+                // PIN: THE KEY IS A TOGGLE, AND THAT MAKES A REDUNDANT REQUEST
+                // THE OPPOSITE OF A NO-OP. `pause` and `play` are the same
+                // hardware key; sending it to an already-paused player START S
+                // the music. "Pause the music" while it is paused would begin
+                // playing — the exact opposite of what was asked — and the old
+                // summary then reported "Paused." over the top of it. Reading
+                // the transport first is what makes an idempotent verb
+                // idempotent.
+                if let playing = before?.0.isPlaying {
+                    if (action == .pause && !playing) || (action == .play && playing) {
+                        return SkillOutcome(
+                            ok: true,
+                            summary: playing
+                                ? "It's already playing."
+                                : "It's already paused.",
+                            archivePolicy: .stateSnapshot,
+                            target: before?.0.element,
+                            adapterTrail: ["media-surface"],
+                            applicationID: before?.1.applicationID)
+                    }
+                }
                 guard MediaTransport.post(action.key) else {
                     return SkillOutcome(
                         ok: false,
                         summary: "The media key didn't go through — check Mary's Accessibility permission.")
                 }
-                // Read-back is best effort and does not gate the outcome.
                 // PIN: a media key goes to the system, not a process we can wait on.
                 let settled = await Self.settledReading(
                     support: support, named: arguments["app"])
+                let landed = Self.movement(
+                    from: before?.0, to: settled?.0, for: action)
                 return SkillOutcome(
                     ok: true,
-                    summary: settled.map { reading, registration in
-                        "\(action.past) — \(Self.spoken(reading, registration: registration))"
-                    } ?? action.past + ".",
+                    summary: Self.transportSummary(
+                        action: action, before: before?.0, settled: settled, landed: landed),
                     archivePolicy: .stateSnapshot,
+                    // PROVEN EFFECT ONLY. A media key that reached nothing still
+                    // "succeeds": the event posts, and every window in the system
+                    // may ignore it. Reading the transport either side is the only
+                    // way to tell a pause that happened from a pause that was
+                    // merely sent — and `landed` is the field the rest of Mary
+                    // already reads for exactly that distinction.
+                    landed: landed == true,
                     target: settled?.0.element,
                     adapterTrail: ["media-surface"],
                     // The player the read-back FOUND, which is the one the key
                     // actually reached — not the one the caller named.
                     applicationID: settled?.1.applicationID)
-            })
+            },
+            // The one thing that stops this working when everything else is
+            // right — and the hint Bonnie carried that this port dropped.
+            spokenFailureHint: "check Mary's Accessibility permission")
+    }
+
+    /// One read now, with no settle — the "before" half of a receipt.
+    private static func reading(
+        support: MediaSurfaceSupport, named: String? = nil
+    ) -> (MediaSurfaceAX.Reading, MediaSurfaceRegistration)? {
+        guard let (registration, pid) = support.resolve(named) ?? support.resolve(nil),
+              let reading = MediaSurfaceAX.read(pid: pid, registration: registration)
+        else { return nil }
+        return (reading, registration)
+    }
+
+    /// Did the transport actually move? Nil means it could not be told — no
+    /// declared player was readable either side, which is a different answer
+    /// from "nothing moved" and must not be reported as failure.
+    ///
+    /// PIN: PER ACTION, because what counts as movement differs. Play and pause
+    /// flip a state that can be read directly; next and previous leave the state
+    /// alone and change the TITLE. Volume and mute move a system level this
+    /// adapter cannot see at all through a player's transport, so they stay
+    /// honestly unprovable rather than claiming a receipt they do not have.
+    static func movement(
+        from before: MediaSurfaceAX.Reading?,
+        to after: MediaSurfaceAX.Reading?,
+        for action: MediaAction
+    ) -> Bool? {
+        guard let before, let after else { return nil }
+        switch action {
+        case .play, .pause:
+            guard let was = before.isPlaying, let now = after.isPlaying else { return nil }
+            return was != now
+        case .next, .previous:
+            guard let was = before.title, let now = after.title else { return nil }
+            return was != now
+        case .louder, .quieter, .mute:
+            return nil
+        }
+    }
+
+    /// What to say about a transport key: what it did, or plainly that it could
+    /// not be confirmed.
+    ///
+    /// PIN: "Paused." WAS A CLAIM NOBODY CHECKED. The old summary said the verb
+    /// in the past tense whether a player existed, whether it was playing, and
+    /// whether anything at all reacted — so a pause against silence and a pause
+    /// that worked read identically. Each branch below says only what was read.
+    static func transportSummary(
+        action: MediaAction,
+        before: MediaSurfaceAX.Reading?,
+        settled: (MediaSurfaceAX.Reading, MediaSurfaceRegistration)?,
+        landed: Bool?
+    ) -> String {
+        guard let settled else {
+            // No declared player answered. The key still went to the system, and
+            // something unregistered may well have taken it.
+            return "Sent \(action.rawValue) — I can't see a player to confirm it."
+        }
+        let spoken = Self.spoken(settled.0, registration: settled.1)
+        switch landed {
+        case true:
+            return "\(action.past) — \(spoken)"
+        case false:
+            // IT WAS PRESSED AND NOTHING MOVED. The "already there" cases never
+            // reach here — they are answered before the key is sent — so this
+            // is a real miss, and saying so beats reporting the verb.
+            return "I sent \(action.rawValue), but \(settled.1.displayName) didn't move. \(spoken)"
+        case nil:
+            // Nothing readable either side. The key went out; whether it landed
+            // is genuinely unknown, and the verb is the honest thing to report.
+            return "\(action.past) — \(spoken)"
+        }
     }
 
     /// One read after a short settle. A transport does not repaint the

@@ -153,6 +153,15 @@ enum AbilityRosterArbitrator {
                 activeAbilities.insert(abilityKey)
             }
         }
+        // WHO WON WHAT, AND WHY — one row per Ability that stood in a group.
+        var electionRows: [AbilityElectionRow] = []
+        let regime: AbilityElectionRegime = context.usesEmbeddingRoster ? .semantic : .lexical
+        /// The best affinity any of this Ability's Skills reached this turn.
+        func bestAffinity(_ key: AbilityKey) -> Float? {
+            (byAbility[key] ?? [])
+                .compactMap { context.semanticSkillScores[$0.skill.id] }
+                .max()
+        }
         for group in groupedAbilities.keys.sorted() {
             let keys = groupedAbilities[group, default: []].sorted()
             let candidates = keys.compactMap { key -> (AbilityKey, AbilitySchema, AbilityRoutingEvidenceScore)? in
@@ -162,11 +171,65 @@ enum AbilityRosterArbitrator {
                     ability,
                     evidence(policy: ability.routing, requirements: nil, context: context))
             }
+            func row(
+                _ candidate: (AbilityKey, AbilitySchema, AbilityRoutingEvidenceScore),
+                active: Bool, reason: String
+            ) {
+                electionRows.append(AbilityElectionRow(
+                    packageID: candidate.0.packageID,
+                    abilityID: candidate.0.abilityID,
+                    abilityTitle: candidate.1.title,
+                    conflictGroup: group,
+                    regime: regime,
+                    predicateScore: candidate.2.total,
+                    bestMemberAffinity: bestAffinity(candidate.0),
+                    isActive: active,
+                    reason: reason))
+            }
+
+            // THE CORPUS ALREADY VOTED, so the predicates do not get to overrule it.
+            //
+            // PIN: MEASURED, AND IT IS THE "pause the music" BUG. This election is
+            // scored by `predicateScore` alone — `evidence` is asked with no
+            // `skillID`, so the affinity short-circuit inside it cannot apply and an
+            // Ability's whole standing is `targetClass` (70) against
+            // `workspaceFamily` (100). With a browser in front, browsing scored 70
+            // and multimedia scored 0, so EVERY multimedia Skill was struck out
+            // before the roster was read — including the one the Skill corpus had
+            // just scored highest for these very words. The Skill tier is the finer
+            // instrument and it runs first; an Ability holding a Skill the words
+            // reached is an Ability the turn is talking about, whatever window
+            // happens to be frontmost. The lexical ladder below is still the whole
+            // answer when there is no index to ask.
+            //
+            // NOT A WIDER ROSTER BY THE BACK DOOR: admission is not selection. Skill
+            // conflict groups, the offer ledger, readiness and the confidence lane's
+            // own margin all still run, and a Skill whose affinity never cleared the
+            // floor is `ineligible` on its own row regardless of who won here.
+            if context.usesEmbeddingRoster {
+                for candidate in candidates {
+                    let admitted = (byAbility[candidate.0] ?? []).contains {
+                        failures[AbilityRosterSkillKey($0)] == nil
+                    }
+                    if admitted { activeAbilities.insert(candidate.0) }
+                    row(
+                        candidate, active: admitted,
+                        reason: admitted
+                            ? "holds a Skill this turn's words reached, so it stands in \(group)"
+                            : "has no Skill this turn's words reached")
+                }
+                continue
+            }
+
             let policies = candidates.map { $0.1.routing.conflictPolicy }
             switch resolvedPolicy(policies, scores: candidates.map(\.2)) {
             case .askUser where candidates.count > 1,
                  .abstain where candidates.count > 1:
-                break
+                for candidate in candidates {
+                    row(
+                        candidate, active: false,
+                        reason: "\(group) conservatively declined with more than one Ability in it")
+                }
             case let policy:
                 let ranked = candidates.sorted(by: {
                     ranksBefore(
@@ -176,10 +239,14 @@ enum AbilityRosterArbitrator {
                 })
                 if let best = ranked.first {
                     let bestRank = rankVector(best.2, policy: policy)
-                    for winner in ranked where rankVector(
-                        winner.2,
-                        policy: policy) == bestRank {
-                        activeAbilities.insert(winner.0)
+                    for candidate in ranked {
+                        let won = rankVector(candidate.2, policy: policy) == bestRank
+                        if won { activeAbilities.insert(candidate.0) }
+                        row(
+                            candidate, active: won,
+                            reason: won
+                                ? "won \(group) on typed evidence by \(policy.rawValue)"
+                                : "lost \(group) to \(best.1.title) by \(policy.rawValue)")
                     }
                 }
             }
@@ -417,7 +484,18 @@ enum AbilityRosterArbitrator {
         }
 
         let trace = AbilityRosterTrace(
-            decisions: orderedStably(Array(decisions.values), by: \.reference))
+            decisions: orderedStably(Array(decisions.values), by: \.reference)
+                // THE NUMBER THE FLOOR WAS COMPARED AGAINST, on every row —
+                // including the rows that lost to it. See the field's own PIN.
+                .map { row in
+                    var row = row
+                    row.affinity = context.semanticSkillScores[row.reference.skillID]
+                    return row
+                },
+            election: electionRows.sorted {
+                ($0.conflictGroup ?? "", $0.abilityID.rawValue)
+                    < ($1.conflictGroup ?? "", $1.abilityID.rawValue)
+            })
         return AbilityRosterArbitration(
             selectedKeys: selected,
             trace: trace,
