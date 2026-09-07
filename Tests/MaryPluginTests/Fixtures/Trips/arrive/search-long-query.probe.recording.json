@@ -5,20 +5,20 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 83,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 84,
+          "atMilliseconds" : 448,
           "kind" : "openLocation",
           "typedLength" : 58
         },
         {
-          "atMilliseconds" : 2301,
-          "kind" : "bringForward"
+          "atMilliseconds" : 2422,
+          "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 3316,
+          "atMilliseconds" : 5075,
           "kind" : "restoreCursor"
         }
       ],
@@ -28,7 +28,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 3318,
+      "elapsedMilliseconds" : 5076,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -38,6 +38,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -45,7 +46,7 @@
       "outcomeSpoken" : "I searched for the tallest bridge in europe and how long it took to build. Now offering 17 links, 9 options, 8 buttons, and 1 field — link 1 — Ecosia Homepage; field 1 — Search the web; button 1 — Clear; button 2 — Search; button 3 — Q",
       "pageReads" : [
         {
-          "atMilliseconds" : 2993,
+          "atMilliseconds" : 4739,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -114,7 +115,7 @@
                 "memberOrdinals" : [
                   44,
                   45,
-                  47,
+                  46,
                   48
                 ],
                 "title" : "Is this helpful?"
@@ -127,8 +128,8 @@
                   50,
                   51,
                   52,
-                  54,
-                  56,
+                  53,
+                  55,
                   57,
                   58,
                   59
@@ -140,8 +141,8 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   60,
-                  61,
-                  63,
+                  62,
+                  64,
                   65,
                   66,
                   67
@@ -153,7 +154,7 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   69,
-                  71,
+                  70,
                   72
                 ],
                 "title" : "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E"
@@ -161,12 +162,12 @@
             ],
             "labeledFraction" : 0.875,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 460,
+            "readMilliseconds" : 513,
             "rows" : [
               {
                 "affordance" : "none",
@@ -177,8 +178,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1798,
-                  194,
+                  -1786,
+                  249,
                   86,
                   34
                 ],
@@ -202,8 +203,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1791,
-                  200,
+                  -1779,
+                  255,
                   70,
                   20
                 ],
@@ -215,9 +216,12 @@
                 "kind" : "link",
                 "label" : "Ecosia Homepage",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -228,8 +232,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1688,
-                  198,
+                  -1676,
+                  253,
                   435,
                   29
                 ],
@@ -254,8 +258,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1680,
-                  191,
+                  -1668,
+                  246,
                   557,
                   38
                 ],
@@ -267,6 +271,8 @@
                 "kind" : "field",
                 "label" : "Search the web",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXComboBox"
@@ -280,8 +286,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1123,
-                  194,
+                  -1111,
+                  249,
                   32,
                   32
                 ],
@@ -292,6 +298,8 @@
                 "kind" : "button",
                 "label" : "Clear",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 5,
                 "region" : "header",
                 "role" : "AXButton"
@@ -305,8 +313,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1083,
-                  190,
+                  -1071,
+                  245,
                   40,
                   40
                 ],
@@ -317,6 +325,8 @@
                 "kind" : "button",
                 "label" : "Search",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "header",
                 "role" : "AXButton"
@@ -330,8 +340,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1077,
-                  198,
+                  -1065,
+                  253,
                   27,
                   27
                 ],
@@ -356,8 +366,8 @@
                 ],
                 "facts" : 41,
                 "frame" : [
-                  -861,
-                  190,
+                  -849,
+                  245,
                   105,
                   40
                 ],
@@ -369,9 +379,12 @@
                 "kind" : "link",
                 "label" : "Sign in",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 8,
                 "region" : "header",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -382,8 +395,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -824,
-                  203,
+                  -812,
+                  258,
                   33,
                   17
                 ],
@@ -408,8 +421,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -749,
-                  190,
+                  -737,
+                  245,
                   41,
                   40
                 ],
@@ -421,6 +434,8 @@
                 "kind" : "button",
                 "label" : "News",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 10,
                 "region" : "header",
                 "role" : "AXButton"
@@ -434,8 +449,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -701,
-                  190,
+                  -689,
+                  245,
                   113,
                   40
                 ],
@@ -446,6 +461,8 @@
                 "kind" : "button",
                 "label" : "Show navigation menu",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 11,
                 "region" : "header",
                 "role" : "AXButton"
@@ -459,8 +476,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1803,
-                  249,
+                  -1791,
+                  304,
                   32,
                   24
                 ],
@@ -471,9 +488,12 @@
                 "kind" : "link",
                 "label" : "Skip to main content",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -484,8 +504,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1696,
-                  237,
+                  -1684,
+                  292,
                   446,
                   42
                 ],
@@ -510,8 +530,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1690,
-                  242,
+                  -1678,
+                  297,
                   75,
                   32
                 ],
@@ -523,6 +543,8 @@
                 "kind" : "option",
                 "label" : "Web",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -536,8 +558,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1623,
-                  239,
+                  -1611,
+                  294,
                   370,
                   38
                 ],
@@ -562,8 +584,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1614,
-                  242,
+                  -1602,
+                  297,
                   93,
                   32
                 ],
@@ -575,6 +597,8 @@
                 "kind" : "option",
                 "label" : "AI Chat",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 16,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -588,8 +612,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1583,
-                  252,
+                  -1571,
+                  307,
                   50,
                   12
                 ],
@@ -614,8 +638,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1520,
-                  242,
+                  -1508,
+                  297,
                   92,
                   32
                 ],
@@ -627,6 +651,8 @@
                 "kind" : "option",
                 "label" : "Images",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 18,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -640,8 +666,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1427,
-                  242,
+                  -1415,
+                  297,
                   90,
                   32
                 ],
@@ -653,6 +679,8 @@
                 "kind" : "option",
                 "label" : "Videos",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -666,8 +694,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1396,
-                  251,
+                  -1384,
+                  306,
                   47,
                   13
                 ],
@@ -692,8 +720,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1336,
-                  242,
+                  -1324,
+                  297,
                   81,
                   32
                 ],
@@ -705,6 +733,8 @@
                 "kind" : "option",
                 "label" : "News",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 21,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -718,8 +748,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1239,
-                  242,
+                  -1227,
+                  297,
                   77,
                   32
                 ],
@@ -730,6 +760,8 @@
                 "kind" : "option",
                 "label" : "More",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
                 "role" : "AXPopUpButton"
@@ -743,8 +775,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1232,
-                  246,
+                  -1220,
+                  301,
                   64,
                   23
                 ],
@@ -769,8 +801,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1228,
-                  252,
+                  -1216,
+                  307,
                   35,
                   12
                 ],
@@ -796,8 +828,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1803,
-                  295,
+                  -1791,
+                  350,
                   304,
                   32
                 ],
@@ -809,6 +841,8 @@
                 "kind" : "option",
                 "label" : "Search region",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -823,8 +857,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1662,
-                  364,
+                  -1650,
+                  419,
                   81,
                   24
                 ],
@@ -836,6 +870,8 @@
                 "kind" : "option",
                 "label" : "Overviews",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 26,
                 "region" : "main",
                 "role" : "AXPopUpButton"
@@ -850,8 +886,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1662,
-                  369,
+                  -1650,
+                  424,
                   80,
                   14
                 ],
@@ -876,8 +912,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1120,
-                  356,
+                  -1108,
+                  411,
                   41,
                   40
                 ],
@@ -888,6 +924,8 @@
                 "kind" : "option",
                 "label" : "Settings",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
                 "role" : "AXPopUpButton"
@@ -902,8 +940,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1106,
-                  368,
+                  -1094,
+                  423,
                   14,
                   16
                 ],
@@ -929,8 +967,8 @@
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -1010,
-                  354,
+                  -998,
+                  409,
                   169,
                   31
                 ],
@@ -955,8 +993,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  356,
+                  -994,
+                  411,
                   327,
                   27
                 ],
@@ -967,9 +1005,12 @@
                 "kind" : "heading",
                 "label" : "Millau Viaduct",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
-                "role" : "AXHeading"
+                "role" : "AXHeading",
+                "value" : 2
               },
               {
                 "affordance" : "none",
@@ -981,8 +1022,8 @@
                 ],
                 "facts" : 2080,
                 "frame" : [
-                  -1009,
-                  382,
+                  -997,
+                  437,
                   281,
                   25
                 ],
@@ -1007,8 +1048,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  386,
+                  -994,
+                  441,
                   327,
                   16
                 ],
@@ -1019,9 +1060,12 @@
                 "kind" : "heading",
                 "label" : "Cable-stayed bridge in Occitanie, France",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 33,
                 "region" : "trailing",
-                "role" : "AXHeading"
+                "role" : "AXHeading",
+                "value" : 3
               },
               {
                 "affordance" : "none",
@@ -1033,8 +1077,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1705,
-                  402,
+                  -1693,
+                  457,
                   589,
                   31
                 ],
@@ -1060,8 +1104,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1705,
-                  424,
+                  -1693,
+                  479,
                   491,
                   31
                 ],
@@ -1086,8 +1130,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1706,
-                  478,
+                  -1694,
+                  533,
                   427,
                   23
                 ],
@@ -1113,8 +1157,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -963,
-                  421,
+                  -951,
+                  476,
                   241,
                   161
                 ],
@@ -1126,9 +1170,12 @@
                 "kind" : "link",
                 "label" : "Millau Viaduct",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 37,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "wikipedia"
               },
               {
                 "affordance" : "press",
@@ -1139,8 +1186,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1700,
-                  512,
+                  -1688,
+                  567,
                   194,
                   41
                 ],
@@ -1151,6 +1198,8 @@
                 "kind" : "button",
                 "label" : "Sources (4)",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 38,
                 "region" : "main",
                 "role" : "AXButton"
@@ -1165,8 +1214,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1638,
-                  522,
+                  -1626,
+                  577,
                   121,
                   27
                 ],
@@ -1192,8 +1241,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1333,
-                  512,
+                  -1321,
+                  567,
                   254,
                   41
                 ],
@@ -1205,9 +1254,12 @@
                 "kind" : "link",
                 "label" : "Explore more with AI Chat",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 40,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -1219,8 +1271,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1241,
-                  576,
+                  -1229,
+                  631,
                   93,
                   23
                 ],
@@ -1245,8 +1297,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1143,
-                  569,
+                  -1131,
+                  624,
                   33,
                   33
                 ],
@@ -1257,6 +1309,8 @@
                 "kind" : "button",
                 "label" : "Yes, this is helpful",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 42,
                 "region" : "main",
                 "role" : "AXButton"
@@ -1270,8 +1324,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1111,
-                  569,
+                  -1099,
+                  624,
                   33,
                   33
                 ],
@@ -1282,6 +1336,8 @@
                 "kind" : "button",
                 "label" : "No, this is not helpful",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 43,
                 "region" : "main",
                 "role" : "AXButton"
@@ -1296,8 +1352,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1009,
-                  598,
+                  -997,
+                  653,
                   317,
                   25
                 ],
@@ -1315,6 +1371,32 @@
               },
               {
                 "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Is this helpful?",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -997,
+                  673,
+                  297,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "bridge completed in 2004 across the gorge",
+                "labelSource" : "textInside",
+                "ordinal" : 45,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
@@ -1323,8 +1405,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1708,
-                  632,
+                  -1696,
+                  687,
                   66,
                   25
                 ],
@@ -1336,7 +1418,7 @@
                 "kind" : "link",
                 "label" : "Videos",
                 "labelSource" : "textInside",
-                "ordinal" : 45,
+                "ordinal" : 46,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1349,8 +1431,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1701,
-                  634,
+                  -1689,
+                  689,
                   623,
                   19
                 ],
@@ -1361,35 +1443,12 @@
                 "kind" : "heading",
                 "label" : "Videos",
                 "labelSource" : "classifier",
-                "ordinal" : 46,
-                "region" : "main",
-                "role" : "AXHeading"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Is this helpful?",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1009,
-                  618,
-                  297,
-                  27
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "bridge completed in 2004 across the gorge",
-                "labelSource" : "textInside",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 47,
-                "region" : "trailing",
-                "role" : "AXStaticText"
+                "region" : "main",
+                "role" : "AXHeading",
+                "value" : 2
               },
               {
                 "affordance" : "none",
@@ -1401,8 +1460,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1012,
-                  640,
+                  -1000,
+                  695,
                   299,
                   25
                 ],
@@ -1427,8 +1486,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1698,
-                  668,
+                  -1686,
+                  723,
                   61,
                   33
                 ],
@@ -1453,8 +1512,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1532,
-                  670,
+                  -1520,
+                  725,
                   395,
                   31
                 ],
@@ -1480,8 +1539,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1009,
-                  662,
+                  -997,
+                  717,
                   329,
                   25
                 ],
@@ -1506,8 +1565,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1702,
-                  678,
+                  -1690,
+                  733,
                   106,
                   49
                 ],
@@ -1523,31 +1582,6 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1701,
-                  668,
-                  161,
-                  91
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "Thumbnail for “The Bridge That Took 14 Years to Build - YouTube”",
-                "labelSource" : "classifier",
-                "ordinal" : 53,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
                 "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
@@ -1557,8 +1591,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1530,
-                  697,
+                  -1518,
+                  752,
                   92,
                   28
                 ],
@@ -1569,7 +1603,7 @@
                 "isEnabled" : true,
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 54,
+                "ordinal" : 53,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1582,8 +1616,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1525,
-                  668,
+                  -1513,
+                  723,
                   447,
                   61
                 ],
@@ -1594,9 +1628,12 @@
                 "kind" : "video",
                 "label" : "The Bridge That Took 14 Years to Build - YouTube",
                 "labelSource" : "classifier",
-                "ordinal" : 55,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 54,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "youtube"
               },
               {
                 "affordance" : "none",
@@ -1608,8 +1645,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1011,
-                  682,
+                  -999,
+                  737,
                   321,
                   49
                 ],
@@ -1620,7 +1657,61 @@
                 "isEnabled" : true,
                 "label" : "France. The design team was led by engineer Michel Virlogeux and English architect Norman",
                 "labelSource" : "textInside",
+                "ordinal" : 55,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1689,
+                  723,
+                  161,
+                  91
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "Thumbnail for “The Bridge That Took 14 Years to Build - YouTube”",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 56,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "youtube"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "valley of the Tarn near Millau in the Aveyron",
+                  "band"
+                ],
+                "facts" : 32,
+                "frame" : [
+                  -997,
+                  779,
+                  313,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Foster. It was the tallest bridge in the world ...",
+                "labelSource" : "textInside",
+                "ordinal" : 57,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1634,8 +1725,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1529,
-                  726,
+                  -1517,
+                  781,
                   68,
                   23
                 ],
@@ -1647,34 +1738,8 @@
                 "kind" : "link",
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 57,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "valley of the Tarn near Millau in the Aveyron",
-                  "band"
-                ],
-                "facts" : 32,
-                "frame" : [
-                  -1009,
-                  724,
-                  313,
-                  25
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Foster. It was the tallest bridge in the world ...",
-                "labelSource" : "textInside",
                 "ordinal" : 58,
-                "region" : "trailing",
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1687,8 +1752,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1006,
-                  746,
+                  -994,
+                  801,
                   65,
                   18
                 ],
@@ -1700,9 +1765,12 @@
                 "kind" : "link",
                 "label" : "Wikipedia",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 59,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "wikipedia"
               },
               {
                 "affordance" : "none",
@@ -1714,8 +1782,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1529,
-                  792,
+                  -1517,
+                  847,
                   451,
                   31
                 ],
@@ -1732,6 +1800,34 @@
                 "role" : "AXStaticText"
               },
               {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1513,
+                  846,
+                  447,
+                  61
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "The Bridge That Changed the Map of Europe - YouTube",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 61,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "youtube"
+              },
+              {
                 "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
@@ -1741,8 +1837,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1013,
-                  798,
+                  -1001,
+                  853,
                   329,
                   29
                 ],
@@ -1753,7 +1849,7 @@
                 "isEnabled" : true,
                 "label" : "Millau Viaduct Viaduc de Millau (French)",
                 "labelSource" : "textInside",
-                "ordinal" : 61,
+                "ordinal" : 62,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1766,8 +1862,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1701,
-                  791,
+                  -1689,
+                  846,
                   161,
                   91
                 ],
@@ -1778,9 +1874,12 @@
                 "kind" : "video",
                 "label" : "Thumbnail for “The Bridge That Changed the Map of Europe - YouTube”",
                 "labelSource" : "classifier",
-                "ordinal" : 62,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 63,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "youtube"
               },
               {
                 "affordance" : "none",
@@ -1792,8 +1891,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1532,
-                  819,
+                  -1520,
+                  874,
                   94,
                   30
                 ],
@@ -1804,34 +1903,9 @@
                 "isEnabled" : true,
                 "label" : "YouTube",
                 "labelSource" : "textInside",
-                "ordinal" : 63,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1525,
-                  791,
-                  447,
-                  61
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "The Bridge That Changed the Map of Europe - YouTube",
-                "labelSource" : "classifier",
                 "ordinal" : 64,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -1843,8 +1917,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1010,
-                  828,
+                  -998,
+                  883,
                   97,
                   23
                 ],
@@ -1869,8 +1943,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1530,
-                  849,
+                  -1518,
+                  904,
                   68,
                   24
                 ],
@@ -1896,8 +1970,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1006,
-                  848,
+                  -994,
+                  903,
                   327,
                   40
                 ],
@@ -1909,9 +1983,12 @@
                 "kind" : "link",
                 "label" : "44°04′46″N 03°01′20″E / 44.07944°N 3.02222°E external link",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 67,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "toolforge geohack"
               },
               {
                 "affordance" : "none",
@@ -1922,8 +1999,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1006,
-                  871,
+                  -994,
+                  926,
                   17,
                   17
                 ],
@@ -1934,9 +2011,41 @@
                 "kind" : "image",
                 "label" : "external link",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 68,
                 "region" : "footer",
                 "role" : "AXImage"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1689,
+                  952,
+                  158,
+                  33
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "video",
+                "label" : "See more videos",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 69,
+                "region" : "footer",
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -1948,8 +2057,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1009,
-                  896,
+                  -997,
+                  951,
                   255,
                   21
                 ],
@@ -1961,7 +2070,7 @@
                 "kind" : "link",
                 "label" : "Carries: 4 lanes of the A75 autoroute",
                 "labelSource" : "textInside",
-                "ordinal" : 69,
+                "ordinal" : 70,
                 "region" : "footer",
                 "role" : "AXStaticText"
               },
@@ -1974,8 +2083,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -855,
-                  895,
+                  -843,
+                  950,
                   95,
                   21
                 ],
@@ -1986,36 +2095,12 @@
                 "kind" : "link",
                 "label" : "A75 autoroute",
                 "labelSource" : "classifier",
-                "ordinal" : 70,
-                "region" : "footer",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "44°04'46\"N 03°01'20\"E / 44.07944°N 3.02222°E",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1701,
-                  897,
-                  158,
-                  33
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "video",
-                "label" : "See more videos",
-                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 71,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -2027,8 +2112,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1009,
-                  922,
+                  -997,
+                  977,
                   264,
                   19
                 ],
@@ -2053,8 +2138,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -943,
-                  923,
+                  -931,
+                  978,
                   41,
                   15
                 ],
@@ -2065,9 +2150,12 @@
                 "kind" : "link",
                 "label" : "Gorge",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 73,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "press",
@@ -2078,8 +2166,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -899,
-                  923,
+                  -887,
+                  978,
                   39,
                   15
                 ],
@@ -2090,9 +2178,12 @@
                 "kind" : "link",
                 "label" : "valley",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 74,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "press",
@@ -2103,8 +2194,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -781,
-                  923,
+                  -769,
+                  978,
                   31,
                   15
                 ],
@@ -2115,9 +2206,12 @@
                 "kind" : "link",
                 "label" : "Tarn",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 75,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               }
             ],
             "version" : 2
@@ -2131,7 +2225,7 @@
           "kind" : "navigate",
           "landed" : true,
           "receipt" : "navigation",
-          "spoken" : "navigate — the page became search the web for swift concurrency - Ecosia"
+          "spoken" : "navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia"
         }
       ],
       "routes" : [
@@ -2141,7 +2235,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 83,
+          "atMilliseconds" : 249,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2152,17 +2246,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 751,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "ecosia",
-          "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia"
-        },
-        {
-          "atMilliseconds" : 1116,
+          "atMilliseconds" : 448,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2173,7 +2257,18 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1158,
+          "atMilliseconds" : 1425,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "search the web for swift concurrency - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1941,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2184,7 +2279,29 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2301,
+          "atMilliseconds" : 2422,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 2626,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "ecosia",
+          "tabCount" : 1,
+          "title" : "the tallest bridge in europe and how long it took to build - Ecosia"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 3966,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2195,23 +2312,25 @@
         }
       ],
       "timeline" : [
-        "5ms  resolved Chrome",
-        "83ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "428ms  typed an address",
-        "1116ms  verified the page changed",
-        "1116ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia",
-        "1116ms  resolved Chrome",
-        "1158ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "2250ms  resolved Chrome",
-        "2301ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
-        "2993ms  perceived 75 controls · —",
-        "2993ms  looked — 75 rows, 69 named, 8 groups"
+        "39ms  resolved Chrome",
+        "249ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "249ms  resolved Chrome",
+        "448ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "910ms  typed an address",
+        "2422ms  verified the page changed",
+        "2422ms  receipt — navigate — the page became the tallest bridge in europe and how long it took to build - Ecosia",
+        "2422ms  resolved Chrome",
+        "2626ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "3746ms  resolved Chrome",
+        "3966ms  read the shell — the tallest bridge in europe and how long it took to build - Ecosia · ecosia",
+        "4739ms  perceived 75 controls · —",
+        "4740ms  looked — 75 rows, 69 named, 8 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:21:04Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:29:13Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "search-long-query"
 }

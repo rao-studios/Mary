@@ -5,21 +5,21 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 8,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 191,
+          "atMilliseconds" : 351,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1567,
+          "atMilliseconds" : 1735,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1567,
+          "atMilliseconds" : 1735,
           "kind" : "restoreFront"
         }
       ],
@@ -29,12 +29,12 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1578,
+      "elapsedMilliseconds" : 1738,
       "index" : 0,
       "landed" : true,
       "media" : [
         {
-          "atMilliseconds" : 1567,
+          "atMilliseconds" : 1735,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -52,6 +52,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -77,29 +78,29 @@
       "say" : "Hey can you pause the video",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 191,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 351,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikimedia commons",
-          "tabCount" : 2,
+          "tabCount" : 1,
           "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
         }
       ],
       "timeline" : [
-        "111ms  resolved Chrome",
-        "191ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1567ms  perceived 0 controls · paused",
-        "1567ms  receipt — click \"play\" — It's already paused — Paused.",
-        "1567ms  gave the stage back"
+        "116ms  resolved Chrome",
+        "351ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1735ms  perceived 0 controls · paused",
+        "1735ms  receipt — click \"play\" — It's already paused — Paused.",
+        "1735ms  gave the stage back"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T22:35:26Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:29:55Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "pause-from-elsewhere"
 }

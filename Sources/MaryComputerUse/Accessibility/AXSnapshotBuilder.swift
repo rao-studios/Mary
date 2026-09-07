@@ -148,7 +148,8 @@ public enum AXSnapshotBuilder {
                 // window's truncation — the render is honest but incomplete
                 // either way, and the HUD separates the two.
                 isTruncated: tallies.native.truncated || tallies.web.truncated,
-                root: root))
+                root: root,
+                windowID: AXWindowIdentity.windowID(of: row.element)))
         }
 
         let duration = clock.now - start

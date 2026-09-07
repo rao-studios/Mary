@@ -663,6 +663,41 @@ private func published(
         #expect(routed.winner?.ordinal == 3)
     }
 
+    /// AND ONLY THE PAGE'S OWN COLUMN IS COUNTED. Measured on a results page:
+    /// "the third link" reached the site's logo in the header, a skip-link and
+    /// a related-search chip in the right column before any result.
+    @Test func aPositionCountsOnlyTheMainColumn() {
+        func placed(_ ordinal: Int, _ label: String, in region: PageRegion) -> PageRow {
+            var row = Self.row(ordinal, label)
+            row.region = region
+            return row
+        }
+        let roster = PageRoster(rows: [
+            placed(1, "Site Homepage", in: .header),
+            placed(2, "Alpine touring boots reviewed", in: .main),
+            placed(3, "ski touring boots vs alpine boots", in: .trailing),
+            placed(4, "The ten best touring boots", in: .main),
+            placed(5, "Where to buy touring boots", in: .main),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(goal: "the third link", verb: .press, roster: roster)
+        #expect(routed.winner?.ordinal == 5)
+    }
+
+    /// A RESULT IS SOMETHING THAT OPENS. A static text inside a list-shaped
+    /// panel was "the first one" on a site's own search page.
+    @Test func aResultPositionCountsOnlyWhatCanBePressed() {
+        let roster = PageRoster(rows: [
+            Self.row(1, "Search in: (Article) ×", facts: [.inResultGroup], affordance: .none, kind: nil),
+            Self.row(2, "Alpine touring boots reviewed", facts: [.inResultGroup]),
+            Self.row(3, "The ten best touring boots", facts: [.inResultGroup]),
+        ], pageFrame: CGRect(x: 0, y: 0, width: 800, height: 600))
+
+        let routed = PageRouter.arbitrate(
+            goal: "the first one", verb: .openResult(query: "alpine touring boots"), roster: roster)
+        #expect(routed.winner?.ordinal == 2)
+    }
+
     /// AND IT DOES NOT COUNT WHAT NOBODY NAMED. A synthesized "item 33" is a
     /// position the reading invented, not a thing on screen.
     @Test func aPositionSkipsRowsNobodyNamed() {

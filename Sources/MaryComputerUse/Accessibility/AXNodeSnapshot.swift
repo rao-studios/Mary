@@ -130,6 +130,9 @@ public struct AXWindowSnapshot: Sendable, Equatable, Identifiable {
     /// is honest but incomplete; Clyde's HUD surfaces this.
     public var isTruncated: Bool
     public var root: AXNodeSnapshot?
+    /// The window-server id, asked of the element at capture — the one
+    /// identity a window keeps across reads. See `AXWindowIdentity`.
+    public var windowID: CGWindowID?
 
     public init(
         id: AXNodeID,
@@ -138,7 +141,8 @@ public struct AXWindowSnapshot: Sendable, Equatable, Identifiable {
         isMain: Bool = false,
         isMinimized: Bool = false,
         isTruncated: Bool = false,
-        root: AXNodeSnapshot? = nil
+        root: AXNodeSnapshot? = nil,
+        windowID: CGWindowID? = nil
     ) {
         self.id = id
         self.title = title
@@ -146,6 +150,7 @@ public struct AXWindowSnapshot: Sendable, Equatable, Identifiable {
         self.isMain = isMain
         self.isMinimized = isMinimized
         self.isTruncated = isTruncated
+        self.windowID = windowID
         self.root = root
     }
 }

@@ -6,7 +6,7 @@
       "acts" : [
 
       ],
-      "because" : "waiting on rehearsal only",
+      "because" : "textedit has to be in front",
       "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
@@ -31,11 +31,11 @@
       "timeline" : [
 
       ],
-      "verdict" : "pending"
+      "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:23:13Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:32:57Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "no-browser"
 }

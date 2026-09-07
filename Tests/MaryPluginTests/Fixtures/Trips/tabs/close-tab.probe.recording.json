@@ -6,7 +6,7 @@
       "acts" : [
 
       ],
-      "because" : "waiting on round 3",
+      "because" : "close_tab is not a binding this adapter offers",
       "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
@@ -31,11 +31,11 @@
       "timeline" : [
 
       ],
-      "verdict" : "pending"
+      "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:24:06Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:34:18Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "close-tab"
 }

@@ -1,6 +1,6 @@
 {
   "browser" : "chrome",
-  "category" : "act",
+  "category" : "context",
   "legs" : [
     {
       "acts" : [
@@ -9,23 +9,23 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1497,
+          "atMilliseconds" : 1669,
           "atX" : 0.2235387045813586,
           "atY" : 0.19215686274509805,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 1795,
+          "atMilliseconds" : 1968,
           "atX" : 0.2235387045813586,
           "atY" : 0.19215686274509805,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 2300,
+          "atMilliseconds" : 2485,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 4153,
+          "atMilliseconds" : 4311,
           "kind" : "restoreCursor"
         }
       ],
@@ -36,7 +36,7 @@
 
       },
       "because" : "reached row 23, which is number 4 of its kind, not 1",
-      "elapsedMilliseconds" : 4154,
+      "elapsedMilliseconds" : 4312,
       "index" : 0,
       "landed" : false,
       "layer" : "R2",
@@ -52,10 +52,10 @@
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "click \"the first link on this page\" — no sign it did anything. Now offering 42 links, 13 buttons, 3 options, and 2 fields — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
+      "outcomeSpoken" : "click \"the first link\" — no sign it did anything. Now offering 42 links, 13 buttons, 3 options, and 2 fields — option 1 — Main menu; link 1 — Wikipedia The Free Encyclopedia; field 1 — Q Search Wikipedia Search (form); field 2 — Search Wikipedia (form); button 1 — Sear…",
       "pageReads" : [
         {
-          "atMilliseconds" : 971,
+          "atMilliseconds" : 1214,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -292,7 +292,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 457,
+            "readMilliseconds" : 546,
             "rows" : [
               {
                 "affordance" : "press",
@@ -3822,7 +3822,7 @@
           }
         },
         {
-          "atMilliseconds" : 4139,
+          "atMilliseconds" : 4297,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -4059,7 +4059,7 @@
               1266,
               765
             ],
-            "readMilliseconds" : 369,
+            "readMilliseconds" : 373,
             "rows" : [
               {
                 "affordance" : "press",
@@ -7596,13 +7596,13 @@
           "kind" : "click",
           "landed" : false,
           "receipt" : "none",
-          "spoken" : "click \"the first link on this page\" — no sign it did anything",
-          "target" : "the first link on this page"
+          "spoken" : "click \"the first link\" — no sign it did anything",
+          "target" : "the first link"
         }
       ],
       "routes" : [
         {
-          "atMilliseconds" : 1497,
+          "atMilliseconds" : 1669,
           "decisions" : [
             {
               "affordance" : 100,
@@ -7614,7 +7614,7 @@
               "ordinal" : 1,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 475,
+              "semantic" : 426,
               "structure" : -50
             },
             {
@@ -7627,7 +7627,7 @@
               "ordinal" : 2,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 347,
+              "semantic" : 251,
               "structure" : -50
             },
             {
@@ -7640,7 +7640,7 @@
               "ordinal" : 3,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 439,
+              "semantic" : 394,
               "structure" : 0
             },
             {
@@ -7653,7 +7653,7 @@
               "ordinal" : 4,
               "provenance" : 60,
               "reason" : "isn't a link",
-              "semantic" : 217,
+              "semantic" : 234,
               "structure" : -50
             },
             {
@@ -7666,7 +7666,7 @@
               "ordinal" : 5,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 245,
+              "semantic" : 235,
               "structure" : -50
             },
             {
@@ -7692,7 +7692,7 @@
               "ordinal" : 7,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 311,
+              "semantic" : 296,
               "structure" : -50
             },
             {
@@ -7705,7 +7705,7 @@
               "ordinal" : 8,
               "provenance" : 60,
               "reason" : "nothing about it answers",
-              "semantic" : 404,
+              "semantic" : 416,
               "structure" : 0
             },
             {
@@ -7718,7 +7718,7 @@
               "ordinal" : 9,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 414,
+              "semantic" : 489,
               "structure" : 0
             },
             {
@@ -7731,7 +7731,7 @@
               "ordinal" : 10,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 490,
+              "semantic" : 516,
               "structure" : 0
             },
             {
@@ -7744,7 +7744,7 @@
               "ordinal" : 11,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 504,
+              "semantic" : 543,
               "structure" : 0
             },
             {
@@ -7757,7 +7757,7 @@
               "ordinal" : 12,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 500,
+              "semantic" : 422,
               "structure" : 0
             },
             {
@@ -7770,7 +7770,7 @@
               "ordinal" : 13,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 371,
+              "semantic" : 304,
               "structure" : -50
             },
             {
@@ -7783,7 +7783,7 @@
               "ordinal" : 14,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 158,
+              "semantic" : 163,
               "structure" : -50
             },
             {
@@ -7796,7 +7796,7 @@
               "ordinal" : 15,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 115,
+              "semantic" : 176,
               "structure" : -50
             },
             {
@@ -7809,7 +7809,7 @@
               "ordinal" : 16,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 386,
+              "semantic" : 347,
               "structure" : -50
             },
             {
@@ -7822,7 +7822,7 @@
               "ordinal" : 17,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 433,
+              "semantic" : 507,
               "structure" : 0
             },
             {
@@ -7835,7 +7835,7 @@
               "ordinal" : 18,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 429,
+              "semantic" : 486,
               "structure" : -50
             },
             {
@@ -7861,7 +7861,7 @@
               "ordinal" : 20,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 438,
+              "semantic" : 433,
               "structure" : -50
             },
             {
@@ -7887,7 +7887,7 @@
               "ordinal" : 22,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 369,
+              "semantic" : 258,
               "structure" : -50
             },
             {
@@ -7900,7 +7900,7 @@
               "ordinal" : 23,
               "provenance" : 100,
               "reason" : "is at the position that was asked for",
-              "semantic" : 556,
+              "semantic" : 497,
               "structure" : 0
             },
             {
@@ -7926,7 +7926,7 @@
               "ordinal" : 25,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 477,
+              "semantic" : 532,
               "structure" : 0
             },
             {
@@ -7952,7 +7952,7 @@
               "ordinal" : 27,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 376,
+              "semantic" : 285,
               "structure" : -50
             },
             {
@@ -7965,7 +7965,7 @@
               "ordinal" : 28,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 504,
+              "semantic" : 495,
               "structure" : 0
             },
             {
@@ -7991,7 +7991,7 @@
               "ordinal" : 30,
               "provenance" : 100,
               "reason" : "something else answered better",
-              "semantic" : 588,
+              "semantic" : 601,
               "structure" : 0
             },
             {
@@ -8017,7 +8017,7 @@
               "ordinal" : 32,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 503,
+              "semantic" : 525,
               "structure" : 0
             },
             {
@@ -8030,7 +8030,7 @@
               "ordinal" : 33,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 294,
+              "semantic" : 309,
               "structure" : -50
             },
             {
@@ -8043,7 +8043,7 @@
               "ordinal" : 34,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 470,
+              "semantic" : 505,
               "structure" : 0
             },
             {
@@ -8069,7 +8069,7 @@
               "ordinal" : 36,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 402,
+              "semantic" : 324,
               "structure" : -50
             },
             {
@@ -8095,7 +8095,7 @@
               "ordinal" : 38,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 571,
+              "semantic" : 620,
               "structure" : 0
             },
             {
@@ -8108,7 +8108,7 @@
               "ordinal" : 39,
               "provenance" : 100,
               "reason" : "something else answered better",
-              "semantic" : 571,
+              "semantic" : 620,
               "structure" : 0
             },
             {
@@ -8121,7 +8121,7 @@
               "ordinal" : 40,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 492,
+              "semantic" : 455,
               "structure" : 0
             },
             {
@@ -8134,7 +8134,7 @@
               "ordinal" : 41,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 591,
+              "semantic" : 618,
               "structure" : 0
             },
             {
@@ -8147,7 +8147,7 @@
               "ordinal" : 42,
               "provenance" : 60,
               "reason" : "nothing about it answers",
-              "semantic" : 468,
+              "semantic" : 521,
               "structure" : 0
             },
             {
@@ -8160,7 +8160,7 @@
               "ordinal" : 43,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 468,
+              "semantic" : 521,
               "structure" : 0
             },
             {
@@ -8173,7 +8173,7 @@
               "ordinal" : 44,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 281,
+              "semantic" : 310,
               "structure" : -50
             },
             {
@@ -8186,33 +8186,33 @@
               "ordinal" : 45,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 388,
+              "semantic" : 509,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2088,
               "label" : "Terminology",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 46,
               "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 532,
+              "reason" : "something else answered better",
+              "semantic" : 598,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2056,
               "label" : "Terminology",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 47,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 532,
+              "reason" : "something else answered better",
+              "semantic" : 598,
               "structure" : 0
             },
             {
@@ -8225,7 +8225,7 @@
               "ordinal" : 48,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 414,
+              "semantic" : 405,
               "structure" : 0
             },
             {
@@ -8238,7 +8238,7 @@
               "ordinal" : 49,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 448,
+              "semantic" : 539,
               "structure" : 0
             },
             {
@@ -8251,7 +8251,7 @@
               "ordinal" : 50,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 298,
+              "semantic" : 318,
               "structure" : -50
             },
             {
@@ -8264,7 +8264,7 @@
               "ordinal" : 51,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 393,
+              "semantic" : 353,
               "structure" : -50
             },
             {
@@ -8277,7 +8277,7 @@
               "ordinal" : 52,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 439,
+              "semantic" : 529,
               "structure" : 0
             },
             {
@@ -8290,7 +8290,7 @@
               "ordinal" : 53,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 422,
+              "semantic" : 503,
               "structure" : 0
             },
             {
@@ -8316,7 +8316,7 @@
               "ordinal" : 55,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 512,
+              "semantic" : 441,
               "structure" : 0
             },
             {
@@ -8329,20 +8329,20 @@
               "ordinal" : 56,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 491,
+              "semantic" : 427,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "outranked",
+              "disposition" : "belowFloor",
               "facts" : 8,
               "label" : "talk page",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 57,
               "provenance" : 100,
-              "reason" : "something else answered better",
-              "semantic" : 624,
+              "reason" : "nothing about it answers",
+              "semantic" : 538,
               "structure" : 0
             },
             {
@@ -8355,7 +8355,7 @@
               "ordinal" : 58,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 415,
+              "semantic" : 457,
               "structure" : -50
             },
             {
@@ -8368,7 +8368,7 @@
               "ordinal" : 59,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 395,
+              "semantic" : 402,
               "structure" : -50
             },
             {
@@ -8394,7 +8394,7 @@
               "ordinal" : 61,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 428,
+              "semantic" : 466,
               "structure" : 0
             },
             {
@@ -8407,7 +8407,7 @@
               "ordinal" : 62,
               "provenance" : 60,
               "reason" : "nothing about it answers",
-              "semantic" : 485,
+              "semantic" : 423,
               "structure" : 0
             },
             {
@@ -8420,7 +8420,7 @@
               "ordinal" : 63,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 378,
+              "semantic" : 351,
               "structure" : -50
             },
             {
@@ -8433,7 +8433,7 @@
               "ordinal" : 64,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 348,
+              "semantic" : 345,
               "structure" : -50
             },
             {
@@ -8459,7 +8459,7 @@
               "ordinal" : 66,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 294,
+              "semantic" : 293,
               "structure" : 0
             },
             {
@@ -8472,7 +8472,7 @@
               "ordinal" : 67,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 376,
+              "semantic" : 443,
               "structure" : 0
             },
             {
@@ -8485,7 +8485,7 @@
               "ordinal" : 68,
               "provenance" : 60,
               "reason" : "nothing about it answers",
-              "semantic" : 372,
+              "semantic" : 503,
               "structure" : 0
             },
             {
@@ -8498,7 +8498,7 @@
               "ordinal" : 69,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 372,
+              "semantic" : 503,
               "structure" : 0
             },
             {
@@ -8511,7 +8511,7 @@
               "ordinal" : 70,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 401,
+              "semantic" : 339,
               "structure" : -50
             },
             {
@@ -8524,33 +8524,33 @@
               "ordinal" : 71,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 465,
+              "semantic" : 571,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2312,
               "label" : "See also",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 72,
               "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 507,
+              "reason" : "something else answered better",
+              "semantic" : 559,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2056,
               "label" : "See also",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 73,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 507,
+              "reason" : "something else answered better",
+              "semantic" : 559,
               "structure" : 0
             },
             {
@@ -8563,7 +8563,7 @@
               "ordinal" : 74,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 462,
+              "semantic" : 493,
               "structure" : 0
             },
             {
@@ -8576,7 +8576,7 @@
               "ordinal" : 75,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 478,
+              "semantic" : 547,
               "structure" : 0
             },
             {
@@ -8589,7 +8589,7 @@
               "ordinal" : 76,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 487,
+              "semantic" : 602,
               "structure" : 0
             },
             {
@@ -8602,7 +8602,7 @@
               "ordinal" : 77,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 395,
+              "semantic" : 402,
               "structure" : -50
             },
             {
@@ -8620,28 +8620,28 @@
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2312,
               "label" : "References",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 79,
               "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 538,
+              "reason" : "something else answered better",
+              "semantic" : 591,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2056,
               "label" : "References",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 80,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 538,
+              "reason" : "something else answered better",
+              "semantic" : 591,
               "structure" : 0
             },
             {
@@ -8659,28 +8659,28 @@
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2304,
               "label" : "External links",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 82,
               "provenance" : 60,
-              "reason" : "nothing about it answers",
-              "semantic" : 524,
+              "reason" : "something else answered better",
+              "semantic" : 682,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 2048,
               "label" : "External links",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 83,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 524,
+              "reason" : "something else answered better",
+              "semantic" : 682,
               "structure" : 0
             },
             {
@@ -8693,7 +8693,7 @@
               "ordinal" : 84,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 86,
+              "semantic" : 99,
               "structure" : 0
             },
             {
@@ -8706,7 +8706,7 @@
               "ordinal" : 85,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 258,
+              "semantic" : 369,
               "structure" : 0
             },
             {
@@ -8719,7 +8719,7 @@
               "ordinal" : 86,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 410,
+              "semantic" : 500,
               "structure" : 0
             },
             {
@@ -8732,7 +8732,7 @@
               "ordinal" : 87,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 427,
+              "semantic" : 539,
               "structure" : 0
             },
             {
@@ -8745,7 +8745,7 @@
               "ordinal" : 88,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 297,
+              "semantic" : 337,
               "structure" : -50
             },
             {
@@ -8771,7 +8771,7 @@
               "ordinal" : 90,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 251,
+              "semantic" : 278,
               "structure" : 0
             },
             {
@@ -8784,7 +8784,7 @@
               "ordinal" : 91,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 472,
+              "semantic" : 532,
               "structure" : 0
             },
             {
@@ -8797,7 +8797,7 @@
               "ordinal" : 92,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 484,
+              "semantic" : 514,
               "structure" : 0
             },
             {
@@ -8810,7 +8810,7 @@
               "ordinal" : 93,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 204,
+              "semantic" : 302,
               "structure" : 0
             },
             {
@@ -8823,7 +8823,7 @@
               "ordinal" : 94,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 220,
+              "semantic" : 331,
               "structure" : 0
             },
             {
@@ -8836,7 +8836,7 @@
               "ordinal" : 95,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 373,
+              "semantic" : 434,
               "structure" : 0
             },
             {
@@ -8849,7 +8849,7 @@
               "ordinal" : 96,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 433,
+              "semantic" : 340,
               "structure" : 0
             },
             {
@@ -8862,7 +8862,7 @@
               "ordinal" : 97,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 368,
+              "semantic" : 259,
               "structure" : -50
             },
             {
@@ -8875,7 +8875,7 @@
               "ordinal" : 98,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 415,
+              "semantic" : 506,
               "structure" : 0
             },
             {
@@ -8888,7 +8888,7 @@
               "ordinal" : 99,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 302,
+              "semantic" : 307,
               "structure" : -50
             },
             {
@@ -8914,7 +8914,7 @@
               "ordinal" : 101,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 97,
+              "semantic" : 212,
               "structure" : 0
             },
             {
@@ -8927,7 +8927,7 @@
               "ordinal" : 102,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 250,
+              "semantic" : 338,
               "structure" : 0
             },
             {
@@ -8940,7 +8940,7 @@
               "ordinal" : 103,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 280,
+              "semantic" : 405,
               "structure" : 0
             },
             {
@@ -8953,7 +8953,7 @@
               "ordinal" : 104,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 441,
+              "semantic" : 523,
               "structure" : 0
             },
             {
@@ -8966,7 +8966,7 @@
               "ordinal" : 105,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 357,
+              "semantic" : 320,
               "structure" : -50
             },
             {
@@ -8992,7 +8992,7 @@
               "ordinal" : 107,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 121,
+              "semantic" : 182,
               "structure" : 0
             },
             {
@@ -9005,7 +9005,7 @@
               "ordinal" : 108,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 253,
+              "semantic" : 341,
               "structure" : 0
             },
             {
@@ -9018,7 +9018,7 @@
               "ordinal" : 109,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 391,
+              "semantic" : 413,
               "structure" : 0
             },
             {
@@ -9031,7 +9031,7 @@
               "ordinal" : 110,
               "provenance" : 100,
               "reason" : "isn't a link",
-              "semantic" : 268,
+              "semantic" : 220,
               "structure" : -50
             },
             {
@@ -9057,7 +9057,7 @@
               "ordinal" : 112,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 198,
+              "semantic" : 296,
               "structure" : 0
             },
             {
@@ -9070,7 +9070,7 @@
               "ordinal" : 113,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 298,
+              "semantic" : 386,
               "structure" : 0
             },
             {
@@ -9083,7 +9083,7 @@
               "ordinal" : 114,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 198,
+              "semantic" : 247,
               "structure" : -50
             },
             {
@@ -9096,7 +9096,7 @@
               "ordinal" : 115,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 288,
+              "semantic" : 348,
               "structure" : 0
             },
             {
@@ -9109,20 +9109,20 @@
               "ordinal" : 116,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 187,
+              "semantic" : 283,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 8,
               "label" : "Nordic",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 117,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 490,
+              "reason" : "something else answered better",
+              "semantic" : 551,
               "structure" : 0
             },
             {
@@ -9135,7 +9135,7 @@
               "ordinal" : 118,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 328,
+              "semantic" : 414,
               "structure" : 0
             },
             {
@@ -9148,7 +9148,7 @@
               "ordinal" : 119,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 470,
+              "semantic" : 426,
               "structure" : -50
             },
             {
@@ -9161,7 +9161,7 @@
               "ordinal" : 120,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 211,
+              "semantic" : 256,
               "structure" : 0
             },
             {
@@ -9174,20 +9174,20 @@
               "ordinal" : 121,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 230,
+              "semantic" : 303,
               "structure" : 0
             },
             {
               "affordance" : 100,
-              "disposition" : "belowFloor",
+              "disposition" : "outranked",
               "facts" : 8,
               "label" : "Telemark",
               "lexical" : 0,
               "lexicalBasis" : "none",
               "ordinal" : 122,
               "provenance" : 100,
-              "reason" : "nothing about it answers",
-              "semantic" : 517,
+              "reason" : "something else answered better",
+              "semantic" : 566,
               "structure" : 0
             },
             {
@@ -9200,7 +9200,7 @@
               "ordinal" : 123,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 249,
+              "semantic" : 282,
               "structure" : -50
             },
             {
@@ -9213,7 +9213,7 @@
               "ordinal" : 124,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 254,
+              "semantic" : 277,
               "structure" : -50
             },
             {
@@ -9226,7 +9226,7 @@
               "ordinal" : 125,
               "provenance" : 100,
               "reason" : "nothing about it answers",
-              "semantic" : 291,
+              "semantic" : 385,
               "structure" : 0
             },
             {
@@ -9239,7 +9239,7 @@
               "ordinal" : 126,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 430,
+              "semantic" : 511,
               "structure" : 0
             },
             {
@@ -9252,7 +9252,7 @@
               "ordinal" : 127,
               "provenance" : 30,
               "reason" : "isn't a link",
-              "semantic" : 286,
+              "semantic" : 288,
               "structure" : -50
             },
             {
@@ -9265,7 +9265,7 @@
               "ordinal" : 128,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 191,
+              "semantic" : 265,
               "structure" : 0
             },
             {
@@ -9278,12 +9278,12 @@
               "ordinal" : 129,
               "provenance" : 60,
               "reason" : "was named but not offered, and does not answer closely enough to reach past that",
-              "semantic" : 325,
+              "semantic" : 361,
               "structure" : 0
             }
           ],
           "eligibleCount" : 111,
-          "goal" : "the first link on this page",
+          "goal" : "the first link",
           "goalUnmatched" : false,
           "rivalOrdinals" : [
 
@@ -9292,11 +9292,11 @@
           "verb" : "press"
         }
       ],
-      "say" : "Can you click the first link on this page",
+      "say" : "Can you click on the first link",
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 200,
+          "atMilliseconds" : 347,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9307,7 +9307,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2543,
+          "atMilliseconds" : 2736,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9318,7 +9318,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3036,
+          "atMilliseconds" : 3215,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9329,7 +9329,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 3527,
+          "atMilliseconds" : 3691,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -9340,22 +9340,22 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "200ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "971ms  perceived 129 controls · —",
-        "972ms  looked — 129 rows, 111 named, 19 groups",
-        "1497ms  routed \"the first link on this page\" → \"Article\" (111 of 129 eligible)",
-        "1497ms  matched \"the first link on this page\" → \"Article\"",
-        "1840ms  clicked Article",
-        "4139ms  perceived 129 controls · —",
-        "4139ms  looked — 129 rows, 111 named, 19 groups",
-        "4153ms  receipt — click \"the first link on this page\" — no sign it did anything"
+        "116ms  resolved Chrome",
+        "347ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "1215ms  perceived 129 controls · —",
+        "1215ms  looked — 129 rows, 111 named, 19 groups",
+        "1669ms  routed \"the first link\" → \"Article\" (111 of 129 eligible)",
+        "1669ms  matched \"the first link\" → \"Article\"",
+        "2013ms  clicked Article",
+        "4297ms  perceived 129 controls · —",
+        "4297ms  looked — 129 rows, 111 named, 19 groups",
+        "4311ms  receipt — click \"the first link\" — no sign it did anything"
       ],
       "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-07T06:27:15Z",
+  "recordedAt" : "2026-09-07T06:29:21Z",
   "round" : "9",
   "runner" : "probe",
-  "tripID" : "click-first-link-on-this-page"
+  "tripID" : "click-first-link-from-editor"
 }

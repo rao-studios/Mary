@@ -418,6 +418,8 @@ public struct BrowserEngineSnapshot: Sendable {
     /// a roster is a photograph and the page has moved on. Nil is the honest answer
     /// whenever the slate is retracted — a navigation makes both wrong at once.
     public var lastRoster: PageRoster?
+    /// The window the engine works in, once one has been read.
+    public var workingWindow: CGWindowID?
     /// The last goal routed against that roster. Cleared with it, for its reason.
     public var lastRoute: PageRouteTrace?
     public var lastRefusal: BrowserRefusal?
@@ -432,6 +434,7 @@ public struct BrowserEngineSnapshot: Sendable {
         lastChrome: WebSurfaceAX.Reading? = nil, lastWatchRoad: String? = nil,
         lastMedia: MediaControlReading? = nil,
         lastRoster: PageRoster? = nil, lastRoute: PageRouteTrace? = nil,
+        workingWindow: CGWindowID? = nil,
         lastRefusal: BrowserRefusal? = nil, acts: Int = 0, refusals: Int = 0,
         perceptions: Int = 0, recent: [String] = []
     ) {
@@ -442,6 +445,7 @@ public struct BrowserEngineSnapshot: Sendable {
         self.lastWatchRoad = lastWatchRoad
         self.lastMedia = lastMedia
         self.lastRoster = lastRoster
+        self.workingWindow = workingWindow
         self.lastRoute = lastRoute
         self.lastRefusal = lastRefusal
         self.acts = acts

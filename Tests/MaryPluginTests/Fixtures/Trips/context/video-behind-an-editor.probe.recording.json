@@ -4,93 +4,38 @@
   "legs" : [
     {
       "acts" : [
-        {
-          "atMilliseconds" : 40,
-          "kind" : "bringForward"
-        },
-        {
-          "atMilliseconds" : 40,
-          "atX" : 0.5,
-          "atY" : 0.3503267973856209,
-          "kind" : "hover"
-        },
-        {
-          "atMilliseconds" : 1421,
-          "kind" : "restoreCursor"
-        }
+
       ],
-      "ambientAfter" : {
-
-      },
-      "ambientBefore" : {
-
-      },
-      "because" : "refused controlNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
-      "elapsedMilliseconds" : 1421,
+      "because" : "xcode has to be in front",
+      "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
-      "layer" : "P",
       "media" : [
-        {
-          "atMilliseconds" : 1421,
-          "controlCount" : 0,
-          "controlsVisible" : false,
-          "hasFullscreen" : false,
-          "hasPlayPause" : false,
-          "hasProgress" : false,
-          "hasVolume" : false,
-          "hasVolumeTrack" : false,
-          "playback" : "paused",
-          "witnesses" : [
-            "picture still (0.000)"
-          ]
-        }
-      ],
-      "observableLayers" : [
-        "A",
-        "P",
-        "R2",
-        "E",
-        "T"
+
       ],
       "ok" : false,
-      "outcomeSpoken" : "I can see the player but not its volume control.",
+      "outcomeSpoken" : "",
       "pageReads" : [
 
       ],
-      "providerApplicationID" : "chrome",
       "receipts" : [
 
       ],
-      "refusal" : "controlNotFound",
       "routes" : [
 
       ],
       "say" : "mute the video",
       "shells" : [
-        {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 40,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "wikimedia commons",
-          "tabCount" : 1,
-          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
-        }
+
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "40ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1421ms  perceived 0 controls · paused",
-        "1421ms  refused — I can see the player but not its volume control."
+
       ],
-      "verdict" : "failed"
+      "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:21:41Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:30:07Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "video-behind-an-editor"
 }

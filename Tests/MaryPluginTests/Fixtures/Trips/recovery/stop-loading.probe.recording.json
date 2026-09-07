@@ -34,8 +34,8 @@
       "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:23:16Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:33:00Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "stop-loading"
 }

@@ -502,16 +502,43 @@ public enum TripLayer {
     /// query echoed back — not the second row on the page, which is what counting
     /// at large did and how a navigation strip came to be opened.
     public static func candidates(
-        for wanted: TripRowClass, in recording: TripLegRecording
+        for wanted: TripRowClass, in recording: TripLegRecording, verb: String? = nil,
+        reachable: Set<Int>? = nil
     ) -> [Int] {
         guard let page = routedPage(in: recording) else { return [] }
         let required = BrowsingTripValidator.facts(named: wanted.facts ?? [])
         let forbidden = BrowsingTripValidator.facts(named: wanted.factsAbsent ?? [])
+        let counting = wanted.ordinalWithinKind != nil
+        // THE ROUTE THE LEG RECORDED SAYS HOW IT COUNTED — its verb, and which
+        // rows its gates let through — so every caller counts the same way.
+        let route = recording.routes.first
+        let verb = verb ?? route?.verb
+        let reachable = reachable ?? route.map {
+            Set($0.decisions.filter { $0.disposition != "ineligible" }.map(\.ordinal))
+        }
 
         var matching = page.rows.filter { row in
             let facts = RowFacts(rawValue: row.facts ?? 0)
             guard facts.isSuperset(of: required) else { return false }
             guard facts.isDisjoint(with: forbidden) else { return false }
+            // A POSITION IS COUNTED THE WAY THE ROUTER COUNTS IT — the page's
+            // own column, and for a result, something that opens. Round 9: the
+            // router stopped counting a site's header and its sidebars, and
+            // this count still did, so every position it judged was off by
+            // the header's links. See `PageRouter.countsForAPosition`.
+            if counting {
+                let region = row.region.flatMap(PageRegion.init(rawValue:))
+                guard PageRouter.inTheCountedColumn(region) else { return false }
+                var uncountable = PageRouter.uncountableForAPosition
+                if verb == "fill" { uncountable.remove(.inForm) }
+                guard facts.isDisjoint(with: uncountable) else { return false }
+                if verb == "result", row.affordance != "press" { return false }
+                // A SYNTHESIZED LABEL IS A POSITION THE READING INVENTED.
+                if row.labelSource == "synthesized" { return false }
+                // AND THE ROUTER COUNTS AMONG WHAT ITS GATES LET THROUGH — a row
+                // the route itself called ineligible was never in its count.
+                if let reachable, !reachable.contains(row.ordinal) { return false }
+            }
             if let affordance = wanted.affordance,
                row.affordance != affordance.rawValue { return false }
             if let kind = wanted.kind, row.kind != kind { return false }

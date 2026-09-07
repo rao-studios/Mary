@@ -6,7 +6,7 @@
       "acts" : [
 
       ],
-      "because" : "waiting on replay only",
+      "because" : "could not stage siteWithSearchBox — I couldn't find the address bar.",
       "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
@@ -31,11 +31,11 @@
       "timeline" : [
 
       ],
-      "verdict" : "pending"
+      "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:23:04Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:32:48Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "focus-lost-mid-plan"
 }

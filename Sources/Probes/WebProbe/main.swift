@@ -929,6 +929,30 @@ if value("--route") != nil || value("--save-roster") != nil {
 
 // MARK: - Navigating
 
+// MARK: - The window
+
+// `--front-window` prints the id of the browser's main window and stops — a
+// runner that has just opened a window for a round asks this once and hands
+// the id to every trip as `--window`, so the round works in ITS window however
+// many times the person clicks their own. `--window <id>` adopts it.
+if flag("--front-window") {
+    guard let windows = AXWindowRoster.axWindows(of: target.processIdentifier, standardOnly: true),
+          let main = windows.first(where: {
+              AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true
+          }) ?? windows.first,
+          let id = AXWindowIdentity.windowID(of: main.element)
+    else {
+        print("  ✗  no window to name")
+        exit(1)
+    }
+    print(id)
+    exit(0)
+}
+if let raw = value("--window"), let id = CGWindowID(raw) {
+    await engine.adopt(window: id)
+    print("  ·  working in window \(id)")
+}
+
 // MARK: - The history
 
 // `--navigate back|forward|reload` — the shell verbs, so a person driving the

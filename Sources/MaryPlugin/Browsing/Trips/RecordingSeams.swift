@@ -129,6 +129,21 @@ struct RecordingShell: BrowserShellReading {
         await recorder.noteAct(RecordedAct(kind: .pressShell, shellLabel: label))
         return await inner.press(label: label, pid: pid, registration: registration)
     }
+
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading? {
+        let reading = await inner.read(pid: pid, registration: registration, preferring: window)
+        await recorder.noteShell(reading)
+        return reading
+    }
+
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool {
+        await recorder.noteAct(RecordedAct(kind: .pressShell, shellLabel: label))
+        return await inner.press(label: label, pid: pid, registration: registration, within: window)
+    }
 }
 
 struct RecordingPage: PagePerceiving {
@@ -252,6 +267,11 @@ struct RecordingStaging: BrowserStaging {
     func bringForward(pid: pid_t) async -> Activation {
         await recorder.noteAct(RecordedAct(kind: .bringForward))
         return await inner.bringForward(pid: pid)
+    }
+
+    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
+        await recorder.noteAct(RecordedAct(kind: .bringForward))
+        return await inner.bringForward(pid: pid, raising: window)
     }
 
     func standDown(givingBackTo previous: pid_t?) async {

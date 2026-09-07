@@ -200,7 +200,8 @@ extension BrowserEngine {
     ) async -> WebSurfaceAX.Reading? {
         func read() async -> WebSurfaceAX.Reading? {
             await seams.shell.read(
-                pid: target.processIdentifier, registration: target.registration)
+                pid: target.processIdentifier, registration: target.registration,
+                preferring: workingWindow)
         }
         let mayNavigate: Bool
         switch command.action {

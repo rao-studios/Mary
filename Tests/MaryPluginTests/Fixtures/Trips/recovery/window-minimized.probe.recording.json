@@ -5,21 +5,39 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 7,
+          "atMilliseconds" : 9,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1178,
+          "atMilliseconds" : 733,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 2582,
+          "atMilliseconds" : 2631,
+          "atX" : 0.5,
+          "atY" : 0.550326797385621,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 3899,
+          "atX" : 0.5,
+          "atY" : 0.2196078431372549,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 5211,
+          "atX" : 0.5,
+          "atY" : 0.4196078431372549,
+          "kind" : "hover"
+        },
+        {
+          "atMilliseconds" : 6502,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2583,
+          "atMilliseconds" : 6502,
           "kind" : "restoreFront"
         }
       ],
@@ -29,12 +47,56 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 2587,
+      "because" : "refused controlsNotFound — nothing was found to act on (0 control(s) seen, controls visible: false)",
+      "elapsedMilliseconds" : 6505,
       "index" : 0,
-      "landed" : true,
+      "landed" : false,
+      "layer" : "P",
       "media" : [
         {
-          "atMilliseconds" : 2582,
+          "atMilliseconds" : 2123,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        },
+        {
+          "atMilliseconds" : 3899,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        },
+        {
+          "atMilliseconds" : 5211,
+          "controlCount" : 0,
+          "controlsVisible" : false,
+          "hasFullscreen" : false,
+          "hasPlayPause" : false,
+          "hasProgress" : false,
+          "hasVolume" : false,
+          "hasVolumeTrack" : false,
+          "playback" : "paused",
+          "witnesses" : [
+            "picture still (0.000)"
+          ]
+        },
+        {
+          "atMilliseconds" : 6502,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -52,54 +114,806 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
-      "ok" : true,
-      "outcomeSpoken" : "It's already paused — Paused.",
+      "ok" : false,
+      "outcomeSpoken" : "I can't find the player's controls on this page.",
       "pageReads" : [
+        {
+          "atMilliseconds" : 2631,
+          "page" : {
+            "classified" : true,
+            "groups" : [
+              {
+                "id" : 0,
+                "kind" : "toolbar",
+                "memberOrdinals" : [
+                  1,
+                  3,
+                  4,
+                  5,
+                  7,
+                  8,
+                  10
+                ]
+              },
+              {
+                "id" : 1,
+                "kind" : "toolbar",
+                "memberOrdinals" : [
+                  12,
+                  13,
+                  14,
+                  15,
+                  16,
+                  17
+                ],
+                "title" : "Overview"
+              },
+              {
+                "id" : 2,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  18
+                ],
+                "title" : "ravynoS"
+              },
+              {
+                "id" : 3,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  19,
+                  20
+                ],
+                "title" : "ravynoS"
+              },
+              {
+                "id" : 4,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  21,
+                  22,
+                  23
+                ],
+                "title" : "Darwin, FreeBSD, and Apple open-source code that aims to be"
+              },
+              {
+                "id" : 5,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  24,
+                  25
+                ],
+                "title" : "freedom of open source."
+              }
+            ],
+            "labeledFraction" : 0.7619047619047619,
+            "pageFrame" : [
+              -1847,
+              184,
+              1266,
+              765
+            ],
+            "readMilliseconds" : 397,
+            "rows" : [
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1696,
+                  193,
+                  27,
+                  29
+                ],
+                "groupID" : 0,
+                "hints" : [
 
+                ],
+                "isEnabled" : true,
+                "label" : "7",
+                "labelSource" : "textInside",
+                "ordinal" : 1,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1692,
+                  196,
+                  21,
+                  21
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "ravynOS Logo",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 2,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "ravynos"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1136,
+                  199,
+                  59,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Overview",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 3,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "ravynos"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1048,
+                  199,
+                  56,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Releases",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 4,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "ravynos"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 2568,
+                "frame" : [
+                  -968,
+                  197,
+                  37,
+                  21
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Wiki",
+                "labelSource" : "textInside",
+                "ordinal" : 5,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -963,
+                  199,
+                  27,
+                  17
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Wiki",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 6,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "ravynos"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -907,
+                  199,
+                  26,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "FAQ",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 7,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "ravynos"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 2568,
+                "frame" : [
+                  -855,
+                  197,
+                  37,
+                  23
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Blog",
+                "labelSource" : "textInside",
+                "ordinal" : 8,
+                "region" : "header",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -852,
+                  199,
+                  29,
+                  17
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Blog",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 9,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "bearblog ravynos"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -794,
+                  199,
+                  43,
+                  17
+                ],
+                "groupID" : 0,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "GitHub",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 10,
+                "region" : "header",
+                "role" : "AXLink",
+                "site" : "github"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -1847,
+                  289,
+                  1251,
+                  96
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "heading",
+                "label" : "ravynOS",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 11,
+                "region" : "main",
+                "role" : "AXHeading",
+                "value" : 1
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 2568,
+                "frame" : [
+                  -1350,
+                  307,
+                  257,
+                  73
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "ravynoS",
+                "labelSource" : "textInside",
+                "ordinal" : 12,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1320,
+                  324,
+                  28,
+                  37
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 11",
+                "labelSource" : "synthesized",
+                "ordinal" : 13,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1216,
+                  324,
+                  28,
+                  36
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 12",
+                "labelSource" : "synthesized",
+                "ordinal" : 14,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1181,
+                  312,
+                  41,
+                  49
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 9",
+                "labelSource" : "synthesized",
+                "ordinal" : 15,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1177,
+                  317,
+                  32,
+                  40
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "item 10",
+                "labelSource" : "synthesized",
+                "ordinal" : 16,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Overview",
+                  "toolbar"
+                ],
+                "facts" : 520,
+                "frame" : [
+                  -1134,
+                  312,
+                  33,
+                  49
+                ],
+                "groupID" : 1,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "button",
+                "label" : "button 1",
+                "labelSource" : "synthesized",
+                "ordinal" : 17,
+                "region" : "main",
+                "role" : "AXButton"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "ravynoS",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1606,
+                  397,
+                  765,
+                  35
+                ],
+                "groupID" : 2,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "An early-stage (pre-alpha) open-source operating system based on",
+                "labelSource" : "textInside",
+                "ordinal" : 18,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "ravynoS",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1575,
+                  431,
+                  709,
+                  37
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Darwin, FreeBSD, and Apple open-source code that aims to be",
+                "labelSource" : "textInside",
+                "ordinal" : 19,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "ravynoS",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1617,
+                  463,
+                  795,
+                  35
+                ],
+                "groupID" : 3,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "compatible with macOS applications and has no hardware restrictions.",
+                "labelSource" : "textInside",
+                "ordinal" : 20,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Darwin, FreeBSD, and Apple open-source code that aims to be",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1543,
+                  547,
+                  647,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "We love macOS, but we're not a fan of the ever-closing hardware and ecosystem. So,",
+                "labelSource" : "textInside",
+                "ordinal" : 21,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Darwin, FreeBSD, and Apple open-source code that aims to be",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1531,
+                  571,
+                  621,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "we are creating ravynOS — an OS aimed to provide the finesse of macOS with the",
+                "labelSource" : "textInside",
+                "ordinal" : 22,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Darwin, FreeBSD, and Apple open-source code that aims to be",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1319,
+                  595,
+                  197,
+                  27
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "freedom of open source.",
+                "labelSource" : "textInside",
+                "ordinal" : 23,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "freedom of open source.",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1449,
+                  687,
+                  459,
+                  23
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "This is a developer preview intended for people building the system.",
+                "labelSource" : "textInside",
+                "ordinal" : 24,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "freedom of open source.",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1439,
+                  707,
+                  435,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "It is not polished, not completed, and not ready for end users yet.",
+                "labelSource" : "textInside",
+                "ordinal" : 25,
+                "region" : "main",
+                "role" : "AXStaticText"
+              }
+            ],
+            "version" : 2
+          }
+        }
       ],
       "providerApplicationID" : "chrome",
       "receipts" : [
-        {
-          "delivery" : "delivered",
-          "kind" : "click",
-          "landed" : true,
-          "receipt" : "mediaState",
-          "spoken" : "click \"play\" — It's already paused — Paused.",
-          "target" : "play"
-        }
+
       ],
+      "refusal" : "controlsNotFound",
       "routes" : [
 
       ],
       "say" : "pause the video",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 1178,
-          "canGoBack" : true,
+          "activeTabIndex" : 2,
+          "atMilliseconds" : 732,
+          "canGoBack" : false,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "wikimedia commons",
-          "tabCount" : 2,
-          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
+          "site" : "ravynos",
+          "tabCount" : 8,
+          "title" : "ravynOS - Finesse of macOS. Freedom of Open Source."
         }
       ],
       "timeline" : [
-        "1088ms  resolved Chrome",
-        "1178ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "2582ms  perceived 0 controls · paused",
-        "2582ms  receipt — click \"play\" — It's already paused — Paused.",
-        "2583ms  gave the stage back"
+        "542ms  resolved Chrome",
+        "732ms  read the shell — ravynOS - Finesse of macOS. Freedom of Open Source. · ravynos",
+        "2123ms  perceived 0 controls · paused",
+        "2123ms  looked again — the transport was not showing",
+        "2631ms  perceived 25 controls · —",
+        "3899ms  perceived 0 controls · paused",
+        "3899ms  looked again — the transport was not showing",
+        "5211ms  perceived 0 controls · paused",
+        "5211ms  looked again — the transport was not showing",
+        "6502ms  perceived 0 controls · paused",
+        "6502ms  refused — I can't find the player's controls on this page.",
+        "6502ms  gave the stage back"
       ],
-      "verdict" : "passed"
+      "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T22:01:22Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:33:12Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "window-minimized"
 }

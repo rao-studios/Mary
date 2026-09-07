@@ -5,18 +5,18 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 6,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 70,
+          "atMilliseconds" : 192,
           "atX" : 0.5,
           "atY" : 0.5006535947712418,
           "delta" : -320,
           "kind" : "scroll"
         },
         {
-          "atMilliseconds" : 70,
+          "atMilliseconds" : 193,
           "kind" : "restoreCursor"
         }
       ],
@@ -26,7 +26,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 70,
+      "elapsedMilliseconds" : 193,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -36,6 +36,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -54,27 +55,27 @@
       "say" : "Can you scroll down this page",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 70,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 192,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
-          "tabCount" : 2,
+          "tabCount" : 1,
           "title" : "Ski touring - Wikipedia"
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "70ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "70ms  scrolled"
+        "8ms  resolved Chrome",
+        "192ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "193ms  scrolled"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T22:30:55Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:28:22Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "scroll-down-this-page"
 }

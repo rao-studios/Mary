@@ -5,16 +5,11 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 5,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 168,
-          "kind" : "pressShell",
-          "shellLabel" : "about:blank"
-        },
-        {
-          "atMilliseconds" : 542,
+          "atMilliseconds" : 169,
           "kind" : "restoreCursor"
         }
       ],
@@ -24,9 +19,11 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 542,
+      "because" : "its best receipt was none, not navigation · refused elementNotFound",
+      "elapsedMilliseconds" : 169,
       "index" : 0,
-      "landed" : true,
+      "landed" : false,
+      "layer" : "E",
       "media" : [
 
       ],
@@ -34,25 +31,20 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
-      "ok" : true,
-      "outcomeSpoken" : "Switched to about:blank.",
+      "ok" : false,
+      "outcomeSpoken" : "I couldn't find \"switch to the blank tab\" on the page.",
       "pageReads" : [
 
       ],
       "providerApplicationID" : "chrome",
       "receipts" : [
-        {
-          "delivery" : "delivered",
-          "kind" : "navigate",
-          "landed" : true,
-          "receipt" : "navigation",
-          "spoken" : "navigate \"about:blank\" — the page became about:blank",
-          "target" : "about:blank"
-        }
+
       ],
+      "refusal" : "elementNotFound",
       "routes" : [
 
       ],
@@ -60,37 +52,26 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 167,
+          "atMilliseconds" : 168,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
-          "tabCount" : 2,
+          "tabCount" : 8,
           "title" : "Ski touring - Wikipedia"
-        },
-        {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 542,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "tabCount" : 2,
-          "title" : "about:blank"
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "167ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "241ms  pressed the tab about:blank",
-        "542ms  receipt — navigate \"about:blank\" — the page became about:blank"
+        "7ms  resolved Chrome",
+        "168ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "169ms  refused — I couldn't find \"switch to the blank tab\" on the page."
       ],
-      "verdict" : "passed"
+      "verdict" : "failed"
     }
   ],
-  "recordedAt" : "2026-09-06T23:38:37Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:34:30Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "switch-by-name"
 }

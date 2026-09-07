@@ -9,12 +9,12 @@
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 130,
+          "atMilliseconds" : 238,
           "kind" : "openLocation",
           "typedLength" : 19
         },
         {
-          "atMilliseconds" : 1123,
+          "atMilliseconds" : 1610,
           "kind" : "restoreCursor"
         }
       ],
@@ -24,7 +24,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1124,
+      "elapsedMilliseconds" : 1611,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -34,6 +34,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -58,51 +59,51 @@
       "say" : "Can you go to youtube.com",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 130,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 238,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "wikimedia commons",
-          "tabCount" : 2,
-          "title" : "File:Big Buck Bunny 4K.webm - Wikimedia Commons"
+          "site" : "wikipedia",
+          "tabCount" : 1,
+          "title" : "Wikipedia, the free encyclopedia"
         },
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 771,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1150,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "youtube",
-          "tabCount" : 2,
+          "tabCount" : 1,
           "title" : "YouTube"
         },
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 1123,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 1610,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "youtube",
-          "tabCount" : 2,
+          "tabCount" : 1,
           "title" : "YouTube"
         }
       ],
       "timeline" : [
-        "36ms  resolved Chrome",
-        "130ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "423ms  typed an address",
-        "1123ms  verified the page changed",
-        "1123ms  receipt — navigate — the page became YouTube"
+        "39ms  resolved Chrome",
+        "238ms  read the shell — Wikipedia, the free encyclopedia · wikipedia",
+        "641ms  typed an address",
+        "1610ms  verified the page changed",
+        "1610ms  receipt — navigate — the page became YouTube"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T23:07:16Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:28:53Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "go-to-a-bare-host"
 }

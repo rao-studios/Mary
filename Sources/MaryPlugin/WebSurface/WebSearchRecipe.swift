@@ -94,16 +94,26 @@ public enum WebSearchRecipe {
         // exactly where it was asked to be. This is `settle`'s arrival rule one
         // level up: the receipt is the page in front, and the same evidence
         // proves it — the browser's own title and address, asked of the query.
+        // AND ONLY RESULTS THIS ENGINE SEARCHED FOR. `searched` is the check
+        // made AFTER typing, where the address is known to be a search; asked
+        // of whatever page happens to be in front it is far too loose — measured
+        // in round 8, a product page titled with two of the query's three words
+        // was taken as the results for it, and "search the web for alpine
+        // touring boots" typed nothing and reported a shop. The page in front
+        // is the results when this engine put them there.
         let standing = await engine.readShell(target)
         let opened: BrowserOutcome
-        if let here = standing.shell, searched(for: asked, shell: here) {
+        if let here = standing.shell, await engine.resultQueryStanding() == asked,
+           searched(for: asked, shell: here) {
             await engine.emitJourney("already showing results for that")
+            let receipt = PageCommandReceipt(
+                sourceIndex: 0, kind: .navigate, target: nil, delivery: .delivered,
+                effect: .verified(.navigation(title: here.title ?? "")))
+            // ON THE STREAM AS WELL AS IN THE OUTCOME — see `settle`.
+            await engine.emit(.receipt(receipt))
             opened = BrowserOutcome(
                 ok: true, spoken: standing.spoken, shell: here,
-                receipts: [PageCommandReceipt(
-                    sourceIndex: 0, kind: .navigate, target: nil, delivery: .delivered,
-                    effect: .verified(.navigation(title: here.title ?? "")))],
-                landed: true)
+                receipts: [receipt], landed: true)
         } else {
             opened = await engine.navigate(.open(asked), in: target)
         }
@@ -258,6 +268,9 @@ extension BrowserEngine {
     func noteResultQuery(_ query: String) {
         lastResultQuery = query
     }
+
+    /// The query whose results this engine last put in front, if any.
+    func resultQueryStanding() -> String? { lastResultQuery }
 
     /// Time for results to draw before they are read.
     /// WAIT FOR THE PAGE TO STOP ARRIVING, then read it once.

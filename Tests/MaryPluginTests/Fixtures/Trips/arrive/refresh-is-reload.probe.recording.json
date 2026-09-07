@@ -5,13 +5,17 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 92,
+          "atMilliseconds" : 5,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 93,
+          "atMilliseconds" : 278,
           "kind" : "pressShell",
           "shellLabel" : "Reload"
+        },
+        {
+          "atMilliseconds" : 2299,
+          "kind" : "restoreCursor"
         }
       ],
       "ambientAfter" : {
@@ -20,7 +24,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1698,
+      "elapsedMilliseconds" : 2309,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -30,6 +34,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -55,7 +60,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 92,
+          "atMilliseconds" : 277,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -66,7 +71,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 440,
+          "atMilliseconds" : 836,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -77,7 +82,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 754,
+          "atMilliseconds" : 1331,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -88,7 +93,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1067,
+          "atMilliseconds" : 1821,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -99,18 +104,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1398,
-          "canGoBack" : true,
-          "canGoForward" : false,
-          "hasPageFrame" : true,
-          "pageFrameSource" : "window below the toolbar",
-          "site" : "ecosia",
-          "tabCount" : 1,
-          "title" : "search the web for swift concurrency - Ecosia"
-        },
-        {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 1698,
+          "atMilliseconds" : 2299,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -121,17 +115,17 @@
         }
       ],
       "timeline" : [
-        "13ms  resolved Chrome",
-        "92ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
-        "96ms  pressed Reload",
-        "1698ms  verified the page changed",
-        "1698ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia"
+        "38ms  resolved Chrome",
+        "278ms  read the shell — search the web for swift concurrency - Ecosia · ecosia",
+        "280ms  pressed Reload",
+        "2299ms  verified the page changed",
+        "2299ms  receipt — navigate — the page became search the web for swift concurrency - Ecosia"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:21:00Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:29:08Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "refresh-is-reload"
 }

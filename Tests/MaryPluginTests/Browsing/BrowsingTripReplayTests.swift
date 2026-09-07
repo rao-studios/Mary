@@ -204,7 +204,13 @@ import Testing
         // move: "no row answers the class" blamed the detector's recall, and the
         // truth is that a row does answer and the route reached number 3 of its
         // kind instead of number 1. A routing miss, statable and fixable.
-        "site-search[1] R2",
+        // ROUND 9 MOVED IT BACK TO P, AND THIS TIME THE P IS TRUE. The count
+        // now admits only what can be pressed — a result is something that
+        // opens — and on this page the seal grouped the search-options panel
+        // as the list and the real results as bands across columns, so no
+        // pressable row is in a result group at all. The recall belongs in the
+        // seal's grouping, exactly as the sentence says.
+        "site-search[1] P",
         // STRUCK BY ROUND 6: "search-then-open-second[1] P". It was never
         // perception either. `PageListDerivation` fires correctly on that page —
         // 55 of 107 rows eligible as results, measured live — and the read it was

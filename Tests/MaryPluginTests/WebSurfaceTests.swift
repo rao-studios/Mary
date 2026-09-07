@@ -244,6 +244,21 @@ import Testing
             root: node("AXWindow", category: .container, children: inside))
     }
 
+    /// THE WINDOW MARY WORKS IN COMES BEFORE THE ONE THE BROWSER CALLS MAIN —
+    /// the person's own window is main the moment they click it.
+    @Test func theWorkingWindowIsChosenOverTheMainOne() {
+        let theirs = Self.window("Something They Read", main: true, holdsPage: true)
+        let ours = Self.window("The Round's Page", main: false, holdsPage: true)
+        let chosen = WebSurfaceAX.browsingWindow(
+            among: [theirs, ours], preferring: 9,
+            identify: { $0.title == "The Round's Page" ? 9 : 1 })
+        #expect(chosen?.title == "The Round's Page")
+        // Gone, and the main one stands in.
+        let fallback = WebSurfaceAX.browsingWindow(
+            among: [theirs], preferring: 9, identify: { _ in 1 })
+        #expect(fallback?.title == "Something They Read")
+    }
+
     /// A PANEL CAN BE THE MAIN WINDOW, AND THEN EVERY READ IS ABOUT THE PANEL.
     /// MEASURED: after a find, Chrome's find bar takes `AXMain` and the shell
     /// reported the page's title as "Find in page" with no tabs at all.

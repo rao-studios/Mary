@@ -173,14 +173,19 @@ public enum WebSurfaceAX {
 
     // MARK: - Reading
 
-    public static func read(pid: pid_t, registration: WebSurfaceRegistration) -> Reading? {
+    /// `preferring` names the window the caller works in — see
+    /// `browsingWindow(among:preferring:identify:)`.
+    public static func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring wanted: CGWindowID? = nil
+    ) -> Reading? {
         guard AXIsProcessTrusted() else { return nil }
         // THE SHELL PRESET. Every read in this file is about the browser's own
         // window — title, tabs, history, the address field, the page's frame —
         // and once the page's accessibility tree is awake `.exhaustive` walks
         // several thousand page nodes to reach a toolbar. See `Options.shell`.
         guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
-              let window = browsingWindow(among: snapshot.windows),
+              let window = browsingWindow(
+                  among: snapshot.windows, preferring: wanted, identify: \.windowID),
               let root = window.root
         else { return nil }
 
@@ -224,7 +229,11 @@ public enum WebSurfaceAX {
             source: registration.schema.pageFrameSource)
         reading.pageFrame = frame
         reading.pageFrameSource = source
-        reading.windowID = windowIdentifier(pid: pid, frame: window.frame)
+        // THE ELEMENT'S OWN ID, and the window list's guess only for a
+        // snapshot that has none — four windows a round opens all sit at the
+        // same origin, and the origin named the wrong one.
+        reading.windowID = window.windowID
+            ?? windowIdentifier(pid: pid, frame: window.frame, title: window.title)
 
         reading.url = url(
             pid: pid, nodes: nodes, webArea: webArea, registration: registration)
@@ -242,7 +251,19 @@ public enum WebSurfaceAX {
     /// turn was about a strip forty points tall. A browsing window is the one
     /// with the browser's own furniture in it: a toolbar, or the page itself.
     /// Told apart by SHAPE, never by a title.
-    static func browsingWindow(among windows: [AXWindowSnapshot]) -> AXWindowSnapshot? {
+    ///
+    /// AND THE WINDOW MARY WORKS IN COMES BEFORE THE ONE THE BROWSER CALLS
+    /// MAIN. The browser's main window is whichever the person last clicked;
+    /// measured in round 9, a session that read "the main window" moved into
+    /// the person's own window the moment they touched it, opened tabs there
+    /// and played a video in it. `preferring` is the window the caller has
+    /// been working in, identified by `identify` (its window-server id); it
+    /// is chosen whenever it is still there, main or not.
+    static func browsingWindow(
+        among windows: [AXWindowSnapshot],
+        preferring wanted: CGWindowID? = nil,
+        identify: (AXWindowSnapshot) -> CGWindowID? = { _ in nil }
+    ) -> AXWindowSnapshot? {
         func holdsThePage(_ window: AXWindowSnapshot) -> Bool {
             guard let root = window.root else { return false }
             var found = false
@@ -253,6 +274,9 @@ public enum WebSurfaceAX {
             return found
         }
         let browsing = windows.filter(holdsThePage)
+        if let wanted, let kept = browsing.first(where: { identify($0) == wanted }) {
+            return kept
+        }
         return browsing.first(where: \.isMain)
             ?? browsing.first
             ?? windows.first(where: \.isMain)
@@ -352,11 +376,20 @@ public enum WebSurfaceAX {
     }
 
     /// The window's CGWindowID, so a capture takes the window this walk described.
-    private static func windowIdentifier(pid: pid_t, frame: CGRect?) -> CGWindowID? {
+    /// The window-server id of the window at `frame` with `title`.
+    ///
+    /// PIN: THE TITLE TELLS STACKED WINDOWS APART. Every window a round opens
+    /// sits at the same origin as the last, so the origin alone named the
+    /// wrong one; the window list carries each window's name where the
+    /// screen-recording grant allows, and a name that is there has to agree.
+    private static func windowIdentifier(
+        pid: pid_t, frame: CGRect?, title: String? = nil
+    ) -> CGWindowID? {
         guard let frame, let windows = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
             as? [[String: Any]]
         else { return nil }
+        var atTheOrigin: CGWindowID?
         for window in windows {
             guard window[kCGWindowOwnerPID as String] as? pid_t == pid,
                   let boundsDictionary = window[kCGWindowBounds as String] as? [String: Any],
@@ -365,8 +398,12 @@ public enum WebSurfaceAX {
                   abs(bounds.origin.y - frame.origin.y) < 2,
                   let number = window[kCGWindowNumber as String] as? CGWindowID
             else { continue }
-            return number
+            if let title, let name = window[kCGWindowName as String] as? String, !name.isEmpty {
+                if name == title { return number }
+                continue
+            }
+            if atTheOrigin == nil { atTheOrigin = number }
         }
-        return nil
+        return atTheOrigin
     }
 }

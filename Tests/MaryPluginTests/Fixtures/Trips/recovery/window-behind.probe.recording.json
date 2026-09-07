@@ -5,21 +5,21 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 9,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 193,
+          "atMilliseconds" : 316,
           "atX" : 0.5,
           "atY" : 0.3503267973856209,
           "kind" : "hover"
         },
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 1712,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 1712,
           "kind" : "restoreFront"
         }
       ],
@@ -29,12 +29,12 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1571,
+      "elapsedMilliseconds" : 1719,
       "index" : 0,
       "landed" : true,
       "media" : [
         {
-          "atMilliseconds" : 1568,
+          "atMilliseconds" : 1712,
           "controlCount" : 0,
           "controlsVisible" : false,
           "hasFullscreen" : false,
@@ -52,6 +52,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -77,8 +78,8 @@
       "say" : "pause the video",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 193,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 316,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -90,16 +91,16 @@
       ],
       "timeline" : [
         "114ms  resolved Chrome",
-        "193ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
-        "1568ms  perceived 0 controls · paused",
-        "1568ms  receipt — click \"play\" — It's already paused — Paused.",
-        "1568ms  gave the stage back"
+        "316ms  read the shell — File:Big Buck Bunny 4K.webm - Wikimedia Commons · wikimedia commons",
+        "1712ms  perceived 0 controls · paused",
+        "1712ms  receipt — click \"play\" — It's already paused — Paused.",
+        "1712ms  gave the stage back"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T21:59:22Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:33:06Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "window-behind"
 }

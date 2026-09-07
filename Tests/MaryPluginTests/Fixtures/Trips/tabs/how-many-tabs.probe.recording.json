@@ -12,7 +12,8 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 89,
+      "because" : "only its routing is stated, and a probe routes nothing",
+      "elapsedMilliseconds" : 236,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -22,11 +23,12 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "watch a fireplace video on youtube - Ecosia",
+      "outcomeSpoken" : "MaryOS — An operating system for the generative age.\nThe Final Industry - Miro - High memory usage - 872 MB\nravynOS - Finesse of macOS. Freedom of Open Source.\nRitesh Pakala Rao (@riteshpakalarao) / X\nFAQ - ravynOS\nravynsoft/wiki: The ravynOS Wiki.\nPost by @rao.nyc — Bluesky\nFireplace Ambience – Cozy Fire for Relaxation & Background Viewing - YouTube - Audio playing",
       "pageReads" : [
 
       ],
@@ -41,25 +43,25 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 89,
+          "atMilliseconds" : 235,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
-          "site" : "ecosia",
-          "tabCount" : 1,
-          "title" : "watch a fireplace video on youtube - Ecosia"
+          "site" : "ai maryos",
+          "tabCount" : 8,
+          "title" : "MaryOS — An operating system for the generative age."
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "89ms  read the shell — watch a fireplace video on youtube - Ecosia · ecosia"
+        "7ms  resolved Chrome",
+        "235ms  read the shell — MaryOS — An operating system for the generative age. · ai maryos"
       ],
-      "verdict" : "passed"
+      "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-06T17:24:12Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:34:25Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "how-many-tabs"
 }

@@ -33,12 +33,18 @@ swift build --product mary-web-probe > /dev/null
 echo "▸ a window for the round"
 open -na "Google Chrome" --args --new-window "about:blank"
 sleep 3
+# THE ROUND'S WINDOW, BY ID. Named once here and handed to every trip, so the
+# round keeps working in it however many times the person clicks their own
+# window meanwhile — the browser's "main" window is whichever they touched last.
+WINDOW="$(.build/debug/mary-web-probe --browser chrome --front-window 2>/dev/null | tail -1)"
+echo "  working in window ${WINDOW:-?}"
 
 mkdir -p "$RECORD"
 echo "▸ driving the corpus"
 for trip in Tests/MaryPluginTests/Fixtures/Trips/*/*.trip.json; do
     name="$(basename "$trip" .trip.json)"
     .build/debug/mary-web-probe --browser chrome --trip "$trip" \
+        ${WINDOW:+--window "$WINDOW"} \
         --record "$RECORD" --round "$ROUND" --yes > "$RECORD/$name.log" 2>&1 || true
     sed -n '/the trip —/,$p' "$RECORD/$name.log" | grep -E '^  [✓✗~·] ' || true
 done

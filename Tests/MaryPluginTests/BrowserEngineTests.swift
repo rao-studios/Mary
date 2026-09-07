@@ -33,6 +33,22 @@ final class FakeShell: BrowserShellReading, @unchecked Sendable {
         readings.count > 1 ? readings.removeFirst() : readings.first ?? nil
     }
 
+    /// Every window the engine asked for, in order (nil: none named yet).
+    var preferred: [CGWindowID?] = []
+    var pressedWithin: [CGWindowID?] = []
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading? {
+        preferred.append(window)
+        return await read(pid: pid, registration: registration)
+    }
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool {
+        pressedWithin.append(window)
+        return await press(label: label, pid: pid, registration: registration)
+    }
+
     func openLocation(_ address: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
         opened.append(address)
         return openSucceeds
@@ -163,6 +179,11 @@ final class FakeStage: BrowserStaging, @unchecked Sendable {
     func bringForward(pid: pid_t) async -> Activation {
         taken.append(pid)
         return succeeds ? Activation(road: .cooperative, failure: nil) : .lost(.refused)
+    }
+    var raised: [CGWindowID?] = []
+    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
+        raised.append(window)
+        return await bringForward(pid: pid)
     }
     func standDown(givingBackTo previous: pid_t?) async { stoodDown.append(previous) }
     func holdsFocus(pid: pid_t) async -> Bool { keepsFocus }
@@ -1189,5 +1210,44 @@ enum BrowsingFixtures {
         #expect(BrowserEngine.choices(named: "don't save it", among: choices) == ["Don't save"])
         #expect(BrowserEngine.choices(named: "discontinue", among: choices).isEmpty)
         #expect(BrowserEngine.choices(named: "yes", among: choices).isEmpty)
+    }
+}
+
+// MARK: - The window Mary works in
+
+@Suite struct WorkingWindowTests {
+
+    /// THE WINDOW OF THE LAST READ IS THE WINDOW OF THE NEXT ACT. Measured in
+    /// round 9: a session working in "the main window" moved into the person's
+    /// own window the moment they clicked it. The first read names a window;
+    /// every read, press and raise after it asks for that one.
+    @Test func theWindowReadOnceIsAskedForEverAfter() async {
+        var first = BrowsingFixtures.shell(title: "A Page")
+        first.windowID = 4242
+        let shell = FakeShell([first, first, first, first])
+        let stage = FakeStage()
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]), stage: stage)
+
+        _ = await engine.navigate(.reload, in: BrowsingFixtures.target())
+        #expect(stage.raised.first == .some(nil))
+        #expect(shell.preferred.first == .some(nil))
+        #expect(shell.preferred.dropFirst().allSatisfy { $0 == 4242 })
+        #expect(shell.pressedWithin == [4242])
+        #expect(await engine.snapshot().workingWindow == 4242)
+
+        _ = await engine.navigate(.reload, in: BrowsingFixtures.target())
+        #expect(stage.raised.last == 4242)
+    }
+
+    /// A RUNNER THAT OPENED THE WINDOW NAMES IT, and the first read does not guess.
+    @Test func anAdoptedWindowIsAskedForFromTheFirstRead() async {
+        let shell = FakeShell([BrowsingFixtures.shell(title: "A Page")])
+        let stage = FakeStage()
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]), stage: stage)
+        await engine.adopt(window: 77)
+        _ = await engine.readShell(BrowsingFixtures.target())
+        #expect(shell.preferred == [77])
+        _ = await engine.navigate(.scroll(by: 1), in: BrowsingFixtures.target())
+        #expect(stage.raised == [77])
     }
 }

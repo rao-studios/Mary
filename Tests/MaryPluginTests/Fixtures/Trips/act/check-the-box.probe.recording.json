@@ -5,51 +5,51 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 702,
+          "atMilliseconds" : 1010,
           "atX" : 0.026856240126382307,
           "atY" : 0.44052287581699345,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 999,
+          "atMilliseconds" : 1311,
           "atX" : 0.026856240126382307,
           "atY" : 0.44052287581699345,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1524,
+          "atMilliseconds" : 1829,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2543,
+          "atMilliseconds" : 3374,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2939,
+          "atMilliseconds" : 3896,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 3237,
+          "atMilliseconds" : 4366,
           "atX" : 0.026856240126382307,
           "atY" : 0.44052287581699345,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 3541,
+          "atMilliseconds" : 4669,
           "atX" : 0.026856240126382307,
           "atY" : 0.44052287581699345,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 4056,
+          "atMilliseconds" : 5192,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 5108,
+          "atMilliseconds" : 6637,
           "kind" : "restoreCursor"
         }
       ],
@@ -59,7 +59,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 5108,
+      "elapsedMilliseconds" : 6637,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -69,6 +69,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -76,7 +77,7 @@
       "outcomeSpoken" : "click \"check the box that says Bacon\" — no sign it did anything. Now offering 8 buttons, 4 fields, and 1 option — field 1 — Customer name:; field 2 — Telephone: (Customer name:); field 3 — E-mail address: (Telephone:); button 1 — Small (Pizza Size); button 2 — Medium",
       "pageReads" : [
         {
-          "atMilliseconds" : 600,
+          "atMilliseconds" : 905,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -196,12 +197,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 379,
+            "readMilliseconds" : 519,
             "rows" : [
               {
                 "affordance" : "none",
@@ -212,8 +213,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1813,
-                  188,
+                  -1801,
+                  243,
                   119,
                   25
                 ],
@@ -238,8 +239,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -250,6 +251,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -264,8 +267,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -290,8 +293,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -303,6 +306,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -317,8 +322,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -344,8 +349,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -357,6 +362,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -371,8 +378,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  297,
+                  -1784,
+                  352,
                   80,
                   27
                 ],
@@ -398,8 +405,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1791,
-                  338,
+                  -1779,
+                  393,
                   69,
                   27
                 ],
@@ -425,8 +432,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -438,9 +445,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -452,8 +462,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -479,8 +489,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   88,
                   27
                 ],
@@ -505,8 +515,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -517,9 +527,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -531,8 +544,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -558,8 +571,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -585,8 +598,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -598,9 +611,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -612,8 +628,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -639,8 +655,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -666,8 +682,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -692,8 +708,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -705,9 +721,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -719,8 +738,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -746,8 +765,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1793,
-                  534,
+                  -1781,
+                  589,
                   119,
                   27
                 ],
@@ -772,8 +791,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -785,9 +804,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -799,8 +821,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -826,8 +848,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -852,8 +874,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -865,9 +887,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -879,8 +904,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -906,8 +931,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -932,8 +957,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -945,9 +970,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -959,8 +987,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -986,8 +1014,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -1011,8 +1039,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -1023,6 +1051,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -1037,8 +1067,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -1050,6 +1080,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -1064,8 +1096,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -1091,8 +1123,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -1104,6 +1136,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -1113,7 +1147,7 @@
           }
         },
         {
-          "atMilliseconds" : 2536,
+          "atMilliseconds" : 3368,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1226,12 +1260,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 225,
+            "readMilliseconds" : 227,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1242,8 +1276,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1811,
-                  188,
+                  -1799,
+                  243,
                   117,
                   23
                 ],
@@ -1268,8 +1302,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -1280,6 +1314,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -1294,8 +1330,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -1320,8 +1356,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -1333,6 +1369,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -1347,8 +1385,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -1374,8 +1412,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -1387,6 +1425,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -1401,8 +1441,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  298,
+                  -1784,
+                  353,
                   80,
                   26
                 ],
@@ -1428,8 +1468,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1792,
-                  338,
+                  -1780,
+                  393,
                   70,
                   27
                 ],
@@ -1455,8 +1495,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -1468,9 +1508,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1482,8 +1525,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -1509,8 +1552,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   87,
                   27
                 ],
@@ -1535,8 +1578,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -1547,9 +1590,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1561,8 +1607,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -1588,8 +1634,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -1615,8 +1661,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -1628,9 +1674,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1642,8 +1691,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -1669,8 +1718,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -1696,8 +1745,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -1722,8 +1771,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -1735,9 +1784,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 1
               },
               {
                 "affordance" : "none",
@@ -1749,8 +1801,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -1776,8 +1828,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1792,
-                  534,
+                  -1780,
+                  589,
                   118,
                   26
                 ],
@@ -1802,8 +1854,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -1815,9 +1867,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1829,8 +1884,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -1856,8 +1911,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -1882,8 +1937,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -1895,9 +1950,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1909,8 +1967,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -1936,8 +1994,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -1962,8 +2020,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -1975,9 +2033,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1989,8 +2050,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -2016,8 +2077,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -2041,8 +2102,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -2053,6 +2114,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -2067,8 +2130,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -2080,6 +2143,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -2094,8 +2159,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -2121,8 +2186,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -2134,6 +2199,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -2143,7 +2210,7 @@
           }
         },
         {
-          "atMilliseconds" : 2885,
+          "atMilliseconds" : 3890,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -2256,12 +2323,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 214,
+            "readMilliseconds" : 209,
             "rows" : [
               {
                 "affordance" : "none",
@@ -2272,8 +2339,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1811,
-                  188,
+                  -1799,
+                  243,
                   117,
                   23
                 ],
@@ -2298,8 +2365,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -2310,6 +2377,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -2324,8 +2393,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -2350,8 +2419,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -2363,6 +2432,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -2377,8 +2448,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -2404,8 +2475,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -2417,6 +2488,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -2431,8 +2504,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  298,
+                  -1784,
+                  353,
                   80,
                   26
                 ],
@@ -2458,8 +2531,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1792,
-                  338,
+                  -1780,
+                  393,
                   70,
                   27
                 ],
@@ -2485,8 +2558,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -2498,9 +2571,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -2512,8 +2588,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -2539,8 +2615,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   87,
                   27
                 ],
@@ -2565,8 +2641,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -2577,9 +2653,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -2591,8 +2670,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -2618,8 +2697,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -2645,8 +2724,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -2658,9 +2737,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -2672,8 +2754,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -2699,8 +2781,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -2726,8 +2808,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -2752,8 +2834,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -2765,9 +2847,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 1
               },
               {
                 "affordance" : "none",
@@ -2779,8 +2864,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -2806,8 +2891,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1792,
-                  534,
+                  -1780,
+                  589,
                   118,
                   26
                 ],
@@ -2832,8 +2917,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -2845,9 +2930,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -2859,8 +2947,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -2886,8 +2974,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -2912,8 +3000,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -2925,9 +3013,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -2939,8 +3030,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -2966,8 +3057,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -2992,8 +3083,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -3005,9 +3096,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3019,8 +3113,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -3046,8 +3140,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -3071,8 +3165,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -3083,6 +3177,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -3097,8 +3193,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -3110,6 +3206,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -3124,8 +3222,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -3151,8 +3249,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -3164,6 +3262,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -3173,7 +3273,7 @@
           }
         },
         {
-          "atMilliseconds" : 3231,
+          "atMilliseconds" : 4359,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -3286,12 +3386,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 196,
+            "readMilliseconds" : 177,
             "rows" : [
               {
                 "affordance" : "none",
@@ -3302,8 +3402,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1811,
-                  188,
+                  -1799,
+                  243,
                   117,
                   23
                 ],
@@ -3328,8 +3428,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -3340,6 +3440,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -3354,8 +3456,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -3380,8 +3482,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -3393,6 +3495,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -3407,8 +3511,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -3434,8 +3538,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -3447,6 +3551,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -3461,8 +3567,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  298,
+                  -1784,
+                  353,
                   80,
                   26
                 ],
@@ -3488,8 +3594,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1792,
-                  338,
+                  -1780,
+                  393,
                   70,
                   27
                 ],
@@ -3515,8 +3621,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -3528,9 +3634,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3542,8 +3651,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -3569,8 +3678,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   87,
                   27
                 ],
@@ -3595,8 +3704,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -3607,9 +3716,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3621,8 +3733,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -3648,8 +3760,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -3675,8 +3787,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -3688,9 +3800,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3702,8 +3817,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -3729,8 +3844,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -3756,8 +3871,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -3782,8 +3897,8 @@
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -3795,9 +3910,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 1
               },
               {
                 "affordance" : "none",
@@ -3809,8 +3927,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -3836,8 +3954,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1792,
-                  534,
+                  -1780,
+                  589,
                   118,
                   26
                 ],
@@ -3862,8 +3980,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -3875,9 +3993,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3889,8 +4010,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -3916,8 +4037,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -3942,8 +4063,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -3955,9 +4076,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -3969,8 +4093,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -3996,8 +4120,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -4022,8 +4146,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -4035,9 +4159,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4049,8 +4176,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -4076,8 +4203,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -4101,8 +4228,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -4113,6 +4240,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -4127,8 +4256,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -4140,6 +4269,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -4154,8 +4285,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -4181,8 +4312,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -4194,6 +4325,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -4203,7 +4336,7 @@
           }
         },
         {
-          "atMilliseconds" : 5104,
+          "atMilliseconds" : 6634,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -4323,12 +4456,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 272,
+            "readMilliseconds" : 207,
             "rows" : [
               {
                 "affordance" : "none",
@@ -4339,8 +4472,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1813,
-                  188,
+                  -1801,
+                  243,
                   119,
                   25
                 ],
@@ -4365,8 +4498,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -4377,6 +4510,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -4391,8 +4526,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -4417,8 +4552,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -4430,6 +4565,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -4444,8 +4581,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -4471,8 +4608,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -4484,6 +4621,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -4498,8 +4637,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  297,
+                  -1784,
+                  352,
                   80,
                   27
                 ],
@@ -4525,8 +4664,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1791,
-                  338,
+                  -1779,
+                  393,
                   69,
                   27
                 ],
@@ -4552,8 +4691,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -4565,9 +4704,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4579,8 +4721,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -4606,8 +4748,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   88,
                   27
                 ],
@@ -4632,8 +4774,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -4644,9 +4786,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4658,8 +4803,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -4685,8 +4830,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -4712,8 +4857,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -4725,9 +4870,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4739,8 +4887,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -4766,8 +4914,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -4793,8 +4941,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -4819,8 +4967,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -4832,9 +4980,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4846,8 +4997,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -4873,8 +5024,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1793,
-                  534,
+                  -1781,
+                  589,
                   119,
                   27
                 ],
@@ -4899,8 +5050,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -4912,9 +5063,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -4926,8 +5080,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -4953,8 +5107,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -4979,8 +5133,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -4992,9 +5146,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -5006,8 +5163,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -5033,8 +5190,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -5059,8 +5216,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -5072,9 +5229,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -5086,8 +5246,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -5113,8 +5273,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -5138,8 +5298,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -5150,6 +5310,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -5164,8 +5326,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -5177,6 +5339,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -5191,8 +5355,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -5218,8 +5382,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -5231,6 +5395,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -5261,7 +5427,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 702,
+          "atMilliseconds" : 1009,
           "decisions" : [
             {
               "affordance" : 0,
@@ -5716,7 +5882,7 @@
           "verb" : "press"
         },
         {
-          "atMilliseconds" : 2891,
+          "atMilliseconds" : 3896,
           "decisions" : [
             {
               "affordance" : 0,
@@ -6171,7 +6337,7 @@
           "verb" : "reveal"
         },
         {
-          "atMilliseconds" : 3237,
+          "atMilliseconds" : 4366,
           "decisions" : [
             {
               "affordance" : 0,
@@ -6630,7 +6796,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 44,
+          "atMilliseconds" : 201,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6641,7 +6807,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1581,
+          "atMilliseconds" : 2062,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6652,7 +6818,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1918,
+          "atMilliseconds" : 2562,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6663,7 +6829,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2228,
+          "atMilliseconds" : 3049,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6674,7 +6840,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2588,
+          "atMilliseconds" : 3594,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6685,7 +6851,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 2939,
+          "atMilliseconds" : 4094,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6696,7 +6862,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 4105,
+          "atMilliseconds" : 5410,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6707,7 +6873,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 4443,
+          "atMilliseconds" : 5848,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6718,7 +6884,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 4746,
+          "atMilliseconds" : 6336,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -6729,39 +6895,39 @@
         }
       ],
       "timeline" : [
-        "8ms  resolved Chrome",
-        "44ms  read the shell — httpbin.org/forms/post · httpbin",
-        "600ms  perceived 34 controls · —",
-        "600ms  looked — 34 rows, 27 named, 12 groups",
-        "702ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
-        "702ms  matched \"check the box that says Bacon\" → \"Bacon\"",
-        "1044ms  clicked Bacon",
-        "2536ms  perceived 34 controls · —",
-        "2536ms  looked — 34 rows, 27 named, 11 groups",
-        "2543ms  receipt — click \"check the box that says Bacon\" — no sign it did anything",
-        "2543ms  looking further down the page for \"check the box that says Bacon\"",
-        "2543ms  resolved Chrome",
-        "2588ms  read the shell — httpbin.org/forms/post · httpbin",
-        "2885ms  perceived 34 controls · —",
-        "2885ms  looked — 34 rows, 27 named, 11 groups",
-        "2891ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
-        "2891ms  matched \"check the box that says Bacon\" → \"Bacon\"",
-        "2891ms  resolved Chrome",
-        "2939ms  read the shell — httpbin.org/forms/post · httpbin",
-        "3231ms  perceived 34 controls · —",
-        "3231ms  looked — 34 rows, 27 named, 11 groups",
-        "3237ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
-        "3237ms  matched \"check the box that says Bacon\" → \"Bacon\"",
-        "3584ms  clicked Bacon",
-        "5104ms  perceived 34 controls · —",
-        "5104ms  looked — 34 rows, 27 named, 12 groups",
-        "5108ms  receipt — click \"check the box that says Bacon\" — no sign it did anything"
+        "7ms  resolved Chrome",
+        "201ms  read the shell — httpbin.org/forms/post · httpbin",
+        "905ms  perceived 34 controls · —",
+        "905ms  looked — 34 rows, 27 named, 12 groups",
+        "1009ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
+        "1010ms  matched \"check the box that says Bacon\" → \"Bacon\"",
+        "1355ms  clicked Bacon",
+        "3368ms  perceived 34 controls · —",
+        "3368ms  looked — 34 rows, 27 named, 11 groups",
+        "3374ms  receipt — click \"check the box that says Bacon\" — no sign it did anything",
+        "3375ms  looking further down the page for \"check the box that says Bacon\"",
+        "3375ms  resolved Chrome",
+        "3594ms  read the shell — httpbin.org/forms/post · httpbin",
+        "3890ms  perceived 34 controls · —",
+        "3890ms  looked — 34 rows, 27 named, 11 groups",
+        "3896ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
+        "3896ms  matched \"check the box that says Bacon\" → \"Bacon\"",
+        "3897ms  resolved Chrome",
+        "4094ms  read the shell — httpbin.org/forms/post · httpbin",
+        "4359ms  perceived 34 controls · —",
+        "4359ms  looked — 34 rows, 27 named, 11 groups",
+        "4366ms  routed \"check the box that says Bacon\" → \"Bacon\" (27 of 34 eligible)",
+        "4366ms  matched \"check the box that says Bacon\" → \"Bacon\"",
+        "4712ms  clicked Bacon",
+        "6634ms  perceived 34 controls · —",
+        "6634ms  looked — 34 rows, 27 named, 12 groups",
+        "6637ms  receipt — click \"check the box that says Bacon\" — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:19:32Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:27:04Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "check-the-box"
 }

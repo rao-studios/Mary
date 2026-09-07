@@ -5,11 +5,11 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 57,
+          "atMilliseconds" : 6,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 1192,
+          "atMilliseconds" : 1389,
           "kind" : "restoreCursor"
         }
       ],
@@ -19,7 +19,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 1194,
+      "elapsedMilliseconds" : 1390,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -29,14 +29,15 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
       "ok" : true,
-      "outcomeSpoken" : "On alpine touring boots - Ecosia, 35 links, 7 options, 5 buttons, and 1 field\nLaid out with 8 things across the top, 31 things in the page itself, 8 things down the right, and 1 thing along the bottom.\nlink 1 — Ecosia Homepage\nfield 1 — Search the web (form)\nbutton 1 — Clear\nbutton 2 — Search\nbutton 3 — Q (form)\nlink 2 — Sign in (form)\nbutton 4 — News (form)\nbutton 5 — Show navigation menu\nlink 3 — Skip to main content\noption 1 — Web (form)\n…and 38 more.",
+      "outcomeSpoken" : "On alpine touring boots - Ecosia, 34 links, 7 options, 5 buttons, and 1 field\nLaid out with 8 things across the top, 30 things in the page itself, 8 things down the right, and 1 thing along the bottom.\nlink 1 — Ecosia Homepage\nfield 1 — Search the web (form)\nbutton 1 — Clear\nbutton 2 — Search\nbutton 3 — Q (form)\nlink 2 — Sign in (form)\nbutton 4 — News (form)\nbutton 5 — Show navigation menu\nlink 3 — Skip to main content\noption 1 — Web (form)\n…and 37 more.",
       "pageReads" : [
         {
-          "atMilliseconds" : 803,
+          "atMilliseconds" : 965,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -44,24 +45,21 @@
                 "id" : 0,
                 "kind" : "list",
                 "memberOrdinals" : [
-                  46,
-                  47,
-                  48,
                   49,
-                  50,
                   51,
                   53,
-                  54,
-                  56,
-                  58,
+                  55,
+                  57,
                   60,
+                  61,
                   62,
+                  63,
                   64,
                   65,
                   66,
-                  67,
                   68,
                   69,
+                  70,
                   71,
                   72,
                   73,
@@ -69,13 +67,15 @@
                   75,
                   76,
                   77,
-                  78,
                   79,
                   80,
                   81,
-                  83
+                  82,
+                  83,
+                  84,
+                  86
                 ],
-                "title" : "alpine touring boots vs downhill"
+                "title" : "20% OFF SITEWIDE"
               },
               {
                 "id" : 1,
@@ -125,12 +125,13 @@
                 "memberOrdinals" : [
                   31,
                   33,
+                  34,
                   35,
-                  37,
                   39,
-                  41,
                   43,
-                  45
+                  46,
+                  47,
+                  48
                 ],
                 "title" : "Sponsored • Shop related products"
               },
@@ -138,59 +139,58 @@
                 "id" : 5,
                 "kind" : "row",
                 "memberOrdinals" : [
-                  46,
-                  47,
-                  48,
                   49,
-                  50,
                   51,
-                  53
+                  53,
+                  55,
+                  57,
+                  60
                 ],
-                "title" : "alpine touring boots vs downhill"
+                "title" : "20% OFF SITEWIDE"
               },
               {
                 "id" : 6,
                 "kind" : "row",
                 "memberOrdinals" : [
-                  54,
-                  56,
-                  58,
-                  60,
+                  61,
                   62,
+                  63,
                   64,
                   65,
                   66,
-                  67,
                   68,
-                  69,
-                  71
+                  70,
+                  72,
+                  74,
+                  77,
+                  79
                 ],
-                "title" : "alpine touring boots vs downhill"
+                "title" : "20% OFF SITEWIDE"
               },
               {
                 "id" : 7,
                 "kind" : "row",
                 "memberOrdinals" : [
-                  72,
+                  69,
+                  71,
                   73,
-                  74,
                   75,
                   76,
-                  77,
-                  78,
-                  79,
                   80,
                   81,
-                  83
+                  82,
+                  83,
+                  84,
+                  86
                 ],
-                "title" : "alpine touring boots vs downhill"
+                "title" : "20% OFF SITEWIDE"
               },
               {
                 "id" : 8,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  84,
-                  86
+                  89,
+                  90
                 ],
                 "title" : "Q"
               },
@@ -198,23 +198,22 @@
                 "id" : 9,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  87
+                  88
                 ],
-                "title" : "Ski Pro - Snow S..."
+                "title" : "Xero Shoes"
               },
               {
                 "id" : 10,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  88,
-                  90,
-                  91,
+                  92,
                   93,
-                  94,
                   95,
+                  96,
                   97,
                   99,
-                  100
+                  101,
+                  102
                 ],
                 "title" : "Sponsored"
               },
@@ -222,12 +221,11 @@
                 "id" : 11,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  102,
                   103,
                   104,
                   105
                 ],
-                "title" : "Alpine Touring Equipment"
+                "title" : "Alpine Touring Bindings by Daymakers"
               },
               {
                 "id" : 12,
@@ -235,17 +233,17 @@
                 "memberOrdinals" : [
                   106
                 ],
-                "title" : "Satisfaction Guarantee. Free Domestic Shipping."
+                "title" : "Skiers."
               }
             ],
-            "labeledFraction" : 0.8484848484848485,
+            "labeledFraction" : 0.87,
             "pageFrame" : [
-              -1815,
-              173,
+              -1847,
+              184,
               1266,
               765
             ],
-            "readMilliseconds" : 438,
+            "readMilliseconds" : 489,
             "rows" : [
               {
                 "affordance" : "none",
@@ -256,8 +254,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1798,
-                  194,
+                  -1830,
+                  205,
                   86,
                   34
                 ],
@@ -281,8 +279,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1791,
-                  200,
+                  -1823,
+                  211,
                   70,
                   20
                 ],
@@ -293,9 +291,12 @@
                 "kind" : "link",
                 "label" : "Ecosia Homepage",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -306,8 +307,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1685,
-                  198,
+                  -1717,
+                  209,
                   163,
                   29
                 ],
@@ -332,8 +333,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1680,
-                  191,
+                  -1712,
+                  202,
                   557,
                   38
                 ],
@@ -345,6 +346,8 @@
                 "kind" : "field",
                 "label" : "Search the web",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXComboBox"
@@ -358,8 +361,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1123,
-                  194,
+                  -1155,
+                  205,
                   32,
                   32
                 ],
@@ -370,6 +373,8 @@
                 "kind" : "button",
                 "label" : "Clear",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 5,
                 "region" : "header",
                 "role" : "AXButton"
@@ -383,8 +388,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1083,
-                  190,
+                  -1115,
+                  201,
                   40,
                   40
                 ],
@@ -395,6 +400,8 @@
                 "kind" : "button",
                 "label" : "Search",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "header",
                 "role" : "AXButton"
@@ -408,8 +415,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1075,
-                  198,
+                  -1107,
+                  209,
                   25,
                   25
                 ],
@@ -434,8 +441,8 @@
                 ],
                 "facts" : 1033,
                 "frame" : [
-                  -861,
-                  190,
+                  -893,
+                  201,
                   105,
                   40
                 ],
@@ -447,9 +454,12 @@
                 "kind" : "link",
                 "label" : "Sign in",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 8,
                 "region" : "header",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -460,8 +470,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -824,
-                  203,
+                  -856,
+                  214,
                   33,
                   17
                 ],
@@ -486,8 +496,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -749,
-                  190,
+                  -781,
+                  201,
                   41,
                   40
                 ],
@@ -499,6 +509,8 @@
                 "kind" : "button",
                 "label" : "News",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 10,
                 "region" : "header",
                 "role" : "AXButton"
@@ -512,8 +524,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -701,
-                  190,
+                  -733,
+                  201,
                   113,
                   40
                 ],
@@ -524,6 +536,8 @@
                 "kind" : "button",
                 "label" : "Show navigation menu",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 11,
                 "region" : "header",
                 "role" : "AXButton"
@@ -537,8 +551,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1803,
-                  249,
+                  -1835,
+                  260,
                   32,
                   24
                 ],
@@ -549,9 +563,12 @@
                 "kind" : "link",
                 "label" : "Skip to main content",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -562,8 +579,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1696,
-                  237,
+                  -1728,
+                  248,
                   446,
                   42
                 ],
@@ -573,7 +590,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat Ф Web dE News",
+                "label" : "® Web D Videos + Al Chat O Images dE News",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
                 "region" : "main",
@@ -588,8 +605,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1690,
-                  242,
+                  -1722,
+                  253,
                   75,
                   32
                 ],
@@ -601,6 +618,8 @@
                 "kind" : "option",
                 "label" : "Web",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 14,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -614,8 +633,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1623,
-                  239,
+                  -1655,
+                  250,
                   370,
                   38
                 ],
@@ -625,7 +644,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "A Images D Videos + Al Chat dE News",
+                "label" : "D Videos + Al Chat O Images dE News",
                 "labelSource" : "textInside",
                 "ordinal" : 15,
                 "region" : "main",
@@ -640,8 +659,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1614,
-                  242,
+                  -1646,
+                  253,
                   93,
                   32
                 ],
@@ -653,6 +672,8 @@
                 "kind" : "option",
                 "label" : "AI Chat",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 16,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -666,8 +687,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1583,
-                  252,
+                  -1615,
+                  263,
                   50,
                   12
                 ],
@@ -677,7 +698,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 9",
+                "label" : "item 8",
                 "labelSource" : "synthesized",
                 "ordinal" : 17,
                 "region" : "main",
@@ -692,8 +713,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1520,
-                  242,
+                  -1552,
+                  253,
                   92,
                   32
                 ],
@@ -705,6 +726,8 @@
                 "kind" : "option",
                 "label" : "Images",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 18,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -718,8 +741,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1427,
-                  242,
+                  -1459,
+                  253,
                   90,
                   32
                 ],
@@ -731,6 +754,8 @@
                 "kind" : "option",
                 "label" : "Videos",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -744,8 +769,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1396,
-                  251,
+                  -1428,
+                  262,
                   47,
                   13
                 ],
@@ -755,7 +780,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 13",
+                "label" : "item 12",
                 "labelSource" : "synthesized",
                 "ordinal" : 20,
                 "region" : "main",
@@ -770,8 +795,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1336,
-                  242,
+                  -1368,
+                  253,
                   81,
                   32
                 ],
@@ -783,6 +808,8 @@
                 "kind" : "option",
                 "label" : "News",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 21,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -796,8 +823,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1239,
-                  242,
+                  -1271,
+                  253,
                   77,
                   32
                 ],
@@ -808,6 +835,8 @@
                 "kind" : "option",
                 "label" : "More",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
                 "role" : "AXPopUpButton"
@@ -821,8 +850,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1232,
-                  246,
+                  -1264,
+                  257,
                   62,
                   23
                 ],
@@ -847,8 +876,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1228,
-                  252,
+                  -1260,
+                  263,
                   35,
                   12
                 ],
@@ -858,7 +887,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 17",
+                "label" : "item 16",
                 "labelSource" : "synthesized",
                 "ordinal" : 24,
                 "region" : "main",
@@ -874,8 +903,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1803,
-                  295,
+                  -1835,
+                  306,
                   304,
                   32
                 ],
@@ -887,6 +916,8 @@
                 "kind" : "option",
                 "label" : "Search region",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
                 "role" : "AXMenuItem"
@@ -901,8 +932,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1708,
-                  354,
+                  -1740,
+                  365,
                   297,
                   31
                 ],
@@ -928,8 +959,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1700,
-                  362,
+                  -1732,
+                  373,
                   73,
                   14
                 ],
@@ -939,7 +970,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "item 21",
+                "label" : "item 20",
                 "labelSource" : "synthesized",
                 "ordinal" : 27,
                 "region" : "main",
@@ -952,10 +983,10 @@
                 "containerTrail" : [
 
                 ],
-                "facts" : 2048,
+                "facts" : 0,
                 "frame" : [
-                  -1097,
-                  359,
+                  -1129,
+                  370,
                   19,
                   18
                 ],
@@ -966,9 +997,12 @@
                 "kind" : "link",
                 "label" : "To get missing image descriptions, open the context menu.",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "google adssettings"
               },
               {
                 "affordance" : "none",
@@ -980,8 +1014,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1009,
-                  356,
+                  -1041,
+                  367,
                   313,
                   25
                 ],
@@ -1006,8 +1040,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  340,
+                  -1038,
+                  351,
                   327,
                   56
                 ],
@@ -1018,9 +1052,12 @@
                 "kind" : "heading",
                 "label" : "Searches related to alpine touring boots",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 30,
                 "region" : "trailing",
-                "role" : "AXHeading"
+                "role" : "AXHeading",
+                "value" : 3
               },
               {
                 "affordance" : "none",
@@ -1032,8 +1069,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1012,
-                  408,
+                  -1044,
+                  419,
                   227,
                   25
                 ],
@@ -1058,8 +1095,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  395,
+                  -1038,
+                  406,
                   327,
                   49
                 ],
@@ -1070,9 +1107,12 @@
                 "kind" : "link",
                 "label" : "ski touring boots vs alpine boot",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
@@ -1084,8 +1124,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -700,
-                  408,
+                  -732,
+                  419,
                   23,
                   25
                 ],
@@ -1101,44 +1141,19 @@
                 "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1708,
-                  402,
-                  143,
-                  100
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Image of Salomon S/Pro 100 Ski Boot 2023 | BLACK/SILVER / 28.5",
-                "labelSource" : "classifier",
-                "ordinal" : 34,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
-                "confidence" : 1,
+                "confidence" : 0,
                 "containerTrail" : [
                   "Sponsored • Shop related products",
                   "card"
                 ],
-                "facts" : 2304,
+                "facts" : 264,
                 "frame" : [
-                  -1672,
-                  402,
+                  -1704,
+                  412,
                   71,
-                  100
+                  52
                 ],
                 "groupID" : 4,
                 "hints" : [
@@ -1146,8 +1161,35 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Salomon S/Pro 100 Ski Boot 2023 | BLACK/SILVER / 28.5",
-                "labelSource" : "classifier",
+                "label" : "image 1",
+                "labelSource" : "synthesized",
+                "ordinal" : 34,
+                "region" : "main",
+                "role" : "AXImage"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1533,
+                  419,
+                  52,
+                  70
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "image 4",
+                "labelSource" : "synthesized",
                 "ordinal" : 35,
                 "region" : "main",
                 "role" : "AXImage"
@@ -1161,8 +1203,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1556,
-                  402,
+                  -1740,
+                  413,
                   143,
                   100
                 ],
@@ -1171,38 +1213,42 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of Atomic Hawx Prime XTD 120 Ski Boots 2022 | GREY/BLUE / 28.5",
+                "label" : "Image of Xero Shoes - Barefoot Boots - Alpine - Men - Black (without trees) - Zero Drop Boots",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 36,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "Sponsored • Shop related products",
-                  "card"
+
                 ],
-                "facts" : 2304,
+                "facts" : 2048,
                 "frame" : [
-                  -1520,
-                  410,
+                  -1704,
+                  413,
                   71,
-                  84
+                  100
                 ],
-                "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Atomic Hawx Prime XTD 120 Ski Boots 2022 | GREY/BLUE / 28.5",
+                "label" : "Image of Xero Shoes - Barefoot Boots - Alpine - Men - Black (without trees) - Zero Drop Boots",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 37,
                 "region" : "main",
-                "role" : "AXImage"
+                "role" : "AXImage",
+                "site" : "gstatic encrypted-tbn3"
               },
               {
                 "affordance" : "press",
@@ -1213,8 +1259,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1404,
-                  402,
+                  -1588,
+                  413,
                   143,
                   100
                 ],
@@ -1223,11 +1269,14 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of New 2023 Fischer Travers GR ski boots; Size: 26.5 (Dark Blue/Dark Blue)",
+                "label" : "Image of New 2025-26 Fischer Transalp Tour ski boots; Size: 25.5",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 38,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
@@ -1239,60 +1288,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1368,
-                  402,
-                  71,
-                  100
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "image",
-                "label" : "Image of New 2023 Fischer Travers GR ski boots; Size: 26.5 (Dark Blue/Dark Blue)",
-                "labelSource" : "classifier",
-                "ordinal" : 39,
-                "region" : "main",
-                "role" : "AXImage"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1252,
-                  402,
-                  143,
-                  100
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Image of Salomon S/Pro Supra 100 BOA Ski Boots 2026 | BLK/BURG / 28.5",
-                "labelSource" : "classifier",
-                "ordinal" : 40,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-                  "Sponsored • Shop related products",
-                  "card"
-                ],
-                "facts" : 2304,
-                "frame" : [
-                  -1216,
-                  409,
+                  -1552,
+                  420,
                   71,
                   86
                 ],
@@ -1302,11 +1299,128 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "image",
-                "label" : "Image of Salomon S/Pro Supra 100 BOA Ski Boots 2026 | BLK/BURG / 28.5",
+                "label" : "Image of New 2025-26 Fischer Transalp Tour ski boots; Size: 25.5",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 39,
+                "region" : "main",
+                "role" : "AXImage",
+                "site" : "gstatic encrypted-tbn0"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1436,
+                  413,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of Head Men's KORE 120 GripWalk Ski Boots in Black Size 100 | Sun & Ski Sports",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 40,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1400,
+                  418,
+                  71,
+                  90
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of Head Men's KORE 120 GripWalk Ski Boots in Black Size 100 | Sun & Ski Sports",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 41,
                 "region" : "main",
-                "role" : "AXImage"
+                "role" : "AXImage",
+                "site" : "gstatic encrypted-tbn1"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1284,
+                  413,
+                  143,
+                  100
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Image of New 2023 Fischer Travers GR ski boots; Size: 26.5 (Dark Blue/Dark Blue)",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 42,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2304,
+                "frame" : [
+                  -1248,
+                  413,
+                  71,
+                  100
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "image",
+                "label" : "Image of New 2023 Fischer Travers GR ski boots; Size: 26.5 (Dark Blue/Dark Blue)",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 43,
+                "region" : "main",
+                "role" : "AXImage",
+                "site" : "gstatic encrypted-tbn2"
               },
               {
                 "affordance" : "press",
@@ -1317,8 +1431,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1100,
-                  402,
+                  -1132,
+                  413,
                   38,
                   100
                 ],
@@ -1327,11 +1441,95 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Image of New 2025-26 Fischer Transalp Tour ski boots; Size: 25.5",
+                "label" : "Image of Salomon Mens QST Access 80 Grip Walk Boots - Ski, 26/26.5",
                 "labelSource" : "classifier",
-                "ordinal" : 42,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 44,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1038,
+                  454,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "alpine touring boots vs downhill",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 45,
+                "region" : "trailing",
+                "role" : "AXLink",
+                "site" : "ecosia"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -734,
+                  465,
+                  27,
+                  29
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 46,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored • Shop related products",
+                  "card"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1708,
+                  477,
+                  77,
+                  19
+                ],
+                "groupID" : 4,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "20% OFF SITEWIDE",
+                "labelSource" : "textInside",
+                "ordinal" : 47,
+                "region" : "main",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
@@ -1343,8 +1541,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1014,
-                  456,
+                  -1046,
+                  467,
                   227,
                   27
                 ],
@@ -1356,139 +1554,8 @@
                 "kind" : "link",
                 "label" : "alpine touring boots vs downhill",
                 "labelSource" : "textInside",
-                "ordinal" : 43,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1006,
-                  443,
-                  327,
-                  49
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "alpine touring boots vs downhill",
-                "labelSource" : "classifier",
-                "ordinal" : 44,
-                "region" : "trailing",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Sponsored • Shop related products",
-                  "card"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -702,
-                  454,
-                  27,
-                  29
-                ],
-                "groupID" : 4,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Q",
-                "labelSource" : "textInside",
-                "ordinal" : 45,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1705,
-                  512,
-                  137,
-                  25
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Salomon S/Pro 100",
-                "labelSource" : "textInside",
-                "ordinal" : 46,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1699,
-                  517,
-                  98,
-                  14
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 35",
-                "labelSource" : "synthesized",
-                "ordinal" : 47,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1551,
-                  512,
-                  99,
-                  23
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Atomic Hawx",
-                "labelSource" : "textInside",
                 "ordinal" : 48,
-                "region" : "main",
+                "region" : "trailing",
                 "role" : "AXStaticText"
               },
               {
@@ -1496,67 +1563,13 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1401,
-                  512,
-                  135,
-                  25
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "New 2023 Fischer",
-                "labelSource" : "textInside",
-                "ordinal" : 49,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1247,
-                  514,
-                  109,
-                  21
-                ],
-                "groupID" : 5,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Salomon S/Pro",
-                "labelSource" : "textInside",
-                "ordinal" : 50,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1012,
-                  504,
+                  -1044,
+                  515,
                   201,
                   25
                 ],
@@ -1568,7 +1581,7 @@
                 "kind" : "link",
                 "label" : "best ski touring boots 2026",
                 "labelSource" : "textInside",
-                "ordinal" : 51,
+                "ordinal" : 49,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -1581,8 +1594,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  491,
+                  -1038,
+                  502,
                   327,
                   49
                 ],
@@ -1593,112 +1606,148 @@
                 "kind" : "link",
                 "label" : "best ski touring boots 2026",
                 "labelSource" : "classifier",
-                "ordinal" : 52,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 50,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
-                "facts" : 2312,
+                "facts" : 2304,
                 "frame" : [
-                  -701,
-                  504,
-                  27,
-                  27
+                  -1736,
+                  523,
+                  97,
+                  23
                 ],
                 "groupID" : 5,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "Q",
+                "kind" : "link",
+                "label" : "Xero Shoes -",
+                "labelSource" : "textInside",
+                "ordinal" : 51,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1732,
+                  525,
+                  127,
+                  40
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Xero Shoes - Barefoot Boots - Alpine - Men - Black (without trees) - Zero Drop Boots",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 52,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1585,
+                  523,
+                  105,
+                  25
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "New 2025-26",
                 "labelSource" : "textInside",
                 "ordinal" : 53,
-                "region" : "trailing",
+                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
-                "affordanceSource" : "grouping",
-                "confidence" : 0,
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
+
                 ],
-                "facts" : 256,
+                "facts" : 0,
                 "frame" : [
-                  -1705,
-                  532,
+                  -1580,
+                  525,
                   127,
-                  27
+                  40
                 ],
-                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Ski Boot 2023 |...",
-                "labelSource" : "textInside",
+                "label" : "New 2025-26 Fischer Transalp Tour ski boots; Size: 25.5",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 54,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
-                "affordance" : "press",
+                "affordance" : "none",
                 "affordanceSource" : "classifier",
-                "confidence" : 1,
+                "confidence" : 0,
                 "containerTrail" : [
-
+                  "20% OFF SITEWIDE",
+                  "row"
                 ],
-                "facts" : 0,
+                "facts" : 256,
                 "frame" : [
-                  -1700,
-                  514,
-                  127,
-                  40
+                  -1431,
+                  523,
+                  130,
+                  23
                 ],
+                "groupID" : 5,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Salomon S/Pro 100 Ski Boot 2023 | BLACK/SILVER / 28.5",
-                "labelSource" : "classifier",
+                "label" : "Head Men's KORE",
+                "labelSource" : "textInside",
                 "ordinal" : 55,
                 "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1551,
-                  532,
-                  133,
-                  25
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Prime XTD 120 S...",
-                "labelSource" : "textInside",
-                "ordinal" : 56,
-                "region" : "main",
                 "role" : "AXStaticText"
               },
               {
@@ -1710,8 +1759,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1548,
-                  514,
+                  -1428,
+                  525,
                   127,
                   40
                 ],
@@ -1720,35 +1769,39 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Atomic Hawx Prime XTD 120 Ski Boots 2022 | GREY/BLUE / 28.5",
+                "label" : "Head Men's KORE 120 GripWalk Ski Boots in Black Size 100 | Sun & Ski Sports",
                 "labelSource" : "classifier",
-                "ordinal" : 57,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 56,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 256,
                 "frame" : [
-                  -1399,
-                  532,
-                  119,
-                  25
+                  -1279,
+                  523,
+                  133,
+                  23
                 ],
-                "groupID" : 6,
+                "groupID" : 5,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "Travers GR ski...",
+                "kind" : "link",
+                "label" : "New 2023 Fischer",
                 "labelSource" : "textInside",
-                "ordinal" : 58,
+                "ordinal" : 57,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1761,8 +1814,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1396,
-                  514,
+                  -1276,
+                  525,
                   127,
                   40
                 ],
@@ -1773,35 +1826,12 @@
                 "kind" : "link",
                 "label" : "New 2023 Fischer Travers GR ski boots; Size: 26.5 (Dark Blue/Dark Blue)",
                 "labelSource" : "classifier",
-                "ordinal" : 59,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 58,
                 "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 256,
-                "frame" : [
-                  -1247,
-                  532,
-                  135,
-                  25
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Supra 100 BOA S...",
-                "labelSource" : "textInside",
-                "ordinal" : 60,
-                "region" : "main",
-                "role" : "AXStaticText"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "press",
@@ -1812,59 +1842,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1244,
-                  514,
-                  127,
-                  40
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Salomon S/Pro Supra 100 BOA Ski Boots 2026 | BLK/BURG / 28.5",
-                "labelSource" : "classifier",
-                "ordinal" : 61,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1094,
-                  534,
-                  37,
-                  21
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "AScl",
-                "labelSource" : "textInside",
-                "ordinal" : 62,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1092,
-                  514,
+                  -1124,
+                  525,
                   30,
                   40
                 ],
@@ -1873,8 +1852,116 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "New 2025-26 Fischer Transalp Tour ski boots; Size: 25.5",
+                "label" : "Salomon Mens QST Access 80 Grip Walk Boots - Ski, 26/26.5",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 59,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -733,
+                  515,
+                  27,
+                  27
+                ],
+                "groupID" : 5,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 60,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1735,
+                  545,
+                  131,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Barefoot Boots -...",
+                "labelSource" : "textInside",
+                "ordinal" : 61,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1583,
+                  545,
+                  133,
+                  23
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Fischer Transalp...",
+                "labelSource" : "textInside",
+                "ordinal" : 62,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "grouping",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1435,
+                  543,
+                  137,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "120 GripWalk Ski...",
+                "labelSource" : "textInside",
                 "ordinal" : 63,
                 "region" : "main",
                 "role" : "AXLink"
@@ -1884,22 +1971,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
-                "facts" : 264,
+                "facts" : 256,
                 "frame" : [
-                  -1705,
-                  554,
-                  77,
-                  27
+                  -1279,
+                  545,
+                  119,
+                  23
                 ],
                 "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "$269.95",
+                "label" : "Travers GR ski...",
                 "labelSource" : "textInside",
                 "ordinal" : 64,
                 "region" : "main",
@@ -1910,14 +1997,14 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1554,
-                  554,
-                  76,
+                  -1128,
+                  543,
+                  39,
                   27
                 ],
                 "groupID" : 6,
@@ -1925,87 +2012,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "$379.95",
+                "label" : "«ST",
                 "labelSource" : "textInside",
                 "ordinal" : 65,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1401,
-                  554,
-                  73,
-                  27
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$217.60",
-                "labelSource" : "textInside",
-                "ordinal" : 66,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1249,
-                  554,
-                  77,
-                  27
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$369.95",
-                "labelSource" : "textInside",
-                "ordinal" : 67,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1097,
-                  554,
-                  43,
-                  27
-                ],
-                "groupID" : 6,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "$28",
-                "labelSource" : "textInside",
-                "ordinal" : 68,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2014,13 +2023,13 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1011,
-                  552,
+                  -1043,
+                  563,
                   195,
                   25
                 ],
@@ -2032,7 +2041,7 @@
                 "kind" : "link",
                 "label" : "scarpa alpine touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 69,
+                "ordinal" : 66,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2045,8 +2054,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  539,
+                  -1038,
+                  550,
                   327,
                   49
                 ],
@@ -2057,23 +2066,26 @@
                 "kind" : "link",
                 "label" : "scarpa alpine touring boots",
                 "labelSource" : "classifier",
-                "ordinal" : 70,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 67,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
-                "facts" : 2312,
+                "facts" : 264,
                 "frame" : [
-                  -701,
-                  552,
-                  27,
+                  -1738,
+                  565,
+                  72,
                   27
                 ],
                 "groupID" : 6,
@@ -2081,36 +2093,9 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "Q",
+                "label" : "$147.99",
                 "labelSource" : "textInside",
-                "ordinal" : 71,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 264,
-                "frame" : [
-                  -1706,
-                  578,
-                  111,
-                  27
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "*****(189)",
-                "labelSource" : "textInside",
-                "ordinal" : 72,
+                "ordinal" : 68,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2119,14 +2104,14 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1698,
-                  581,
-                  98,
+                  -1730,
+                  592,
+                  97,
                   14
                 ],
                 "groupID" : 7,
@@ -2137,7 +2122,7 @@
                 "kind" : "link",
                 "label" : "item 54",
                 "labelSource" : "synthesized",
-                "ordinal" : 73,
+                "ordinal" : 69,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2146,24 +2131,24 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1553,
-                  578,
-                  105,
-                  25
+                  -1586,
+                  565,
+                  76,
+                  27
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "*****(26)",
+                "label" : "$285.59",
                 "labelSource" : "textInside",
-                "ordinal" : 74,
+                "ordinal" : 70,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2172,13 +2157,13 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1396,
-                  578,
+                  -1580,
+                  589,
                   90,
                   20
                 ],
@@ -2190,24 +2175,53 @@
                 "kind" : "link",
                 "label" : "SidelineSwap",
                 "labelSource" : "classifier",
-                "ordinal" : 75,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 71,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 264,
                 "frame" : [
-                  -1249,
-                  578,
-                  103,
-                  25
+                  -1434,
+                  565,
+                  78,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$249.88",
+                "labelSource" : "textInside",
+                "ordinal" : 72,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1426,
+                  592,
+                  84,
+                  14
                 ],
                 "groupID" : 7,
                 "hints" : [
@@ -2215,9 +2229,35 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "*****(15)",
+                "label" : "item 56",
+                "labelSource" : "synthesized",
+                "ordinal" : 73,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1282,
+                  565,
+                  72,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$217.60",
                 "labelSource" : "textInside",
-                "ordinal" : 76,
+                "ordinal" : 74,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2226,14 +2266,14 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1092,
-                  578,
-                  30,
+                  -1276,
+                  589,
+                  90,
                   20
                 ],
                 "groupID" : 7,
@@ -2244,103 +2284,243 @@
                 "kind" : "link",
                 "label" : "SidelineSwap",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 75,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1132,
+                  587,
+                  46,
+                  25
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Mou",
+                "labelSource" : "textInside",
+                "ordinal" : 76,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1129,
+                  565,
+                  43,
+                  27
+                ],
+                "groupID" : 6,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "$191",
+                "labelSource" : "textInside",
                 "ordinal" : 77,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
                 "affordanceSource" : "classifier",
                 "confidence" : 1,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
+
                 ],
-                "facts" : 2304,
+                "facts" : 0,
                 "frame" : [
-                  -1700,
-                  598,
-                  127,
+                  -1124,
+                  589,
+                  30,
                   20
                 ],
-                "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Ski Pro - Snow Ski & Snowboard",
+                "label" : "Mountain Sports",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 78,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
-                "facts" : 2304,
+                "facts" : 2312,
                 "frame" : [
-                  -1548,
-                  598,
-                  127,
-                  20
+                  -733,
+                  563,
+                  27,
+                  27
                 ],
-                "groupID" : 7,
+                "groupID" : 6,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Ski Pro - Snow Ski & Snowboard",
-                "labelSource" : "classifier",
+                "label" : "Q",
+                "labelSource" : "textInside",
                 "ordinal" : 79,
-                "region" : "main",
-                "role" : "AXLink"
+                "region" : "trailing",
+                "role" : "AXStaticText"
               },
               {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
-                "facts" : 2304,
+                "facts" : 264,
                 "frame" : [
-                  -1244,
-                  598,
-                  127,
-                  20
+                  -1738,
+                  589,
+                  111,
+                  27
                 ],
                 "groupID" : 7,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Ski Pro - Snow Ski & Snowboard",
-                "labelSource" : "classifier",
+                "label" : "*****(1k+)",
+                "labelSource" : "textInside",
                 "ordinal" : 80,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 2312,
+                "frame" : [
+                  -1732,
+                  609,
+                  77,
+                  20
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Xero Shoes",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 81,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 264,
+                "frame" : [
+                  -1434,
+                  588,
+                  98,
+                  29
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "*****(4)",
+                "labelSource" : "textInside",
+                "ordinal" : 82,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+                  "20% OFF SITEWIDE",
+                  "row"
+                ],
+                "facts" : 256,
+                "frame" : [
+                  -1428,
+                  609,
+                  111,
+                  20
+                ],
+                "groupID" : 7,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "Sun & Ski Sports",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 83,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "alpine touring boots vs downhill",
+                  "20% OFF SITEWIDE",
                   "row"
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1012,
-                  600,
+                  -1044,
+                  611,
                   177,
                   25
                 ],
@@ -2351,84 +2531,6 @@
                 "isEnabled" : true,
                 "kind" : "link",
                 "label" : "scarpa ski touring boots",
-                "labelSource" : "textInside",
-                "ordinal" : 81,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1006,
-                  587,
-                  327,
-                  49
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "scarpa ski touring boots",
-                "labelSource" : "classifier",
-                "ordinal" : 82,
-                "region" : "trailing",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "alpine touring boots vs downhill",
-                  "row"
-                ],
-                "facts" : 2312,
-                "frame" : [
-                  -702,
-                  600,
-                  27,
-                  27
-                ],
-                "groupID" : 7,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Q",
-                "labelSource" : "textInside",
-                "ordinal" : 83,
-                "region" : "trailing",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Q",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1011,
-                  648,
-                  157,
-                  27
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "dynafit touring boots",
                 "labelSource" : "textInside",
                 "ordinal" : 84,
                 "region" : "trailing",
@@ -2443,8 +2545,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  635,
+                  -1038,
+                  598,
                   327,
                   49
                 ],
@@ -2453,28 +2555,31 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "dynafit touring boots",
+                "label" : "scarpa ski touring boots",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 85,
                 "region" : "trailing",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Q",
-                  "band"
+                  "20% OFF SITEWIDE",
+                  "row"
                 ],
-                "facts" : 2056,
+                "facts" : 2312,
                 "frame" : [
-                  -702,
-                  648,
+                  -734,
+                  611,
                   27,
                   27
                 ],
-                "groupID" : 8,
+                "groupID" : 7,
                 "hints" : [
 
                 ],
@@ -2486,17 +2591,45 @@
                 "role" : "AXStaticText"
               },
               {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1038,
+                  646,
+                  327,
+                  49
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "dynafit touring boots",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 87,
+                "region" : "trailing",
+                "role" : "AXLink",
+                "site" : "ecosia"
+              },
+              {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Ski Pro - Snow S...",
+                  "Xero Shoes",
                   "band"
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1706,
-                  672,
+                  -1738,
+                  683,
                   84,
                   25
                 ],
@@ -2508,7 +2641,7 @@
                 "kind" : "link",
                 "label" : "Sponsored",
                 "labelSource" : "textInside",
-                "ordinal" : 87,
+                "ordinal" : 88,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -2517,104 +2650,51 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Sponsored",
+                  "Q",
                   "band"
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1663,
-                  702,
-                  130,
-                  25
+                  -1043,
+                  659,
+                  155,
+                  27
                 ],
-                "groupID" : 10,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Daymaker Touring",
+                "label" : "dynafit touring boots",
                 "labelSource" : "textInside",
-                "ordinal" : 88,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1661,
-                  703,
-                  265,
-                  20
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "Daymaker Touring",
-                "labelSource" : "classifier",
                 "ordinal" : 89,
-                "region" : "main",
-                "role" : "AXLink"
+                "region" : "trailing",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Sponsored",
+                  "Q",
                   "band"
                 ],
-                "facts" : 8,
+                "facts" : 2056,
                 "frame" : [
-                  -1660,
-                  707,
-                  66,
-                  15
+                  -734,
+                  659,
+                  27,
+                  27
                 ],
-                "groupID" : 10,
+                "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 73",
-                "labelSource" : "synthesized",
-                "ordinal" : 90,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Sponsored",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1009,
-                  698,
-                  267,
-                  23
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "best alpine touring boots for wide feet",
+                "label" : "Q",
                 "labelSource" : "textInside",
-                "ordinal" : 91,
+                "ordinal" : 90,
                 "region" : "trailing",
                 "role" : "AXStaticText"
               },
@@ -2627,8 +2707,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  683,
+                  -1038,
+                  694,
                   327,
                   49
                 ],
@@ -2639,35 +2719,12 @@
                 "kind" : "link",
                 "label" : "best alpine touring boots for wide feet",
                 "labelSource" : "classifier",
-                "ordinal" : 92,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 91,
                 "region" : "trailing",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Sponsored",
-                  "band"
-                ],
-                "facts" : 2056,
-                "frame" : [
-                  -702,
-                  696,
-                  27,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Q",
-                "labelSource" : "textInside",
-                "ordinal" : 93,
-                "region" : "trailing",
-                "role" : "AXStaticText"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "press",
@@ -2679,8 +2736,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1701,
-                  708,
+                  -1733,
+                  719,
                   30,
                   30
                 ],
@@ -2692,9 +2749,117 @@
                 "kind" : "link",
                 "label" : "link 3",
                 "labelSource" : "synthesized",
-                "ordinal" : 94,
+                "ordinal" : 92,
                 "region" : "main",
                 "role" : "AXLink"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1697,
+                  715,
+                  126,
+                  23
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "daymaker touring",
+                "labelSource" : "textInside",
+                "ordinal" : 93,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "press",
+                "affordanceSource" : "classifier",
+                "confidence" : 1,
+                "containerTrail" : [
+
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1693,
+                  714,
+                  265,
+                  20
+                ],
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "daymaker touring",
+                "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 94,
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1041,
+                  709,
+                  267,
+                  23
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "best alpine touring boots for wide feet",
+                "labelSource" : "textInside",
+                "ordinal" : 95,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -733,
+                  707,
+                  27,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 96,
+                "region" : "trailing",
+                "role" : "AXStaticText"
               },
               {
                 "affordance" : "press",
@@ -2706,8 +2871,8 @@
                 ],
                 "facts" : 2,
                 "frame" : [
-                  -1661,
-                  723,
+                  -1693,
+                  734,
                   235,
                   20
                 ],
@@ -2719,61 +2884,12 @@
                 "kind" : "link",
                 "label" : "https://(an address)",
                 "labelSource" : "classifier",
-                "ordinal" : 95,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "press",
-                "affordanceSource" : "classifier",
-                "confidence" : 1,
-                "containerTrail" : [
-
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1427,
-                  723,
-                  31,
-                  18
-                ],
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "To get missing image descriptions, open the context menu.",
-                "labelSource" : "classifier",
-                "ordinal" : 96,
-                "region" : "main",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Sponsored",
-                  "band"
-                ],
-                "facts" : 2048,
-                "frame" : [
-                  -1011,
-                  746,
-                  155,
-                  23
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "atomic touring boots",
-                "labelSource" : "textInside",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 97,
-                "region" : "trailing",
-                "role" : "AXStaticText"
+                "region" : "main",
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "press",
@@ -2784,8 +2900,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1006,
-                  731,
+                  -1038,
+                  742,
                   327,
                   49
                 ],
@@ -2794,37 +2910,14 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "atomic touring boots",
+                "label" : "alpine touring skis",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 98,
                 "region" : "trailing",
-                "role" : "AXLink"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Sponsored",
-                  "band"
-                ],
-                "facts" : 2056,
-                "frame" : [
-                  -702,
-                  744,
-                  27,
-                  27
-                ],
-                "groupID" : 10,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "Q",
-                "labelSource" : "textInside",
-                "ordinal" : 99,
-                "region" : "trailing",
-                "role" : "AXStaticText"
+                "role" : "AXLink",
+                "site" : "ecosia"
               },
               {
                 "affordance" : "press",
@@ -2836,9 +2929,9 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1707,
-                  754,
-                  259,
+                  -1740,
+                  765,
+                  379,
                   33
                 ],
                 "groupID" : 10,
@@ -2847,9 +2940,9 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Alpine Touring Equipment",
+                "label" : "Alpine Touring Bindings by Daymakers",
                 "labelSource" : "textInside",
-                "ordinal" : 100,
+                "ordinal" : 99,
                 "region" : "main",
                 "role" : "AXLink"
               },
@@ -2862,8 +2955,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1701,
-                  753,
+                  -1733,
+                  764,
                   615,
                   30
                 ],
@@ -2872,25 +2965,81 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Alpine Touring Equipment",
+                "label" : "Alpine Touring Bindings by Daymakers",
                 "labelSource" : "classifier",
-                "ordinal" : 101,
+                "maximumValue" : 0,
+                "minimumValue" : 0,
+                "ordinal" : 100,
                 "region" : "main",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               },
               {
                 "affordance" : "none",
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Alpine Touring Equipment",
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2048,
+                "frame" : [
+                  -1045,
+                  757,
+                  141,
+                  25
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "alpine touring skis",
+                "labelSource" : "textInside",
+                "ordinal" : 101,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Sponsored",
+                  "band"
+                ],
+                "facts" : 2056,
+                "frame" : [
+                  -733,
+                  755,
+                  27,
+                  27
+                ],
+                "groupID" : 10,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "Q",
+                "labelSource" : "textInside",
+                "ordinal" : 102,
+                "region" : "trailing",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "Alpine Touring Bindings by Daymakers",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1706,
-                  786,
-                  607,
+                  -1738,
+                  797,
+                  587,
                   25
                 ],
                 "groupID" : 11,
@@ -2899,35 +3048,8 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "Ski Touring Solution -Touring a handful of days a season on expensive touring equipment",
+                "label" : "The most cost effective solution to start backcountry skiing. Use your downhill skis and",
                 "labelSource" : "textInside",
-                "ordinal" : 102,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "Alpine Touring Equipment",
-                  "band"
-                ],
-                "facts" : 8,
-                "frame" : [
-                  -1554,
-                  789,
-                  449,
-                  16
-                ],
-                "groupID" : 11,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "item 81",
-                "labelSource" : "synthesized",
                 "ordinal" : 103,
                 "region" : "main",
                 "role" : "AXStaticText"
@@ -2937,14 +3059,14 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Alpine Touring Equipment",
+                  "Alpine Touring Bindings by Daymakers",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1703,
-                  806,
-                  591,
+                  -1735,
+                  817,
+                  595,
                   25
                 ],
                 "groupID" : 11,
@@ -2953,7 +3075,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "makes no sense. Experience the thrill of skiing fresh snow without the hassle of ski lifts.",
+                "label" : "bindings to tour with Daymakers Alpine Adapters! Free Shipping Worldwide. Solutions by",
                 "labelSource" : "textInside",
                 "ordinal" : 104,
                 "region" : "main",
@@ -2964,22 +3086,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Alpine Touring Equipment",
+                  "Alpine Touring Bindings by Daymakers",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 8,
                 "frame" : [
-                  -1705,
-                  828,
-                  331,
-                  25
+                  -1737,
+                  839,
+                  57,
+                  23
                 ],
                 "groupID" : 11,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "Satisfaction Guarantee. Free Domestic Shipping.",
+                "label" : "Skiers.",
                 "labelSource" : "textInside",
                 "ordinal" : 105,
                 "region" : "main",
@@ -2990,13 +3112,13 @@
                 "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "Satisfaction Guarantee. Free Domestic Shipping.",
+                  "Skiers.",
                   "band"
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1706,
-                  893,
+                  -1738,
+                  904,
                   84,
                   26
                 ],
@@ -3021,8 +3143,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1661,
-                  925,
+                  -1693,
+                  936,
                   178,
                   13
                 ],
@@ -3033,9 +3155,12 @@
                 "kind" : "link",
                 "label" : "evo",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 107,
                 "region" : "footer",
-                "role" : "AXLink"
+                "role" : "AXLink",
+                "site" : "goog syndicatedsearch"
               }
             ],
             "version" : 2
@@ -3052,28 +3177,28 @@
       "say" : "what can I click on here",
       "shells" : [
         {
-          "activeTabIndex" : 0,
-          "atMilliseconds" : 57,
+          "activeTabIndex" : 7,
+          "atMilliseconds" : 191,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "ecosia",
-          "tabCount" : 1,
+          "tabCount" : 8,
           "title" : "alpine touring boots - Ecosia"
         }
       ],
       "timeline" : [
         "7ms  resolved Chrome",
-        "57ms  read the shell — alpine touring boots - Ecosia · ecosia",
-        "803ms  perceived 107 controls · —",
-        "803ms  looked — 107 rows, 97 named, 13 groups"
+        "191ms  read the shell — alpine touring boots - Ecosia · ecosia",
+        "965ms  perceived 107 controls · —",
+        "966ms  looked — 107 rows, 97 named, 13 groups"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T17:23:25Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:33:24Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "echo-and-strip-refused"
 }

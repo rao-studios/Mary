@@ -34,8 +34,8 @@
       "verdict" : "pending"
     }
   ],
-  "recordedAt" : "2026-09-06T17:23:10Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:32:55Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "navigation-stalls"
 }

@@ -1218,6 +1218,53 @@ round's table: it matched any heading beginning "### Round 8 — ", and the
 narrative was headed "### Round 8 — the revision". The writer now rewrites only
 a heading with its own date after the dash.
 
+### Round 9 — the browser's own question, and three rules the corpus had been paying for
+
+Round 8's table stood at 74% with eleven failing legs, most of them not
+regressions but three standing faults the recordings had been carrying since
+round 7, and one fault round 8 itself introduced.
+
+#### What round 8 introduced
+
+**A shortcut that skipped the typing took a shop for the results.** Part 4
+added a standing-shell read before a search — "if the results are already in
+front, do not type the query again" — and judged "already in front" with
+`searched(for:shell:)`, the check made AFTER typing, where the address is
+known to be a search. Asked of whatever page was in front it is far too loose:
+a product page titled with two of the query's three words counted as its
+results, and "search the web for alpine touring boots" typed nothing and
+reported a shop. Two rules now: the shortcut fires only for a query THIS ENGINE
+put in front (`lastResultQuery`), and a query typed into a browser already
+showing it is a quiet ARRIVAL for the settle rather than a stall — typed all the
+same, proved by quiet, never by a title's words. An address keeps the old rule;
+the fake-clock stall test caught the first draft treating one as a query.
+
+#### What had been standing since round 7
+
+- **"The third link" counted the header, a skip-link and the right column.**
+  `countsForAPosition` skipped furniture by FACTS — a toolbar, a form, a band —
+  and the site's logo link, its skip-link and its related-search chips carried
+  none. They carried a REGION. Positions now count only the page's own column
+  (`main`, or an overlay); a header and a sidebar are places a person names and
+  never counts. Offline, on the captured page: row 36, the third link in the
+  content, where row 26 (a static "Sponsored" heading) and row 31 (a chip on
+  the right) had been reached.
+- **"The first one" was a static text.** On a site's own search page the pixel
+  lane called the search-options panel a list, so "Search in: (Article) ×" was
+  in a result group and was the first one. A result is something that OPENS:
+  the `.openResult` count now needs `inResultGroup` AND a press affordance.
+  The same page still has no real first result the seal can count — its result
+  entries were grouped as bands across columns — which stays filed against the
+  seal's grouping, and the rule at least no longer answers with prose.
+- **Recorded routes drift on purpose.** Five recorded legs answer differently
+  against their own reads after the two counting rules, which is what the
+  replay net is for; round 9's recordings replace them.
+
+#### The browser's own question
+
+Built between the rounds from a screenshot — see the section under round 8.
+`recovery/browser-is-asking` runs in every round from here on.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -1346,3 +1393,20 @@ Exit criterion not met: no leg ran in recovery; act at 63% — under 90%; media 
 | **all** | **36** | **9** | **14** | **15** | **80%** | P 3 · R2 1 · E 5 |
 
 Exit criterion not met: no leg ran in recovery; act at 88% — under 90%; media at 63% — under 90%; search at 75% — under 90%; context has 3 failing leg(s); 1 page-routing failure(s) on the recorded corpus.
+
+### Round 9 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 6 | 2 | 0 | 5 | 75% | R2 2 |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 1 | 1 | 0 | 13 | 50% | R2 1 |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 6 | 4 | 2 | 1 | 60% | P 1 · E 3 |
+| read | 1 | 0 | 0 | 6 | 100% | — |
+| recovery | 1 | 1 | 3 | 6 | 50% | P 1 |
+| search | 6 | 2 | 0 | 0 | 75% | R2 2 |
+| tabs | 1 | 2 | 2 | 1 | 33% | E 2 |
+| **all** | **32** | **12** | **7** | **33** | **73%** | P 2 · R2 5 · E 5 |
+
+Exit criterion not met: act at 75% — under 90%; media at 60% — under 90%; recovery at 50% — under 90%; search at 75% — under 90%; tabs at 33% — under 90%; context has 1 failing leg(s); 5 page-routing failure(s) on the recorded corpus.

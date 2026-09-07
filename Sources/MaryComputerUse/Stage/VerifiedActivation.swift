@@ -124,13 +124,17 @@ public enum VerifiedActivation {
     /// REPORTS EITHER WAY — an activation that silently did not take is the
     /// failure this whole type exists to make visible.
     @discardableResult
+    /// `raising` names the window the caller works in; the raise road restores
+    /// and raises THAT one rather than whichever the application calls main.
     public static func bringForward(
         pid: pid_t,
         timeout: TimeInterval = 2.0,
-        requireVisibleWindow: Bool = true
+        requireVisibleWindow: Bool = true,
+        raising window: CGWindowID? = nil
     ) async -> Activation {
         let activation = await bringForwardCore(
-            pid: pid, timeout: timeout, requireVisibleWindow: requireVisibleWindow)
+            pid: pid, timeout: timeout, requireVisibleWindow: requireVisibleWindow,
+            window: window)
         report(activation, pid: pid)
         return activation
     }
@@ -138,7 +142,8 @@ public enum VerifiedActivation {
     private static func bringForwardCore(
         pid asked: pid_t,
         timeout: TimeInterval,
-        requireVisibleWindow: Bool
+        requireVisibleWindow: Bool,
+        window: CGWindowID? = nil
     ) async -> Activation {
         guard let process = NSRunningApplication(processIdentifier: asked),
               !process.isTerminated
@@ -161,7 +166,7 @@ public enum VerifiedActivation {
             }
             return await raise(
                 running, within: max(raiseFloor, timeout / 2),
-                requireVisibleWindow: requireVisibleWindow)
+                requireVisibleWindow: requireVisibleWindow, window: window)
         }
 
         if running.isHidden { running.unhide() }
@@ -169,7 +174,9 @@ public enum VerifiedActivation {
         let cooperative = min(timeout, max(cooperativeShare, timeout * 0.4))
         switch await frontmost(pid: pid, within: cooperative) {
         case .arrived:
-            return await settle(.cooperative, running: running, requireVisibleWindow: requireVisibleWindow)
+            return await settle(
+                .cooperative, running: running, requireVisibleWindow: requireVisibleWindow,
+                window: window)
         case .cancelled: return .lost(.cancelled)
         case .timedOut: break
         }
@@ -180,7 +187,7 @@ public enum VerifiedActivation {
         // is the gesture a person makes when clicking the app did nothing.
         return await raise(
             running, within: max(raiseFloor, timeout - cooperative),
-            requireVisibleWindow: requireVisibleWindow)
+            requireVisibleWindow: requireVisibleWindow, window: window)
     }
 
     /// The raise road: restore and raise a window, ask for activation again,
@@ -188,10 +195,11 @@ public enum VerifiedActivation {
     private static func raise(
         _ running: NSRunningApplication,
         within budget: TimeInterval,
-        requireVisibleWindow: Bool
+        requireVisibleWindow: Bool,
+        window: CGWindowID? = nil
     ) async -> Activation {
         let pid = running.processIdentifier
-        raiseAWindow(pid: pid)
+        raiseAWindow(pid: pid, preferring: window)
         // THE ASSISTIVE ROAD. Cooperative activation is a REQUEST, and macOS
         // grants it to the active application; an application that is not
         // active — Mary, spoken to while the person works in an editor — is
@@ -206,13 +214,13 @@ public enum VerifiedActivation {
         running.activate(options: [.activateAllWindows])
         switch await frontmost(pid: pid, within: budget) {
         case .arrived:
-            return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow)
+            return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow, window: window)
         case .cancelled: return .lost(.cancelled)
         case .timedOut: break
         }
         // One last read: a Space switch can land just past the deadline.
         guard await isFrontmost(pid: pid) else { return .lost(.refused) }
-        return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow)
+        return await settle(.raised, running: running, requireVisibleWindow: requireVisibleWindow, window: window)
     }
 
     /// Bring the app with the EXACT `bundleID` forward and prove an app matching
@@ -358,10 +366,15 @@ public enum VerifiedActivation {
     /// about stayed in the Dock — the engine then read and hovered the wrong
     /// page. The application's own notion of its main window is the one the
     /// person last worked in, minimized or not.
-    private static func raiseAWindow(pid: pid_t) {
+    /// THE WINDOW THE CALLER WORKS IN, when it names one — see
+    /// `AXWindowIdentity`. The main window is what is raised for a caller
+    /// that names none, and the first when nothing is main.
+    private static func raiseAWindow(pid: pid_t, preferring wanted: CGWindowID? = nil) {
         guard AXIsProcessTrusted(),
               let windows = AXWindowRoster.axWindows(of: pid, standardOnly: true),
               let window = windows.first(where: {
+                  wanted != nil && AXWindowIdentity.windowID(of: $0.element) == wanted
+              }) ?? windows.first(where: {
                   AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true
               }) ?? windows.first
         else { return }
@@ -390,14 +403,15 @@ public enum VerifiedActivation {
     private static func settle(
         _ road: Activation.Road,
         running: NSRunningApplication,
-        requireVisibleWindow: Bool
+        requireVisibleWindow: Bool,
+        window: CGWindowID? = nil
     ) async -> Activation {
         let pid = running.processIdentifier
         guard requireVisibleWindow, AXIsProcessTrusted() else { return .won(road) }
         if hasUnminimizedWindow(pid: pid) { return .won(road) }
         // NOTHING ON SCREEN YET. Restore a window once before giving up on it —
         // a person whose every window is minimized clicks the Dock and gets one.
-        raiseAWindow(pid: pid)
+        raiseAWindow(pid: pid, preferring: window)
         return hasUnminimizedWindow(pid: pid) ? .won(.raised) : .lost(.noVisibleWindow)
     }
 

@@ -23,9 +23,32 @@ import MaryFoundation
 /// Reading and driving the browser's own shell.
 public protocol BrowserShellReading: Sendable {
     func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading?
+    /// The same read, of the window the engine works in when it names one.
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading?
     func openLocation(_ address: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
     /// Press a shell control by its declared label.
     func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
+    /// The same press, kept inside the window the engine works in.
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool
+}
+
+/// A SHELL THAT KNOWS NO WINDOWS reads and presses as it always did — the
+/// fakes, and anything that has not learned the working window yet.
+public extension BrowserShellReading {
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading? {
+        await read(pid: pid, registration: registration)
+    }
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool {
+        await press(label: label, pid: pid, registration: registration)
+    }
 }
 
 /// Reading the page itself.
@@ -136,6 +159,8 @@ public protocol BrowserStaging: Sendable {
     /// Take the stage for one act: the lease, the hold, and the window brought
     /// forward and proved.
     func bringForward(pid: pid_t) async -> Activation
+    /// The same, raising the window the engine works in when it names one.
+    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation
     /// The act is over. Release the stage, and put `previous` back in front when
     /// one is named.
     func standDown(givingBackTo previous: pid_t?) async
@@ -144,12 +169,30 @@ public protocol BrowserStaging: Sendable {
     func holdsFocus(pid: pid_t) async -> Bool
 }
 
+public extension BrowserStaging {
+    func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
+        await bringForward(pid: pid)
+    }
+}
+
 // MARK: - Live
 
 struct LiveBrowserShell: BrowserShellReading {
     private static let log = Logger(subsystem: "nyc.rao.mary", category: "browsing")
     func read(pid: pid_t, registration: WebSurfaceRegistration) async -> WebSurfaceAX.Reading? {
         WebSurfaceAX.read(pid: pid, registration: registration)
+    }
+
+    func read(
+        pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
+    ) async -> WebSurfaceAX.Reading? {
+        WebSurfaceAX.read(pid: pid, registration: registration, preferring: window)
+    }
+
+    func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
+    ) async -> Bool {
+        await press(label: label, pid: pid, registration: registration, scope: window)
     }
 
     /// Once, then verified. `openLocation` retries this whole exchange rather than
@@ -286,10 +329,28 @@ struct LiveBrowserShell: BrowserShellReading {
     /// the HID tap rather than the process, for the reason the page lane already
     /// records: a posted click is invisible to rendered content.
     func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
+        await press(label: label, pid: pid, registration: registration, scope: nil)
+    }
+
+    private func press(
+        label: String, pid: pid_t, registration: WebSurfaceRegistration, scope window: CGWindowID?
+    ) async -> Bool {
         let wanted = WebSurfaceRegistration.folded(label)
         guard let application = AXUIElementCreateApplication(pid) as AXUIElement?
         else { return false }
-        guard let control = Self.control(named: wanted, in: application) else { return false }
+        // THE WINDOW THE SHELL WAS READ FROM, BEFORE ANY OTHER. Measured in
+        // round 9: "go to the second tab" read the tabs of the window in front
+        // and pressed a tab of the same name in the window BEHIND it — the
+        // person's own — because the walk started at the application and took
+        // the first match. The engine's working window is the one the read
+        // was about (`AXWindowIdentity`); the main window stands in when none
+        // is named; the rest of the application is a fallback for a control
+        // that lives outside every window.
+        let scope: AXUIElement? = window.flatMap { AXWindowIdentity.window(id: $0, in: pid) }
+            ?? AX.attribute(application, kAXMainWindowAttribute as String).map { $0 as! AXUIElement }
+        guard let control = scope.flatMap({ Self.control(named: wanted, in: $0) })
+            ?? Self.control(named: wanted, in: application)
+        else { return false }
 
         // Through Hands, so the monitor sees it — the seam locates, the machine
         // layer acts.
@@ -463,6 +524,10 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
     }
 
     public func bringForward(pid: pid_t) async -> Activation {
+        await bringForward(pid: pid, raising: nil)
+    }
+
+    public func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
         guard let taken = await StageArbiter.shared.acquire(owner: "browsing", onPreempt: {})
         else {
             return .lost(.stageHeld(StageArbiter.shared.currentOwner() ?? "another act"))
@@ -472,7 +537,7 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
             lease = taken
             hold = holding
         }
-        let activation = await VerifiedActivation.bringForward(pid: pid)
+        let activation = await VerifiedActivation.bringForward(pid: pid, raising: window)
         if !activation.succeeded { await standDown(givingBackTo: nil) }
         return activation
     }

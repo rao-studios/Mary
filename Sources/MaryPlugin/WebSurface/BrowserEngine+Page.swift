@@ -335,7 +335,8 @@ public extension BrowserEngine {
             let label = index < shell.tabLabels.count ? shell.tabLabels[index] : shell.tabs[index]
             if dryRun { return refuse(.dryRun("switched to \(shell.tabs[index])")) }
             guard await seams.shell.press(
-                label: label, pid: target.processIdentifier, registration: target.registration)
+                label: label, pid: target.processIdentifier, registration: target.registration,
+                within: workingWindow)
             else { return refuse(.elementNotFound(shell.tabs[index])) }
             emit(.acted("pressed the tab \(shell.tabs[index])"))
             // THE PROOF: the window wears the tab's name.
@@ -344,7 +345,8 @@ public extension BrowserEngine {
             while seams.now() < deadline {
                 await seams.sleep(.milliseconds(150))
                 now = await seams.shell.read(
-                    pid: target.processIdentifier, registration: target.registration)
+                    pid: target.processIdentifier, registration: target.registration,
+                    preferring: workingWindow)
                 if let now, now.activeTabIndex == index
                     || now.title?.caseInsensitiveCompare(shell.tabs[index]) == .orderedSame {
                     break

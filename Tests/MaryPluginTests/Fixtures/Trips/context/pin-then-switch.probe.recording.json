@@ -6,7 +6,7 @@
       "acts" : [
 
       ],
-      "because" : "action is one of play/pause/toggle/mute/unmute/fullscreen/seek/volume and the trip does not say which",
+      "because" : "chrome has to be pinned",
       "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
@@ -34,8 +34,8 @@
       "verdict" : "unstageable"
     }
   ],
-  "recordedAt" : "2026-09-06T17:21:32Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:30:02Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "pin-then-switch"
 }

@@ -1,12 +1,12 @@
 {
   "browser" : "chrome",
-  "category" : "act",
+  "category" : "media",
   "legs" : [
     {
       "acts" : [
 
       ],
-      "because" : "no address for \"sliderPage\" — add it to /Users/ritesh/.mary/trips/stage.json as {\"sliderPage\": \"…\"} (kept out of the repository on purpose)",
+      "because" : "waiting on a staged page with an ad",
       "elapsedMilliseconds" : 0,
       "index" : 0,
       "landed" : false,
@@ -24,18 +24,18 @@
       "routes" : [
 
       ],
-      "say" : "set the slider to about a quarter",
+      "say" : "skip the ad",
       "shells" : [
 
       ],
       "timeline" : [
 
       ],
-      "verdict" : "unstageable"
+      "verdict" : "pending"
     }
   ],
-  "recordedAt" : "2026-09-07T06:28:34Z",
+  "recordedAt" : "2026-09-07T06:31:34Z",
   "round" : "9",
   "runner" : "probe",
-  "tripID" : "slider-on-a-page"
+  "tripID" : "skip-the-ad"
 }

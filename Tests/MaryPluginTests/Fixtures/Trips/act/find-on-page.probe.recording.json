@@ -5,26 +5,26 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 5,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 119,
+          "atMilliseconds" : 192,
           "key" : "command+f",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 386,
+          "atMilliseconds" : 459,
           "kind" : "type",
           "typedLength" : 6
         },
         {
-          "atMilliseconds" : 415,
+          "atMilliseconds" : 488,
           "key" : "return",
           "kind" : "key"
         },
         {
-          "atMilliseconds" : 415,
+          "atMilliseconds" : 489,
           "kind" : "restoreCursor"
         }
       ],
@@ -34,7 +34,7 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 416,
+      "elapsedMilliseconds" : 489,
       "index" : 0,
       "landed" : false,
       "media" : [
@@ -44,6 +44,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -69,28 +70,28 @@
       "say" : "find the word budget on this page",
       "shells" : [
         {
-          "activeTabIndex" : 1,
-          "atMilliseconds" : 119,
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 192,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
           "pageFrameSource" : "window below the toolbar",
           "site" : "wikipedia",
-          "tabCount" : 5,
+          "tabCount" : 1,
           "title" : "Ski touring - Wikipedia"
         }
       ],
       "timeline" : [
-        "7ms  resolved Chrome",
-        "119ms  read the shell — Ski touring - Wikipedia · wikipedia",
-        "415ms  found \"budget\" on the page",
-        "415ms  receipt — typeText \"budget\" — no sign it did anything"
+        "8ms  resolved Chrome",
+        "192ms  read the shell — Ski touring - Wikipedia · wikipedia",
+        "489ms  found \"budget\" on the page",
+        "489ms  receipt — typeText \"budget\" — no sign it did anything"
       ],
       "verdict" : "passed"
     }
   ],
-  "recordedAt" : "2026-09-06T23:36:58Z",
-  "round" : "8",
+  "recordedAt" : "2026-09-07T06:27:46Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "find-on-page"
 }

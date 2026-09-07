@@ -454,14 +454,38 @@ public enum PageRouter {
     /// site's navigation strip lives in a form and is never the second result)
     /// and exactly backwards for filling, where the form IS the content: a
     /// person saying "the second field" means the second field of the form.
+    /// The facts that keep a row out of a count. PUBLIC so the trip classifier
+    /// counts exactly as the router does — two counts that differ are a
+    /// verdict about nothing (round 9 measured five of them).
+    public static let uncountableForAPosition: RowFacts = [
+        .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
+        .behindOverlay, .echoOfQuery, .notDrawn,
+    ]
+
+    /// Whether a row is in the page's own column, as a count sees it.
+    public static func inTheCountedColumn(_ region: PageRegion?) -> Bool {
+        guard let region else { return true }
+        return region == .main || region == .overlay
+    }
+
     static func countsForAPosition(_ row: PageRow, verb: PageRouteVerb) -> Bool {
-        var uncountable: RowFacts = [
-            .inToolbar, .inForm, .inFurnitureBand, .separatedStrip,
-            .behindOverlay, .echoOfQuery, .notDrawn,
-        ]
+        var uncountable = uncountableForAPosition
         if verb == .fill { uncountable.remove(.inForm) }
         guard row.facts.isDisjoint(with: uncountable) else { return false }
-        if case .openResult = verb { return row.facts.contains(.inResultGroup) }
+        // AND ONLY THE PAGE'S OWN COLUMN. A site's header, its sidebars and its
+        // footer are places a person names ("the search box at the top") and
+        // never counts: measured on a results page, "the third link" reached
+        // the site's logo, a skip-link and a related-search chip in the right
+        // column, and the results were still to come. Only `main` — and an
+        // overlay, which is what is in front of everything — is counted through.
+        guard inTheCountedColumn(row.region) else { return false }
+        if case .openResult = verb {
+            // A RESULT IS SOMETHING THAT OPENS. A static text in a list-shaped
+            // panel ("Search in: (Article) ×") was "the first one" — measured
+            // on a site's own search page — because the pixel lane called the
+            // panel a list and nothing asked whether the row could be pressed.
+            return row.facts.contains(.inResultGroup) && row.affordance == .press
+        }
         return true
     }
 

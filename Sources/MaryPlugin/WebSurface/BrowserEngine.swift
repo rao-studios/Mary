@@ -132,6 +132,9 @@ public actor BrowserEngine {
     /// lifetime as the slate, and for the same reason: the moment the page
     /// changes, this describes a list that is no longer on screen.
     var lastResultQuery: String?
+    /// THE WINDOW MARY WORKS IN — the one the last shell read was about, kept
+    /// for every read, press and raise after it. See `AXWindowIdentity`.
+    var workingWindow: CGWindowID?
     /// Which road the last journey took — the results, or the site's own search.
     var lastWatchRoad: WatchRecipe.Road?
     private var lastRefusal: BrowserRefusal?
@@ -165,6 +168,7 @@ public actor BrowserEngine {
             lastMedia: lastMedia,
             lastRoster: lastRoster,
             lastRoute: lastRoute,
+            workingWindow: workingWindow,
             lastRefusal: lastRefusal,
             acts: acts,
             refusals: refusals,
@@ -249,6 +253,12 @@ public actor BrowserEngine {
     func refuse(_ refusal: BrowserRefusal) -> BrowserOutcome {
         emit(.refused(refusal))
         return .refused(refusal)
+    }
+
+    /// Work in this window from now on — a runner that opened a window for
+    /// the session names it, and the first read does not have to guess.
+    public func adopt(window: CGWindowID?) {
+        workingWindow = window
     }
 
     // MARK: - The stage
@@ -337,7 +347,8 @@ public actor BrowserEngine {
         if stagedDepth > 0 { return await body() }
 
         let previous = await seams.stage.frontmost()
-        let activation = await seams.stage.bringForward(pid: target.processIdentifier)
+        let activation = await seams.stage.bringForward(
+            pid: target.processIdentifier, raising: workingWindow)
         guard activation.succeeded else {
             return refuse(.activationRefused(target.spokenName, activation.failure))
         }
@@ -362,11 +373,16 @@ public actor BrowserEngine {
         lastBrowser = target.spokenName
         emit(.resolved(browser: target.spokenName, pid: target.processIdentifier))
         guard let reading = await seams.shell.read(
-            pid: target.processIdentifier, registration: target.registration)
+            pid: target.processIdentifier, registration: target.registration,
+            preferring: workingWindow)
         else {
             return refuse(.shellUnreadable(target.spokenName))
         }
         lastChrome = reading
+        if let window = reading.windowID, window != workingWindow {
+            workingWindow = window
+            emit(.acted("working in window \(window)"))
+        }
         emit(.shellRead(
             title: reading.title, site: reading.siteName, pageFrame: reading.pageFrame))
         return BrowserOutcome(
@@ -596,6 +612,18 @@ public actor BrowserEngine {
         // like any other and the rest of this verb is unchanged. When no lane
         // can read the length, the refusal names the length, not the track.
         var action = asked
+        // "PLAY IT FROM THE START" ON A PLAYER NOBODY HAS STARTED. Measured on
+        // a file page: a poster, one play circle over the picture, a duration
+        // badge, and no bar at all until the first play — so the seek to the
+        // start refused "not its progress control" about a video already at
+        // its start. Pressing play IS playing it from the start; the bar
+        // arrives with it. Only at the start, and only with no track: a seek
+        // anywhere else still needs the bar and still says so.
+        if Self.seeksTheStart(asked), before.progress == nil,
+           before.playback != .playing, before.centerGlyph != nil {
+            action = .play
+            emit(.acted("the player has not started — playing is the start"))
+        }
         if asked.isTimeSeek {
             // THE PAGE'S OWN SLIDER AND CLOCK — see `withSliderTrack`, `clocked`.
             before = await withSliderTrack(before, in: target, shell: shell)
@@ -786,9 +814,16 @@ public actor BrowserEngine {
             // `navigationDidNotSettle` about a page that is exactly where it was
             // asked to be. Nothing CAN change, so demanding a change is asking for
             // evidence that cannot exist.
+            // AND SO IS SEARCHING FOR WHAT IS ALREADY SEARCHED. The same words
+            // typed into a browser showing their results move nothing; the
+            // query is typed all the same (a shortcut that skipped the typing
+            // took a shop for the results — round 8), and quiet is the evidence.
+            let alreadyHere = Self.sameDestination(shell.url, address)
+                || (!SpokenAddress.looksLikeAnAddress(address)
+                    && WebSearchRecipe.searched(for: address, shell: shell))
             let settled = await settle(
                 target, from: shell, saying: "Opened",
-                expecting: Self.sameDestination(shell.url, address) ? .arrival : .change)
+                expecting: alreadyHere ? .arrival : .change)
             // A PAGE ASKED FOR CAN LAND BEHIND A HUMAN-CHECK. Answer its visible
             // control once, then look again — or hand it back. See PageChallenge.
             return await satisfyingChallenge(settled, in: target)
@@ -813,7 +848,8 @@ public actor BrowserEngine {
             }
             if dryRun { return refuse(.dryRun("pressed \(label)")) }
             guard await seams.shell.press(
-                label: label, pid: target.processIdentifier, registration: target.registration)
+                label: label, pid: target.processIdentifier, registration: target.registration,
+                within: workingWindow)
             else { return refuse(.elementNotFound(label)) }
             emit(.acted("pressed \(label)"))
             // A RELOAD LANDS ON THE SAME TITLE BY DEFINITION, and a back or a
@@ -871,7 +907,8 @@ public actor BrowserEngine {
         }
         if dryRun { return refuse(.dryRun("answered \(choice)")) }
         guard await seams.shell.press(
-            label: choice, pid: target.processIdentifier, registration: target.registration)
+            label: choice, pid: target.processIdentifier, registration: target.registration,
+            within: workingWindow)
         else { return refuse(.elementNotFound(choice)) }
         emit(.acted("answered \(choice)"))
 
@@ -882,7 +919,8 @@ public actor BrowserEngine {
         while seams.now() < deadline {
             await seams.sleep(Self.navigationPoll)
             guard let reading = await seams.shell.read(
-                pid: target.processIdentifier, registration: target.registration)
+                pid: target.processIdentifier, registration: target.registration,
+                preferring: workingWindow)
             else { continue }
             latest = reading
             if reading.dialog == nil {
@@ -1012,7 +1050,8 @@ public actor BrowserEngine {
             guard !Task.isCancelled else { return nil }
             await seams.sleep(Self.navigationPoll)
             guard let reading = await seams.shell.read(
-                pid: target.processIdentifier, registration: target.registration)
+                pid: target.processIdentifier, registration: target.registration,
+                preferring: workingWindow)
             else { continue }
             if !PageChallenge.isChallenge(title: reading.title) { return reading }
         }
@@ -1111,7 +1150,8 @@ public actor BrowserEngine {
         while seams.now() < deadline {
             await seams.sleep(Self.navigationPoll)
             guard let reading = await seams.shell.read(
-                pid: target.processIdentifier, registration: target.registration)
+                pid: target.processIdentifier, registration: target.registration,
+                preferring: workingWindow)
             else { continue }
             // THE PAGE DID NOT MOVE — THE BROWSER ASKED SOMETHING INSTEAD. That is
             // the outcome of the act, not a failure to settle: a reload of a
@@ -1182,6 +1222,15 @@ public actor BrowserEngine {
             return "The sound is already on."
         default:
             return nil
+        }
+    }
+
+    /// A seek to the very beginning, however it was said.
+    static func seeksTheStart(_ action: MediaAction) -> Bool {
+        switch action {
+        case .seek(let fraction): return fraction <= 0.01
+        case .seekTo(let seconds): return seconds <= 0.5
+        default: return false
         }
     }
 

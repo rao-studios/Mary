@@ -5,27 +5,27 @@
     {
       "acts" : [
         {
-          "atMilliseconds" : 46,
+          "atMilliseconds" : 7,
           "kind" : "bringForward"
         },
         {
-          "atMilliseconds" : 691,
+          "atMilliseconds" : 830,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "glide"
         },
         {
-          "atMilliseconds" : 991,
+          "atMilliseconds" : 1131,
           "atX" : 0.04265402843601896,
           "atY" : 0.792156862745098,
           "kind" : "click"
         },
         {
-          "atMilliseconds" : 1498,
+          "atMilliseconds" : 1632,
           "kind" : "restoreCursor"
         },
         {
-          "atMilliseconds" : 2605,
+          "atMilliseconds" : 3229,
           "kind" : "restoreCursor"
         }
       ],
@@ -35,7 +35,8 @@
       "ambientBefore" : {
 
       },
-      "elapsedMilliseconds" : 2605,
+      "because" : "only its routing is stated, and a probe routes nothing",
+      "elapsedMilliseconds" : 3229,
       "index" : 0,
       "landed" : true,
       "media" : [
@@ -45,6 +46,7 @@
         "A",
         "P",
         "R2",
+        "J",
         "E",
         "T"
       ],
@@ -52,7 +54,7 @@
       "outcomeSpoken" : "click \"submit the form\" — the page became httpbin.org/post. Now offering 1 button, 1 field, and 1 link — field 1 — Pretty-print O (form); button 1 — Pretty-print; link 1 — \"'json\": null, (\"Upgrade-Insecure-Requests\": \"1\",)",
       "pageReads" : [
         {
-          "atMilliseconds" : 592,
+          "atMilliseconds" : 730,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -172,12 +174,12 @@
             ],
             "labeledFraction" : 0.7,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 379,
+            "readMilliseconds" : 377,
             "rows" : [
               {
                 "affordance" : "none",
@@ -188,8 +190,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1813,
-                  188,
+                  -1801,
+                  243,
                   119,
                   25
                 ],
@@ -214,8 +216,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1698,
-                  190,
+                  -1686,
+                  245,
                   154,
                   21
                 ],
@@ -226,6 +228,8 @@
                 "kind" : "field",
                 "label" : "Customer name:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 2,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -240,8 +244,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1814,
-                  224,
+                  -1802,
+                  279,
                   86,
                   28
                 ],
@@ -266,8 +270,8 @@
                 ],
                 "facts" : 3080,
                 "frame" : [
-                  -1733,
-                  227,
+                  -1721,
+                  282,
                   154,
                   21
                 ],
@@ -279,6 +283,8 @@
                 "kind" : "field",
                 "label" : "Telephone:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 4,
                 "region" : "header",
                 "role" : "AXTextField"
@@ -293,8 +299,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  262,
+                  -1801,
+                  317,
                   113,
                   25
                 ],
@@ -320,8 +326,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1704,
-                  264,
+                  -1692,
+                  319,
                   154,
                   21
                 ],
@@ -333,6 +339,8 @@
                 "kind" : "field",
                 "label" : "E-mail address:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 6,
                 "region" : "trailing",
                 "role" : "AXTextField"
@@ -347,8 +355,8 @@
                 ],
                 "facts" : 1032,
                 "frame" : [
-                  -1796,
-                  297,
+                  -1784,
+                  352,
                   80,
                   27
                 ],
@@ -374,8 +382,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1791,
-                  338,
+                  -1779,
+                  393,
                   69,
                   27
                 ],
@@ -401,8 +409,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  343,
+                  -1774,
+                  398,
                   13,
                   14
                 ],
@@ -414,9 +422,12 @@
                 "kind" : "button",
                 "label" : "Small",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 9,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -428,8 +439,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  345,
+                  -1754,
+                  400,
                   37,
                   13
                 ],
@@ -455,8 +466,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  374,
+                  -1782,
+                  429,
                   88,
                   27
                 ],
@@ -481,8 +492,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1786,
-                  379,
+                  -1774,
+                  434,
                   13,
                   14
                 ],
@@ -493,9 +504,12 @@
                 "kind" : "button",
                 "label" : "Medium",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 12,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -507,8 +521,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  381,
+                  -1754,
+                  436,
                   54,
                   13
                 ],
@@ -534,8 +548,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1794,
-                  410,
+                  -1782,
+                  465,
                   71,
                   29
                 ],
@@ -561,8 +575,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1786,
-                  415,
+                  -1774,
+                  470,
                   13,
                   14
                 ],
@@ -574,9 +588,12 @@
                 "kind" : "button",
                 "label" : "Large",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 15,
                 "region" : "main",
-                "role" : "AXRadioButton"
+                "role" : "AXRadioButton",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -588,8 +605,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1766,
-                  417,
+                  -1754,
+                  472,
                   37,
                   16
                 ],
@@ -615,8 +632,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1795,
-                  458,
+                  -1783,
+                  513,
                   111,
                   27
                 ],
@@ -642,8 +659,8 @@
                 ],
                 "facts" : 2056,
                 "frame" : [
-                  -1792,
-                  498,
+                  -1780,
+                  553,
                   72,
                   25
                 ],
@@ -668,8 +685,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  503,
+                  -1775,
+                  558,
                   13,
                   14
                 ],
@@ -681,9 +698,12 @@
                 "kind" : "button",
                 "label" : "Bacon",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 19,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -695,8 +715,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  504,
+                  -1755,
+                  559,
                   41,
                   13
                 ],
@@ -722,8 +742,8 @@
                 ],
                 "facts" : 2048,
                 "frame" : [
-                  -1793,
-                  534,
+                  -1781,
+                  589,
                   119,
                   27
                 ],
@@ -748,8 +768,8 @@
                 ],
                 "facts" : 2304,
                 "frame" : [
-                  -1787,
-                  539,
+                  -1775,
+                  594,
                   13,
                   14
                 ],
@@ -761,9 +781,12 @@
                 "kind" : "button",
                 "label" : "Extra Cheese",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 22,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -775,8 +798,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1767,
-                  540,
+                  -1755,
+                  595,
                   85,
                   13
                 ],
@@ -802,8 +825,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  570,
+                  -1782,
+                  625,
                   74,
                   27
                 ],
@@ -828,8 +851,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  575,
+                  -1775,
+                  630,
                   13,
                   14
                 ],
@@ -841,9 +864,12 @@
                 "kind" : "button",
                 "label" : "Onion",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 25,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -855,8 +881,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  576,
+                  -1755,
+                  631,
                   40,
                   13
                 ],
@@ -882,8 +908,8 @@
                 ],
                 "facts" : 2088,
                 "frame" : [
-                  -1794,
-                  606,
+                  -1782,
+                  661,
                   103,
                   27
                 ],
@@ -908,8 +934,8 @@
                 ],
                 "facts" : 2312,
                 "frame" : [
-                  -1787,
-                  611,
+                  -1775,
+                  666,
                   13,
                   14
                 ],
@@ -921,9 +947,12 @@
                 "kind" : "button",
                 "label" : "Mushroom",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 28,
                 "region" : "main",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -935,8 +964,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1767,
-                  612,
+                  -1755,
+                  667,
                   70,
                   13
                 ],
@@ -962,8 +991,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1813,
-                  670,
+                  -1801,
+                  725,
                   245,
                   31
                 ],
@@ -987,8 +1016,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1569,
-                  674,
+                  -1557,
+                  729,
                   21,
                   21
                 ],
@@ -999,6 +1028,8 @@
                 "kind" : "option",
                 "label" : "Show time picker",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 31,
                 "region" : "trailing",
                 "role" : "AXPopUpButton"
@@ -1013,8 +1044,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1664,
-                  712,
+                  -1652,
+                  767,
                   183,
                   37
                 ],
@@ -1026,6 +1057,8 @@
                 "kind" : "field",
                 "label" : "Delivery instructions:",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 32,
                 "region" : "trailing",
                 "role" : "AXTextArea"
@@ -1040,8 +1073,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1813,
-                  732,
+                  -1801,
+                  787,
                   153,
                   27
                 ],
@@ -1067,8 +1100,8 @@
                 ],
                 "facts" : 1024,
                 "frame" : [
-                  -1807,
-                  768,
+                  -1795,
+                  823,
                   93,
                   22
                 ],
@@ -1080,6 +1113,8 @@
                 "kind" : "button",
                 "label" : "Submit order",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 34,
                 "region" : "main",
                 "role" : "AXButton"
@@ -1089,7 +1124,7 @@
           }
         },
         {
-          "atMilliseconds" : 2280,
+          "atMilliseconds" : 2923,
           "page" : {
             "classified" : true,
             "groups" : [
@@ -1159,7 +1194,7 @@
                 "kind" : "band",
                 "memberOrdinals" : [
                   15,
-                  17
+                  16
                 ],
                 "title" : "\"headers\": {"
               },
@@ -1167,7 +1202,7 @@
                 "id" : 8,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  16,
+                  17,
                   18,
                   19,
                   20,
@@ -1213,10 +1248,7 @@
                 "id" : 13,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  28,
-                  29,
-                  30,
-                  31
+                  28
                 ],
                 "title" : "\"Sec-Fetch-Mode\": \"navigate\""
               },
@@ -1224,28 +1256,38 @@
                 "id" : 14,
                 "kind" : "band",
                 "memberOrdinals" : [
-                  32,
-                  34
+                  29,
+                  30,
+                  31
                 ],
-                "title" : "\"Upgrade-Insecure-Requests\": \"1\","
+                "title" : "\"Sec-Fetch-Site\": \"same-origin\","
               },
               {
                 "id" : 15,
                 "kind" : "band",
                 "memberOrdinals" : [
+                  32,
                   33
+                ],
+                "title" : "\"Upgrade-Insecure-Requests\": \"1\","
+              },
+              {
+                "id" : 16,
+                "kind" : "band",
+                "memberOrdinals" : [
+                  34
                 ],
                 "title" : "\"'json\": null,"
               }
             ],
             "labeledFraction" : 1,
             "pageFrame" : [
-              -1815,
-              173,
+              -1803,
+              228,
               1266,
               765
             ],
-            "readMilliseconds" : 304,
+            "readMilliseconds" : 421,
             "rows" : [
               {
                 "affordance" : "none",
@@ -1256,8 +1298,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1819,
-                  172,
+                  -1807,
+                  227,
                   121,
                   23
                 ],
@@ -1281,8 +1323,8 @@
                 ],
                 "facts" : 3072,
                 "frame" : [
-                  -1815,
-                  173,
+                  -1803,
+                  228,
                   1266,
                   22
                 ],
@@ -1307,8 +1349,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1718,
-                  177,
+                  -1706,
+                  232,
                   14,
                   13
                 ],
@@ -1319,9 +1361,12 @@
                 "kind" : "button",
                 "label" : "Pretty-print",
                 "labelSource" : "classifier",
+                "maximumValue" : 0,
+                "minimumValue" : 0,
                 "ordinal" : 3,
                 "region" : "header",
-                "role" : "AXCheckBox"
+                "role" : "AXCheckBox",
+                "value" : 0
               },
               {
                 "affordance" : "none",
@@ -1333,8 +1378,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1806,
-                  217,
+                  -1794,
+                  272,
                   98,
                   25
                 ],
@@ -1344,7 +1389,7 @@
                 ],
                 "isEnabled" : true,
                 "kind" : "link",
-                "label" : "\"args\": 0,",
+                "label" : "\"args\": 0},",
                 "labelSource" : "textInside",
                 "ordinal" : 4,
                 "region" : "header",
@@ -1360,8 +1405,8 @@
                 ],
                 "facts" : 32,
                 "frame" : [
-                  -1808,
-                  232,
+                  -1796,
+                  287,
                   108,
                   42
                 ],
@@ -1386,8 +1431,8 @@
                 ],
                 "facts" : 40,
                 "frame" : [
-                  -1806,
-                  262,
+                  -1794,
+                  317,
                   83,
                   23
                 ],
@@ -1412,8 +1457,8 @@
                 ],
                 "facts" : 8,
                 "frame" : [
-                  -1790,
-                  276,
+                  -1778,
+                  331,
                   100,
                   25
                 ],
@@ -1438,8 +1483,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  292,
+                  -1777,
+                  347,
                   107,
                   23
                 ],
@@ -1464,8 +1509,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  306,
+                  -1778,
+                  361,
                   130,
                   27
                 ],
@@ -1474,7 +1519,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"custname\": ''',",
+                "label" : "\"custname\": ''\",",
                 "labelSource" : "textInside",
                 "ordinal" : 9,
                 "region" : "main",
@@ -1490,17 +1535,17 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  322,
-                  113,
-                  23
+                  -1778,
+                  385,
+                  122,
+                  32
                 ],
                 "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"custtel\": '''",
+                "label" : "\"delivery\": \"'i",
                 "labelSource" : "textInside",
                 "ordinal" : 10,
                 "region" : "main",
@@ -1516,17 +1561,17 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  330,
-                  122,
-                  32
+                  -1777,
+                  377,
+                  113,
+                  23
                 ],
                 "groupID" : 4,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"delivery\": \"'i",
+                "label" : "\"custtel\": '''",
                 "labelSource" : "textInside",
                 "ordinal" : 11,
                 "region" : "main",
@@ -1540,11 +1585,11 @@
                   "\"custtel\": '''",
                   "band"
                 ],
-                "facts" : 0,
+                "facts" : 8,
                 "frame" : [
-                  -1806,
-                  366,
-                  107,
+                  -1791,
+                  409,
+                  23,
                   25
                 ],
                 "groupID" : 5,
@@ -1552,7 +1597,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"headers\": {",
+                "label" : "},",
                 "labelSource" : "textInside",
                 "ordinal" : 12,
                 "region" : "main",
@@ -1566,11 +1611,11 @@
                   "\"custtel\": '''",
                   "band"
                 ],
-                "facts" : 8,
+                "facts" : 0,
                 "frame" : [
-                  -1803,
-                  354,
-                  23,
+                  -1794,
+                  421,
+                  107,
                   25
                 ],
                 "groupID" : 5,
@@ -1578,7 +1623,7 @@
 
                 ],
                 "isEnabled" : true,
-                "label" : "},",
+                "label" : "\"headers\": {",
                 "labelSource" : "textInside",
                 "ordinal" : 13,
                 "region" : "main",
@@ -1594,8 +1639,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  382,
+                  -1778,
+                  437,
                   1170,
                   27
                 ],
@@ -1621,8 +1666,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1785,
-                  396,
+                  -1773,
+                  451,
                   377,
                   43
                 ],
@@ -1642,39 +1687,13 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1790,
-                  442,
-                  191,
-                  25
-                ],
-                "groupID" : 8,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "label" : "\"Content-Length\": \"49\",",
-                "labelSource" : "textInside",
-                "ordinal" : 16,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
-                "affordanceSource" : "unknown",
-                "confidence" : 0,
-                "containerTrail" : [
                   "\"headers\": {",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  426,
+                  -1777,
+                  481,
                   239,
                   27
                 ],
@@ -1685,7 +1704,7 @@
                 "isEnabled" : true,
                 "label" : "\"Cache-Control\": \"max-age=0\",",
                 "labelSource" : "textInside",
-                "ordinal" : 17,
+                "ordinal" : 16,
                 "region" : "main",
                 "role" : "AXStaticText"
               },
@@ -1699,8 +1718,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1792,
-                  450,
+                  -1780,
+                  505,
                   421,
                   35
                 ],
@@ -1711,6 +1730,32 @@
                 "isEnabled" : true,
                 "kind" : "link",
                 "label" : "\"Content-Length\": \"49\", \"Content-Type\": \"application/x-ww-form-urtencoded\",",
+                "labelSource" : "textInside",
+                "ordinal" : 17,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "unknown",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "•Acept-Language\" \"en-6, ee-ustg-.9, engg, Accept-Language",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1778,
+                  497,
+                  191,
+                  25
+                ],
+                "groupID" : 8,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "label" : "\"Content-Length\": \"49\",",
                 "labelSource" : "textInside",
                 "ordinal" : 18,
                 "region" : "main",
@@ -1726,17 +1771,17 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  486,
-                  261,
-                  29
+                  -1721,
+                  527,
+                  128,
+                  25
                 ],
                 "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Origin\": \"https://httpbin.org\",",
+                "label" : "\"httpbin.org\",",
                 "labelSource" : "textInside",
                 "ordinal" : 19,
                 "region" : "main",
@@ -1752,17 +1797,17 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1733,
-                  472,
-                  128,
-                  25
+                  -1780,
+                  541,
+                  263,
+                  31
                 ],
                 "groupID" : 8,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"httpbin.org\",",
+                "label" : "\"Origin\": \"https://httpbin.org\",",
                 "labelSource" : "textInside",
                 "ordinal" : 20,
                 "region" : "main",
@@ -1778,9 +1823,9 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  502,
-                  145,
+                  -1777,
+                  557,
+                  147,
                   25
                 ],
                 "groupID" : 8,
@@ -1804,8 +1849,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  532,
+                  -1778,
+                  587,
                   739,
                   25
                 ],
@@ -1831,9 +1876,9 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  518,
-                  347,
+                  -1777,
+                  573,
+                  349,
                   25
                 ],
                 "groupID" : 9,
@@ -1857,8 +1902,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1788,
-                  548,
+                  -1776,
+                  603,
                   274,
                   39
                 ],
@@ -1883,8 +1928,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  578,
+                  -1777,
+                  633,
                   238,
                   25
                 ],
@@ -1909,8 +1954,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  592,
+                  -1778,
+                  647,
                   231,
                   25
                 ],
@@ -1935,8 +1980,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  608,
+                  -1778,
+                  663,
                   261,
                   25
                 ],
@@ -1961,8 +2006,8 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  622,
+                  -1777,
+                  677,
                   193,
                   27
                 ],
@@ -1979,26 +2024,25 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
+                "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1790,
-                  649,
-                  1061,
-                  40
+                  -1777,
+                  693,
+                  271,
+                  25
                 ],
-                "groupID" : 13,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "kind" : "link",
-                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) sh: Intel Mac 0S X 10_15 7) ApplewebKit/537.36 (KHTML, Like Gecko) Chrome/152.0.o.o Safarl/537.36\", \"X-Amzn-Trace-Id\": \"Root=1-6a9daØe8-457ac7911901aea85726aaad\"",
+                "label" : "\"Upgrade-Insecure-Requests\": \"1\",",
                 "labelSource" : "textInside",
                 "ordinal" : 29,
                 "region" : "main",
@@ -2006,25 +2050,26 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "unknown",
+                "affordanceSource" : "classifier",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  638,
-                  271,
-                  25
+                  -1778,
+                  706,
+                  1061,
+                  28
                 ],
-                "groupID" : 13,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"Upgrade-Insecure-Requests\": \"1\",",
+                "kind" : "link",
+                "label" : "\"User-Agent\": \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Applewebkit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36\",",
                 "labelSource" : "textInside",
                 "ordinal" : 30,
                 "region" : "main",
@@ -2035,22 +2080,22 @@
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
-                  "\"Sec-Fetch-Mode\": \"navigate\"",
+                  "\"Sec-Fetch-Site\": \"same-origin\",",
                   "band"
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1789,
-                  668,
+                  -1778,
+                  723,
                   489,
                   23
                 ],
-                "groupID" : 13,
+                "groupID" : 14,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
-                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9daØe8-457ac7911901aea85726aaad\"",
+                "label" : "\"X-Amzn-Trace-Id\": \"Root=1-6a9e5998-150558cf159b1b452fbc2d50\"",
                 "labelSource" : "textInside",
                 "ordinal" : 31,
                 "region" : "main",
@@ -2066,12 +2111,12 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1808,
-                  683,
+                  -1796,
+                  738,
                   116,
                   42
                 ],
-                "groupID" : 14,
+                "groupID" : 15,
                 "hints" : [
 
                 ],
@@ -2085,33 +2130,6 @@
               },
               {
                 "affordance" : "none",
-                "affordanceSource" : "classifier",
-                "confidence" : 0,
-                "containerTrail" : [
-                  "\"'json\": null,",
-                  "band"
-                ],
-                "facts" : 0,
-                "frame" : [
-                  -1806,
-                  728,
-                  271,
-                  25
-                ],
-                "groupID" : 15,
-                "hints" : [
-
-                ],
-                "isEnabled" : true,
-                "kind" : "link",
-                "label" : "\"url\": \"https://httpbin.org/post\"",
-                "labelSource" : "textInside",
-                "ordinal" : 33,
-                "region" : "main",
-                "role" : "AXStaticText"
-              },
-              {
-                "affordance" : "none",
                 "affordanceSource" : "unknown",
                 "confidence" : 0,
                 "containerTrail" : [
@@ -2120,17 +2138,44 @@
                 ],
                 "facts" : 0,
                 "frame" : [
-                  -1803,
-                  712,
+                  -1791,
+                  767,
                   197,
                   27
                 ],
-                "groupID" : 14,
+                "groupID" : 15,
                 "hints" : [
 
                 ],
                 "isEnabled" : true,
                 "label" : "\"origin\": \"73.63.235.7\",",
+                "labelSource" : "textInside",
+                "ordinal" : 33,
+                "region" : "main",
+                "role" : "AXStaticText"
+              },
+              {
+                "affordance" : "none",
+                "affordanceSource" : "classifier",
+                "confidence" : 0,
+                "containerTrail" : [
+                  "\"'json\": null,",
+                  "band"
+                ],
+                "facts" : 0,
+                "frame" : [
+                  -1794,
+                  783,
+                  271,
+                  25
+                ],
+                "groupID" : 16,
+                "hints" : [
+
+                ],
+                "isEnabled" : true,
+                "kind" : "link",
+                "label" : "\"url\": \"https://httpbin.org/post\"",
                 "labelSource" : "textInside",
                 "ordinal" : 34,
                 "region" : "main",
@@ -2154,7 +2199,7 @@
       ],
       "routes" : [
         {
-          "atMilliseconds" : 691,
+          "atMilliseconds" : 830,
           "decisions" : [
             {
               "affordance" : 0,
@@ -2613,7 +2658,7 @@
       "shells" : [
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 45,
+          "atMilliseconds" : 190,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2624,7 +2669,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1562,
+          "atMilliseconds" : 1912,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2635,7 +2680,7 @@
         },
         {
           "activeTabIndex" : 0,
-          "atMilliseconds" : 1877,
+          "atMilliseconds" : 2419,
           "canGoBack" : true,
           "canGoForward" : false,
           "hasPageFrame" : true,
@@ -2646,22 +2691,22 @@
         }
       ],
       "timeline" : [
-        "6ms  resolved Chrome",
-        "46ms  read the shell — httpbin.org/forms/post · httpbin",
-        "592ms  perceived 34 controls · —",
-        "592ms  looked — 34 rows, 27 named, 12 groups",
-        "691ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
-        "691ms  matched \"submit the form\" → \"Submit order\"",
-        "1035ms  clicked Submit order",
-        "2280ms  perceived 34 controls · —",
-        "2280ms  looked — 34 rows, 34 named, 16 groups",
-        "2605ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
+        "7ms  resolved Chrome",
+        "190ms  read the shell — httpbin.org/forms/post · httpbin",
+        "730ms  perceived 34 controls · —",
+        "730ms  looked — 34 rows, 27 named, 12 groups",
+        "830ms  routed \"submit the form\" → \"Submit order\" (27 of 34 eligible)",
+        "830ms  matched \"submit the form\" → \"Submit order\"",
+        "1172ms  clicked Submit order",
+        "2923ms  perceived 34 controls · —",
+        "2923ms  looked — 34 rows, 34 named, 17 groups",
+        "3229ms  receipt — click \"submit the form\" — the page became httpbin.org/post"
       ],
-      "verdict" : "passed"
+      "verdict" : "unmeasured"
     }
   ],
-  "recordedAt" : "2026-09-06T17:20:38Z",
-  "round" : "7",
+  "recordedAt" : "2026-09-07T06:28:37Z",
+  "round" : "9",
   "runner" : "probe",
   "tripID" : "submit-the-form"
 }
