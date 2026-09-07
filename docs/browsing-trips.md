@@ -1265,6 +1265,39 @@ the fake-clock stall test caught the first draft treating one as a query.
 Built between the rounds from a screenshot — see the section under round 8.
 `recovery/browser-is-asking` runs in every round from here on.
 
+#### What round 9 measured: the lane was working in the person's window
+
+Round 9 ran at 73% and the tab legs fell to 33%, and the recordings said why
+in one line: "go to the second tab" pressed a tab and the window became *The
+Final Industry - Miro* — a tab in the person's own window. The shell read
+lists the tabs of "the browsing window"; the press walked the whole
+application for a tab of that name; the raise road raised the application's
+**main** window. Chrome's main window is whichever window the person last
+clicked. So from the moment they touched their own window, every read, press
+and raise the round made went there: trips opened tabs in it, staged a second
+tab in it, and played a video in it while they were reading.
+
+**The fix is an identity, not a rule about "main".** `AXWindowIdentity` names
+a window by its window-server id, asked of the element itself
+(`_AXUIElementGetWindow`) and stamped on every `AXWindowSnapshot` at capture
+— the origin-and-size guess that was there before named the wrong one, because
+every window a round opens sits at the same origin as the last. The engine
+remembers the window of its last shell read (`workingWindow`) and asks for it
+on every read (`preferring:`), every shell press (`within:`) and every raise
+(`raising:`); the seams carry it with default forwarding so the fakes are
+untouched. A runner that opened the window names it: the probe takes
+`--window <id>`, `--front-window` prints the id of the window just opened,
+and the round script names the round's window once and hands it to every trip.
+
+Proved in a fresh window after the fix: the named window was the one read
+(one tab, about:blank), the tab trips passed in it, and after them it held
+exactly the two tabs the trips made. The person's window was not read.
+
+**Also found.** "Play it from the start" on a player nobody has started —
+a poster, one play circle, a duration badge, no bar until the first play —
+refused "not its progress control". Pressing play is playing it from the
+start; the seek to the beginning with no track and a centre glyph is a play.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
@@ -1410,3 +1443,20 @@ Exit criterion not met: no leg ran in recovery; act at 88% — under 90%; media 
 | **all** | **32** | **12** | **7** | **33** | **73%** | P 2 · R2 5 · E 5 |
 
 Exit criterion not met: act at 75% — under 90%; media at 60% — under 90%; recovery at 50% — under 90%; search at 75% — under 90%; tabs at 33% — under 90%; context has 1 failing leg(s); 5 page-routing failure(s) on the recorded corpus.
+
+### Round 10 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 7 | 1 | 0 | 5 | 88% | E 1 |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 1 | 1 | 0 | 13 | 50% | E 1 |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 7 | 3 | 2 | 1 | 70% | E 3 |
+| read | 1 | 0 | 0 | 6 | 100% | — |
+| recovery | 2 | 0 | 3 | 6 | 100% | — |
+| search | 6 | 2 | 0 | 0 | 75% | P 2 |
+| tabs | 2 | 1 | 2 | 1 | 67% | E 1 |
+| **all** | **36** | **8** | **7** | **33** | **82%** | P 2 · E 6 |
+
+Exit criterion not met: act at 88% — under 90%; media at 70% — under 90%; search at 75% — under 90%; tabs at 67% — under 90%; context has 1 failing leg(s).

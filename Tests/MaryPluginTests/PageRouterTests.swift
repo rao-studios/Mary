@@ -755,3 +755,55 @@ private func published(
         #expect(routed.winner == nil)
     }
 }
+
+// MARK: - A strip is furniture
+
+@Suite struct PageStripTests {
+
+    private static func row(
+        _ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat, width: CGFloat = 40,
+        affordance: SeenAffordance = .press, region: PageRegion = .main
+    ) -> PageRow {
+        var row = PageRow(
+            ordinal: ordinal, frame: CGRect(x: x, y: y, width: width, height: 30),
+            label: label, labelSource: .textInside, affordance: affordance,
+            affordanceSource: .classifier, kind: .link, facts: [])
+        row.region = region
+        return row
+    }
+
+    /// "Article · Talk · Read · Edit · View history" on one line are the page's
+    /// own tabs, and "the first link" is not one of them. Measured in round 10.
+    @Test func shortPressablesOnOneLineAreAStrip() {
+        let rows = [
+            Self.row(1, "Article", x: 0, y: 100),
+            Self.row(2, "Talk", x: 50, y: 100),
+            Self.row(3, "Read", x: 400, y: 101),
+            Self.row(4, "Edit", x: 450, y: 100),
+            Self.row(5, "Ski touring is a form of skiing", x: 0, y: 200, width: 400),
+        ]
+        let strip = RowFactsDerivation.strips(in: rows)
+        #expect(strip == [1, 2, 3, 4])
+        let derived = RowFactsDerivation.derive(rows: rows, groups: [])
+        #expect(derived[0].facts.contains(.inFurnitureBand))
+        #expect(!derived[4].facts.contains(.inFurnitureBand))
+    }
+
+    /// Two are a pair, a run of long names is a list of results, and rows in
+    /// different regions on the same line are not one strip.
+    @Test func aStripNeedsThreeShortNamesCloseTogetherInOneRegion() {
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "Read", x: 0, y: 100), Self.row(2, "Edit", x: 50, y: 100),
+        ]).isEmpty)
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "The best touring boots of the year", x: 0, y: 100, width: 300),
+            Self.row(2, "Ten boots reviewed by people who ski", x: 320, y: 100, width: 300),
+            Self.row(3, "Where to buy alpine touring boots", x: 640, y: 100, width: 300),
+        ]).isEmpty)
+        #expect(RowFactsDerivation.strips(in: [
+            Self.row(1, "File", x: 0, y: 100, region: .leading),
+            Self.row(2, "Talk", x: 50, y: 100),
+            Self.row(3, "Read", x: 100, y: 100),
+        ]).isEmpty)
+    }
+}

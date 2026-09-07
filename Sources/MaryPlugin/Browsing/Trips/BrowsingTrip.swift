@@ -123,6 +123,7 @@ public enum TripRefusal: String, Sendable, Equatable, Codable, CaseIterable {
     /// The browser itself is asking something and nothing can proceed until it
     /// is answered. See `BrowserRefusal.browserIsAsking`.
     case browserIsAsking
+    case workingWindowGone
 }
 
 /// Where the machine's attention must be after a leg.

@@ -28,6 +28,11 @@ public protocol BrowserShellReading: Sendable {
         pid: pid_t, registration: WebSurfaceRegistration, preferring window: CGWindowID?
     ) async -> WebSurfaceAX.Reading?
     func openLocation(_ address: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
+    /// The same, read back from the window the engine works in.
+    func openLocation(
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
+    ) async -> Bool
     /// Press a shell control by its declared label.
     func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool
     /// The same press, kept inside the window the engine works in.
@@ -48,6 +53,12 @@ public extension BrowserShellReading {
         label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
     ) async -> Bool {
         await press(label: label, pid: pid, registration: registration)
+    }
+    func openLocation(
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
+    ) async -> Bool {
+        await openLocation(address, pid: pid, registration: registration)
     }
 }
 
@@ -224,6 +235,13 @@ struct LiveBrowserShell: BrowserShellReading {
     func openLocation(
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration
     ) async -> Bool {
+        await openLocation(address, pid: pid, registration: registration, within: nil)
+    }
+
+    func openLocation(
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
+    ) async -> Bool {
         guard await focusAddressField(pid: pid, registration: registration) else { return false }
         for attempt in 1...Self.addressTypingAttempts {
             // Select all, so typing replaces rather than appends.
@@ -240,7 +258,12 @@ struct LiveBrowserShell: BrowserShellReading {
             // somewhere nobody asked for — worse than not navigating at all.
             guard case .completed = typed else { return false }
             try? await Task.sleep(for: Self.addressVerifySettle)
-            let readback = WebSurfaceAX.addressFieldValue(pid: pid, registration: registration)
+            // READ BACK FROM THE WORKING WINDOW. Measured in round 10: the
+            // readback came from the browser's main window — the person's —
+            // and "I couldn't find the address bar" was said about a field
+            // that had just been typed into, in another window.
+            let readback = WebSurfaceAX.addressFieldValue(
+                pid: pid, registration: registration, preferring: window)
             let landed = Self.addressLanded(intended: address, fieldValue: readback)
             guard landed else {
                 // SAY WHY, WITHOUT SAYING WHAT. A refused readback used to be a

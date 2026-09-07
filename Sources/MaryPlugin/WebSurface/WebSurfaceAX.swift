@@ -236,7 +236,8 @@ public enum WebSurfaceAX {
             ?? windowIdentifier(pid: pid, frame: window.frame, title: window.title)
 
         reading.url = url(
-            pid: pid, nodes: nodes, webArea: webArea, registration: registration)
+            pid: pid, nodes: nodes, webArea: webArea, registration: registration,
+            window: reading.windowID)
         // THE QUESTION IN FRONT OF THE PAGE, if the browser is asking one.
         reading.dialog = dialog(in: root, pid: pid)
         return reading
@@ -332,7 +333,8 @@ public enum WebSurfaceAX {
         pid: pid_t,
         nodes: [AXNodeSnapshot],
         webArea: AXNodeSnapshot?,
-        registration: WebSurfaceRegistration
+        registration: WebSurfaceRegistration,
+        window: CGWindowID? = nil
     ) -> String? {
         if registration.schema.urlSource == .webArea, let webArea,
            let found = AXEngine.detail(
@@ -340,7 +342,8 @@ public enum WebSurfaceAX {
            let url = found.detail.nodes[webArea.id]?.url, !url.isEmpty {
             return url
         }
-        guard let value = addressFieldValue(pid: pid, registration: registration),
+        guard let value = addressFieldValue(
+                  pid: pid, registration: registration, preferring: window),
               !value.isEmpty
         else { return nil }
         return value
@@ -355,15 +358,16 @@ public enum WebSurfaceAX {
     /// is that branch, pulled out so `openLocation` can call it mid-flight rather than
     /// only ever seeing the address after a whole shell re-read.
     public static func addressFieldValue(
-        pid: pid_t, registration: WebSurfaceRegistration
+        pid: pid_t, registration: WebSurfaceRegistration, preferring wanted: CGWindowID? = nil
     ) -> String? {
         guard AXIsProcessTrusted(),
               // THE SHELL PRESET, NOT `.exhaustive` — see `Options.shell`. This
               // is the browser's toolbar; the page below it is read by the page
               // lane, when a skill asks, and never on the way to a text field.
               let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
-              let window = snapshot.windows.first(where: { $0.isMain })
-                ?? snapshot.windows.first,
+              // THE WORKING WINDOW'S FIELD, not the main window's — see `read`.
+              let window = browsingWindow(
+                  among: snapshot.windows, preferring: wanted, identify: \.windowID),
               let root = window.root
         else { return nil }
         var nodes: [AXNodeSnapshot] = []

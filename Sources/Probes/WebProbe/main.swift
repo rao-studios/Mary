@@ -223,6 +223,13 @@ if flag("--watch") {
         for await event in await engine.events() { print("      · \(event)") }
     }
 }
+// THE ROUND'S WINDOW, BEFORE THE FIRST READ. `--window <id>` pins the engine
+// to a window a runner opened; a read of any other window is then a refusal,
+// never a quiet move into the person's own. See `--front-window`.
+if let raw = value("--window"), let id = CGWindowID(raw) {
+    await engine.adopt(window: id)
+    print("  ·  working in window \(id)")
+}
 
 // MARK: - A whole journey
 
@@ -945,12 +952,36 @@ if flag("--front-window") {
         print("  ✗  no window to name")
         exit(1)
     }
+    if flag("--windows") {
+        // EVERY WINDOW, BY ID — the roster's element and the snapshot's stamp
+        // side by side, so a window the two disagree about is visible.
+        for window in windows {
+            let main = AXWindowRoster.copyBool(window.element, kAXMainAttribute) == true
+            print("  roster   \(AXWindowIdentity.windowID(of: window.element).map(String.init) ?? "—")\(main ? " main" : "")  \(window.title)")
+        }
+        if let snapshot = AXEngine.snapshot(pid: target.processIdentifier, options: .shell) {
+            for window in snapshot.windows {
+                print("  snapshot \(window.windowID.map(String.init) ?? "—")\(window.isMain ? " main" : "")  \(window.title)")
+            }
+        }
+        exit(0)
+    }
     print(id)
     exit(0)
 }
-if let raw = value("--window"), let id = CGWindowID(raw) {
-    await engine.adopt(window: id)
-    print("  ·  working in window \(id)")
+// `--close-window <id>` — a window a round opened, put away: the round's own
+// tidying, through the window's close button and nothing else.
+if let raw = value("--close-window"), let id = CGWindowID(raw) {
+    guard let window = AXWindowIdentity.window(id: id, in: target.processIdentifier),
+          let button = AX.attribute(window, kAXCloseButtonAttribute as String)
+    else {
+        print("  ✗  no window \(id)")
+        exit(1)
+    }
+    let closed = PageElementActions.press(
+        control: button as! AXUIElement, pid: target.processIdentifier, detail: "close window \(id)")
+    check(closed, "closed window \(id)")
+    exit(closed ? 0 : 1)
 }
 
 // MARK: - The history

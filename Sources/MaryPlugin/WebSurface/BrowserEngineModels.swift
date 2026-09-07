@@ -123,6 +123,11 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The browser could not be staged, and why — the stage faculty's own
     /// reason, so five different conditions are not one sentence.
     case activationRefused(String, Activation.Failure?)
+    /// THE WINDOW THIS SESSION WAS TOLD TO WORK IN IS GONE. A runner named it;
+    /// falling back to whichever window the browser calls main would put the
+    /// act in the person's own window — measured in round 10, when the round's
+    /// window closed and every trip after it ran in theirs.
+    case workingWindowGone
     /// THE BROWSER ITSELF IS ASKING SOMETHING, and until it is answered the
     /// page cannot be read or acted on. Carries what it asks and the choices it
     /// offers, so the person can answer in one word.
@@ -179,6 +184,8 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
         case .activationRefused(let name, let failure):
             return failure.flatMap { Activation.lost($0).reason(app: name) }
                 ?? "\(name) wouldn't come forward."
+        case .workingWindowGone:
+            return "The browser window I was working in is gone."
         case .browserIsAsking(let question, let choices):
             let offered = choices.isEmpty
                 ? ""

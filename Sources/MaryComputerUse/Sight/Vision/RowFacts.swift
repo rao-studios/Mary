@@ -135,6 +135,12 @@ public enum RowFactsDerivation {
             if short * 2 > labels.count { furnitureOrdinals.formUnion(group.memberOrdinals) }
         }
 
+        // A ROW OF SHORT PRESSABLES ON ONE LINE IS A STRIP — "Article · Talk ·
+        // Read · Edit", a pager's "1 2 3 Next" — whether or not the reading
+        // grouped it. Measured in round 10: "the first link on this page"
+        // reached "Article", the page's own tab, which does nothing.
+        furnitureOrdinals.formUnion(strips(in: rows))
+
         // A LABEL TWO ROWS CLAIM IS A LABEL NEITHER OWNS. Measured as pervasive
         // rather than a one-page fluke: 15 of 80 rows and 6 of 142 rows shared an
         // identical label with another row on the same read, because an outer
@@ -174,6 +180,43 @@ public enum RowFactsDerivation {
             row.facts = facts
             return row
         }
+    }
+
+    /// How many pressables on one line make a strip.
+    public static let stripMinimum = 3
+
+    /// The ordinals of every pressable row that sits in a strip: at least
+    /// `stripMinimum` pressable rows on one baseline, in one region, most of
+    /// them named too shortly to be answers. Pure geometry and length —
+    /// nothing about what the words are.
+    public static func strips(in rows: [PageRow]) -> Set<Int> {
+        let pressable = rows
+            .filter { $0.affordance == .press && !$0.label.isEmpty && $0.frame.height > 0 }
+            .sorted { ($0.frame.minY, $0.frame.minX) < ($1.frame.minY, $1.frame.minX) }
+        var found: Set<Int> = []
+        var run: [PageRow] = []
+        func close(_ run: [PageRow]) {
+            guard run.count >= stripMinimum else { return }
+            let short = run.filter { $0.label.count < minimumResultLabel }.count
+            guard short * 2 > run.count else { return }
+            found.formUnion(run.map(\.ordinal))
+        }
+        for row in pressable {
+            // ONE BASELINE, ONE REGION. A page's tabs sit "Article · Talk" at
+            // the left of the line and "Read · Edit · View history" at its
+            // right, so the gap between neighbours is not the test — the line
+            // is. Results never share a baseline; they stack.
+            if let last = run.last,
+               abs(row.frame.minY - last.frame.minY) <= max(4, last.frame.height * 0.35),
+               row.region == last.region {
+                run.append(row)
+            } else {
+                close(run)
+                run = [row]
+            }
+        }
+        close(run)
+        return found
     }
 
     /// SEVERAL SHORT NAMES JOINED BY SEPARATORS ARE A NAVIGATION STRIP.

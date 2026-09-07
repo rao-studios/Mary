@@ -123,6 +123,15 @@ struct RecordingShell: BrowserShellReading {
         return await inner.openLocation(address, pid: pid, registration: registration)
     }
 
+    func openLocation(
+        _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
+        within window: CGWindowID?
+    ) async -> Bool {
+        await recorder.noteAct(RecordedAct(
+            kind: .openLocation, typedLength: address.count))
+        return await inner.openLocation(address, pid: pid, registration: registration, within: window)
+    }
+
     func press(label: String, pid: pid_t, registration: WebSurfaceRegistration) async -> Bool {
         // A SHELL LABEL IS PACKAGE DATA, not a page's words — safe to keep, and
         // the only way to tell which chord was pressed.
@@ -396,6 +405,7 @@ public extension RecordedReceipt {
         case .notAdjustable: return "notAdjustable"
         case .outOfTime: return "outOfTime"
         case .activationRefused: return "activationRefused"
+        case .workingWindowGone: return "workingWindowGone"
         case .browserIsAsking: return "browserIsAsking"
         case .videoLengthUnknown: return "videoLengthUnknown"
         case .beyondTheEnd: return "beyondTheEnd"

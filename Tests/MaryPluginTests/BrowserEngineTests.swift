@@ -1251,3 +1251,58 @@ enum BrowsingFixtures {
         #expect(stage.raised == [77])
     }
 }
+
+// MARK: - The clock, from one time
+
+@Suite struct LoneClockTests {
+
+    private static func media(elapsed: TimeInterval?, duration: TimeInterval?, fraction: Double?) -> MediaControlReading {
+        var reading = BrowsingFixtures.media(playing: .playing, fraction: fraction ?? 0)
+        reading.elapsed = elapsed
+        reading.duration = duration
+        if fraction == nil { reading.progress = nil }
+        return reading
+    }
+
+    /// Measured: "0:22 / 10:34" read as a lone "10:34" three seconds in. At the
+    /// start of the track a lone time is the length.
+    @Test func aLoneTimeAtTheStartIsTheLength() {
+        let clock = BrowserEngine.clock(from: Self.media(elapsed: 634, duration: nil, fraction: 0.01))
+        #expect(clock?.duration == 634)
+        #expect(clock?.elapsed == 0)
+    }
+
+    /// Further in, the track's own fraction turns one time into both.
+    @Test func aLoneTimeWithAFractionGivesTheLength() {
+        let clock = BrowserEngine.clock(from: Self.media(elapsed: 300, duration: nil, fraction: 0.5))
+        #expect(clock?.elapsed == 300)
+        #expect(clock?.duration == 600)
+    }
+
+    /// The page's own rows carry the clock as text: "Current Time 0:22" and
+    /// "Duration 10:34" beside the bar. Left to right, shortest to longest.
+    @Test func thePagesRowsCarryTheClock() {
+        func row(_ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat = 690) -> PageRow {
+            PageRow(
+                ordinal: ordinal, frame: CGRect(x: x, y: y, width: 40, height: 16),
+                label: label, labelSource: .textInside, affordance: .none,
+                affordanceSource: .classifier, kind: nil, facts: [])
+        }
+        let player = CGRect(x: 100, y: 200, width: 800, height: 500)
+        let clock = BrowserEngine.clockRows(in: [
+            row(1, "Current Time 0:22", x: 180), row(2, "Duration 10:34", x: 230),
+            row(3, "Posted 12:00", x: 180, y: 1200),
+        ], player: player)
+        #expect(clock?.elapsed == 22)
+        #expect(clock?.duration == 634)
+        #expect(BrowserEngine.times(in: "1:02:03 of 2:00:00") == [3723, 7200])
+        #expect(BrowserEngine.times(in: "no clock here").isEmpty)
+    }
+
+    /// And with no fraction there is nothing to divide by — the refusal stands.
+    @Test func aLoneTimeWithNoTrackIsStillUnknown() {
+        #expect(BrowserEngine.clock(from: Self.media(elapsed: 634, duration: nil, fraction: nil)) == nil)
+        let whole = BrowserEngine.clock(from: Self.media(elapsed: 22, duration: 634, fraction: 0.03))
+        #expect(whole?.elapsed == 22 && whole?.duration == 634)
+    }
+}

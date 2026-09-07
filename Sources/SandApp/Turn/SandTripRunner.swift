@@ -52,6 +52,11 @@ final class SandTripRunner {
     // MARK: - One trip
 
     func run(path: String) async {
+        // THE ROUND'S WINDOW, before anything reads the browser.
+        if let window = SandLaunchOptions.current.window {
+            await BrowserEngine.live.adopt(window: window)
+            print("  ·  working in window \(window)")
+        }
         let url = URL(fileURLWithPath: path)
         let trip: BrowsingTrip
         do {

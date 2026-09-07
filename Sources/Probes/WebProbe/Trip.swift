@@ -235,8 +235,12 @@ enum TripCommand {
             // tabs — three of them called the same thing, which made "the blank
             // tab" genuinely ambiguous and the leg's refusal correct about a
             // window nobody meant to build.
-            let open = await engine.readShell(target).shell?.tabs.count ?? 0
-            if open < 2 {
+            // AND A BLANK ONE, NOT MERELY A SECOND ONE. Measured in round 10: a
+            // window that earlier trips had left with two pages open counted as
+            // staged, and "switch to the blank tab" found no blank tab to name.
+            let tabs = await engine.readShell(target).shell?.tabs ?? []
+            let hasBlank = tabs.contains { $0.caseInsensitiveCompare("about:blank") == .orderedSame }
+            if tabs.count < 2 || !hasBlank {
                 // THE BROWSER'S OWN NEW-TAB CHORD, aimed at it — the probe stages
                 // the machine; the engine owns no chords. A blank tab, so its
                 // name is a word a person can say.
@@ -465,6 +469,7 @@ enum TripCommand {
         case .interrupted: return summary.contains("took over at step")
         case .activationRefused: return summary.hasSuffix("wouldn't come forward.")
         case .browserIsAsking: return summary.hasPrefix("The browser is asking:")
+        case .workingWindowGone: return summary == BrowserRefusal.workingWindowGone.summary
         case .ambiguousBrowser: return summary.hasPrefix("I can see ") && summary.hasSuffix("which one?")
         case .shellUnreadable: return summary.hasPrefix("I couldn't read ")
         case .visionUnavailable: return summary.hasPrefix("I couldn't look at the page")

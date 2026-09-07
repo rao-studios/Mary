@@ -49,5 +49,34 @@ for trip in Tests/MaryPluginTests/Fixtures/Trips/*/*.trip.json; do
     sed -n '/the trip —/,$p' "$RECORD/$name.log" | grep -E '^  [✓✗~·] ' || true
 done
 
+# THE TURN-LEVEL HALF. Every context and journey trip is a turn fact — said
+# from another application, judged on what the whole loop did — so Sand
+# drives them too, in the same window. Sand is a bench and never exits on its
+# own: each run is given ninety seconds to write its recording, then put away.
+echo "▸ driving the turn-level trips through Sand"
+swift build --product Sand > /dev/null
+./scripts/sign-binary.sh .build/debug/Sand > /dev/null
+for trip in Tests/MaryPluginTests/Fixtures/Trips/context/*.trip.json \
+            Tests/MaryPluginTests/Fixtures/Trips/journey/*.trip.json; do
+    name="$(basename "$trip" .trip.json)"
+    .build/debug/Sand --target com.google.Chrome --trip "$trip" --staged \
+        ${WINDOW:+--window "$WINDOW"} \
+        --record "$RECORD" --round "$ROUND" > "$RECORD/$name.turn.log" 2>&1 &
+    SAND=$!
+    for _ in $(seq 1 90); do
+        [ -f "$RECORD/$name.turn.recording.json" ] && break
+        kill -0 "$SAND" 2>/dev/null || break
+        sleep 1
+    done
+    kill "$SAND" 2>/dev/null; wait "$SAND" 2>/dev/null || true
+    grep -E '^  [✓✗~·] ' "$RECORD/$name.turn.log" || true
+done
+
 echo "▸ scoring"
 .build/debug/mary-web-probe --score "$RECORD" --write docs/browsing-trips.md --round "$ROUND"
+
+# THE ROUND'S WINDOW, PUT AWAY. The person's windows are never touched; the
+# one the round opened is the round's to close.
+if [ -n "${WINDOW:-}" ]; then
+    .build/debug/mary-web-probe --browser chrome --close-window "$WINDOW" > /dev/null 2>&1 || true
+fi

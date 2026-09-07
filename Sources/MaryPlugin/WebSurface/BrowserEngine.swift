@@ -135,6 +135,9 @@ public actor BrowserEngine {
     /// THE WINDOW MARY WORKS IN — the one the last shell read was about, kept
     /// for every read, press and raise after it. See `AXWindowIdentity`.
     var workingWindow: CGWindowID?
+    /// NAMED BY A RUNNER, not learned from a read — and then a read of any
+    /// other window is a refusal, not a new working window.
+    var pinnedWindow: CGWindowID?
     /// Which road the last journey took — the results, or the site's own search.
     var lastWatchRoad: WatchRecipe.Road?
     private var lastRefusal: BrowserRefusal?
@@ -259,6 +262,7 @@ public actor BrowserEngine {
     /// the session names it, and the first read does not have to guess.
     public func adopt(window: CGWindowID?) {
         workingWindow = window
+        pinnedWindow = window
     }
 
     // MARK: - The stage
@@ -377,6 +381,11 @@ public actor BrowserEngine {
             preferring: workingWindow)
         else {
             return refuse(.shellUnreadable(target.spokenName))
+        }
+        // THE PINNED WINDOW OR NOTHING. A read that came back about another
+        // window means the named one is gone, and the act stops here.
+        if let pinned = pinnedWindow, reading.windowID != pinned {
+            return refuse(.workingWindowGone)
         }
         lastChrome = reading
         if let window = reading.windowID, window != workingWindow {
@@ -804,7 +813,8 @@ public actor BrowserEngine {
         case .open(let address):
             if dryRun { return refuse(.dryRun("opened \(address)")) }
             guard await seams.shell.openLocation(
-                address, pid: target.processIdentifier, registration: target.registration)
+                address, pid: target.processIdentifier, registration: target.registration,
+                within: workingWindow)
             else { return refuse(.addressFieldNotFound) }
             emit(.acted("typed an address"))
             // OPENING THE PAGE YOU ARE ALREADY ON IS AN ARRIVAL.
@@ -1298,8 +1308,60 @@ public actor BrowserEngine {
     static func clock(
         from media: MediaControlReading
     ) -> (elapsed: TimeInterval, duration: TimeInterval)? {
-        guard let duration = media.duration, duration > 0 else { return nil }
-        return (media.elapsed ?? 0, duration)
+        if let duration = media.duration, duration > 0 {
+            return (media.elapsed ?? 0, duration)
+        }
+        // ONE TIME AND A FRACTION ARE A WHOLE CLOCK. Measured in round 10: a
+        // player just started shows "0:22 / 10:34" and the OCR made out only
+        // the "10:34" — the elapsed sits in a highlighted box — so the reading
+        // carried a lone time as the elapsed and no length, and a seek refused
+        // "I can't tell how long the video is" three seconds into a video
+        // whose length was on screen. A lone time at the very start of the
+        // track is the length; a lone time further in, with the track's own
+        // fraction, gives the length by division. The fraction is the page's
+        // slider where it publishes one (`withSliderTrack`), which is what
+        // makes this arithmetic and not a guess.
+        guard let lone = media.elapsed, lone > 0,
+              let fraction = media.progress?.fraction
+        else { return nil }
+        if fraction < Self.startOfTheTrack { return (0, lone) }
+        return (lone, lone / fraction)
+    }
+
+    /// How far in still counts as the start, when a lone time is judged.
+    static let startOfTheTrack = 0.05
+
+    /// The times the page's own rows carry near the player, left to right —
+    /// the elapsed first, the length last. One lone time is handed on as the
+    /// elapsed, for `clock(from:)` to judge against the track.
+    static func clockRows(
+        in rows: [PageRow], player: CGRect?
+    ) -> (elapsed: TimeInterval?, duration: TimeInterval?)? {
+        func near(_ frame: CGRect) -> Bool {
+            guard let player else { return true }
+            return frame.intersects(player.insetBy(dx: -8, dy: -player.height * 0.4))
+        }
+        let times = rows
+            .filter { near($0.frame) }
+            .sorted { $0.frame.minX < $1.frame.minX }
+            .flatMap { row in Self.times(in: row.label).map { (x: row.frame.minX, seconds: $0) } }
+        guard let first = times.first else { return nil }
+        if times.count == 1 { return (first.seconds, nil) }
+        let longest = times.map(\.seconds).max() ?? first.seconds
+        let shortest = times.map(\.seconds).min() ?? first.seconds
+        return (shortest, longest)
+    }
+
+    /// Every m:ss or h:mm:ss in a label, in order.
+    static func times(in label: String) -> [TimeInterval] {
+        let pattern = try! NSRegularExpression(pattern: "\\b(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})\\b")
+        let text = label as NSString
+        return pattern.matches(in: label, range: NSRange(location: 0, length: text.length)).map { match in
+            let hours = match.range(at: 1).location == NSNotFound ? 0 : Double(text.substring(with: match.range(at: 1))) ?? 0
+            let minutes = Double(text.substring(with: match.range(at: 2))) ?? 0
+            let seconds = Double(text.substring(with: match.range(at: 3))) ?? 0
+            return hours * 3600 + minutes * 60 + seconds
+        }
     }
 
     /// The page's progress slider: an adjustable row inside the picture whose
@@ -1340,12 +1402,25 @@ public actor BrowserEngine {
     ) async -> MediaControlReading {
         guard let pageFrame = shell.pageFrame,
               case .success(let seen) = await lookOnce(
-                  target, shell: shell, pageFrame: pageFrame, intent: .elements, previous: nil),
-              let slider = Self.progressSlider(
-                  in: seen.rows, player: Self.playerRegion(in: seen, page: pageFrame)),
-              let maximum = slider.maximumValue
+                  target, shell: shell, pageFrame: pageFrame, intent: .elements, previous: nil)
         else { return media }
         var filled = media
+        let player = Self.playerRegion(in: seen, page: pageFrame)
+        // THE CLOCK THE PAGE PUBLISHES, BEFORE THE ONE THE PIXELS SHOW. A
+        // player's "0:22 / 10:34" is text in its own tree as well as on the
+        // screen, and the tree's copy has no highlight box over it: measured
+        // in round 10, the OCR made out only the length, or nothing, three
+        // seconds into a video, and the same read's rows carried both times.
+        if let clock = Self.clockRows(in: seen.rows, player: player) {
+            if filled.elapsed == nil, let elapsed = clock.elapsed { filled.elapsed = elapsed }
+            if filled.duration == nil, let duration = clock.duration {
+                filled.duration = duration
+                emit(.acted("took the page's own clock: \(SpokenDuration.clock(duration)) long"))
+            }
+        }
+        guard let slider = Self.progressSlider(in: seen.rows, player: player),
+              let maximum = slider.maximumValue
+        else { return Self.clocked(filled) }
         let minimum = slider.minimumValue ?? 0
         let length = maximum - minimum
         guard length > 0 else { return media }

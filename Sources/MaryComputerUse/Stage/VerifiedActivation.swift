@@ -160,7 +160,13 @@ public enum VerifiedActivation {
         // hidden app is NOT already there: it can be frontmost with nothing
         // showing, which is why the unhide below exists at all. And a frontmost
         // app whose every window is minimized is the case a raise answers.
-        if !running.isHidden, await isFrontmost(pid: pid) {
+        // AND THE NAMED WINDOW HAS TO BE THE ONE IN FRONT. An application in
+        // front with the wrong window forward is exactly the case that put a
+        // round's chords into the person's own window (round 10): the
+        // application was frontmost, so nothing was raised, and ⌘L went to
+        // whichever of its windows was on top.
+        if !running.isHidden, await isFrontmost(pid: pid),
+           window == nil || isFrontWindow(window!, in: pid) {
             if !requireVisibleWindow || hasUnminimizedWindow(pid: pid) {
                 return .won(.alreadyForward)
             }
@@ -366,6 +372,14 @@ public enum VerifiedActivation {
     /// about stayed in the Dock — the engine then read and hovered the wrong
     /// page. The application's own notion of its main window is the one the
     /// person last worked in, minimized or not.
+    /// Whether the named window is the application's main (front) window.
+    /// A window that is gone is not in front either.
+    static func isFrontWindow(_ id: CGWindowID, in pid: pid_t) -> Bool {
+        guard let window = AXWindowIdentity.window(id: id, in: pid) else { return false }
+        return AXWindowRoster.copyBool(window, kAXMainAttribute) == true
+            && AXWindowRoster.copyBool(window, kAXMinimizedAttribute) != true
+    }
+
     /// THE WINDOW THE CALLER WORKS IN, when it names one — see
     /// `AXWindowIdentity`. The main window is what is raised for a caller
     /// that names none, and the first when nothing is main.
