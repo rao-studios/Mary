@@ -15,10 +15,10 @@ public enum MaryAdapterCatalog {
 
     /// Compiled providers with Skill bindings. Adding an application adds none.
     public static func adapters() -> [any MaryAdapter] {
-        [ApplicationsAdapter(), AwarenessAdapter(), CodeSurfaceAdapter(), MediaSurfaceAdapter(),
-         ProjectCorpusAdapter(), ProjectGitAdapter(), ProjectBuildAdapter(), ProjectQuirksAdapter(),
-         EventKitAdapter(), ProseSurfaceAdapter(), TyperPlugin(), WebSurfaceAdapter(),
-         WindowManagementPlugin()]
+        [ApplicationsAdapter(), AwarenessAdapter(), CanvasPlugin(), CodeSurfaceAdapter(),
+         MediaSurfaceAdapter(), ProjectCorpusAdapter(), ProjectGitAdapter(), ProjectBuildAdapter(),
+         ProjectQuirksAdapter(), EventKitAdapter(), ProseSurfaceAdapter(), TyperPlugin(),
+         WebSurfaceAdapter(), WindowManagementPlugin()]
     }
 
     /// Compiled providers with senses. Ungated: faculties, not app toggles.

@@ -75,9 +75,14 @@ extension MaryRuntime {
                     return true
                 })
         }
+        // THE CANVAS'S FLAGSHIP: shaders composed through Seer, shown on
+        // Mary's own windows. The composer is the brain's; the plugin is not.
+        let dance = DancePlugin(compose: SeerShaderComposer(
+            complete: seerComplete,
+            recentLines: { await brain.recentSpokenLines(limit: 6) }))
         // Faculties, not applications — reachable on a turn led by any taught app.
         let adapters = MaryAdapterCatalog.adapters()
-            + [AffordancePlugin(), looking, CodingAgentAdapter()]
+            + [AffordancePlugin(), looking, CodingAgentAdapter(), dance]
         let observers = MaryAdapterCatalog.observers()
 
         // 1. Seams first — inversions so MaryAmbient does not call up.

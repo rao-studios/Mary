@@ -175,7 +175,11 @@ final class SandRuntimeHost: ObservableObject {
         // page by name IS `act_on_screen` on this stack — the browser arm of
         // `AffordanceRecipes` delegates straight to the browsing engine — so a bench
         // without it cannot rehearse the rung the real turn falls back to.
-        let adapters = MaryAdapterCatalog.adapters() + [AffordancePlugin()]
+        // AND THE DANCE, with no composer behind it: the bench rehearses the
+        // routing of "let's dance" and the Skill refuses by name if pressed.
+        let adapters = MaryAdapterCatalog.adapters()
+            + [AffordancePlugin(),
+               DancePlugin(compose: UnavailableDanceComposer(reason: "the bench has no composer."))]
         let observers = MaryAdapterCatalog.observers()
         // Points MaryAmbient at the live registry, the way the composition root does
         // before it loads the graph. Without it ambient routing reads an empty index.

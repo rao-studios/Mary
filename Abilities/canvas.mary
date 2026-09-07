@@ -1,0 +1,390 @@
+{
+  "ability" : {
+    "aliases" : [
+      "canvas",
+      "mary canvas"
+    ],
+    "id" : "canvas",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "A page is a message, not a place: nothing on it is crawled, indexed, or acted on.",
+        "One page at a time for the model; a plugin with a beat may keep several.",
+        "Never cover a page the user is being asked to act on — a later stage Skill takes the canvas down.",
+        "The page is whole and in memory; never written to disk, never fetched from anywhere."
+      ],
+      "phases" : [
+        "compose-page",
+        "claim-stage",
+        "prepare-hidden",
+        "hear-ready",
+        "show",
+        "dismiss"
+      ],
+      "stopConditions" : [
+        "user dismiss",
+        "click on the page",
+        "stage preempted"
+      ],
+      "successSignals" : [
+        "the page reported ready",
+        "the window is on screen"
+      ]
+    },
+    "paradigm" : "systemControl",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 140
+    },
+    "skills" : [
+      "canvas.present",
+      "canvas.dismiss"
+    ],
+    "summary" : "Mary's own windows: pages she draws to show something visually — a chart, a note, a mood — whole, in memory, nothing else on the page.",
+    "tint" : "#57C7A0",
+    "title" : "Canvas",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "operate" : [
+          "show me that as a chart",
+          "put it up on screen for me",
+          "draw that as a diagram",
+          "close what you are showing",
+          "take the page down"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "as a chart",
+        "as a diagram",
+        "on your canvas",
+        "close the page",
+        "take it down"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "canvas",
+        "chart",
+        "diagram",
+        "page"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "canvas-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "canvas.present",
+      "permissions" : [
+
+      ],
+      "summary" : "Show one whole page in a window of Mary's own, and hear whether it came up.",
+      "title" : "Present a Page",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "canvas.dismiss",
+      "permissions" : [
+
+      ],
+      "summary" : "Take down everything the canvas is showing.",
+      "title" : "Dismiss the Canvas",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "show-me-that-as-a-chart",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me that as a chart."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "put-it-up-on-screen-for-me",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put it up on screen for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.present",
+      "id" : "draw-that-as-a-diagram",
+      "interactions" : [
+
+      ],
+      "utterance" : "Draw that as a diagram."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "close-the-page",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close the page."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "close-what-you-re-showing",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close what you're showing."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "canvas.dismiss",
+      "id" : "take-the-page-down",
+      "interactions" : [
+
+      ],
+      "utterance" : "Take the page down."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "d8619e15996d6ed6816657500d21d16e07284968b60e25db1d3bae71bbe0023e"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "canvas",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "Mary's own windows to show a page in: the faculty every plugin that communicates visually leans on.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "canvas",
+            "operation" : "present_page",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "canvas.present",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "present_page",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "html",
+            "required" : true,
+            "requiresComposition" : true,
+            "spokenValues" : {
+
+            },
+            "summary" : "The whole page, self-contained. Inline everything; nothing is fetched.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "title",
+            "required" : true,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "A short name for the page.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+              "full_screen",
+              "panel"
+            ],
+            "name" : "placement",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "full_screen for the whole screen, panel for a centred window.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "canvas.present"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Show a whole HTML page Mary wrote — a chart, a table, a diagram, a card — in a window of her own, when a picture says it better than speech.",
+      "title" : "Present a Page",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "canvas",
+            "operation" : "dismiss_page",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "canvas.dismiss",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "dismiss_page",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "canvas.dismiss"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Take down whatever Mary is showing on her canvas.",
+      "title" : "Dismiss the Canvas",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}

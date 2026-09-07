@@ -65,6 +65,10 @@ public enum SeerCompleteBudget {
     /// clamps at 2048; the headroom is deliberate, because a reply cut off
     /// mid-object reaches the caller as unparsable rather than as short.
     public static let recipe = 1500
+    /// A feeling line and a shader of up to ninety lines. Under Seer's clamp
+    /// with room for the fence, because a shader cut off mid-function reaches
+    /// the page as a compile error rather than as short.
+    public static let shader = 2000
 }
 
 public actor SeerCompleteClient: SeerCompleteProviding {

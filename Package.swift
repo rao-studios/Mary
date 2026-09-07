@@ -34,6 +34,8 @@ let package = Package(
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
         .executable(name: "mary-media-probe", targets: ["MediaProbe"]),
         .executable(name: "mary-web-probe", targets: ["WebProbe"]),
+        .executable(name: "mary-canvas-probe", targets: ["CanvasProbe"]),
+        .executable(name: "mary-dance-probe", targets: ["DanceProbe"]),
     ],
     dependencies: [
         // Frigate: the ML surfaces, one package. Its inference products (MLX, MLXLLM,
@@ -118,7 +120,8 @@ let package = Package(
             path: "Sources/MaryPlugin",
             swiftSettings: [.swiftLanguageMode(.v5)],
             linkerSettings: [
-                .linkedFramework("EventKit")
+                .linkedFramework("EventKit"),
+                .linkedFramework("WebKit"),
             ]
         ),
         // Seals shipped Abilities/*.mary (decode-or-fail).
@@ -328,6 +331,20 @@ let package = Package(
             name: "WebProbe",
             dependencies: ["MaryRuntime", "MaryBrain", "MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
             path: "Sources/Probes/WebProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // Mary's canvas, driven from a CLI that runs its own accessory app.
+        .executableTarget(
+            name: "CanvasProbe",
+            dependencies: ["MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/CanvasProbe",
+            swiftSettings: [.swiftLanguageMode(.v5)]
+        ),
+        // The dance, from a shader file: admission, rehearsal, the beat, the tidy-up.
+        .executableTarget(
+            name: "DanceProbe",
+            dependencies: ["MaryPlugin", "MaryComputerUse", "MaryAmbient", "MaryFoundation"],
+            path: "Sources/Probes/DanceProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(

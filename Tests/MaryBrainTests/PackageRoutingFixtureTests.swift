@@ -178,8 +178,13 @@ import Testing
         let snapshot = AbilityRuntime.Snapshot(
             records: records,
             validation: .init(),
+            // THE ROSTER THE RUNTIME INSTALLS — catalog plus the appended
+            // faculties — or a faculty's Skills read "no installed adapter"
+            // and the fixture is printed instead of measured.
             adapterManifests: MaryAdapterCatalog.adapterManifests(
-                adapters: MaryAdapterCatalog.adapters(),
+                adapters: MaryAdapterCatalog.adapters()
+                    + [AffordancePlugin(), CodingAgentAdapter(),
+                       DancePlugin(compose: UnavailableDanceComposer())],
                 observers: MaryAdapterCatalog.observers()),
             plugins: compilation,
             semanticSkillIndex: SemanticSkillRequestIndex.build(
@@ -285,7 +290,8 @@ import Testing
         // the three faculties `MaryRuntime+BrainInstall` adds to it. Asking the
         // catalog alone would report a live adapter's operations as dead.
         let installed: [any MaryAdapter] = MaryAdapterCatalog.adapters()
-            + [AffordancePlugin(), CodingAgentAdapter()]
+            + [AffordancePlugin(), CodingAgentAdapter(),
+               DancePlugin(compose: UnavailableDanceComposer())]
         let published = Set(
             MaryAdapterCatalog.adapterManifests(
                 adapters: installed,

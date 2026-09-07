@@ -25,6 +25,10 @@ extension AbilityRuntime {
         "complete_coding_change": 280, // above Vibe's 240 s session cap
         "run_shortcut": 150,   // Subprocess.run(timeout: 120) — `shortcuts run`
         "zip_folder":   150,   // Subprocess.run(timeout: 120) — `ditto -c -k`
+        // A shader composed through Seer, repaired up to twice, rehearsed in
+        // WebKit each time: measured 6–20 s, and the floor cut a repair short.
+        "start_dance":  60,
+        "show_mood":    60,
     ]
 
     public static let ordinarySkillTimeoutMinimum: TimeInterval = 1

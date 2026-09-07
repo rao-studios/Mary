@@ -45,6 +45,11 @@ public struct AbilityID: SchemaIdentifier {
     /// ask "does this registration realize awareness?" without naming an app.
     public static let awareness: Self = "awareness"
     public static let windowManagement: Self = "window-management"
+    /// Mary's own windows: pages she draws to show something. A supporting
+    /// Ability the way window management is — named by packages, owned by none.
+    public static let canvas: Self = "canvas"
+    /// The canvas's flagship: shaders composed on the fly, shown to a beat.
+    public static let dance: Self = "dance"
     public static let design: Self = "design"
     /// Named so ambient can ask "does this registration realize browsing?"
     /// OUT: browser workspace membership without a compiled table.

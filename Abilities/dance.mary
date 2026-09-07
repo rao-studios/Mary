@@ -1,0 +1,643 @@
+{
+  "ability" : {
+    "aliases" : [
+      "dance",
+      "the dance"
+    ],
+    "id" : "dance",
+    "operatingPolicy" : {
+      "defaultSupportingAbilities" : [
+        "canvas"
+      ],
+      "guardrailCategories" : [
+
+      ],
+      "guardrails" : [
+        "No shader, no window: a composer that is not ready or a shader that fails twice is a refusal that says why.",
+        "A dance is fifteen seconds and then every window comes down; a mood stays until dismissed.",
+        "Every window is the canvas's; the dance adds only the shader and the beat.",
+        "A feeling question gets one still window, never a dance."
+      ],
+      "phases" : [
+        "compose-shader",
+        "admit",
+        "rehearse-hidden",
+        "show-first",
+        "beat",
+        "tidy-up"
+      ],
+      "stopConditions" : [
+        "user stop",
+        "fifteen seconds",
+        "click on the page",
+        "stage preempted",
+        "composer unavailable"
+      ],
+      "successSignals" : [
+        "the shader compiled in rehearsal",
+        "the first window is on screen"
+      ]
+    },
+    "paradigm" : "systemControl",
+    "routing" : {
+      "conflictGroup" : "ability",
+      "conflictPolicy" : "preferDirectInteraction",
+      "excludes" : [
+
+      ],
+      "fallbacks" : [
+
+      ],
+      "preference" : 140
+    },
+    "skills" : [
+      "dance.start",
+      "dance.mood",
+      "dance.stop"
+    ],
+    "summary" : "Dance: shaders Mary composes on the fly, danced across her own windows to a beat, or held still as a mood when asked how she feels.",
+    "tint" : "#B98BFF",
+    "title" : "Dance",
+    "totemProjections" : [
+
+    ],
+    "triggers" : {
+      "intentAliases" : [
+
+      ],
+      "intentSeeds" : {
+        "operate" : [
+          "lets dance",
+          "dance for me",
+          "put on a light show",
+          "show me a dance",
+          "how are you feeling right now",
+          "what do you think i feel like right now",
+          "show me your mood",
+          "paint how you feel",
+          "paint how i feel",
+          "stop dancing",
+          "take the mood down",
+          "how are you feeling",
+          "how do you feel",
+          "how are you feeling today"
+        ]
+      },
+      "negativeTokens" : [
+
+      ],
+      "phrases" : [
+        "lets dance",
+        "dance for me",
+        "light show",
+        "how are you feeling",
+        "how do you feel",
+        "what do you think i feel like",
+        "your mood",
+        "my mood",
+        "stop dancing"
+      ],
+      "seedFamilies" : {
+
+      },
+      "tokens" : [
+        "dance",
+        "dancing",
+        "shader",
+        "mood",
+        "feeling",
+        "vibe"
+      ]
+    },
+    "version" : "1.0.0"
+  },
+  "capabilities" : [
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "canvas-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "dance.perform",
+      "permissions" : [
+
+      ],
+      "summary" : "Compose a shader and dance it across several canvas windows for fifteen seconds.",
+      "title" : "Perform a Dance",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+        {
+          "kind" : "requiresStage",
+          "value" : "canvas-window"
+        }
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "dance.mood",
+      "permissions" : [
+
+      ],
+      "summary" : "Compose a shader for a feeling and hold it in one canvas window.",
+      "title" : "Show a Mood",
+      "version" : "1.0.0"
+    },
+    {
+      "constraints" : [
+
+      ],
+      "effect" : "reversibleMutation",
+      "id" : "dance.stop",
+      "permissions" : [
+
+      ],
+      "summary" : "Stop the dance or take the mood down.",
+      "title" : "Stop the Dance",
+      "version" : "1.0.0"
+    }
+  ],
+  "dependencies" : [
+    {
+      "minimumVersion" : "1.0.0",
+      "optional" : false,
+      "packageID" : "canvas"
+    }
+  ],
+  "fixtures" : [
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "let-s-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Let's dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "dance-for-me",
+      "interactions" : [
+
+      ],
+      "utterance" : "Dance for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "shall-we-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Shall we dance?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "put-on-a-light-show",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put on a light show."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "dance-mary",
+      "interactions" : [
+
+      ],
+      "utterance" : "Dance, Mary."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "show-me-a-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me a dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "let-s-have-a-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Let's have a dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.start",
+      "id" : "time-to-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Time to dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "how-are-you-feeling",
+      "interactions" : [
+
+      ],
+      "utterance" : "How are you feeling?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "how-do-you-feel-right-now",
+      "interactions" : [
+
+      ],
+      "utterance" : "How do you feel right now?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "what-do-you-think-i-feel-like-right-now",
+      "interactions" : [
+
+      ],
+      "utterance" : "What do you think I feel like right now?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "show-me-your-mood",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me your mood."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "paint-how-i-feel",
+      "interactions" : [
+
+      ],
+      "utterance" : "Paint how I feel."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "how-are-you-feeling-today",
+      "interactions" : [
+
+      ],
+      "utterance" : "How are you feeling today?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "what-do-you-think-i-m-feeling",
+      "interactions" : [
+
+      ],
+      "utterance" : "What do you think I'm feeling?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.mood",
+      "id" : "paint-your-mood-for-me",
+      "interactions" : [
+
+      ],
+      "utterance" : "Paint your mood for me."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "stop-dancing",
+      "interactions" : [
+
+      ],
+      "utterance" : "Stop dancing."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "that-s-enough-dancing",
+      "interactions" : [
+
+      ],
+      "utterance" : "That's enough dancing."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "close-the-shader",
+      "interactions" : [
+
+      ],
+      "utterance" : "Close the shader."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "stop-the-dance",
+      "interactions" : [
+
+      ],
+      "utterance" : "Stop the dance."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "enough-stop-the-show",
+      "interactions" : [
+
+      ],
+      "utterance" : "Enough, stop the show."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "dance.stop",
+      "id" : "take-the-mood-down",
+      "interactions" : [
+
+      ],
+      "utterance" : "Take the mood down."
+    }
+  ],
+  "format" : "mary.ability-package",
+  "formatVersion" : 1,
+  "integrity" : {
+    "algorithm" : "sha256",
+    "digest" : "4434a69255ceb0bac3363b6fadfce21ae98779a3ed6058bd481e0d773d455599"
+  },
+  "interactions" : [
+
+  ],
+  "package" : {
+    "id" : "dance",
+    "minimumMaryVersion" : "1.0.0",
+    "publisher" : "Mary Project",
+    "summary" : "The canvas's flagship: a shader composed on the fly, danced to a beat or held as a mood.",
+    "version" : "1.0.0"
+  },
+  "perceptions" : [
+
+  ],
+  "skills" : [
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "dance",
+            "operation" : "start_dance",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "dance.start",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "start_dance",
+        "parameters" : [
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "mood",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "A mood or feel for the shader, in the user's words, when they named one.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "dance.perform",
+          "canvas.present"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Compose a shader and dance it across the screen — several of Mary's own windows opening and closing to a random beat for fifteen seconds.",
+      "title" : "Start a Dance",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "dance",
+            "operation" : "show_mood",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "dance.mood",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "show_mood",
+        "parameters" : [
+          {
+            "enumValues" : [
+              "yours",
+              "mine"
+            ],
+            "name" : "subject",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "yours for Mary's own feeling, mine for the user's. Omit it: the pronouns in the question decide, and \"what do you think I feel like\" is about the user.",
+            "type" : "string"
+          },
+          {
+            "enumValues" : [
+
+            ],
+            "name" : "mood",
+            "required" : false,
+            "requiresComposition" : false,
+            "spokenValues" : {
+
+            },
+            "summary" : "A mood the user named, when they did.",
+            "type" : "string"
+          }
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "dance.mood",
+          "canvas.present"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 180
+      },
+      "summary" : "Show a feeling as one still shader in a window of Mary's own — how Mary feels right now, or what she reads in the user. No dance.",
+      "title" : "Show a Mood",
+      "usesStage" : true,
+      "version" : "1.0.0"
+    },
+    {
+      "access" : "reversible",
+      "execution" : {
+        "bindings" : [
+          {
+            "adapterID" : "dance",
+            "operation" : "stop_dance",
+            "preference" : 100,
+            "targetClasses" : [
+
+            ]
+          }
+        ],
+        "kind" : "binding",
+        "steps" : [
+
+        ]
+      },
+      "id" : "dance.stop",
+      "inputs" : [
+
+      ],
+      "kind" : "effectful",
+      "modelExposure" : {
+        "enabled" : true,
+        "inheritsBindingContract" : true,
+        "invocationName" : "stop_dance",
+        "parameters" : [
+
+        ]
+      },
+      "outputs" : [
+
+      ],
+      "requirements" : {
+        "capabilities" : [
+          "dance.stop",
+          "canvas.dismiss"
+        ],
+        "interactions" : [
+
+        ],
+        "optionalInteractions" : [
+
+        ],
+        "optionalPerceptions" : [
+
+        ],
+        "perceptions" : [
+
+        ],
+        "supportingAbilities" : [
+
+        ]
+      },
+      "routing" : {
+        "conflictPolicy" : "preferFocusedWorkspace",
+        "excludes" : [
+
+        ],
+        "fallbacks" : [
+
+        ],
+        "preference" : 200
+      },
+      "summary" : "Stop the dance or take the mood window down.",
+      "title" : "Stop the Dance",
+      "usesStage" : false,
+      "version" : "1.0.0"
+    }
+  ],
+  "totemProjections" : [
+
+  ],
+  "valueTypes" : [
+
+  ]
+}
