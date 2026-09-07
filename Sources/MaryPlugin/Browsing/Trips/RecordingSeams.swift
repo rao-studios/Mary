@@ -153,6 +153,10 @@ struct RecordingShell: BrowserShellReading {
         await recorder.noteAct(RecordedAct(kind: .pressShell, shellLabel: label))
         return await inner.press(label: label, pid: pid, registration: registration, within: window)
     }
+
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence {
+        await inner.presence(of: window, pid: pid)
+    }
 }
 
 struct RecordingPage: PagePerceiving {

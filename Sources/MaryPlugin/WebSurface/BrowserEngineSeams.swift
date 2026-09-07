@@ -39,6 +39,8 @@ public protocol BrowserShellReading: Sendable {
     func press(
         label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
     ) async -> Bool
+    /// How a named window presents itself right now — see `WebSurfaceAX.presence`.
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence
 }
 
 /// A SHELL THAT KNOWS NO WINDOWS reads and presses as it always did — the
@@ -60,6 +62,7 @@ public extension BrowserShellReading {
     ) async -> Bool {
         await openLocation(address, pid: pid, registration: registration)
     }
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence { .page }
 }
 
 /// Reading the page itself.
@@ -200,6 +203,10 @@ struct LiveBrowserShell: BrowserShellReading {
         WebSurfaceAX.read(pid: pid, registration: registration, preferring: window)
     }
 
+    func presence(of window: CGWindowID, pid: pid_t) async -> WebSurfaceAX.Presence {
+        WebSurfaceAX.presence(of: window, pid: pid)
+    }
+
     func press(
         label: String, pid: pid_t, registration: WebSurfaceRegistration, within window: CGWindowID?
     ) async -> Bool {
@@ -242,8 +249,24 @@ struct LiveBrowserShell: BrowserShellReading {
         _ address: String, pid: pid_t, registration: WebSurfaceRegistration,
         within window: CGWindowID?
     ) async -> Bool {
-        guard await focusAddressField(pid: pid, registration: registration) else { return false }
+        guard await focusAddressField(pid: pid, registration: registration) else {
+            Self.log.notice("address field focus chord refused")
+            return false
+        }
         for attempt in 1...Self.addressTypingAttempts {
+            // THE FIELD ITSELF, WHEN THE CHORD DID NOT TAKE. Measured: a page
+            // whose modal player trapped the keyboard swallowed ⌘L, the typing
+            // went into the page, and three readbacks showed the old address.
+            // Focus set on the field through Accessibility is honoured by the
+            // toolkit whatever the page holds.
+            if attempt > 1, let application = AXUIElementCreateApplication(pid) as AXUIElement?,
+               let scope: AXUIElement = window.flatMap({ AXWindowIdentity.window(id: $0, in: pid) })
+                   ?? AX.attribute(application, kAXMainWindowAttribute as String).map({ $0 as! AXUIElement }),
+               let field = Self.control(
+                   named: WebSurfaceRegistration.folded(registration.schema.addressFieldLabel), in: scope) {
+                _ = PageElementActions.focus(control: field, pid: pid, detail: "address field")
+                try? await Task.sleep(for: .milliseconds(150))
+            }
             // Select all, so typing replaces rather than appends.
             // AIMED, like the focus chord above it: ⌘A in somebody else's window
             // selects their document, and the typing that follows replaces it.
@@ -256,7 +279,10 @@ struct LiveBrowserShell: BrowserShellReading {
             // A PARTIAL ADDRESS MUST NOT BE COMMITTED. Losing focus halfway through
             // leaves half a URL in the field, and pressing Return then navigates
             // somewhere nobody asked for — worse than not navigating at all.
-            guard case .completed = typed else { return false }
+            guard case .completed = typed else {
+                Self.log.notice("address typing did not complete — \(String(describing: typed))")
+                return false
+            }
             try? await Task.sleep(for: Self.addressVerifySettle)
             // READ BACK FROM THE WORKING WINDOW. Measured in round 10: the
             // readback came from the browser's main window — the person's —
@@ -271,7 +297,7 @@ struct LiveBrowserShell: BrowserShellReading {
                 // address bar" — a sentence about a control that was found and
                 // typed into. The shape of the mismatch is the diagnosis; the
                 // address itself is held, never logged, like everywhere else.
-                Self.log.info(
+                Self.log.notice(
                     "address readback refused — attempt \(attempt) typed \(address.count) read \(readback?.count ?? -1) scheme=\(readback?.lowercased().hasPrefix("http") == true) empty=\(readback?.isEmpty ?? true)")
                 if attempt == Self.addressTypingAttempts { return false }
                 continue

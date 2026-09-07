@@ -1299,6 +1299,42 @@ enum BrowsingFixtures {
         #expect(BrowserEngine.times(in: "no clock here").isEmpty)
     }
 
+    /// A player's mute button is named for the act it would do next, so a
+    /// button offering to unmute is a muted player.
+    @Test func thePagesMuteButtonSaysWhichWayTheSoundIs() {
+        func row(_ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat = 690) -> PageRow {
+            PageRow(
+                ordinal: ordinal, frame: CGRect(x: x, y: y, width: 30, height: 30),
+                label: label, labelSource: .textInside, affordance: .press,
+                affordanceSource: .classifier, kind: .button, facts: [])
+        }
+        let player = CGRect(x: 100, y: 200, width: 800, height: 500)
+        let muted = BrowserEngine.volumeState(in: [row(1, "Play", x: 110), row(2, "Unmute", x: 150)], player: player)
+        #expect(muted?.muted == true)
+        #expect(muted?.frame.minX == 150)
+        let sounding = BrowserEngine.volumeState(in: [row(2, "Mute", x: 150)], player: player)
+        #expect(sounding?.muted == false)
+        // A "mute" button in the page's footer is not the player's.
+        #expect(BrowserEngine.volumeState(in: [row(3, "Mute", x: 150, y: 1500)], player: player) == nil)
+    }
+
+    /// A poster's play button is a row named for the act, where it actually is.
+    @Test func thePagesPlayButtonIsFoundByItsOwnWord() {
+        func row(_ ordinal: Int, _ label: String, x: CGFloat, y: CGFloat) -> PageRow {
+            PageRow(
+                ordinal: ordinal, frame: CGRect(x: x, y: y, width: 60, height: 60),
+                label: label, labelSource: .textInside, affordance: .press,
+                affordanceSource: .classifier, kind: .button, facts: [])
+        }
+        let player = CGRect(x: 100, y: 200, width: 800, height: 500)
+        let found = BrowserEngine.playerButton(
+            named: ["play", "pause"],
+            in: [row(1, "Download all sizes", x: 950, y: 220), row(2, "Play Video", x: 470, y: 420)],
+            player: player)
+        #expect(found?.ordinal == 2)
+        #expect(BrowserEngine.playerButton(named: ["play"], in: [row(3, "Play", x: 100, y: 1500)], player: player) == nil)
+    }
+
     /// And with no fraction there is nothing to divide by — the refusal stands.
     @Test func aLoneTimeWithNoTrackIsStillUnknown() {
         #expect(BrowserEngine.clock(from: Self.media(elapsed: 634, duration: nil, fraction: nil)) == nil)

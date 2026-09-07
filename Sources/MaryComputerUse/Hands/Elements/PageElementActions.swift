@@ -288,6 +288,22 @@ public enum PageElementActions {
     /// can account for. False when the control publishes no press action or
     /// refused it; the caller decides whether a click is the right fallback.
     @discardableResult
+    /// Focus a live control — the assistive way to put the keyboard on a
+    /// field when the application's own focus chord did not take. A page
+    /// that traps focus (a modal player) swallows the chord; the toolkit
+    /// still honours a focus set on the field itself.
+    public static func focus(control: AXUIElement, pid: pid_t, detail: String) -> Bool {
+        guard AXUIElementSetAttributeValue(
+            control, kAXFocusedAttribute as CFString, kCFBooleanTrue) == .success
+        else {
+            ComputerUseMonitor.shared.note(
+                lane: .elements, refused: "focus", pid: pid, reason: .other(detail))
+            return false
+        }
+        ComputerUseMonitor.shared.note(lane: .elements, act: "focus", pid: pid, detail: detail)
+        return true
+    }
+
     public static func press(control: AXUIElement, pid: pid_t, detail: String) -> Bool {
         guard AXUIElementPerformAction(control, kAXPressAction as CFString) == .success
         else { return false }

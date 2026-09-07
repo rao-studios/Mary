@@ -38,6 +38,15 @@ sleep 3
 # window meanwhile — the browser's "main" window is whichever they touched last.
 WINDOW="$(.build/debug/mary-web-probe --browser chrome --front-window 2>/dev/null | tail -1)"
 echo "  working in window ${WINDOW:-?}"
+# AT THE ROUND'S SIZE. A new window takes whatever size the last one had;
+# the seeds were staged at 1266×885 and a page twice as wide is read as a
+# different page (round 12: the play circle sixty points from where the
+# pixels put it).
+[ -n "${WINDOW:-}" ] && .build/debug/mary-web-probe --browser chrome --window "$WINDOW" --resize 1266x885 > /dev/null 2>&1 || true
+
+# THE EDITOR THE CONTEXT TRIPS SPEAK FROM, running before anything needs it
+# in front; a stage that names an application nobody launched is unstageable.
+open -g -a TextEdit 2>/dev/null || true
 
 mkdir -p "$RECORD"
 echo "▸ driving the corpus"
@@ -60,6 +69,7 @@ for trip in Tests/MaryPluginTests/Fixtures/Trips/*/*.trip.json; do
         sleep 3
         WINDOW="$(.build/debug/mary-web-probe --browser chrome --front-window 2>/dev/null | tail -1)"
         echo "  working in window ${WINDOW:-?}"
+        [ -n "${WINDOW:-}" ] && .build/debug/mary-web-probe --browser chrome --window "$WINDOW" --resize 1266x885 > /dev/null 2>&1 || true
         drive "$trip" "$RECORD/$name.log"
     fi
     sed -n '/the trip —/,$p' "$RECORD/$name.log" | grep -E '^  [✓✗~·] ' || true

@@ -171,6 +171,42 @@ public enum WebSurfaceAX {
         return Dialog(title: title, message: body.isEmpty ? nil : body, choices: choices)
     }
 
+    /// How a named window is presenting itself to Accessibility right now.
+    ///
+    /// PIN: A FIND BAR TAKES THE WINDOW'S PLACE. Measured after `find_in_page`:
+    /// Chrome publishes its find bar as its own accessibility window carrying
+    /// the SAME window-server id as the page's window, and the page's window
+    /// leaves the list until the bar closes. A read that then fell back to
+    /// "the main window" moved into another window; a read that refused said
+    /// the window was gone about a window that was right there.
+    public enum Presence: Equatable { case page, panel, gone }
+
+    public static func presence(of window: CGWindowID, pid: pid_t) -> Presence {
+        guard AXIsProcessTrusted(),
+              let snapshot = AXEngine.snapshot(pid: pid, options: .shell)
+        else { return .gone }
+        let same = snapshot.windows.filter { $0.windowID == window }
+        guard !same.isEmpty else { return .gone }
+        return same.contains(where: holdsThePage) ? .page : .panel
+    }
+
+    /// A window with the page in it, or the browser's own furniture around
+    /// where a page goes: a toolbar AND a tab strip. A find bar has a toolbar
+    /// of its own and nothing else (measured: it was read as the page, with
+    /// its own title, when it carried the page window's id).
+    static func holdsThePage(_ window: AXWindowSnapshot) -> Bool {
+        guard let root = window.root else { return false }
+        var webArea = false, toolbar = false, tabs = false
+        root.forEachNode { node in
+            if node.category == .webArea { webArea = true }
+            if node.role == toolbarRole { toolbar = true }
+            if node.role == "AXTabGroup" || node.subrole == "AXTabButton" || node.role == "AXTab" {
+                tabs = true
+            }
+        }
+        return webArea || (toolbar && tabs)
+    }
+
     // MARK: - Reading
 
     /// `preferring` names the window the caller works in — see
@@ -265,15 +301,6 @@ public enum WebSurfaceAX {
         preferring wanted: CGWindowID? = nil,
         identify: (AXWindowSnapshot) -> CGWindowID? = { _ in nil }
     ) -> AXWindowSnapshot? {
-        func holdsThePage(_ window: AXWindowSnapshot) -> Bool {
-            guard let root = window.root else { return false }
-            var found = false
-            root.forEachNode { node in
-                guard !found else { return }
-                if node.role == toolbarRole || node.category == .webArea { found = true }
-            }
-            return found
-        }
         let browsing = windows.filter(holdsThePage)
         if let wanted, let kept = browsing.first(where: { identify($0) == wanted }) {
             return kept
@@ -372,7 +399,15 @@ public enum WebSurfaceAX {
         else { return nil }
         var nodes: [AXNodeSnapshot] = []
         root.forEachNode { nodes.append($0) }
-        guard let field = nodes.first(where: { registration.isAddressLabel($0.label) }),
+        // THE FIELD THAT IS FOCUSED, THEN THE ONE THAT IS DRAWN. Measured: a
+        // window published two address fields, and the first in tree order
+        // was not the one just typed into — three readbacks disagreed with
+        // three typings, and "I couldn't find the address bar" was said
+        // about a bar that had the address in it.
+        let fields = nodes.filter { registration.isAddressLabel($0.label) }
+        guard let field = fields.first(where: \.isFocused)
+                ?? fields.first(where: { ($0.frame?.width ?? 0) > 0 })
+                ?? fields.first,
               let found = AXEngine.detail(
                 pid: pid, nodeID: field.id, options: .shell, budget: .probe)
         else { return nil }

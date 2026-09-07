@@ -384,9 +384,28 @@ public actor BrowserEngine {
         }
         // THE PINNED WINDOW OR NOTHING. A read that came back about another
         // window means the named one is gone, and the act stops here.
+        // — unless the window is there and PRESENTING AS A PANEL: a find bar
+        // stands in for the page's window in the accessibility tree until it
+        // is closed, and Escape is how a person closes it. Once, then again.
         if let pinned = pinnedWindow, reading.windowID != pinned {
+            if await seams.shell.presence(of: pinned, pid: target.processIdentifier) == .panel {
+                emit(.acted("the window is showing a panel — closing it"))
+                _ = await seams.keys.press(.escape)
+                await seams.sleep(.milliseconds(200))
+                if let again = await seams.shell.read(
+                       pid: target.processIdentifier, registration: target.registration,
+                       preferring: pinned),
+                   again.windowID == pinned {
+                    return noteShell(again, in: target)
+                }
+            }
             return refuse(.workingWindowGone)
         }
+        return noteShell(reading, in: target)
+    }
+
+    /// The shell read that was just made: remembered, on the stream, spoken.
+    private func noteShell(_ reading: WebSurfaceAX.Reading, in target: BrowserTarget) -> BrowserOutcome {
         lastChrome = reading
         if let window = reading.windowID, window != workingWindow {
             workingWindow = window
@@ -418,7 +437,8 @@ public actor BrowserEngine {
         shell: WebSurfaceAX.Reading,
         intent: VisionPageReader.Intent,
         reveal: Bool,
-        previous: MediaControlReading? = nil
+        previous: MediaControlReading? = nil,
+        patience: Int = BrowserEngine.revealAttempts
     ) async -> Result<VisionPageReader.Reading, BrowserRefusal> {
         guard let pageFrame = shell.pageFrame, pageFrame.width > 32, pageFrame.height > 32
         else { return .failure(.pageNotVisible) }
@@ -452,7 +472,11 @@ public actor BrowserEngine {
             guard case .success(let reading) = result else { return result }
             let found = intent != .media
                 || reading.media.map(Self.hasTransport) == true
-            if found || !reveal || attempt >= Self.revealAttempts {
+            // PATIENCE IS FOR A TRANSPORT NOBODY ELSE CAN PLACE. When the page's
+            // own rows have already placed the button, looking again for the
+            // pixels' version costs six seconds a verb (round 12) and proves
+            // nothing the rows did not.
+            if found || !reveal || attempt >= patience {
                 return .success(reading)
             }
             emit(.acted("looked again — the transport was not showing"))
@@ -601,41 +625,59 @@ public actor BrowserEngine {
     private func drove(
         _ asked: MediaAction, in target: BrowserTarget, shell: WebSurfaceAX.Reading
     ) async -> BrowserOutcome {
+        // THE PAGE'S OWN ROWS, READ ONCE, BESIDE THE PIXELS. A player's buttons,
+        // its slider and its clock are rows in the page's tree, named for what
+        // they do and placed where they are; the pixels keep every witness
+        // they can give, and the rows fill what the pixels could not place or
+        // could not read. One elements read serves every fill — four separate
+        // reads put "play it again" ten seconds over its budget (round 12) —
+        // and a page that has placed the act's button spares the pixels their
+        // patience.
+        var action = asked
+        let seen = await seePlayer(in: target, shell: shell)
+        let placed = seen.map { Self.pagePlaces(asked, in: $0) } ?? false
         var before: MediaControlReading
-        switch await perceive(target, shell: shell, intent: .media, reveal: true) {
+        switch await perceive(
+            target, shell: shell, intent: .media, reveal: true,
+            patience: placed ? 0 : Self.revealAttempts
+        ) {
         case .failure(let refusal): return refuse(refusal)
         case .success(let reading):
-            guard let media = reading.media, Self.hasTransport(media) else {
-                return refuse(.controlsNotFound)
-            }
+            guard let media = reading.media else { return refuse(.controlsNotFound) }
             before = media
         }
+        before = fromThePage(before, for: asked, seen: seen)
 
-        // A TIME IS A PLACE ON THE TRACK, ONCE THE VIDEO'S LENGTH IS KNOWN.
-        //
-        // PIN: "GO BACK TWO MINUTES" WAS UNSAYABLE. The seek took a fraction and
-        // nothing else, so a person had to know the video's length and divide;
-        // the lane offered "halfway, or a quarter in". The reading knows the
-        // clock — VisionAX reads it off the transport, and the page's progress
-        // slider publishes its range — and once it does, a time is a fraction
-        // like any other and the rest of this verb is unchanged. When no lane
-        // can read the length, the refusal names the length, not the track.
-        var action = asked
+        // NOTHING TO ACT ON — no bar, no circle, no row named for the act — is
+        // the honest refusal; a player that already is what was asked needs
+        // none of them (a poster nobody has started is paused).
+        if !Self.hasTransport(before), Self.target(for: asked, in: before) == nil,
+           Self.alreadySatisfied(asked, by: before) == nil, !asked.isTimeSeek {
+            return refuse(.controlsNotFound)
+        }
+
         // "PLAY IT FROM THE START" ON A PLAYER NOBODY HAS STARTED. Measured on
         // a file page: a poster, one play circle over the picture, a duration
         // badge, and no bar at all until the first play — so the seek to the
         // start refused "not its progress control" about a video already at
         // its start. Pressing play IS playing it from the start; the bar
-        // arrives with it. Only at the start, and only with no track: a seek
-        // anywhere else still needs the bar and still says so.
-        if Self.seeksTheStart(asked), before.progress == nil,
-           before.playback != .playing, before.centerGlyph != nil {
+        // arrives with it. Only at the start, and only with no track.
+        if Self.seeksTheStart(asked), before.progress == nil, before.playback != .playing,
+           before.centerGlyph != nil || before.playPause != nil {
             action = .play
             emit(.acted("the player has not started — playing is the start"))
         }
-        if asked.isTimeSeek {
-            // THE PAGE'S OWN SLIDER AND CLOCK — see `withSliderTrack`, `clocked`.
-            before = await withSliderTrack(before, in: target, shell: shell)
+
+        // A TIME IS A PLACE ON THE TRACK, ONCE THE VIDEO'S LENGTH IS KNOWN.
+        //
+        // PIN: "GO BACK TWO MINUTES" WAS UNSAYABLE. The seek took a fraction and
+        // nothing else, so a person had to know the video's length and divide.
+        // The reading knows the clock — VisionAX reads it off the transport,
+        // the page's rows carry it as text, and the page's slider publishes its
+        // range — and once it does, a time is a fraction like any other. When
+        // no lane can read the length, the refusal names the length, not the
+        // track.
+        if action == asked, asked.isTimeSeek {
             guard let clock = Self.clock(from: before),
                   let fraction = Self.fraction(
                       for: asked, elapsed: clock.elapsed, duration: clock.duration)
@@ -650,8 +692,6 @@ public actor BrowserEngine {
             }
             emit(.acted("\(asked.spokenPast.lowercased()) is \(Int((fraction * 100).rounded()))% of \(SpokenDuration.clock(clock.duration))"))
             action = .seek(fraction: fraction)
-        } else if case .seek = asked {
-            before = await withSliderTrack(before, in: target, shell: shell)
         }
 
         // ASKING FOR THE STATE IT IS ALREADY IN IS A SUCCESS THAT PRESSES NOTHING.
@@ -663,9 +703,7 @@ public actor BrowserEngine {
             let receipt = PageCommandReceipt(
                 sourceIndex: 0, kind: .click, target: Self.controlNoun(for: action),
                 delivery: .delivered, effect: .verified(.mediaState(settled)))
-            // ON THE STREAM TOO — every watcher reads the events, and a receipt
-            // that reaches only the caller is invisible to the bench, the
-            // timeline and a trip recording.
+            // ON THE STREAM TOO — every watcher reads the events.
             emit(.receipt(receipt))
             return BrowserOutcome(
                 ok: true, spoken: settled, shell: shell, media: before,
@@ -706,23 +744,14 @@ public actor BrowserEngine {
         guard await seams.stage.holdsFocus(pid: target.processIdentifier) else {
             return refuse(.interrupted(atCommand: 0))
         }
-        // MOVE TO IT, THEN PRESS IT — the way a hand does, and the way the page needs.
-        // A posted click alone lands on whatever the page believes is under the pointer,
-        // which after the reveal is the middle of the picture, not the button: measured,
-        // as a click that reported success and paused nothing.
         await seams.hands.hover(at: point, pid: target.processIdentifier)
         await seams.sleep(Self.pressSettle)
         await seams.hands.click(at: point, pid: target.processIdentifier)
         emit(.acted("clicked \(what)"))
         await seams.sleep(Self.actSettle)
 
-        // Keep the pointer over the page so the transport stays up for the second look.
-        //
-        // THE VOLUME IS THE EXCEPTION, AND IT HAS TO BE. Its track exists only while the
-        // pointer is on the volume control, so a second look taken with the pointer back
-        // over the middle of the picture finds no slider — or worse, finds some other
-        // thin run and reports the progress bar's fraction as the volume. Measured: a
-        // press that had worked reported "still at 4%".
+        // THE SECOND LOOK IS TAKEN WITH THE POINTER BACK ON THE CONTROL — the
+        // volume track exists only while it is hovered.
         if case .volume = action, let control = before.volume {
             await seams.hands.glide(to: control.clickPoint, pid: target.processIdentifier)
             await seams.sleep(Self.pressSettle)
@@ -734,21 +763,18 @@ public actor BrowserEngine {
                 if case .volume = action { return false }
                 return true
             }(),
-            previous: before
+            previous: before,
+            patience: placed ? 0 : Self.revealAttempts
         ) {
         case .failure(let refusal): return refuse(refusal)
         case .success(let reading):
             guard let media = reading.media else { return refuse(.controlsNotFound) }
             after = media
         }
-        // The second look proves a seek by the position: the clock when the
-        // transport shows one, else the page's slider, and the bar's pixels last.
-        if case .seek = action {
-            after = Self.clocked(after)
-            if after.progress == nil || (after.elapsed == nil && after.duration == nil) {
-                after = await withSliderTrack(after, in: target, shell: shell)
-            }
-        }
+        // AND THE PAGE'S ROWS AGAIN, FOR THE WITNESS: the button named for the
+        // opposite act, the slider's new position, the clock.
+        after = fromThePage(after, for: action, seen: await seePlayer(in: target, shell: shell))
+        if case .seek = action { after = Self.clocked(after) }
 
         let verdict: String
         switch Self.verdict(action, before: before, after: after) {
@@ -1074,7 +1100,7 @@ public actor BrowserEngine {
     /// "www." are presentation, not destination, and the same page reached two
     /// ways must read as the same page here or the settle asks for a change that
     /// cannot happen.
-    static func sameDestination(_ current: String?, _ intended: String) -> Bool {
+    public static func sameDestination(_ current: String?, _ intended: String) -> Bool {
         guard let current, !current.isEmpty else { return false }
         func stripped(_ value: String) -> String {
             var value = value.lowercased()
@@ -1331,6 +1357,126 @@ public actor BrowserEngine {
     /// How far in still counts as the start, when a lone time is judged.
     static let startOfTheTrack = 0.05
 
+    /// The page's rows near the player, read once for every fill below.
+    struct PlayerSeen {
+        let rows: [PageRow]
+        let player: CGRect?
+    }
+
+    func seePlayer(in target: BrowserTarget, shell: WebSurfaceAX.Reading) async -> PlayerSeen? {
+        guard let pageFrame = shell.pageFrame,
+              case .success(let seen) = await lookOnce(
+                  target, shell: shell, pageFrame: pageFrame, intent: .elements, previous: nil)
+        else { return nil }
+        return PlayerSeen(rows: seen.rows, player: Self.playerRegion(in: seen, page: pageFrame))
+    }
+
+    /// Whether the page's rows place the button this act needs.
+    static func pagePlaces(_ action: MediaAction, in seen: PlayerSeen) -> Bool {
+        let rows = seen.rows, player = seen.player
+        switch action {
+        case .play, .pause, .toggle:
+            return playerButton(named: ["\(MediaAction.play)", "\(MediaAction.pause)"], in: rows, player: player) != nil
+        case .mute, .unmute:
+            return volumeState(in: rows, player: player) != nil
+        case .fullscreen:
+            return playerButton(named: ["full", "fullscreen"], in: rows, player: player) != nil
+        case .seek, .seekTo, .seekBy:
+            return progressSlider(in: rows, player: player) != nil
+        case .volume:
+            return false
+        }
+    }
+
+    /// The reading, with what the page's own rows can add for this act.
+    ///
+    /// PIN: THE ROWS ARE THE WITNESS THE PIXELS COULD NOT BE. Measured, one
+    /// per round: the film's first ten seconds are a pink sky that barely
+    /// moves and "play" read as "still paused" at 0:05; the crossed speaker
+    /// read as sound on and "mute" unmuted; the OCR made out only the length
+    /// three seconds in; the centre glyph sat sixty points from the play
+    /// circle in a wide window. A player's buttons are rows named for the act
+    /// they would do next — a button offering to pause is a player that is
+    /// playing — its slider is a row whose range is the length, and its clock
+    /// is text beside the bar. Each fills only what the pixels left empty or
+    /// contradicted; the pixels keep the rest.
+    func fromThePage(
+        _ media: MediaControlReading, for action: MediaAction, seen: PlayerSeen?
+    ) -> MediaControlReading {
+        guard let seen else { return media }
+        var filled = media
+        let rows = seen.rows, player = seen.player
+
+        // Playback, and the play/pause button's place.
+        if let button = Self.playerButton(named: ["\(MediaAction.pause)"], in: rows, player: player) {
+            filled.playback = .playing
+            filled.playPause = .init(frame: button.frame, glyph: .pause, confidence: 1)
+        } else if let button = Self.playerButton(named: ["\(MediaAction.play)"], in: rows, player: player) {
+            filled.playback = .paused
+            filled.playPause = .init(frame: button.frame, glyph: .play, confidence: 1)
+        }
+        // The sound, and the mute button's place.
+        if let state = Self.volumeState(in: rows, player: player) {
+            filled.volume = .init(frame: state.frame, glyph: state.muted ? .muted : .volume, confidence: 1)
+        }
+        // Full screen's place, when the pixels found none.
+        if filled.fullscreen == nil,
+           let button = Self.playerButton(named: ["full", "fullscreen"], in: rows, player: player) {
+            filled.fullscreen = .init(frame: button.frame, glyph: .fullscreen, confidence: 1)
+        }
+        // The clock the page publishes, before the one the pixels show.
+        if let clock = Self.clockRows(in: rows, player: player) {
+            if filled.elapsed == nil, let elapsed = clock.elapsed { filled.elapsed = elapsed }
+            if filled.duration == nil, let duration = clock.duration { filled.duration = duration }
+        }
+        // The slider as the track, and its range as the length.
+        if action.isTimeSeek || { if case .seek = action { return true }; return false }() {
+            filled = withSliderTrack(filled, seen: seen)
+        }
+        if filled.playback != media.playback || filled.volume?.glyph != media.volume?.glyph {
+            emit(.acted("took the page's own buttons: \(filled.playback.rawValue)"
+                + (filled.isMuted.map { $0 ? ", muted" : ", sound on" } ?? "")))
+        }
+        return filled
+    }
+
+    /// The first pressable row near the player whose name carries one of the
+    /// act's own words.
+    static func playerButton(
+        named words: [String], in rows: [PageRow], player: CGRect?
+    ) -> PageRow? {
+        func near(_ frame: CGRect) -> Bool {
+            guard let player else { return true }
+            return frame.intersects(player.insetBy(dx: -8, dy: -player.height * 0.4))
+        }
+        return rows.first { row in
+            guard row.affordance == .press, near(row.frame) else { return false }
+            let named = row.label.lowercased().split { !$0.isLetter }.map(String.init)
+            return words.contains { named.contains($0) }
+        }
+    }
+
+    /// The mute button among the page's rows near the player, and what it
+    /// says: a button offering to unmute is a player that is muted.
+    static func volumeState(
+        in rows: [PageRow], player: CGRect?
+    ) -> (frame: CGRect, muted: Bool)? {
+        let offersToMute = "\(MediaAction.mute)"
+        let offersToUnmute = "\(MediaAction.unmute)"
+        func near(_ frame: CGRect) -> Bool {
+            guard let player else { return true }
+            return frame.intersects(player.insetBy(dx: -8, dy: -player.height * 0.4))
+        }
+        for row in rows where row.affordance == .press && near(row.frame) {
+            let words = row.label.lowercased()
+                .split { !$0.isLetter }
+                .map(String.init)
+            if words.contains(offersToUnmute) { return (row.frame, true) }
+            if words.contains(offersToMute) { return (row.frame, false) }
+        }
+        return nil
+    }
+
     /// The times the page's own rows carry near the player, left to right —
     /// the elapsed first, the length last. One lone time is handed on as the
     /// elapsed, for `clock(from:)` to judge against the track.
@@ -1400,24 +1546,15 @@ public actor BrowserEngine {
     func withSliderTrack(
         _ media: MediaControlReading, in target: BrowserTarget, shell: WebSurfaceAX.Reading
     ) async -> MediaControlReading {
-        guard let pageFrame = shell.pageFrame,
-              case .success(let seen) = await lookOnce(
-                  target, shell: shell, pageFrame: pageFrame, intent: .elements, previous: nil)
-        else { return media }
+        withSliderTrack(media, seen: await seePlayer(in: target, shell: shell))
+    }
+
+    func withSliderTrack(
+        _ media: MediaControlReading, seen: PlayerSeen?
+    ) -> MediaControlReading {
+        guard let seen else { return media }
         var filled = media
-        let player = Self.playerRegion(in: seen, page: pageFrame)
-        // THE CLOCK THE PAGE PUBLISHES, BEFORE THE ONE THE PIXELS SHOW. A
-        // player's "0:22 / 10:34" is text in its own tree as well as on the
-        // screen, and the tree's copy has no highlight box over it: measured
-        // in round 10, the OCR made out only the length, or nothing, three
-        // seconds into a video, and the same read's rows carried both times.
-        if let clock = Self.clockRows(in: seen.rows, player: player) {
-            if filled.elapsed == nil, let elapsed = clock.elapsed { filled.elapsed = elapsed }
-            if filled.duration == nil, let duration = clock.duration {
-                filled.duration = duration
-                emit(.acted("took the page's own clock: \(SpokenDuration.clock(duration)) long"))
-            }
-        }
+        let player = seen.player
         guard let slider = Self.progressSlider(in: seen.rows, player: player),
               let maximum = slider.maximumValue
         else { return Self.clocked(filled) }

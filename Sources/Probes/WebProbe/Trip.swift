@@ -86,11 +86,45 @@ enum TripCommand {
 
     /// Minimize the browser's front window — the stage the activation ladder's
     /// raise road exists for, made through the same window primitives.
-    static func minimizeFrontWindow(of pid: pid_t) -> Bool {
-        guard let windows = try? AccessibilityWindowCore.axWindows(of: pid, standardOnly: true),
-              let window = windows.first
-        else { return false }
-        return (try? AccessibilityWindowCore.minimize(window.element)) != nil
+    /// A TRIP THAT WENT FULL SCREEN LEAVES THE WINDOW THAT WAY, and every trip
+    /// after it then reads a window with no address bar (round 12: three
+    /// search legs). The stage is put back: a window as tall as its display
+    /// is pressed out of full screen, aimed at the browser.
+    static func leaveFullScreen(_ engine: BrowserEngine, target: BrowserTarget) async {
+        // THE WINDOW SERVER'S BOUNDS, NOT ACCESSIBILITY'S. A page's own full
+        // screen (a video's) leaves the AX window frame at its old size —
+        // measured, 1266×885 while the video filled the display — and only
+        // the window list knows the window is now as big as the screen.
+        guard let window = await engine.snapshot().workingWindow,
+              let windows = CGWindowListCopyWindowInfo(
+                  [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+                  as? [[String: Any]],
+              let entry = windows.first(where: { $0[kCGWindowNumber as String] as? CGWindowID == window }),
+              let boundsDictionary = entry[kCGWindowBounds as String] as? [String: Any],
+              let frame = CGRect(dictionaryRepresentation: boundsDictionary as CFDictionary)
+        else { return }
+        let tallest = NSScreen.screens.map { $0.frame.height }.max() ?? 0
+        guard tallest > 0, frame.height >= tallest * 0.98 else { return }
+        _ = KeyChordPress.press(
+            key: .escape, modifiers: [], targetPrefix: target.registration.bundleIdentifiers.first)
+        try? await Task.sleep(for: .milliseconds(800))
+        print("  left full screen")
+    }
+
+    /// THE ROUND'S WINDOW, NOT THE FIRST ONE LISTED. The first standard window
+    /// of the browser is whichever is on top — the person's, the moment they
+    /// click it — and the first draft minimized that.
+    static func minimizeWorkingWindow(_ engine: BrowserEngine, target: BrowserTarget) async -> Bool {
+        let pid = target.processIdentifier
+        let element: AXUIElement?
+        if let working = await engine.snapshot().workingWindow {
+            element = AXWindowIdentity.window(id: working, in: pid)
+        } else {
+            element = (try? AccessibilityWindowCore.axWindows(of: pid, standardOnly: true))?
+                .first(where: { AXWindowRoster.copyBool($0.element, kAXMainAttribute) == true })?.element
+        }
+        guard let element else { return false }
+        return (try? AccessibilityWindowCore.minimize(element)) != nil
     }
 
     // MARK: - Running one trip
@@ -188,7 +222,14 @@ enum TripCommand {
                 print("  ~  not staged")
                 return recording
             }
-            let staged = await engine.navigate(.open(seed), in: target)
+            // A FRESH PAGE, NOT THE ONE THE LAST TRIP LEFT. Opening the address
+            // the browser is already on is a quiet arrival — nothing reloads —
+            // so a modal player, a mute, a seek and a full screen all carried
+            // from one media trip into the next, and the legs became a story
+            // about the trip before (round 12). On the seed already: reload.
+            let standing = await engine.readShell(target).shell
+            let alreadyThere = standing?.url.map { BrowserEngine.sameDestination($0, seed) } ?? false
+            let staged = await engine.navigate(alreadyThere ? .reload : .open(seed), in: target)
             guard staged.ok else {
                 for (index, leg) in trip.legs.enumerated() {
                     recording.legs.append(TripRunner.unstageable(
@@ -217,8 +258,14 @@ enum TripCommand {
         }
         if trip.stage.mediaPlaying == true {
             // THE ENGINE'S OWN VERB, proved like any act. A video that will not
-            // play is a stage nobody set, not a failure of the leg.
-            let played = await engine.controlMedia(.play, in: target)
+            // play is a stage nobody set, not a failure of the leg. ONCE MORE
+            // after a breath: a page just reloaded publishes its player's rows
+            // a moment after its title, and the first look can find nothing.
+            var played = await engine.controlMedia(.play, in: target)
+            if !played.ok {
+                try? await Task.sleep(for: .milliseconds(1500))
+                played = await engine.controlMedia(.play, in: target)
+            }
             guard played.ok else {
                 return unstageable("the video has to be playing — \(played.spoken)")
             }
@@ -280,15 +327,23 @@ enum TripCommand {
             }
             print("  the browser is asking")
         }
-        if trip.stage.minimized == true {
-            guard minimizeFrontWindow(of: target.processIdentifier) else {
-                return unstageable("the browser's window has to be minimized")
-            }
-            print("  minimized the browser's window")
-        }
+        // THE OTHER APPLICATION FIRST, THE MINIMIZING LAST. Measured in round
+        // 12: the editor could not be staged AFTER the window was minimized,
+        // the trip stopped there, and a minimized Chrome window leaves the
+        // accessibility list — every trip after it found the round's window
+        // "gone" and opened another.
         if trip.stage.front != "browser" {
             guard await bringForward(trip.stage.front) else {
                 return unstageable("\(trip.stage.front) has to be in front")
+            }
+        }
+        if trip.stage.minimized == true {
+            guard await minimizeWorkingWindow(engine, target: target) else {
+                return unstageable("the browser's window has to be minimized")
+            }
+            print("  minimized the browser's window")
+            if trip.stage.front != "browser" {
+                _ = await bringForward(trip.stage.front)
             }
         }
 
@@ -408,6 +463,7 @@ enum TripCommand {
             }
         }
         await runner.stopWatching()
+        await leaveFullScreen(engine, target: target)
         return recording
     }
 

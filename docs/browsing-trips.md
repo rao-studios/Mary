@@ -1519,3 +1519,20 @@ Exit criterion not met: act at 88% — under 90%; media at 70% — under 90%; se
 | **all** | **6** | **14** | **5** | **63** | **30%** | R2 1 · J 2 · E 11 |
 
 Exit criterion not met: 63 leg(s) unstageable against 20 that ran — stage the machine before reading this table; no leg ran in context, media, recovery; arrive at 0% — under 90%; journey at 0% — under 90%; search at 0% — under 90%; 1 page-routing failure(s) on the recorded corpus.
+
+### Round 12 — 2026-09-07
+
+| Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
+|---|---:|---:|---:|---:|---:|---|
+| act | 8 | 0 | 0 | 5 | 100% | — |
+| arrive | 8 | 0 | 0 | 1 | 100% | — |
+| context | 2 | 0 | 0 | 13 | 100% | — |
+| journey | 2 | 0 | 0 | 0 | 100% | — |
+| media | 8 | 2 | 2 | 1 | 80% | E 2 |
+| read | 4 | 0 | 1 | 0 | 100% | — |
+| recovery | 1 | 1 | 5 | 4 | 50% | P 1 |
+| search | 0 | 4 | 0 | 4 | 0% | P 1 · E 3 |
+| tabs | 1 | 0 | 1 | 4 | 100% | — |
+| **all** | **34** | **7** | **9** | **32** | **83%** | P 2 · E 5 |
+
+Exit criterion not met: media at 80% — under 90%; recovery at 50% — under 90%; search at 0% — under 90%.

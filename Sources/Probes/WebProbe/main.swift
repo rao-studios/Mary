@@ -942,6 +942,40 @@ if value("--route") != nil || value("--save-roster") != nil {
 // runner that has just opened a window for a round asks this once and hands
 // the id to every trip as `--window`, so the round works in ITS window however
 // many times the person clicks their own. `--window <id>` adopts it.
+// `--address-check` — what the address-field path sees in the working
+// window: the window list's bounds (a full-screen window has no bar to find),
+// whether the field is in the tree, and how long its value is. A diagnostic
+// for "I couldn't find the address bar" said about a window that has one.
+if flag("--address-check") {
+    heading("the address field")
+    let window = await engine.snapshot().workingWindow
+    if let window, let windows = CGWindowListCopyWindowInfo(
+        [.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]],
+       let entry = windows.first(where: { $0[kCGWindowNumber as String] as? CGWindowID == window }),
+       let bounds = entry[kCGWindowBounds as String] as? [String: Any] {
+        print("      · window \(window) bounds \(bounds)")
+    }
+    let value = WebSurfaceAX.addressFieldValue(
+        pid: target.processIdentifier, registration: target.registration, preferring: window)
+    print("      · field value: \(value.map { "\($0.count) chars" } ?? "not found")")
+    if let snapshot = AXEngine.snapshot(pid: target.processIdentifier, options: .shell) {
+        for w in snapshot.windows {
+            var fields: [String] = []
+            w.root?.forEachNode { node in
+                guard let label = node.label, target.registration.isAddressLabel(label) else { return }
+                let value = AXEngine.detail(
+                    pid: target.processIdentifier, nodeID: node.id, options: .shell, budget: .probe)?
+                    .detail.nodes[node.id]?.textValue
+                fields.append("\(node.role) \(node.frame.map { "\(Int($0.width))×\(Int($0.height))" } ?? "no frame")"
+                    + " focused=\(node.isFocused) enabled=\(node.isEnabled) value=\(value.map { "\($0.count) chars" } ?? "—")")
+            }
+            print("      · window \(w.windowID.map(String.init) ?? "—") \(w.isMain ? "main " : "")\"\(w.title)\"")
+            for field in fields { print("        – \(field)") }
+        }
+    }
+    exit(0)
+}
+
 if flag("--front-window") {
     guard let windows = AXWindowRoster.axWindows(of: target.processIdentifier, standardOnly: true),
           let main = windows.first(where: {
@@ -959,16 +993,61 @@ if flag("--front-window") {
             let main = AXWindowRoster.copyBool(window.element, kAXMainAttribute) == true
             print("  roster   \(AXWindowIdentity.windowID(of: window.element).map(String.init) ?? "—")\(main ? " main" : "")  \(window.title)")
         }
+        let served = (CGWindowListCopyWindowInfo(
+            [.optionAll, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]]) ?? []
+        for entry in served where entry[kCGWindowOwnerPID as String] as? pid_t == target.processIdentifier
+            && (entry[kCGWindowLayer as String] as? Int) == 0 {
+            let onScreen = entry[kCGWindowIsOnscreen as String] as? Bool ?? false
+            print("  server   \(entry[kCGWindowNumber as String] ?? "?")\(onScreen ? "" : " off-screen")  \(entry[kCGWindowName as String] ?? "")")
+        }
         if let snapshot = AXEngine.snapshot(pid: target.processIdentifier, options: .shell) {
             for window in snapshot.windows {
+                let bounds = served.first { $0[kCGWindowNumber as String] as? CGWindowID == window.windowID }
+                    .flatMap { $0[kCGWindowBounds as String] as? [String: Any] }
+                    .flatMap { CGRect(dictionaryRepresentation: $0 as CFDictionary) }
                 print("  snapshot \(window.windowID.map(String.init) ?? "—")\(window.isMain ? " main" : "")  \(window.title)")
+                print("           ax \(window.frame.map { "\(Int($0.minX)),\(Int($0.minY)) \(Int($0.width))×\(Int($0.height))" } ?? "—")"
+                      + " · server \(bounds.map { "\(Int($0.minX)),\(Int($0.minY)) \(Int($0.width))×\(Int($0.height))" } ?? "—")")
             }
+        }
+        for screen in NSScreen.screens {
+            print("  screen \(Int(screen.frame.minX)),\(Int(screen.frame.minY)) \(Int(screen.frame.width))×\(Int(screen.frame.height)) scale \(screen.backingScaleFactor)")
         }
         exit(0)
     }
     print(id)
     exit(0)
 }
+// `--resize WxH` — the working window, given the round's frame. A round's
+// pages are read at one size; a window twice as wide is a different page.
+if let raw = value("--resize") {
+    let parts = raw.lowercased().split(separator: "x").compactMap { Double($0) }
+    guard parts.count == 2,
+          let window = await engine.snapshot().workingWindow,
+          let element = AXWindowIdentity.window(id: window, in: target.processIdentifier)
+    else {
+        print("  ✗  --resize needs WxH and a working window")
+        exit(1)
+    }
+    do {
+        try AccessibilityWindowCore.resize(element, to: CGSize(width: parts[0], height: parts[1]))
+        check(true, "resized window \(window) to \(Int(parts[0]))×\(Int(parts[1]))")
+    } catch {
+        check(false, "resized window \(window)", "\(error)")
+        exit(1)
+    }
+    exit(0)
+}
+
+// `--press-escape` — one Escape, aimed at the browser: how a person closes a
+// modal player or leaves a full screen. Stage hygiene for a hand-driven session.
+if flag("--press-escape") {
+    let pressed = KeyChordPress.press(
+        key: .escape, modifiers: [], targetPrefix: target.registration.bundleIdentifiers.first)
+    check(pressed, "pressed escape")
+    exit(pressed ? 0 : 1)
+}
+
 // `--close-window <id>` — a window a round opened, put away: the round's own
 // tidying, through the window's close button and nothing else.
 if let raw = value("--close-window"), let id = CGWindowID(raw) {
