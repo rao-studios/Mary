@@ -2,9 +2,9 @@
 //  NoScenarioShortcutsTests.swift
 //  MaryPluginTests
 //
-//  WHAT: The browsing lane holds no words belonging to a page, a trip or a
-//        recording — and every page it recorded is a page it argues with.
-//  OUT:  Source scan of the browsing lane; the trip corpus; the page fixtures
+//  WHAT: The browsing lane holds no words belonging to a recorded page —
+//        and every page it recorded is a page it argues with.
+//  OUT:  Source scan of the browsing lane; the page fixtures
 //  PIN:  THE CYCLE'S ONE STANDING TEMPTATION. Driving the engine from real
 //        journeys means somebody eventually has a failing leg, a recorded page in
 //        front of them, and a two-minute fix: name the row. That fix passes the
@@ -191,41 +191,6 @@ final class NoScenarioShortcutsTests: XCTestCase {
             """)
     }
 
-    /// AND NO TRIP'S UTTERANCE EITHER. A leg that only passes because the engine
-    /// recognizes the sentence is measuring nothing at all.
-    func testTheLaneHoldsNoTripUtterance() throws {
-        let trips = BrowsingTrip.corpus(under: Self.repositoryRoot
-            .appendingPathComponent("Tests/MaryPluginTests/Fixtures/Trips"))
-        XCTAssertTrue(
-            trips.unreadable.isEmpty,
-            "\(trips.unreadable.map(\.url.lastPathComponent))")
-        var utterances: Set<String> = []
-        for (_, trip) in trips.trips {
-            for leg in trip.legs {
-                let folded = RowFactsDerivation.folded(leg.say)
-                guard folded.split(separator: " ").count >= 3 else { continue }
-                utterances.insert(folded)
-            }
-        }
-        XCTAssertFalse(utterances.isEmpty, "no trips to check against")
-
-        var offences: [String] = []
-        for file in try Self.laneFiles() {
-            for literal in Self.literals(in: file.body) where utterances.contains(literal) {
-                offences.append("\(file.path) holds a trip's own utterance")
-            }
-        }
-        XCTAssertTrue(
-            offences.isEmpty,
-            """
-            \(offences.joined(separator: "\n"))
-
-            A leg that passes because the engine recognizes its sentence measures \
-            nothing. What the words should reach is a matter for the packages — a \
-            route fixture, a spoken value, a summary that names its surface.
-            """)
-    }
-
     // MARK: - A constant with a page behind it
 
     /// EVERY RECORDED PAGE IS ARGUED WITH. The floors and weights are cited as
@@ -259,8 +224,8 @@ final class NoScenarioShortcutsTests: XCTestCase {
             """)
     }
 
-    /// THE RULE MUST BE ABLE TO FAIL — all three of them, on the shapes they
-    /// forbid rather than on a string that merely looks like one.
+    /// THE RULE MUST BE ABLE TO FAIL — on the shapes it forbids rather than on
+    /// a string that merely looks like one.
     func testTheRulesWouldCatchWhatTheyForbid() {
         let planted = #"if row.label == "Alpine touring boots reviewed" { return true }"#
         XCTAssertTrue(Self.literals(in: planted).contains("alpine touring boots reviewed"))

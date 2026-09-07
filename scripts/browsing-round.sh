@@ -1,23 +1,33 @@
 #!/bin/bash
-# WHAT: One round of the browsing cycle — build, sign, drive every trip against
-#       Chrome, score it, and write the table into docs/browsing-trips.md.
+# WHAT: One round of the browsing cycle — build, sign, drive the trips the
+#       caller named against Chrome, score them.
 # OUT:  <record dir>/*.probe.recording.json and the round's table
-# PIN:  ONE COMMAND, BECAUSE A ROUND THAT TAKES SIX IS RUN ONCE. Rounds 0–7 were
-#       driven by hand and every one of them spent its first minutes on a stale
-#       binary, an unsealed package or a browser window nobody had opened. The
-#       order here is the order those failures taught: seal, build, sign, stage,
-#       drive, score.
-#       IT OPENS ITS OWN WINDOW. A trip marked `navigates` drives the browser
-#       the person is looking at unless something else is in front of it, so
-#       this opens a window for the round and leaves theirs alone.
+# PIN:  TRIPS ARE PASSED IN. The repository does not ship a fixture corpus;
+#       a glob of nothing used to run zero legs and still score. Round, then
+#       either trip paths, or a record directory followed by trip paths.
 #
-#   ./scripts/browsing-round.sh 8
-#   ./scripts/browsing-round.sh 8 /tmp/round8        # keep the recordings here
+#   ./scripts/browsing-round.sh 8 ~/.mary/trips/one.trip.json
+#   ./scripts/browsing-round.sh 8 /tmp/round8 ~/.mary/trips/*.trip.json
 #
 set -e
 
 ROUND="${1:?say which round this is}"
-RECORD="${2:-/tmp/browsing-round-$ROUND}"
+shift
+if [ $# -eq 0 ]; then
+    echo "pass at least one trip (.trip.json) — nothing is globbed from the repository" >&2
+    exit 1
+fi
+if [[ "$1" == *.trip.json ]]; then
+    RECORD="/tmp/browsing-round-$ROUND"
+else
+    RECORD="$1"
+    shift
+fi
+if [ $# -eq 0 ]; then
+    echo "pass at least one trip (.trip.json) after the record directory" >&2
+    exit 1
+fi
+
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -49,13 +59,17 @@ echo "  working in window ${WINDOW:-?}"
 open -g -a TextEdit 2>/dev/null || true
 
 mkdir -p "$RECORD"
-echo "▸ driving the corpus"
+echo "▸ driving the trips"
 drive() {
     .build/debug/mary-web-probe --browser chrome --trip "$1" \
         ${WINDOW:+--window "$WINDOW"} \
         --record "$RECORD" --round "$ROUND" --yes > "$2" 2>&1 || true
 }
-for trip in Tests/MaryPluginTests/Fixtures/Trips/*/*.trip.json; do
+for trip in "$@"; do
+    if [ ! -f "$trip" ]; then
+        echo "  ✗ not a file: $trip" >&2
+        exit 1
+    fi
     name="$(basename "$trip" .trip.json)"
     drive "$trip" "$RECORD/$name.log"
     # THE ROUND'S WINDOW CAN VANISH UNDER IT — closed by a hand, or by a trip

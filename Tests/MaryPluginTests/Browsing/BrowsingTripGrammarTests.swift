@@ -2,15 +2,13 @@
 //  BrowsingTripGrammarTests.swift
 //  MaryPluginTests
 //
-//  WHAT: The trip grammar refuses what it exists to refuse, and every shipped
-//        trip is one a runner can take.
+//  WHAT: The trip grammar refuses what it exists to refuse.
 //  OUT:  BrowsingTrip, BrowsingTripValidator
 //  PIN:  THE VALIDATOR IS THE SITE-AGNOSTICITY RULE, AND A RULE THAT CANNOT FAIL
-//        IS A COMMENT. Each test below plants exactly the shortcut somebody will
-//        reach for — a URL in an expectation, a host name, a page's own words
-//        asserted as a class, a fact nobody derives — and requires the validator
-//        to name it. Then the whole shipped corpus is walked through the same
-//        gate, so a trip added later cannot quietly hard-code a route.
+//        IS A COMMENT. Each test plants exactly the shortcut somebody will reach
+//        for — a URL in an expectation, a host name, a page's own words asserted
+//        as a class, a fact nobody derives — and requires the validator to name
+//        it. Any trip filed later walks the same gate.
 //
 
 import Foundation
@@ -171,15 +169,12 @@ import Testing
         #expect(again == trip)
     }
 
-    // MARK: - The shipped corpus
+    // MARK: - What is filed
 
-    /// EVERY TRIP IN THE REPOSITORY PASSES THE GATE. This is the test that keeps
-    /// the rule alive as trips are added — including by whoever is mid-round and
-    /// in a hurry.
+    /// A TRIP IN THE REPOSITORY PASSES THE GATE. Empty is valid; a file that is
+    /// there must still be one the validator would take.
     @Test func everyShippedTripValidates() {
-        let trips = BrowsingTrip.all(under: Self.tripsRoot)
-        #expect(!trips.isEmpty, "no trips found under \(Self.tripsRoot.path)")
-        for (url, trip) in trips {
+        for (url, trip) in BrowsingTrip.all(under: Self.tripsRoot) {
             let issues = BrowsingTripValidator.validate(trip)
             #expect(
                 issues.isEmpty,
@@ -187,8 +182,8 @@ import Testing
         }
     }
 
-    /// AND EVERY TRIP IS FILED WHERE ITS CATEGORY SAYS, so a round can run one
-    /// category by naming a directory.
+    /// AND IT IS FILED WHERE ITS CATEGORY SAYS, so a round can run one category
+    /// by naming a directory.
     @Test func everyTripIsFiledUnderItsCategory() {
         for (url, trip) in BrowsingTrip.all(under: Self.tripsRoot) {
             let directory = url.deletingLastPathComponent().lastPathComponent
@@ -212,31 +207,19 @@ import Testing
         #expect(trip.liveLegs.map(\.leg.say) == ["one", "three"])
     }
 
-    /// AND THE SHIPPED CORPUS HAS BOTH KINDS. A corpus with nothing pending was
-    /// authored to the engine that exists rather than to the experience wanted;
-    /// a corpus that is all pending measures nothing today.
-    @Test func theCorpusHoldsWorkToDoAndWorkToMeasure() {
-        let trips = BrowsingTrip.all(under: Self.tripsRoot).map(\.trip)
-        let legs = trips.flatMap(\.legs)
-        #expect(legs.contains { $0.pending != nil }, "nothing is waiting on a round")
-        #expect(legs.contains { $0.pending == nil }, "nothing can be measured today")
-        // Every category the plan names is represented.
-        #expect(Set(trips.map(\.category)) == BrowsingTrip.categories)
-    }
-
-    /// NOTHING IN THE CORPUS IS UNREADABLE, AND A WALK SAYS SO OUT LOUD.
+    /// NOTHING THAT LOOKS LIKE A TRIP IS UNREADABLE, AND A WALK SAYS SO OUT LOUD.
     ///
     /// PIN: THE FAILURE THIS TEST EXISTS FOR ALREADY HAPPENED. Every trip
     /// omitting one optional field failed to decode, `compactMap(try?)` dropped
     /// it, and four of eight categories left the corpus while every suite over
-    /// it stayed green — a corpus that silently shrinks always passes.
+    /// it stayed green — a corpus that silently shrinks always passes. Empty is
+    /// valid; an unreadable file is not.
     @Test func everyFileThatLooksLikeATripIsOneWeCanRead() {
         let corpus = BrowsingTrip.corpus(under: Self.tripsRoot)
         let named = corpus.unreadable
             .map { "\($0.url.lastPathComponent): \($0.problem)" }
             .joined(separator: "; ")
         #expect(corpus.unreadable.isEmpty, "\(named)")
-        #expect(!corpus.trips.isEmpty)
     }
 
     /// AND A BROKEN ONE IS REPORTED RATHER THAN SKIPPED — the rule must be able

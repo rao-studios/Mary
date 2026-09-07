@@ -91,8 +91,8 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
         if intent == .elements, !rowPages.isEmpty {
             let index = min(elementReads, rowPages.count - 1)
             elementReads += 1
-            return VisionPageReader.Reading(
-                rows: rowPages[index], pageFrame: pageFrame, pixelsPerPoint: 1, classified: true)
+            return Self.reading(rows: rowPages[index], pid: pid, appName: appName,
+                                windowTitle: windowTitle, pageFrame: pageFrame)
         }
         if intent == .elements {
             let index = min(elementReads, max(0, pages.count - 1))
@@ -107,6 +107,48 @@ final class FakePage: PagePerceiving, @unchecked Sendable {
         return VisionPageReader.Reading(
             media: media, pageFrame: pageFrame, pixelsPerPoint: 1)
     }
+
+    /// THE AX SHIM RIDES WITH THE ROWS. `PageActor.route` still looks up an
+    /// element by the winner's ordinal, so a fake that published only `PageRow`s
+    /// could never be pressed.
+    static func reading(
+        rows: [PageRow], pid: pid_t, appName: String, windowTitle: String, pageFrame: CGRect
+    ) -> VisionPageReader.Reading {
+        let groupRefs = Dictionary(
+            rows.compactMap { row -> (Int, PageGroupRef)? in row.group.map { ($0.id, $0) } },
+            uniquingKeysWith: { first, _ in first })
+        let groups = groupRefs.values.sorted { $0.id < $1.id }.map { ref in
+            PageGroup(
+                id: ref.id, kind: ref.kind, title: ref.title,
+                memberOrdinals: rows.filter { $0.group?.id == ref.id }.map(\.ordinal).sorted())
+        }
+        var annotations: [Int: SeenElementAnnotation] = [:]
+        let elements: [AXScreenElement] = rows.map { row in
+            let role = row.role ?? (row.affordance == .press ? "AXLink" : "AXStaticText")
+            annotations[row.ordinal] = SeenElementAnnotation(
+                affordance: row.affordance, affordanceSource: row.affordanceSource,
+                labelSource: row.labelSource, hints: row.hints,
+                groupID: row.group?.id, confidence: row.confidence)
+            return AXScreenElement(
+                ordinal: row.ordinal, id: AXNodeID(raw: UInt(row.ordinal)),
+                pid: pid, appName: appName, windowID: AXNodeID(raw: 1),
+                windowTitle: windowTitle, role: role,
+                category: AXNodeCategory.category(role: role),
+                label: row.label, frame: row.frame,
+                containerTrail: [row.group?.title, row.group?.kind.rawValue]
+                    .compactMap { $0 }.filter { !$0.isEmpty },
+                provenance: row.provenance)
+        }
+        return VisionPageReader.Reading(
+            rows: rows, groups: groups, elements: elements,
+            pageFrame: pageFrame, pixelsPerPoint: 1, classified: true,
+            map: PageMapSummary(
+                groups: groups.map {
+                    SeenGroup(id: $0.id, kind: $0.kind.rawValue, title: $0.title,
+                              memberOrdinals: $0.memberOrdinals)
+                },
+                annotations: annotations, labeledFraction: 1))
+    }
 }
 
 final class FakeHands: BrowserHands, @unchecked Sendable {
@@ -118,10 +160,12 @@ final class FakeHands: BrowserHands, @unchecked Sendable {
     var restored: [CGPoint?] = []
 
     func move(to point: CGPoint, pid: pid_t) async {}
+    var onClick: (() -> Void)?
     func click(
         at point: CGPoint, button: PluginPointerButton, count: Int, pid: pid_t
     ) async {
         clicks.append(point)
+        onClick?()
     }
     func scroll(at point: CGPoint, by delta: Double, pid: pid_t) async {
         scrolls.append(delta)
@@ -168,22 +212,34 @@ final class FakeStage: BrowserStaging, @unchecked Sendable {
     var taken: [pid_t] = []
     /// Every stand-down, with the pid the stage was given back to (nil: kept).
     var stoodDown: [pid_t?] = []
+    /// Queued outcomes, consumed in order. Empty falls back to `succeeds`.
+    var outcomes: [Activation] = []
 
-    init(succeeds: Bool = true, keepsFocus: Bool = true, front: pid_t? = nil) {
+    init(
+        succeeds: Bool = true, keepsFocus: Bool = true, front: pid_t? = nil,
+        outcomes: [Activation] = []
+    ) {
         self.succeeds = succeeds
         self.keepsFocus = keepsFocus
         self.front = front
+        self.outcomes = outcomes
     }
 
     func frontmost() async -> pid_t? { front }
     func bringForward(pid: pid_t) async -> Activation {
         taken.append(pid)
+        if !outcomes.isEmpty { return outcomes.removeFirst() }
         return succeeds ? Activation(road: .cooperative, failure: nil) : .lost(.refused)
     }
     var raised: [CGWindowID?] = []
     func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
         raised.append(window)
-        return await bringForward(pid: pid)
+        var outcome = await bringForward(pid: pid)
+        // A minimized window is "nothing on screen"; the raise road tries again.
+        if outcome.failure == .noVisibleWindow, !outcomes.isEmpty {
+            outcome = await bringForward(pid: pid)
+        }
+        return outcome
     }
     func standDown(givingBackTo previous: pid_t?) async { stoodDown.append(previous) }
     func holdsFocus(pid: pid_t) async -> Bool { keepsFocus }

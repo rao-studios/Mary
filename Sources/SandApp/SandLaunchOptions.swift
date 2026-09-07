@@ -21,7 +21,7 @@
 //    ./scripts/sand.sh --target com.google.Chrome --read-page \
 //        --say "open the first result" --auto
 //    ./scripts/sand.sh --target com.google.Chrome \
-//        --trip Tests/MaryPluginTests/Fixtures/Trips/read/what-is-this-about.trip.json \
+//        --trip ~/.mary/trips/what-is-this-about.trip.json \
 //        --record /tmp/round0 --round 0
 //
 import CoreGraphics

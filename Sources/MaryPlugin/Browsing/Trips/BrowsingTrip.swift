@@ -4,8 +4,8 @@
 //
 //  WHAT: One browsing journey a person actually takes, written down as legs —
 //        the utterance, and the SHAPE of what must happen, in Mary's vocabulary.
-//  IN:   Tests/MaryPluginTests/Fixtures/Trips/**/*.trip.json
-//  OUT:  mary-web-probe --trip, Sand --trip, the routing and replay suites
+//  IN:   a path the caller passes (staged under ~/.mary/trips)
+//  OUT:  mary-web-probe --trip, Sand --trip, the grammar and replay suites
 //  PIN:  A TRIP NAMES A CLASS OF PAGE AND A CLASS OF ROW, NEVER A SITE.
 //        The whole point of driving the engine from real journeys is to generalize
 //        it, and an expectation written as "the winner is the row labelled X on
