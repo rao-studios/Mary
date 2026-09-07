@@ -702,6 +702,30 @@ import Testing
         #expect(appended.contains("### Round 1"))
     }
 
+    /// ONLY ITS OWN SECTION. A heading somebody wrote a sentence after —
+    /// "### Round 8 — the revision" — is a narrative, and the writer once
+    /// replaced two hundred lines of one with a table.
+    @Test func aNarrativeHeadedLikeARoundIsNotTheWritersToReplace() {
+        var board = TripScoreboard()
+        board.round = "8"
+        let document = """
+        ### Round 8 — the revision: what the round found
+
+        Two hundred lines of what was learned.
+
+        ### Round 7 — 2020-01-01
+
+        | old | table |
+        """
+        let merged = board.merged(into: document)
+        #expect(merged.contains("Two hundred lines of what was learned."))
+        #expect(merged.contains("### Round 8 — the revision"))
+        #expect(merged.components(separatedBy: "### Round 8 — ").count == 3)
+        #expect(TripScoreboard.isScoreHeading("### Round 8 — 2026-09-07", round: "8"))
+        #expect(!TripScoreboard.isScoreHeading("### Round 8 — the revision", round: "8"))
+        #expect(!TripScoreboard.isScoreHeading("### Round 18 — 2026-09-07", round: "8"))
+    }
+
     /// A ROUND THAT COULD NOT RUN IS NOT A ROUND THAT PASSED.
     ///
     /// PIN: MEASURED ON THE FIRST LIVE RUN. Seven trips came back unstageable

@@ -546,7 +546,7 @@ public struct TripLegRecording: Sendable, Equatable, Codable {
     /// The best receipt this leg produced — the one `landed` rests on.
     public var bestReceipt: String {
         let ranked = ["navigation", "targetChanged", "textAppeared", "mediaState",
-                      "rosterChanged"]
+                      "dialogAnswered", "rosterChanged"]
         for rank in ranked where receipts.contains(where: { $0.receipt == rank }) {
             return rank
         }

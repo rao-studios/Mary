@@ -86,6 +86,16 @@ public enum AwarenessBrief {
         } else {
             lines.append("What they are looking at: \(title), in \(browser).")
         }
+        // THE BROWSER IS ASKING, AND THAT COMES BEFORE THE PAGE. A modal question
+        // stands in front of everything below; a brief that listed the page's
+        // rows without it would invite acts the page cannot take. The choices
+        // are the vocabulary: one of them, said back, is the answer.
+        if let dialog = shell.dialog {
+            lines.append(
+                "\(dialog.spoken) Until it is answered nothing on the page can be read or "
+                + "pressed; a choice said back — through click_on_page — answers it.")
+            return lines.joined(separator: "\n")
+        }
         if let roster, !roster.actionable.isEmpty {
             // HOW THE PAGE IS LAID OUT, BEFORE WHAT IS ON IT.
             //

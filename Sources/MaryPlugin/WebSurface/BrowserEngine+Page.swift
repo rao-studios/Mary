@@ -29,8 +29,9 @@ public extension BrowserEngine {
     func readPage(
         in target: BrowserTarget, query: String? = nil
     ) async -> BrowserOutcome {
-        // A question about the page gives the stage back — see `staged`.
-        await staged(target, after: .givenBack) { shell, _ in
+        // A question about the page gives the stage back — see `staged`; and a
+        // read is the verb that DESCRIBES the browser's own question.
+        await staged(target, after: .givenBack, asking: .described) { shell, _ in
             // The slate belongs to the page that is there NOW.
             retractSlate()
             switch await read(target, shell: shell) {
@@ -61,7 +62,7 @@ public extension BrowserEngine {
     func readPageText(
         in target: BrowserTarget, budget: Int = PageListing.textBudget
     ) async -> BrowserOutcome {
-        await staged(target, after: .givenBack) { shell, _ in
+        await staged(target, after: .givenBack, asking: .described) { shell, _ in
             retractSlate()
             switch await read(target, shell: shell) {
             case .failure(let refusal):

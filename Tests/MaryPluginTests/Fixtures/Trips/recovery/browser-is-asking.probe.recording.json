@@ -1,0 +1,219 @@
+{
+  "browser" : "chrome",
+  "category" : "recovery",
+  "legs" : [
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 7,
+          "kind" : "bringForward"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 240,
+      "index" : 0,
+      "landed" : false,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "J",
+        "E",
+        "T"
+      ],
+      "ok" : false,
+      "outcomeSpoken" : "The browser is asking: Confirm Form Resubmission — The page that you're looking for used information that you entered. Returning to that page might cause any action you took to be repeated. Do you want to continue? — \"Cancel\" or \"Continue\". Which?",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "refusal" : "browserIsAsking",
+      "routes" : [
+
+      ],
+      "say" : "scroll down this page",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 239,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        }
+      ],
+      "timeline" : [
+        "7ms  resolved Chrome",
+        "239ms  read the shell — httpbin.org/post · httpbin",
+        "239ms  refused — The browser is asking: Confirm Form Resubmission — The page that you're looking for used information that you entered. Returning to that page might cause any action you took to be repeated. Do you want to continue? — \"Cancel\" or \"Continue\". Which?"
+      ],
+      "verdict" : "passed"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 6,
+          "kind" : "bringForward"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 227,
+      "index" : 1,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "J",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "The browser is asking: Confirm Form Resubmission — The page that you're looking for used information that you entered. Returning to that page might cause any action you took to be repeated. Do you want to continue? \"Cancel\" or \"Continue\"?",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+
+      ],
+      "routes" : [
+
+      ],
+      "say" : "what's on this page",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 227,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        }
+      ],
+      "timeline" : [
+        "9ms  resolved Chrome",
+        "227ms  read the shell — httpbin.org/post · httpbin",
+        "227ms  verified the browser is asking something"
+      ],
+      "verdict" : "passed"
+    },
+    {
+      "acts" : [
+        {
+          "atMilliseconds" : 6,
+          "kind" : "bringForward"
+        },
+        {
+          "atMilliseconds" : 226,
+          "kind" : "pressShell",
+          "shellLabel" : "Cancel"
+        },
+        {
+          "atMilliseconds" : 711,
+          "kind" : "restoreCursor"
+        }
+      ],
+      "ambientAfter" : {
+
+      },
+      "ambientBefore" : {
+
+      },
+      "elapsedMilliseconds" : 711,
+      "index" : 2,
+      "landed" : true,
+      "media" : [
+
+      ],
+      "observableLayers" : [
+        "A",
+        "P",
+        "R2",
+        "J",
+        "E",
+        "T"
+      ],
+      "ok" : true,
+      "outcomeSpoken" : "Answered Cancel.",
+      "pageReads" : [
+
+      ],
+      "providerApplicationID" : "chrome",
+      "receipts" : [
+        {
+          "delivery" : "delivered",
+          "kind" : "click",
+          "landed" : true,
+          "receipt" : "dialogAnswered",
+          "spoken" : "click \"Cancel\" — the browser's question was answered with Cancel",
+          "target" : "Cancel"
+        }
+      ],
+      "routes" : [
+
+      ],
+      "say" : "press cancel",
+      "shells" : [
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 226,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        },
+        {
+          "activeTabIndex" : 0,
+          "atMilliseconds" : 711,
+          "canGoBack" : true,
+          "canGoForward" : false,
+          "hasPageFrame" : true,
+          "pageFrameSource" : "window below the toolbar",
+          "site" : "httpbin",
+          "tabCount" : 1,
+          "title" : "httpbin.org/post"
+        }
+      ],
+      "timeline" : [
+        "6ms  resolved Chrome",
+        "226ms  read the shell — httpbin.org/post · httpbin",
+        "229ms  answered Cancel",
+        "711ms  receipt — click \"Cancel\" — the browser's question was answered with Cancel"
+      ],
+      "verdict" : "passed"
+    }
+  ],
+  "recordedAt" : "2026-09-07T06:09:50Z",
+  "round" : "0",
+  "runner" : "probe",
+  "tripID" : "browser-is-asking"
+}

@@ -45,8 +45,16 @@ extension BrowserEngine {
         deadline: Date? = nil
     ) async -> BrowserOutcome {
         // Acting on the page keeps the stage: what the press did is there to see.
-        await staged(target, after: .kept) { shell, cursor in
-            await perform(
+        await staged(target, after: .kept, asking: .answered) { shell, cursor in
+            // THE BROWSER IS ASKING. A single press whose words name one of the
+            // choices answers it; anything else is put back as the question.
+            if let dialog = shell.dialog {
+                guard plan.commands.count == 1, let command = plan.commands.first,
+                      command.kind == .click, let phrase = command.action.target
+                else { return asked(dialog, shell: shell) }
+                return await answer(dialog, with: phrase, in: target, shell: shell)
+            }
+            return await perform(
                 plan, in: target, shell: shell, deadline: deadline, restingAt: cursor)
         }
     }

@@ -1,0 +1,56 @@
+{
+  "category": "recovery",
+  "id": "browser-is-asking",
+  "legs": [
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": false,
+        "refusal": "browserIsAsking"
+      },
+      "note": "A modal question stands in front of the page. Measured before this trip: a reload settled as \"Reloaded\" with the dialog up, and a read listed the page beneath it. Every verb that touches the page refuses with the browser's own question and the choices it offers.",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "scroll_page"
+      },
+      "say": "scroll down this page"
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true
+      },
+      "note": "A read is the verb that DESCRIBES the question \u2014 it is what is on the page right now. The spoken answer is the dialog's title and its choices, never the rows behind it.",
+      "routing": {
+        "intent": "perceive",
+        "skill": "read_page"
+      },
+      "say": "what's on this page",
+      "speech": {
+        "silence": "forbidden"
+      }
+    },
+    {
+      "engine": {
+        "budgetMs": 8000,
+        "landed": true,
+        "receipt": "dialogAnswered"
+      },
+      "note": "The person's words name one of the choices, and the shell press answers it; the receipt is the dialog gone from the shell. Nothing presses a choice on Mary's own account \u2014 a resubmission is a write the person did once already, so \"Continue\" is theirs to say.",
+      "routing": {
+        "intent": "operate",
+        "lane": "confidence",
+        "skill": "click_on_page"
+      },
+      "say": "press cancel"
+    }
+  ],
+  "navigates": true,
+  "stage": {
+    "askedByBrowser": true,
+    "front": "browser",
+    "pageClass": "form"
+  },
+  "summary": "The browser asks something of its own \u2014 a reload of a posted page raises a modal question \u2014 and until a person answers it in its own words, every verb hands the question back rather than acting on a page nobody can see."
+}

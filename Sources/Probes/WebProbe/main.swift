@@ -313,6 +313,9 @@ check(shell.pageFrame != nil, "the page was located",
         ?? "no frame")
 check(shell.windowID != nil, "the window has a capture id",
       shell.windowID.map(String.init) ?? "none — capture will pair by geometry")
+if let dialog = shell.dialog {
+    print("      · asking: \(dialog.title) — \(dialog.choices.joined(separator: " / "))")
+}
 print("      · history: back \(shell.canGoBack.map(String.init) ?? "unreadable")"
       + " · forward \(shell.canGoForward.map(String.init) ?? "unreadable")")
 print("      · tabs: \(shell.tabs.isEmpty ? "none published" : "\(shell.tabs.count)")")
@@ -925,6 +928,28 @@ if value("--route") != nil || value("--save-roster") != nil {
 }
 
 // MARK: - Navigating
+
+// MARK: - The history
+
+// `--navigate back|forward|reload` — the shell verbs, so a person driving the
+// probe can reproduce what a person does: submit something, then go back.
+if let direction = value("--navigate") {
+    heading("the history")
+    let request: NavigationRequest?
+    switch direction {
+    case "back": request = .back
+    case "forward": request = .forward
+    case "reload": request = .reload
+    default: request = nil
+    }
+    guard let request else {
+        check(false, "unknown direction \"\(direction)\" — back|forward|reload")
+        exit(1)
+    }
+    let outcome = await engine.navigate(request, in: target)
+    check(outcome.ok, "the page settled", outcome.spoken)
+    if let refusal = outcome.refusal { print("      · refusal: \(refusal)") }
+}
 
 if let address = value("--open") {
     heading("navigating")

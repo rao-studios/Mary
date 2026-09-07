@@ -1090,3 +1090,104 @@ enum BrowsingFixtures {
             intended: "a fred again video on youtube", fieldValue: "a fred again vid"))
     }
 }
+
+// MARK: - The browser's own question
+
+@Suite struct BrowserDialogEngineTests {
+
+    static let asking = WebSurfaceAX.Dialog(
+        title: "Confirm Form Resubmission",
+        message: "Do you want to continue?",
+        choices: ["Cancel", "Continue"])
+
+    static func shell(asking dialog: WebSurfaceAX.Dialog? = asking) -> WebSurfaceAX.Reading {
+        var reading = BrowsingFixtures.shell(title: "A Posted Page")
+        reading.dialog = dialog
+        return reading
+    }
+
+    /// THE DIALOG IS MODAL, SO A VERB THAT TOUCHES THE PAGE STOPS — with the
+    /// browser's question and its choices, never with a scroll of a page nobody
+    /// can see.
+    @Test func aVerbOnThePageIsBlockedByTheQuestion() async {
+        let hands = FakeHands()
+        let engine = BrowsingFixtures.engine(
+            shell: FakeShell([Self.shell()]), page: FakePage([nil]), hands: hands)
+        let outcome = await engine.navigate(.scroll(by: 3), in: BrowsingFixtures.target())
+        guard case .browserIsAsking(let question, let choices)? = outcome.refusal else {
+            Issue.record("expected the browser's question, got \(outcome.spoken)")
+            return
+        }
+        #expect(question.hasPrefix("Confirm Form Resubmission"))
+        #expect(choices == ["Cancel", "Continue"])
+        #expect(outcome.spoken.contains("\"Cancel\" or \"Continue\""))
+        #expect(hands.scrolls.isEmpty)
+        #expect(!outcome.landed)
+    }
+
+    /// A READ DESCRIBES THE QUESTION: it is what is on the page right now, and
+    /// the rows underneath are not read.
+    @Test func aReadDescribesTheQuestionInsteadOfThePage() async {
+        let page = FakePage([nil])
+        let engine = BrowsingFixtures.engine(shell: FakeShell([Self.shell()]), page: page)
+        let outcome = await engine.readPage(in: BrowsingFixtures.target())
+        #expect(outcome.ok)
+        #expect(outcome.landed)
+        #expect(outcome.spoken.hasPrefix("The browser is asking: Confirm Form Resubmission"))
+        #expect(outcome.elements.isEmpty)
+    }
+
+    /// THE PERSON'S WORDS ANSWER IT. "press cancel" names a choice; the shell
+    /// press sends it; the dialog gone from the next reading is the receipt.
+    @Test func wordsThatNameAChoiceAnswerIt() async {
+        let shell = FakeShell([Self.shell(), Self.shell(asking: nil)])
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]))
+        let outcome = await engine.pressOnPage("press cancel", in: BrowsingFixtures.target())
+        #expect(outcome.ok)
+        #expect(outcome.landed)
+        #expect(shell.pressed == ["Cancel"])
+        #expect(outcome.receipts.first?.effect == .verified(.dialogAnswered("Cancel")))
+        #expect(outcome.shell?.dialog == nil)
+    }
+
+    /// WORDS THAT NAME NO CHOICE PUT THE QUESTION BACK. Nothing is pressed on
+    /// Mary's own account — a resubmission is a write the person did once.
+    @Test func wordsThatNameNoChoicePressNothing() async {
+        let shell = FakeShell([Self.shell()])
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]))
+        let outcome = await engine.pressOnPage("the first link", in: BrowsingFixtures.target())
+        guard case .browserIsAsking? = outcome.refusal else {
+            Issue.record("expected the question back, got \(outcome.spoken)")
+            return
+        }
+        #expect(shell.pressed.isEmpty)
+        let vague = await engine.pressOnPage("yes go ahead", in: BrowsingFixtures.target())
+        #expect(vague.refusal != nil)
+        #expect(shell.pressed.isEmpty)
+    }
+
+    /// A NAVIGATION THAT RAISES THE QUESTION REPORTS THE QUESTION. Measured: a
+    /// reload of a posted page settled as "Reloaded" with the dialog up.
+    @Test func aNavigationThatRaisesTheQuestionReportsIt() async {
+        let shell = FakeShell([Self.shell(asking: nil), Self.shell()])
+        let engine = BrowsingFixtures.engine(shell: shell, page: FakePage([nil]))
+        let outcome = await engine.navigate(.reload, in: BrowsingFixtures.target())
+        #expect(shell.pressed == ["Reload"])
+        guard case .browserIsAsking? = outcome.refusal else {
+            Issue.record("expected the browser's question, got \(outcome.spoken)")
+            return
+        }
+        #expect(!outcome.landed)
+    }
+
+    /// The choice is matched as whole words, so "continue" does not answer
+    /// "Discontinue", and "cancel the order" still names "Cancel".
+    @Test func aChoiceIsNamedByItsWholeWords() {
+        let choices = ["Cancel", "Continue", "Don't save"]
+        #expect(BrowserEngine.choices(named: "press continue", among: choices) == ["Continue"])
+        #expect(BrowserEngine.choices(named: "cancel the order", among: choices) == ["Cancel"])
+        #expect(BrowserEngine.choices(named: "don't save it", among: choices) == ["Don't save"])
+        #expect(BrowserEngine.choices(named: "discontinue", among: choices).isEmpty)
+        #expect(BrowserEngine.choices(named: "yes", among: choices).isEmpty)
+    }
+}

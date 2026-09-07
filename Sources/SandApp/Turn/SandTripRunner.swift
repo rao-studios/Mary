@@ -76,6 +76,28 @@ final class SandTripRunner {
             // than assumed: nothing in Swift names a browser.
             browser: Self.stagedBrowser() ?? "")
 
+        // A STAGE ONLY THE PROBE CAN MAKE IS NOT ONE THIS RUNNER PRETENDS TO.
+        // A playing video, a second tab, a minimized window and a browser
+        // asking something are all set through the engine's verbs and the
+        // machine's primitives, which the probe holds; a turn driven against a
+        // stage nobody set is a false verdict, not a pass.
+        let probeOnly: [(Bool?, String)] = [
+            (trip.stage.mediaPlaying, "the video has to be playing"),
+            (trip.stage.twoTabs, "a second tab has to be open"),
+            (trip.stage.minimized, "the browser's window has to be minimized"),
+            (trip.stage.askedByBrowser, "the browser has to be asking"),
+        ]
+        if let (_, because) = probeOnly.first(where: { $0.0 == true }) {
+            for (index, leg) in trip.legs.enumerated() {
+                recording.legs.append(TripLegRecording(
+                    index: index, say: leg.say, verdict: .unstageable,
+                    because: "\(because) — the probe stages that"))
+                print(Self.line(recording.legs[recording.legs.count - 1]))
+            }
+            Self.record(recording)
+            return
+        }
+
         // AN APPLICATION IN FRONT IS A STAGE THIS RUNNER CAN MAKE — through the
         // same faculty every act stages with, verified, and only called
         // unstageable when the activation does not take. The probe learned

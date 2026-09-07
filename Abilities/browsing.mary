@@ -558,6 +558,26 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "browsing.click-on-page",
+      "id" : "press-cancel",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Press cancel."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
+      "id" : "click-continue",
+      "interactions" : [
+
+      ],
+      "targetClass" : "web-page",
+      "utterance" : "Click continue."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "browsing.click-on-page",
       "id" : "check-the-box-on-this-page-that-says-remember-me",
       "interactions" : [
 
@@ -1270,7 +1290,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "065520dc3e341965264764ca6c99ced926b10591e10dbc4e136c9f69f332a2f8"
+    "digest" : "5b50afb17d2f525cc0e479a43b6714c4c4e587b9d565556132e42a99d20ff55a"
   },
   "interactions" : [
 

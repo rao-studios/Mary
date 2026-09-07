@@ -109,7 +109,7 @@ public enum TripRouteVerb: String, Sendable, Equatable, Codable, CaseIterable {
 /// The receipt rank an act must produce. Mirrors `PageEffectEvidence`, plus
 /// `none` for "delivered, nothing proved".
 public enum TripReceipt: String, Sendable, Equatable, Codable, CaseIterable {
-    case navigation, targetChanged, textAppeared, rosterChanged, mediaState, none
+    case navigation, targetChanged, textAppeared, rosterChanged, mediaState, dialogAnswered, none
 }
 
 /// A refusal, by class. The engine's own `BrowserRefusal` cases, without their
@@ -120,6 +120,9 @@ public enum TripRefusal: String, Sendable, Equatable, Codable, CaseIterable {
     case navigationDidNotSettle, humanCheck, addressFieldNotFound, elementNotFound
     case ambiguousElement, planInvalid, interrupted, searchCompletedElsewhere
     case notFillable, notAdjustable, outOfTime, activationRefused, notImplemented
+    /// The browser itself is asking something and nothing can proceed until it
+    /// is answered. See `BrowserRefusal.browserIsAsking`.
+    case browserIsAsking
 }
 
 /// Where the machine's attention must be after a leg.
@@ -460,6 +463,12 @@ public struct TripStage: Sendable, Equatable, Codable {
     /// is in when they say "switch to the other tab". The runner opens it
     /// through the browser's own new-tab chord and comes back to the first.
     public var twoTabs: Bool?
+    /// The browser is asking something of its own before the first leg — a
+    /// modal question over the page, the state a person is in when a reload
+    /// raises "Confirm Form Resubmission". The runner stages it on the `form`
+    /// class: submits the form by the seeded phrase, reloads, and proves the
+    /// engine reports the question. Unstageable when it does not.
+    public var askedByBrowser: Bool?
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -473,13 +482,14 @@ public struct TripStage: Sendable, Equatable, Codable {
         minimized = try container.decodeIfPresent(Bool.self, forKey: .minimized)
         mediaPlaying = try container.decodeIfPresent(Bool.self, forKey: .mediaPlaying)
         twoTabs = try container.decodeIfPresent(Bool.self, forKey: .twoTabs)
+        askedByBrowser = try container.decodeIfPresent(Bool.self, forKey: .askedByBrowser)
     }
 
     public init(
         pageClass: TripPageClass = .any, front: String = "browser",
         pin: String? = nil, handNavigateBeforeLeg: Int? = nil,
         musicPlaying: Bool? = nil, twoWindows: Bool? = nil, minimized: Bool? = nil,
-        mediaPlaying: Bool? = nil, twoTabs: Bool? = nil
+        mediaPlaying: Bool? = nil, twoTabs: Bool? = nil, askedByBrowser: Bool? = nil
     ) {
         self.pageClass = pageClass
         self.front = front
@@ -490,6 +500,7 @@ public struct TripStage: Sendable, Equatable, Codable {
         self.minimized = minimized
         self.mediaPlaying = mediaPlaying
         self.twoTabs = twoTabs
+        self.askedByBrowser = askedByBrowser
     }
 }
 

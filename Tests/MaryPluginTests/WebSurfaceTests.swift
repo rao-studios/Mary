@@ -263,3 +263,62 @@ import Testing
         #expect(WebSurfaceAX.browsingWindow(among: [bare])?.title == "Downloads")
     }
 }
+
+@Suite struct BrowserDialogTests {
+
+    private static func node(
+        _ role: String, subrole: String? = nil, label: String? = nil, x: CGFloat = 0,
+        enabled: Bool = true, children: [AXNodeSnapshot] = []
+    ) -> AXNodeSnapshot {
+        AXNodeSnapshot(
+            id: AXNodeID(raw: UInt.random(in: 1...100_000)), role: role, subrole: subrole,
+            label: label, frame: CGRect(x: x, y: 0, width: 80, height: 30),
+            isEnabled: enabled, category: AXNodeCategory.category(role: role),
+            children: children)
+    }
+
+    /// MEASURED IN CHROME: a resubmission is an `AXGroup` with the
+    /// `AXApplicationDialog` subrole inside the browsing window — a heading, a
+    /// static text, two buttons. The reading carries its title, its body and
+    /// its choices left to right.
+    @Test func aModalGroupInsideTheWindowIsTheBrowsersQuestion() {
+        let dialog = Self.node(
+            "AXGroup", subrole: "AXApplicationDialog", label: "Confirm Form Resubmission",
+            children: [
+                Self.node("AXHeading", label: "Confirm Form Resubmission"),
+                Self.node("AXStaticText"),
+                Self.node("AXGroup", children: [
+                    Self.node("AXButton", label: "Continue", x: 300),
+                    Self.node("AXButton", label: "Cancel", x: 200),
+                ]),
+            ])
+        let root = Self.node("AXWindow", children: [Self.node("AXToolbar"), dialog])
+        var found: AXNodeSnapshot?
+        root.forEachNode { if $0.subrole == "AXApplicationDialog" { found = $0 } }
+        let read = WebSurfaceAX.dialog(from: found!, message: {
+            ["Confirm Form Resubmission", "Do you want to continue?"]
+        })
+        #expect(read?.title == "Confirm Form Resubmission")
+        #expect(read?.message == "Do you want to continue?")
+        #expect(read?.choices == ["Cancel", "Continue"])
+        #expect(read?.spoken.contains("\"Cancel\" or \"Continue\"?") == true)
+    }
+
+    /// A heading names an untitled group, a disabled button is not a choice,
+    /// and a group with nothing to call it is not a question.
+    @Test func theHeadingNamesItAndOnlyLiveButtonsAreChoices() {
+        let dialog = Self.node("AXSheet", children: [
+            Self.node("AXHeading", label: "Leave site?"),
+            Self.node("AXButton", label: "Leave", x: 10),
+            Self.node("AXButton", label: "Stay", x: 20, enabled: false),
+        ])
+        let read = WebSurfaceAX.dialog(from: dialog, message: { nil })
+        #expect(read?.title == "Leave site?")
+        #expect(read?.choices == ["Leave"])
+        #expect(read?.message == nil)
+        let nameless = Self.node("AXGroup", subrole: "AXApplicationDialog", children: [
+            Self.node("AXButton", label: "OK"),
+        ])
+        #expect(WebSurfaceAX.dialog(from: nameless, message: { nil }) == nil)
+    }
+}

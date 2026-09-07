@@ -123,6 +123,10 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The browser could not be staged, and why — the stage faculty's own
     /// reason, so five different conditions are not one sentence.
     case activationRefused(String, Activation.Failure?)
+    /// THE BROWSER ITSELF IS ASKING SOMETHING, and until it is answered the
+    /// page cannot be read or acted on. Carries what it asks and the choices it
+    /// offers, so the person can answer in one word.
+    case browserIsAsking(question: String, choices: [String])
     /// A time was asked for and no lane could read how long the video is.
     case videoLengthUnknown
     /// A time past the end of the video, as the reading measures it.
@@ -175,6 +179,11 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
         case .activationRefused(let name, let failure):
             return failure.flatMap { Activation.lost($0).reason(app: name) }
                 ?? "\(name) wouldn't come forward."
+        case .browserIsAsking(let question, let choices):
+            let offered = choices.isEmpty
+                ? ""
+                : " — " + choices.map { "\"\($0)\"" }.joined(separator: " or ")
+            return "The browser is asking: \(question)\(offered). Which?"
         case .videoLengthUnknown:
             return "I can't tell how long the video is, so I can't go to a time in it."
         case .beyondTheEnd(let duration):
@@ -205,10 +214,13 @@ public enum PageEffectEvidence: Sendable, Equatable {
     case rosterChanged(added: Int, removed: Int)
     /// The player moved. The media lane's own witness.
     case mediaState(String)
+    /// The browser's own question was answered with this choice, and it is gone.
+    case dialogAnswered(String)
 
     public var spoken: String {
         switch self {
         case .navigation(let title): return "the page became \(title)"
+        case .dialogAnswered(let choice): return "the browser's question was answered with \(choice)"
         case .targetChanged(_, let after):
             return after.isEmpty ? "it is gone from the page" : "it now says \(after)"
         case .textAppeared(let field): return "the text is in \(field)"
@@ -221,7 +233,7 @@ public enum PageEffectEvidence: Sendable, Equatable {
     /// Whether this is proof, or only a sign.
     public var isProof: Bool {
         switch self {
-        case .navigation, .targetChanged, .textAppeared, .mediaState: return true
+        case .navigation, .targetChanged, .textAppeared, .mediaState, .dialogAnswered: return true
         case .rosterChanged: return false
         }
     }

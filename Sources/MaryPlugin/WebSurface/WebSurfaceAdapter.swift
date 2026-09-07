@@ -223,9 +223,12 @@ public struct WebSurfaceAdapter: MaryAdapter {
                     guard let shell = outcome.shell else { return outcome }
                     let tabs = shell.tabs.count
                     let counted = tabs > 0 ? " \(tabs) tab\(tabs == 1 ? "" : "s") open." : ""
+                    // THE BROWSER'S OWN QUESTION IS PART OF WHERE THEY ARE.
+                    let asking = shell.dialog.map { " \($0.spoken)" } ?? ""
                     return BrowserOutcome(
                         ok: true,
-                        spoken: BrowserEngine.spoken(shell, browser: target.spokenName) + counted,
+                        spoken: BrowserEngine.spoken(shell, browser: target.spokenName)
+                            + counted + asking,
                         shell: shell)
                 }
             })

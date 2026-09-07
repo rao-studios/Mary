@@ -347,6 +347,7 @@ public extension RecordedReceipt {
         case .textAppeared: return "textAppeared"
         case .rosterChanged: return "rosterChanged"
         case .mediaState: return "mediaState"
+        case .dialogAnswered: return "dialogAnswered"
         case nil: return "none"
         }
     }
@@ -375,6 +376,7 @@ public extension RecordedReceipt {
         case .notAdjustable: return "notAdjustable"
         case .outOfTime: return "outOfTime"
         case .activationRefused: return "activationRefused"
+        case .browserIsAsking: return "browserIsAsking"
         case .videoLengthUnknown: return "videoLengthUnknown"
         case .beyondTheEnd: return "beyondTheEnd"
         case .notImplemented: return "notImplemented"

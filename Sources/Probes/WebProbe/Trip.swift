@@ -256,6 +256,26 @@ enum TripCommand {
             }
             print("  a second tab is open")
         }
+        if trip.stage.askedByBrowser == true {
+            // THE BROWSER'S OWN QUESTION, RAISED THE WAY A PERSON RAISES IT: the
+            // seeded form is submitted by the phrase the person wrote down, and
+            // the result reloaded. The engine's report of the question IS the
+            // stage — a reload that settles quietly means nothing is asking.
+            guard let submit = TripStaging.phrase(for: "formSubmit") else {
+                return unstageable(
+                    "the form's submit control has to be named — "
+                    + TripStaging.missingPhraseAdvice(for: "formSubmit"))
+            }
+            let submitted = await engine.pressOnPage(submit, in: target)
+            guard submitted.ok else {
+                return unstageable("the form has to be submitted — \(submitted.spoken)")
+            }
+            let reloaded = await engine.navigate(.reload, in: target)
+            guard case .browserIsAsking? = reloaded.refusal else {
+                return unstageable("the browser has to be asking — \(reloaded.spoken)")
+            }
+            print("  the browser is asking")
+        }
         if trip.stage.minimized == true {
             guard minimizeFrontWindow(of: target.processIdentifier) else {
                 return unstageable("the browser's window has to be minimized")
@@ -444,6 +464,7 @@ enum TripCommand {
         case .notAdjustable: return summary.contains("isn't a slider")
         case .interrupted: return summary.contains("took over at step")
         case .activationRefused: return summary.hasSuffix("wouldn't come forward.")
+        case .browserIsAsking: return summary.hasPrefix("The browser is asking:")
         case .ambiguousBrowser: return summary.hasPrefix("I can see ") && summary.hasSuffix("which one?")
         case .shellUnreadable: return summary.hasPrefix("I couldn't read ")
         case .visionUnavailable: return summary.hasPrefix("I couldn't look at the page")

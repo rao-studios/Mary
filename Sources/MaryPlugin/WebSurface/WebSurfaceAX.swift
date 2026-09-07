@@ -45,13 +45,16 @@ public enum WebSurfaceAX {
         public var windowFrame: CGRect
         /// Whether this browser's page content reaches Accessibility at all today.
         public var pageReachableByAX: Bool
+        /// A question the browser itself is asking, standing in front of the page.
+        /// Nil is the ordinary state; see `Dialog`.
+        public var dialog: Dialog?
 
         public init(
             title: String? = nil, url: String? = nil, pageFrame: CGRect? = nil,
             pageFrameSource: String = "none", canGoBack: Bool? = nil,
             canGoForward: Bool? = nil, tabs: [String] = [], activeTabIndex: Int? = nil,
             windowID: CGWindowID? = nil, windowFrame: CGRect = .zero,
-            pageReachableByAX: Bool = false
+            pageReachableByAX: Bool = false, dialog: Dialog? = nil
         ) {
             self.title = title
             self.url = url
@@ -64,10 +67,108 @@ public enum WebSurfaceAX {
             self.windowID = windowID
             self.windowFrame = windowFrame
             self.pageReachableByAX = pageReachableByAX
+            self.dialog = dialog
         }
 
         /// The site, as a person would say it. The URL itself never leaves this type.
         public var siteName: String? { url.flatMap(SiteName.spoken(url:)) }
+    }
+
+    /// THE BROWSER ASKING SOMETHING OF ITS OWN — a form resubmission, a
+    /// "leave this site?", a permission, a script's alert — modal over the
+    /// page, so nothing on the page can be read or pressed until it is answered.
+    ///
+    /// PIN: MEASURED IN CHROME, AND IT IS NOT A WINDOW. "Confirm Form
+    /// Resubmission" is published INSIDE the browsing window as an `AXGroup`
+    /// with the `AXApplicationDialog` subrole: a heading, a static text and two
+    /// buttons ("Cancel", "Continue"), left to right. `browsingWindow` still
+    /// finds the page's window, the page's own tree is still there underneath,
+    /// and a reload while it is up settled as "Reloaded" — a page nobody could
+    /// see. A dialog is a fact of the shell, read where the tabs are read, and
+    /// its buttons are shell controls the shell press already reaches.
+    ///
+    /// NEVER PRESSED ON MARY'S OWN INITIATIVE. The choices are what the person
+    /// is told; one of them said back is what answers it.
+    public struct Dialog: Sendable, Equatable {
+        /// What it is asking, as the browser titles it.
+        public var title: String
+        /// The longer text under the title, when the browser publishes one.
+        public var message: String?
+        /// The buttons, as labelled, left to right.
+        public var choices: [String]
+
+        public init(title: String, message: String? = nil, choices: [String]) {
+            self.title = title
+            self.message = message
+            self.choices = choices
+        }
+
+        /// The browser's words alone: the title, and the body when there is one.
+        public var question: String { message.map { "\(title) — \($0)" } ?? title }
+
+        /// The question as Mary asks it back: the browser's words, then the choices.
+        public var spoken: String {
+            let offered = choices.map { "\"\($0)\"" }
+            switch offered.count {
+            case 0: return "The browser is asking: \(question)"
+            case 1: return "The browser is asking: \(question) It offers \(offered[0])."
+            default:
+                return "The browser is asking: \(question) "
+                    + "\(offered.dropLast().joined(separator: ", ")) or \(offered.last!)?"
+            }
+        }
+    }
+
+    /// The subroles and roles a modal question is published under. Platform
+    /// vocabulary — an assistive client's, not any one site's.
+    static let dialogSubroles: Set<String> = ["AXApplicationDialog", "AXDialog", "AXSystemDialog"]
+    static let dialogRoles: Set<String> = ["AXSheet"]
+    /// How much of a dialog's body is worth saying.
+    static let dialogMessageCap = 240
+
+    /// The dialog standing in `window`, if one is. `nodes` is the window's
+    /// flattened tree, so the dialog's subtree is found by walking down from
+    /// the node itself rather than by searching again.
+    static func dialog(in root: AXNodeSnapshot, pid: pid_t) -> Dialog? {
+        var found: AXNodeSnapshot?
+        root.forEachNode { node in
+            guard found == nil, node.id != root.id else { return }
+            if dialogSubroles.contains(node.subrole ?? "") || dialogRoles.contains(node.role) {
+                found = node
+            }
+        }
+        guard let found else { return nil }
+        return dialog(from: found, message: {
+            guard let read = AXEngine.detail(pid: pid, nodeID: found.id, options: .shell)
+            else { return nil }
+            return read.detail.nodes.values.compactMap(\.textValue)
+        })
+    }
+
+    /// PURE — the dialog's shape from its subtree, with the body text handed in
+    /// so the offline reader needs no live element.
+    static func dialog(from node: AXNodeSnapshot, message: () -> [String]?) -> Dialog? {
+        var heading: String?
+        var buttons: [AXNodeSnapshot] = []
+        node.forEachNode { child in
+            if child.role == "AXHeading", heading == nil,
+               let label = child.label, !label.isEmpty { heading = label }
+            if child.role == "AXButton", let label = child.label, !label.isEmpty,
+               child.isEnabled { buttons.append(child) }
+        }
+        let title = [node.label, heading].compactMap { $0 }.first { !$0.isEmpty }
+        guard let title else { return nil }
+        let choices = buttons
+            .sorted { ($0.frame?.minX ?? 0) < ($1.frame?.minX ?? 0) }
+            .map { $0.label! }
+        var body = (message() ?? [])
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && $0.caseInsensitiveCompare(title) != .orderedSame }
+            .joined(separator: " ")
+        if body.count > dialogMessageCap {
+            body = String(body.prefix(dialogMessageCap)).trimmingCharacters(in: .whitespaces) + "…"
+        }
+        return Dialog(title: title, message: body.isEmpty ? nil : body, choices: choices)
     }
 
     // MARK: - Reading
@@ -127,6 +228,8 @@ public enum WebSurfaceAX {
 
         reading.url = url(
             pid: pid, nodes: nodes, webArea: webArea, registration: registration)
+        // THE QUESTION IN FRONT OF THE PAGE, if the browser is asking one.
+        reading.dialog = dialog(in: root, pid: pid)
         return reading
     }
 

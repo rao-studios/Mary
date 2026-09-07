@@ -880,6 +880,344 @@ file page — "0 controls seen" — which has been a detector question since rou
   rehearsals with no binding to dispatch. Either they get one or the category stops
   being counted as a live rate.
 
+### Round 8 — the revision: one stage, the browser as a workspace, journeys
+
+Seven rounds drove the same forty-three legs. The rate went from 30% to 80% and
+the layer column moved every round, and the same three numbers never did:
+pending legs (13, then 14 — the round-3 verbs were never built), `recovery` legs
+run (none), and `context` (50% throughout). Four of the seven rounds were
+repairs to the classifier or the runner. The corpus was written from the
+engine's own verbs, so the rounds converged on the engine's own verbs; nothing
+in it was a journey, and nothing in it was said from another application —
+which is how every reported sentence was said. Round 8 is the revision: fix the
+four things the corpus could not see, write the corpus that measures them, run
+both runners until two consecutive rounds clear 90%, then condense.
+
+#### Part 1 — one stage, and the browser inherits it
+
+"Hey can you pause the video" was answered *Chrome wouldn't come forward.* about
+a Chrome that was running. Traced, the stage was fourteen call sites with two
+selection rules, three name-to-pid ladders, two frontmost verifiers and six
+refusal sentences, and the only code that raises a **window** — window
+management's restore-and-`AXRaise` — was used by window management alone.
+`VerifiedActivation` activated a **process** once and polled; it never raised a
+window, so a window minimized or on another Space was reported forward with
+nothing on screen. The browser lane made it worse three ways: its seam answered
+`Bool`, so five different reasons reached the person as one sentence; it read
+the shell **before** staging, so every pointer act aimed at a page frame
+measured while the window could still be behind another; and it restored the
+cursor after an act and never the application — "mute the video" said from an
+editor left the browser in front, which is invariant 3 broken, designed in
+round 1 and never built. And `bring_application_forward`, the window-management
+skill itself, was bound to an operation no adapter published.
+
+One faculty now. The ladder resolves a helper to the regular member of its
+family (a roster matching a bundle family by prefix hands over renderers, and a
+renderer can never be frontmost — measured as an activation that "refused"
+forever), activates, and when activation alone does not take within its share
+of the budget, **restores and raises the application's main window through
+Accessibility** and asks again; a visible window is proved by default. The
+result is `Activation`, never `Bool`, and the browser speaks its reason. Eight
+copy-pasted guards in the engine became one `staged` door that takes the
+`StageArbiter` lease and the self-driving hold every other staging lane already
+took, reads the shell **after** the stage is taken, re-checks focus before the
+media lane's click, and gives the stage back when the verb answered a question
+or drove the player — a verb that changes where the person is looking keeps it.
+A search holds the stage once, through the whole journey. The four frontmost
+guards in the typer and the chord are one.
+
+Measured live, TextEdit in front and Chrome behind: "Hey can you pause the
+video" **landed on `mediaState` in 1.6 s and TextEdit was in front after.**
+`window-behind`, unstageable for seven rounds, passes. `window-minimized` — the
+runner minimizes the browser's window through the same primitive — passes, and
+found a rule on the way: the first raise road preferred any unminimized window,
+and on a browser with two the person's other window came forward while the page
+asked about stayed in the Dock. **The main window, minimized or not, is the one
+the person last worked in.** What this cannot yet answer honestly: which of two
+browser windows a sentence means when both are open — that is the per-window
+model, and it is still owed.
+
+Also on the way: round 1's shell press was an `AXPress` written into the seams
+file, which the machine-layer guard had been failing on all along; it goes
+through Hands now, where the monitor can see it.
+
+#### Part 2 — the browser is a workspace
+
+"What's on this page right now on Google Chrome" was answered *You're looking
+at whatever webpage is open in your Chrome window right now* — a paraphrase of
+the standing brief's own "I have not read this page yet". Traced, the sentence
+had four faults stacked under it, none of them the router's. `chrome.mary`
+declares a workspace perception and a web surface, and the plugin compiler's
+workspace guard admitted prose, code, media and corpus surfaces and did not know
+the web surface existed — so every browser compiled **perception-only**: no
+eyes, no document channel. The browser workspace is the one place `"browser"`,
+which no package registers under that id, so the place had no registration and
+everything derived from one — class, eyes, discipline — answered as though no
+browser were installed; a place with no discipline can never lead, and naming it
+moved nothing. The pre-read keyed on the lead alone, so a page question asked
+from an editor read the editor. And the intent was read off the framed sentence:
+"Can you click on the first link" classified as a **question** (perceive, 0.69)
+while its own words reached `click_on_page` at 0.89, and nothing was dispatched.
+
+Each fixed where it lives. The compiler admits a web surface as a workspace
+whose document channel is `page_context` — the shell read, never a pixel and
+never an address — and the adapter binds it. The browser workspace is backed by
+the browser the ledger evidences, else any package realizing browsing, since
+what is asked of a registration there is the same for all of them. The
+pre-read takes **the place the sentence named** before the lead — the invariant
+`page-question-from-an-editor` had asserted for seven rounds. And the intent is
+read off the bare request first, the way round 4 bared the skill read: the bare
+form is the request, the frame is how it was asked.
+
+Then the turn-level runs found the fault the probe could not: **from a regular
+application that is not active, cooperative activation is ignored.** The probe
+is a command-line process and its activations took; the bench is an application
+behind an editor, exactly as Mary is when spoken to, and "Chrome didn't come to
+the foreground" after the whole budget — the reported sentence, reproduced at
+last. A raised window does not activate its process. Setting the application's
+own `AXFrontmost` attribute is how an assistive client activates what it drives,
+granted to a trusted process whoever is active; it is the raise road's third
+step now, and the same sentence from the bench brings Chrome forward.
+
+One more, found the same way. The confidence lane spoke nothing on a success —
+"the act was the answer" — so "Can you click the first link on this page"
+pressed the link, changed the page, and ended without a word, which is the
+shape the person reported as not working. A landed act speaks its receipt now;
+silence stays for the act that only changed where the person is looking.
+
+Measured, through the whole turn with TextEdit in front: "Can you click on the
+first link" reads as operate on the bare request and dispatches `click_on_page`
+with "the first link" on the confidence lane, Chrome forward after, and says
+*click "the first link" — the page became Wikimedia Commons*. "What's on
+this page right now on Google Chrome" and the dictated correction "No I'm not
+what's on this page I'm looking at in Google Chrome" both read as perceive
+(0.86, 0.85) and reach `read_page` uniquely. What the voice says on a perceive
+turn is the model's, which the bench cannot hear; `aNamedPlaceIsReadBeforeTheLead`
+pins that the page, not the editor, is what it is handed. Through the probe with
+the browser in front: "Can you click the first link on this page" lands; "Can you
+scroll down this page" is delivered in 70 ms and says so.
+
+#### Part 3 — the arguments a lane can carry
+
+"Can you go back two minutes in the video" ran nothing, and "Can you go to three
+minutes in the video" was answered *I couldn't work out how to do that*. The seek
+took a fraction and nothing else, so a person had to know the video's length and
+divide; `position` was an optional string, which the no-model lane could not fill
+by construction — it fills one required string, the enums a sentence names, and
+the application — so every seek cost a model round; and `navigate_back`'s corpus
+is "Go back", a zero-argument verb one short sentence away from leaving the page.
+"Can you go to youtube.com" was refused as *guessing at that address*: the gate
+read a missing scheme as missing provenance, about a host the person had said.
+
+Three generic rules. A parameter the package marks `spokenSpan` receives the
+sentence's remaining span, the same peel the required string gets, so "go back
+two minutes in the video" dispatches with `action: seek` and the time in hand.
+`SpokenDuration` is the closed English vocabulary of lengths of time — "two
+minutes", "thirty seconds", "a minute and a half", "1:30" — and which way they
+point, on the same side of the doctrine as "third"; a number without a unit is
+not a time. And a bare host the person said is admitted with the scheme every
+front door has: the rule is provenance, not spelling.
+
+A time is a place on the track once the video's length is known, and the lane
+that knows it turned out not to be the one that draws it. MEASURED on the staged
+watch page: the picture lane finds the bar on one look and loses it on the next,
+because a player hides its bar on a timer, and the bar it finds is a rectangle a
+click on which moves nothing — it reported 0.6% for a video at 3:10 of 10:34.
+The page publishes the same bar as `slider "Progress Bar" 879×5, value 0.5 in
+0…100, settable`, a role and a range, for as long as it is drawn, and a click on
+that rectangle moves the video exactly. So a seek takes the page's own slider as
+the track when one is published, reads the position off the transport's clock —
+text the reading OCRs, and right — and the pixel bar is the last resort. Rows
+carry a control's value and range through the seal now, and so do recordings.
+
+Live, the video playing: "seek to 1:30" → *Went to 1:30 — Playing, 1:31 of
+10:34*; "seek back two minutes" → *Went back 2:00 — Playing, 0:01 of 10:34*.
+Both trips land on `mediaState` through the probe; through the whole turn the
+sentence reads as operate on the bare request, reaches `control_media` uniquely
+(0.92), and fills `position` with its own words. "Go to youtube.com" is a
+navigation receipt in 1.1 s. One finding filed against the picture lane: on one
+run the clock's OCR read 10:34 as 1:40, and "three minutes" clamped to the end of
+a video the reading believed was shorter — a destination past the end refuses and
+names the length now, which is right whether the video or the reading is short.
+
+#### Part 3b — the verbs the corpus waited five rounds for
+
+Thirteen legs had sat `pending: round 3` since the corpus was written, and the
+verbs they name were never built: switch a tab, close one, find a word on the
+page. The census had already measured what happens without them — "find the word
+budget on this page" reached `reload_page` at 0.70 on the confidence lane, which
+would have reloaded the page instead.
+
+`switch_tab` presses the tab the browser publishes, by title, by position, or as
+"the other one". A tab is a control with the page's name on it, found by the same
+shell walk that finds Back; a chord would count tabs the browser's way, and a
+person counts them the way they see them. Proved by the shell: the window wears
+the tab's name. `find_in_page` opens the browser's own find bar — a chord the
+package declares, aimed at the browser — and types into it; delivered, not
+landed, because what the bar found is drawn in the shell and this lane does not
+read it back. `close_tab` is Command-W through the browser's package, like the
+new tab beside it, and it is a **write**: the turn asks first, and the tab count
+does not move until somebody answers.
+
+Two rules came out of driving them. A page title is punctuated and a person is
+not — the title matcher folds punctuation AWAY rather than to a space, right for
+a song called "Rock & Roll" and wrong for a tab called "about:blank", which
+becomes one token nobody can say; every tab is spoken as its words before it is
+matched. And an act speaks its receipt: the confidence lane said nothing on a
+success, so "find the word budget" opened the find bar in 409 ms and the turn
+ended silent, which is the shape the person reported as not working.
+
+Three defects the driving found that no test would have:
+
+- **A panel can be the main window, and then every read is about the panel.**
+  After a find, Chrome's find bar is its own accessibility window and takes
+  `AXMain` — so the shell reported the page's title as "Find in page", published
+  no tabs at all, and every later read in the turn was about a strip forty points
+  tall. A browsing window is the one with the browser's own furniture in it: a
+  toolbar, or the page. Told apart by shape, never by a title.
+- **A stage is a state, not a gesture.** The two-tab staging pressed the new-tab
+  chord every run, and six runs left six tabs — three called the same thing, so
+  "the blank tab" was genuinely ambiguous and the leg's refusal was correct about
+  a window nobody meant to build. It opens a tab only when there are fewer than
+  two, and the trip begins on the page it is about.
+- **Closing the only tab closes the WINDOW.** The close-tab leg did exactly that,
+  and the browser then resolved to the person's own window — measured, and the
+  reason that leg is staged with a second tab now.
+
+The clock is the probe's, not the turn's: a find that took 409 ms through the
+engine took 44 seconds through a turn that spends most of itself in a language
+model, and was reported as a timing failure of a verb that had already answered.
+
+And **"skip the ad" needs no verb.** A small pressable row drawn inside the
+picture is an overlay by geometry — the same fact a consent wall's button
+carries — so the seal marks it and the router's existing overlay credit does the
+rest, through `click_on_page` with the person's own words. The rule is pinned in
+tests; the leg is `pending` a staged page whose player actually shows an ad,
+because a leg expecting an overlay press on a page with no overlay would measure
+the seed rather than the router.
+
+#### Part 4 — a journey, and the site a person named
+
+"OK can we watch Fred again video on YouTube" searched and listed results, and
+the corpus had asked the same thing in round 0: `search_web`'s `open` was an
+optional string no lane could fill, so a sentence that names both WHAT and WHERE
+could only ever be half answered. Nothing in the lane weighed where a result
+went.
+
+A row's own link is the missing fact. The accessibility lane already reads it;
+the seal now turns it into the SITE, as a person would say it — a name, never an
+address, so a recording still holds no URLs. What makes "youtube" a site is that
+a row on THIS page leads to one by that name: the page vouches for the word and
+nothing in the repository holds a list of sites.
+
+**A site is a gate, not a credit** — the rule a place already keeps, for the same
+measured reason. First it was a ranking term, and the naming ladder is compared
+before the structure: a related-search suggestion literally spelled "youtube
+fireplace 24 hours" outranked every actual YouTube result and the journey opened
+another results page. A person who says where has narrowed the page.
+
+`watch_video` is the first journey: several verbs said as one sentence, deciding
+from the reading rather than from a plan. It searches, arbitrates the results for
+what and where together, and — when no result goes to the site they named — opens
+that site's own row and uses its search box, which is `site-search`'s machinery.
+Nothing in it presses or types by itself; every step is a verb that already
+refuses by name and records its own route. The trip grammar gained a `journey`
+block and the classifier a **J** layer: a journey is judged on its SEQUENCE, and
+every step underneath it may be right.
+
+Three defects the driving found, each older than the journey:
+
+- **A roster rebuilt from `elements` loses what only a row carries.** The
+  AX-shaped pair is kept for the callers that still read it, and a row's site,
+  its slider range and its provenance are not in it — so the recipe handed the
+  router a page whose results all went nowhere in particular, and the site gate
+  had nothing to gate on. The engine publishes the real rows a moment earlier;
+  they are what the route is argued from now.
+- **A search whose results are already in front has arrived.** Running the same
+  journey twice typed the query into a browser already showing that query's
+  results, nothing changed because nothing could, and the whole navigation budget
+  was spent before reporting "the page didn't finish loading". This is `settle`'s
+  own arrival rule one level up, proved by the same evidence.
+- **Two rows that lead to the same place under the same name are one answer.**
+  A search engine prints its top video twice, in a carousel and in the list, and
+  Mary asked which of the two identical rows the person meant. "A tie is a
+  question, not a coin flip" is about rivals; these are not rivals. The trace
+  says so too, rather than recording a clarification nobody was asked for.
+
+Live, from a blank page: *watch a fireplace video on youtube* → the results, the
+YouTube result chosen over the suggestion that merely says "youtube", the watch
+page open, and `describe_media` reporting **"Playing, 0:00 of 1:25."** — 8.4 s
+end to end. The dictated sentence reaches the journey too. What the corpus
+change cost, and it is worth naming: three sentences that used to be `search_web`
+now name the journey, because "find me a clip on youtube" is not a request to see
+a list; and the transport needed fixtures of its own — "mute the video", "play
+the video" — to keep the sentences that ARE about the player.
+
+**"Skip the ad" still has no live leg.** A pressable row drawn inside the picture
+is an overlay by geometry now, which the router already credits, and the rule is
+pinned in tests — but the seeded watch page shows no ad, and a leg asserting an
+overlay press on a page with no overlay would measure the seed rather than the
+router.
+
+#### The browser's own question
+
+A screenshot after part 4: Chrome's "Confirm Form Resubmission" — *The page
+that you're looking for used information that you entered … Cancel /
+Continue* — standing over a page, and Mary reporting the reload beneath it as
+done. Reproduced on the trips window with the `form` seed: submit, then
+`--navigate reload`. The engine said *Reloaded httpbin.org/post* and a read
+listed the page's rows under the dialog.
+
+**Measured.** The dialog is not a window. Chrome publishes it INSIDE the
+browsing window as an `AXGroup` with the `AXApplicationDialog` subrole — a
+heading, a static text and two `AXButton`s, left to right — so
+`browsingWindow` still found the page's window, the tabs and the toolbar were
+where they always are, and nothing in the shell read said the page could not
+be seen.
+
+**The system**, in the layers that own it:
+
+- **The shell reads it.** `WebSurfaceAX.Reading.dialog` — title, body and the
+  choices as labelled, from the modal subroles an assistive client knows
+  (`AXApplicationDialog`, `AXSheet`, …). Platform vocabulary, no site's.
+- **Every verb has a stance.** `staged(_:after:asking:)` reads the shell after
+  the stage is taken and, when a dialog is up, does one of three things. The
+  default is to STOP with the browser's own question and its choices
+  (`BrowserRefusal.browserIsAsking`). A read DESCRIBES it — "what's on this
+  page" is answered with the question, never with the rows behind it. A press
+  can ANSWER it, and only a press.
+- **A settle that sees the question reports it.** A reload that raises the
+  dialog is not "Reloaded" and not a stall: the poll that sees the dialog
+  returns it as the outcome.
+- **The person's words answer it, never a default.** `click_on_page` whose
+  words carry one choice, as whole words — "press cancel", "continue the
+  video" — sends that button its own action through the shell press; the
+  receipt is the dialog gone from the next reading (`dialogAnswered`).
+  Words that name no choice, or "yes", put the question back. "Continue" on a
+  resubmission is a write the person did once already, and it is theirs to say.
+- **The brief says so first.** `page_context` and the awareness brief carry the
+  question ahead of the page, with the choices as the vocabulary.
+
+**Trip.** `recovery/browser-is-asking`, staged by the runner: the `form` seed
+submitted by the `formSubmit` phrase, reloaded, and the engine's report of the
+question is the stage. Three legs, live on the first run after the refusal was
+named for the probe:
+
+| Said | Layer | Result |
+|---|---|---|
+| "scroll down this page" | E | refused `browserIsAsking`, nothing scrolled, 240 ms |
+| "what's on this page" | E | spoken: the question and its two choices, 227 ms |
+| "press cancel" | E | `dialogAnswered`, dialog gone, 711 ms |
+
+Sand marks this stage — with a playing video, a second tab and a minimized
+window — as the probe's to make rather than running the turn against a stage
+nobody set.
+
+**Found on the way.** `--score --write` replaced this whole narrative with the
+round's table: it matched any heading beginning "### Round 8 — ", and the
+narrative was headed "### Round 8 — the revision". The writer now rewrites only
+a heading with its own date after the dash.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |

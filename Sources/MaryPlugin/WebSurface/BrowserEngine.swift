@@ -267,6 +267,17 @@ public actor BrowserEngine {
     /// navigates, reads and presses — holds the stage once, through the outer.
     private var stagedDepth = 0
 
+    /// What a verb does when the browser is asking something of its own.
+    ///
+    /// PIN: THE DIALOG IS MODAL, SO THE DEFAULT IS TO STOP. A page behind a
+    /// "Confirm Form Resubmission" cannot be scrolled, read from pixels, or
+    /// pressed — measured, a read went ahead and listed the page under the
+    /// dialog, and a reload settled as done. Every verb refuses with the
+    /// browser's own question unless it is the verb that reads the question
+    /// (a read describes it) or the one that can answer it (a press names a
+    /// choice). Nothing answers it on Mary's own account.
+    enum DialogStance { case blocked, described, answered }
+
     /// Take the stage for one act, read the shell of the window that is NOW in
     /// front, run the act, and put the machine back.
     ///
@@ -282,11 +293,21 @@ public actor BrowserEngine {
     func staged(
         _ target: BrowserTarget,
         after: StageAfter,
+        asking stance: DialogStance = .blocked,
         _ act: (WebSurfaceAX.Reading, CGPoint?) async -> BrowserOutcome
     ) async -> BrowserOutcome {
         await holding(target, after: after) {
             let shellOutcome = await readShell(target)
             guard let shell = shellOutcome.shell else { return shellOutcome }
+            if let dialog = shell.dialog {
+                switch stance {
+                case .blocked: return asked(dialog, shell: shell)
+                case .described:
+                    emit(.verified("the browser is asking something"))
+                    return BrowserOutcome(ok: true, spoken: dialog.spoken, shell: shell, landed: true)
+                case .answered: break
+                }
+            }
             let cursor = await seams.hands.cursorLocation()
             let outcome = await act(shell, cursor)
             await seams.hands.restoreCursor(to: cursor)
@@ -818,6 +839,93 @@ public actor BrowserEngine {
         }
     }
 
+    // MARK: - The browser's own question
+
+    /// The refusal every blocked verb gives: the browser's question, with the
+    /// shell attached so a caller can see what stood in the way.
+    func asked(_ dialog: WebSurfaceAX.Dialog, shell: WebSurfaceAX.Reading) -> BrowserOutcome {
+        let refusal = BrowserRefusal.browserIsAsking(
+            question: dialog.question, choices: dialog.choices)
+        emit(.refused(refusal))
+        return BrowserOutcome(ok: false, spoken: refusal.summary, refusal: refusal, shell: shell)
+    }
+
+    /// How long a pressed choice gets to take the dialog away.
+    static let dialogAnswerBudget: Double = 3
+
+    /// Answer the browser's question with the person's words — and only when
+    /// those words name one of its choices.
+    ///
+    /// PIN: NEVER A GUESS, NEVER A DEFAULT. "Continue" on a resubmission is a
+    /// write the person did once already; pressing it because it is the
+    /// rightmost button, or because the person said "yes", would be Mary
+    /// deciding what they meant. The words either carry a choice or the
+    /// question is put back to them.
+    func answer(
+        _ dialog: WebSurfaceAX.Dialog, with phrase: String,
+        in target: BrowserTarget, shell: WebSurfaceAX.Reading
+    ) async -> BrowserOutcome {
+        let matching = Self.choices(named: phrase, among: dialog.choices)
+        guard matching.count == 1, let choice = matching.first else {
+            return asked(dialog, shell: shell)
+        }
+        if dryRun { return refuse(.dryRun("answered \(choice)")) }
+        guard await seams.shell.press(
+            label: choice, pid: target.processIdentifier, registration: target.registration)
+        else { return refuse(.elementNotFound(choice)) }
+        emit(.acted("answered \(choice)"))
+
+        // GONE IS THE RECEIPT. The dialog was a shell fact; the shell says
+        // whether it still stands.
+        let deadline = seams.now().addingTimeInterval(Self.dialogAnswerBudget)
+        var latest = shell
+        while seams.now() < deadline {
+            await seams.sleep(Self.navigationPoll)
+            guard let reading = await seams.shell.read(
+                pid: target.processIdentifier, registration: target.registration)
+            else { continue }
+            latest = reading
+            if reading.dialog == nil {
+                lastChrome = reading
+                let receipt = PageCommandReceipt(
+                    sourceIndex: 0, kind: .click, target: choice,
+                    delivery: .delivered, effect: .verified(.dialogAnswered(choice)))
+                emit(.receipt(receipt))
+                return BrowserOutcome(
+                    ok: true, spoken: "Answered \(choice).", shell: reading,
+                    receipts: [receipt], landed: true)
+            }
+        }
+        return BrowserOutcome(
+            ok: false,
+            spoken: BrowserRefusal.stateUnchanged(
+                expected: "the question answered", observed: "it is still asking").summary,
+            refusal: .stateUnchanged(expected: "the question answered", observed: "it is still asking"),
+            shell: latest)
+    }
+
+    /// The choices the person's words name. A choice is named when its whole
+    /// label appears in the words, as words — "press continue" names
+    /// "Continue"; "continue the video" does too, and that is the person's to
+    /// say while the browser is asking.
+    static func choices(named phrase: String, among choices: [String]) -> [String] {
+        let said = words(phrase)
+        guard !said.isEmpty else { return [] }
+        return choices.filter { choice in
+            let wanted = words(choice)
+            guard !wanted.isEmpty, wanted.count <= said.count else { return false }
+            return (0...(said.count - wanted.count)).contains { start in
+                Array(said[start..<(start + wanted.count)]) == wanted
+            }
+        }
+    }
+
+    private static func words(_ text: String) -> [String] {
+        text.lowercased()
+            .split { !$0.isLetter && !$0.isNumber }
+            .map(String.init)
+    }
+
     // MARK: - The human check
 
     /// How long the auto-clearing kind of check gets before anything is pressed.
@@ -1005,6 +1113,14 @@ public actor BrowserEngine {
             guard let reading = await seams.shell.read(
                 pid: target.processIdentifier, registration: target.registration)
             else { continue }
+            // THE PAGE DID NOT MOVE — THE BROWSER ASKED SOMETHING INSTEAD. That is
+            // the outcome of the act, not a failure to settle: a reload of a
+            // posted page raises "Confirm Form Resubmission", and the only
+            // honest sentence is its question.
+            if let dialog = reading.dialog {
+                lastChrome = reading
+                return asked(dialog, shell: reading)
+            }
             let changed = reading.url != before.url || reading.title != before.title
             // A SAME-TITLE ARRIVAL COUNTS ONCE IT HAS BEEN QUIET, and not before
             // the grace — a reload's first frame can read as the old page.

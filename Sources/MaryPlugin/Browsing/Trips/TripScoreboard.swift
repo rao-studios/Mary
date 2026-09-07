@@ -213,10 +213,15 @@ public struct TripScoreboard: Sendable {
     /// PIN: ONE SECTION PER ROUND, REWRITTEN IN PLACE. A scoreboard that only
     /// ever appends grows a second table for round 0 every time somebody re-runs
     /// it, and the file stops saying what the round found.
+    ///
+    /// AND ONLY ITS OWN. The section this rewrites is the one it wrote — the
+    /// heading with the DATE after the dash. Measured: round 8's narrative was
+    /// headed "### Round 8 — the revision …", the writer matched the prefix,
+    /// and two hundred and seventy-eight lines of what the round found were
+    /// replaced by its table.
     public func merged(into document: String) -> String {
-        let heading = "### Round \(round) — "
         var lines = document.components(separatedBy: "\n")
-        guard let start = lines.firstIndex(where: { $0.hasPrefix(heading) }) else {
+        guard let start = lines.firstIndex(where: { Self.isScoreHeading($0, round: round) }) else {
             let separator = document.hasSuffix("\n") ? "" : "\n"
             return document + separator + "\n" + markdown() + "\n"
         }
@@ -226,5 +231,16 @@ public struct TripScoreboard: Sendable {
         }
         lines.replaceSubrange(start..<end, with: markdown().components(separatedBy: "\n") + [""])
         return lines.joined(separator: "\n")
+    }
+
+    /// `### Round N — YYYY-MM-DD`, exactly — a heading somebody wrote a
+    /// sentence after is theirs.
+    static func isScoreHeading(_ line: String, round: String) -> Bool {
+        let prefix = "### Round \(round) — "
+        guard line.hasPrefix(prefix) else { return false }
+        let rest = line.dropFirst(prefix.count)
+        return rest.count == 10 && rest.enumerated().allSatisfy { index, character in
+            (index == 4 || index == 7) ? character == "-" : character.isNumber
+        }
     }
 }
