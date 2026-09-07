@@ -26,9 +26,9 @@ extension SettingsSheet {
                 .pickerStyle(.radioGroup)
                 .labelsHidden()
 
-                SeerSignInRow(
-                    signedIn: seerSignedIn,
-                    account: config.state.seerEmail,
+                SewnSignInRow(
+                    signedIn: sewnSignedIn,
+                    account: config.state.sewnEmail,
                     whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
                 backendCaption(
                     config.state.skillEngine,
@@ -57,7 +57,7 @@ extension SettingsSheet {
             }
         }
         .task {
-            await refreshSeerSignIn()
+            await refreshSewnSignIn()
             await refreshProviderStatuses()
         }
     }
@@ -72,7 +72,7 @@ extension SettingsSheet {
     }
 
     /// Pair-coding faculty. On/off is separate from WHICH BACKEND synthesizes
-    /// the rounds; every one of them rides Seer. Edits stay on this Mac.
+    /// the rounds; every one of them rides Sewn. Edits stay on this Mac.
     var codingAgentCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
@@ -92,9 +92,9 @@ extension SettingsSheet {
                 .labelsHidden()
                 .disabled(codingDownloading)
 
-                SeerSignInRow(
-                    signedIn: seerSignedIn,
-                    account: config.state.seerEmail,
+                SewnSignInRow(
+                    signedIn: sewnSignedIn,
+                    account: config.state.sewnEmail,
                     whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
                 backendCaption(
                     config.state.codingEngine,
@@ -130,7 +130,7 @@ extension SettingsSheet {
     }
 
     /// WHAT SHE LEARNS FROM YOUR WORK — corpus indexing of project shape
-    /// and writing style. Ability turns live in Totem, not here.
+    /// and writing style. Ability turns live in Thread, not here.
     var corpusCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
@@ -231,24 +231,24 @@ extension SettingsSheet {
                 .pickerStyle(.radioGroup)
                 .labelsHidden()
 
-                SeerSignInRow(
-                    signedIn: seerSignedIn,
-                    account: config.state.seerEmail,
+                SewnSignInRow(
+                    signedIn: sewnSignedIn,
+                    account: config.state.sewnEmail,
                     whenSignedOut: "Not signed in — Mary signs in at boot; check the Servers panel.")
                 backendCaption(config.state.llmEngine, lane: "Spoken replies are produced")
                 Text("Skill invocations are separate — Lane B.")
                     .font(.marySans(10))
                     .foregroundStyle(Color.maryInk.opacity(0.45))
 
-                Picker("Chat transport", selection: seerTransportBinding) {
-                    ForEach(SeerTransportChoice.allCases, id: \.self) { choice in
+                Picker("Chat transport", selection: sewnTransportBinding) {
+                    ForEach(SewnTransportChoice.allCases, id: \.self) { choice in
                         Text(choice.displayName).tag(choice)
                     }
                 }
                 Text(false
                      ? ""
-                     : (config.state.seerTransport == .realtime
-                        ? "Realtime streams Seer's own voice over one socket — speech starts in about a second while retrieval catches up. Falls back to Classic if the route can't connect."
+                     : (config.state.sewnTransport == .realtime
+                        ? "Realtime streams Sewn's own voice over one socket — speech starts in about a second while retrieval catches up. Falls back to Classic if the route can't connect."
                         : "Classic streams text and synthesizes speech with the backend below."))
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.7))
@@ -273,7 +273,7 @@ extension SettingsSheet {
                     }
                 }
 
-                if config.state.ttsBackend == .seer {
+                if config.state.ttsBackend == .sewn {
                     Picker("Character", selection: voiceCharacterBinding) {
                         ForEach(VoiceCharacter.all) { character in
                             Text(character.displayName).tag(character.id)
@@ -281,11 +281,11 @@ extension SettingsSheet {
                     }
                     // Same correction as the Brain card's row: the cloud
                     // voice needs the SIGN-IN, not a token in a dotfile.
-                    SeerSignInRow(
-                        signedIn: seerSignedIn,
-                        account: config.state.seerEmail,
-                        whenSignedOut: "Not signed in — Kokoro speaks until the Seer sign-in completes.")
-                    Text("Speaks through the local Seer server; Kokoro covers any chunk Seer can't. Needs the Seer sign-in from the Servers panel.")
+                    SewnSignInRow(
+                        signedIn: sewnSignedIn,
+                        account: config.state.sewnEmail,
+                        whenSignedOut: "Not signed in — Kokoro speaks until the Sewn sign-in completes.")
+                    Text("Speaks through the local Sewn server; Kokoro covers any chunk Sewn can't. Needs the Sewn sign-in from the Servers panel.")
                         .font(.marySans(10))
                         .foregroundStyle(Color.maryInk.opacity(0.45))
                     Text("Emotion is chosen per sentence, on-device.")
@@ -304,31 +304,31 @@ extension SettingsSheet {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .task { await refreshSeerSignIn() }
+        .task { await refreshSewnSignIn() }
     }
 
     /// One sentence naming which backend serves this lane, plus the honest
-    /// on-device row: whether Seer has the model, and what to do if not.
+    /// on-device row: whether Sewn has the model, and what to do if not.
     @ViewBuilder
     func backendCaption(_ choice: LLMEngineChoice, lane: String) -> some View {
         switch choice {
         case .mistral:
-            Text("\(lane) by Mistral's hosted API, reached by the Seer server on this machine.")
+            Text("\(lane) by Mistral's hosted API, reached by the Sewn server on this machine.")
                 .font(.marySans(10))
                 .foregroundStyle(Color.maryInk.opacity(0.45))
         case .tinker:
-            Text("\(lane) by Thinking Machines, reached by the Seer server on this machine. Seer needs TINKER_API_KEY in its .env.")
+            Text("\(lane) by Thinking Machines, reached by the Sewn server on this machine. Sewn needs TINKER_API_KEY in its .env.")
                 .font(.marySans(10))
                 .foregroundStyle(Color.maryInk.opacity(0.45))
         case .local:
-            Text("\(lane) on this machine, by Seer's on-device model. Nothing leaves the Mac for this lane; speech, vision and embeddings are separate.")
+            Text("\(lane) on this machine, by Sewn's on-device model. Nothing leaves the Mac for this lane; speech, vision and embeddings are separate.")
                 .font(.marySans(10))
                 .foregroundStyle(Color.maryInk.opacity(0.45))
             onDeviceStatusRow
         }
     }
 
-    /// What Seer says about its on-device backend, and a way to load it now.
+    /// What Sewn says about its on-device backend, and a way to load it now.
     @ViewBuilder
     var onDeviceStatusRow: some View {
         let status = providerStatus(.local)
@@ -352,26 +352,26 @@ extension SettingsSheet {
                 .font(.marySans(10))
                 .foregroundStyle(Color.maryError)
         }
-        Text("The model lives in Seer, not in Mary — one copy serves every lane.")
+        Text("The model lives in Sewn, not in Mary — one copy serves every lane.")
             .font(.marySans(10))
             .foregroundStyle(Color.maryInk.opacity(0.45))
     }
 
-    func onDeviceStatusText(_ status: SeerProviderStatus?) -> String {
-        guard let status else { return "Checking Seer's on-device backend…" }
+    func onDeviceStatusText(_ status: SewnProviderStatus?) -> String {
+        guard let status else { return "Checking Sewn's on-device backend…" }
         switch status.state {
         case "ready": return "Loaded and ready — \(status.model)"
         case "loading":
             let percent = status.progress.map { " (\(Int($0 * 100))%)" } ?? ""
-            return "Seer is loading the model\(percent)…"
+            return "Sewn is loading the model\(percent)…"
         case "cold": return "Not loaded yet — the first turn will load it."
         default: return "Unavailable"
         }
     }
 }
 
-/// Seer sign-in row; nil means still checking (actor hop).
-private struct SeerSignInRow: View {
+/// Sewn sign-in row; nil means still checking (actor hop).
+private struct SewnSignInRow: View {
     let signedIn: Bool?
     let account: String
     let whenSignedOut: String
@@ -382,8 +382,8 @@ private struct SeerSignInRow: View {
                 ? Color.maryInk.opacity(0.35)
                 : signedIn == true ? .maryGreen : .maryError)
             Text(signedIn == nil
-                ? "Checking the Seer sign-in…"
-                : signedIn == true ? "Signed in to Seer as \(account)" : whenSignedOut)
+                ? "Checking the Sewn sign-in…"
+                : signedIn == true ? "Signed in to Sewn as \(account)" : whenSignedOut)
                 .font(.marySans(11))
                 .foregroundStyle(Color.maryInk.opacity(0.7))
         }

@@ -87,7 +87,7 @@ public struct AbilitySchema: Codable, Hashable, Sendable, Identifiable {
     public var skills: [SkillID]
     public var operatingPolicy: AbilityOperatingPolicy
     public var routing: RoutingPolicySchema
-    public var totemProjections: [ProjectionID]
+    public var threadProjections: [ProjectionID]
     /// Role. Nil for pre-field packages; read `MaryAbilityPackage.paradigm`.
     public var paradigm: AbilityParadigm?
     /// Non-plugin expertise list. Nil = silent; plugin packages use PluginSchema.application.
@@ -104,7 +104,7 @@ public struct AbilitySchema: Codable, Hashable, Sendable, Identifiable {
         skills: [SkillID],
         operatingPolicy: AbilityOperatingPolicy = .init(),
         routing: RoutingPolicySchema = .init(),
-        totemProjections: [ProjectionID] = [],
+        threadProjections: [ProjectionID] = [],
         paradigm: AbilityParadigm? = nil,
         applications: [ApplicationAffinity]? = nil
     ) {
@@ -118,7 +118,7 @@ public struct AbilitySchema: Codable, Hashable, Sendable, Identifiable {
         self.skills = skills
         self.operatingPolicy = operatingPolicy
         self.routing = routing
-        self.totemProjections = totemProjections
+        self.threadProjections = threadProjections
         self.paradigm = paradigm
         self.applications = applications
     }

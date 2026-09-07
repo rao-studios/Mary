@@ -4,7 +4,7 @@
 //
 //  WHAT: The composer seam — who writes the shader, and what it is asked.
 //  IN:   DanceEngine
-//  OUT:  DanceBrief → DanceComposition; implemented in MaryBrain over Seer
+//  OUT:  DanceBrief → DanceComposition; implemented in MaryBrain over Sewn
 //  PIN:  MaryPlugin never calls a model. The brain conforms to this and the
 //        runtime injects it, the way LookingPlugin takes its describer.
 //

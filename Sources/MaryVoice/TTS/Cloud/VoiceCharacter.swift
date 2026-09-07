@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: Mistral TTS character catalog. Wire id is "<prefix>_<emotion>".
-//  IN:   Settings / SeerTTSEngine
+//  IN:   Settings / SewnTTSEngine
 //  OUT:  voice_id for /v1/speak
 //
 

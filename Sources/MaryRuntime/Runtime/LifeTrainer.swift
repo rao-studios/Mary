@@ -12,7 +12,7 @@
 import Foundation
 import MaryBrain
 import MaryFoundation
-import MaryTotem
+import MaryThread
 import os
 
 package actor LifeTrainer {
@@ -21,7 +21,7 @@ package actor LifeTrainer {
     private struct Job: Equatable {
         var abilityID: AbilityID
         var ownerID: String
-        var totemID: String
+        var threadID: String
         var groupIDs: [String]
     }
 
@@ -58,7 +58,7 @@ package actor LifeTrainer {
         episodes: [BehavioralEpisode],
         slots: [AbilityID: LifeLoRASlot],
         ownerID: String,
-        totemID: String
+        threadID: String
     ) {
         let id = BehavioralAssembler.shortID(episode.id)
         let disciplines = Set(
@@ -91,7 +91,7 @@ package actor LifeTrainer {
             let groupIDs = Array(Set(
                 episode.abilityTargets
                     .filter { $0.abilityID == abilityID && $0.paradigm == .discipline }
-                    .map { TotemMemoryTopology.abilityGroup(target: $0, ownerID: ownerID).id }
+                    .map { ThreadMemoryTopology.abilityGroup(target: $0, ownerID: ownerID).id }
             ))
             guard !groupIDs.isEmpty else {
                 note("train skipped \(abilityID.rawValue) — no group")
@@ -100,7 +100,7 @@ package actor LifeTrainer {
             claimed.insert(abilityID)
             queue.append(Job(
                 abilityID: abilityID, ownerID: ownerID,
-                totemID: totemID, groupIDs: groupIDs))
+                threadID: threadID, groupIDs: groupIDs))
             note("train queued \(abilityID.rawValue) — groups \(groupIDs.count)")
         }
         startPumpIfNeeded()
@@ -136,7 +136,7 @@ package actor LifeTrainer {
         note("train \(job.abilityID.rawValue) — started")
         do {
             let stream = await fleet.train(
-                totemID: job.totemID,
+                threadID: job.threadID,
                 abilityID: job.abilityID.rawValue,
                 modelID: LifeBaseModel.defaultModelID,
                 ownerID: job.ownerID,

@@ -5,7 +5,7 @@
 //  WHAT: Local mirror of what was ingested — the pipeline is write-only by construction.
 //  IN:   UnitIndex
 //  OUT:  debugger. Sibling shape: AmbientTraceLog
-//  PIN:  Totem documents(ids:) cannot give tags/metadata/relationships back.
+//  PIN:  Thread documents(ids:) cannot give tags/metadata/relationships back.
 //
 
 import Foundation
@@ -25,8 +25,8 @@ public enum UnitAnnotationOutcome: String, Sendable, Equatable, Codable {
     /// An annotator was installed and returned nothing usable (HTTP error,
     /// unreachable server, or a catch-all the newer cases do not cover).
     case failed
-    /// Seer was not signed in, so `/v1/complete` was never asked.
-    case seerUnavailable
+    /// Sewn was not signed in, so `/v1/complete` was never asked.
+    case sewnUnavailable
     /// The complete route returned an empty body.
     case empty
     /// The complete route answered, but not with a précis and labels.
@@ -85,7 +85,7 @@ public struct UnitIndexRecord: Sendable, Equatable, Identifiable {
     public var annotationNote: String?
     public var deposit: UnitDepositOutcome
     public var indexedAt: Date
-    /// The exact document id this unit occupies in Totem, so the pane can
+    /// The exact document id this unit occupies in Thread, so the pane can
     /// remove or probe it without re-deriving the address.
     public var documentID: String?
 

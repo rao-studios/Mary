@@ -3,15 +3,15 @@
 //  MaryRuntime
 //
 //  WHAT: TTS boot/apply spine, voice-notice channel, coding follow-up bridge.
-//  IN:   Config Speech picker, Seer sign-in, installBrainConfiguration
-//  OUT:  KokoroEngine / SeerTTS / KokoroStreamSpeaker / brain.emitCodingFollowUp
-//  PIN:  Hosted character slugs never load as on-device voices. Seer installs
+//  IN:   Config Speech picker, Sewn sign-in, installBrainConfiguration
+//  OUT:  KokoroEngine / SewnTTS / KokoroStreamSpeaker / brain.emitCodingFollowUp
+//  PIN:  Hosted character slugs never load as on-device voices. Sewn installs
 //        unconditionally; auth is per-synthesis.
 //
 
 import MaryBrain
 import MaryPlugin
-import MaryTotem
+import MaryThread
 import MaryVoice
 import Foundation
 import os
@@ -61,10 +61,10 @@ extension MaryRuntime {
         }
     }
 
-    /// Last configured request — replay after Seer sign-in without reaching into config.
+    /// Last configured request — replay after Sewn sign-in without reaching into config.
     nonisolated(unsafe) private static var lastRequestedTTS: (backend: TTSBackend, voice: String)?
 
-    /// Replay last configured backend after a successful Seer sign-in.
+    /// Replay last configured backend after a successful Sewn sign-in.
     package static func reapplyTTSBackend() async -> String? {
         guard let lastRequestedTTS else { return nil }
         return await applyTTSBackend(
@@ -79,46 +79,46 @@ extension MaryRuntime {
             await speaker.setSynthesizer(kokoro, policy: .onDevice)
             activeTTSBackend = .kokoro
             return nil
-        case .seer:
-            // Auth is per-synthesis (`tokenProvider` → SeerSession.validToken), not apply-time.
-            await seerTTS.setCharacter(.named(hostedVoice))
-            // Dead Seer hands each chunk to Kokoro after re-auth-and-retry.
-            await seerTTS.setFallback(kokoro)
-            await seerTTS.setOnDegrade { reason in
-                Task { await noteSeerVoiceDegraded(reason) }
+        case .sewn:
+            // Auth is per-synthesis (`tokenProvider` → SewnSession.validToken), not apply-time.
+            await sewnTTS.setCharacter(.named(hostedVoice))
+            // Dead Sewn hands each chunk to Kokoro after re-auth-and-retry.
+            await sewnTTS.setFallback(kokoro)
+            await sewnTTS.setOnDegrade { reason in
+                Task { await noteSewnVoiceDegraded(reason) }
             }
             // 401 despite local bookkeeping: server rejected the token — force refresh.
-            await seerTTS.setOnReauth {
-                _ = await seerSession.refreshAfter401()
+            await sewnTTS.setOnReauth {
+                _ = await sewnSession.refreshAfter401()
             }
             // Recovery re-arms the once-per-episode notice.
-            await seerTTS.setOnRecover {
-                seerVoiceDegradeNoted.withLock { $0 = false }
+            await sewnTTS.setOnRecover {
+                sewnVoiceDegradeNoted.withLock { $0 = false }
             }
             // Realtime route follows the Character picker through here.
-            await seerRealtime.setVoiceID("\(hostedVoice)_neutral")
+            await sewnRealtime.setVoiceID("\(hostedVoice)_neutral")
             // Cloud chunks may grow after the first: fewer seams, one prosody arc.
-            await speaker.setSynthesizer(seerTTS, policy: .cloud)
-            activeTTSBackend = .seer
-            if await !seerSession.isAuthenticated {
-                return "Seer voice will connect once you're signed in — until then each line covers with the on-device voice."
+            await speaker.setSynthesizer(sewnTTS, policy: .cloud)
+            activeTTSBackend = .sewn
+            if await !sewnSession.isAuthenticated {
+                return "Sewn voice will connect once you're signed in — until then each line covers with the on-device voice."
             }
             return nil
         }
     }
 
-    /// One note per episode for Seer voice degradation. onRecover re-arms.
+    /// One note per episode for Sewn voice degradation. onRecover re-arms.
     /// App wires onVoiceDegrade to the chat mirror; headless tools log.
     nonisolated(unsafe) package static var onVoiceDegrade: (@Sendable (String) -> Void)?
-    private static let seerVoiceDegradeNoted = OSAllocatedUnfairLock(initialState: false)
-    private static func noteSeerVoiceDegraded(_ reason: String) async {
-        let firstOfEpisode = seerVoiceDegradeNoted.withLock { noted -> Bool in
+    private static let sewnVoiceDegradeNoted = OSAllocatedUnfairLock(initialState: false)
+    private static func noteSewnVoiceDegraded(_ reason: String) async {
+        let firstOfEpisode = sewnVoiceDegradeNoted.withLock { noted -> Bool in
             guard !noted else { return false }
             noted = true
             return true
         }
         guard firstOfEpisode else { return }
-        let note = "Seer voice covered with the on-device voice for a moment: \(reason)"
+        let note = "Sewn voice covered with the on-device voice for a moment: \(reason)"
         if let onVoiceDegrade {
             onVoiceDegrade(note)
         } else {

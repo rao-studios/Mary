@@ -5,19 +5,19 @@
 //  WHAT: Conversation history + Skill loop. VoicePipeline and SendText both
 //        drive this actor (serializes overlap). InferenceEngine is transport.
 //  OUT:  BrainEvent → SpeechRouter / ChatService.MirrorVoice
-//        Seer mode: Seer speaks; engine runs skills silently.
+//        Sewn mode: Sewn speaks; engine runs skills silently.
 //        Local mode: single-engine loop.
 //
 //  This file: actor, stored state, init, LanguageResponder.
-//    AbilityDispatching.swift        dispatcher seam + SeerPass
+//    AbilityDispatching.swift        dispatcher seam + SewnPass
 //    BrainConcurrency.swift          ProactiveMulticast, LaneEmitter, TurnBox, AsyncGate
 //    MaryBrain+Configuration.swift  set* wiring
 //    MaryBrain+History.swift          epoch-guarded history
 //    MaryBrain+TurnLoop.swift         runTurn / runTurnBody
 //    MaryBrain+TurnLog.swift          turnLog circuit (Xcode / pair-coding)
 //    MaryBrain+Route.swift            revision spine
-//    MaryBrain+SeerTurn.swift         seerTurn
-//    MaryBrain+Lanes.swift           Seer / realtime / orchestrator lanes
+//    MaryBrain+SewnTurn.swift         sewnTurn
+//    MaryBrain+Lanes.swift           Sewn / realtime / orchestrator lanes
 //    MaryBrain+Routines.swift         detached routines + follow-ups
 //    MaryBrain+LocalTurn.swift        single-engine loop
 //    MaryBrain+Deposit.swift           archive
@@ -59,18 +59,18 @@ public actor MaryBrain: LanguageResponder {
 
     // internal for file split — treat as private
     var systemPromptProvider: @Sendable () -> String
-    /// Seer chat lane. Nil (or not ready) = local single-engine turns.
+    /// Sewn chat lane. Nil (or not ready) = local single-engine turns.
     // internal for file split — treat as private
-    var seerChat: (any SeerChatProviding)?
+    var sewnChat: (any SewnChatProviding)?
     /// Optional realtime WS route (Settings). Nil = classic only.
     // internal for file split — treat as private
-    var seerRealtime: (any SeerRealtimeProviding)?
-    /// Seer persona/instructions. Separate from the engine system prompt (Skill doctrine).
-    /// IN:  SeerPass. Nil world = resolve live. Detached follow-ups must pass spawn world.
+    var sewnRealtime: (any SewnRealtimeProviding)?
+    /// Sewn persona/instructions. Separate from the engine system prompt (Skill doctrine).
+    /// IN:  SewnPass. Nil world = resolve live. Detached follow-ups must pass spawn world.
     /// PIN: `runTurn` defer clears utterance override; ambient focus would lie.
     // internal for file split — treat as private
-    var seerInstructionsProvider: @Sendable (SeerPass) -> String = { pass in
-        MaryPrompts.seerInstructions(
+    var sewnInstructionsProvider: @Sendable (SewnPass) -> String = { pass in
+        MaryPrompts.sewnInstructions(
             groundedResults: pass.groundedResults,
             readPassages: pass.readPassages,
             readReport: pass.readReport,
@@ -81,7 +81,7 @@ public actor MaryBrain: LanguageResponder {
             inspiredSight: pass.inspiredSight,
             perceiving: pass.perceiving)
     }
-    /// Fire-and-forget Skill-result archive into Totem.
+    /// Fire-and-forget Skill-result archive into Thread.
     // internal for file split — treat as private
     var depositor: (any ContextDepositing)?
     /// Archive subject, read synchronously at deposit (focus may have moved by then).
@@ -183,7 +183,7 @@ public actor MaryBrain: LanguageResponder {
     /// Last cleared routine — tests observe both clocks cancelled. Production never reads.
     // internal for file split — treat as private
     var lastClearedRoutine: ActiveRoutine?
-    /// Join-or-detach grace after Seer's reply. Slow lanes detach and follow up.
+    /// Join-or-detach grace after Sewn's reply. Slow lanes detach and follow up.
     /// PIN: Must equal `KokoroStreamSpeaker.takeoverHoldNanoseconds` (`TakeoverTests`).
     static let laneJoinGraceNanoseconds: UInt64 = 250_000_000
     /// Live spoken-turn grace. Production uses the static; tests shrink it.
@@ -234,8 +234,8 @@ public actor MaryBrain: LanguageResponder {
         }
     }
 
-    /// Test seams: Seer-wire view and history roles (alternation invariant).
-    func spokenMessagesForTesting() -> [SeerChatMessage] { spokenMessages() }
+    /// Test seams: Sewn-wire view and history roles (alternation invariant).
+    func spokenMessagesForTesting() -> [SewnChatMessage] { spokenMessages() }
     func historyRolesForTesting() -> [BrainTurn.Role] { history.map(\.role) }
     /// Hung-lane wall-clock cap. Expiry speaks (`expireRoutine`).
     /// PIN: 7 min = Subprocess 300 s + StreamingHTTP 120 s; do not cut deeper than real builds.
@@ -261,9 +261,9 @@ public actor MaryBrain: LanguageResponder {
     var followUpChain: ChainEntry?
 
     /// Follow-up wall-clock ladder. Inner bound fires first; outer only catches.
-    /// PIN: A wedged `seerChat.stream` must not silence the chain globally.
+    /// PIN: A wedged `sewnChat.stream` must not silence the chain globally.
 
-    /// Seer compose budget for one follow-up. Past this, deterministic fallback recites.
+    /// Sewn compose budget for one follow-up. Past this, deterministic fallback recites.
     static let followUpSpeechBudget: TimeInterval = 20
     /// One chain entry's whole body. Strictly above speech budget.
     static let followUpBodyBudget: TimeInterval = 25

@@ -4,7 +4,7 @@
 //
 //  WHAT: Short-term in-memory awareness for this machine and conversation.
 //  IN:   AX / observers / Skills
-//  OUT:  prompt assembly (tiers in order). Durable retrieval → Totem.
+//  OUT:  prompt assembly (tiers in order). Durable retrieval → Thread.
 //  PIN:  Surface expires by drop, never degrade. Facts degrade with age.
 //
 //  Tiers:
@@ -66,7 +66,7 @@ public final class AmbientContextStore: @unchecked Sendable {
         OSAllocatedUnfairLock<(any AmbientObserving)?>(initialState: nil)
 
     // No durable-learning sinks yet. Seam: AmbientObserving (one protocol).
-    // OUT: Totem when that lane attaches.
+    // OUT: Thread when that lane attaches.
 
     /// Held facts as embeddable records for ranking. Facts are evidence, never mutation targets.
     /// OUT: AmbientElementIndexStore
@@ -290,7 +290,7 @@ public final class AmbientContextStore: @unchecked Sendable {
 
     /// Perception publishes onward when something is listening. Structure only.
     /// PIN: never document text, titles, selections, or working contents.
-    /// OUT: Totem (behavioral-corpus lane); nothing implements this yet.
+    /// OUT: Thread (behavioral-corpus lane); nothing implements this yet.
     public protocol AmbientObserving: Sendable {
         func observed(_ fact: AmbientFact) async
     }

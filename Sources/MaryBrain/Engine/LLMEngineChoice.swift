@@ -3,8 +3,8 @@
 //  MaryBrain
 //
 //  WHAT: Which backend answers Mary's turns.
-//  PIN:  WHO now, not WHERE. Every lane rides Seer; this says which backend
-//        Seer uses. Raw values ARE the wire — they must equal Seer's
+//  PIN:  WHO now, not WHERE. Every lane rides Sewn; this says which backend
+//        Sewn uses. Raw values ARE the wire — they must equal Sewn's
 //        LLMProvider ("mistral" | "tinker" | "local"), and a stored "hosted"
 //        from before the three-way split decodes to .mistral rather than
 //        throwing (a thrown decode makes Granite re-seed every setting).
@@ -12,17 +12,17 @@
 
 import Foundation
 
-/// Which backend answers Mary's turns, through Seer.
+/// Which backend answers Mary's turns, through Sewn.
 public enum LLMEngineChoice: String, Codable, CaseIterable, Sendable {
-    /// Mistral's hosted API, through the local Seer server.
+    /// Mistral's hosted API, through the local Sewn server.
     case mistral
-    /// This machine, through Seer's on-device MLX backend.
+    /// This machine, through Sewn's on-device MLX backend.
     case local
-    /// Thinking Machines (Tinker), through the local Seer server.
+    /// Thinking Machines (Tinker), through the local Sewn server.
     case tinker
 
-    /// The wire contract with Seer, pinned by a test on both sides.
-    public static let seerRawValues = ["mistral", "local", "tinker"]
+    /// The wire contract with Sewn, pinned by a test on both sides.
+    public static let sewnRawValues = ["mistral", "local", "tinker"]
 
     public var displayName: String {
         switch self {

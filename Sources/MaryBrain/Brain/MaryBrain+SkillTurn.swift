@@ -6,7 +6,7 @@
 //  IN:   runTurnBody's decision / prose / confidence dispatch paths
 //  OUT:  SkillOutcome, with the invocation + result pair already in history
 //  PIN:  Speaking and closing stay with the caller — the decision path speaks
-//        much later, from the seer epilogue, and must not close its own turn.
+//        much later, from the sewn epilogue, and must not close its own turn.
 //
 import MaryPlugin
 import MaryVoice

@@ -308,7 +308,7 @@ import MaryFoundation
     /// THE LIVE BUG THIS PINS: a highlight on screen, "what do you think about
     /// this code", and `read_selection` never ran.
     ///
-    /// The turn loop asks the dispatcher for `schemaCount` before `seerTurn`,
+    /// The turn loop asks the dispatcher for `schemaCount` before `sewnTurn`,
     /// which PROJECTS this turn's roster — and in the embedding regime a Skill
     /// enters that roster only when the utterance embeds near its own authored
     /// corpus. A judgment question about code does not embed near "Read the

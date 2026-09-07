@@ -21,9 +21,9 @@ import Testing
 
     // MARK: - Scripted collaborators (suite-local copies, DualLaneTests style)
 
-    final class ScriptedSeer: SeerChatProviding, @unchecked Sendable {
+    final class ScriptedSewn: SewnChatProviding, @unchecked Sendable {
         struct Script {
-            var events: [SeerChatEvent] = []
+            var events: [SewnChatEvent] = []
             var hangAtEnd = false
             /// Yield the events, then hold Lane A OPEN until the test calls
             /// `endHeldStream()`. `hangAtEnd` is the same idea with no release.
@@ -45,10 +45,10 @@ import Testing
         private let lock = NSLock()
         var ready = true
         private var scripts: [Script]
-        private(set) var calls: [[SeerChatMessage]] = []
+        private(set) var calls: [[SewnChatMessage]] = []
         /// Advanced once per `stream()` — "Lane A of the Nth turn is running".
         private let requests = ArrivalSignal()
-        private var heldStream: AsyncThrowingStream<SeerChatEvent, Error>.Continuation?
+        private var heldStream: AsyncThrowingStream<SewnChatEvent, Error>.Continuation?
 
         init(scripts: [Script]) {
             self.scripts = scripts
@@ -58,7 +58,7 @@ import Testing
         /// `calls`: a detached routine can still be appending when an
         /// assertion runs, and an unguarded read of live storage tears count
         /// against buffer (the suite's old signal-5 crash).
-        func callsSnapshot() -> [[SeerChatMessage]] {
+        func callsSnapshot() -> [[SewnChatMessage]] {
             lock.lock(); defer { lock.unlock() }
             return calls
         }
@@ -67,13 +67,13 @@ import Testing
         func ownerID() async -> String? { "owner-test" }
 
         func stream(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+            messages: [SewnChatMessage], instructions: String?
+        ) -> AsyncThrowingStream<SewnChatEvent, Error> {
             lock.lock()
             calls.append(messages)
             let script = scripts.isEmpty ? Script() : scripts.removeFirst()
             lock.unlock()
-            let stream = AsyncThrowingStream<SeerChatEvent, Error> { continuation in
+            let stream = AsyncThrowingStream<SewnChatEvent, Error> { continuation in
                 for event in script.events { continuation.yield(event) }
                 if script.holdOpen {
                     self.lock.lock()
@@ -123,7 +123,7 @@ import Testing
             self.rounds = rounds
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func requestsSnapshot() -> [[BrainTurn.Role]] {
             lock.lock(); defer { lock.unlock() }
             return requests
@@ -165,7 +165,7 @@ import Testing
         var hasPendingSkillConfirmation: Bool { false }
         func beginTurn() {}
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func dispatchedSnapshot() -> [String] {
             lock.lock(); defer { lock.unlock() }
             return dispatched
@@ -209,7 +209,7 @@ import Testing
     /// synchronously, before the brain has read a single event off the stream
     /// it was just handed — so "Lane A was asked for" is true a long way before
     /// "Lane A has said anything". A token on the TURN's own stream is the fact
-    /// those tests actually need: `runSeerLane` does `result.text += token` and
+    /// those tests actually need: `runSewnLane` does `result.text += token` and
     /// only THEN yields `.token`, so observing one proves the accumulation has
     /// already happened.
     private func startTurn(
@@ -238,35 +238,35 @@ import Testing
     // MARK: - Supersede removes the aborted exchange
 
     @Test func supersedeMidStreamReplacesExchange() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Partial thought")], hangAtEnd: true),
             .init(events: [.token("Amended reply.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task {
             try? await collect(brain.respond(to: "a timer for 3pm please"))
         }
         // Turn 1's Lane A is running and will never end (hangAtEnd) — so the
         // window for the amend is open from here on, rather than for 150 ms.
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
 
         let events = try await collect(
             brain.respondSuperseding("a timer for 3pm — actually 4 please"))
         _ = await firstTurn.value
 
         #expect(fullText(events) == "Amended reply.")
-        // The amended request's Seer messages: just the amended user turn —
+        // The amended request's Sewn messages: just the amended user turn —
         // no original user turn, no partial assistant text.
-        let amendedMessages = try #require(seer.callsSnapshot()[at: 1])
+        let amendedMessages = try #require(sewn.callsSnapshot()[at: 1])
         #expect(amendedMessages.map(\.role) == ["user"])
         #expect(amendedMessages[at: 0]?.content == "a timer for 3pm — actually 4 please")
     }
 
     @Test func supersedeDropsAbortedToolPairs() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Working on it")], hangAtEnd: true),
             .init(events: [.token("Done differently.")]),
         ])
@@ -277,7 +277,7 @@ import Testing
         let dispatcher = SlowDispatcher()
         dispatcher.delayNanoseconds = 800_000_000
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task {
             try? await collect(brain.respond(to: "run the probe"))
@@ -292,8 +292,8 @@ import Testing
 
         // A follow-up turn's engine view must contain NO tool turns from the
         // aborted exchange: [user(amended), assistant(reply), user(next)].
-        let seer2 = ScriptedSeer(scripts: [.init(events: [.token("ok")])])
-        await brain.setSeerChat(seer2)
+        let sewn2 = ScriptedSewn(scripts: [.init(events: [.token("ok")])])
+        await brain.setSewnChat(sewn2)
         _ = try await collect(brain.respond(to: "thanks"))
         let lastRequest = engine.requestsSnapshot().last
         #expect(lastRequest == [.user, .assistant, .user])
@@ -302,24 +302,24 @@ import Testing
     @Test func staleTurnCannotWriteAfterSupersede() async throws {
         // Turn 1 hangs mid-stream; supersede; turn 1's cancelled branch then
         // tries to append its partial — the stale epoch must drop it.
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Stale partial")], hangAtEnd: true),
             .init(events: [.token("Fresh reply.")]),
             .init(events: [.token("Next.")]),
         ])
         let engine = ScriptedEngine(rounds: (1...3).map { _ in .init(text: "NOOP") })
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task { try? await collect(brain.respond(to: "original")) }
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
         _ = try await collect(brain.respondSuperseding("original — corrected"))
         // The stale append happens in the barge-in branch, strictly before
         // turn 1's stream finishes — so awaiting turn 1 IS the unwind window.
         _ = await firstTurn.value
 
         _ = try await collect(brain.respond(to: "next question"))
-        let nextMessages = try #require(seer.callsSnapshot()[at: 2])
+        let nextMessages = try #require(sewn.callsSnapshot()[at: 2])
         #expect(nextMessages.map(\.role) == ["user", "assistant", "user"])
         #expect(nextMessages[at: 0]?.content == "original — corrected")
         #expect(nextMessages[at: 1]?.content == "Fresh reply.")
@@ -330,18 +330,18 @@ import Testing
     /// the superseded turn's, so the transcript restamps the reused rows and
     /// later deferred writes can never resolve against the aborted turn.
     @Test func supersedingTurnMintsNewTurnID() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Partial thought")], hangAtEnd: true),
             .init(events: [.token("Amended reply.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task {
             try? await collect(brain.respond(to: "a timer for 3pm please"))
         }
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
         let amendedEvents = try await collect(
             brain.respondSuperseding("a timer for 3pm — actually 4 please"))
         let originalEvents = await firstTurn.value
@@ -360,28 +360,28 @@ import Testing
     }
 
     @Test func supersedeWithNoPriorExchangeActsLikeRespond() async throws {
-        let seer = ScriptedSeer(scripts: [.init(events: [.token("Hello!")])])
+        let sewn = ScriptedSewn(scripts: [.init(events: [.token("Hello!")])])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let events = try await collect(brain.respondSuperseding("hi there"))
         #expect(fullText(events) == "Hello!")
-        #expect(seer.callsSnapshot()[at: 0]?.map(\.role) == ["user"])
+        #expect(sewn.callsSnapshot()[at: 0]?.map(\.role) == ["user"])
     }
 
     @Test func plainRespondDoesNotRemovePriorExchange() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("First.")]),
             .init(events: [.token("Second.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         _ = try await collect(brain.respond(to: "one"))
         _ = try await collect(brain.respond(to: "two"))
-        #expect(seer.callsSnapshot()[at: 1]?.map(\.role) == ["user", "assistant", "user"])
+        #expect(sewn.callsSnapshot()[at: 1]?.map(\.role) == ["user", "assistant", "user"])
     }
 
     // MARK: - Overlap-supersede (plain respond over an in-flight turn)
@@ -434,18 +434,18 @@ import Testing
     }
 
     @Test func overlappingPlainRespondSupersedesInFlightTurn() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Partial thought")], hangAtEnd: true),
             .init(events: [.token("Fresh answer.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task {
             try? await collect(brain.respond(to: "first question"))
         }
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
 
         // A plain respond — NOT the amend flow — while turn 1 hangs.
         let events = try await collect(brain.respond(to: "second question"))
@@ -467,14 +467,14 @@ import Testing
             return
         }
         #expect(fullText(events) == "Fresh answer.")
-        // Turn 2's Seer view: turn 1's user turn and partial are gone.
-        let messages = try #require(seer.callsSnapshot()[at: 1])
+        // Turn 2's Sewn view: turn 1's user turn and partial are gone.
+        let messages = try #require(sewn.callsSnapshot()[at: 1])
         #expect(messages.map(\.role) == ["user"])
         #expect(messages[at: 0]?.content == "second question")
     }
 
     @Test func overlappingPlainRespondDropsAbortedToolPairs() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Working on it")], hangAtEnd: true),
             .init(events: [.token("Done differently.")]),
         ])
@@ -485,7 +485,7 @@ import Testing
         let dispatcher = SlowDispatcher()
         dispatcher.delayNanoseconds = 800_000_000
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task {
             try? await collect(brain.respond(to: "run the probe"))
@@ -499,41 +499,41 @@ import Testing
 
         // A follow-up turn's engine view must contain NO tool turns from the
         // superseded exchange: [user(overlap), assistant(reply), user(next)].
-        let seer2 = ScriptedSeer(scripts: [.init(events: [.token("ok")])])
-        await brain.setSeerChat(seer2)
+        let sewn2 = ScriptedSewn(scripts: [.init(events: [.token("ok")])])
+        await brain.setSewnChat(sewn2)
         _ = try await collect(brain.respond(to: "thanks"))
         let lastRequest = engine.requestsSnapshot().last
         #expect(lastRequest == [.user, .assistant, .user])
     }
 
     @Test func sequentialRespondsDoNotEmitExchangeSuperseded() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("First.")]),
             .init(events: [.token("Second.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         _ = try await collect(brain.respond(to: "one"))
         let events = try await collect(brain.respond(to: "two"))
         #expect(!containsExchangeSuperseded(events),
                 "a retired turn must never read as in-flight")
-        #expect(seer.callsSnapshot()[at: 1]?.map(\.role) == ["user", "assistant", "user"])
+        #expect(sewn.callsSnapshot()[at: 1]?.map(\.role) == ["user", "assistant", "user"])
     }
 
     @Test func cancelWithoutReplacementKeepsPartialExchange() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Partial answer")], hangAtEnd: true),
             .init(events: [.token("Next.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         // THE FAILURE THIS PREVENTS (measured, 2 runs in 5): this waited on
         // `awaitStreamRequest(1)`, which fires before the brain has consumed a
-        // single Seer event — so `cancel()` raced the partial into existence
+        // single Sewn event — so `cancel()` raced the partial into existence
         // and the assertions below came back ["user", "user"] with no partial
         // at all. The turn's own first token is the fact this test needs.
         let firstToken = ArrivalSignal()
@@ -548,7 +548,7 @@ import Testing
         let events = try await collect(brain.respond(to: "fresh question"))
         #expect(!containsExchangeSuperseded(events),
                 "cancel() is barge-in keep-partial, never an overlap-supersede")
-        let messages = try #require(seer.callsSnapshot()[at: 1])
+        let messages = try #require(sewn.callsSnapshot()[at: 1])
         #expect(messages.map(\.role) == ["user", "assistant", "user"])
         #expect(messages[at: 1]?.content == "Partial answer")
     }
@@ -582,7 +582,7 @@ import Testing
     /// loaded machine from turning "mid-grace" into "already detached" — the
     /// failure a fixed 250 ms window can always be starved into.
     @Test(.tags(.timingSensitive)) func overlapDuringGraceDetachesRoutineAsSuperseded() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("New topic reply.")]),   // the OVERLAP's Lane A
         ])
         let engine = ScriptedEngine(rounds: [
@@ -592,7 +592,7 @@ import Testing
         let dispatcher = SlowDispatcher()
         dispatcher.holdsDispatch = true   // the lane CANNOT join inside the grace
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
         await brain.setActionJoinGraceForTesting(30_000_000_000)
 
         let proactiveStream = brain.proactiveEvents()
@@ -635,7 +635,7 @@ import Testing
     }
 
     @Test(.tags(.timingSensitive)) func overlapPreservesUnrelatedDetachedRoutines() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("On it.")]),                       // turn 1 → routine
             .init(events: [.token("Hanging.")], hangAtEnd: true),    // turn 2 hangs
             .init(events: [.token("Third.")]),                       // turn 3 overlaps
@@ -651,7 +651,7 @@ import Testing
         // duration only makes it probable.
         dispatcher.holdsDispatch = true
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let proactiveStream = brain.proactiveEvents()
         let proactiveTask = Task { await watchRoutineTerminal(proactiveStream) }
@@ -663,7 +663,7 @@ import Testing
 
         // Turns 2→3 overlap-supersede each other — the routine is untouched.
         let secondTurn = Task { try? await collect(brain.respond(to: "hanging question")) }
-        await seer.awaitStreamRequest(2)   // turn 2 is in its hanging Lane A
+        await sewn.awaitStreamRequest(2)   // turn 2 is in its hanging Lane A
         let events = try await collect(brain.respond(to: "actually this instead"))
         _ = await secondTurn.value
         #expect(containsExchangeSuperseded(events))
@@ -687,16 +687,16 @@ import Testing
     /// .completed — a superseded TEXT turn's runner must never receive a
     /// terminal payload it would finalize the NEW turn's bubble with.
     @Test func supersededStreamEndsWithoutCompleted() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Hanging thought")], hangAtEnd: true),
             .init(events: [.token("Second reply.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task { try? await collect(brain.respond(to: "one")) }
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
         _ = try await collect(brain.respond(to: "two"))
         let firstEvents = await firstTurn.value ?? []
 
@@ -709,12 +709,12 @@ import Testing
     /// consecutive user roles on every later request. The factual marker
     /// keeps alternation and anchors the routine's follow-up merge.
     @Test(.tags(.timingSensitive)) func cancelledActionTurnClosesExchangeWithMarker() async throws {
-        let seer = ScriptedSeer(scripts: [])   // an action turn never calls Seer
+        let sewn = ScriptedSewn(scripts: [])   // an action turn never calls Sewn
         let engine = ScriptedEngine(rounds: [.init(calls: [call("probe")])])
         let dispatcher = SlowDispatcher()
         dispatcher.delayNanoseconds = 1_000_000_000
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let proactiveStream = brain.proactiveEvents()
         let settleWatcher = Task { await watchRoutineTerminal(proactiveStream) }

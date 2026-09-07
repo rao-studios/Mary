@@ -3,7 +3,7 @@
 //  Mary
 //
 //  WHAT: Home session shell.
-//  OUT:  Session + sheets (Settings / Debugger / Totems / Corpus / Ability Studio).
+//  OUT:  Session + sheets (Settings / Debugger / Threads / Corpus / Ability Studio).
 //
 
 import MaryAmbient
@@ -100,8 +100,8 @@ struct HomeSessionView: View {
                     Router()
                         .maryColumn(Paper.Layout.sidePane)
                 }
-                if visiblePanes.contains(.totems) {
-                    Totems()
+                if visiblePanes.contains(.threads) {
+                    Threads()
                         .maryColumn(Paper.Layout.sidePane)
                 }
                 if visiblePanes.contains(.corpus) {
@@ -170,7 +170,7 @@ struct HomeSessionView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Ability Studio")
-            paneButton(.totems, symbol: "point.3.connected.trianglepath.dotted", label: "Totems")
+            paneButton(.threads, symbol: "point.3.connected.trianglepath.dotted", label: "Threads")
             Button {
                 onShowServers()
             } label: {
@@ -244,31 +244,31 @@ struct HomeSessionView: View {
         await bootRuntimeAfterVoice()
     }
 
-    /// Brain, ambient, Seer, speaker — after voice. Hosted TTS skips Kokoro and still boots.
+    /// Brain, ambient, Sewn, speaker — after voice. Hosted TTS skips Kokoro and still boots.
     private func bootRuntimeAfterVoice() async {
 
         let engine = config.state.llmEngine
         let skillEngine = config.state.skillEngine
         let coding = config.state.codingEngine
-        // THE BOXES BEFORE THE STACK. `bootSeerStack` reads them (through
-        // connectSeerToBrain's rewire), and the on-device warm below needs the
+        // THE BOXES BEFORE THE STACK. `bootSewnStack` reads them (through
+        // connectSewnToBrain's rewire), and the on-device warm below needs the
         // sign-in that same call performs — so the order is: record, connect,
         // then apply.
         MaryRuntime.recordEngineChoices(
             voice: engine, skills: skillEngine, coding: coding)
-        setReadiness("checking the Seer server…", ready: false)
-        await bootSeerStack()
+        setReadiness("checking the Sewn server…", ready: false)
+        await bootSewnStack()
 
         let onDevice = engine.isOnDevice || skillEngine.isOnDevice
         setReadiness(
             onDevice
-                ? "warming Seer's on-device model (first run downloads ~4 GB)…"
-                : "checking the Seer server for voice and skill synthesis…",
+                ? "warming Sewn's on-device model (first run downloads ~4 GB)…"
+                : "checking the Sewn server for voice and skill synthesis…",
             ready: false)
         if let error = await MaryRuntime.applyEngine(
             engine,
             skillEngine: skillEngine,
-            seerEnabled: config.state.seerEnabled,
+            sewnEnabled: config.state.sewnEnabled,
             progress: { status in
                 Task { @MainActor in setReadiness(status, ready: false) }
             }
@@ -281,7 +281,7 @@ struct HomeSessionView: View {
             if let error = await MaryRuntime.applyCodingAgent(
                 enabled: true,
                 engine: coding,
-                seerEnabled: config.state.seerEnabled)
+                sewnEnabled: config.state.sewnEnabled)
             {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
                     kind: .error("Coding agent: \(error)")))
@@ -290,7 +290,7 @@ struct HomeSessionView: View {
             _ = await MaryRuntime.applyCodingAgent(
                 enabled: false,
                 engine: coding,
-                seerEnabled: config.state.seerEnabled)
+                sewnEnabled: config.state.sewnEnabled)
         }
 
         // Workspace focus observer: app boot only (probes stay poll-fed).
@@ -303,7 +303,7 @@ struct HomeSessionView: View {
         await MaryRuntime.applyPronunciations(config.state.pronunciationsByWord)
         MaryRuntime.styleSelection = config.state.speechStyle
         await MaryRuntime.speaker.setStyle(config.state.speechStyle.style)
-        // The Seer stack came up before the engines — see bootRuntimeAfterVoice.
+        // The Sewn stack came up before the engines — see bootRuntimeAfterVoice.
         // Per-chunk voice degrade → chat mirror. Hook is off-actor; hop to MainActor.
         MaryRuntime.onVoiceDegrade = { note in
             Task { @MainActor in
@@ -324,7 +324,7 @@ struct HomeSessionView: View {
             }
         }
         if let notice = await MaryRuntime.applyTTSBackend(
-            config.state.ttsBackend, hostedVoice: config.state.seerVoice) {
+            config.state.ttsBackend, hostedVoice: config.state.sewnVoice) {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(kind: .error(notice)))
         }
         setReadiness(nil, ready: true)
@@ -336,52 +336,52 @@ struct HomeSessionView: View {
         Task { await MaryRuntime.wakeStandby.noteAppReady() }
     }
 
-    /// Seer/Totem after engine so chat still works if the stack fails. Failures mirror and continue.
-    private func bootSeerStack() async {
-        // Totem node UUID is DB identity: adopt or mint, then pin in config.
-        var nodeID = config.state.totemNodeID
+    /// Sewn/Thread after engine so chat still works if the stack fails. Failures mirror and continue.
+    private func bootSewnStack() async {
+        // Thread node UUID is DB identity: adopt or mint, then pin in config.
+        var nodeID = config.state.threadNodeID
         if UUID(uuidString: nodeID) == nil {
-            nodeID = TotemNodeIdentity.adoptOrMint(configured: "")
-            config.center.update.send(ConfigService.Update.Meta(totemNodeID: nodeID))
+            nodeID = ThreadNodeIdentity.adoptOrMint(configured: "")
+            config.center.update.send(ConfigService.Update.Meta(threadNodeID: nodeID))
         }
         MaryRuntime.applyCorpusIndexing(enabled: config.state.ambientCorpusIndexing)
         await MaryRuntime.applyServers(config: config.state, nodeID: nodeID)
 
-        guard config.state.seerEnabled else {
-            await MaryRuntime.connectSeerToBrain(
+        guard config.state.sewnEnabled else {
+            await MaryRuntime.connectSewnToBrain(
                 chat: false, archiving: false, stackEnabled: false)
             return
         }
 
         if config.state.autoStartServers {
-            setReadiness("starting Seer and Totem…", ready: false)
+            setReadiness("starting Sewn and Thread…", ready: false)
             if let failure = await MaryRuntime.localStack.ensureRunning() {
                 chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
-                    kind: .error("Local servers: \(failure) Chat continues without Seer.")))
-            } else if config.state.totemGraphPolicyManaged {
+                    kind: .error("Local servers: \(failure) Chat continues without Sewn.")))
+            } else if config.state.threadGraphPolicyManaged {
                 // Best-effort ontology + co-mention edges; refusal never blocks boot.
-                _ = await TotemGraphPolicy.push(totemPort: config.state.totemPort)
+                _ = await ThreadGraphPolicy.push(threadPort: config.state.threadPort)
             }
         }
 
-        setReadiness("signing in to Seer…", ready: false)
-        if let error = await MaryRuntime.applySeerAccount(
-            email: config.state.seerEmail,
-            password: config.state.seerPassword,
-            seerPort: config.state.seerPort) {
+        setReadiness("signing in to Sewn…", ready: false)
+        if let error = await MaryRuntime.applySewnAccount(
+            email: config.state.sewnEmail,
+            password: config.state.sewnPassword,
+            sewnPort: config.state.sewnPort) {
             chat.center.mirrorVoice.send(ChatService.MirrorVoice.Meta(
-                kind: .error("\(error) Chat continues without Seer.")))
-            await MaryRuntime.connectSeerToBrain(
+                kind: .error("\(error) Chat continues without Sewn.")))
+            await MaryRuntime.connectSewnToBrain(
                 chat: false, archiving: false, stackEnabled: false)
             return
         }
-        // Sign-in succeeded → Totem deposits regardless of Voice (Lane A) engine.
-        await MaryRuntime.connectSeerToBrain(
-            chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
+        // Sign-in succeeded → Thread deposits regardless of Voice (Lane A) engine.
+        await MaryRuntime.connectSewnToBrain(
+            chat: MaryRuntime.sewnCarriesTurns(sewnEnabled: true),
             archiving: true,
             stackEnabled: true)
         // Transport uses the signed-in session; apply last.
-        await MaryRuntime.applySeerTransport(config.state.seerTransport)
+        await MaryRuntime.applySewnTransport(config.state.sewnTransport)
     }
 
     private func setReadiness(_ status: String?, ready: Bool) {

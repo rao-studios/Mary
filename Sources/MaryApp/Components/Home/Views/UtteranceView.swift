@@ -70,8 +70,8 @@ struct UtteranceView: View {
     /// renders the capsule non-interactive.
     var onOpenRoutes: (() -> Void)? = nil
 
-    /// A tapped brushstroke's owner — presents the totem inspector.
-    @State private var inspectedOwner: SeerContribution.Owner?
+    /// A tapped brushstroke's owner — presents the thread inspector.
+    @State private var inspectedOwner: SewnContribution.Owner?
 
     /// Tapped chip → AbilityRunInspectorSheet for this reply.
     @State private var inspectedRuns: InspectedAbilityRuns?

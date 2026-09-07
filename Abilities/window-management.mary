@@ -64,11 +64,11 @@
       "window-management.exit-full-screen"
     ],
     "summary" : "Resolve, restore, and foreground macOS applications and windows as a reusable supporting ability.",
-    "tint" : "#F4A261",
-    "title" : "Window Management",
-    "totemProjections" : [
+    "threadProjections" : [
       "window-management.receipts"
     ],
+    "tint" : "#F4A261",
+    "title" : "Window Management",
     "triggers" : {
       "intentAliases" : [
         "activate-application",
@@ -439,7 +439,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "dedb018f197acffebee23713c91aa71acf157864b62d35da8c21fbf81cad5730"
+    "digest" : "0c904279a792ee75735bdd9e347c495f245feccb5ae9e9eb2450050867e86fcb"
   },
   "interactions" : [
     {
@@ -485,8 +485,8 @@
         "processEpoch",
         "windowID"
       ],
+      "threadProjection" : "window-management.interaction-ephemera",
       "title" : "Window Reference",
-      "totemProjection" : "window-management.interaction-ephemera",
       "valueType" : "window-management.window-reference",
       "version" : "1.0.0"
     }
@@ -1325,7 +1325,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
     {
       "exclude" : [
         "windowTitle",

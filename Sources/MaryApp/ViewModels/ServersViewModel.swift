@@ -7,7 +7,7 @@
 //
 
 import MaryBrain
-import MaryTotem
+import MaryThread
 import Foundation
 import SwiftUI
 import MaryRuntime
@@ -40,8 +40,8 @@ final class ServersViewModel: ObservableObject {
         authTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                self.isAuthenticated = await MaryRuntime.seerSession.isAuthenticated
-                self.ownerID = await MaryRuntime.seerSession.userID
+                self.isAuthenticated = await MaryRuntime.sewnSession.isAuthenticated
+                self.ownerID = await MaryRuntime.sewnSession.userID
                 await self.refreshGraphStats()
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
             }
@@ -50,10 +50,10 @@ final class ServersViewModel: ObservableObject {
 
     private func refreshGraphStats() async {
         guard let owner = ownerID,
-              snapshots.first(where: { $0.kind == .totem })?.status == .healthy else {
+              snapshots.first(where: { $0.kind == .thread })?.status == .healthy else {
             return
         }
-        let reader = MaryRuntime.makeTotemReader()
+        let reader = MaryRuntime.makeThreadReader()
         graphStats = try? await reader.graphStats(ownerID: owner)
     }
 
@@ -84,18 +84,18 @@ final class ServersViewModel: ObservableObject {
     /// Clear-button runner: guard, remove off-main, refresh; same guards as refreshGraphStats.
     private func clear(
         label: String,
-        _ operation: @escaping @Sendable (TotemDirectClient, String) async throws -> Int
+        _ operation: @escaping @Sendable (ThreadDirectClient, String) async throws -> Int
     ) {
         guard !isClearing else { return }
         guard let owner = ownerID,
-              snapshots.first(where: { $0.kind == .totem })?.status == .healthy else {
-            clearNotice = "Sign in and start Totem first."
+              snapshots.first(where: { $0.kind == .thread })?.status == .healthy else {
+            clearNotice = "Sign in and start Thread first."
             return
         }
         isClearing = true
         clearNotice = nil
         Task { [weak self] in
-            let reader = MaryRuntime.makeTotemReader()
+            let reader = MaryRuntime.makeThreadReader()
             let notice: String
             do {
                 let removed = try await operation(reader, owner)
@@ -149,20 +149,20 @@ final class ServersViewModel: ObservableObject {
 
     func signIn(email: String, password: String, port: Int) {
         Task { [weak self] in
-            let error = await MaryRuntime.applySeerAccount(
-                email: email, password: password, seerPort: port)
+            let error = await MaryRuntime.applySewnAccount(
+                email: email, password: password, sewnPort: port)
             guard let self else { return }
             self.authNotice = error
-            self.isAuthenticated = await MaryRuntime.seerSession.isAuthenticated
-            self.ownerID = await MaryRuntime.seerSession.userID
+            self.isAuthenticated = await MaryRuntime.sewnSession.isAuthenticated
+            self.ownerID = await MaryRuntime.sewnSession.userID
             if error == nil {
                 // The Brain card still decides where the words go; signing
                 // in only makes the server available to be chosen.
-                await MaryRuntime.connectSeerToBrain(
-                    chat: MaryRuntime.seerCarriesTurns(seerEnabled: true),
+                await MaryRuntime.connectSewnToBrain(
+                    chat: MaryRuntime.sewnCarriesTurns(sewnEnabled: true),
                     archiving: true,
                     stackEnabled: true)
-                // Seer means Seer: a session that booted unauthenticated
+                // Sewn means Sewn: a session that booted unauthenticated
                 // parked speech elsewhere — a successful sign-in is the
                 // moment the configured backend can finally hold.
                 _ = await MaryRuntime.reapplyTTSBackend()

@@ -373,7 +373,7 @@ import Testing
     }
 
     /// An explicit external stop may race an acknowledgement suspended in
-    /// Seer/fallback. It must cancel that work and invalidate the old exit so
+    /// Sewn/fallback. It must cancel that work and invalidate the old exit so
     /// the continuation cannot later emit a duplicate command.
     @Test func anExternalStopCancelsAnInFlightGoodbyeIdempotently() async {
         let transcriber = ScriptedFinishTranscriber(finishText: "stop listening")
@@ -395,7 +395,7 @@ import Testing
         watcher.cancel()
     }
 
-    /// Seer owns its normal request timeout. The pipeline adds no shorter
+    /// Sewn owns its normal request timeout. The pipeline adds no shorter
     /// first-audio guillotine, and playback still drains before session exit.
     @Test func aSlowButLivingGoodbyeIsNotCutOff() async {
         let log = OrderedLog()
@@ -404,7 +404,7 @@ import Testing
             transcriber: transcriber,
             stopListeningAck: "Okay, going quiet.",
             // Deliberately beyond the removed six-second pipeline cutoff.
-            // Seer still owns its transport bounds; a living request is not
+            // Sewn still owns its transport bounds; a living request is not
             // killed by a second, shorter acknowledgement timer.
             synthesizer: WakeSlowSynthesizer(log: log, delay: 6.25))
         await pipeline.setStateForTesting(.transcribing)

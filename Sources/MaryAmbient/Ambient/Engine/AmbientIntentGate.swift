@@ -3,7 +3,7 @@
 //  MaryAmbient
 //
 //  WHAT: Question forms that decide which durable context to consult.
-//  OUT:  memory lane / relationship-family vocabulary → Totem
+//  OUT:  memory lane / relationship-family vocabulary → Thread
 //  PIN:  Small projection — augments the user's words with graph intent.
 //
 
@@ -27,13 +27,13 @@ public enum AmbientQuestion: String, CaseIterable, Hashable, Sendable, Codable {
 public struct AmbientQuestionSignature: Sendable, Equatable {
     public var questions: Set<AmbientQuestion>
     public var predicateFamilies: Set<String>
-    public var lanePriority: [TotemLane]
+    public var lanePriority: [ThreadLane]
     public var semanticProjection: String
 
     public init(
         questions: Set<AmbientQuestion> = [],
         predicateFamilies: Set<String> = [],
-        lanePriority: [TotemLane] = [.personal],
+        lanePriority: [ThreadLane] = [.personal],
         semanticProjection: String = ""
     ) {
         self.questions = questions
@@ -43,33 +43,33 @@ public struct AmbientQuestionSignature: Sendable, Equatable {
     }
 }
 
-/// A retrieval decision for the two logical Totems.
-public struct TotemMemoryPlan: Sendable, Equatable {
-    public var lanes: Set<TotemLane>
-    public var abilityTargets: [AbilityTotemTarget]
-    public var lanePriority: [TotemLane]
+/// A retrieval decision for the two logical Threads.
+public struct ThreadMemoryPlan: Sendable, Equatable {
+    public var lanes: Set<ThreadLane>
+    public var abilityTargets: [AbilityThreadTarget]
+    public var lanePriority: [ThreadLane]
     public var relationshipHints: [String]
     /// When true, relationship hints should reach other projects that
     /// practice the same discipline — without merging those projects' groups.
     public var expandDisciplineUsage: Bool
 
     public init(
-        lanes: Set<TotemLane> = [.personal],
-        abilityTargets: [AbilityTotemTarget] = [],
-        lanePriority: [TotemLane]? = nil,
+        lanes: Set<ThreadLane> = [.personal],
+        abilityTargets: [AbilityThreadTarget] = [],
+        lanePriority: [ThreadLane]? = nil,
         relationshipHints: [String] = [],
         expandDisciplineUsage: Bool = false
     ) {
         self.lanes = lanes
         self.abilityTargets = Array(Set(abilityTargets)).sorted()
-        let defaultPriority: [TotemLane] = [.ability, .personal].filter(lanes.contains)
+        let defaultPriority: [ThreadLane] = [.ability, .personal].filter(lanes.contains)
         let requestedPriority = (lanePriority ?? defaultPriority).filter(lanes.contains)
         self.lanePriority = requestedPriority.isEmpty ? defaultPriority : requestedPriority
         self.relationshipHints = Array(Set(relationshipHints)).sorted()
         self.expandDisciplineUsage = expandDisciplineUsage
     }
 
-    public static let personal = TotemMemoryPlan()
+    public static let personal = ThreadMemoryPlan()
 }
 
 /// Separates question interpretation from turn execution.
@@ -81,7 +81,7 @@ public struct AmbientIntentGate: Sendable, Equatable {
     /// its name (`AmbientAddressProbe`).
     public var addressedApplications: Set<String>
     public var signature: AmbientQuestionSignature
-    public var memory: TotemMemoryPlan
+    public var memory: ThreadMemoryPlan
 
     public init(
         questions: Set<AmbientQuestion> = [],
@@ -89,7 +89,7 @@ public struct AmbientIntentGate: Sendable, Equatable {
         applications: [String] = [],
         addressedApplications: Set<String> = [],
         signature: AmbientQuestionSignature? = nil,
-        memory: TotemMemoryPlan = .personal
+        memory: ThreadMemoryPlan = .personal
     ) {
         self.questions = questions
         self.requestedAbilities = requestedAbilities
@@ -139,14 +139,14 @@ public struct AmbientIntentGate: Sendable, Equatable {
             abilityIDs = profile.abilities
         }
         let targets = abilityIDs.sorted { $0.rawValue < $1.rawValue }.map { id in
-            AbilityTotemTarget(
+            AbilityThreadTarget(
                 abilityID: id,
                 paradigm: abilities.paradigm(of: id) ?? Self.inferredParadigm(id))
         }
         let hasAbilityTarget = !targets.isEmpty
         let expandDisciplineUsage = targets.contains { $0.paradigm == .discipline }
 
-        let lanes: Set<TotemLane>
+        let lanes: Set<ThreadLane>
         if hasAbilityTarget && (
             isArchitecture || isWriting
                 || (prefersAbility && questions.intersection([.what, .which, .`where`, .why]).isEmpty == false)
@@ -170,7 +170,7 @@ public struct AmbientIntentGate: Sendable, Equatable {
             applications: applicationIDs,
             addressedApplications: addressedIDs,
             signature: signature,
-            memory: TotemMemoryPlan(
+            memory: ThreadMemoryPlan(
                 lanes: lanes,
                 abilityTargets: targets,
                 lanePriority: signature.lanePriority,
@@ -207,7 +207,7 @@ public struct AmbientIntentGate: Sendable, Equatable {
             case .which: return ["contains", "selects", "belongs to"]
             }
         })
-        let priority: [TotemLane]
+        let priority: [ThreadLane]
         if !questions.intersection([.how, .`where`]).isEmpty {
             priority = [.ability, .personal]
         } else if !questions.intersection([.who, .why, .when]).isEmpty {

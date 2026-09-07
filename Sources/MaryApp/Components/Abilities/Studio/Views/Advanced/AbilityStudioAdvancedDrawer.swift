@@ -119,8 +119,8 @@ struct AbilityStudioAdvancedDrawer: View {
                     }
 
                     AbilityStudioAdvancedSection(
-                        title: "Totem projections",
-                        count: "\(package.totemProjections.count)"
+                        title: "Thread projections",
+                        count: "\(package.threadProjections.count)"
                     ) {
                         AbilityStudioProjectionsSection(model: model, package: package)
                     }

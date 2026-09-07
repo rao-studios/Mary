@@ -2,7 +2,7 @@
 //  HistoryIntegrityTests.swift
 //  MaryBrainTests
 //
-//  WHAT: Seer wire never sees two consecutive same-role messages.
+//  WHAT: Sewn wire never sees two consecutive same-role messages.
 //  OUT:  History alternation under supersede / merge / trim
 //
 
@@ -17,19 +17,19 @@ import Testing
 
     // MARK: - Scripted collaborators (suite-local copies, DualLaneTests style)
 
-    final class ScriptedSeer: SeerChatProviding, @unchecked Sendable {
+    final class ScriptedSewn: SewnChatProviding, @unchecked Sendable {
         struct Script {
-            var events: [SeerChatEvent] = []
+            var events: [SewnChatEvent] = []
             var hangAtEnd = false
         }
 
         private let lock = NSLock()
         var ready = true
         private var scripts: [Script]
-        private(set) var calls: [[SeerChatMessage]] = []
+        private(set) var calls: [[SewnChatMessage]] = []
         /// Advanced once per `stream()` — "Lane A of the Nth turn is running".
         /// The stated arrival that replaces "sleep 150 ms and hope turn 1 is
-        /// mid-flight" (SupersedeTests' ScriptedSeer has the same signal).
+        /// mid-flight" (SupersedeTests' ScriptedSewn has the same signal).
         private let requests = ArrivalSignal()
 
         init(scripts: [Script]) {
@@ -40,7 +40,7 @@ import Testing
         /// `calls`: a detached routine can still be appending when an
         /// assertion runs, and an unguarded read of live storage tears count
         /// against buffer (the suite's old signal-5 crash).
-        func callsSnapshot() -> [[SeerChatMessage]] {
+        func callsSnapshot() -> [[SewnChatMessage]] {
             lock.lock(); defer { lock.unlock() }
             return calls
         }
@@ -49,13 +49,13 @@ import Testing
         func ownerID() async -> String? { "owner-test" }
 
         func stream(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+            messages: [SewnChatMessage], instructions: String?
+        ) -> AsyncThrowingStream<SewnChatEvent, Error> {
             lock.lock()
             calls.append(messages)
             let script = scripts.isEmpty ? Script() : scripts.removeFirst()
             lock.unlock()
-            let stream = AsyncThrowingStream<SeerChatEvent, Error> { continuation in
+            let stream = AsyncThrowingStream<SewnChatEvent, Error> { continuation in
                 for event in script.events { continuation.yield(event) }
                 if !script.hangAtEnd { continuation.finish() }
                 continuation.onTermination = { _ in }
@@ -85,7 +85,7 @@ import Testing
             self.rounds = rounds
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func requestsSnapshot() -> [[BrainTurn.Role]] {
             lock.lock(); defer { lock.unlock() }
             return requests
@@ -121,7 +121,7 @@ import Testing
         var hasPendingSkillConfirmation: Bool { false }
         func beginTurn() {}
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func dispatchedSnapshot() -> [String] {
             lock.lock(); defer { lock.unlock() }
             return dispatched
@@ -195,32 +195,32 @@ import Testing
 
     // MARK: - The invariant
 
-    private func expectAlternation(_ messages: [SeerChatMessage]) {
+    private func expectAlternation(_ messages: [SewnChatMessage]) {
         for (a, b) in zip(messages, messages.dropFirst()) {
-            #expect(a.role != b.role, "consecutive \(a.role) breaks Seer-wire alternation")
+            #expect(a.role != b.role, "consecutive \(a.role) breaks Sewn-wire alternation")
         }
     }
 
     /// The direct H-A pin: pre-fix, an overlapping plain respond left the
     /// hung turn's user message in history with no assistant — [user, user].
     @Test func alternationHoldsAfterOverlapSupersede() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("Thinking about one")], hangAtEnd: true),
             .init(events: [.token("Two it is.")]),
         ])
         let engine = ScriptedEngine(rounds: [.init(text: "NOOP"), .init(text: "NOOP")])
         let brain = MaryBrain(engine: engine, dispatcher: SlowDispatcher())
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let firstTurn = Task { try? await collect(brain.respond(to: "one")) }
-        // STATED, NOT SLEPT: turn 1 has asked Seer for its (hanging) stream,
+        // STATED, NOT SLEPT: turn 1 has asked Sewn for its (hanging) stream,
         // so its exchange is open and the overlap below provably supersedes
         // it. The 150 ms sleep this replaces lost about one full-suite run in
         // five — turn 2 landed BEFORE turn 1 had started, completed with
         // nothing to supersede, and turn 1 then hung on its never-finishing
         // stream with nothing left to cancel it: `firstTurn.value` parked the
         // whole test process forever at 0% CPU.
-        await seer.awaitStreamRequest(1)
+        await sewn.awaitStreamRequest(1)
         _ = try await collect(brain.respond(to: "two"))
         _ = await firstTurn.value
         try await Task.sleep(nanoseconds: 100_000_000)   // stale unwind window
@@ -231,7 +231,7 @@ import Testing
     }
 
     @Test(.tags(.timingSensitive)) func alternationHoldsAfterDetachAndMerge() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("On it.")]),             // turn 1 → routine
             .init(events: [.token("Meanwhile, hi!")]),     // intervening turn
             .init(events: [.token("It failed, sorry.")]),  // follow-up pass
@@ -245,7 +245,7 @@ import Testing
         dispatcher.results["probe"] = "no such probe"
         dispatcher.failingTools = ["probe"]   // a failure speaks — and merges
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         let proactiveStream = brain.proactiveEvents()
         let settle = Task { await awaitSettled(proactiveStream) }
@@ -260,7 +260,7 @@ import Testing
     }
 
     @Test(.tags(.timingSensitive)) func alternationHoldsAfterTrimWithLiveRoutine() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("On it.")]),
             .init(events: [.token("Two.")]),
             .init(events: [.token("Three.")]),
@@ -276,7 +276,7 @@ import Testing
         dispatcher.results["probe"] = "the probe broke"
         dispatcher.failingTools = ["probe"]
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
         await brain.setHistoryLimit(4)   // the floor — trims the origin fastest
 
         let proactiveStream = brain.proactiveEvents()
@@ -297,7 +297,7 @@ import Testing
     /// while an overlap removes ANOTHER turn's exchange — actor-serialized,
     /// so either order must leave alternation intact.
     @Test(.tags(.timingSensitive)) func alternationHoldsWhenSupersedeRacesFinishRoutine() async throws {
-        let seer = ScriptedSeer(scripts: [
+        let sewn = ScriptedSewn(scripts: [
             .init(events: [.token("On it.")]),                    // turn 1 → routine
             .init(events: [.token("Hanging")], hangAtEnd: true),  // turn 2 hangs
             .init(events: [.token("A.")]),                        // turn 3 / follow-up (racy order)
@@ -313,7 +313,7 @@ import Testing
         dispatcher.results["probe"] = "no such probe"
         dispatcher.failingTools = ["probe"]   // failing → the merge is due at settle
         let brain = MaryBrain(engine: engine, dispatcher: dispatcher)
-        await brain.setSeerChat(seer)
+        await brain.setSewnChat(sewn)
 
         // Turn 1 detaches its slow failing lane at the 250ms grace.
         _ = try await collect(brain.respond(to: "run the slow probe"))

@@ -543,7 +543,7 @@ public enum PluginCompiler {
     }
 
     /// Display identity is package-authored metadata, but it still must not
-    /// introduce multiline prompt structure when deposited into a Totem or
+    /// introduce multiline prompt structure when deposited into a Thread or
     /// rendered in diagnostics.
     private static func sanitizedDisplayText(
         _ value: String,

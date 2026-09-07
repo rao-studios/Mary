@@ -73,7 +73,7 @@ final class SandTurnHost: ObservableObject {
     var engineWord: String {
         switch MaryEmbeddings.engine() {
         case .appleNL: return "apple-nl"
-        case .seer(let model): return "seer:\(model)"
+        case .sewn(let model): return "sewn:\(model)"
         case nil: return "lexical — no embedding asset"
         }
     }

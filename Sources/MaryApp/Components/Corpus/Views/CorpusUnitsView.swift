@@ -41,7 +41,7 @@ struct CorpusUnitsView: View {
             }
             Button("Keep it", role: .cancel) { confirmForget = nil }
         } message: {
-            Text("Mary drops what she learned about this file and removes it from the totem. She'll learn it again the next time you open it. This can't be undone.")
+            Text("Mary drops what she learned about this file and removes it from the thread. She'll learn it again the next time you open it. This can't be undone.")
         }
     }
 
@@ -133,7 +133,7 @@ struct CorpusUnitsView: View {
                 field("Signatures", "\(record.apiHeaders.count) kept")
             }
             field("Revision", record.contentHash)
-            field("Totem", record.deposit.rawValue)
+            field("Thread", record.deposit.rawValue)
         }
     }
 

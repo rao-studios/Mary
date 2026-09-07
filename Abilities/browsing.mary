@@ -94,11 +94,11 @@
       "browsing.watch-video"
     ],
     "summary" : "Browsing: which page you are on, going somewhere else, and the page's own video player.",
-    "tint" : "#1A73E8",
-    "title" : "Browsing",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#1A73E8",
+    "title" : "Browsing",
     "triggers" : {
       "intentAliases" : [
 
@@ -1290,7 +1290,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "5b50afb17d2f525cc0e479a43b6714c4c4e587b9d565556132e42a99d20ff55a"
+    "digest" : "084205084db02858319580a125c850a96d0ea6cece0804b07da80dd6761443e0"
   },
   "interactions" : [
 
@@ -3507,7 +3507,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

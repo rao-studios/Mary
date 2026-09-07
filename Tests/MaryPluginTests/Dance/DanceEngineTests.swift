@@ -132,7 +132,7 @@ enum DanceFixtures {
     @Test func aVariantThatFailsFallsBackToTheFirstShader() async {
         let composer = FakeComposer([
             .success(FakeComposer.good),
-            .failure(.failed("Seer is unreachable")),
+            .failure(.failed("Sewn is unreachable")),
         ])
         let windows = FakeCanvasWindows()
         let (engine, _) = DanceFixtures.engine(composer: composer, windows: windows)
@@ -179,9 +179,9 @@ enum DanceFixtures {
     }
 
     @Test func aComposerThatFailsIsNamed() async {
-        let composer = FakeComposer([.failure(.failed("Seer is unreachable: timeout"))])
+        let composer = FakeComposer([.failure(.failed("Sewn is unreachable: timeout"))])
         let (engine, _) = DanceFixtures.engine(composer: composer)
-        #expect(await engine.dance(DanceFixtures.brief) == .refused(.composerFailed("Seer is unreachable: timeout")))
+        #expect(await engine.dance(DanceFixtures.brief) == .refused(.composerFailed("Sewn is unreachable: timeout")))
     }
 
     @Test func aRefusedShaderGetsOneRepair() async {

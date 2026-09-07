@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Streaming HTTP must have a wall clock, not only an idle timer.
-//  IN:   Seer SSE / HTTP streams
+//  IN:   Sewn SSE / HTTP streams
 //  OUT:  bounded URLSession
 //  PIN:  timeoutIntervalForRequest is idle; resource timeout lives on the session.
 //

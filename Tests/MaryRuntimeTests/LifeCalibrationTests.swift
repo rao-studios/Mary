@@ -26,7 +26,7 @@ import MaryFoundation
             sealedReason: .completed,
             input: BehavioralInput(query: "type this"),
             provenance: EpisodeProvenance(engine: "local", lane: lane, appVersion: "test"),
-            abilityTargets: [AbilityTotemTarget(abilityID: ability, paradigm: .discipline)])
+            abilityTargets: [AbilityThreadTarget(abilityID: ability, paradigm: .discipline)])
     }
 
     private func slot(

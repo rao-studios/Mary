@@ -19,7 +19,7 @@ import MaryVoice
     @Test func theHostedCharacterAndTheOnDeviceVoiceAreSeparateFields() {
         let state = ConfigService.Center.State()
         #expect(state.voice == "af_heart", "the on-device slot names a bundled embedding")
-        #expect(state.seerVoice == VoiceCharacter.marie.id, "the hosted slot names a server voice")
+        #expect(state.sewnVoice == VoiceCharacter.marie.id, "the hosted slot names a server voice")
     }
 
     // MARK: - The migration
@@ -31,31 +31,31 @@ import MaryVoice
     /// Every install written by the one-field build: the hosted slug sits in
     /// the slot boot hands to Kokoro. It must move, not merely be tolerated.
     @Test func aStoredHostedCharacterMovesOutOfTheOnDeviceSlot() throws {
-        let state = try decode(#"{"voice":"fr_marie","ttsBackend":"seer"}"#)
+        let state = try decode(#"{"voice":"fr_marie","ttsBackend":"sewn"}"#)
         #expect(state.voice == "af_heart", "Kokoro gets a voice it can actually load")
-        #expect(state.seerVoice == "fr_marie", "and the character the user chose is kept")
-        #expect(state.ttsBackend == .seer, "without disturbing the rest of the store")
+        #expect(state.sewnVoice == "fr_marie", "and the character the user chose is kept")
+        #expect(state.ttsBackend == .sewn, "without disturbing the rest of the store")
     }
 
     @Test func anOnDeviceVoiceIsLeftAlone() throws {
-        let state = try decode(#"{"voice":"am_adam","seerVoice":"fr_marie"}"#)
+        let state = try decode(#"{"voice":"am_adam","sewnVoice":"fr_marie"}"#)
         #expect(state.voice == "am_adam")
-        #expect(state.seerVoice == "fr_marie")
+        #expect(state.sewnVoice == "fr_marie")
     }
 
     /// A store already split keeps its hosted choice — the migration must not
-    /// overwrite a real `seerVoice` from a stale shared field.
+    /// overwrite a real `sewnVoice` from a stale shared field.
     @Test func anAlreadySplitStoreKeepsItsHostedChoice() throws {
-        let state = try decode(#"{"voice":"fr_marie","seerVoice":"fr_marie"}"#)
+        let state = try decode(#"{"voice":"fr_marie","sewnVoice":"fr_marie"}"#)
         #expect(state.voice == "af_heart")
-        #expect(state.seerVoice == "fr_marie")
+        #expect(state.sewnVoice == "fr_marie")
     }
 
     /// The tolerant-decode rule this file must not break: a missing key never
     /// fails the restore, because a throw re-seeds every default at once.
-    @Test func aMissingSeerVoiceKeyDecodesToTheDefaultCharacter() throws {
+    @Test func aMissingSewnVoiceKeyDecodesToTheDefaultCharacter() throws {
         let state = try decode(#"{"voice":"af_heart"}"#)
-        #expect(state.seerVoice == VoiceCharacter.marie.id)
+        #expect(state.sewnVoice == VoiceCharacter.marie.id)
     }
 
     // MARK: - The resolver

@@ -4,7 +4,7 @@
 //
 //  WHAT: What the idle engine is doing, plus per-discipline calibration.
 //  PIN:  Engine state arrives on its event stream — the poll is only for the
-//        episode-count bars, which come from Totem, not from the engine.
+//        episode-count bars, which come from Thread, not from the engine.
 //
 
 import Foundation
@@ -30,7 +30,7 @@ final class LifeCalibrationViewModel: ObservableObject {
     func start() {
         guard pollTask == nil else { return }
         Task { await MaryRuntime.refreshReadyLoRAs() }
-        Task { await MaryRuntime.refreshBehaviorEpisodesFromTotem() }
+        Task { await MaryRuntime.refreshBehaviorEpisodesFromThread() }
         eventTask = Task { [weak self] in
             let stream = await MaryRuntime.lifeEngineEvents()
             // Seed before the first event so an idle engine still renders.

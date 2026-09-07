@@ -212,7 +212,7 @@ public struct BehavioralTrainingOutput: Codable, Hashable, Sendable {
         id: UUID,
         input: BehavioralInput,
         provenance: EpisodeProvenance,
-        abilityTargets: [AbilityTotemTarget] = [],
+        abilityTargets: [AbilityThreadTarget] = [],
         openedAt: Date = Date()
     ) -> BehavioralEpisode {
         let records: [BehavioralActionRecord] = actions.enumerated().map { index, action in

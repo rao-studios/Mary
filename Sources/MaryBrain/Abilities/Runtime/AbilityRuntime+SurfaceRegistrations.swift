@@ -13,7 +13,7 @@
 //        IN MARYBRAIN BECAUSE SAND CANNOT REACH MARYRUNTIME. These were
 //        `package static` on MaryRuntime, which the app and the probes link and
 //        Sand's bench deliberately does not — it wants the ability graph and
-//        the hands, not Granite, Totem or a model. They read nothing but the
+//        the hands, not Granite, Thread or a model. They read nothing but the
 //        snapshot's own records, so they belong beside it. Corpus stays in
 //        MaryRuntime: it consults inheritance and habits, and it starts crawls.
 //        AWARENESS IS SPLIT, and the split is the crawl. Following a DOCUMENT

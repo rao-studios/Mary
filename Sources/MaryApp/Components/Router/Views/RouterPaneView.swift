@@ -16,7 +16,7 @@ struct RouterPaneView: View {
     @Binding var intentFilter: String?
 
     @StateObject private var vm = RouteTraceViewModel()
-    /// View-local (Totems pane's Servers/Life precedent): held in the Center
+    /// View-local (Threads pane's Servers/Life precedent): held in the Center
     /// this flag would re-present the sheet on every panel rebuild. Closing
     /// the pane mid-sheet dismisses the sheet with it.
     @State private var showsAbilityRuns = false
@@ -213,7 +213,7 @@ struct RouterPaneView: View {
             }
             field("questions", row.gate.questions.map(\.rawValue).sorted().joined(separator: ", "))
             field("abilities", row.gate.requestedAbilities.map(\.rawValue).sorted().joined(separator: ", "))
-            field("totems", row.gate.memory.lanes.map(\.rawValue).sorted().joined(separator: ", "))
+            field("threads", row.gate.memory.lanes.map(\.rawValue).sorted().joined(separator: ", "))
             field("needs", needsPhrase(row))
             field("prompt", "\(row.systemPromptChars) chars")
             field("registry", String(row.registryRevision.uuidString.prefix(12)))

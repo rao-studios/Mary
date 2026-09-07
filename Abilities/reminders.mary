@@ -57,11 +57,11 @@
       "reminders.new-item"
     ],
     "summary" : "Teaches Mary Reminders through the generic EventKit adapter.",
-    "tint" : "#5AC8FA",
-    "title" : "Reminders",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#5AC8FA",
+    "title" : "Reminders",
     "triggers" : {
       "intentAliases" : [
 
@@ -177,7 +177,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "00d3283821b94f49ac685c91c2baed255323f696c44ec86deb48527970e2f42e"
+    "digest" : "8ca720be69689022bb935d1e768a6339f3361613b99008bd7fb09ada9191113b"
   },
   "interactions" : [
 
@@ -565,7 +565,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

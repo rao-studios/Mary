@@ -29,7 +29,7 @@ import Testing
             sealedReason: sealed,
             input: BehavioralInput(query: "type this"),
             provenance: EpisodeProvenance(engine: "local", lane: lane, appVersion: "test"),
-            abilityTargets: [AbilityTotemTarget(abilityID: ability, paradigm: paradigm)])
+            abilityTargets: [AbilityThreadTarget(abilityID: ability, paradigm: paradigm)])
     }
 
     // MARK: - The threshold

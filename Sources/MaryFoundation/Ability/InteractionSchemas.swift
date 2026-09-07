@@ -55,7 +55,7 @@ public struct InteractionSchema: Codable, Hashable, Sendable, Identifiable {
     public var evidence: [InteractionEvidenceRule]
     public var requiredScope: [SourceResolution]
     public var privacy: DataPrivacyClass
-    public var totemProjection: ProjectionID?
+    public var threadProjection: ProjectionID?
 
     public init(
         id: InteractionID,
@@ -71,7 +71,7 @@ public struct InteractionSchema: Codable, Hashable, Sendable, Identifiable {
         evidence: [InteractionEvidenceRule],
         requiredScope: [SourceResolution] = [.application],
         privacy: DataPrivacyClass = .sensitive,
-        totemProjection: ProjectionID? = nil
+        threadProjection: ProjectionID? = nil
     ) {
         self.id = id
         self.version = version
@@ -86,7 +86,7 @@ public struct InteractionSchema: Codable, Hashable, Sendable, Identifiable {
         self.evidence = evidence
         self.requiredScope = requiredScope
         self.privacy = privacy
-        self.totemProjection = totemProjection
+        self.threadProjection = threadProjection
     }
 }
 

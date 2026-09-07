@@ -135,11 +135,11 @@
       "coding.undo-file-changes"
     ],
     "summary" : "The coding discipline: build, run, test and save a project through the editor's own commands, and read and edit its live code surface. An application joins this discipline by realizing one of the chord Skills — which is what gives its place the coding focus — or by declaring a `codeSurface` for the reads and the one write. read_buffer and read_selection bind to the code-surface adapter, the same shape the writing Ability's own reads take for a prose document — a Skill that returns a value needs a compiled provider, never a recipe. replace_selection binds to the same adapter for the one reason a write needs a compiled provider too: an atomic disk write, Xcode's own proven chain, has no managed-UI recipe equivalent — it changes the file on disk, never types a keystroke, and refuses rather than overwrite a buffer with unsaved changes.",
-    "tint" : "#B392F0",
-    "title" : "Coding",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#B392F0",
+    "title" : "Coding",
     "triggers" : {
       "intentAliases" : [
 
@@ -1015,7 +1015,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "1120d95a3f61ae414ab419a5be1a6a892271e741af4a253e69d8221fcede0079"
+    "digest" : "d77fba58a28e9c6071a5792c6f335687942b95d6c077883fff39040bd266e383"
   },
   "interactions" : [
     {
@@ -4621,7 +4621,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

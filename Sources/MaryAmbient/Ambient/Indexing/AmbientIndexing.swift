@@ -3,7 +3,7 @@
 //  MaryAmbient
 //
 //  WHAT: Project lane — one structural snapshot per project (name, focused document, headings, size).
-//  OUT:  Totem (durable). Body text stays behind explicit reads.
+//  OUT:  Thread (durable). Body text stays behind explicit reads.
 //  PIN:  Schema is declared by the package, not learned. StyleTenet/StyleEvidence are how a person works.
 //
 import Foundation

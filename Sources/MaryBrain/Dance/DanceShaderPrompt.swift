@@ -3,8 +3,8 @@
 //  MaryBrain
 //
 //  WHAT: The prompt a shader is composed with, and the strict parse of the
-//        answer. No engine — composition runs through Seer's /v1/complete.
-//  IN:   SeerShaderComposer
+//        answer. No engine — composition runs through Sewn's /v1/complete.
+//  IN:   SewnShaderComposer
 //  OUT:  DanceComposition (a feeling line and the shader, fences and all)
 //  PIN:  Tolerant on the way in, strict on the way out: the feeling is read
 //        off a FEELING: line or the first prose line; the shader is whatever

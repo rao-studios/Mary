@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: Socket deltas → float32 LE samples. Trailing partial word dropped.
-//  IN:   SeerTTSEngine / KokoroStreamSpeaker.enqueueRemotePCM
+//  IN:   SewnTTSEngine / KokoroStreamSpeaker.enqueueRemotePCM
 //  OUT:  playback / ChunkEdgeDSP
 //
 

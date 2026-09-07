@@ -3,7 +3,7 @@
 //  MaryVoice
 //
 //  WHAT: Wall-clock + idle timeouts for cloud TTS HTTP.
-//  IN:   SeerTTSEngine
+//  IN:   SewnTTSEngine
 //  OUT:  shared URLSession (idle 60s, first-byte 4s, resource 30s)
 //  PIN:  Separate from MaryBrain StreamingHTTP — MaryVoice cannot import it.
 //

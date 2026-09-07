@@ -2,7 +2,7 @@
 //  ServersSheet.swift
 //  Mary
 //
-//  WHAT: Local stack control room (Seer/Totem/Fleet, account, checkouts/ports).
+//  WHAT: Local stack control room (Sewn/Thread/Fleet, account, checkouts/ports).
 //  OUT:  ServersViewModel
 //
 
@@ -19,10 +19,10 @@ struct ServersSheet: View {
 
     // Staged edits — committed by "Apply & Restart" so keystrokes don't
     // thrash the stack.
-    @State private var seerPath = ""
-    @State private var totemPath = ""
-    @State private var seerPortText = ""
-    @State private var totemPortText = ""
+    @State private var sewnPath = ""
+    @State private var threadPath = ""
+    @State private var sewnPortText = ""
+    @State private var threadPortText = ""
     @State private var email = ""
     @State private var password = ""
     @State private var confirmRegenerate = false
@@ -49,12 +49,12 @@ struct ServersSheet: View {
         .marySheet(ideal: CGSize(width: 480, height: 620))
         .onAppear {
             viewModel.start()
-            seerPath = config.state.seerCheckoutPath
-            totemPath = config.state.totemCheckoutPath
-            seerPortText = String(config.state.seerPort)
-            totemPortText = String(config.state.totemPort)
-            email = config.state.seerEmail
-            password = config.state.seerPassword
+            sewnPath = config.state.sewnCheckoutPath
+            threadPath = config.state.threadCheckoutPath
+            sewnPortText = String(config.state.sewnPort)
+            threadPortText = String(config.state.threadPort)
+            email = config.state.sewnEmail
+            password = config.state.sewnPassword
         }
         .onDisappear { viewModel.stop() }
     }
@@ -76,14 +76,14 @@ struct ServersSheet: View {
     private var enableCard: some View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
-                SectionLabel("Seer")
-                Toggle(isOn: seerEnabledBinding) {
-                    Text("Chat through Seer")
+                SectionLabel("Sewn")
+                Toggle(isOn: sewnEnabledBinding) {
+                    Text("Chat through Sewn")
                         .font(.marySans(12, weight: .medium))
                 }
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                Text("On: the local Seer stack is available for Voice (Lane A) and Skills (Lane B), each chosen in Settings. Off: both stay on-device.")
+                Text("On: the local Sewn stack is available for Voice (Lane A) and Skills (Lane B), each chosen in Settings. Off: both stay on-device.")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.6))
                 Toggle(isOn: autoStartBinding) {
@@ -158,8 +158,8 @@ struct ServersSheet: View {
                     .padding(.layer2)
                     .background(Color.maryInk.opacity(0.04))
                 }
-                if snapshot.kind == .totem {
-                    totemGraphRows
+                if snapshot.kind == .thread {
+                    threadGraphRows
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -168,7 +168,7 @@ struct ServersSheet: View {
 
     /// Knowledge-graph growth + the extraction backend the node launches with.
     @ViewBuilder
-    private var totemGraphRows: some View {
+    private var threadGraphRows: some View {
         if let stats = viewModel.graphStats {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Graph: \(stats.entityCount) entities · \(stats.relationshipCount) relationships")
@@ -198,7 +198,7 @@ struct ServersSheet: View {
             .frame(maxWidth: 260)
             Spacer()
         }
-        Text("How Totem builds entities and relationships from what Mary deposits. Applies on the next Totem restart. MLX needs a Metal-enabled build; without one it silently degrades to keywords.")
+        Text("How Thread builds entities and relationships from what Mary deposits. Applies on the next Thread restart. MLX needs a Metal-enabled build; without one it silently degrades to keywords.")
             .font(.marySans(10))
             .foregroundStyle(Color.maryInk.opacity(0.4))
         HStack(spacing: .layer3) {
@@ -218,7 +218,7 @@ struct ServersSheet: View {
             Button("Cancel", role: .cancel) {}
         }
         .confirmationDialog(
-            "Clear everything in your totem? This removes ALL documents on this node owned by your account, including saved memories. This can't be undone.",
+            "Clear everything in your thread? This removes ALL documents on this node owned by your account, including saved memories. This can't be undone.",
             isPresented: $confirmClearAll
         ) {
             Button("Clear everything", role: .destructive) { viewModel.clearEverything() }
@@ -236,12 +236,12 @@ struct ServersSheet: View {
 
     private var graphBackendBinding: Binding<String> {
         Binding(
-            get: { config.state.totemGraphBackend },
+            get: { config.state.threadGraphBackend },
             set: { backend in
-                config.center.update.send(ConfigService.Update.Meta(totemGraphBackend: backend))
+                config.center.update.send(ConfigService.Update.Meta(threadGraphBackend: backend))
                 var updated = config.state
-                updated.totemGraphBackend = backend
-                let nodeID = config.state.totemNodeID
+                updated.threadGraphBackend = backend
+                let nodeID = config.state.threadNodeID
                 Task { await MaryRuntime.applyServers(config: updated, nodeID: nodeID) }
             }
         )
@@ -273,7 +273,7 @@ struct ServersSheet: View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
                 HStack(spacing: .layer3) {
-                    SectionLabel("Seer account")
+                    SectionLabel("Sewn account")
                     StatusDot(color: viewModel.isAuthenticated ? .green : .gray)
                     if let owner = viewModel.ownerID {
                         Text(owner)
@@ -293,10 +293,10 @@ struct ServersSheet: View {
                         .font(.marySans(12))
                     Button("Sign in") {
                         config.center.update.send(ConfigService.Update.Meta(
-                            seerEmail: email, seerPassword: password))
+                            sewnEmail: email, sewnPassword: password))
                         viewModel.signIn(
                             email: email, password: password,
-                            port: config.state.seerPort)
+                            port: config.state.sewnPort)
                     }
                     .buttonStyle(.mary)
                 }
@@ -310,11 +310,11 @@ struct ServersSheet: View {
                         .font(.marySans(11))
                         .foregroundStyle(Color.maryInk.opacity(0.6))
                         .frame(width: 110, alignment: .leading)
-                    TextField("Seer default (Inkling)", text: chatModelBinding)
+                    TextField("Sewn default (Inkling)", text: chatModelBinding)
                         .textFieldStyle(.roundedBorder)
                         .font(.system(size: 11, design: .monospaced))
                 }
-                Text("Empty uses Seer's default. Thinking models deliberate before their first word — a lighter model here trades depth for response speed.")
+                Text("Empty uses Sewn's default. Thinking models deliberate before their first word — a lighter model here trades depth for response speed.")
                     .font(.marySans(10))
                     .foregroundStyle(Color.maryInk.opacity(0.4))
                 Text("Signed in automatically at launch; tokens live only in memory.")
@@ -331,33 +331,33 @@ struct ServersSheet: View {
         MaryCard {
             VStack(alignment: .leading, spacing: .layer3) {
                 SectionLabel("Stack configuration")
-                pathRow("Seer checkout", text: $seerPath)
-                pathRow("Totem checkout", text: $totemPath)
+                pathRow("Sewn checkout", text: $sewnPath)
+                pathRow("Thread checkout", text: $threadPath)
                 HStack(spacing: .layer3) {
-                    portField("Seer port", text: $seerPortText)
-                    portField("Totem port", text: $totemPortText)
+                    portField("Sewn port", text: $sewnPortText)
+                    portField("Thread port", text: $threadPortText)
                     Spacer()
                 }
                 HStack(spacing: .layer3) {
-                    Text("Totem identity")
+                    Text("Thread identity")
                         .font(.marySans(11))
                         .foregroundStyle(Color.maryInk.opacity(0.6))
                         .frame(width: 110, alignment: .leading)
-                    Text(config.state.totemNodeID.isEmpty ? "adopted at first boot" : config.state.totemNodeID)
+                    Text(config.state.threadNodeID.isEmpty ? "adopted at first boot" : config.state.threadNodeID)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(Color.maryInk.opacity(0.55))
                         .lineLimit(1)
                         .truncationMode(.middle)
                     Button("Copy") {
                         NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(config.state.totemNodeID, forType: .string)
+                        NSPasteboard.general.setString(config.state.threadNodeID, forType: .string)
                     }
                     .buttonStyle(.maryQuiet)
                     Button("Regenerate…") { confirmRegenerate = true }
                         .buttonStyle(.maryQuiet)
                     Spacer()
                 }
-                Text("The identity names the on-disk database — regenerating starts an EMPTY totem; the old one stays on disk under the previous id.")
+                Text("The identity names the on-disk database — regenerating starts an EMPTY thread; the old one stays on disk under the previous id.")
                     .font(.marySans(10))
                     .foregroundStyle(Color.maryInk.opacity(0.4))
                 HStack {
@@ -369,12 +369,12 @@ struct ServersSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .confirmationDialog(
-            "Start a fresh totem identity? The current database stays on disk but Mary stops using it.",
+            "Start a fresh thread identity? The current database stays on disk but Mary stops using it.",
             isPresented: $confirmRegenerate
         ) {
             Button("Regenerate identity", role: .destructive) {
                 let fresh = UUID().uuidString
-                config.center.update.send(ConfigService.Update.Meta(totemNodeID: fresh))
+                config.center.update.send(ConfigService.Update.Meta(threadNodeID: fresh))
                 applyStackConfig(nodeID: fresh)
             }
             Button("Cancel", role: .cancel) {}
@@ -406,19 +406,19 @@ struct ServersSheet: View {
     }
 
     private func applyStackConfig(nodeID: String? = nil) {
-        let seerPort = Int(seerPortText) ?? config.state.seerPort
-        let totemPort = Int(totemPortText) ?? config.state.totemPort
+        let sewnPort = Int(sewnPortText) ?? config.state.sewnPort
+        let threadPort = Int(threadPortText) ?? config.state.threadPort
         config.center.update.send(ConfigService.Update.Meta(
-            seerCheckoutPath: seerPath,
-            totemCheckoutPath: totemPath,
-            seerPort: seerPort,
-            totemPort: totemPort))
+            sewnCheckoutPath: sewnPath,
+            threadCheckoutPath: threadPath,
+            sewnPort: sewnPort,
+            threadPort: threadPort))
         var updated = config.state
-        updated.seerCheckoutPath = seerPath
-        updated.totemCheckoutPath = totemPath
-        updated.seerPort = seerPort
-        updated.totemPort = totemPort
-        let identity = nodeID ?? config.state.totemNodeID
+        updated.sewnCheckoutPath = sewnPath
+        updated.threadCheckoutPath = threadPath
+        updated.sewnPort = sewnPort
+        updated.threadPort = threadPort
+        let identity = nodeID ?? config.state.threadNodeID
         Task {
             await MaryRuntime.applyServers(config: updated, nodeID: identity)
             await MaryRuntime.localStack.stopAll()
@@ -428,14 +428,14 @@ struct ServersSheet: View {
 
     // MARK: - Bindings
 
-    private var seerEnabledBinding: Binding<Bool> {
+    private var sewnEnabledBinding: Binding<Bool> {
         Binding(
-            get: { config.state.seerEnabled },
+            get: { config.state.sewnEnabled },
             set: { enabled in
-                config.center.update.send(ConfigService.Update.Meta(seerEnabled: enabled))
+                config.center.update.send(ConfigService.Update.Meta(sewnEnabled: enabled))
                 Task {
-                    await MaryRuntime.connectSeerToBrain(
-                        chat: MaryRuntime.seerCarriesTurns(seerEnabled: enabled),
+                    await MaryRuntime.connectSewnToBrain(
+                        chat: MaryRuntime.sewnCarriesTurns(sewnEnabled: enabled),
                         archiving: enabled,
                         stackEnabled: enabled)
                 }
@@ -454,12 +454,12 @@ struct ServersSheet: View {
 
     private var chatModelBinding: Binding<String> {
         Binding(
-            get: { config.state.seerChatModel },
+            get: { config.state.sewnChatModel },
             set: { model in
-                config.center.update.send(ConfigService.Update.Meta(seerChatModel: model))
+                config.center.update.send(ConfigService.Update.Meta(sewnChatModel: model))
                 var updated = config.state
-                updated.seerChatModel = model
-                let nodeID = config.state.totemNodeID
+                updated.sewnChatModel = model
+                let nodeID = config.state.threadNodeID
                 Task { await MaryRuntime.applyServers(config: updated, nodeID: nodeID) }
             }
         )

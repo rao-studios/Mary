@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: Speaking-lane prompt sections.
-//  IN:   MaryPrompts.seerInstructions literals (byte-identical)
+//  IN:   MaryPrompts.sewnInstructions literals (byte-identical)
 //  OUT:  PromptPlan.voice
 //  PIN:  Coarser grain than system(); frames compose children. Do not edit """ bodies.
 //
@@ -13,21 +13,21 @@ extension PromptCatalog {
 
     static var voiceSections: [PromptSection] {
         [
-            seerPreamble,
-            seerCompany, seerHeading,
-            seerPersonaRead, seerPersonaGrounded, seerPersonaConverse,
-            seerPersonaInsight, seerPersonaInTurn,
-            seerCapability, seerRetrieval, seerSightPending,
-            seerRunningActions, seerLiveWork,
+            sewnPreamble,
+            sewnCompany, sewnHeading,
+            sewnPersonaRead, sewnPersonaGrounded, sewnPersonaConverse,
+            sewnPersonaInsight, sewnPersonaInTurn,
+            sewnCapability, sewnRetrieval, sewnSightPending,
+            sewnRunningActions, sewnLiveWork,
         ]
     }
 
     // MARK: - Running actions
 
-    /// Earlier-turn routines still running. Plan places this before seerLiveWork.
+    /// Earlier-turn routines still running. Plan places this before sewnLiveWork.
     /// PIN: Must not follow live-work (doctrine would be read as document).
-    static let seerRunningActions = PromptSection(
-        id: .seerRunningActions,
+    static let sewnRunningActions = PromptSection(
+        id: .sewnRunningActions,
         rationale: "Earlier routines still running — before live text, never after."
     ) { inputs in
         guard !inputs.runningActions.isEmpty else { return "" }
@@ -36,10 +36,10 @@ extension PromptCatalog {
 
     // MARK: - Clock and spoken register
 
-    /// Clock and TTS only. Identity rides `SeerWire.Persona.mary`.
+    /// Clock and TTS only. Identity rides `SewnWire.Persona.mary`.
     /// PIN: Ends without a trailing space; the turn persona that follows leads with one.
-    static let seerPreamble = PromptSection(
-        id: .seerPreamble,
+    static let sewnPreamble = PromptSection(
+        id: .sewnPreamble,
         rationale: "Clock + TTS. Identity is the chat persona."
     ) { inputs in
         let time = inputs.formatter("h:mm a").string(from: inputs.now)
@@ -58,8 +58,8 @@ extension PromptCatalog {
 
     /// Chat register and scenery doctrine. Always on; outranks live/held facts.
     /// PIN: Ambient, held, and ability tails are talk-about, never a Skill receipt.
-    static let seerCompany = PromptSection(
-        id: .seerCompany,
+    static let sewnCompany = PromptSection(
+        id: .sewnCompany,
         rationale: "Company first. Facts below are scenery, not a receipt."
     ) { _ in
         " " + """
@@ -73,8 +73,8 @@ extension PromptCatalog {
     }
 
     /// This-turn parallel hands. Gated off for converse and for closer passes.
-    static let seerHeading = PromptSection(
-        id: .seerHeading,
+    static let sewnHeading = PromptSection(
+        id: .sewnHeading,
         rationale: "Lane B is in flight — name the heading, never the result."
     ) { inputs in
         guard !inputs.conversational,
@@ -92,10 +92,10 @@ extension PromptCatalog {
     // MARK: - The three personas
 
     /// Read persona — reciting IS the answer. First in the plan (outranks grounded).
-    static let seerPersonaRead = PromptSection(
-        id: .seerPersonaRead,
+    static let sewnPersonaRead = PromptSection(
+        id: .sewnPersonaRead,
         rationale: "She just READ what they asked about — reciting IS the answer.",
-        exclusive: .seerPersona
+        exclusive: .sewnPersona
     ) { inputs in
         guard inputs.readReport else { return "" }
         return " " + """
@@ -111,10 +111,10 @@ extension PromptCatalog {
         """
     }
 
-    static let seerPersonaGrounded = PromptSection(
-        id: .seerPersonaGrounded,
+    static let sewnPersonaGrounded = PromptSection(
+        id: .sewnPersonaGrounded,
         rationale: "Actions really ran — report the outcome in one sentence.",
-        exclusive: .seerPersona
+        exclusive: .sewnPersona
     ) { inputs in
         guard let grounded = inputs.groundedResults else { return "" }
         return " " + """
@@ -130,10 +130,10 @@ extension PromptCatalog {
 
     /// Conversational persona — the turn asked for nothing. Third in the ladder.
     /// PIN: No anti-asking clause; a question back is what company does.
-    static let seerPersonaConverse = PromptSection(
-        id: .seerPersonaConverse,
+    static let sewnPersonaConverse = PromptSection(
+        id: .sewnPersonaConverse,
         rationale: "The turn asked for nothing — talk, and announce no work.",
-        exclusive: .seerPersona
+        exclusive: .sewnPersona
     ) { inputs in
         guard inputs.conversational else { return "" }
         return " " + """
@@ -152,15 +152,15 @@ extension PromptCatalog {
 
     /// Insight persona — she just READ real work in answer to a JUDGMENT
     /// question ("what do you think", "how does this look") rather than a
-    /// plain recitation (that's seerPersonaRead) or an action's aftermath
-    /// (seerPersonaGrounded). Composes with seerCompany/seerHeading above —
+    /// plain recitation (that's sewnPersonaRead) or an action's aftermath
+    /// (sewnPersonaGrounded). Composes with sewnCompany/sewnHeading above —
     /// this only adds the register for giving an actual take on what was
     /// just read; it does not restate the question-back permission those
     /// already grant.
-    static let seerPersonaInsight = PromptSection(
-        id: .seerPersonaInsight,
+    static let sewnPersonaInsight = PromptSection(
+        id: .sewnPersonaInsight,
         rationale: "She just read real work for a judgment question — give a take, not a receipt.",
-        exclusive: .seerPersona
+        exclusive: .sewnPersona
     ) { inputs in
         guard inputs.perceiving, !inputs.readPassages.isEmpty, !inputs.readReport,
               inputs.groundedResults == nil, !inputs.conversational
@@ -178,10 +178,10 @@ extension PromptCatalog {
 
     /// In-turn persona: intent ≠ execution. No same-turn Skill receipt.
     /// PIN: Anti-asking clause lives here — Lane A cannot see `system()`'s.
-    static let seerPersonaInTurn = PromptSection(
-        id: .seerPersonaInTurn,
+    static let sewnPersonaInTurn = PromptSection(
+        id: .sewnPersonaInTurn,
         rationale: "Intent ≠ execution. Report state only from grounded receipts.",
-        exclusive: .seerPersona
+        exclusive: .sewnPersona
     ) { _ in
         " " + """
         You are not a read-only assistant. Your hands — a Skill pipeline — \
@@ -213,8 +213,8 @@ extension PromptCatalog {
 
     // MARK: - Capability
 
-    static let seerCapability = PromptSection(
-        id: .seerCapability,
+    static let sewnCapability = PromptSection(
+        id: .sewnCapability,
         rationale: "What her hands do in the world she is working inside."
     ) { inputs in
         inputs.capability.map { " \($0)" } ?? ""
@@ -224,8 +224,8 @@ extension PromptCatalog {
 
     /// Retrieval doctrine: memory is the past, never the document now.
     /// PIN: Reach + sight splice into the last sentence (children, not siblings).
-    static let seerRetrieval = PromptSection(
-        id: .seerRetrieval,
+    static let sewnRetrieval = PromptSection(
+        id: .sewnRetrieval,
         rationale: "Memory is the past. Reach + sight splice into the last sentence."
     ) { _ in
         let reach = " " + """
@@ -258,8 +258,8 @@ extension PromptCatalog {
 
     /// Look in flight, or World already holds a highlight this question is about.
     /// Empty when neither is true (golden-byte identical).
-    static let seerSightPending = PromptSection(
-        id: .seerSightPending,
+    static let sewnSightPending = PromptSection(
+        id: .sewnSightPending,
         rationale: "Look in flight or World-inspired — promise it, never deny sight."
     ) { inputs in
         if inputs.lookUnderway {
@@ -284,8 +284,8 @@ extension PromptCatalog {
     /// One authority block. Internal order is the ranking:
     ///   liveWork → heldFacts → readPassages (last word)
     /// PIN: Terminal — nothing may follow or the model reads it as document.
-    static let seerLiveWork = PromptSection(
-        id: .seerLiveWork,
+    static let sewnLiveWork = PromptSection(
+        id: .sewnLiveWork,
         rationale: "On-screen, then held, then this turn's read. Lands last.",
         ordering: .last
     ) { inputs in

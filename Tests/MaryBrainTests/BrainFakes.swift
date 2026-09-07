@@ -2,16 +2,16 @@
 //  BrainFakes.swift
 //  MaryBrainTests
 //
-//  WHAT: Scripted engine / Seer / dispatcher shared by turn-loop suites.
-//  OUT:  ScriptedEngine, ScriptedSeer, table dispatcher
+//  WHAT: Scripted engine / Sewn / dispatcher shared by turn-loop suites.
+//  OUT:  ScriptedEngine, ScriptedSewn, table dispatcher
 //
 
 //
 //  BrainFakes.swift
 //  MaryBrainTests
 //
-//  WHAT: Scripted engine / Seer / dispatcher shared by turn-loop suites.
-//  OUT:  ScriptedEngine, ScriptedSeer, table dispatcher
+//  WHAT: Scripted engine / Sewn / dispatcher shared by turn-loop suites.
+//  OUT:  ScriptedEngine, ScriptedSewn, table dispatcher
 //
 
 import Foundation
@@ -22,9 +22,9 @@ import MaryFoundation
 @testable import MaryBrain
 
 enum BrainFakes {
-    final class ScriptedSeer: SeerChatProviding, @unchecked Sendable {
+    final class ScriptedSewn: SewnChatProviding, @unchecked Sendable {
         struct Script {
-            var events: [SeerChatEvent] = []
+            var events: [SewnChatEvent] = []
             var error: Error?
             /// Yield events, then stay open until cancelled (barge-in tests).
             var hangAtEnd = false
@@ -33,7 +33,7 @@ enum BrainFakes {
         private let lock = NSLock()
         var ready = true
         private var scripts: [Script]
-        private(set) var calls: [(messages: [SeerChatMessage], instructions: String?)] = []
+        private(set) var calls: [(messages: [SewnChatMessage], instructions: String?)] = []
 
         init(scripts: [Script]) {
             self.scripts = scripts
@@ -43,7 +43,7 @@ enum BrainFakes {
         /// `calls`: a detached routine can still be appending when an
         /// assertion runs, and an unguarded read of live storage tears count
         /// against buffer (the suite's old signal-5 crash).
-        func callsSnapshot() -> [(messages: [SeerChatMessage], instructions: String?)] {
+        func callsSnapshot() -> [(messages: [SewnChatMessage], instructions: String?)] {
             lock.lock(); defer { lock.unlock() }
             return calls
         }
@@ -52,8 +52,8 @@ enum BrainFakes {
         func ownerID() async -> String? { "owner-test" }
 
         func stream(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+            messages: [SewnChatMessage], instructions: String?
+        ) -> AsyncThrowingStream<SewnChatEvent, Error> {
             lock.lock()
             calls.append((messages, instructions))
             let script = scripts.isEmpty ? Script() : scripts.removeFirst()
@@ -89,13 +89,13 @@ enum BrainFakes {
             self.rounds = rounds
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func requestsSnapshot() -> [(historyRoles: [BrainTurn.Role], system: String)] {
             lock.lock(); defer { lock.unlock() }
             return requests
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func historyTextsSnapshot() -> [[String]] {
             lock.lock(); defer { lock.unlock() }
             return historyTexts
@@ -122,7 +122,7 @@ enum BrainFakes {
         private let lock = NSLock()
         private(set) var dispatched: [String] = []
         var results: [String: String] = [:]
-        /// Tools the brain should treat as read-only (skipped from the Totem
+        /// Tools the brain should treat as read-only (skipped from the Thread
         /// deposit). Configured before a turn; read under the lock.
         var readOnlyTools: Set<String> = []
         /// Tools whose outcome is a fire-and-forget ack (deferred), also
@@ -187,13 +187,13 @@ enum BrainFakes {
             return pending
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func dispatchedSnapshot() -> [String] {
             lock.lock(); defer { lock.unlock() }
             return dispatched
         }
 
-        /// Lock-guarded value copy — see `ScriptedSeer.callsSnapshot`.
+        /// Lock-guarded value copy — see `ScriptedSewn.callsSnapshot`.
         func armedDesignSurfaceApplicationsSnapshot() -> [String] {
             lock.lock(); defer { lock.unlock() }
             return armedDesignSurfaceApplications
@@ -280,7 +280,7 @@ enum BrainFakes {
                 asksThePerson: asking,
                 landed: landed)
             guard let snapshotOverride else { return outcome }
-            return AbilityRuntime.applyingTotemArchivePolicy(
+            return AbilityRuntime.applyingThreadArchivePolicy(
                 outcome,
                 reference: snapshotOverride.reference(forInvocation: name),
                 snapshot: snapshotOverride)

@@ -1,0 +1,467 @@
+//
+//  SewnWire.swift
+//  MaryBrain
+//
+//  WHAT: Wire types for Sewn's HTTP API — auth and chat completions.
+//  IN:   Sewn clients
+//  OUT:  snake_case decode; SSE `data: {…}` + trailing contribution
+//  PIN:  `data: [DONE]` terminates.
+//
+import Foundation
+import MaryPlugin
+
+enum SewnWire {
+
+    // MARK: - Auth
+
+    struct SignInRequest: Encodable {
+        var email: String
+        var password: String
+    }
+
+    struct RefreshRequest: Encodable {
+        var refreshToken: String
+
+        enum CodingKeys: String, CodingKey {
+            case refreshToken = "refresh_token"
+        }
+    }
+
+    struct SessionResponse: Decodable {
+        var accessToken: String
+        var refreshToken: String
+        var expiresIn: Double
+        var userID: String
+
+        enum CodingKeys: String, CodingKey {
+            case accessToken = "access_token"
+            case refreshToken = "refresh_token"
+            case expiresIn = "expires_in"
+            case userID = "user_id"
+        }
+    }
+
+    // MARK: - Chat request
+
+    struct ChatRequest: Encodable {
+        var messages: [SewnChatMessage]
+        /// nil = Sewn's default chat model (Inkling). A per-install override
+        /// is the user's lever on thinking-model TTFT.
+        var model: String?
+        var maxTokens = 1200
+        var temperature = 0.4
+        var topP = 0.9
+        var stream = true
+        var stop = ["###", "END"]
+        var repetitionPenalty = 1.1
+        var repetitionContextSize = 20
+        var instructions: String?
+        /// Identifies Mary to Sewn: the server switches retrieved context to SUPPORT framing (background for the current request
+        var client = "mary"
+        /// WHICH BACKEND SEWN USES for this turn. Nil = Sewn's own default.
+        var provider: LLMEngineChoice?
+        /// Who she is on this request. Sewn's prompt otherwise says
+        /// "Your name is Sewn". Rides both transports — the realtime
+        /// turn.start wraps this same request.
+        var persona = Persona.mary
+        var sewn: SewnScope
+
+        enum CodingKeys: String, CodingKey {
+            case messages, model, temperature, stream, stop, instructions, sewn, client, persona, provider
+            case maxTokens = "max_tokens"
+            case topP = "top_p"
+            case repetitionPenalty = "repetition_penalty"
+            case repetitionContextSize = "repetition_context_size"
+        }
+    }
+
+    /// Mary's identity for Sewn's personality section — the only place the voice lane states who she is.
+    struct Persona: Encodable, Equatable {
+        var name: String
+        var voice: String
+
+        static let mary = Persona(
+            name: "Mary",
+            voice: """
+            You are Mary — that is your name; always identify as Mary, never \
+            any other assistant name. You are a voice assistant living on the \
+            user's Mac: a warm, knowledgeable sibling and good company first, \
+            who can also act — not a read-only chat. Match their register: \
+            when they are chatting, talk back; a question back is company. \
+            If they asked for something, name the heading in one beat and \
+            keep talking — never "opening that", "adding that now", or any \
+            result you have not been given; another pass will close.
+            """
+        )
+    }
+
+    /// The `sewn` object steering RAG. `owner_id` is overridden server-side by the JWT for non-admin routes; sent anyway to match Sis.
+    /// `groups` + `aggregate` are the whole of client-side scoping, and the server already honors both
+    struct SewnScope: Encodable {
+        var ownerID: String
+        var scope = "personal"
+        /// Was hardcoded `true`. Kept as the default so an unscoped turn is byte-identical to before
+        var aggregate = true
+        /// Nil-omitted; nil = no group filter (today's shape exactly).
+        var groups: [SewnGroupRef]?
+        var entities: [String]? = nil
+        var personalThreadID: String?
+        var requestID: String
+
+        enum CodingKeys: String, CodingKey {
+            case scope, aggregate, groups, entities
+            case ownerID = "owner_id"
+            case personalThreadID = "personal_thread_id"
+            case requestID = "request_id"
+        }
+    }
+
+    /// The minimum `Sewn.Group` the server will decode: `id`, `label` and `owner_id` are `decode` (required)
+    struct SewnGroupRef: Encodable, Equatable {
+        var id: String
+        var label: String
+        var ownerID: String
+
+        enum CodingKeys: String, CodingKey {
+            case id, label
+            case ownerID = "owner_id"
+        }
+    }
+
+    // MARK: - Scope construction
+
+    /// ONE builder for BOTH transports. The realtime route wraps the identical `ChatRequest`
+    static func scope(
+        ownerID: String,
+        personalThreadID: String?,
+        retrieval: RetrievalScope
+    ) -> SewnScope {
+        SewnScope(
+            ownerID: ownerID,
+            aggregate: retrieval.aggregate,
+            groups: retrieval.groups.isEmpty ? nil : retrieval.groups.map {
+                SewnGroupRef(id: $0.id, label: $0.label, ownerID: ownerID)
+            },
+            entities: retrieval.relationshipHints.isEmpty ? nil : retrieval.relationshipHints,
+            personalThreadID: personalThreadID,
+            requestID: UUID().uuidString.lowercased()
+        )
+    }
+
+    // MARK: - Chat stream chunk
+
+    struct StreamChunk: Decodable {
+        var choices: [StreamChoice]
+        var contribution: SewnContribution?
+        var autoMemory: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case choices, contribution
+            case autoMemory = "auto_memory"
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            choices = try container.decodeIfPresent([StreamChoice].self, forKey: .choices) ?? []
+            contribution = try container.decodeIfPresent(SewnContribution.self, forKey: .contribution)
+            autoMemory = try container.decodeIfPresent(Bool.self, forKey: .autoMemory) ?? false
+        }
+    }
+
+    struct StreamChoice: Decodable {
+        var delta: Delta
+
+        enum CodingKeys: String, CodingKey {
+            case delta
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            delta = try container.decodeIfPresent(Delta.self, forKey: .delta) ?? Delta()
+        }
+    }
+
+    struct Delta: Decodable {
+        var role: String?
+        var content: String?
+
+        init(role: String? = nil, content: String? = nil) {
+            self.role = role
+            self.content = content
+        }
+    }
+
+    // MARK: - Vision look
+
+    /// Mirrors Sewn's `VisionLookRequest` (Sources/API/Routes/VisionLook.swift):
+    /// one ephemeral image, base64 in JSON, described in one bounded answer.
+    struct VisionLookRequest: Encodable {
+        var image: String
+        var mediaType: String
+        var mode: String
+        var pageTitle: String?
+        var pageText: String?
+        var direction: String?
+
+        enum CodingKeys: String, CodingKey {
+            case image, mode, direction
+            case mediaType = "media_type"
+            case pageTitle = "page_title"
+            case pageText = "page_text"
+        }
+    }
+
+    struct VisionLookResponse: Decodable {
+        var text: String
+    }
+
+    // MARK: - Complete
+
+    /// Mirrors Sewn's `EmbedVectorsRequest` (Sources/API/Routes/EmbedVectors.swift).
+    /// `/v1/embed` RETURNS vectors; `/v1/embeddings` stores documents and
+    /// answers `{success}` — they are different routes on purpose.
+    struct EmbedRequest: Encodable {
+        var inputs: [String]
+        var model: String?
+    }
+
+    struct EmbedResponse: Decodable {
+        var model: String
+        var dimensions: Int
+        var data: [EmbedVector]
+
+        struct EmbedVector: Decodable {
+            var index: Int
+            var embedding: [Float]
+        }
+    }
+
+    /// Mirrors Sewn's `CompleteRequest` (Sources/API/Routes/Complete.swift):
+    /// one bounded generation, no `sewn` scope, no streaming.
+    struct CompleteRequest: Encodable {
+        var instructions: String?
+        var messages: [SewnChatMessage]
+        var maxTokens: Int?
+        var temperature: Float?
+        /// Which backend answers. Nil = Sewn's default.
+        var provider: LLMEngineChoice?
+
+        enum CodingKeys: String, CodingKey {
+            case instructions, messages, temperature, provider
+            case maxTokens = "max_tokens"
+        }
+    }
+
+    struct CompleteResponse: Decodable {
+        var text: String
+
+        enum CodingKeys: String, CodingKey {
+            case text, output, completion, content, choices
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            if let text = Self.firstNonEmpty(
+                try values.decodeIfPresent(String.self, forKey: .text),
+                try values.decodeIfPresent(String.self, forKey: .output),
+                try values.decodeIfPresent(String.self, forKey: .completion),
+                try values.decodeIfPresent(String.self, forKey: .content)
+            ) {
+                self.text = text
+                return
+            }
+            if let choices = try values.decodeIfPresent([Choice].self, forKey: .choices),
+               let text = choices.lazy.compactMap(\.text).first(where: { !$0.isEmpty }) {
+                self.text = text
+                return
+            }
+            self.text = ""
+        }
+
+        private struct Choice: Decodable {
+            var text: String?
+
+            enum CodingKeys: String, CodingKey {
+                case text, message
+            }
+
+            init(from decoder: Decoder) throws {
+                let values = try decoder.container(keyedBy: CodingKeys.self)
+                if let text = try values.decodeIfPresent(String.self, forKey: .text),
+                   !text.isEmpty {
+                    self.text = text
+                    return
+                }
+                if let message = try values.decodeIfPresent(Message.self, forKey: .message),
+                   let content = message.content, !content.isEmpty {
+                    self.text = content
+                    return
+                }
+                self.text = nil
+            }
+
+            struct Message: Decodable {
+                var content: String?
+            }
+        }
+
+        private static func firstNonEmpty(_ candidates: String?...) -> String? {
+            for candidate in candidates {
+                let value = candidate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !value.isEmpty { return value }
+            }
+            return nil
+        }
+    }
+
+    // MARK: - Skills complete
+
+    /// Mirrors Sewn's `SkillsCompleteRequest` — one bounded generation with
+    /// a tool roster, no `sewn` scope, no streaming, roles preserved.
+    struct SkillsCompleteRequest: Encodable {
+        var instructions: String?
+        var messages: [SewnChatMessage]
+        var tools: [SkillTool]?
+        var maxTokens: Int?
+        var temperature: Float?
+        /// Which backend synthesizes the invocation. Nil = Sewn's default.
+        var provider: LLMEngineChoice?
+
+        enum CodingKeys: String, CodingKey {
+            case instructions, messages, tools, temperature, provider
+            case maxTokens = "max_tokens"
+        }
+    }
+
+    struct SkillTool: Encodable {
+        var type = "function"
+        var function: SkillFunction
+
+        static func from(_ schema: ModelSkillSchema) -> SkillTool {
+            var properties: [String: SkillProperty] = [:]
+            var required: [String] = []
+            for parameter in schema.parameters {
+                properties[parameter.name] = SkillProperty(
+                    type: parameter.type,
+                    description: parameter.description,
+                    enumValues: parameter.enumValues,
+                    minimum: parameter.minimum,
+                    maximum: parameter.maximum)
+                if parameter.required { required.append(parameter.name) }
+            }
+            return SkillTool(function: SkillFunction(
+                name: schema.name,
+                description: schema.description,
+                parameters: SkillParameters(properties: properties, required: required)))
+        }
+    }
+
+    struct SkillFunction: Encodable {
+        var name: String
+        var description: String
+        var parameters: SkillParameters
+    }
+
+    struct SkillParameters: Encodable {
+        var type = "object"
+        var properties: [String: SkillProperty]
+        var required: [String]
+    }
+
+    struct SkillProperty: Encodable {
+        var type: String
+        var description: String
+        var enumValues: [String]?
+        var minimum: Double?
+        var maximum: Double?
+
+        enum CodingKeys: String, CodingKey {
+            case type, description, minimum, maximum
+            case enumValues = "enum"
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(type, forKey: .type)
+            try container.encode(description, forKey: .description)
+            if let enumValues { try container.encode(enumValues, forKey: .enumValues) }
+            if let minimum { try container.encode(minimum, forKey: .minimum) }
+            if let maximum { try container.encode(maximum, forKey: .maximum) }
+        }
+    }
+
+    struct SkillsCompleteResponse: Decodable {
+        var text: String
+        var toolCalls: [SkillToolCall]
+
+        enum CodingKeys: String, CodingKey {
+            case text, toolCalls = "tool_calls"
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            text = try values.decodeIfPresent(String.self, forKey: .text) ?? ""
+            toolCalls = try values.decodeIfPresent([SkillToolCall].self, forKey: .toolCalls) ?? []
+        }
+    }
+
+    struct SkillToolCall: Decodable {
+        var name: String
+        var arguments: String
+
+        enum CodingKeys: String, CodingKey {
+            case name, arguments
+        }
+
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            name = try values.decode(String.self, forKey: .name)
+            if let text = try? values.decode(String.self, forKey: .arguments) {
+                arguments = text
+            } else if let object = try? values.decode([String: SewnJSONValue].self, forKey: .arguments),
+                      let data = try? JSONEncoder().encode(object),
+                      let text = String(data: data, encoding: .utf8) {
+                arguments = text
+            } else {
+                arguments = "{}"
+            }
+        }
+    }
+
+    /// Tiny JSON tree so tool-call `arguments` may arrive as an object.
+    enum SewnJSONValue: Codable {
+        case string(String)
+        case number(Double)
+        case bool(Bool)
+        case object([String: SewnJSONValue])
+        case array([SewnJSONValue])
+        case null
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            if c.decodeNil() { self = .null }
+            else if let b = try? c.decode(Bool.self) { self = .bool(b) }
+            else if let n = try? c.decode(Double.self) { self = .number(n) }
+            else if let s = try? c.decode(String.self) { self = .string(s) }
+            else if let a = try? c.decode([SewnJSONValue].self) { self = .array(a) }
+            else if let o = try? c.decode([String: SewnJSONValue].self) { self = .object(o) }
+            else {
+                throw DecodingError.typeMismatch(
+                    SewnJSONValue.self,
+                    .init(codingPath: decoder.codingPath, debugDescription: "Unsupported JSON"))
+            }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.singleValueContainer()
+            switch self {
+            case .string(let s): try c.encode(s)
+            case .number(let n): try c.encode(n)
+            case .bool(let b): try c.encode(b)
+            case .object(let o): try c.encode(o)
+            case .array(let a): try c.encode(a)
+            case .null: try c.encodeNil()
+            }
+        }
+    }
+}

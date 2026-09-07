@@ -49,7 +49,7 @@ public struct SkillOutcome: Sendable {
     /// Spoken back via the confirmation round.
     public var summary: String
     /// `summary` is a fire-and-forget ack; the real result lands later.
-    /// PIN: brain will not archive a deferred ack into Totem.
+    /// PIN: brain will not archive a deferred ack into Thread.
     public var deferred: Bool
     /// Binding's memory declaration. Default `.episodic`.
     public var archivePolicy: ArchivePolicy

@@ -2,9 +2,9 @@
 //  EngineChoiceTests.swift
 //  MaryRuntimeTests
 //
-//  WHAT: The three-way backend choice — its wire contract with Seer, its
+//  WHAT: The three-way backend choice — its wire contract with Sewn, its
 //        tolerance of a config written before the split, and the rule that
-//        every lane rides Seer.
+//        every lane rides Sewn.
 //  OUT:  LLMEngineChoice / applyEngine
 //
 
@@ -17,9 +17,9 @@ import MaryBrain
 
     // MARK: - The wire
 
-    /// These strings ARE the contract with Seer's `LLMProvider`. A rename on
+    /// These strings ARE the contract with Sewn's `LLMProvider`. A rename on
     /// either side silently reroutes every turn, so both sides pin them.
-    @Test func rawValuesMatchSeersProviderEnum() {
+    @Test func rawValuesMatchSewnsProviderEnum() {
         #expect(LLMEngineChoice.mistral.rawValue == "mistral")
         #expect(LLMEngineChoice.local.rawValue == "local")
         #expect(LLMEngineChoice.tinker.rawValue == "tinker")
@@ -28,8 +28,8 @@ import MaryBrain
 
     // MARK: - The rule
 
-    /// EVERY LANE RIDES SEER NOW. The choice says which backend Seer uses; it
-    /// never decides whether Seer is used, because there is no second engine
+    /// EVERY LANE RIDES SEWN NOW. The choice says which backend Sewn uses; it
+    /// never decides whether Sewn is used, because there is no second engine
     /// in this process any more.
     @Test(arguments: [
         (LLMEngineChoice.mistral, true, true),
@@ -39,21 +39,21 @@ import MaryBrain
         (LLMEngineChoice.tinker, true, true),
         (LLMEngineChoice.tinker, false, false),
     ])
-    func onlyTheServerToggleDecidesWhetherSeerCarriesTheTurn(
-        _ engine: LLMEngineChoice, _ seerEnabled: Bool, _ expected: Bool
+    func onlyTheServerToggleDecidesWhetherSewnCarriesTheTurn(
+        _ engine: LLMEngineChoice, _ sewnEnabled: Bool, _ expected: Bool
     ) {
         #expect(
-            MaryRuntime.seerCarriesTurns(engine: engine, seerEnabled: seerEnabled) == expected)
+            MaryRuntime.sewnCarriesTurns(engine: engine, sewnEnabled: sewnEnabled) == expected)
         #expect(
-            MaryRuntime.seerCarriesSkills(engine: engine, seerEnabled: seerEnabled) == expected)
+            MaryRuntime.sewnCarriesSkills(engine: engine, sewnEnabled: sewnEnabled) == expected)
         #expect(
-            MaryRuntime.seerCarriesCoding(engine: engine, seerEnabled: seerEnabled) == expected)
+            MaryRuntime.sewnCarriesCoding(engine: engine, sewnEnabled: sewnEnabled) == expected)
     }
 
-    /// On-device is a Seer backend, not a bypass: choosing it must still leave
+    /// On-device is a Sewn backend, not a bypass: choosing it must still leave
     /// the turn on the server, which is the whole point of the move.
-    @Test func choosingOnDeviceStillGoesThroughSeer() {
-        #expect(MaryRuntime.seerCarriesTurns(engine: .local, seerEnabled: true))
+    @Test func choosingOnDeviceStillGoesThroughSewn() {
+        #expect(MaryRuntime.sewnCarriesTurns(engine: .local, sewnEnabled: true))
         #expect(LLMEngineChoice.local.isOnDevice)
         #expect(!LLMEngineChoice.mistral.isOnDevice)
     }
@@ -65,7 +65,7 @@ import MaryBrain
         #expect(state.llmEngine == .mistral)
         #expect(state.skillEngine == .mistral)
         #expect(state.codingEngine == .mistral)
-        #expect(state.seerEnabled)
+        #expect(state.sewnEnabled)
         #expect(state.codingAgentEnabled == false)
     }
 
@@ -85,16 +85,16 @@ import MaryBrain
     @Test func theOldHostedValueBecomesMistralWithoutLosingTheRest() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self,
-            from: Data(#"{"llmEngine":"hosted","skillEngine":"hosted","codingEngine":"hosted","voice":"af_bella","seerPort":9999}"#.utf8))
+            from: Data(#"{"llmEngine":"hosted","skillEngine":"hosted","codingEngine":"hosted","voice":"af_bella","sewnPort":9999}"#.utf8))
         #expect(restored.llmEngine == .mistral)
         #expect(restored.skillEngine == .mistral)
         #expect(restored.codingEngine == .mistral)
         // The rest of the file survived, which is what the tolerance is for.
         #expect(restored.voice == "af_bella")
-        #expect(restored.seerPort == 9999)
+        #expect(restored.sewnPort == 9999)
     }
 
-    /// The pre-split on-device value keeps its meaning — it now names Seer's
+    /// The pre-split on-device value keeps its meaning — it now names Sewn's
     /// on-device backend rather than an in-process one.
     @Test func theOldLocalValueStillMeansOnDevice() throws {
         let restored = try JSONDecoder().decode(
@@ -107,9 +107,9 @@ import MaryBrain
     @Test func anUnknownBackendFallsBackRatherThanDiscardingTheConfig() throws {
         let restored = try JSONDecoder().decode(
             ConfigService.Center.State.self,
-            from: Data(#"{"llmEngine":"gemini","seerPort":8123}"#.utf8))
+            from: Data(#"{"llmEngine":"gemini","sewnPort":8123}"#.utf8))
         #expect(restored.llmEngine == .mistral)
-        #expect(restored.seerPort == 8123)
+        #expect(restored.sewnPort == 8123)
     }
 
     @Test func anExplicitChoiceSurvivesRestore() throws {

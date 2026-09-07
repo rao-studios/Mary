@@ -4,7 +4,7 @@
 //
 //  WHAT: Portable `.marystyle` envelope — versioned JSON, digest, optional signature.
 //  IN:   StyleProfileCodec. OUT: StyleTenet list, StyleRendering.
-//  PIN:  No credentials, Interactions, Totem, source, closures, adapters.
+//  PIN:  No credentials, Interactions, Thread, source, closures, adapters.
 //        Signature ≠ speak permission; StyleProvenance does.
 //
 

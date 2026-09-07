@@ -16,13 +16,13 @@ import MaryFoundationTestSupport
 @Suite struct OwnActCollectorTests {
 
     /// Nil outside any bound scope — the Life pulse's own dispatches (see
-    /// `AbilityDispatching.perform`) never nest inside `seerTurn`, so this is
+    /// `AbilityDispatching.perform`) never nest inside `sewnTurn`, so this is
     /// the exact condition that makes their `.append` calls silent no-ops.
     @Test func currentIsNilOutsideABoundScope() {
         #expect(OwnActCollector.current == nil)
     }
 
-    /// Bound around an `await`, the same shape `seerTurn` uses to wrap each
+    /// Bound around an `await`, the same shape `sewnTurn` uses to wrap each
     /// fetch-first call — the task-local must survive the suspension.
     @Test func currentResolvesInsideItsBoundScopeAcrossASuspension() async {
         let collector = OwnActCollector()

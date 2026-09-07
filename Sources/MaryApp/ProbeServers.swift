@@ -28,25 +28,25 @@ enum ProbeServers {
         let stopOnly = CommandLine.arguments.contains("--stop")
 
         let manager = LocalStackManager()
-        let nodeID = TotemNodeIdentity.adoptOrMint(configured: "")
-        print("totem node-id: \(nodeID)")
+        let nodeID = ThreadNodeIdentity.adoptOrMint(configured: "")
+        print("thread node-id: \(nodeID)")
         await manager.configure([
-            .seer(
-                checkoutPath: ServerSpec.Defaults.seerCheckoutPath,
-                port: ServerSpec.Defaults.seerPort,
-                grpcPort: ServerSpec.Defaults.seerGRPCPort),
-            .totem(
-                checkoutPath: ServerSpec.Defaults.totemCheckoutPath,
-                port: ServerSpec.Defaults.totemPort,
-                grpcPort: ServerSpec.Defaults.totemGRPCPort,
-                mothershipGRPCPort: ServerSpec.Defaults.seerGRPCPort,
+            .sewn(
+                checkoutPath: ServerSpec.Defaults.sewnCheckoutPath,
+                port: ServerSpec.Defaults.sewnPort,
+                grpcPort: ServerSpec.Defaults.sewnGRPCPort),
+            .thread(
+                checkoutPath: ServerSpec.Defaults.threadCheckoutPath,
+                port: ServerSpec.Defaults.threadPort,
+                grpcPort: ServerSpec.Defaults.threadGRPCPort,
+                mothershipGRPCPort: ServerSpec.Defaults.sewnGRPCPort,
                 nodeID: nodeID,
-                graphBackend: ServerSpec.Defaults.totemGraphBackend),
+                graphBackend: ServerSpec.Defaults.threadGraphBackend),
             .fleet(
                 checkoutPath: ServerSpec.Defaults.fleetCheckoutPath,
                 port: ServerSpec.Defaults.fleetPort,
                 grpcPort: ServerSpec.Defaults.fleetGRPCPort,
-                totemGRPCPort: ServerSpec.Defaults.totemGRPCPort),
+                threadGRPCPort: ServerSpec.Defaults.threadGRPCPort),
         ])
 
         if stopOnly {

@@ -4,7 +4,7 @@
 //
 //  WHAT: One turn — query + injected AmbientCapture + action sequence.
 //  IN:   user-turn UUID (episode id); priorEpisodeID chains history.
-//  OUT:  BehavioralCodec, LifeTrainPolicy, Totem.
+//  OUT:  BehavioralCodec, LifeTrainPolicy, Thread.
 //  PIN:  Seal with a reason; never drop superseded turns here. Filter at train time.
 //        Synthesized Codable — see BehavioralAction.
 //
@@ -133,8 +133,8 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
     public var input: BehavioralInput
     public var output: BehavioralOutput
     public var provenance: EpisodeProvenance
-    /// Totem groups. Empty = no Ability write, no Personal stub.
-    public var abilityTargets: [AbilityTotemTarget]
+    /// Thread groups. Empty = no Ability write, no Personal stub.
+    public var abilityTargets: [AbilityThreadTarget]
 
     public init(
         id: UUID,
@@ -144,7 +144,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
         input: BehavioralInput,
         output: BehavioralOutput = .init(),
         provenance: EpisodeProvenance,
-        abilityTargets: [AbilityTotemTarget] = []
+        abilityTargets: [AbilityThreadTarget] = []
     ) {
         self.schema = Self.schemaName
         self.schemaVersion = Self.currentSchemaVersion
@@ -192,7 +192,7 @@ public struct BehavioralEpisode: Codable, Hashable, Sendable, Identifiable {
             EpisodeProvenance.self, forKey: .provenance)
             ?? .init(engine: "", lane: "", appVersion: "")
         abilityTargets = try values.decodeIfPresent(
-            [AbilityTotemTarget].self, forKey: .abilityTargets) ?? []
+            [AbilityThreadTarget].self, forKey: .abilityTargets) ?? []
     }
 }
 

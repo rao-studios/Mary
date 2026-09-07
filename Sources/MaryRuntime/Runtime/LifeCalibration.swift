@@ -3,7 +3,7 @@
 //  MaryRuntime
 //
 //  WHAT: Snapshot the Life sheet polls — one row per installed discipline.
-//  IN:   in-memory boxes (episodes, Fleet slots, train ticks). No Fleet/Totem dial.
+//  IN:   in-memory boxes (episodes, Fleet slots, train ticks). No Fleet/Thread dial.
 //  OUT:  LifeCalibrationSnapshot → Life sheet
 //  PIN:  Episode cache refresh: Life-loop start, Ability deposit, sheet open.
 //
@@ -12,7 +12,7 @@ import Foundation
 import MaryBrain
 import MaryFoundation
 
-/// One streamed train event, stripped of MaryTotem so the app never names Fleet.
+/// One streamed train event, stripped of MaryThread so the app never names Fleet.
 package struct LifeTrainTick: Sendable, Equatable {
     package var stage: String
     package var iteration: Int

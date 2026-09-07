@@ -38,7 +38,7 @@ import Testing
 
     /// A duplicate closed category is meaningless rather than dangerous, but
     /// the validator flags it the same way it flags every other duplicate
-    /// closed-vocabulary array (skills, totemProjections, postconditions).
+    /// closed-vocabulary array (skills, threadProjections, postconditions).
     @Test func duplicateGuardrailCategoriesAreFlagged() {
         var package = PackageFixtures.applicationExpertise
         package.ability.operatingPolicy.guardrailCategories = [.domainMismatch, .domainMismatch]

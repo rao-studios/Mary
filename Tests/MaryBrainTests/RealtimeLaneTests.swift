@@ -18,9 +18,9 @@ import Testing
 
     // MARK: - Scripted collaborators
 
-    final class ScriptedRealtime: SeerRealtimeProviding, @unchecked Sendable {
+    final class ScriptedRealtime: SewnRealtimeProviding, @unchecked Sendable {
         struct Script {
-            var events: [SeerChatEvent] = []
+            var events: [SewnChatEvent] = []
             var error: Error?
         }
 
@@ -36,8 +36,8 @@ import Testing
         func isReady() async -> Bool { ready }
 
         func streamTurn(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+            messages: [SewnChatMessage], instructions: String?
+        ) -> AsyncThrowingStream<SewnChatEvent, Error> {
             lock.lock()
             calls += 1
             let script = scripts.isEmpty ? Script() : scripts.removeFirst()
@@ -53,12 +53,12 @@ import Testing
         }
     }
 
-    final class ScriptedSeer: SeerChatProviding, @unchecked Sendable {
+    final class ScriptedSewn: SewnChatProviding, @unchecked Sendable {
         private let lock = NSLock()
-        private var scripts: [[SeerChatEvent]]
+        private var scripts: [[SewnChatEvent]]
         private(set) var calls = 0
 
-        init(scripts: [[SeerChatEvent]]) {
+        init(scripts: [[SewnChatEvent]]) {
             self.scripts = scripts
         }
 
@@ -66,8 +66,8 @@ import Testing
         func ownerID() async -> String? { "owner-test" }
 
         func stream(
-            messages: [SeerChatMessage], instructions: String?
-        ) -> AsyncThrowingStream<SeerChatEvent, Error> {
+            messages: [SewnChatMessage], instructions: String?
+        ) -> AsyncThrowingStream<SewnChatEvent, Error> {
             lock.lock()
             calls += 1
             let script = scripts.isEmpty ? [] : scripts.removeFirst()
@@ -95,12 +95,12 @@ import Testing
 
     private func makeBrain(
         realtime: ScriptedRealtime?,
-        classic: ScriptedSeer
+        classic: ScriptedSewn
     ) async -> MaryBrain {
         let brain = MaryBrain(engine: NoopEngine())
-        await brain.setSeerChat(classic)
+        await brain.setSewnChat(classic)
         if let realtime {
-            await brain.setSeerRealtime(realtime)
+            await brain.setSewnRealtime(realtime)
         }
         return brain
     }
@@ -157,7 +157,7 @@ import Testing
             .phase("grounded"),
             .token("Grounded rest."),
         ])])
-        let classic = ScriptedSeer(scripts: [])
+        let classic = ScriptedSewn(scripts: [])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")
@@ -180,7 +180,7 @@ import Testing
 
     @Test func preStreamFailureFallsBackToClassicWithNoMarkers() async throws {
         let realtime = ScriptedRealtime(scripts: [.init(error: TestError())])
-        let classic = ScriptedSeer(scripts: [[.token("Classic reply.")]])
+        let classic = ScriptedSewn(scripts: [[.token("Classic reply.")]])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")
@@ -196,7 +196,7 @@ import Testing
     @Test func notReadyRealtimeUsesClassicWithoutCalling() async throws {
         let realtime = ScriptedRealtime(scripts: [])
         realtime.ready = false
-        let classic = ScriptedSeer(scripts: [[.token("Classic reply.")]])
+        let classic = ScriptedSewn(scripts: [[.token("Classic reply.")]])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")
@@ -212,7 +212,7 @@ import Testing
             events: [.token("Partial thought")],
             error: TestError()
         )])
-        let classic = ScriptedSeer(scripts: [])
+        let classic = ScriptedSewn(scripts: [])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")
@@ -222,7 +222,7 @@ import Testing
         let localIdx = try #require(sig.firstIndex(of: "source:local"))
         let full = try #require(fullText(events))
         #expect(full.hasPrefix("Partial thought"))
-        #expect(full.contains("the Seer connection dropped"))
+        #expect(full.contains("the Sewn connection dropped"))
         let noticeTokenIdx = try #require(events.indices.last { index in
             if case .token(let text) = events[index] { return text.contains("connection dropped") }
             return false
@@ -240,7 +240,7 @@ import Testing
             .ttsFailed,
             .token("Locally-voiced rest."),
         ])])
-        let classic = ScriptedSeer(scripts: [])
+        let classic = ScriptedSewn(scripts: [])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")
@@ -258,14 +258,14 @@ import Testing
     // MARK: - Contribution and auto-memory ride through unchanged
 
     @Test func contributionAndAutoMemoryForwardedFromRealtimeLane() async throws {
-        let contribution = SeerContribution(
-            owners: [.init(totemID: "t1", ownerID: "o1", spans: [.init(lower: 0, upper: 4)])])
+        let contribution = SewnContribution(
+            owners: [.init(threadID: "t1", ownerID: "o1", spans: [.init(lower: 0, upper: 4)])])
         let realtime = ScriptedRealtime(scripts: [.init(events: [
             .token("Reply."),
             .contribution(contribution),
             .autoMemory(true),
         ])])
-        let classic = ScriptedSeer(scripts: [])
+        let classic = ScriptedSewn(scripts: [])
         let brain = await makeBrain(realtime: realtime, classic: classic)
 
         let events = try await collect(brain, "hello")

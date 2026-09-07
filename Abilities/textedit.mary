@@ -59,11 +59,11 @@
 
     ],
     "summary" : "TextEdit: quick plain-text and rich-text notes in a single untitled window.",
-    "tint" : "#8ECAE6",
-    "title" : "TextEdit",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#8ECAE6",
+    "title" : "TextEdit",
     "triggers" : {
       "intentAliases" : [
 
@@ -117,7 +117,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "385517164efbed4f16b4e5073a87e27a491bdb61a36ca38825c89e25725988bd"
+    "digest" : "33b135d7ecafa911f9f92efbb8f59b73083a655638f7c9416a3e2a792d018a07"
   },
   "interactions" : [
 
@@ -244,7 +244,7 @@
   "skills" : [
 
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

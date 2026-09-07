@@ -287,9 +287,9 @@ extension AbilityStudioAuthoringDocument {
                     $0 == previous ? next : $0
                 }
         }
-        for projectionIndex in candidate.totemProjections.indices {
-            candidate.totemProjections[projectionIndex].skills =
-                candidate.totemProjections[projectionIndex].skills.map {
+        for projectionIndex in candidate.threadProjections.indices {
+            candidate.threadProjections[projectionIndex].skills =
+                candidate.threadProjections[projectionIndex].skills.map {
                     $0 == previous ? next : $0
                 }
         }
@@ -320,8 +320,8 @@ extension AbilityStudioAuthoringDocument {
                 $0 == skillID
             }
         }
-        for projectionIndex in candidate.totemProjections.indices {
-            candidate.totemProjections[projectionIndex].skills.removeAll {
+        for projectionIndex in candidate.threadProjections.indices {
+            candidate.threadProjections[projectionIndex].skills.removeAll {
                 $0 == skillID
             }
         }

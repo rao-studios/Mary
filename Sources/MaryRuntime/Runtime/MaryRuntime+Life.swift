@@ -13,16 +13,16 @@ import Foundation
 import MaryAmbient
 import MaryBrain
 import MaryFoundation
-import MaryTotem
+import MaryThread
 import os
 
 extension MaryRuntime {
 
     static let lastUserEpisodeAtBox = OSAllocatedUnfairLock<Date?>(initialState: nil)
-    static let totemNodeIDBox = OSAllocatedUnfairLock<String>(initialState: "")
+    static let threadNodeIDBox = OSAllocatedUnfairLock<String>(initialState: "")
     private static let behaviorEpisodesBox =
         OSAllocatedUnfairLock<[BehavioralEpisode]>(initialState: [])
-    /// When the episode cache was last filled from Totem. A full export is
+    /// When the episode cache was last filled from Thread. A full export is
     /// up to fifty pages; doing it twice per sealed turn made the cost of
     /// remembering a turn grow with the number of turns already remembered.
     private static let behaviorExportedAtBox =
@@ -65,7 +65,7 @@ extension MaryRuntime {
         world: LifeWorldProvider(),
         sessionMaker: FleetRemoteAdapterSessionMaker(
             modelID: LifeBaseModel.defaultModelID,
-            totemID: { totemNodeIDBox.withLock { $0 } },
+            threadID: { threadNodeIDBox.withLock { $0 } },
             fleet: { makeFleetClient() }),
         behavior: brainWiring.behavior,
         mode: .off)
@@ -81,7 +81,7 @@ extension MaryRuntime {
     static func startLifeEngine(dispatcher: (any AbilityDispatching)?, mode: LifeMode) async {
         await lifeEngine.setDispatcher(dispatcher)
         await brain.setLifeEngine(lifeEngine)
-        await refreshBehaviorEpisodesFromTotem()
+        await refreshBehaviorEpisodesFromThread()
         await lifeEngine.setMode(mode)
     }
 
@@ -125,14 +125,14 @@ extension MaryRuntime {
         await lifeEngine.noteTrainingChanged()
     }
 
-    /// Cheap overlay flag for the Totems pane.
+    /// Cheap overlay flag for the Threads pane.
     package static func lifeIsTraining() async -> Bool {
         await lifeTrainer.isTraining()
     }
 
     // MARK: - Episodes
 
-    /// Called after a sealed episode is handed to Totem. User turns stamp the
+    /// Called after a sealed episode is handed to Thread. User turns stamp the
     /// quiet clock; every completed discipline episode may trip a train.
     static func noteSealedEpisode(_ episode: BehavioralEpisode) {
         let id = BehavioralAssembler.shortID(episode.id)
@@ -147,32 +147,32 @@ extension MaryRuntime {
 
     static func considerTrain(_ episode: BehavioralEpisode) async {
         let id = BehavioralAssembler.shortID(episode.id)
-        guard let owner = await seerSession.userID else {
+        guard let owner = await sewnSession.userID else {
             BehavioralAssembler.behavioralLog.info(
                 "train skipped \(id, privacy: .public) — unsigned in")
             return
         }
-        let totemID = totemNodeIDBox.withLock { $0 }
-        guard !totemID.isEmpty else {
+        let threadID = threadNodeIDBox.withLock { $0 }
+        guard !threadID.isEmpty else {
             BehavioralAssembler.behavioralLog.info(
-                "train skipped \(id, privacy: .public) — no totem id")
+                "train skipped \(id, privacy: .public) — no thread id")
             return
         }
         await lifeSlots.refresh()
         // The deposit path already refreshed this cache moments ago.
-        await refreshBehaviorEpisodesFromTotem(ifOlderThan: behaviorExportMinimumInterval)
+        await refreshBehaviorEpisodesFromThread(ifOlderThan: behaviorExportMinimumInterval)
         await lifeTrainer.consider(
             episode: episode,
             episodes: behaviorEpisodesBox.withLock { $0 },
             slots: await lifeSlots.lastKnown().slots,
             ownerID: owner,
-            totemID: totemID)
+            threadID: threadID)
     }
 
     /// Pull Ability-lane behavior documents into the calibration cache.
     /// A failed export leaves the previous cache in place.
-    package static func refreshBehaviorEpisodesFromTotem() async {
-        guard let episodes = await totemContext.exportBehaviorEpisodes() else { return }
+    package static func refreshBehaviorEpisodesFromThread() async {
+        guard let episodes = await threadContext.exportBehaviorEpisodes() else { return }
         behaviorEpisodesBox.withLock { $0 = episodes }
         behaviorExportedAtBox.withLock { $0 = Date() }
     }
@@ -180,14 +180,14 @@ extension MaryRuntime {
     /// Refresh only if the cache is stale. Two callers fire on every sealed
     /// episode — the deposit, then the train check — and both want the same
     /// list a second apart.
-    static func refreshBehaviorEpisodesFromTotem(ifOlderThan interval: TimeInterval) async {
+    static func refreshBehaviorEpisodesFromThread(ifOlderThan interval: TimeInterval) async {
         let last = behaviorExportedAtBox.withLock { $0 }
         if let last, Date().timeIntervalSince(last) < interval { return }
-        await refreshBehaviorEpisodesFromTotem()
+        await refreshBehaviorEpisodesFromThread()
     }
 
     package static func behaviorEpisode(id: UUID) async -> BehavioralEpisode? {
-        await totemContext.episode(id: id)
+        await threadContext.episode(id: id)
     }
 
     static func clearBehaviorEpisodeCache() {
@@ -197,9 +197,9 @@ extension MaryRuntime {
 
     // MARK: - Calibration
 
-    /// Join installed disciplines, Totem episode counts, and cached Fleet
-    /// slots. Does not dial Fleet or Totem — call `refreshReadyLoRAs` and
-    /// `refreshBehaviorEpisodesFromTotem` when the sheet opens.
+    /// Join installed disciplines, Thread episode counts, and cached Fleet
+    /// slots. Does not dial Fleet or Thread — call `refreshReadyLoRAs` and
+    /// `refreshBehaviorEpisodesFromThread` when the sheet opens.
     package static func lifeCalibration() async -> LifeCalibrationSnapshot {
         let disciplines = LifeCalibration.disciplines(
             in: AbilityLibrary.shared.snapshot().records.map(\.package))

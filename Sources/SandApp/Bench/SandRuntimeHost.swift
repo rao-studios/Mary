@@ -9,8 +9,8 @@
 //        `AbilityRuntime.dispatch` exactly as the turn loop does, so the route
 //        into MaryComputerUse is the route — a bench that reimplemented the
 //        path would only ever prove itself right.
-//        NO MODEL, NO TOTEM, NO GRANITE: the runtime needs neither. What Sand
-//        skips is the Seer-backed looking faculty and the coding agent, which
+//        NO MODEL, NO THREAD, NO GRANITE: the runtime needs neither. What Sand
+//        skips is the Sewn-backed looking faculty and the coding agent, which
 //        would need a network and a model to answer at all.
 //        NOTHING PERSONAL IS TAUGHT. The habit memory providers are left
 //        UNINSTALLED, so routing and application habits stay in memory and a

@@ -12,12 +12,12 @@
 import Foundation
 import MaryBrain
 import MaryFoundation
-import MaryTotem
+import MaryThread
 
 /// The one call the session needs, behind a seam so a test needs no server.
 package protocol FleetCompleting: Sendable {
     func complete(
-        totemID: String, abilityID: String, cid: String, inputJSON: String
+        threadID: String, abilityID: String, cid: String, inputJSON: String
     ) async throws -> FleetCompletion
 }
 
@@ -28,16 +28,16 @@ package struct FleetRemoteAdapterSessionMaker: LifeAdapterSessionMaking {
 
     /// Base model the adapter must have learned on.
     private let modelID: String
-    private let totemID: @Sendable () -> String
+    private let threadID: @Sendable () -> String
     private let fleet: @Sendable () -> any FleetCompleting
 
     package init(
         modelID: String,
-        totemID: @escaping @Sendable () -> String,
+        threadID: @escaping @Sendable () -> String,
         fleet: @escaping @Sendable () -> any FleetCompleting
     ) {
         self.modelID = modelID
-        self.totemID = totemID
+        self.threadID = threadID
         self.fleet = fleet
     }
 
@@ -51,7 +51,7 @@ package struct FleetRemoteAdapterSessionMaker: LifeAdapterSessionMaking {
         return FleetRemoteAdapterSession(
             abilityID: adapter.abilityID.rawValue,
             cid: adapter.cid,
-            totemID: totemID,
+            threadID: threadID,
             fleet: fleet)
     }
 }
@@ -62,7 +62,7 @@ struct FleetRemoteAdapterSession: LifeAdapterSessioning {
     /// Pinned: retrained weights under the same path are a different cid, and
     /// Fleet answers with the live one rather than the stale generation.
     let cid: String
-    let totemID: @Sendable () -> String
+    let threadID: @Sendable () -> String
     let fleet: @Sendable () -> any FleetCompleting
 
     func complete(
@@ -72,14 +72,14 @@ struct FleetRemoteAdapterSession: LifeAdapterSessioning {
         guard let inputJSON = String(data: bytes, encoding: .utf8) else {
             throw LifeEngineError.invalidSchema
         }
-        let totem = totemID()
-        guard !totem.isEmpty else {
-            throw LifeEngineError.fleetUnreachable("no totem node id")
+        let thread = threadID()
+        guard !thread.isEmpty else {
+            throw LifeEngineError.fleetUnreachable("no thread node id")
         }
         let answer: FleetCompletion
         do {
             answer = try await fleet().complete(
-                totemID: totem, abilityID: abilityID, cid: cid, inputJSON: inputJSON)
+                threadID: thread, abilityID: abilityID, cid: cid, inputJSON: inputJSON)
         } catch {
             // `String(describing:)`, not `localizedDescription`: an RPCError's
             // code and message are what say whether the slot was missing, was

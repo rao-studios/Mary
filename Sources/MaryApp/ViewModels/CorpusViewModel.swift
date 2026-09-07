@@ -210,7 +210,7 @@ final class CorpusViewModel: ObservableObject {
                 return "structure only — \(note)"
             }
             return "structure only — the summariser returned nothing"
-        case .seerUnavailable: return "structure only — Seer is not signed in"
+        case .sewnUnavailable: return "structure only — Sewn is not signed in"
         case .empty: return "structure only — the summariser returned an empty reply"
         case .unparsable: return "structure only — the summariser did not return a précis"
         // Named: an unrecognised state is still a state.

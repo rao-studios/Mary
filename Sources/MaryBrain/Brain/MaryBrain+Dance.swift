@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: What the shader composer may know of the conversation.
-//  IN:   MaryRuntime+BrainInstall (wires SeerShaderComposer)
+//  IN:   MaryRuntime+BrainInstall (wires SewnShaderComposer)
 //  OUT:  recentSpokenLines
 //  PIN:  Spoken turns only, the same filter the follow-up lane uses; Skill
 //        plumbing never reaches a prompt that paints.

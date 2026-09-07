@@ -13,7 +13,7 @@ struct ContributionTextSpan: Identifiable {
     /// Stable id from owner + offsets (not UUID); rebuilt each body pass.
     let id: String
     let range: Range<String.Index>
-    let owner: SeerContribution.Owner
+    let owner: SewnContribution.Owner
     let color: Color
 
     /// `text` is the string `range` indexes into — the offsets it yields are
@@ -21,7 +21,7 @@ struct ContributionTextSpan: Identifiable {
     /// their own paragraph, so they identify consistently within it.
     init(
         range: Range<String.Index>, in text: String,
-        owner: SeerContribution.Owner, color: Color
+        owner: SewnContribution.Owner, color: Color
     ) {
         let lower = text.distance(from: text.startIndex, to: range.lowerBound)
         let upper = text.distance(from: text.startIndex, to: range.upperBound)
@@ -58,7 +58,7 @@ enum ContributionSpans {
     }
 
     /// Converts each owner's server offsets into clamped string ranges.
-    static func makeSpans(text: String, contribution: SeerContribution) -> [ContributionTextSpan] {
+    static func makeSpans(text: String, contribution: SewnContribution) -> [ContributionTextSpan] {
         guard contribution.isAvailable else { return [] }
         return contribution.owners.flatMap { owner -> [ContributionTextSpan] in
             guard !owner.spans.isEmpty else { return [] }

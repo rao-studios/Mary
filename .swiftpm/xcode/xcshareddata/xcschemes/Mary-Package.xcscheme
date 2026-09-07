@@ -113,9 +113,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "mary-totem-probe"
-               BuildableName = "mary-totem-probe"
-               BlueprintName = "mary-totem-probe"
+               BlueprintIdentifier = "mary-thread-probe"
+               BuildableName = "mary-thread-probe"
+               BlueprintName = "mary-thread-probe"
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
@@ -201,9 +201,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "MaryTotemTests"
-               BuildableName = "MaryTotemTests"
-               BlueprintName = "MaryTotemTests"
+               BlueprintIdentifier = "MaryThreadTests"
+               BuildableName = "MaryThreadTests"
+               BlueprintName = "MaryThreadTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

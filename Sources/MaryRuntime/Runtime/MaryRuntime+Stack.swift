@@ -2,15 +2,15 @@
 //  MaryRuntime+Stack.swift
 //  MaryRuntime
 //
-//  WHAT: Seer/Totem stack appliers, spoken register, coding-engine install.
+//  WHAT: Sewn/Thread stack appliers, spoken register, coding-engine install.
 //  IN:   Settings / Servers sheet / applyEngine
-//  OUT:  seerChat / seerRealtime / totemContext / InferenceEngine
-//  PIN:  totemArchivingEnabledBox lives in +FocusSetup (internal for file split).
+//  OUT:  sewnChat / sewnRealtime / threadContext / InferenceEngine
+//  PIN:  threadArchivingEnabledBox lives in +FocusSetup (internal for file split).
 //
 
 import MaryBrain
 import MaryPlugin
-import MaryTotem
+import MaryThread
 import MaryVoice
 import Foundation
 import os
@@ -45,17 +45,17 @@ extension MaryRuntime {
         await speaker.setStyle(.neutral)
     }
 
-    // MARK: - Seer/Totem stack appliers
+    // MARK: - Sewn/Thread stack appliers
 
     /// Point stack at configured checkouts/ports. Running servers keep running.
-    /// totemGRPCPort — read by makeTotemReader.
-    nonisolated(unsafe) private(set) static var totemGRPCPort = ServerSpec.Defaults.totemGRPCPort
+    /// threadGRPCPort — read by makeThreadReader.
+    nonisolated(unsafe) private(set) static var threadGRPCPort = ServerSpec.Defaults.threadGRPCPort
     nonisolated(unsafe) private(set) static var fleetGRPCPort = ServerSpec.Defaults.fleetGRPCPort
 
     /// A fresh read client for inspector/library queries (connections are
     /// per-call, so clients are cheap to make at the current port).
-    package static func makeTotemReader() -> TotemDirectClient {
-        TotemDirectClient(port: totemGRPCPort)
+    package static func makeThreadReader() -> ThreadDirectClient {
+        ThreadDirectClient(port: threadGRPCPort)
     }
 
     package static func makeFleetClient() -> FleetDirectClient {
@@ -67,129 +67,129 @@ extension MaryRuntime {
     /// PIN: Lives here because `fleetGRPCPort`'s setter is file-private.
     package static func configureLifeAccess(nodeID: String, fleetGRPCPort port: Int) {
         fleetGRPCPort = port
-        totemNodeIDBox.withLock { $0 = nodeID }
+        threadNodeIDBox.withLock { $0 = nodeID }
     }
 
     package static func applyServers(config: ConfigService.Center.State, nodeID: String) async {
-        totemGRPCPort = config.totemGRPCPort
+        threadGRPCPort = config.threadGRPCPort
         fleetGRPCPort = config.fleetGRPCPort
-        totemNodeIDBox.withLock { $0 = nodeID }
+        threadNodeIDBox.withLock { $0 = nodeID }
         lifeModeBox.withLock { $0 = config.lifeMode }
         await lifeEngine.setActsOnTurns(
             Set(config.lifeTurnDisciplines.map(AbilityID.init)))
         await lifeEngine.setMode(config.lifeMode)
         await localStack.configure([
-            .seer(
-                checkoutPath: config.seerCheckoutPath,
-                port: config.seerPort,
-                grpcPort: config.seerGRPCPort),
-            .totem(
-                checkoutPath: config.totemCheckoutPath,
-                port: config.totemPort,
-                grpcPort: config.totemGRPCPort,
-                mothershipGRPCPort: config.seerGRPCPort,
+            .sewn(
+                checkoutPath: config.sewnCheckoutPath,
+                port: config.sewnPort,
+                grpcPort: config.sewnGRPCPort),
+            .thread(
+                checkoutPath: config.threadCheckoutPath,
+                port: config.threadPort,
+                grpcPort: config.threadGRPCPort,
+                mothershipGRPCPort: config.sewnGRPCPort,
                 nodeID: nodeID,
-                graphBackend: config.totemGraphBackend),
+                graphBackend: config.threadGraphBackend),
             .fleet(
                 checkoutPath: config.fleetCheckoutPath,
                 port: config.fleetPort,
                 grpcPort: config.fleetGRPCPort,
-                totemGRPCPort: config.totemGRPCPort),
+                threadGRPCPort: config.threadGRPCPort),
         ])
-        await totemContext.configure(port: config.totemGRPCPort)
+        await threadContext.configure(port: config.threadGRPCPort)
         // Both transports get the same scope closure — they wrap the same ChatRequest.
-        await seerChat.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
-            personalTotemID: nodeID,
-            chatModel: config.seerChatModel,
+        await sewnChat.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!,
+            personalThreadID: nodeID,
+            chatModel: config.sewnChatModel,
             retrievalScope: { retrievalScope(ownerID: $0) })
-        await seerRealtime.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
-            personalTotemID: nodeID,
-            chatModel: config.seerChatModel,
-            voiceID: "\(config.seerVoice)_neutral",
+        await sewnRealtime.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!,
+            personalThreadID: nodeID,
+            chatModel: config.sewnChatModel,
+            voiceID: "\(config.sewnVoice)_neutral",
             retrievalScope: { retrievalScope(ownerID: $0) })
-        await seerTTS.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerVision.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerComplete.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerSkill.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerCode.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerTotems.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerProviders.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!)
-        await seerEmbedding.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(config.seerPort)")!,
-            model: ServerSpec.Defaults.seerEmbeddingModel)
+        await sewnTTS.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnVision.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnComplete.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnSkill.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnCode.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnThreads.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnProviders.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!)
+        await sewnEmbedding.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(config.sewnPort)")!,
+            model: ServerSpec.Defaults.sewnEmbeddingModel)
         // The manager decides whether this tier is ever used — it prefers the
         // on-device model wherever one exists.
-        MaryEmbeddings.installSeerBackend(
-            seerEmbedding, model: ServerSpec.Defaults.seerEmbeddingModel)
+        MaryEmbeddings.installSewnBackend(
+            sewnEmbedding, model: ServerSpec.Defaults.sewnEmbeddingModel)
     }
 
-    /// Route Seer turns SSE or realtime WS. Classic client stays wired (fallback).
+    /// Route Sewn turns SSE or realtime WS. Classic client stays wired (fallback).
     /// Call at boot and from Settings — mirrors applyTTSBackend.
-    package static func applySeerTransport(_ choice: SeerTransportChoice) async {
-        await brain.setSeerRealtime(choice == .realtime ? seerRealtime : nil)
+    package static func applySewnTransport(_ choice: SewnTransportChoice) async {
+        await brain.setSewnRealtime(choice == .realtime ? sewnRealtime : nil)
     }
 
     /// Hosted annotator over /v1/complete. Factory so mary-corpus-probe annotates
-    /// the same client. Spoken turns stay on seerChat — do not reuse as voice.
-    package static func makeSeerUnitAnnotator() -> SeerUnitAnnotator {
-        SeerUnitAnnotator(complete: seerComplete)
+    /// the same client. Spoken turns stay on sewnChat — do not reuse as voice.
+    package static func makeSewnUnitAnnotator() -> SewnUnitAnnotator {
+        SewnUnitAnnotator(complete: sewnComplete)
     }
 
-    /// What Seer says about each backend. Empty when it cannot be reached —
+    /// What Sewn says about each backend. Empty when it cannot be reached —
     /// the Settings row then reads "checking…" rather than inventing a state.
-    package static func providerStatuses() async -> [SeerProviderStatus] {
-        (try? await seerProviders.statuses()) ?? []
+    package static func providerStatuses() async -> [SewnProviderStatus] {
+        (try? await sewnProviders.statuses()) ?? []
     }
 
     /// Point annotation and the Studio drafter at one backend. `applyEngine`
     /// does this for the app; the corpus probe does it on its own.
     package static func setAnnotationProvider(_ choice: LLMEngineChoice) async {
-        await seerComplete.setProvider(choice)
+        await sewnComplete.setProvider(choice)
     }
 
     /// The same bounded route, for Ability Studio's skill drafter. One request,
     /// one JSON answer — not a spoken turn, and not the chat lane.
-    package static var studioComplete: any SeerCompleteProviding { seerComplete }
+    package static var studioComplete: any SewnCompleteProviding { sewnComplete }
 
     /// Sign in with the configured account. Returns error text or nil.
-    package static func applySeerAccount(email: String, password: String, seerPort: Int) async -> String? {
-        await seerSession.configure(
-            baseURL: URL(string: "http://127.0.0.1:\(seerPort)")!,
+    package static func applySewnAccount(email: String, password: String, sewnPort: Int) async -> String? {
+        await sewnSession.configure(
+            baseURL: URL(string: "http://127.0.0.1:\(sewnPort)")!,
             email: email,
             password: password)
-        return await seerSession.signIn()
+        return await sewnSession.signIn()
     }
 
-    /// Wire (or unwire) Seer as the brain's VOICE.
-    static func connectSeerVoice(enabled: Bool) async {
-        await brain.setSeerChat(enabled ? seerChat : nil)
+    /// Wire (or unwire) Sewn as the brain's VOICE.
+    static func connectSewnVoice(enabled: Bool) async {
+        await brain.setSewnChat(enabled ? sewnChat : nil)
     }
 
-    /// Wire (or unwire) Totem as the brain's ARCHIVE.
-    static func connectTotemDepositor(enabled: Bool) async {
-        totemArchivingEnabledBox.withLock { $0 = enabled }
-        await brain.setDepositor(enabled ? totemContext : nil)
+    /// Wire (or unwire) Thread as the brain's ARCHIVE.
+    static func connectThreadDepositor(enabled: Bool) async {
+        threadArchivingEnabledBox.withLock { $0 = enabled }
+        await brain.setDepositor(enabled ? threadContext : nil)
         // Not the learning sinks — those live in installCorpusPipeline.
     }
 
     /// Resets the ephemeral awareness and cancels any pending application
-    /// schema flush. Durable Totem documents are cleared by the caller first.
+    /// schema flush. Durable Thread documents are cleared by the caller first.
     package static func resetAmbientMemory() async {
         AmbientContextStore.shared.clear()
         clearBehaviorEpisodeCache()
     }
 
     /// One-shot: previous builds wrote plaintext JSONL under this directory.
-    /// Ability turns live in Totem now; leftover files must not linger.
+    /// Ability turns live in Thread now; leftover files must not linger.
     package static func removeLegacyBehaviorDirectory() {
         let support = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask).first
@@ -203,42 +203,42 @@ extension MaryRuntime {
 
     /// Wire or unwire voice and archive independently. stackEnabled is the
     /// Servers toggle — Lane B hosted needs the stack even when Lane A is local.
-    package static func connectSeerToBrain(
+    package static func connectSewnToBrain(
         chat: Bool, archiving: Bool, stackEnabled: Bool
     ) async {
-        await connectSeerVoice(enabled: chat)
-        await connectTotemDepositor(enabled: archiving)
-        seerStackEnabledBox.withLock { $0 = stackEnabled }
-        await rewireSkillEngine(seerEnabled: stackEnabled)
-        await rewireCodingAgent(seerEnabled: stackEnabled)
+        await connectSewnVoice(enabled: chat)
+        await connectThreadDepositor(enabled: archiving)
+        sewnStackEnabledBox.withLock { $0 = stackEnabled }
+        await rewireSkillEngine(sewnEnabled: stackEnabled)
+        await rewireCodingAgent(sewnEnabled: stackEnabled)
     }
 
-    /// EVERY LANE RIDES SEER NOW, so "does Seer carry this" is one question:
-    /// is the stack switched on. The engine choice says WHICH BACKEND Seer
-    /// uses, never whether Seer is used — the parameter stays so the truth
+    /// EVERY LANE RIDES SEWN NOW, so "does Sewn carry this" is one question:
+    /// is the stack switched on. The engine choice says WHICH BACKEND Sewn
+    /// uses, never whether Sewn is used — the parameter stays so the truth
     /// table reads the same and callers need no edit.
-    package static func seerCarriesTurns(seerEnabled: Bool) -> Bool {
-        seerEnabled
+    package static func sewnCarriesTurns(sewnEnabled: Bool) -> Bool {
+        sewnEnabled
     }
 
-    package static func seerCarriesTurns(
-        engine: LLMEngineChoice, seerEnabled: Bool
+    package static func sewnCarriesTurns(
+        engine: LLMEngineChoice, sewnEnabled: Bool
     ) -> Bool {
-        seerEnabled
+        sewnEnabled
     }
 
-    package static func seerCarriesSkills(seerEnabled: Bool) -> Bool {
-        seerEnabled
+    package static func sewnCarriesSkills(sewnEnabled: Bool) -> Bool {
+        sewnEnabled
     }
 
-    package static func seerCarriesSkills(
-        engine: LLMEngineChoice, seerEnabled: Bool
+    package static func sewnCarriesSkills(
+        engine: LLMEngineChoice, sewnEnabled: Bool
     ) -> Bool {
-        seerEnabled
+        sewnEnabled
     }
 
-    /// Seed the boxes from config before the stack comes up. `bootSeerStack`
-    /// reads them (connectSeerToBrain → rewire*), so they must be current
+    /// Seed the boxes from config before the stack comes up. `bootSewnStack`
+    /// reads them (connectSewnToBrain → rewire*), so they must be current
     /// BEFORE it runs, and applyEngine runs after the sign-in the on-device
     /// warm needs.
     package static func recordEngineChoices(
@@ -251,48 +251,48 @@ extension MaryRuntime {
 
     /// Swap Lane B's backend without a full apply — used when the Servers
     /// toggle flips after `applyEngine` already ran.
-    static func rewireSkillEngine(seerEnabled: Bool) async {
+    static func rewireSkillEngine(sewnEnabled: Bool) async {
         await installSkillEngine(
-            skillChoice: skillEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+            skillChoice: skillEngineChoiceBox.withLock { $0 }, sewnEnabled: sewnEnabled)
     }
 
     static func installSkillEngine(
-        skillChoice: LLMEngineChoice, seerEnabled: Bool
+        skillChoice: LLMEngineChoice, sewnEnabled: Bool
     ) async {
-        await seerSkill.setProvider(skillChoice)
-        await brain.setEngine(MarySeerSkillEngine(client: seerSkill, choice: skillChoice))
+        await sewnSkill.setProvider(skillChoice)
+        await brain.setEngine(MarySewnSkillEngine(client: sewnSkill, choice: skillChoice))
     }
 
-    /// Apply Lane A (spoken, seerChat) and Lane B (skills, /v1/skills/complete).
-    /// Both ride Seer; the choices say which backend Seer uses. On-device is
+    /// Apply Lane A (spoken, sewnChat) and Lane B (skills, /v1/skills/complete).
+    /// Both ride Sewn; the choices say which backend Sewn uses. On-device is
     /// warmed here, so the first turn does not wait on a model load.
     package static func applyEngine(
         _ choice: LLMEngineChoice,
         skillEngine skillChoice: LLMEngineChoice = .mistral,
-        seerEnabled: Bool,
+        sewnEnabled: Bool,
         progress: (@Sendable (String) -> Void)? = nil
     ) async -> String? {
         engineChoiceBox.withLock { $0 = choice }
         skillEngineChoiceBox.withLock { $0 = skillChoice }
-        await connectSeerVoice(enabled: seerCarriesTurns(seerEnabled: seerEnabled))
+        await connectSewnVoice(enabled: sewnCarriesTurns(sewnEnabled: sewnEnabled))
 
-        await seerChat.setProvider(choice)
-        await seerRealtime.setProvider(choice)
-        await seerComplete.setProvider(choice)
-        await installSkillEngine(skillChoice: skillChoice, seerEnabled: seerEnabled)
+        await sewnChat.setProvider(choice)
+        await sewnRealtime.setProvider(choice)
+        await sewnComplete.setProvider(choice)
+        await installSkillEngine(skillChoice: skillChoice, sewnEnabled: sewnEnabled)
 
         // Annotation is a bounded /v1/complete job either way — the backend
         // behind it follows the voice lane.
-        await unitIndexer.setAnnotator(makeSeerUnitAnnotator())
+        await unitIndexer.setAnnotator(makeSewnUnitAnnotator())
         await unitIndexer.setManifestLoader { projectID in
-            await totemContext.loadUnitManifest(projectID: projectID)
+            await threadContext.loadUnitManifest(projectID: projectID)
         }
 
-        // THERE IS NO ENGINE WITHOUT SEER ANY MORE. On-device generation moved
+        // THERE IS NO ENGINE WITHOUT SEWN ANY MORE. On-device generation moved
         // into the server, so a stack switched off has nothing to fall back to
         // and says so instead of failing at the first turn.
-        guard seerEnabled else {
-            return "Chat through Seer is off in the Servers panel — no engine is available."
+        guard sewnEnabled else {
+            return "Chat through Sewn is off in the Servers panel — no engine is available."
         }
         if choice.isOnDevice || skillChoice.isOnDevice {
             return await warmLocalProvider(progress: progress)
@@ -300,30 +300,30 @@ extension MaryRuntime {
         return nil
     }
 
-    /// Ask Seer to load the on-device model, then follow it to ready. Returns
-    /// Seer's own reason when the backend cannot serve.
+    /// Ask Sewn to load the on-device model, then follow it to ready. Returns
+    /// Sewn's own reason when the backend cannot serve.
     package static func warmLocalProvider(
         progress: (@Sendable (String) -> Void)? = nil,
         attempts: Int = 600
     ) async -> String? {
         do {
-            try await seerProviders.warmLocal()
+            try await sewnProviders.warmLocal()
         } catch {
             return "On-device backend: \(error.localizedDescription)"
         }
         for _ in 0..<attempts {
-            let statuses = (try? await seerProviders.statuses()) ?? []
+            let statuses = (try? await sewnProviders.statuses()) ?? []
             guard let local = statuses.first(where: { $0.choice == .local }) else {
-                return "Seer did not report an on-device backend."
+                return "Sewn did not report an on-device backend."
             }
             if local.state == "ready" { return nil }
             if let reason = local.reason, !local.available, !local.isLoading {
                 return reason
             }
             if let fraction = local.progress {
-                progress?("Seer is loading the on-device model (\(Int(fraction * 100))%)…")
+                progress?("Sewn is loading the on-device model (\(Int(fraction * 100))%)…")
             } else {
-                progress?("Seer is loading the on-device model…")
+                progress?("Sewn is loading the on-device model…")
             }
             try? await Task.sleep(nanoseconds: 1_000_000_000)
         }
@@ -335,44 +335,44 @@ extension MaryRuntime {
     package static func applyCodingAgent(
         enabled: Bool,
         engine: LLMEngineChoice = .mistral,
-        seerEnabled: Bool = true
+        sewnEnabled: Bool = true
     ) async -> String? {
         startCodingFollowUpBridge()
         codingEnabledBox.withLock { $0 = enabled }
         codingEngineChoiceBox.withLock { $0 = engine }
-        seerStackEnabledBox.withLock { $0 = seerEnabled }
+        sewnStackEnabledBox.withLock { $0 = sewnEnabled }
         guard enabled else {
             await CodingAgentSessions.shared.install(backend: nil)
             return nil
         }
-        return await installCodingBackend(engine: engine, seerEnabled: seerEnabled)
+        return await installCodingBackend(engine: engine, sewnEnabled: sewnEnabled)
     }
 
-    package static func seerCarriesCoding(
-        engine: LLMEngineChoice, seerEnabled: Bool
+    package static func sewnCarriesCoding(
+        engine: LLMEngineChoice, sewnEnabled: Bool
     ) -> Bool {
-        seerEnabled
+        sewnEnabled
     }
 
-    static func rewireCodingAgent(seerEnabled: Bool) async {
-        seerStackEnabledBox.withLock { $0 = seerEnabled }
+    static func rewireCodingAgent(sewnEnabled: Bool) async {
+        sewnStackEnabledBox.withLock { $0 = sewnEnabled }
         guard codingEnabledBox.withLock({ $0 }) else { return }
         _ = await installCodingBackend(
-            engine: codingEngineChoiceBox.withLock { $0 }, seerEnabled: seerEnabled)
+            engine: codingEngineChoiceBox.withLock { $0 }, sewnEnabled: sewnEnabled)
     }
 
     /// Coding always rides `/v1/code/complete`; the choice says which backend
-    /// Seer synthesizes with. File tools still run on this Mac.
+    /// Sewn synthesizes with. File tools still run on this Mac.
     static func installCodingBackend(
-        engine: LLMEngineChoice, seerEnabled: Bool
+        engine: LLMEngineChoice, sewnEnabled: Bool
     ) async -> String? {
-        await seerCode.setProvider(engine)
+        await sewnCode.setProvider(engine)
         await CodingAgentSessions.shared.install(
-            backend: MarySeerCodingEngine(
-                client: seerCode,
-                stackEnabled: { seerStackEnabledBox.withLock { $0 } }))
-        guard seerEnabled else {
-            return "Chat through Seer is off in the Servers panel — the coding agent needs it."
+            backend: MarySewnCodingEngine(
+                client: sewnCode,
+                stackEnabled: { sewnStackEnabledBox.withLock { $0 } }))
+        guard sewnEnabled else {
+            return "Chat through Sewn is off in the Servers panel — the coding agent needs it."
         }
         if engine.isOnDevice {
             return await warmLocalProvider()

@@ -119,8 +119,8 @@ public enum AbilityPackageValidator {
         duplicates(package.ability.skills.map(\.rawValue)).forEach {
             sink.error("duplicate-ability-skill", "ability.skills", "Skill id \($0) appears more than once in the Ability schema.")
         }
-        duplicates(package.ability.totemProjections.map(\.rawValue)).forEach {
-            sink.error("duplicate-ability-projection", "ability.totemProjections", "Projection id \($0) appears more than once in the Ability schema.")
+        duplicates(package.ability.threadProjections.map(\.rawValue)).forEach {
+            sink.error("duplicate-ability-projection", "ability.threadProjections", "Projection id \($0) appears more than once in the Ability schema.")
         }
         duplicates(package.ability.operatingPolicy.guardrailCategories.map(\.rawValue)).forEach {
             sink.error(

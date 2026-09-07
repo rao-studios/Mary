@@ -3,7 +3,7 @@
 //  MaryBrain
 //
 //  WHAT: What the engine decided, and what it cost — one row per turn, newest first.
-//  OUT:  pane / bug report. Durable record → Totem archive
+//  OUT:  pane / bug report. Durable record → Thread archive
 //  PIN:  Exists before anything reads the route. Shaped like AbilityExecutionLog.
 //
 

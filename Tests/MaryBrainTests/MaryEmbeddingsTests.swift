@@ -21,27 +21,27 @@ import Testing
     /// to be able to say what made it.
     @Test func everyEngineIsIdentifiable() {
         #expect(MaryEmbeddings.Engine.appleNL.id == "apple-nl")
-        #expect(MaryEmbeddings.Engine.seer(model: "mistral-embed").id == "seer:mistral-embed")
+        #expect(MaryEmbeddings.Engine.sewn(model: "mistral-embed").id == "sewn:mistral-embed")
         #expect(MaryEmbeddings.Engine.appleNL.id
-            != MaryEmbeddings.Engine.seer(model: "mistral-embed").id)
+            != MaryEmbeddings.Engine.sewn(model: "mistral-embed").id)
     }
 
     /// Only the on-device engine can answer a synchronous read inline; the
     /// network tier can fill the memo ahead of time and nothing else.
     @Test func onlyTheLocalEngineIsSynchronous() {
         #expect(MaryEmbeddings.Engine.appleNL.isSynchronous)
-        #expect(!MaryEmbeddings.Engine.seer(model: "m").isSynchronous)
+        #expect(!MaryEmbeddings.Engine.sewn(model: "m").isSynchronous)
     }
 
     /// A WARMED VECTOR SATISFIES A SYNC READ; an unwarmed one under a network
     /// engine abstains rather than blocking or inventing.
     @Test func theMemoServesTheSynchronousReader() async {
         let backend = ScriptedBackend(vector: [0.5, 0.5])
-        MaryEmbeddings.installSeerBackend(backend, model: "test-embed")
+        MaryEmbeddings.installSewnBackend(backend, model: "test-embed")
         defer { MaryEmbeddings.endTurn() }
 
-        // No local asset in CI, so the seer tier is the engine here.
-        guard case .seer = MaryEmbeddings.engine() else { return }
+        // No local asset in CI, so the sewn tier is the engine here.
+        guard case .sewn = MaryEmbeddings.engine() else { return }
         let vectorizer = try? #require(MaryEmbeddings.vectorizer())
 
         #expect(vectorizer?.vector(for: "cold text") == nil,
@@ -56,9 +56,9 @@ import Testing
     /// built from it, which is the whole reason one warm covers the turn.
     @Test func warmingTheUtteranceCoversTheComposedQuery() async {
         let backend = ScriptedBackend(vector: [1, 0])
-        MaryEmbeddings.installSeerBackend(backend, model: "test-embed")
+        MaryEmbeddings.installSewnBackend(backend, model: "test-embed")
         defer { MaryEmbeddings.endTurn() }
-        guard case .seer = MaryEmbeddings.engine() else { return }
+        guard case .sewn = MaryEmbeddings.engine() else { return }
 
         await MaryEmbeddings.warm("play my running mix")
         let composed = """
@@ -73,8 +73,8 @@ import Testing
     /// The memo is per turn — a vector from one turn must not answer the next.
     @Test func endTurnDropsTheMemo() async {
         let backend = ScriptedBackend(vector: [1, 0])
-        MaryEmbeddings.installSeerBackend(backend, model: "test-embed")
-        guard case .seer = MaryEmbeddings.engine() else { return }
+        MaryEmbeddings.installSewnBackend(backend, model: "test-embed")
+        guard case .sewn = MaryEmbeddings.engine() else { return }
 
         await MaryEmbeddings.warm("this turn only")
         #expect(MaryEmbeddings.vectorizer()?.vector(for: "this turn only") != nil)
@@ -86,9 +86,9 @@ import Testing
     /// AN UNREACHABLE BACKEND WARMS NOTHING and raises nothing — the turn goes
     /// on without a vector, exactly as a machine with no engine does.
     @Test func afailingBackendLeavesTheMemoEmpty() async {
-        MaryEmbeddings.installSeerBackend(FailingBackend(), model: "test-embed")
+        MaryEmbeddings.installSewnBackend(FailingBackend(), model: "test-embed")
         defer { MaryEmbeddings.endTurn() }
-        guard case .seer = MaryEmbeddings.engine() else { return }
+        guard case .sewn = MaryEmbeddings.engine() else { return }
 
         await MaryEmbeddings.warm("unreachable")
 
@@ -97,7 +97,7 @@ import Testing
 
     // MARK: - Fixture
 
-    private struct ScriptedBackend: SeerEmbeddingProviding {
+    private struct ScriptedBackend: SewnEmbeddingProviding {
         let vector: [Float]
         func isReady() async -> Bool { true }
         func embed(_ texts: [String]) async throws -> EmbeddedBatch {
@@ -105,10 +105,10 @@ import Testing
         }
     }
 
-    private struct FailingBackend: SeerEmbeddingProviding {
+    private struct FailingBackend: SewnEmbeddingProviding {
         func isReady() async -> Bool { false }
         func embed(_: [String]) async throws -> EmbeddedBatch {
-            throw SeerEmbeddingError.unreachable("no stack")
+            throw SewnEmbeddingError.unreachable("no stack")
         }
     }
 }

@@ -74,11 +74,11 @@
       "multimedia.shuffle-playlist"
     ],
     "summary" : "The multimedia discipline: say what is playing, drive the transport, play a playlist, and find a song in the Apple Music catalog. An application joins this discipline by declaring a `mediaSurface` — where its transport and library live — which is what lets Mary read and drive it without naming it in Swift. RATINGS AND LIBRARY SEARCH ARE STILL OUT: they were Apple Events in the plugin this descends from, and Mary sends none. Playlists were assumed to be in that group and are not — the sidebar is an ordinary Accessibility outline.",
-    "tint" : "#FC5C7D",
-    "title" : "Multimedia",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#FC5C7D",
+    "title" : "Multimedia",
     "triggers" : {
       "intentAliases" : [
         "play-playlist",
@@ -562,7 +562,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "35597c508964a4894c383c0cc0d495d2678832f0d4d3bdb7c528a7ae8d0b7863"
+    "digest" : "262c45189727161d1ce7e8377873b8fc567a0fffc72024f9f62c7d07158978d7"
   },
   "interactions" : [
 
@@ -1502,7 +1502,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

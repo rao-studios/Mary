@@ -589,7 +589,7 @@ extension AbilityRuntime.Snapshot {
             let package = record.package
             guard package.paradigm == .applicationExpertise else { continue }
             for dependency in package.dependencies where !dependency.optional {
-                // Same guard as `abilityTotemTargets`: only a discipline is a
+                // Same guard as `abilityThreadTargets`: only a discipline is a
                 // thing to inherit. An installed dependency answers from its
                 // own record; an absent one cannot be shown to be a discipline
                 // and is skipped rather than assumed.

@@ -4,7 +4,7 @@
 //
 //  WHAT: Seam between stream-speaker chunking and a sentence→PCM engine.
 //  IN:   KokoroStreamSpeaker
-//  OUT:  KokoroEngine / SeerTTSEngine → SynthesizedChunk
+//  OUT:  KokoroEngine / SewnTTSEngine → SynthesizedChunk
 //
 
 import Foundation

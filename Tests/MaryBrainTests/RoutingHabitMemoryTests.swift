@@ -5,7 +5,7 @@
 //  WHAT: The learning loop as PERSONAL MEMORY — taught once, recalled by
 //        resemblance, scored in the corpus's own space.
 //  PIN:  Durability left this process. What is pinned here is the CONTRACT the
-//        backend must honour, so a Totem outage, a cold start and a fresh
+//        backend must honour, so a Thread outage, a cold start and a fresh
 //        install are all the same well-defined thing: route on the authored
 //        corpus alone.
 //
@@ -56,7 +56,7 @@ import Testing
         #expect(store.queries(skillID: "multimedia.play-playlist", ok: true).isEmpty)
     }
 
-    /// THE HORIZON SURVIVES THE MOVE. Totem has no expiry of its own, so a
+    /// THE HORIZON SURVIVES THE MOVE. Thread has no expiry of its own, so a
     /// habit older than the horizon must be dropped on the way in — the
     /// store's own PIN is that a bad night must not pin a centroid, and a
     /// backend that remembers forever would make that permanent.
@@ -76,7 +76,7 @@ import Testing
         #expect(store.queries(skillID: "s", ok: true) == ["recent phrasing"])
     }
 
-    /// AN UNREACHABLE BACKEND IS NOT AN ERROR. Totem down, mid-restart, or
+    /// AN UNREACHABLE BACKEND IS NOT AN ERROR. Thread down, mid-restart, or
     /// slower than the turn budget: the turn routes on its authored corpus,
     /// exactly as a fresh install does.
     @Test func anEmptyMemoryLeavesTheTurnOnItsCorpus() async {

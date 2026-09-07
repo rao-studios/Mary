@@ -52,7 +52,7 @@ synchronous draw after link, then starts its frames when it is seen.
 
 `Abilities/dance.mary` depends on the canvas and adds only the shader and the beat:
 
-- `start_dance` — one shader composed through Seer (`SeerShaderComposer` in
+- `start_dance` — one shader composed through Sewn (`SewnShaderComposer` in
   `Sources/MaryBrain/Dance/`, injected into `DancePlugin` at the composition root, the
   way `LookingPlugin` takes its describer), admitted (`GLSLFragment.admit`: WebGL1,
   no textures, no `#version`, a `main()` that writes `gl_FragColor`), rehearsed hidden,
@@ -92,7 +92,7 @@ MARY_EMBEDDING_CALIBRATION=1 swift test --filter DanceCalibrationTests
 ```sh
 swift run mary-canvas-probe --html card.html --panel --seconds 5 --watch
 swift run mary-dance-probe --shader plasma.glsl --watch            # fifteen seconds, five windows
-swift run mary-dance-probe --seer --watch                          # the real composer: a troupe of five shaders
+swift run mary-dance-probe --sewn --watch                          # the real composer: a troupe of five shaders
 swift run mary-dance-probe --shader plasma.glsl --mood --seconds 4
 swift run mary-dance-probe --shader broken.glsl --mood             # the compiler's log, then a refusal
 swift run mary-dance-probe --shader plasma.glsl --dry-run          # the beat, on paper

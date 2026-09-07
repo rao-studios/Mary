@@ -19,10 +19,10 @@ import MaryPlugin
 import MaryRuntime
 
 let usage = """
-mary-dance-probe (--shader <file.glsl> | --seer) [--mood] [--seconds <n>] [--watch] [--dry-run]
+mary-dance-probe (--shader <file.glsl> | --sewn) [--mood] [--seconds <n>] [--watch] [--dry-run]
 
   --shader    a fragment shader (bare, or a composer's reply with a fence)
-  --seer      compose through Seer instead — the real composer, the whole troupe
+  --sewn      compose through Sewn instead — the real composer, the whole troupe
   --mood      hold it as one still window instead of dancing (closes after --seconds, default 8)
   --seconds   with --mood, how long to hold it; a dance is always 15 s
   --watch     print the engine's and the canvas's events as they happen
@@ -36,10 +36,10 @@ func option(_ name: String) -> String? {
 }
 func flag(_ name: String) -> Bool { arguments.contains(name) }
 
-let useSeer = flag("--seer")
+let useSewn = flag("--sewn")
 let path = option("--shader") ?? ""
 let source = (try? String(contentsOfFile: path, encoding: .utf8)) ?? ""
-guard useSeer || !source.isEmpty else {
+guard useSewn || !source.isEmpty else {
     print(usage)
     exit(1)
 }
@@ -85,30 +85,30 @@ final class PrintingWindows: CanvasWindowing, @unchecked Sendable {
 let canvas = dryRun ? CanvasService(seams: .init(windows: PrintingWindows())) : CanvasService.live
 
 /// The real composer, over the same stack and sign-in the app's probe uses.
-func seerComposer() async -> (any DanceComposing)? {
+func sewnComposer() async -> (any DanceComposing)? {
     DotEnv.loadMaryEnvironment()
     let defaults = ConfigService.Center.State()
-    let nodeID = TotemNodeIdentity.adoptOrMint(configured: defaults.totemNodeID)
+    let nodeID = ThreadNodeIdentity.adoptOrMint(configured: defaults.threadNodeID)
     await MaryRuntime.applyServers(config: defaults, nodeID: nodeID)
     print("  [stack] bringing servers up…")
     if let failure = await MaryRuntime.localStack.ensureRunning() {
         print("  ✗  stack: \(failure)")
         return nil
     }
-    if let error = await MaryRuntime.applySeerAccount(
-        email: defaults.seerEmail, password: defaults.seerPassword, seerPort: defaults.seerPort) {
+    if let error = await MaryRuntime.applySewnAccount(
+        email: defaults.sewnEmail, password: defaults.sewnPassword, sewnPort: defaults.sewnPort) {
         print("  ✗  auth: \(error)")
         return nil
     }
     await MaryRuntime.installBrainConfiguration(projects: [:])
-    await MaryRuntime.connectSeerToBrain(chat: true, archiving: false, stackEnabled: true)
+    await MaryRuntime.connectSewnToBrain(chat: true, archiving: false, stackEnabled: true)
     if let error = await MaryRuntime.applyEngine(
-        .mistral, skillEngine: .mistral, seerEnabled: true, progress: { _ in }) {
+        .mistral, skillEngine: .mistral, sewnEnabled: true, progress: { _ in }) {
         print("  ✗  engine: \(error)")
         return nil
     }
-    print("  [seer] signed in; composing through mistral")
-    return SeerShaderComposer(complete: MaryRuntime.studioComplete)
+    print("  [sewn] signed in; composing through mistral")
+    return SewnShaderComposer(complete: MaryRuntime.studioComplete)
 }
 
 func heading(_ text: String) {
@@ -126,10 +126,10 @@ func run() {
             Task { for await event in canvasEvents { print("  canvas  \(event)") } }
         }
         let composer: any DanceComposing
-        if useSeer {
+        if useSewn {
             heading("the composer")
-            guard let seer = await seerComposer() else { app.terminate(nil); return }
-            composer = seer
+            guard let sewn = await sewnComposer() else { app.terminate(nil); return }
+            composer = sewn
         } else {
             heading("the shader")
             switch GLSLFragment.admit(source) {

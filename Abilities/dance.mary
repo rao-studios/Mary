@@ -56,11 +56,11 @@
       "dance.stop"
     ],
     "summary" : "Dance: shaders Mary composes on the fly, danced across her own windows to a beat, or held still as a mood when asked how she feels.",
-    "tint" : "#B98BFF",
-    "title" : "Dance",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#B98BFF",
+    "title" : "Dance",
     "triggers" : {
       "intentAliases" : [
 
@@ -369,7 +369,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "4434a69255ceb0bac3363b6fadfce21ae98779a3ed6058bd481e0d773d455599"
+    "digest" : "5c32733031a5067b775c2b64c51637ba54ee3569e3448cbf768da5ce52761dce"
   },
   "interactions" : [
 
@@ -634,7 +634,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

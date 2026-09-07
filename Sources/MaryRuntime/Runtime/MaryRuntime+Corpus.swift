@@ -2,9 +2,9 @@
 //  MaryRuntime+Corpus.swift
 //  MaryRuntime
 //
-//  WHAT: Corpus writes — manifest, evidence, ledger, Totem must agree.
+//  WHAT: Corpus writes — manifest, evidence, ledger, Thread must agree.
 //  IN:   CorpusObserver units/observations
-//  OUT:  unitIndexer, StyleEvidenceStore, TotemContextStore, UnitIndexLedger
+//  OUT:  unitIndexer, StyleEvidenceStore, ThreadContextStore, UnitIndexLedger
 //  PIN:  Ability-keyed profiles, never application-keyed. Observer is injected.
 //
 
@@ -52,7 +52,7 @@ extension MaryRuntime {
                 languages: producer.languages,
                 at: now)
             // Empty document is written — that is what makes a forget durable.
-            await totemContext.depositStyleProfile(
+            await threadContext.depositStyleProfile(
                 tenets,
                 vetoedTenetKeys: Array(store.vetoed()),
                 applications: producer.applications,
@@ -65,7 +65,7 @@ extension MaryRuntime {
 
 extension MaryRuntime {
 
-    /// Point CorpusObserver at its switch and stores. Observer does not know Totem.
+    /// Point CorpusObserver at its switch and stores. Observer does not know Thread.
     package static func installCorpusPipeline() {
         let observer = CorpusObserver.shared
 
@@ -114,7 +114,7 @@ extension MaryRuntime {
 
 
 
-    /// Pin corrected labels. Manifest first, then Totem — coordinator owns the hash gate.
+    /// Pin corrected labels. Manifest first, then Thread — coordinator owns the hash gate.
     package static func pinUnitLabels(
         _ labels: [String], unitKey: String, path: String,
         projectID: String, projectName: String
@@ -124,29 +124,29 @@ extension MaryRuntime {
         guard let manifest = await unitIndexer.manifest(forProject: projectID) else {
             return "Nothing to pin — that file has not been indexed yet."
         }
-        await totemContext.persistUnitManifest(
+        await threadContext.persistUnitManifest(
             manifest, projectID: projectID, projectName: projectName)
         return labels.isEmpty
             ? "Unpinned. The next summary decides its own labels again."
             : "Pinned. These labels survive every re-index from now on."
     }
 
-    /// Forget a unit: manifest row, ledger row, Totem document.
+    /// Forget a unit: manifest row, ledger row, Thread document.
     package static func forgetUnit(
         unitKey: String, path: String, projectID: String, projectName: String
     ) async -> String {
         await unitIndexer.forget(path: path, projectID: projectID)
         // Style evidence must not outlive the unit. Crawl keys `project|relativePath|dimension`.
         StyleEvidenceStore.shared.withdraw(sourcesWithPrefix: "\(projectName)|\(path)|")
-        let removed = await totemContext.forgetUnit(unitKey: unitKey)
+        let removed = await threadContext.forgetUnit(unitKey: unitKey)
         if let manifest = await unitIndexer.manifest(forProject: projectID) {
-            await totemContext.persistUnitManifest(
+            await threadContext.persistUnitManifest(
                 manifest, projectID: projectID, projectName: projectName)
         }
         UnitIndexLedger.shared.noteForgotten(unitKey: unitKey)
         return removed
-            ? "Forgotten, and removed from the totem."
-            : "Forgotten locally. The totem copy could not be reached — it will go on the next clear."
+            ? "Forgotten, and removed from the thread."
+            : "Forgotten locally. The thread copy could not be reached — it will go on the next clear."
     }
 
     /// Clear a unit's hash gate so the next visit re-reads it.
@@ -156,7 +156,7 @@ extension MaryRuntime {
         let cleared = await unitIndexer.invalidate(path: path, projectID: projectID)
         guard cleared else { return "That file was not in the index." }
         if let manifest = await unitIndexer.manifest(forProject: projectID) {
-            await totemContext.persistUnitManifest(
+            await threadContext.persistUnitManifest(
                 manifest, projectID: projectID, projectName: projectName)
         }
         UnitIndexLedger.shared.noteInvalidated(
@@ -167,7 +167,7 @@ extension MaryRuntime {
     static func reindexProject(projectID: String, projectName: String) async -> String {
         let count = await unitIndexer.invalidate(projectID: projectID)
         if let manifest = await unitIndexer.manifest(forProject: projectID) {
-            await totemContext.persistUnitManifest(
+            await threadContext.persistUnitManifest(
                 manifest, projectID: projectID, projectName: projectName)
         }
         UnitIndexLedger.shared.noteInvalidated(

@@ -12,7 +12,7 @@
 //        and a third surface could not publish a perception without editing the
 //        brain. An adapter states what it perceives; this collects.
 //        IN MARYBRAIN BECAUSE SAND CANNOT REACH MARYRUNTIME. Sand wants the
-//        ability graph and the hands, not Granite, Totem or a model, so the
+//        ability graph and the hands, not Granite, Thread or a model, so the
 //        collector lives beside the runtime that consumes it — the same
 //        reasoning as `AbilityRuntime+SurfaceRegistrations`.
 //        A BENCH THAT ROUTES WITHOUT THESE IS NOT ROUTING THE SAME TURN. A

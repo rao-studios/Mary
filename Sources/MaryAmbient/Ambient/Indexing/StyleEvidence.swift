@@ -4,7 +4,7 @@
 //
 //  WHAT: Where observations become convictions. One accrual policy, declared.
 //  IN:   StyleProducer / StyleObservation
-//  OUT:  Totem (durable profile). Splits: StyleEvidenceModels / +Freshness / +SayingSoByHand
+//  OUT:  Thread (durable profile). Splits: StyleEvidenceModels / +Freshness / +SayingSoByHand
 //  PIN:  Counter-evidence decrements. Two policies for one fact is how confidence stops meaning anything.
 //
 

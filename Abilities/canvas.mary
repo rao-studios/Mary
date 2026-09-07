@@ -53,11 +53,11 @@
       "canvas.dismiss"
     ],
     "summary" : "Mary's own windows: pages she draws to show something visually — a chart, a note, a mood — whole, in memory, nothing else on the page.",
-    "tint" : "#57C7A0",
-    "title" : "Canvas",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#57C7A0",
+    "title" : "Canvas",
     "triggers" : {
       "intentAliases" : [
 
@@ -187,7 +187,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "d8619e15996d6ed6816657500d21d16e07284968b60e25db1d3bae71bbe0023e"
+    "digest" : "09de6dfee91058afe31b1622a4eccf86be6e6b08f429145dff49fcd8f55ba30e"
   },
   "interactions" : [
 
@@ -381,7 +381,7 @@
       "version" : "1.0.0"
     }
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

@@ -25,7 +25,7 @@
         "BrandTokenTests",
         "DispositionTotalityTests",
         "RuntimePrimitiveIsolationTests",
-        "AbilityTotemLaneTests",
+        "AbilityThreadLaneTests",
         "GuardrailCategoryAdmissionTests",
         "BehaviorCodecTests",
         "LayoutDisciplineTests"

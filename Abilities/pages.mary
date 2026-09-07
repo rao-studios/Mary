@@ -58,11 +58,11 @@
 
     ],
     "summary" : "Apple Pages: page-layout documents with styles, sections, headings and templates.",
-    "tint" : "#8ECAE6",
-    "title" : "Pages",
-    "totemProjections" : [
+    "threadProjections" : [
 
     ],
+    "tint" : "#8ECAE6",
+    "title" : "Pages",
     "triggers" : {
       "intentAliases" : [
 
@@ -114,7 +114,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f6ec1648d7a3f2fd30ecb3c96294ca1fdf56cab6c3a63358de3ce8843e0fa109"
+    "digest" : "5795f8224061ad52a33e40426bf0536ee3779e8f45337da7966fe8459074d22e"
   },
   "interactions" : [
 
@@ -240,7 +240,7 @@
   "skills" : [
 
   ],
-  "totemProjections" : [
+  "threadProjections" : [
 
   ],
   "valueTypes" : [

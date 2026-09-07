@@ -30,7 +30,7 @@ extension PromptCatalog {
 
     static let identity = PromptSection(
         id: .identity,
-        rationale: "Who she is. Always first; no leading separator. Seer identity rides SeerWire.Persona."
+        rationale: "Who she is. Always first; no leading separator. Sewn identity rides SewnWire.Persona."
     ) { _ in
         """
         You are Mary — that is your name; always identify as Mary, never \

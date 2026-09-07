@@ -6,7 +6,7 @@
 //  IN:   an async recall from `RoutingHabitMemory`, once per turn
 //  OUT:  extra positives/negatives for intent and skill search
 //  PIN:  A TURN-SCOPED VIEW, NOT A DATABASE. Durability moved to personal
-//        Totem memory: a routing habit is how THIS user asks for things, so
+//        Thread memory: a routing habit is how THIS user asks for things, so
 //        it should follow them to another machine and be retrieved by
 //        resemblance — neither of which a JSON file could do.
 //        RETRIEVE, THEN SCORE LOCALLY. The backend ranked these in ITS

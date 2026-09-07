@@ -14,7 +14,7 @@ import SwiftUI
 private struct ParagraphHighlightView: View {
     let text: String
     let spans: [ContributionTextSpan]
-    let onTapOwner: (SeerContribution.Owner) -> Void
+    let onTapOwner: (SewnContribution.Owner) -> Void
 
     @State private var tokenFrames: [TokenFrame] = []
 
@@ -231,7 +231,7 @@ private struct ParagraphHighlightView: View {
 struct ContributionHighlightText: View {
     let text: String
     let spans: [ContributionTextSpan]
-    let onTapOwner: (SeerContribution.Owner) -> Void
+    let onTapOwner: (SewnContribution.Owner) -> Void
 
     private struct ParagraphItem: Identifiable {
         let id: Int
@@ -319,7 +319,7 @@ private struct TokenFrame: Equatable {
     let spanID: String
     let frame: CGRect
     let color: Color
-    let owner: SeerContribution.Owner
+    let owner: SewnContribution.Owner
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.spanID == rhs.spanID && lhs.frame == rhs.frame
@@ -338,6 +338,6 @@ private struct LineSegment: Identifiable {
     let spanID: String
     let frame: CGRect
     let color: Color
-    let owner: SeerContribution.Owner
+    let owner: SewnContribution.Owner
     let seed: Int
 }

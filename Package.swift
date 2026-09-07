@@ -1,7 +1,7 @@
 // swift-tools-version: 6.0
 // WHAT: One SwiftPM package. Targets under Sources/, layered by name.
 // OUT:  MaryFoundation → MaryAmbient → MaryComputerUse → MaryPlugin
-//            → MaryVoice / MaryBrain → MaryTotem → MaryRuntime → Mary
+//            → MaryVoice / MaryBrain → MaryThread → MaryRuntime → Mary
 //       Sand is a second app on the same stack: MaryBrain and below.
 // PIN:  Layering is enforced by reading this file as text
 //       (PackageLayeringTests). Plugin = Abilities/*.mary; adapters live in
@@ -28,7 +28,7 @@ let package = Package(
         .executable(name: "mary-ax-probe", targets: ["AXProbe"]),
         .executable(name: "mary-voice-probe", targets: ["VoiceProbe"]),
         .executable(name: "mary-package-probe", targets: ["PackageProbe"]),
-        .executable(name: "mary-totem-probe", targets: ["TotemProbe"]),
+        .executable(name: "mary-thread-probe", targets: ["ThreadProbe"]),
         .executable(name: "mary-behavior-probe", targets: ["BehaviorProbe"]),
         .executable(name: "mary-life-probe", targets: ["LifeProbe"]),
         .executable(name: "mary-corpus-probe", targets: ["CorpusProbe"]),
@@ -42,7 +42,7 @@ let package = Package(
         // MLXLMCommon) belong to MaryBrain; its FrigateVision product — VisionAX,
         // re-exported — belongs to MaryComputerUse and to nothing else. No alias map.
         .package(path: "../Frigate"),
-        // Conduit: local checkout, same wire as the Seer/Totem node.
+        // Conduit: local checkout, same wire as the Sewn/Thread node.
         .package(url: "https://github.com/riteshpakala/Granite.git", branch: "main"),
         .package(path: "../Conduit"),
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "2.0.0"),
@@ -190,31 +190,31 @@ let package = Package(
             path: "Sources/MaryBrain",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
-        // MARK: - MaryTotem — gRPC :9090 facade over Conduit.
+        // MARK: - MaryThread — gRPC :9090 facade over Conduit.
         // PIN: only MaryRuntime and Mary consume this.
         .target(
-            name: "MaryTotem",
+            name: "MaryThread",
             dependencies: [
                 .product(name: "Conduit", package: "Conduit"),
                 .product(name: "GRPCCore", package: "grpc-swift"),
                 .product(name: "GRPCNIOTransportHTTP2", package: "grpc-swift-nio-transport"),
             ],
-            path: "Sources/MaryTotem",
+            path: "Sources/MaryThread",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .executableTarget(
-            name: "TotemProbe",
-            dependencies: ["MaryTotem"],
-            path: "Sources/Probes/TotemProbe",
+            name: "ThreadProbe",
+            dependencies: ["MaryThread"],
+            path: "Sources/Probes/ThreadProbe",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "MaryTotemTests",
+            name: "MaryThreadTests",
             dependencies: [
-                "MaryTotem",
+                "MaryThread",
                 .product(name: "Conduit", package: "Conduit"),
             ],
-            path: "Tests/MaryTotemTests",
+            path: "Tests/MaryThreadTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
 
@@ -228,7 +228,7 @@ let package = Package(
                 "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
-                "MaryTotem",
+                "MaryThread",
                 .product(name: "Granite", package: "Granite"),
             ],
             path: "Sources/MaryRuntime",
@@ -245,7 +245,7 @@ let package = Package(
                 "MaryPlugin",
                 "MaryVoice",
                 "MaryBrain",
-                "MaryTotem",
+                "MaryThread",
                 .product(name: "Granite", package: "Granite"),
                 .product(name: "GraniteUI", package: "Granite"),
             ],
@@ -357,7 +357,7 @@ let package = Package(
                 "MaryFoundation",
                 "MaryFoundationTestSupport",
                 "MaryAmbient",
-                "MaryTotem",
+                "MaryThread",
             ],
             path: "Tests/MaryRuntimeTests",
             swiftSettings: [.swiftLanguageMode(.v5)]
