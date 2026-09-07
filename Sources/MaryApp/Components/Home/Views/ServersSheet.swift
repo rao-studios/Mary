@@ -21,6 +21,9 @@ struct ServersSheet: View {
     // thrash the stack.
     @State private var sewnPath = ""
     @State private var threadPath = ""
+    @State private var sewnDataPath = ""
+    @State private var threadDataPath = ""
+    @State private var fleetDataPath = ""
     @State private var sewnPortText = ""
     @State private var threadPortText = ""
     @State private var email = ""
@@ -51,6 +54,9 @@ struct ServersSheet: View {
             viewModel.start()
             sewnPath = config.state.sewnCheckoutPath
             threadPath = config.state.threadCheckoutPath
+            sewnDataPath = config.state.sewnDataDir
+            threadDataPath = config.state.threadDataDir
+            fleetDataPath = config.state.fleetDataDir
             sewnPortText = String(config.state.sewnPort)
             threadPortText = String(config.state.threadPort)
             email = config.state.sewnEmail
@@ -333,6 +339,9 @@ struct ServersSheet: View {
                 SectionLabel("Stack configuration")
                 pathRow("Sewn checkout", text: $sewnPath)
                 pathRow("Thread checkout", text: $threadPath)
+                pathRow("Sewn data", text: $sewnDataPath)
+                pathRow("Thread data", text: $threadDataPath)
+                pathRow("Fleet data", text: $fleetDataPath)
                 HStack(spacing: .layer3) {
                     portField("Sewn port", text: $sewnPortText)
                     portField("Thread port", text: $threadPortText)
@@ -411,11 +420,17 @@ struct ServersSheet: View {
         config.center.update.send(ConfigService.Update.Meta(
             sewnCheckoutPath: sewnPath,
             threadCheckoutPath: threadPath,
+            sewnDataDir: sewnDataPath,
+            threadDataDir: threadDataPath,
+            fleetDataDir: fleetDataPath,
             sewnPort: sewnPort,
             threadPort: threadPort))
         var updated = config.state
         updated.sewnCheckoutPath = sewnPath
         updated.threadCheckoutPath = threadPath
+        if !sewnDataPath.isEmpty { updated.sewnDataDir = sewnDataPath }
+        if !threadDataPath.isEmpty { updated.threadDataDir = threadDataPath }
+        if !fleetDataPath.isEmpty { updated.fleetDataDir = fleetDataPath }
         updated.sewnPort = sewnPort
         updated.threadPort = threadPort
         let identity = nodeID ?? config.state.threadNodeID

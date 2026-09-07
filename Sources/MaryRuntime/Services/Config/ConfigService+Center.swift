@@ -85,6 +85,11 @@ extension ConfigService {
             package var autoStartServers: Bool = true
             package var sewnCheckoutPath: String = ServerSpec.Defaults.sewnCheckoutPath
             package var threadCheckoutPath: String = ServerSpec.Defaults.threadCheckoutPath
+            /// Where each server keeps its state (`--data-dir`). Defaults live
+            /// under ~/Documents/maryOS; one directory per server.
+            package var sewnDataDir: String = ServerSpec.Defaults.sewnDataDir
+            package var threadDataDir: String = ServerSpec.Defaults.threadDataDir
+            package var fleetDataDir: String = ServerSpec.Defaults.fleetDataDir
             package var sewnPort: Int = ServerSpec.Defaults.sewnPort
             package var sewnGRPCPort: Int = ServerSpec.Defaults.sewnGRPCPort
             package var threadPort: Int = ServerSpec.Defaults.threadPort
@@ -138,6 +143,7 @@ extension ConfigService {
                      projects, customPronunciations, enabledPlugins, disabledPlugins,
                      historyMessageLimit, wakeWordEnabled
                 case sewnEnabled, autoStartServers, sewnCheckoutPath, threadCheckoutPath, sewnPort, sewnGRPCPort, threadPort, threadGRPCPort, threadNodeID, sewnEmail, sewnPassword, threadGraphBackend, fleetCheckoutPath, fleetPort, fleetGRPCPort, threadGraphPolicyManaged, sewnChatModel, sewnTransport
+                case sewnDataDir, threadDataDir, fleetDataDir
                 case codingAgentEnabled, codingEngine
                 case skillRunTimeoutSeconds
                 case modelCallPriceUSD
@@ -189,6 +195,9 @@ extension ConfigService {
                 autoStartServers = try c.decodeIfPresent(Bool.self, forKey: .autoStartServers) ?? true
                 sewnCheckoutPath = try c.decodeIfPresent(String.self, forKey: .sewnCheckoutPath) ?? ServerSpec.Defaults.sewnCheckoutPath
                 threadCheckoutPath = try c.decodeIfPresent(String.self, forKey: .threadCheckoutPath) ?? ServerSpec.Defaults.threadCheckoutPath
+                sewnDataDir = try c.decodeIfPresent(String.self, forKey: .sewnDataDir) ?? ServerSpec.Defaults.sewnDataDir
+                threadDataDir = try c.decodeIfPresent(String.self, forKey: .threadDataDir) ?? ServerSpec.Defaults.threadDataDir
+                fleetDataDir = try c.decodeIfPresent(String.self, forKey: .fleetDataDir) ?? ServerSpec.Defaults.fleetDataDir
                 sewnPort = try c.decodeIfPresent(Int.self, forKey: .sewnPort) ?? ServerSpec.Defaults.sewnPort
                 sewnGRPCPort = try c.decodeIfPresent(Int.self, forKey: .sewnGRPCPort) ?? ServerSpec.Defaults.sewnGRPCPort
                 threadPort = try c.decodeIfPresent(Int.self, forKey: .threadPort) ?? ServerSpec.Defaults.threadPort

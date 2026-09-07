@@ -41,7 +41,7 @@ struct ThreadsNodesView: View {
                     diskRow(row)
                 }
             } else {
-                Text("Scanning the thread-db directory…")
+                Text("Scanning the Thread data directory…")
                     .font(.marySans(11))
                     .foregroundStyle(Color.maryInk.opacity(0.5))
             }

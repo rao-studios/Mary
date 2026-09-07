@@ -2,7 +2,7 @@
 //  ThreadDiskInventory.swift
 //  MaryRuntime
 //
-//  WHAT: What ~/Documents/thread-db holds, from file names and stat alone.
+//  WHAT: What Thread's data directory holds, from file names and stat alone.
 //  PIN:  Stat only — never decode plists. Suffixes stay literal strings
 //        (placeholder graph-00000000-… must render as an orphan).
 //
@@ -88,7 +88,7 @@ package enum ThreadDiskScanner {
 
     /// Directory mtime fingerprint — equal means reuse previous inventory. No readdir.
     package static func fingerprint(
-        root: String = ServerSpec.expand("~/Documents/thread-db")
+        root: String = ServerSpec.expand(ServerSpec.Defaults.threadDataDir)
     ) -> Fingerprint {
         Fingerprint(
             rootModified: modificationDate(atPath: root),
@@ -100,7 +100,7 @@ package enum ThreadDiskScanner {
     }
 
     package static func scan(
-        root: String = ServerSpec.expand("~/Documents/thread-db"),
+        root: String = ServerSpec.expand(ServerSpec.Defaults.threadDataDir),
         configuredNodeID: String = ""
     ) -> ThreadDiskInventory {
         let liveNodeID = ThreadNodeIdentity.persisted(

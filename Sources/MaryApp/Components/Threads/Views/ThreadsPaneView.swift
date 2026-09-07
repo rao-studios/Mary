@@ -98,6 +98,7 @@ struct ThreadsPaneView: View {
         // still exposes current values whenever a VM diff re-renders the pane.
         .onChange(of: config.state.threadPort) { _, _ in seedConfig() }
         .onChange(of: config.state.threadNodeID) { _, _ in seedConfig() }
+        .onChange(of: config.state.threadDataDir) { _, _ in seedConfig() }
         .onDisappear { vm.stop() }
     }
 
@@ -106,7 +107,8 @@ struct ThreadsPaneView: View {
     private func seedConfig() {
         vm.configure(
             nodeID: config.state.threadNodeID,
-            port: config.state.threadPort)
+            port: config.state.threadPort,
+            dataDir: config.state.threadDataDir)
     }
 
     // MARK: - Bar

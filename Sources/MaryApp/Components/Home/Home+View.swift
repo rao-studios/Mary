@@ -341,7 +341,7 @@ struct HomeSessionView: View {
         // Thread node UUID is DB identity: adopt or mint, then pin in config.
         var nodeID = config.state.threadNodeID
         if UUID(uuidString: nodeID) == nil {
-            nodeID = ThreadNodeIdentity.adoptOrMint(configured: "")
+            nodeID = ThreadNodeIdentity.adoptOrMint(configured: "", dataDir: config.state.threadDataDir)
             config.center.update.send(ConfigService.Update.Meta(threadNodeID: nodeID))
         }
         MaryRuntime.applyCorpusIndexing(enabled: config.state.ambientCorpusIndexing)

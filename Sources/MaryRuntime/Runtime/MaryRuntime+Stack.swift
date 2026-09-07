@@ -78,23 +78,27 @@ extension MaryRuntime {
         await lifeEngine.setActsOnTurns(
             Set(config.lifeTurnDisciplines.map(AbilityID.init)))
         await lifeEngine.setMode(config.lifeMode)
+        ensureDataDirectories([config.sewnDataDir, config.threadDataDir, config.fleetDataDir])
         await localStack.configure([
             .sewn(
                 checkoutPath: config.sewnCheckoutPath,
                 port: config.sewnPort,
-                grpcPort: config.sewnGRPCPort),
+                grpcPort: config.sewnGRPCPort,
+                dataDir: config.sewnDataDir),
             .thread(
                 checkoutPath: config.threadCheckoutPath,
                 port: config.threadPort,
                 grpcPort: config.threadGRPCPort,
                 mothershipGRPCPort: config.sewnGRPCPort,
                 nodeID: nodeID,
-                graphBackend: config.threadGraphBackend),
+                graphBackend: config.threadGraphBackend,
+                dataDir: config.threadDataDir),
             .fleet(
                 checkoutPath: config.fleetCheckoutPath,
                 port: config.fleetPort,
                 grpcPort: config.fleetGRPCPort,
-                threadGRPCPort: config.threadGRPCPort),
+                threadGRPCPort: config.threadGRPCPort,
+                dataDir: config.fleetDataDir),
         ])
         await threadContext.configure(port: config.threadGRPCPort)
         // Both transports get the same scope closure — they wrap the same ChatRequest.

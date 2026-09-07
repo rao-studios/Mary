@@ -53,7 +53,12 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     /// Sewn: HTTP API on `port`, gRPC mothership (which Thread dials) on
     /// `grpcPort`. The mothership is always on — `--enable-threads` no longer
     /// exists as a flag; don't pass it.
-    package static func sewn(checkoutPath: String, port: Int, grpcPort: Int) -> ServerSpec {
+    package static func sewn(
+        checkoutPath: String,
+        port: Int,
+        grpcPort: Int,
+        dataDir: String = Defaults.sewnDataDir
+    ) -> ServerSpec {
         ServerSpec(
             kind: .sewn,
             executableName: "sewn-server",
@@ -62,6 +67,7 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
                 "--host", "127.0.0.1",
                 "--port", String(port),
                 "--grpc-port", String(grpcPort),
+                "--data-dir", expand(dataDir),
             ],
             healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
         )
@@ -76,7 +82,8 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         mothershipHost: String = "127.0.0.1",
         mothershipGRPCPort: Int,
         nodeID: String,
-        graphBackend: String
+        graphBackend: String,
+        dataDir: String = Defaults.threadDataDir
     ) -> ServerSpec {
         var arguments = [
             "--host", "127.0.0.1",
@@ -84,6 +91,7 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
             "--grpc-port", String(grpcPort),
             "--mothership-host", mothershipHost,
             "--mothership-grpc-port", String(mothershipGRPCPort),
+            "--data-dir", expand(dataDir),
         ]
         if !nodeID.isEmpty {
             arguments += ["--node-id", nodeID]
@@ -106,7 +114,8 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
         checkoutPath: String,
         port: Int,
         grpcPort: Int,
-        threadGRPCPort: Int
+        threadGRPCPort: Int,
+        dataDir: String = Defaults.fleetDataDir
     ) -> ServerSpec {
         ServerSpec(
             kind: .fleet,
@@ -118,12 +127,13 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
                 "--grpc-port", String(grpcPort),
                 "--thread-host", "127.0.0.1",
                 "--thread-grpc-port", String(threadGRPCPort),
+                "--data-dir", expand(dataDir),
             ],
             healthURL: URL(string: "http://127.0.0.1:\(port)/health")!
         )
     }
 
-    static func expand(_ path: String) -> String {
+    package static func expand(_ path: String) -> String {
         (path as NSString).expandingTildeInPath
     }
 
@@ -132,6 +142,13 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     package enum Defaults {
         package static let sewnCheckoutPath = "~/Documents/rao/repositories/Sewn"
         package static let threadCheckoutPath = "~/Documents/rao/repositories/Thread"
+        /// Where Mary tells each server to keep its state (`--data-dir`).
+        /// One namespace, one directory per server — never share a root:
+        /// Fleet's reconcile sweeps unknown entries out of its own.
+        package static let dataRoot = "~/Documents/maryOS"
+        package static let sewnDataDir = "\(dataRoot)/sewn-db"
+        package static let threadDataDir = "\(dataRoot)/thread-db"
+        package static let fleetDataDir = "\(dataRoot)/fleet-db"
         package static let sewnPort = 8080
         package static let sewnGRPCPort = 9091
         package static let threadPort = 8081
@@ -147,10 +164,20 @@ package struct ServerSpec: Sendable, Equatable, Identifiable {
     }
 }
 
+/// Create the servers' data directories before they are spawned. Each server
+/// creates its own as well; this keeps a bad path visible at apply time.
+package func ensureDataDirectories(_ paths: [String]) {
+    for path in paths {
+        try? FileManager.default.createDirectory(
+            atPath: ServerSpec.expand(path), withIntermediateDirectories: true)
+    }
+}
+
 /// Node UUID is the DB identity. Config → persisted node-id → mint. Never mint over existing.
 package enum ThreadNodeIdentity {
-    static var persistedPath: String {
-        ("~/Documents/thread-db/node-id" as NSString).expandingTildeInPath
+    /// `<thread data dir>/node-id` — the file Thread writes on first launch.
+    package static func nodeIDFilePath(dataDir: String = ServerSpec.Defaults.threadDataDir) -> String {
+        ServerSpec.expand(dataDir) + "/node-id"
     }
 
     /// Node identity is a UUID, canonicalized via UUID.uuidString. Anything else is nil.
@@ -162,7 +189,7 @@ package enum ThreadNodeIdentity {
     /// Do not fall through to adoptOrMint's fresh UUID.
     package static func persisted(
         configured: String,
-        nodeIDFilePath: String = persistedPath
+        nodeIDFilePath: String = nodeIDFilePath()
     ) -> String? {
         if let configured = canonical(configured) {
             return configured
@@ -177,7 +204,11 @@ package enum ThreadNodeIdentity {
     /// `persisted` plus the mint — built ON `persisted` so the launch
     /// argument and the scanner's live/orphan verdict can never disagree
     /// about which DB loads.
-    package static func adoptOrMint(configured: String) -> String {
-        persisted(configured: configured) ?? UUID().uuidString
+    package static func adoptOrMint(
+        configured: String,
+        dataDir: String = ServerSpec.Defaults.threadDataDir
+    ) -> String {
+        persisted(configured: configured, nodeIDFilePath: nodeIDFilePath(dataDir: dataDir))
+            ?? UUID().uuidString
     }
 }

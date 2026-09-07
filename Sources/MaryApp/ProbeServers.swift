@@ -30,23 +30,31 @@ enum ProbeServers {
         let manager = LocalStackManager()
         let nodeID = ThreadNodeIdentity.adoptOrMint(configured: "")
         print("thread node-id: \(nodeID)")
+        ensureDataDirectories([
+            ServerSpec.Defaults.sewnDataDir,
+            ServerSpec.Defaults.threadDataDir,
+            ServerSpec.Defaults.fleetDataDir,
+        ])
         await manager.configure([
             .sewn(
                 checkoutPath: ServerSpec.Defaults.sewnCheckoutPath,
                 port: ServerSpec.Defaults.sewnPort,
-                grpcPort: ServerSpec.Defaults.sewnGRPCPort),
+                grpcPort: ServerSpec.Defaults.sewnGRPCPort,
+                dataDir: ServerSpec.Defaults.sewnDataDir),
             .thread(
                 checkoutPath: ServerSpec.Defaults.threadCheckoutPath,
                 port: ServerSpec.Defaults.threadPort,
                 grpcPort: ServerSpec.Defaults.threadGRPCPort,
                 mothershipGRPCPort: ServerSpec.Defaults.sewnGRPCPort,
                 nodeID: nodeID,
-                graphBackend: ServerSpec.Defaults.threadGraphBackend),
+                graphBackend: ServerSpec.Defaults.threadGraphBackend,
+                dataDir: ServerSpec.Defaults.threadDataDir),
             .fleet(
                 checkoutPath: ServerSpec.Defaults.fleetCheckoutPath,
                 port: ServerSpec.Defaults.fleetPort,
                 grpcPort: ServerSpec.Defaults.fleetGRPCPort,
-                threadGRPCPort: ServerSpec.Defaults.threadGRPCPort),
+                threadGRPCPort: ServerSpec.Defaults.threadGRPCPort,
+                dataDir: ServerSpec.Defaults.fleetDataDir),
         ])
 
         if stopOnly {

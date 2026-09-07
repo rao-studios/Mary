@@ -62,11 +62,14 @@ final class ThreadExplorerViewModel: ObservableObject {
     /// Seeded via `configure(...)` from the pane's config relay (no Granite on this VM).
     private(set) var configuredThreadNodeID: String = ""
     private(set) var threadHTTPPort: Int = ServerSpec.Defaults.threadPort
+    /// Thread's data directory (expanded) — the root the disk pass scans.
+    private(set) var threadDataRoot: String = ServerSpec.expand(ServerSpec.Defaults.threadDataDir)
 
     /// Re-entrant config seed. Re-seed re-elects the live node on the next ~5 s disk pass.
-    func configure(nodeID: String, port: Int) {
+    func configure(nodeID: String, port: Int, dataDir: String = ServerSpec.Defaults.threadDataDir) {
         configuredThreadNodeID = nodeID
         threadHTTPPort = port
+        threadDataRoot = ServerSpec.expand(dataDir.isEmpty ? ServerSpec.Defaults.threadDataDir : dataDir)
     }
 
     private var pollTask: Task<Void, Never>?
@@ -85,6 +88,7 @@ final class ThreadExplorerViewModel: ObservableObject {
     /// Disk-pass skip key (fingerprint + elected node id). Re-seed forces a rescan.
     private var diskFingerprint: ThreadDiskScanner.Fingerprint?
     private var diskScanNodeID: String?
+    private var diskScanRoot: String?
     /// Cancel-replace fence: a slow 3-hop must not land over a newer query.
     private var queryGeneration = 0
 
@@ -185,8 +189,10 @@ final class ThreadExplorerViewModel: ObservableObject {
 
     func refreshNodes() async {
         let nodeID = configuredThreadNodeID
+        let root = threadDataRoot
         let previousFingerprint = diskFingerprint
         let previousNodeID = diskScanNodeID
+        let previousRoot = diskScanRoot
         let hasInventory = diskSnapshot != nil
 
         // Fleet GET and disk scan are siblings — a dead Sewn must not hold the disk section.
@@ -196,15 +202,17 @@ final class ThreadExplorerViewModel: ObservableObject {
         let (scanned, fingerprint) = await Task.detached(
             priority: .utility
         ) { () -> (ThreadDiskInventory?, ThreadDiskScanner.Fingerprint) in
-            let fingerprint = ThreadDiskScanner.fingerprint()
-            if hasInventory, nodeID == previousNodeID, fingerprint == previousFingerprint {
+            let fingerprint = ThreadDiskScanner.fingerprint(root: root)
+            if hasInventory, nodeID == previousNodeID, root == previousRoot,
+               fingerprint == previousFingerprint {
                 return (nil, fingerprint)
             }
-            return (ThreadDiskScanner.scan(configuredNodeID: nodeID), fingerprint)
+            return (ThreadDiskScanner.scan(root: root, configuredNodeID: nodeID), fingerprint)
         }.value
         if let scanned { diskSnapshot = scanned }
         diskFingerprint = fingerprint
         diskScanNodeID = nodeID
+        diskScanRoot = root
         refresh()
 
         do {

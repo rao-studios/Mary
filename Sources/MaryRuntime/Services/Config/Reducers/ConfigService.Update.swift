@@ -44,6 +44,9 @@ extension ConfigService {
             autoStartServers: Bool? = nil,
             sewnCheckoutPath: String? = nil,
             threadCheckoutPath: String? = nil,
+            sewnDataDir: String? = nil,
+            threadDataDir: String? = nil,
+            fleetDataDir: String? = nil,
             sewnPort: Int? = nil,
             sewnGRPCPort: Int? = nil,
             threadPort: Int? = nil,
@@ -83,6 +86,9 @@ extension ConfigService {
             self.autoStartServers = autoStartServers
             self.sewnCheckoutPath = sewnCheckoutPath
             self.threadCheckoutPath = threadCheckoutPath
+            self.sewnDataDir = sewnDataDir
+            self.threadDataDir = threadDataDir
+            self.fleetDataDir = fleetDataDir
             self.sewnPort = sewnPort
             self.sewnGRPCPort = sewnGRPCPort
             self.threadPort = threadPort
@@ -124,6 +130,9 @@ extension ConfigService {
             package var autoStartServers: Bool? = nil
             package var sewnCheckoutPath: String? = nil
             package var threadCheckoutPath: String? = nil
+            package var sewnDataDir: String? = nil
+            package var threadDataDir: String? = nil
+            package var fleetDataDir: String? = nil
             package var sewnPort: Int? = nil
             package var sewnGRPCPort: Int? = nil
             package var threadPort: Int? = nil
@@ -173,6 +182,9 @@ extension ConfigService {
             if let value = meta.autoStartServers { state.autoStartServers = value }
             if let value = meta.sewnCheckoutPath, !value.isEmpty { state.sewnCheckoutPath = value }
             if let value = meta.threadCheckoutPath, !value.isEmpty { state.threadCheckoutPath = value }
+            if let value = meta.sewnDataDir, !value.isEmpty { state.sewnDataDir = value }
+            if let value = meta.threadDataDir, !value.isEmpty { state.threadDataDir = value }
+            if let value = meta.fleetDataDir, !value.isEmpty { state.fleetDataDir = value }
             if let value = meta.sewnPort, value > 0 { state.sewnPort = value }
             if let value = meta.sewnGRPCPort, value > 0 { state.sewnGRPCPort = value }
             if let value = meta.threadPort, value > 0 { state.threadPort = value }
