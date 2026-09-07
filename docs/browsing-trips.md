@@ -1416,6 +1416,26 @@ filed against the detector rather than the router. The router's own rules
 are green on the recorded corpus and on every live leg that reached a
 countable row.
 
+### Round 15 — 92%, and the gate
+
+Round 15 ran 46 of 50 measured legs in one window. Every category at or above
+90% except search (75%, the two filed P findings) and act (88%: "the third
+link" reached a static text the pixel lane had called a link — the tree emits
+a link and the text inside it as two rows, and the text was pressable to the
+pixels; a static text is prose now whatever the pixels pressed, and the leg
+passes live). Full screen on the file page's player is the one media leg
+still unverified.
+
+**Where the gate stands after rounds 14 and 15.** Two consecutive rounds at
+92% and 94% overall, with arrive, context, journey, read, recovery and tabs
+at 100% in both, act at 100% and 88%, media at 90% in both. The gate asks
+for 90% in every category, and search holds it: both of its failures are the
+seal's list recall on two search-page layouts — a shopping strip grouped as
+the results on one, an options panel grouped as the list and the results as
+bands on the other — filed against the detector since rounds 9 and 14, with
+the rosters captured for the offline loop. The router is green on the
+recorded corpus and on every live leg that reached a countable row.
+
 ### Round 8 — 2026-09-07
 
 | Category | Passed | Failed | Pending | Unstageable | Rate | Layers |
