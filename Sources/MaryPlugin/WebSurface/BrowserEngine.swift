@@ -159,6 +159,10 @@ public actor BrowserEngine {
     /// lifetime as the slate, and for the same reason: the moment the page
     /// changes, this describes a list that is no longer on screen.
     var lastResultQuery: String?
+    /// Which read the slate describes. A slate deferred past the act publishes
+    /// only if no read has happened since — see `deferSlate`.
+    var readSequence = 0
+    var deferredSlate: (roster: PageRoster, sequence: Int)?
     /// THE WINDOW MARY WORKS IN — the one the last shell read was about, kept
     /// for every read, press and raise after it. See `AXWindowIdentity`.
     var workingWindow: CGWindowID?
@@ -221,7 +225,35 @@ public actor BrowserEngine {
         lastRoster = nil
         lastRoute = nil
         lastResultQuery = nil
+        deferredSlate = nil
+        readSequence += 1
         AffordanceSlatePublisher.retract(store: seams.slate)
+    }
+
+    /// THE RECEIPT READ'S SLATE, PUBLISHED AFTER THE ACT. The read after a
+    /// command is judged for receipts and spoken as the listing; nothing routes
+    /// on it — and publishing it embedded every row's words inside the act,
+    /// which was most of a second on a busy page. The roster is the engine's
+    /// evidence at once; the slate follows when the act has returned, and only
+    /// if no read has happened since (a stale slate is a page that is gone).
+    func deferSlate(_ roster: PageRoster) {
+        lastRoster = roster
+        deferredSlate = (roster, readSequence)
+    }
+
+    func flushDeferredSlate() {
+        guard let deferred = deferredSlate else { return }
+        deferredSlate = nil
+        let start = ContinuousClock.now
+        Task { [weak self] in
+            await self?.publishSlateIfCurrent(deferred.roster, sequence: deferred.sequence, since: start)
+        }
+    }
+
+    func publishSlateIfCurrent(_ roster: PageRoster, sequence: Int, since start: ContinuousClock.Instant) {
+        guard sequence == readSequence else { return }
+        publishSlate(roster)
+        emit(.timed("slate published after the act", start.duration(to: .now)))
     }
 
     /// Live activity. Anything watching reads this instead of polling.
@@ -274,6 +306,8 @@ public actor BrowserEngine {
             refusals += 1
             lastRefusal = refusal
             line = "refused \(refusal.summary)"
+        case .timed(let what, let duration):
+            line = "\(what) \(duration.milliseconds)ms"
         }
         recent.append(line)
         if recent.count > 64 { recent.removeFirst(recent.count - 64) }
@@ -377,9 +411,11 @@ public actor BrowserEngine {
         // editor forward between a search's navigation and its press.
         if stagedDepth > 0 { return await body() }
 
+        let stageStart = ContinuousClock.now
         let previous = await seams.stage.frontmost()
         let activation = await seams.stage.bringForward(
             pid: target.processIdentifier, raising: workingWindow)
+        emit(.timed("the stage", stageStart.duration(to: .now)))
         guard activation.succeeded else {
             return refuse(.activationRefused(target.spokenName, activation.failure))
         }
@@ -387,6 +423,7 @@ public actor BrowserEngine {
         defer { stagedDepth -= 1 }
 
         let outcome = await body()
+        flushDeferredSlate()
 
         var owed: pid_t?
         if after == .givenBack, let previous, previous != target.processIdentifier {
@@ -421,7 +458,9 @@ public actor BrowserEngine {
         at point: CGPoint, in target: BrowserTarget, arriving: Approach = .glide,
         button: PluginPointerButton = .left, count: Int = 1
     ) async -> Bool {
-        guard await seams.stage.holdsFocus(pid: target.processIdentifier) else { return false }
+        guard await seams.stage.holdsFocus(pid: target.processIdentifier),
+              !(await seams.stage.preemptRequested())
+        else { return false }
         switch arriving {
         case .glide: await seams.hands.glide(to: point, pid: target.processIdentifier)
         case .hover: await seams.hands.hover(at: point, pid: target.processIdentifier)
@@ -438,6 +477,7 @@ public actor BrowserEngine {
     public func readShell(_ target: BrowserTarget) async -> BrowserOutcome {
         lastBrowser = target.spokenName
         emit(.resolved(browser: target.spokenName, pid: target.processIdentifier))
+        let shellStart = ContinuousClock.now
         guard let reading = await seams.shell.read(
             pid: target.processIdentifier, registration: target.registration,
             preferring: workingWindow)
@@ -463,6 +503,7 @@ public actor BrowserEngine {
             }
             return refuse(.workingWindowGone)
         }
+        emit(.timed("shell read", shellStart.duration(to: .now)))
         return noteShell(reading, in: target)
     }
 

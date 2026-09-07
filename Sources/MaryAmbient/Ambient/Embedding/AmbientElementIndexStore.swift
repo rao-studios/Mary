@@ -16,7 +16,9 @@ public final class AmbientElementIndexStore: @unchecked Sendable {
 
     /// Memoized embed-text → normalized vector. Names and kinds barely
     /// change between polls, so steady-state rebuilds vectorize nothing.
-    private static let cacheCapacity = 512
+    /// Two busy pages' worth: a 75-row page publishes ~150 texts, and a click
+    /// reads the page twice.
+    private static let cacheCapacity = 2048
 
     private struct State: Sendable {
         var vectorizer: (any AmbientTextVectorizer)?

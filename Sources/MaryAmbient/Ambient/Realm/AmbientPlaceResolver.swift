@@ -25,6 +25,18 @@ public enum AmbientPlaceResolver {
         AmbientPlace(attention: .applications, application: browserApplicationID)
     }
 
+    /// A LOGICAL application id — one served by more than one profile — as the
+    /// place whose focus evidence says which profile is meant. Nil for a real
+    /// bundle id. The turn loop asks this instead of knowing a browser exists.
+    public static func logicalPlace(forApplication id: String) -> AmbientPlace? {
+        id == browserApplicationID ? browserPlace : nil
+    }
+
+    /// Whether a bundle id can serve a logical place.
+    public static func serves(_ place: AmbientPlace, bundleID: String) -> Bool {
+        place == browserPlace && isBrowser(bundleID: bundleID)
+    }
+
     /// Browser bundle prefixes. Prefix-matched so Chrome Beta/Canary and Safari Technology
     /// Preview register. KINDS CLOSED, INSTANCES OPEN.
     public static var browserIdentities: [(prefix: String, displayName: String)] {

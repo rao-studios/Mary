@@ -134,7 +134,7 @@ extension BrowserEngine {
                         noteResultQuery(typing.text)
                     }
                 }
-                switch await read(target, shell: shellNow ?? shell) {
+                switch await read(target, shell: shellNow ?? shell, publish: false) {
                 case .failure(let refusal):
                     receipts.append(PageCommandReceipt(
                         sourceIndex: command.sourceIndex, kind: command.kind,
@@ -371,16 +371,19 @@ extension BrowserEngine {
     // MARK: - Reading
 
     /// One look at the page, published as what the screen is offering.
+    /// `publish: false` is the read after a command — see `deferSlate`.
     func read(
-        _ target: BrowserTarget, shell: WebSurfaceAX.Reading
+        _ target: BrowserTarget, shell: WebSurfaceAX.Reading, publish: Bool = true
     ) async -> Result<PageRoster, BrowserRefusal> {
+        readSequence += 1
+        let readStart = ContinuousClock.now
         switch await perceive(target, shell: shell, intent: .elements, reveal: false) {
         case .failure(let refusal): return .failure(refusal)
         case .success(let reading):
             // THE READING'S OWN ROWS, whose facts were decided once at the seal.
             // The AX-shaped pair rides along for the parts of this lane that
             // still read it, and goes with them.
-            let roster = PageRoster(
+            var roster = PageRoster(
                 rows: reading.rows,
                 groups: reading.groups,
                 elements: reading.elements,
@@ -389,14 +392,23 @@ extension BrowserEngine {
                 // WHAT THE READ WAS, carried so a bench can tell a hard page from
                 // a machine with no classifier installed.
                 classified: reading.classified,
-                readDuration: reading.duration)
+                readDuration: reading.duration,
+                readTiming: reading.timing)
             emit(.read(
                 rows: roster.elements.count,
                 named: roster.elements.count - roster.elements.filter {
                     roster.annotation(for: $0)?.labelSource == .synthesized
                 }.count,
                 groups: roster.map.groups.count))
-            publishSlate(roster)
+            if publish {
+                let publishStart = ContinuousClock.now
+                publishSlate(roster)
+                roster.readTiming?.publish = publishStart.duration(to: .now)
+                lastRoster = roster
+            } else {
+                deferSlate(roster)
+            }
+            emit(.timed("page read", readStart.duration(to: .now)))
             return .success(roster)
         }
     }

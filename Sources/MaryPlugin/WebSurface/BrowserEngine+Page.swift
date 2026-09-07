@@ -222,6 +222,9 @@ public extension BrowserEngine {
         var screens = 0
         for attempt in 0 ... Self.scrollAttempts {
             if let deadline, seams.now() >= deadline { return .failed(.outOfTime, screens: screens) }
+            if await seams.stage.preemptRequested() {
+                return .failed(.interrupted(atCommand: 0), screens: screens)
+            }
             switch await read(target, shell: shell) {
             case .failure(let refusal):
                 return .failed(refusal, screens: screens)

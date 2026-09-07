@@ -214,12 +214,27 @@ extension AbilityRuntime {
         return "was not offered in this turn's Skill roster — it \(arbitration)"
     }
 
+    /// One arbitration, and the inputs it was a pure function of.
+    struct RosterArbitrationMemo: Sendable {
+        var revision: UUID
+        var context: AbilityRoutingContext
+        var signals: SchemaSignalTurnSnapshot
+        var roster: AbilityRosterArbitration
+    }
+
     func rosterArbitration(
         snapshot: AbilityRuntime.Snapshot,
         context: AbilityRoutingContext,
         signals: SchemaSignalTurnSnapshot
     ) -> AbilityRosterArbitration {
-        AbilityRosterArbitrator.arbitrate(
+        if let memo = rosterArbitrationCache.withLock({ $0 }),
+           memo.revision == snapshot.revision,
+           memo.context == context,
+           memo.signals == signals {
+            return memo.roster
+        }
+        rosterArbitrations.withLock { $0 += 1 }
+        let roster = AbilityRosterArbitrator.arbitrate(
             skills: snapshot.skills,
             context: context) { [self] runtime in
                 projectionEligibilityFailure(
@@ -228,7 +243,15 @@ extension AbilityRuntime {
                     snapshot: snapshot,
                     signals: signals)
             }
+        rosterArbitrationCache.withLock {
+            $0 = RosterArbitrationMemo(
+                revision: snapshot.revision, context: context, signals: signals, roster: roster)
+        }
+        return roster
     }
+
+    /// The count of arbitrations so far — for the test that pins "once per turn".
+    public var rosterArbitrationCount: Int { rosterArbitrations.withLock { $0 } }
 
     /// Snapshot readiness proves schema-level resolution.
     func workflowExecutionSafetyFailure(

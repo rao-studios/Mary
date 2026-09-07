@@ -66,6 +66,8 @@ public struct PageRoster: Sendable {
     /// What the read cost. ~220ms is the documented page budget; several seconds
     /// is a finding, and the number is free — the reading already measured it.
     public var readDuration: Duration?
+    /// The whole read, by stage — `readDuration` is only its perceive slice.
+    public var readTiming: VisionPageReader.Timing?
 
     /// The real one: a reading's own rows, facts already derived.
     public init(
@@ -76,10 +78,12 @@ public struct PageRoster: Sendable {
         pageFrame: CGRect = .zero,
         capturedAt: Date = Date(),
         classified: Bool = true,
-        readDuration: Duration? = nil
+        readDuration: Duration? = nil,
+        readTiming: VisionPageReader.Timing? = nil
     ) {
         self.classified = classified
         self.readDuration = readDuration
+        self.readTiming = readTiming
         // NO ROWS BUT ELEMENTS IS THE SHIM CASE, whoever built it. A reading
         // that filled only the AX-shaped pair — a fake in a suite, a recorded
         // fixture, an older caller — has no rows to keep, and storing its empty
@@ -104,12 +108,14 @@ public struct PageRoster: Sendable {
         pageFrame: CGRect = .zero,
         capturedAt: Date = Date(),
         classified: Bool = true,
-        readDuration: Duration? = nil
+        readDuration: Duration? = nil,
+        readTiming: VisionPageReader.Timing? = nil
     ) {
         self.storedRows = nil
         self.storedGroups = nil
         self.classified = classified
         self.readDuration = readDuration
+        self.readTiming = readTiming
         self.elements = elements
         self.map = map
         self.pageFrame = pageFrame

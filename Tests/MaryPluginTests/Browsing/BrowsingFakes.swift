@@ -239,6 +239,9 @@ final class FakeStage: BrowserStaging, @unchecked Sendable {
     }
     func standDown(givingBackTo previous: pid_t?) async { stoodDown.append(previous) }
     func holdsFocus(pid: pid_t) async -> Bool { keepsFocus }
+    /// Another act asked for the stage; flipped by a test mid-act.
+    var preempt = false
+    func preemptRequested() async -> Bool { preempt }
 }
 
 // MARK: - Support

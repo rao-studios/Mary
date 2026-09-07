@@ -36,6 +36,10 @@ public struct WebSurfaceAdapter: MaryAdapter {
     }
 
     public var abilities: Set<AbilityID> { [.browsing] }
+
+    /// WHERE THIS TURN'S SEARCHES ALREADY LANDED — cleared per turn, by the
+    /// adapter that keeps it. See `BrowserTurnMemo`.
+    public func beginTurn() { BrowserTurnMemo.shared.beginTurn() }
     // NO ALIASES. "the browser" belongs to the packages that teach one; claiming it here
     // shadows their routing identity and the whole graph refuses to activate.
     public var applicationAliases: Set<String> { [] }
@@ -821,6 +825,7 @@ public struct WebSurfaceAdapter: MaryAdapter {
             // A REFUSAL THAT FOUND NOTHING IS A MISS, NOT A FAILURE — no player on the
             // page is an answer, and a turn that says so beats one reporting an error.
             foundNothing: outcome.refusal.map(Self.isMiss) ?? false,
+            asksThePerson: outcome.refusal?.asksThePerson ?? false,
             // PROVEN, NEVER MERELY ATTEMPTED. The continuation nudge reads this to
             // decide whether the asked-for change happened; a hopeful `true` is how a
             // turn closes on work it did not do.

@@ -23,6 +23,9 @@ extension MaryBrain {
         epoch: UInt64,
         superseding: Bool
     ) async {
+        turnClockStart = DispatchTime.now()
+        turnMarks = []
+        defer { logTurnClock() }
         // A request owns the exact source selection that existed before the request UI became frontmost.
         // Workspace deactivation is delivered asynchronously.
         await SelectionHandoffCoordinator.shared.capturePendingSourceAsync()
@@ -373,10 +376,12 @@ extension MaryBrain {
         // route lands. Two projections, because there are genuinely two
         // rosters in a turn body, not because either is asked twice.
         let offeredNames = dispatcher?.projectRoster().names ?? []
+        mark("roster")
         let triage = TurnTriage.verdict(
             query: routingQuery,
             registry: turnRegistry,
             offeredNames: offeredNames)
+        mark("triage")
         let embeddingIntent = triage.intent
         // Revision is STRUCTURE, so it ORs in rather than being embedded.
         var actionTurn = editIntent != nil || triage.isActionShaped
@@ -410,6 +415,7 @@ extension MaryBrain {
         // THE ROUTED ROSTER, as the circuit log has always seen it: after the
         // route, before the referent.
         let routedProjection = dispatcher?.projectRoster()
+        mark("roster")
         // And as a watcher sees it — from in here, where the turn's signals and
         // task-locals are still standing. A confidence-lane dispatch returns before the
         // second projection below, so for that path this is the only one there is.
@@ -559,6 +565,7 @@ extension MaryBrain {
         // here; they were adjacent arguments to the same initializer, each
         // arbitrating all 105 Skills to the identical verdict.
         let tracedProjection = dispatcher?.projectRoster()
+        mark("roster")
         if let trace = tracedProjection?.trace {
             rosterProjectionObserver?(trace.carrying(triage.verdictValue(lane: .model)))
         }
@@ -741,13 +748,13 @@ extension MaryBrain {
     ) -> String? {
         guard let application else { return nil }
         if profiles.contains(where: { $0.id == application }) { return application }
-        if application == AmbientPlaceResolver.browserApplicationID {
-            // The logical browser workspace can be served by more than one profile once chrome.mary installs beside safari.
-            let evidenced = focusTracker
-                .evidenceProcess(for: AmbientPlaceResolver.browserPlace)
+        if let place = AmbientPlaceResolver.logicalPlace(forApplication: application) {
+            // A logical workspace can be served by more than one profile; the
+            // focus ledger's evidence says which. The resolver owns which ids
+            // are logical and who serves them — nothing here names a browser.
+            let evidenced = focusTracker.evidenceProcess(for: place)
                 ?? focusTracker.evidenceProcess(
-                    for: AmbientPlaceResolver.browserPlace,
-                    within: WorkspaceFocusTracker.signalHorizon)
+                    for: place, within: WorkspaceFocusTracker.signalHorizon)
             if let evidenced,
                let owner = profiles.first(where: { profile in
                    profile.applicationIdentifiers.contains { id in
@@ -757,11 +764,11 @@ extension MaryBrain {
                 return owner
             }
             // No evidence either way. A candidate may still fall back to the
-            // first browser profile; a LEAD may not — see `requireEvidence`.
+            // first serving profile; a LEAD may not — see `requireEvidence`.
             guard !requireEvidence else { return nil }
             return profiles.first { profile in
                 profile.applicationIdentifiers.contains { id in
-                    AmbientPlaceResolver.isBrowser(bundleID: id)
+                    AmbientPlaceResolver.serves(place, bundleID: id)
                 }
             }?.id
         }

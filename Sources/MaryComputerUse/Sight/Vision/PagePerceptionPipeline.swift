@@ -74,9 +74,9 @@ public enum PagePerceptionPipeline {
         // as closely as two reads can.
         let walked = lanes.contains(.accessibility) && intent == .elements
             ? await walk(pid: pid, pageFrame: pageFrame)
-            : []
+            : (elements: [], readiness: .zero, walk: .zero)
 
-        let reading = try await VisionPageReader.read(
+        var reading = try await VisionPageReader.read(
             pid: pid,
             windowID: windowID,
             pageFrame: pageFrame,
@@ -87,10 +87,12 @@ public enum PagePerceptionPipeline {
             previousFraction: previousFraction,
             previousElapsed: previousElapsed)
 
-        guard !walked.isEmpty else { return reading }
+        reading.timing?.readiness = walked.readiness
+        reading.timing?.walk = walked.walk
+        guard !walked.elements.isEmpty else { return reading }
         return VisionPageReader.sealing(
             reading,
-            merged: merge(vision: reading.rows, groups: reading.groups, walked: walked),
+            merged: merge(vision: reading.rows, groups: reading.groups, walked: walked.elements),
             pid: pid, appName: appName, windowTitle: windowTitle)
     }
 
@@ -101,14 +103,20 @@ public enum PagePerceptionPipeline {
     /// content, a tree that never woke, a page still loading — and every one of
     /// them leaves the pixel lane as the whole answer, which is what this lane
     /// was added underneath rather than in front of.
-    static func walk(pid: pid_t, pageFrame: CGRect) async -> [PageElement] {
+    static func walk(
+        pid: pid_t, pageFrame: CGRect
+    ) async -> (elements: [PageElement], readiness: Duration, walk: Duration) {
         let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+        let readyStart = ContinuousClock.now
         let readiness = await BrowserAXReadiness.ensureWebContentAX(
             pid: pid, bundleID: bundleID,
             timeout: BrowserAXReadiness.readSettleTimeout)
-        guard readiness.walkable else { return [] }
+        let readyElapsed = readyStart.duration(to: .now)
+        guard readiness.walkable else { return ([], readyElapsed, .zero) }
         let application = AXUIElementCreateApplication(pid)
-        return PageElementReader.readWebContent(in: application, pageFrame: pageFrame)
+        let walkStart = ContinuousClock.now
+        let elements = PageElementReader.readWebContent(in: application, pageFrame: pageFrame)
+        return (elements, readyElapsed, walkStart.duration(to: .now))
     }
 
     // MARK: - The merge

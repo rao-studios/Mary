@@ -114,6 +114,13 @@ public actor MaryBrain: LanguageResponder {
 
     // internal for file split — treat as private
     var history: [BrainTurn] = []
+    /// The eyes, when the dispatcher has any. See `SightServing`.
+    var sight: (any SightServing)? { dispatcher as? any SightServing }
+    /// THE TURN CLOCK. Stage marks since `runTurn` began, printed at its end —
+    /// the per-stage numbers the lane logs never carried. See `mark(_:)`.
+    // internal for file split — treat as private
+    var turnClockStart: DispatchTime?
+    var turnMarks: [(label: String, ms: UInt64)] = []
     /// Last named/owned application. Conversational salience, not durable focus or a grant.
     /// PIN: Mary's surface can steal NSWorkspace frontmost before a typed follow-up.
     // internal for file split — treat as private

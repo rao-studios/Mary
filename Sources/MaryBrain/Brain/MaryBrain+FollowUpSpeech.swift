@@ -34,7 +34,7 @@ extension MaryBrain {
         let speakable = grounded.filter {
             $0.ok && !$0.foundNothing
                 && !(servedByPreRead
-                     && dispatcher?.isLookSkill($0.skillName) == true)
+                     && sight?.isLookSkill($0.skillName) == true)
         }
         // ON A CONFIRM TURN THE QUESTION IS THE WHOLE REPLY.
         let confirmPending = result.confirmQuestion != nil
@@ -46,7 +46,8 @@ extension MaryBrain {
                 && grounded.allSatisfy { dispatcher?.isReadOnly($0.skillName) == true }
             let block = readOnly
                 ? Self.readPassageBlock(outcomes: speakable)
-                : Self.groundedResultsBlock(outcomes: grounded)
+                : Self.groundedResultsBlock(
+                    outcomes: grounded, isRead: { dispatcher?.isReadOnly($0) == true })
             let pass = readOnly
                 ? SeerPass(readPassages: [block], readReport: true, assertedFocus: originFocus)
                 : SeerPass(groundedResults: block, assertedFocus: originFocus)
@@ -140,7 +141,7 @@ extension MaryBrain {
                 // SAME EXCLUSION AS `speakable`, for the same reason.
                 let usable = grounded.filter {
                     !(servedByPreRead
-                      && dispatcher?.isLookSkill($0.skillName) == true)
+                      && sight?.isLookSkill($0.skillName) == true)
                 }
                 // A READ'S FALLBACK IS THE PASSAGE, AND IT IS NEVER DROPPED.
                 //

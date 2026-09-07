@@ -337,3 +337,16 @@ import Testing
         #expect(WebSurfaceAX.dialog(from: nameless, message: { nil }) == nil)
     }
 }
+
+/// A REFUSAL THAT ASKS IS THE REPLY, NOT A FAILURE TO RETRY.
+@Suite struct BrowserRefusalQuestionTests {
+    @Test func theRefusalsThatAskThePersonSaySo() {
+        #expect(BrowserRefusal.ambiguousElement(phrase: "skip the ad", rivals: ["a", "b"]).asksThePerson)
+        #expect(BrowserRefusal.ambiguousBrowser(["Safari", "Chrome"]).asksThePerson)
+        #expect(BrowserRefusal.browserIsAsking(question: "Leave?", choices: ["Stay", "Leave"]).asksThePerson)
+        #expect(BrowserRefusal.humanCheck.asksThePerson)
+        #expect(!BrowserRefusal.elementNotFound("x").asksThePerson)
+        #expect(!BrowserRefusal.stateUnchanged(expected: "playing", observed: "paused").asksThePerson)
+        #expect(!BrowserRefusal.outOfTime.asksThePerson)
+    }
+}

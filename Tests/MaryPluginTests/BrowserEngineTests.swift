@@ -407,6 +407,8 @@ import MaryComputerUse
                 case .receipt: names.append("receipt")
                 case .verified: names.append("verified")
                 case .refused: names.append("refused")
+                // A timing line is not an act; the order pinned here is the acts'.
+                case .timed: break
                 }
                 if names.contains("verified") { break }
             }

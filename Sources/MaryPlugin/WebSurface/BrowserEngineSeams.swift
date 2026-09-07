@@ -13,6 +13,7 @@
 //
 
 import AppKit
+import os
 import OSLog
 import CoreGraphics
 import Foundation
@@ -162,6 +163,15 @@ public protocol BrowserStaging: Sendable {
     /// Is this still the process in front? A plan that keeps pressing into whatever
     /// came forward is worse than one that stops and says where it got to.
     func holdsFocus(pid: pid_t) async -> Bool
+    /// Another act has asked for the stage. The engine checks this at every
+    /// wait and before every press, and stops at the next safe point — so a
+    /// staged dispatch that follows a browsing act never waits out the
+    /// arbiter's whole budget twice. Default: nobody asked.
+    func preemptRequested() async -> Bool
+}
+
+public extension BrowserStaging {
+    func preemptRequested() async -> Bool { false }
 }
 
 // MARK: - Live
@@ -538,6 +548,10 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
     private let lock = NSLock()
     private var lease: UUID?
     private var hold: UUID?
+    /// Set by the arbiter's `onPreempt` — the newcomer asked; the act steps
+    /// aside at its next safe point. Typing already does this; browsing passed
+    /// `{}` and made every staged dispatch after it wait the full two seconds.
+    private let preempted = OSAllocatedUnfairLock(initialState: false)
 
     public init() {}
 
@@ -546,7 +560,10 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
     }
 
     public func bringForward(pid: pid_t, raising window: CGWindowID?) async -> Activation {
-        guard let taken = await StageArbiter.shared.acquire(owner: "browsing", onPreempt: {})
+        preempted.withLock { $0 = false }
+        let preempted = preempted
+        guard let taken = await StageArbiter.shared.acquire(
+            owner: "browsing", onPreempt: { preempted.withLock { $0 = true } })
         else {
             return .lost(.stageHeld(StageArbiter.shared.currentOwner() ?? "another act"))
         }
@@ -575,9 +592,14 @@ public final class LiveBrowserStaging: BrowserStaging, @unchecked Sendable {
         }
         if let lease = held.0 { StageArbiter.shared.release(lease) }
         if let hold = held.1 { WorkspaceFocusTracker.shared.endSelfDriving(hold) }
+        preempted.withLock { $0 = false }
     }
 
     public func holdsFocus(pid: pid_t) async -> Bool {
         await VerifiedActivation.isFrontmost(pid: pid)
+    }
+
+    public func preemptRequested() async -> Bool {
+        preempted.withLock { $0 }
     }
 }

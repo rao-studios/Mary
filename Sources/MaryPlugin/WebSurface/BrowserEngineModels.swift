@@ -140,6 +140,15 @@ public enum BrowserRefusal: Error, Sendable, Equatable {
     /// The engine was asked to observe, not act.
     case dryRun(String)
 
+    /// The refusal is a question only the person can answer — which of the
+    /// rivals, which browser, the browser's own dialog, a human check.
+    public var asksThePerson: Bool {
+        switch self {
+        case .ambiguousElement, .ambiguousBrowser, .browserIsAsking, .humanCheck: return true
+        default: return false
+        }
+    }
+
     public var summary: String {
         switch self {
         case .noBrowser:
@@ -361,6 +370,9 @@ public enum BrowserEngineEvent: Sendable {
     case acted(String)
     case verified(String)
     case refused(BrowserRefusal)
+    /// How long a step took — the stage, a shell read, a page read, a settle.
+    /// The numbers the reconstruction of a slow act had to guess at.
+    case timed(String, Duration)
 }
 
 public extension BrowserEngineEvent {
@@ -379,8 +391,8 @@ public extension BrowserEngineEvent {
             return "resolved \(browser)"
         case .shellRead(let title, let site, _):
             return "read the shell — \(title ?? "untitled")\(site.map { " · \($0)" } ?? "")"
-        case .perceived(let controls, let playback, _):
-            return "perceived \(controls) controls · \(playback)"
+        case .perceived(let controls, let playback, let duration):
+            return "perceived \(controls) controls · \(playback) · \(duration.milliseconds)ms"
         case .read(let rows, let named, let groups):
             return "looked — \(rows) rows, \(named) named, \(groups) groups"
         case .routed(let trace):
@@ -398,6 +410,8 @@ public extension BrowserEngineEvent {
             return "verified \(what)"
         case .refused(let refusal):
             return "refused — \(refusal.summary)"
+        case .timed(let what, let duration):
+            return "\(what) took \(duration.milliseconds)ms"
         }
     }
 

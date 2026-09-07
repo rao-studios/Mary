@@ -409,7 +409,22 @@ swift run mary-ax-probe --app Safari --tree --role toolbar       # measure a bro
 ```
 
 `--media` puts playback back the way it found it, the same courtesy `mary-media-probe`
-pays a music player. `--save` writes the crop the page lane actually reads and then says
+pays a music player.
+
+**Where the time went.** Three lines, on `nyc.rao.mary`, say it without a profiler:
+
+- `turns` · `turn clock — total Nms · roster N · triage N · roster N · roster N · pre N · lane N` —
+  one per turn, milliseconds since the utterance arrived, at each stage.
+- `lanes` · `dispatch NAME — total Nms · gates Nms · preempt Nms · run Nms` — one per
+  dispatch: the gates before the binding, the stage preempt, and the binding itself.
+- `browsing` · `the stage Nms`, `shell read Nms`, `page read Nms`, `slate published after the
+  act Nms` — one per step of an act; `--watch` prints the same as `… took Nms`.
+
+A page read's cost is by stage on the roster (`readTiming`: readiness, walk, capture,
+perceive, publish); the bench caption prints the total and the perceive slice. The
+receipt read after a command publishes its slate *after* the act returns, so the
+embeddings it costs are no longer inside the act; a shell read is one accessibility
+walk, not two; and the stage honours a preempt at every wait and before every press. `--save` writes the crop the page lane actually reads and then says
 what it made of it, which is how every detector fix in this lane was found.
 
 When the detector needs tuning, the loop is offline and repeatable:

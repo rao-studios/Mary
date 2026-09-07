@@ -224,7 +224,10 @@ public enum PageMapProjection {
         // WHAT THE READ COST. ~220ms is the documented page budget, and the
         // reading already measured it — a bench that has the number and does not
         // show it is asking a person to time it by hand.
-        if let duration = roster.readDuration {
+        if let timing = roster.readTiming {
+            caption += " · \(timing.total.milliseconds)ms read"
+                + " (\(timing.perceive.milliseconds)ms perceive)"
+        } else if let duration = roster.readDuration {
             caption += " · \(duration.milliseconds)ms"
         }
         caption += " · \(Int(age.rounded()))s ago"

@@ -21,7 +21,11 @@ extension MaryPrompts {
     Another voice is answering the user right now — your words are NOT \
     spoken or shown. Your only job this turn is deciding whether the user's \
     request needs commands run, and running them: call them, read the \
-    results, chain follow-ups as needed.
+    results, chain follow-ups as needed. A result marked DONE needs no \
+    second call. One marked RAN, unproven is checked by looking, never by \
+    running it again. One marked ASKED is a question to the user — it ends \
+    your work this turn; the question is the reply. A command that FAILED \
+    is not called again with the same words.
 
     If the answer is on their Mac rather than in what you know, a command is \
     the only way to get it — the document or note in front of them, \

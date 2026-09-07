@@ -204,7 +204,7 @@ extension BrowserEngine {
         let deadline = seams.now().addingTimeInterval(seconds)
         var latest: WebSurfaceAX.Reading?
         while seams.now() < deadline {
-            guard !Task.isCancelled else { return (nil, latest) }
+            guard !Task.isCancelled, !(await seams.stage.preemptRequested()) else { return (nil, latest) }
             await seams.sleep(poll)
             guard let reading = await seams.shell.read(
                 pid: target.processIdentifier, registration: target.registration,
@@ -228,6 +228,8 @@ extension BrowserEngine {
             Double(Self.navigationBudget.components.seconds))
         while seams.now() < deadline {
             await seams.sleep(Self.navigationPoll)
+            // SOMEBODY ELSE ASKED FOR THE STAGE — stop waiting, say where it got to.
+            if await seams.stage.preemptRequested() { return refuse(.interrupted(atCommand: 0)) }
             guard let reading = await seams.shell.read(
                 pid: target.processIdentifier, registration: target.registration,
                 preferring: workingWindow)
@@ -305,6 +307,7 @@ extension BrowserEngine {
         var last: Int?
         for _ in 0..<Self.resultsSettlePolls {
             await seams.sleep(Self.resultsSettleInterval)
+            if await seams.stage.preemptRequested() { return }
             guard let now = await seams.settling.offering(
                 pid: target.processIdentifier, pageFrame: frame)
             else {

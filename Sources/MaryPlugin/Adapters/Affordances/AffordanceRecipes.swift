@@ -78,6 +78,7 @@ enum AffordanceRecipes {
                 ok: outcome.ok,
                 summary: outcome.spoken,
                 foundNothing: outcome.refusal.map(WebSurfaceAdapter.isMiss) ?? false,
+                asksThePerson: outcome.refusal?.asksThePerson ?? false,
                 landed: outcome.landed,
                 adapterTrail: ["web-surface"],
                 applicationID: target.applicationID)

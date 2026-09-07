@@ -13,7 +13,9 @@ extension MaryBrain {
 
     /// Skill results, clamped, as the grounded-results block for the follow-up
     /// instructions (~500 chars per Skill, ~4000 total).
-    static func groundedResultsBlock(outcomes: [LaneOutcome]) -> String {
+    static func groundedResultsBlock(
+        outcomes: [LaneOutcome], isRead: (String) -> Bool = { _ in false }
+    ) -> String {
         var lines: [String] = []
         var total = 0
         for outcome in outcomes {
@@ -21,7 +23,21 @@ extension MaryBrain {
                 ? String(outcome.summary.prefix(500)) + "…"
                 : outcome.summary
             // FAILURES ARE LABELLED, because this block is the follow-up's ONLY evidence and `followUpNudge` asks the voice to "confirm the outcome in one short spoken…
-            let label = outcome.ok ? "\(outcome.skillName):" : "\(outcome.skillName) FAILED:"
+            // FOUR WORDS, NOT TWO. "FAILED" invited a retry; a plain name read as
+            // done. DONE is proven; RAN, unproven is delivered without a receipt
+            // and is checked by looking; ASKED is a question the person answers.
+            let label: String
+            if outcome.asksThePerson {
+                label = "\(outcome.skillName) ASKED:"
+            } else if !outcome.ok {
+                label = "\(outcome.skillName) FAILED:"
+            } else if outcome.landed {
+                label = "\(outcome.skillName) DONE:"
+            } else if !outcome.deferred, !outcome.foundNothing, !isRead(outcome.skillName) {
+                label = "\(outcome.skillName) RAN, unproven:"
+            } else {
+                label = "\(outcome.skillName):"
+            }
             let line = "- \(label) \(clamped)"
             total += line.count
             if total > 4000 {
@@ -56,8 +72,15 @@ extension MaryBrain {
 
     /// DID THIS LANE GO THROUGH? — asked once, in one place, because two paths ask it and they used to answer differently.
     static func unrecoveredFailure(in outcomes: [LaneOutcome]) -> LaneOutcome? {
-        guard outcomes.last?.ok == false else { return nil }
-        return outcomes.first(where: { !$0.ok })
+        guard let last = outcomes.last, !last.ok, !last.asksThePerson else { return nil }
+        return outcomes.first(where: { !$0.ok && !$0.asksThePerson })
+    }
+
+    /// A question a Skill asked the person, when the lane ended on one — the
+    /// reply, spoken as a question and never as a failure.
+    static func openQuestion(in outcomes: [LaneOutcome]) -> LaneOutcome? {
+        guard let last = outcomes.last, last.asksThePerson else { return nil }
+        return last
     }
 
     /// HOW LONG A DETERMINISTIC FOLLOW-UP MAY SPEAK IN ONE BREATH
@@ -140,6 +163,9 @@ extension MaryBrain {
     }
 
     static func fallbackFollowUpLine(outcomes: [LaneOutcome]) -> String {
+        if let asked = openQuestion(in: outcomes) {
+            return spokenBrief(asked.summary)
+        }
         if let failure = unrecoveredFailure(in: outcomes) {
             return "That didn't go through — \(spokenBrief(failure.summary))"
         }

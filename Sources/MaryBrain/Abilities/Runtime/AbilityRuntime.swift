@@ -13,7 +13,7 @@
 import Foundation
 import os
 
-public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
+public final class AbilityRuntime: AbilityDispatching, SightServing, @unchecked Sendable {
 
     public static let confirmSkillName = "confirm_pending_skill"
     public static let cancelSkillName = "cancel_pending_skill"
@@ -49,6 +49,8 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
         initialState: .init())
     /// turnLog roster line once per beginTurn — schemas is read every round.
     let codingRosterLogged = OSAllocatedUnfairLock<Bool>(initialState: false)
+    /// The adapters this registry was built from, for the per-turn hook.
+    let adapters: [any MaryAdapter]
 
     struct InFlightRun {
         /// Canceller for the in-flight worker (native or workflow — types differ).
@@ -134,6 +136,13 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
     let semanticSkillAffinityCache = OSAllocatedUnfairLock<
         (utterance: String, affinities: [SkillID: Float])?
     >(initialState: nil)
+    /// THE TURN'S ROSTER, ARBITRATED ONCE. `projectRoster()` is asked three
+    /// times per turn, once per lane round and once per DISPATCH — Mary's own
+    /// pre-reads included — and each arbitrated every Skill against the same
+    /// inputs. Keyed on those inputs; cleared with the other turn memos.
+    let rosterArbitrationCache = OSAllocatedUnfairLock<RosterArbitrationMemo?>(initialState: nil)
+    /// How many times the roster was actually arbitrated — the test's proof.
+    let rosterArbitrations = OSAllocatedUnfairLock<Int>(initialState: 0)
     /// Where settled outcomes are recorded. `.shared` (persist: true) in
     /// production; a unit test that dispatches must not write to
     /// `~/Library/Application Support/Mary/routing-habits.json`.
@@ -178,6 +187,7 @@ public final class AbilityRuntime: AbilityDispatching, @unchecked Sendable {
             attributedBindings.append(AttributedSkillBinding(owner: owner, binding: binding))
         }
         self.behavior = behavior
+        self.adapters = plugins
         self.nativeAttributed = attributedBindings
         self.nativeProfiles = plugins.map(\.applicationProfile)
         var reads: [String: (binding: String, parameter: String)] = [:]

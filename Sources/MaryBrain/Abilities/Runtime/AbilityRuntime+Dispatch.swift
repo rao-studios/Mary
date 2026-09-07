@@ -24,6 +24,24 @@ extension AbilityRuntime {
     static let timingLog = Logger(subsystem: "nyc.rao.mary", category: "lanes")
 
     /// Dispatch chokepoint — model, lane press, and confirmation replay all enter here.
+    /// The parts of one dispatch, for the timing line — the budget wrapper
+    /// writes `executeMs`, the worker writes `preemptMs`, `dispatch` reads both.
+    /// Task-local, so the worker's own Task inherits it.
+    final class DispatchTiming: @unchecked Sendable {
+        private let lock = NSLock()
+        private var preempt: UInt64 = 0
+        private var execute: UInt64 = 0
+        var preemptMs: UInt64 {
+            get { lock.withLock { preempt } }
+            set { lock.withLock { preempt = newValue } }
+        }
+        var executeMs: UInt64 {
+            get { lock.withLock { execute } }
+            set { lock.withLock { execute = newValue } }
+        }
+    }
+    @TaskLocal static var timing: DispatchTiming?
+
     public func dispatch(
         name: String, argumentsJSON: String, runID: String? = nil
     ) async -> SkillOutcome {
@@ -35,8 +53,11 @@ extension AbilityRuntime {
 
         // One identity for the whole act — chip, ledger, episode, and Stop share it.
         let identity = runID ?? UUID().uuidString
-        let outcome = await RunContext.$runID.withValue(identity) {
-            await dispatchCore(name: name, argumentsJSON: argumentsJSON)
+        let timing = DispatchTiming()
+        let outcome = await Self.$timing.withValue(timing) {
+            await RunContext.$runID.withValue(identity) {
+                await dispatchCore(name: name, argumentsJSON: argumentsJSON)
+            }
         }
 
         let record = BehavioralActionRecord(
@@ -58,7 +79,11 @@ extension AbilityRuntime {
         }
         let totalMs = (DispatchTime.now().uptimeNanoseconds
             &- dispatchStart.uptimeNanoseconds) / 1_000_000
-        let line = "dispatch \(name) — total \(totalMs)ms,"
+        // WHERE THE TIME WENT: the gates before the binding, the stage preempt,
+        // and the binding itself — one line, so a slow dispatch says which.
+        let gatesMs = totalMs > timing.executeMs ? totalMs - timing.executeMs : 0
+        let line = "dispatch \(name) — total \(totalMs)ms"
+            + " · gates \(gatesMs)ms · preempt \(timing.preemptMs)ms · run \(timing.executeMs)ms,"
             + " status=\(record.disposition)"
         Self.timingLog.info("\(line, privacy: .public)")
         TurnCircuitLog.dispatch(

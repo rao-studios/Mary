@@ -72,7 +72,7 @@ extension MaryBrain {
             && concrete.allSatisfy { outcome in
                 dispatcher?.isReadOnly(outcome.skillName) == true
                     && (dispatcher?.attention(ofSkill: outcome.skillName)?.hasEyes == true
-                        || dispatcher?.isLookSkill(outcome.skillName) == true)
+                        || sight?.isLookSkill(outcome.skillName) == true)
             }
 
         // Superseded successful reads still take the follow-up path.
@@ -90,7 +90,7 @@ extension MaryBrain {
         // A READ WHOSE CONTENT IS ALREADY IN HAND SETTLES SILENTLY — the user's decision, after machine receipts ("Sketch completed the document-model command.
         let readsAlreadyDeposited = onlyLooked
             && concrete.allSatisfy(\.ambientDeposited)
-            && !concrete.contains { dispatcher?.isLookSkill($0.skillName) == true }
+            && !concrete.contains { sight?.isLookSkill($0.skillName) == true }
         // A POLICY refusal is not an adapter failure.
         let blockedOnly = !concrete.isEmpty && concrete.allSatisfy(\.blocked)
         if blockedOnly, result.confirmQuestion == nil, !late,

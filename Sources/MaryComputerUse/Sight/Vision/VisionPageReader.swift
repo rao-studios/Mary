@@ -34,6 +34,24 @@ public enum VisionPageReader {
         case elements
     }
 
+    /// What one page read cost, by stage. `perceive` is what `Reading.duration`
+    /// always was; the rest is what it never counted — and on a busy page the
+    /// rest is most of it.
+    public struct Timing: Sendable, Equatable {
+        /// Waking the page's accessibility tree (a Chromium host, once per process).
+        public var readiness: Duration = .zero
+        /// The accessibility walk of the page.
+        public var walk: Duration = .zero
+        /// Screen capture — the ScreenCaptureKit round trips.
+        public var capture: Duration = .zero
+        /// OCR, regions and the classifier.
+        public var perceive: Duration = .zero
+        /// Publishing the rows as a slate — the embeddings.
+        public var publish: Duration = .zero
+        public init() {}
+        public var total: Duration { readiness + walk + capture + perceive + publish }
+    }
+
     public struct Reading: Sendable {
         /// THE PAGE, IN READING ORDER — the one shape everything above the seal
         /// should read. Screen points, facts already derived.
@@ -57,6 +75,8 @@ public enum VisionPageReader {
         public var classified: Bool
         /// What the map said about each row, keyed by ordinal.
         public var map: PageMapSummary
+        /// Where the read's time went. Nil for a fake or a fixture.
+        public var timing: Timing?
 
         public init(
             rows: [PageRow] = [],
@@ -67,7 +87,8 @@ public enum VisionPageReader {
             pixelsPerPoint: Double,
             duration: Duration = .zero,
             classified: Bool = false,
-            map: PageMapSummary = PageMapSummary()
+            map: PageMapSummary = PageMapSummary(),
+            timing: Timing? = nil
         ) {
             self.rows = rows
             self.groups = groups
@@ -78,6 +99,7 @@ public enum VisionPageReader {
             self.duration = duration
             self.classified = classified
             self.map = map
+            self.timing = timing
         }
     }
 
@@ -144,7 +166,9 @@ public enum VisionPageReader {
             earlier = WindowPixels.crop(first, to: pageFrame)
             try? await Task.sleep(for: motionInterval)
         }
+        let captureStart = ContinuousClock.now
         let frame = try await capture(pid: pid, windowID: windowID, pageFrame: pageFrame)
+        let captureElapsed = captureStart.duration(to: .now)
         guard let cropped = WindowPixels.crop(frame, to: pageFrame) else {
             ComputerUseMonitor.shared.note(
                 lane: .sight, refused: "perceive", pid: pid, reason: .pageNotVisible)
@@ -224,7 +248,13 @@ public enum VisionPageReader {
             pixelsPerPoint: frame.pixelsPerPoint,
             duration: elapsed,
             classified: classifier != nil,
-            map: summary)
+            map: summary,
+            timing: {
+                var timing = Timing()
+                timing.capture = captureElapsed
+                timing.perceive = elapsed
+                return timing
+            }())
     }
 
     private static func capture(

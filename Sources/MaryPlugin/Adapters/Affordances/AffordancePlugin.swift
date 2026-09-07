@@ -13,6 +13,17 @@ import Foundation
 
 public struct AffordancePlugin: MaryAdapter {
 
+    /// THE ONE SKILL THE BRAIN PRESSES DETERMINISTICALLY, named here rather than
+    /// in the turn loop, so generic turn code names no Skill.
+    public static let actSkillName = "act_on_screen"
+
+    /// The act's arguments as the brain sends them — the goal in the person's words.
+    public static func actArguments(goal: String) -> String {
+        (try? JSONSerialization.data(
+            withJSONObject: ["goal": goal], options: [.sortedKeys]))
+            .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+    }
+
     public let name = "affordances"
     public let summary = "Act on whatever the screen is currently offering — press the control that accomplishes what the user asked, in any application."
 

@@ -200,6 +200,8 @@ public protocol MaryAdapter: Sendable {
     /// Binding that reads a named part, plus the phrase parameter.
     /// PIN: brain never learns Skill names; pre-read reuses the model's targeting.
     var targetedRead: (binding: String, parameter: String)? { get }
+    /// Called at the start of every user turn. See the default.
+    func beginTurn()
     /// Extra owner keys this adapter answers to — the names a PLACE is spelled
     /// with when they differ from the adapter's own.
     ///
@@ -245,6 +247,10 @@ public protocol MaryAdapter: Sendable {
 }
 
 public extension MaryAdapter {
+    /// A NEW TURN. Whatever an adapter remembers for exactly one turn is
+    /// cleared here, by the adapter — the runtime clears "whatever adapters
+    /// keep" and names none of them. Default: nothing kept.
+    func beginTurn() {}
     var promptFragment: String? { nil }
     /// Honest minimal manifest for compiled adapters. Empty typed lists mean
     /// "not yet specified", not "cannot carry a Value". Override for a full contract.

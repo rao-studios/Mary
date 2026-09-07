@@ -31,6 +31,10 @@ extension MaryBrain {
         /// invocation name. The lane's own addition; not a `SkillOutcome` field.
         var skillName: String
         var outcome: SkillOutcome
+        /// What was called — the model's invocation name and its arguments as
+        /// sent — so a repeat can be recognised. See MaryBrain+RepeatGuard.
+        var invocation: String = ""
+        var argumentsJSON: String = ""
 
         var summary: String { outcome.summary }
         var ok: Bool { outcome.ok }
@@ -49,6 +53,8 @@ extension MaryBrain {
         var blocked: Bool { outcome.status == .blocked }
         /// The acting intent is satisfied.
         var landed: Bool { outcome.landed }
+        /// A question only the person can answer — the reply, not a failure.
+        var asksThePerson: Bool { outcome.asksThePerson }
     }
 
     struct OrchestratorLaneResult {
@@ -56,6 +62,13 @@ extension MaryBrain {
         /// The question of a CONFIRM the lane surfaced (already stripped of
         /// its prefix), spoken deterministically after the Seer reply.
         var confirmQuestion: String?
+        /// A question a Skill asked the person; the lane ended on it and it is
+        /// the reply. Its own field: every `confirmQuestion` reader also
+        /// requires a stored pending confirmation, which nothing here parks.
+        var question: String?
+        /// The model re-issued a call that had already failed with the same
+        /// words; the lane ended rather than run it again.
+        var repeatedFailedCall = false
         /// Settled outcome per dispatch — fuel for the grounded follow-up.
         var outcomes: [LaneOutcome] = []
         /// The lane's Skill turns, buffered privately (never written to shared
@@ -136,9 +149,11 @@ extension MaryBrain {
         // habits; a parallel word list could only disagree with it.
         if readPassages.isEmpty, editIntent == nil, !actionTurn, let dispatcher,
            routeIntent == .perceive {
+            let eyes = self.sight
             let sight = await OwnActCollector.$current.withValue(ownActs) {
                 await withNanosecondBudget(Self.preLookBudgetNanoseconds) {
-                    await dispatcher.fetchDeclaredEditorSight(query: userText)
+                    () async -> (passage: String, isRead: Bool)? in
+                    await eyes?.fetchDeclaredEditorSight(query: userText) ?? nil
                 }
             }
             if Task.isCancelled {
@@ -162,7 +177,7 @@ extension MaryBrain {
                        focusTracker: focusTracker) {
                     recentApplicationReferent = (routable, Date())
                 }
-            } else if dispatcher.wouldServeLook() {
+            } else if self.sight?.wouldServeLook() == true {
                 lookUnderway = true
             }
         }
@@ -207,7 +222,7 @@ extension MaryBrain {
             Self.turnLog.info("\(line, privacy: .public)")
         }
 
-        let lookWould = dispatcher?.wouldServeLook() ?? false
+        let lookWould = sight?.wouldServeLook() ?? false
         let lookLine = "look — wouldServe=\(lookWould) served=\(lookServed) read=\(readServed) underway=\(lookUnderway)"
         Self.turnLog.info("\(lookLine, privacy: .public)")
 
@@ -247,6 +262,7 @@ extension MaryBrain {
         // in a task group pins the group to the lane's duration (value is not
         // cancellation-responsive); a finished AsyncStream is.
         let laneSignal: AsyncStream<Void>?
+        mark("pre")
         let laneSpawn = DispatchTime.now()
         // Attached until the grace race detaches. Flipped once; the lane reads it each round.
         let laneAttachment = LaneAttachment()
@@ -352,6 +368,7 @@ extension MaryBrain {
                 laneStalled = orchestratorLane == nil
             }
         }
+        mark("lane")
         if laneStalled {
             laneTask?.cancel()
             Self.laneLog.error("attached lane exceeded its cap — speaking the honest stall line")
@@ -586,7 +603,7 @@ extension MaryBrain {
         var voicedText = spokenText
         if !laneStalled, !seerLane.failed, !spokenText.isEmpty,
            let lane = orchestratorLane,
-           lane.confirmQuestion == nil,
+           lane.confirmQuestion == nil, lane.question == nil,
            !lane.outcomes.isEmpty,
            Self.unrecoveredFailure(in: lane.outcomes) == nil,
            !lane.outcomes.contains(where: \.deferred),
@@ -602,6 +619,14 @@ extension MaryBrain {
                dispatcher?.isReadOnly($0.skillName) == false
            }) != true {
             AmbientTraceLog.shared.noteVoiceSpokeWithoutMutation()
+        }
+
+        // A QUESTION THE LANE ASKED IS THE REPLY, spoken as a question.
+        if let lane = orchestratorLane, let asked = Self.openQuestion(in: lane.outcomes) {
+            let line = voicedText.isEmpty ? asked.summary : " \(asked.summary)"
+            continuation.yield(.token(line))
+            spokenText = actionTurn ? asked.summary : Self.filed(spokenText, line)
+            voicedText += line
         }
 
         // Silent success, SPOKEN failure — on EVERY path.

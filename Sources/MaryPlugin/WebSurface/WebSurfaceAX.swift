@@ -219,8 +219,33 @@ public enum WebSurfaceAX {
         // window — title, tabs, history, the address field, the page's frame —
         // and once the page's accessibility tree is awake `.exhaustive` walks
         // several thousand page nodes to reach a toolbar. See `Options.shell`.
-        guard let snapshot = AXEngine.snapshot(pid: pid, options: .shell),
-              let window = browsingWindow(
+        //
+        // ONE WALK. The address lives on the web area's DETAIL, and fetching it
+        // was a second full snapshot after the first — `AXEngine.detail` by
+        // node id re-walks the application. `detail(select:)` walks once and
+        // decorates the node this read picks. Measured structurally: a click
+        // reads the shell four times, so this was eight walks, now four.
+        let walked: (snapshot: AXAppSnapshot, url: String?)
+        if registration.schema.urlSource == .webArea,
+           let result = AXEngine.detail(
+               pid: pid, options: .shell, budget: .probe,
+               select: { app in
+                   guard let window = browsingWindow(
+                             among: app.windows, preferring: wanted, identify: \.windowID),
+                         let root = window.root
+                   else { return nil }
+                   var area: AXNodeID?
+                   root.forEachNode { if area == nil, $0.category == .webArea { area = $0.id } }
+                   return area
+               }) {
+            walked = (result.snapshot, result.detail.nodes[result.detail.rootID]?.url)
+        } else if let snapshot = AXEngine.snapshot(pid: pid, options: .shell) {
+            walked = (snapshot, nil)
+        } else {
+            return nil
+        }
+        let snapshot = walked.snapshot
+        guard let window = browsingWindow(
                   among: snapshot.windows, preferring: wanted, identify: \.windowID),
               let root = window.root
         else { return nil }
@@ -272,7 +297,7 @@ public enum WebSurfaceAX {
             ?? windowIdentifier(pid: pid, frame: window.frame, title: window.title)
 
         reading.url = url(
-            pid: pid, nodes: nodes, webArea: webArea, registration: registration,
+            webAreaURL: walked.url, pid: pid, registration: registration,
             window: reading.windowID)
         // THE QUESTION IN FRONT OF THE PAGE, if the browser is asking one.
         reading.dialog = dialog(in: root, pid: pid)
@@ -357,17 +382,14 @@ public enum WebSurfaceAX {
     /// browser with a live web area publishes AXURL on it; one whose page tree is
     /// asleep leaves only what its address field is showing.
     private static func url(
+        webAreaURL: String?,
         pid: pid_t,
-        nodes: [AXNodeSnapshot],
-        webArea: AXNodeSnapshot?,
         registration: WebSurfaceRegistration,
         window: CGWindowID? = nil
     ) -> String? {
-        if registration.schema.urlSource == .webArea, let webArea,
-           let found = AXEngine.detail(
-            pid: pid, nodeID: webArea.id, options: .shell, budget: .probe),
-           let url = found.detail.nodes[webArea.id]?.url, !url.isEmpty {
-            return url
+        // The web area's own address came with the one walk — see `read`.
+        if registration.schema.urlSource == .webArea, let webAreaURL, !webAreaURL.isEmpty {
+            return webAreaURL
         }
         guard let value = addressFieldValue(
                   pid: pid, registration: registration, preferring: window),
