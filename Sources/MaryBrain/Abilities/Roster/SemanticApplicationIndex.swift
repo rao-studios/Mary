@@ -83,6 +83,16 @@ public struct SemanticApplicationIndex: Sendable {
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
         templates: UtteranceTemplateExpander? = nil,
+        /// Fixture ids to leave OUT of the corpus.
+        ///
+        /// HOLD-OUT, AND IT IS THE ONLY WAY THIS CORPUS CAN BE MEASURED. A
+        /// route fixture is embedded here and then graded against this same
+        /// index, where it matches itself at ~1.0 and (because scoring is
+        /// max-over-positives) swamps every other term. Excluding it at build
+        /// asks the real question: does the sentence still route when it is
+        /// not teaching itself? Empty in production — nothing on the turn path
+        /// passes this.
+        excludingFixtures: Set<String> = [],
         threshold: Float = defaultThreshold,
         margin: Float = defaultMargin
     ) -> SemanticApplicationIndex? {
@@ -104,7 +114,7 @@ public struct SemanticApplicationIndex: Sendable {
                 terms += application.bundleNames.map(Self.spoken)
             }
             terms += package.fixtures
-                .filter { $0.expectedDisposition == "route" }
+                .filter { $0.teachesCorpus && !excludingFixtures.contains($0.id) }
                 .map(\.utterance)
             terms = templates?.expand(terms, for: ability.id) ?? terms
             let positives = Self.corpus(terms).compactMap { term in

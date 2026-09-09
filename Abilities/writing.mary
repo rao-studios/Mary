@@ -709,6 +709,75 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "writing.compose-draft",
+      "id" : "draft-something-about-the-weather",
+      "interactions" : [
+
+      ],
+      "utterance" : "Draft something about the weather."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "find-the-chapters-that-mention-it",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Find the chapters that mention it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.find-passage",
+      "id" : "find-the-part-about-the-budget-and-sharpen-it",
+      "interactions" : [
+
+      ],
+      "targetClass" : "document-workspace",
+      "utterance" : "Find the part about the budget and sharpen it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.read-corpus-outline",
+      "id" : "give-me-the-chapter-outline",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Give me the chapter outline."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "insert-that-where-my-cursor-is",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Insert that where my cursor is."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "look-through-my-chapters-for-that",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Look through my chapters for that."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.revise-selection",
+      "id" : "make-that-clearer",
+      "interactions" : [
+        "interaction.text-selection"
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Make that clearer."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "writing.find-passage",
       "id" : "named-section",
       "interactions" : [
@@ -716,6 +785,16 @@
       ],
       "targetClass" : "document-workspace",
       "utterance" : "Tighten the Purpose section."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "put-that-text-in-at-the-cursor",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Put that text in at the cursor."
     },
     {
       "expectedDisposition" : "route",
@@ -748,6 +827,26 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "writing.revise-selection",
+      "id" : "rewrite-this-to-be-simpler",
+      "interactions" : [
+        "interaction.text-selection"
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Rewrite this to be simpler."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "search-my-manuscript-for-that",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Search my manuscript for that."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "writing.search-corpus",
       "id" : "search-the-manuscript",
       "interactions" : [
@@ -758,6 +857,66 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "search-the-manuscript-for-a-mention-of-it",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Search the manuscript for a mention of it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.read-corpus-outline",
+      "id" : "show-me-the-outline",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Show me the outline."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.start-dictation",
+      "id" : "start-taking-dictation",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Start taking dictation."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.start-dictation",
+      "id" : "start-writing-down-what-i-dictate",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Start writing down what I dictate."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.start-dictation",
+      "id" : "take-down-what-i-say",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Take down what I say."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.find-passage",
+      "id" : "tighten-that-section",
+      "interactions" : [
+
+      ],
+      "targetClass" : "document-workspace",
+      "utterance" : "Tighten that section."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "writing.type-at-cursor",
       "id" : "type-prose",
       "interactions" : [
@@ -765,13 +924,62 @@
       ],
       "targetClass" : "editable-prose-surface",
       "utterance" : "Put that draft at my cursor."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.type-at-cursor",
+      "id" : "type-that-at-my-cursor",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Type that at my cursor."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.read-corpus-outline",
+      "id" : "what-s-the-structure-of-this-manuscript",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "What's the structure of this manuscript?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.search-corpus",
+      "id" : "which-chapters-talk-about-that",
+      "interactions" : [
+
+      ],
+      "targetClass" : "writing-project",
+      "utterance" : "Which chapters talk about that?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.start-dictation",
+      "id" : "write-down-what-i-say",
+      "interactions" : [
+
+      ],
+      "targetClass" : "editable-prose-surface",
+      "utterance" : "Write down what I say."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "writing.compose-draft",
+      "id" : "write-me-a-short-piece-about-that",
+      "interactions" : [
+
+      ],
+      "utterance" : "Write me a short piece about that."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "f8659bd2d877bff152a841b4af93b532565c17d55f019c8b55187905022fd24e"
+    "digest" : "8f48ccf50efc3ddd74746e8831068bb73df17970b22e99748fd2fb7206331c3d"
   },
   "interactions" : [
     {

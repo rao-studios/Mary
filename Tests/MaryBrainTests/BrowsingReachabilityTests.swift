@@ -131,7 +131,7 @@ import Testing
     @Test func theSkillsAPageNeedsHaveRouteFixtures() throws {
         guard InstalledPackages.installed() != nil else { return }
         let package = try load("browsing")
-        let routed = package.fixtures.filter { $0.expectedDisposition == "route" }
+        let routed = package.fixtures.filter(\.teachesCorpus)
         let taught = Set(routed.compactMap(\.expectedSkill))
         let needed: [SkillID] = [
             "browsing.search-web", "browsing.open-location", "browsing.fill-in-page",

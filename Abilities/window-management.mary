@@ -352,6 +352,35 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "bring-the-browser-to-the-front",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Bring the browser to the front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-window-forward",
+      "id" : "bring-the-drafts-window-forward",
+      "interactions" : [
+        "interaction.window-reference"
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Bring the Drafts window forward."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.make-window-full-screen",
+      "id" : "fill-the-screen-with-this-window",
+      "interactions" : [
+
+      ],
+      "utterance" : "Fill the screen with this window."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.make-window-full-screen",
       "id" : "fullscreen-enter",
       "interactions" : [
@@ -370,6 +399,24 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "get-out-of-full-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "Get out of full screen."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "leave-full-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "Leave full screen."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.list-app-windows",
       "id" : "list-document-windows",
       "interactions" : [
@@ -377,6 +424,15 @@
       ],
       "targetClass" : "document-window",
       "utterance" : "Which note windows are open?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "list-the-windows-that-are-open",
+      "interactions" : [
+
+      ],
+      "utterance" : "List the windows that are open."
     },
     {
       "expectedDisposition" : "route",
@@ -398,6 +454,15 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.make-window-full-screen",
+      "id" : "make-this-window-full-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "Make this window full screen."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "window-management.open-new-window",
       "id" : "open-new-application-window",
       "interactions" : [
@@ -415,6 +480,89 @@
       ],
       "targetClass" : "macos-application",
       "utterance" : "Give me another window."
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.make-window-full-screen",
+      "id" : "probe-blow-this-up-to-fill-the-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "blow this up to fill the screen"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "probe-raise-them-all-to-the-front",
+      "interactions" : [
+
+      ],
+      "utterance" : "raise them all to the front"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "probe-show-me-everything-i-have-open",
+      "interactions" : [
+
+      ],
+      "utterance" : "show me everything I have open"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.bring-all-windows-forward",
+      "id" : "probe-surface-every-window-for-me",
+      "interactions" : [
+
+      ],
+      "utterance" : "surface every window for me"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "probe-take-this-out-of-full-screen",
+      "interactions" : [
+
+      ],
+      "utterance" : "take this out of full screen"
+    },
+    {
+      "expectedDisposition" : "probe",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "probe-which-windows-are-up-right-now",
+      "interactions" : [
+
+      ],
+      "utterance" : "which windows are up right now"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "put-the-editor-in-front",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Put the editor in front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-window-forward",
+      "id" : "put-the-notes-window-in-front",
+      "interactions" : [
+        "interaction.window-reference"
+      ],
+      "targetClass" : "document-window",
+      "utterance" : "Put the Notes window in front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "put-this-back-to-a-window",
+      "interactions" : [
+
+      ],
+      "utterance" : "Put this back to a window."
     },
     {
       "expectedDisposition" : "route",
@@ -463,13 +611,50 @@
       ],
       "targetClass" : "document-window",
       "utterance" : "Bring [W2] to the front."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "return-this-to-a-normal-window",
+      "interactions" : [
+
+      ],
+      "utterance" : "Return this to a normal window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.list-app-windows",
+      "id" : "show-me-my-open-windows",
+      "interactions" : [
+
+      ],
+      "utterance" : "Show me my open windows."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.exit-full-screen",
+      "id" : "shrink-this-back-down-to-a-window",
+      "interactions" : [
+
+      ],
+      "utterance" : "Shrink this back down to a window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.bring-application-forward",
+      "id" : "switch-to-my-browser",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Switch to my browser."
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "3bee19cb057c00508d57506cf9c30ce7493bb1e057ade186711f21e29ed89b3d"
+    "digest" : "c3cfbecaae46aea737815173374c254747f2ab1f69e4409f6b39045bd0337a07"
   },
   "interactions" : [
     {

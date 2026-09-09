@@ -192,13 +192,43 @@ public struct MaryAbilityPackage: Codable, Hashable, Sendable {
     }
 }
 
+/// WHAT A FIXTURE CLAIMS, and whether it teaches.
+///
+/// This was a bare `String` with no enum and no allow-list, which is how two
+/// of its four values came to be authored, shipped, and read by absolutely
+/// nothing. Typed, `mary-package-probe check` refuses a spelling nobody
+/// implements instead of letting it sit inert in a package for a year.
+public enum FixtureDisposition: String, Codable, Hashable, Sendable, CaseIterable {
+    /// Teaches the corpus AND is graded against it.
+    case route
+    /// GRADED ONLY, NEVER TAUGHT.
+    ///
+    /// A route fixture is both the lesson and the exam: it is embedded into
+    /// the corpus and then scored against it, matching itself at ~1.0 and
+    /// proving only that nothing outranked it. A probe is the paraphrase the
+    /// packages have never seen, so its score is generalization rather than
+    /// memory. This is the schema home for lists that used to be hand-written
+    /// inside Swift test bodies.
+    case probe
+    /// Must reach no Skill at all. Declared and validated; grading lands later.
+    case abstain
+    /// Must ask which was meant. Declared and validated; grading lands later.
+    case askUser = "ask-user"
+}
+
 public struct AbilityFixture: Codable, Hashable, Sendable, Identifiable {
     public var id: String
     public var utterance: String
     public var expectedSkill: SkillID?
     public var interactions: [InteractionID]
     public var targetClass: String?
-    public var expectedDisposition: String
+    public var expectedDisposition: FixtureDisposition
+
+    /// THE ONE QUESTION EVERY CORPUS BUILDER ASKS. Only a `route` fixture is
+    /// embedded; everything else is an assertion about routing, not a lesson
+    /// in it. A fixture that never enters a corpus cannot grade itself, which
+    /// is the entire point of `probe`.
+    public var teachesCorpus: Bool { expectedDisposition == .route }
 
     public init(
         id: String,
@@ -206,7 +236,7 @@ public struct AbilityFixture: Codable, Hashable, Sendable, Identifiable {
         expectedSkill: SkillID? = nil,
         interactions: [InteractionID] = [],
         targetClass: String? = nil,
-        expectedDisposition: String
+        expectedDisposition: FixtureDisposition
     ) {
         self.id = id
         self.utterance = utterance

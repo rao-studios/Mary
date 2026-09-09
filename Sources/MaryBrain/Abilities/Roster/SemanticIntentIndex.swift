@@ -165,9 +165,75 @@ public struct SemanticIntentIndex: Sendable {
         floor: Float = floor,
         margin: Float = margin
     ) -> Verdict? {
-        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(query)) else { return nil }
+        ranked(query, habits: habits).verdict(floor: floor, margin: margin)
+    }
+
+    /// THE TWO NILS, TOLD APART.
+    ///
+    /// `classify` returns nil for two completely different facts: nothing came
+    /// near this sentence, and TWO INTENTS CAME EQUALLY NEAR IT. The first is
+    /// silence; the second is a tie, which is a question. `TurnTriage` treated
+    /// both as licence to promote a lone Skill match into `.operate` — so
+    /// "how are you doing", where converse and operate collapse inside the
+    /// 0.04 margin, was read as a command and dispatched with no model round.
+    ///
+    /// This returns the ranking itself so a caller can ask which nil it got.
+    /// Nothing is thresholded here; `Ranking.verdict` applies the floor and the
+    /// margin, so `classify` keeps its exact meaning.
+    public func ranked(
+        _ query: String, habits: RoutingHabitStore = .shared
+    ) -> Ranking {
+        Ranking(scored: scores(query, habits: habits))
+    }
+
+    /// Every intent scored, best first, nothing cut.
+    public struct Ranking: Sendable, Equatable {
+        public var scored: [(intent: AmbientIntent, score: Float)]
+
+        public init(scored: [(intent: AmbientIntent, score: Float)]) {
+            self.scored = scored
+        }
+
+        public static func == (lhs: Ranking, rhs: Ranking) -> Bool {
+            lhs.scored.count == rhs.scored.count
+                && zip(lhs.scored, rhs.scored).allSatisfy { $0 == $1 }
+        }
+
+        /// The nearest intent whatever its score — "nearly a greeting" and
+        /// "nothing at all" stop being the same answer.
+        public var nearest: AmbientIntent? { scored.first?.intent }
+        public var nearestScore: Float { scored.first?.score ?? -1 }
+
+        /// What one intent scored, whether or not it led. -1 when absent.
+        public func score(for intent: AmbientIntent) -> Float {
+            scored.first { $0.intent == intent }?.score ?? -1
+        }
+
+        /// True when the top two are within the margin: the corpus could not
+        /// choose, which is not the same as the corpus not recognizing this.
+        public func isContested(margin: Float = SemanticIntentIndex.margin) -> Bool {
+            guard let first = scored.first,
+                  let second = scored.dropFirst().first
+            else { return false }
+            return first.score - second.score < margin
+        }
+
+        func verdict(floor: Float, margin: Float) -> Verdict? {
+            guard let first = scored.first, first.score >= floor else { return nil }
+            let second = scored.dropFirst().first
+            if let second, first.score - second.score < margin { return nil }
+            return Verdict(
+                intent: first.intent, score: first.score,
+                runnerUp: second?.intent, runnerUpScore: second?.score ?? 0)
+        }
+    }
+
+    private func scores(
+        _ query: String, habits: RoutingHabitStore
+    ) -> [(intent: AmbientIntent, score: Float)] {
+        guard let raw = vectorizer.vector(for: RoutingQuery.firstLine(query)) else { return [] }
         let needle = AmbientVectorMath.normalized(raw)
-        var scored: [(AmbientIntent, Float)] = []
+        var scored: [(intent: AmbientIntent, score: Float)] = []
         for entry in entries {
             let positives = entry.positives
                 + habits.vectors(intent: entry.intent.rawValue, ok: true, vectorizer: vectorizer)
@@ -178,16 +244,9 @@ public struct SemanticIntentIndex: Sendable {
             if bestNegative >= 0, best - bestNegative < SemanticAbilityRequestIndex.defaultNegativeMargin {
                 continue
             }
-            scored.append((entry.intent, best))
+            scored.append((intent: entry.intent, score: best))
         }
-        scored.sort { $0.1 > $1.1 }
-        guard let first = scored.first, first.1 >= floor else { return nil }
-        let second = scored.dropFirst().first
-        if let second, first.1 - second.1 < margin { return nil }
-        return Verdict(
-            intent: first.0,
-            score: first.1,
-            runnerUp: second?.0,
-            runnerUpScore: second?.1 ?? 0)
+        scored.sort { $0.score > $1.score }
+        return scored
     }
 }

@@ -329,6 +329,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.open-player",
+      "id" : "bring-up-my-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Bring up my music."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.play-playlist",
       "id" : "can-you-open-the-app-and-play-a-named-playlist",
       "interactions" : [
@@ -380,6 +390,16 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.find-playlist",
+      "id" : "do-i-have-a-playlist-by-that-name",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Do I have a playlist by that name?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.find-playlist",
       "id" : "find-a-playlist",
       "interactions" : [
 
@@ -409,6 +429,16 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.find-playlist",
+      "id" : "is-there-a-playlist-called-that",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Is there a playlist called that?"
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.list-playlists",
       "id" : "list-the-playlists",
       "interactions" : [
@@ -430,12 +460,32 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.open-player",
+      "id" : "open-the-music-app",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Open the music app."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.open-player",
       "id" : "open-the-player",
       "interactions" : [
 
       ],
       "targetClass" : "media-player",
       "utterance" : "Open my music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.open-player",
+      "id" : "open-the-player-2",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Open the player."
     },
     {
       "expectedDisposition" : "route",
@@ -489,6 +539,56 @@
     },
     {
       "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-blackbird",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play Blackbird."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-hey-jude",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play Hey Jude."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-me-some-music",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play me some music."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "play-that-song",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Play that song."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "put-a-song-on",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Put a song on."
+    },
+    {
+      "expectedDisposition" : "route",
       "expectedSkill" : "multimedia.play-playlist",
       "id" : "put-on-a-playlist",
       "interactions" : [
@@ -496,6 +596,16 @@
       ],
       "targetClass" : "media-player",
       "utterance" : "Put on my running mix."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "multimedia.play-music",
+      "id" : "put-on-yesterday",
+      "interactions" : [
+
+      ],
+      "targetClass" : "media-player",
+      "utterance" : "Put on Yesterday."
     },
     {
       "expectedDisposition" : "route",
@@ -562,7 +672,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "262c45189727161d1ce7e8377873b8fc567a0fffc72024f9f62c7d07158978d7"
+    "digest" : "40922c3ddfd5ede5abfef988b747cc43d7ad5f2c7c8fc687c3c8592f5f8e7866"
   },
   "interactions" : [
 

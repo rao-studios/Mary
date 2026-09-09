@@ -109,7 +109,9 @@ import Testing
                     """)
                 continue
             }
-            for fixture in package.fixtures where fixture.expectedDisposition == "route" {
+            for fixture in package.fixtures
+            where fixture.expectedDisposition == .route
+                || fixture.expectedDisposition == .probe {
                 guard let expectedSkill = fixture.expectedSkill else { continue }
                 guard package.skills.contains(where: { $0.id == expectedSkill }) else {
                     Issue.record(
@@ -155,6 +157,56 @@ import Testing
     /// OPT-IN, like the calibration suite and for the same reason: it needs the
     /// on-device embedding asset, which CI does not have. A missing index would
     /// otherwise silently pass every case.
+    /// HOLD-OUT MUST ACTUALLY HOLD OUT, and this is checked before any number
+    /// it produces is believed.
+    ///
+    /// An exclusion that silently fails to exclude looks EXACTLY like a corpus
+    /// that generalizes perfectly — every fixture passes, the report is empty,
+    /// and the measurement is a lie that flatters. The `{application}` template
+    /// made the same shape of mistake and reported 159 cases instead of 167;
+    /// only arithmetic caught it. So: take a real shipped fixture, score it
+    /// with itself taught and with itself held out, and require the two numbers
+    /// to differ by more than noise.
+    @Test func holdingAFixtureOutActuallyLowersItsScore() throws {
+        guard ProcessInfo.processInfo.environment["MARY_EMBEDDING_CALIBRATION"] == "1"
+        else { return }
+        guard let abilities = InstalledPackages.installed() else { return }
+        guard let vectorizer = NLUtteranceVectorizer.shared else { return }
+        let packages = try Self.shippedPackages(abilities)
+        let records = packages.map { package in
+            AbilityPackageRecord(
+                package: package, source: .installed,
+                sourceURL: abilities.appendingPathComponent("\(package.package.id.rawValue).mary"),
+                validation: .init(), rawData: Data())
+        }
+        let cached = CachingVectorizer(vectorizer)
+        let templates = UtteranceTemplateExpander(records: records)
+        // A fixture with a plain sentence and a Skill of its own.
+        let subject = try #require(
+            packages.flatMap(\.fixtures).first {
+                $0.expectedDisposition == .route && $0.expectedSkill != nil
+                    && !UtteranceTemplate.hasSlots($0.utterance)
+            })
+        let expected = try #require(subject.expectedSkill)
+        func score(excluding held: Set<String>) -> Float {
+            SemanticSkillRequestIndex.build(
+                records: records, vectorizer: cached,
+                templates: templates, excludingFixtures: held, threshold: 0)?
+                .affinities(in: subject.utterance, habits: RoutingHabitStore(), floor: 0)[expected] ?? -1
+        }
+        let taughtScore = score(excluding: [])
+        let heldScore = score(excluding: [subject.id])
+        print(String(
+            format: "[hold-out] \"%@\" taught=%.3f held-out=%.3f",
+            subject.utterance, taughtScore, heldScore))
+        // Taught, it matches itself outright.
+        #expect(taughtScore > 0.99, "a fixture must match itself in its own corpus")
+        // Held out, it must be measurably worse — otherwise nothing was excluded.
+        #expect(
+            taughtScore - heldScore > 0.01,
+            "excluding \(subject.id) changed nothing: the hold-out is not holding out")
+    }
+
     @Test func everyRouteFixtureReachesItsSkillThroughTheRealRoster() throws {
         guard ProcessInfo.processInfo.environment["MARY_EMBEDDING_CALIBRATION"] == "1"
         else { return }
@@ -175,27 +227,47 @@ import Testing
             packages: packages,
             nativeAdapterManifests: [],
             grantedPermissions: { _ in [.accessibility, .files, .network, .screenRecording] })
-        let snapshot = AbilityRuntime.Snapshot(
-            records: records,
-            validation: .init(),
-            // THE ROSTER THE RUNTIME INSTALLS — catalog plus the appended
-            // faculties — or a faculty's Skills read "no installed adapter"
-            // and the fixture is printed instead of measured.
-            adapterManifests: MaryAdapterCatalog.adapterManifests(
-                adapters: MaryAdapterCatalog.adapters()
-                    + [AffordancePlugin(), CodingAgentAdapter(),
-                       DancePlugin(compose: UnavailableDanceComposer())],
-                observers: MaryAdapterCatalog.observers()),
-            plugins: compilation,
-            semanticSkillIndex: SemanticSkillRequestIndex.build(
-                records: records, vectorizer: vectorizer,
-                templates: UtteranceTemplateExpander(records: records)),
-            // A TEMPLATE FIXTURE ASSERTS THE APPLICATION TOO, so the tier that
-            // resolves one has to be present — otherwise every such assertion
-            // would pass vacuously on a nil index.
-            semanticApplicationIndex: SemanticApplicationIndex.build(
-                records: records, vectorizer: vectorizer,
-                templates: UtteranceTemplateExpander(records: records)))
+        // ONE CACHE ACROSS EVERY REBUILD. Hold-out rebuilds the corpora once
+        // per fixture; without memoization that is ~240k serialized NLEmbedding
+        // calls. Each rebuild differs from the last by ONE sentence, so the
+        // union of terms is small and nearly every call is a hit.
+        let cached = CachingVectorizer(vectorizer)
+        let templates = UtteranceTemplateExpander(records: records)
+
+        /// The three fixture-fed corpora, optionally holding one fixture out.
+        ///
+        /// THE ABILITY INDEX IS BUILT HERE TOO, and it was not before — the
+        /// tier with the WORST circularity (its dominance margin is measured
+        /// from the leader, and a self-matching fixture leads at 1.0) was the
+        /// one this suite never exercised.
+        func snapshot(excluding held: Set<String> = []) -> AbilityRuntime.Snapshot {
+            AbilityRuntime.Snapshot(
+                records: records,
+                validation: .init(),
+                // THE ROSTER THE RUNTIME INSTALLS — catalog plus the appended
+                // faculties — or a faculty's Skills read "no installed adapter"
+                // and the fixture is printed instead of measured.
+                adapterManifests: MaryAdapterCatalog.adapterManifests(
+                    adapters: MaryAdapterCatalog.adapters()
+                        + [AffordancePlugin(), CodingAgentAdapter(),
+                           DancePlugin(compose: UnavailableDanceComposer())],
+                    observers: MaryAdapterCatalog.observers()),
+                plugins: compilation,
+                semanticIndex: SemanticAbilityRequestIndex.build(
+                    records: records, vectorizer: cached,
+                    templates: templates, excludingFixtures: held),
+                semanticSkillIndex: SemanticSkillRequestIndex.build(
+                    records: records, vectorizer: cached,
+                    templates: templates, excludingFixtures: held),
+                // A TEMPLATE FIXTURE ASSERTS THE APPLICATION TOO, so the tier
+                // that resolves one has to be present — otherwise every such
+                // assertion would pass vacuously on a nil index.
+                semanticApplicationIndex: SemanticApplicationIndex.build(
+                    records: records, vectorizer: cached,
+                    templates: templates, excludingFixtures: held),
+                templates: templates)
+        }
+        let taught = snapshot()
         // A FRESH LEDGER: this measures the shipped corpus, never what this
         // machine has learned.
         let habits = RoutingHabitStore()
@@ -204,7 +276,7 @@ import Testing
         var wrong: [String] = []
         var checked = 0
         for package in packages {
-            for fixture in package.fixtures where fixture.expectedDisposition == "route" {
+            for fixture in package.fixtures where fixture.teachesCorpus {
                 guard let expected = fixture.expectedSkill,
                       package.skills.contains(where: { $0.id == expected })
                 else { continue }
@@ -215,7 +287,7 @@ import Testing
                 // sentence covers it with nobody editing the fixture.
                 let cases: [(utterance: String, application: ApplicationAffinity?)] =
                     UtteranceTemplate.hasSlots(fixture.utterance)
-                        ? snapshot.templates
+                        ? templates
                             .expansions(fixture.utterance, for: package.ability.id)
                             .map { ($0.utterance, $0.application) }
                         : [(fixture.utterance, nil)]
@@ -226,10 +298,16 @@ import Testing
                     wrong.append(
                         "[\(package.package.id.rawValue)] \"\(fixture.utterance)\" expands to no applications")
                 }
+                // A ROUTE FIXTURE IS GRADED WITHOUT ITSELF; a probe was never
+                // in the corpus, so it is graded against the taught one. This
+                // is the whole difference between an exam and a recital.
+                let graded = fixture.teachesCorpus
+                    ? snapshot(excluding: [fixture.id])
+                    : taught
                 for (utterance, application) in cases {
                 checked += 1
                 let arbitration = AbilityRosterRehearsal.arbitration(
-                    snapshot: snapshot,
+                    snapshot: graded,
                     utterance: utterance,
                     targetClasses: fixture.targetClass.map { [$0] } ?? [],
                     // WHAT THE FIXTURE ITSELF STATES. A fixture declaring a text
@@ -249,9 +327,9 @@ import Testing
                     //
                     // Asserted with NOTHING named up front, so the distance
                     // tier has to earn it rather than being handed the answer.
-                    if let application, let runtime = snapshot.skill(id: expected) {
+                    if let application, let runtime = graded.skill(id: expected) {
                         let verdict = ApplicationReferenceResolution.resolve(
-                            for: runtime, snapshot: snapshot, utterance: utterance)
+                            for: runtime, snapshot: graded, utterance: utterance)
                         if let verdict, verdict.chosen?.applicationID != application.id {
                             wrong.append(
                                 "[\(package.package.id.rawValue)] \"\(utterance)\" reached \(expected.rawValue) but resolved "

@@ -408,7 +408,17 @@ extension AbilityPackageValidator {
             let path = "fixtures[\(index)]"
             sink.checkText(fixture.id, "\(path).id", "fixture-id")
             sink.checkText(fixture.utterance, "\(path).utterance", "fixture-utterance")
-            sink.checkText(fixture.expectedDisposition, "\(path).expectedDisposition", "fixture-disposition")
+            // No emptiness check on the disposition any more: `FixtureDisposition`
+            // is an enum, so decode already refused anything that is not one of
+            // the four. What DOES need saying is that a probe with no Skill to
+            // reach grades nothing — it is the exam with no answer key, and it
+            // would sit in the package looking like coverage.
+            if fixture.expectedDisposition == .probe, fixture.expectedSkill == nil {
+                sink.error(
+                    "probe-without-skill",
+                    "\(path).expectedSkill",
+                    "A probe is graded, never taught, so it must name the Skill it should reach — otherwise it asserts nothing.")
+            }
             if let skill = fixture.expectedSkill,
                !fixtureSkillIDs.contains(skill) {
                 sink.error(

@@ -136,22 +136,32 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "awareness.trace-callers",
-      "id" : "trace-the-callers",
+      "id" : "find-everything-that-calls-this",
       "interactions" : [
 
       ],
       "targetClass" : "code-workspace",
-      "utterance" : "Trace who calls this function."
+      "utterance" : "Find everything that calls this."
     },
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "awareness.trace-callees",
-      "id" : "trace-the-callees",
+      "id" : "list-what-this-method-calls-out-to",
       "interactions" : [
 
       ],
       "targetClass" : "code-workspace",
-      "utterance" : "Show me what this function calls."
+      "utterance" : "List what this method calls out to."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.read-enclosing-unit",
+      "id" : "read-the-enclosing-unit",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Read the whole function around the cursor."
     },
     {
       "expectedDisposition" : "route",
@@ -165,20 +175,70 @@
     },
     {
       "expectedDisposition" : "route",
-      "expectedSkill" : "awareness.read-enclosing-unit",
-      "id" : "read-the-enclosing-unit",
+      "expectedSkill" : "awareness.trace-callees",
+      "id" : "trace-the-callees",
       "interactions" : [
 
       ],
       "targetClass" : "code-workspace",
-      "utterance" : "Read the whole function around the cursor."
+      "utterance" : "Show me what this function calls."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callers",
+      "id" : "trace-the-callers",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Trace who calls this function."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callers",
+      "id" : "what-calls-into-this-method",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "What calls into this method?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callees",
+      "id" : "what-does-this-function-call",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "What does this function call?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callees",
+      "id" : "what-does-this-one-use",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "What does this one use?"
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "awareness.trace-callers",
+      "id" : "who-calls-this-function",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Who calls this function?"
     }
   ],
   "format" : "mary.ability-package",
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "139362fbc798ca2fe9358183ed2c1d4ea514201816cc98e9c9a532edca0b8508"
+    "digest" : "218000d8c5e7b4c98386c8ca4c2abdc2ed0992898ed88d1f981995415abcd149"
   },
   "interactions" : [
 

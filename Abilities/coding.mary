@@ -983,12 +983,62 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "coding.build-project",
+      "id" : "build-it",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Build it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.build-project",
       "id" : "build-the-project",
       "interactions" : [
 
       ],
       "targetClass" : "code-workspace",
       "utterance" : "Build my project."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.build-project",
+      "id" : "compile-the-project",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Compile the project."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.test-project",
+      "id" : "execute-the-test-suite",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Execute the test suite."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.test-project",
+      "id" : "run-my-tests",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Run my tests."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.run-project",
+      "id" : "run-the-app",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Run the app."
     },
     {
       "expectedDisposition" : "route",
@@ -999,6 +1049,16 @@
       ],
       "targetClass" : "code-workspace",
       "utterance" : "Run it."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "coding.run-project",
+      "id" : "start-it-up",
+      "interactions" : [
+
+      ],
+      "targetClass" : "code-workspace",
+      "utterance" : "Start it up."
     },
     {
       "expectedDisposition" : "route",
@@ -1015,7 +1075,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "d77fba58a28e9c6071a5792c6f335687942b95d6c077883fff39040bd266e383"
+    "digest" : "9b1842e34fdab9a4e4f7b9a3f81522e3306d931abf80fb81682adde08f9b8c19"
   },
   "interactions" : [
     {

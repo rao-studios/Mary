@@ -86,7 +86,7 @@ struct AbilityStudioFixturesSection: View {
                     if let skill = fixture.expectedSkill {
                         AbilityStudioFactLine(label: "Should reach", value: skill.rawValue)
                     } else {
-                        AbilityStudioFactLine(label: "Should", value: fixture.expectedDisposition)
+                        AbilityStudioFactLine(label: "Should", value: fixture.expectedDisposition.rawValue)
                     }
                 }
                 // WHAT THE SLOT IS WORTH, SAID OUT LOUD. A template's whole
