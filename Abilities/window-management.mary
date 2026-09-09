@@ -399,42 +399,22 @@
     {
       "expectedDisposition" : "route",
       "expectedSkill" : "window-management.open-new-window",
+      "id" : "open-new-application-window",
+      "interactions" : [
+
+      ],
+      "targetClass" : "macos-application",
+      "utterance" : "Open a new {application} window."
+    },
+    {
+      "expectedDisposition" : "route",
+      "expectedSkill" : "window-management.open-new-window",
       "id" : "open-new-window-bare",
       "interactions" : [
 
       ],
       "targetClass" : "macos-application",
       "utterance" : "Give me another window."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "window-management.open-new-window",
-      "id" : "open-new-window-browser",
-      "interactions" : [
-
-      ],
-      "targetClass" : "macos-application",
-      "utterance" : "Open a new safari window."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "window-management.open-new-window",
-      "id" : "open-new-window-named-app",
-      "interactions" : [
-
-      ],
-      "targetClass" : "macos-application",
-      "utterance" : "Open a new textedit window."
-    },
-    {
-      "expectedDisposition" : "route",
-      "expectedSkill" : "window-management.open-new-window",
-      "id" : "open-new-window-spoken-alias",
-      "interactions" : [
-
-      ],
-      "targetClass" : "macos-application",
-      "utterance" : "Open a new text edit window."
     },
     {
       "expectedDisposition" : "route",
@@ -489,7 +469,7 @@
   "formatVersion" : 1,
   "integrity" : {
     "algorithm" : "sha256",
-    "digest" : "fa02dc7a765ead844f1d3f0b085e8a4fefde03aad4e4a7f3c539792dd26aaf85"
+    "digest" : "3bee19cb057c00508d57506cf9c30ce7493bb1e057ade186711f21e29ed89b3d"
   },
   "interactions" : [
     {

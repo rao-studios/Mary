@@ -73,6 +73,8 @@ struct AbilityStudioFixturesSection: View {
     var body: some View {
         StudioNote(
             "Whole sentences this ability should answer. They are also the only lever that moves how Mary matches a SKILL — an ability's phrases reach the ability tier only.")
+        StudioNote(
+            "Write {application} where an application belongs and the sentence stands for every application that points at this ability — including ones installed later.")
 
         ForEach(Array(package.fixtures.enumerated()), id: \.element.id) { index, fixture in
             AbilityStudioDeclarationCard(identifier: fixture.id) {
@@ -85,6 +87,20 @@ struct AbilityStudioFixturesSection: View {
                         AbilityStudioFactLine(label: "Should reach", value: skill.rawValue)
                     } else {
                         AbilityStudioFactLine(label: "Should", value: fixture.expectedDisposition)
+                    }
+                }
+                // WHAT THE SLOT IS WORTH, SAID OUT LOUD. A template's whole
+                // value is the number of applications it covers, and that
+                // number lives in the roster rather than in the sentence — so
+                // without this the author sees a line with a hole in it and no
+                // way to tell whether it stands for nine cases or none.
+                if UtteranceTemplate.hasSlots(fixture.utterance) {
+                    let covered = model.snapshot
+                        .pointableApplications(of: package.ability.id)
+                    if covered.isEmpty {
+                        StudioNote("Nothing points an application at this ability yet, so {application} expands to nothing and this fixture tests no cases.")
+                    } else {
+                        StudioNote("Covers \(covered.count) application\(covered.count == 1 ? "" : "s"): \(covered.map(\.title).joined(separator: ", ")).")
                     }
                 }
                 Button("Remove") {

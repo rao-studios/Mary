@@ -82,6 +82,7 @@ public struct SemanticApplicationIndex: Sendable {
     public static func build(
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
+        templates: UtteranceTemplateExpander? = nil,
         threshold: Float = defaultThreshold,
         margin: Float = defaultMargin
     ) -> SemanticApplicationIndex? {
@@ -105,6 +106,7 @@ public struct SemanticApplicationIndex: Sendable {
             terms += package.fixtures
                 .filter { $0.expectedDisposition == "route" }
                 .map(\.utterance)
+            terms = templates?.expand(terms, for: ability.id) ?? terms
             let positives = Self.corpus(terms).compactMap { term in
                 vectorizer.vector(for: term).map {
                     Term(text: term.lowercased(), vector: Self.normalized($0))

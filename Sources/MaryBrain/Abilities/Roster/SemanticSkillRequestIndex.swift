@@ -42,6 +42,7 @@ public struct SemanticSkillRequestIndex: Sendable {
     public static func build(
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
+        templates: UtteranceTemplateExpander? = nil,
         threshold: Float = defaultThreshold
     ) -> SemanticSkillRequestIndex? {
         var entries: [Entry] = []
@@ -68,6 +69,10 @@ public struct SemanticSkillRequestIndex: Sendable {
                     .filter { $0.expectedSkill == skill.id }
                     .map(\.utterance)
 
+                // `{application}` becomes one sentence per pointable
+                // application; anything without a slot passes through.
+                terms = templates?.expand(terms, for: record.package.ability.id)
+                    ?? terms
                 let positives = terms
                     .filter { !$0.isEmpty }
                     .compactMap { vectorizer.vector(for: $0).map(Self.normalized) }

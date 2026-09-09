@@ -188,7 +188,14 @@ import Testing
                 observers: MaryAdapterCatalog.observers()),
             plugins: compilation,
             semanticSkillIndex: SemanticSkillRequestIndex.build(
-                records: records, vectorizer: vectorizer))
+                records: records, vectorizer: vectorizer,
+                templates: UtteranceTemplateExpander(records: records)),
+            // A TEMPLATE FIXTURE ASSERTS THE APPLICATION TOO, so the tier that
+            // resolves one has to be present — otherwise every such assertion
+            // would pass vacuously on a nil index.
+            semanticApplicationIndex: SemanticApplicationIndex.build(
+                records: records, vectorizer: vectorizer,
+                templates: UtteranceTemplateExpander(records: records)))
         // A FRESH LEDGER: this measures the shipped corpus, never what this
         // machine has learned.
         let habits = RoutingHabitStore()
@@ -201,10 +208,29 @@ import Testing
                 guard let expected = fixture.expectedSkill,
                       package.skills.contains(where: { $0.id == expected })
                 else { continue }
+                // ONE AUTHORED LINE, ONE CASE PER APPLICATION. A fixture
+                // carrying `{application}` states a claim about every
+                // application that points at this Ability, so it is exercised
+                // once for each — and the day a tenth package lands, this one
+                // sentence covers it with nobody editing the fixture.
+                let cases: [(utterance: String, application: ApplicationAffinity?)] =
+                    UtteranceTemplate.hasSlots(fixture.utterance)
+                        ? snapshot.templates
+                            .expansions(fixture.utterance, for: package.ability.id)
+                            .map { ($0.utterance, $0.application) }
+                        : [(fixture.utterance, nil)]
+                // A TEMPLATE THAT EXPANDS TO NOTHING TESTED NOTHING, and must
+                // not read as a pass. The validator warns about this too; here
+                // it fails, because the fixture claimed something.
+                if cases.isEmpty {
+                    wrong.append(
+                        "[\(package.package.id.rawValue)] \"\(fixture.utterance)\" expands to no applications")
+                }
+                for (utterance, application) in cases {
                 checked += 1
                 let arbitration = AbilityRosterRehearsal.arbitration(
                     snapshot: snapshot,
-                    utterance: fixture.utterance,
+                    utterance: utterance,
                     targetClasses: fixture.targetClass.map { [$0] } ?? [],
                     // WHAT THE FIXTURE ITSELF STATES. A fixture declaring a text
                     // selection is describing a turn where one stands.
@@ -213,7 +239,28 @@ import Testing
                 let offered = arbitration.trace.selected.contains {
                     $0.reference.skillID == expected
                 }
-                guard !offered else { continue }
+                if offered {
+                    // THE ASSERTION NOTHING MADE BEFORE. Reaching the right
+                    // Skill is only half of what a template fixture claims:
+                    // "Open a new {application} window" also says WHICH
+                    // application each expansion names. Until now a fixture
+                    // could reach its Skill and dispatch the wrong application
+                    // forever — no test read the arguments at all.
+                    //
+                    // Asserted with NOTHING named up front, so the distance
+                    // tier has to earn it rather than being handed the answer.
+                    if let application, let runtime = snapshot.skill(id: expected) {
+                        let verdict = ApplicationReferenceResolution.resolve(
+                            for: runtime, snapshot: snapshot, utterance: utterance)
+                        if let verdict, verdict.chosen?.applicationID != application.id {
+                            wrong.append(
+                                "[\(package.package.id.rawValue)] \"\(utterance)\" reached \(expected.rawValue) but resolved "
+                                + (verdict.chosen?.applicationID ?? "no application")
+                                + ", not \(application.id)")
+                        }
+                    }
+                    continue
+                }
                 // WHY NOT, in the arbitrator's own words, plus where the corpus
                 // actually put it — the two facts a person needs to fix it.
                 let decision = arbitration.trace.decisions.first {
@@ -229,7 +276,7 @@ import Testing
                 let why: String = decision.map { found -> String in
                     found.disposition.rawValue + " — " + found.reason
                 } ?? "no decision"
-                var line = "[" + owner + "] \"" + fixture.utterance + "\" -> "
+                var line = "[" + owner + "] \"" + utterance + "\" -> "
                 line += expected.rawValue + " NOT offered: " + why
                 line += "   top: " + near
                 report.append(line)
@@ -253,6 +300,7 @@ import Testing
                     wrong.append(line)
                 default:
                     break
+                }
                 }
             }
         }

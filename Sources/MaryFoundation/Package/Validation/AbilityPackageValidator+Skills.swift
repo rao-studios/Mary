@@ -419,6 +419,40 @@ extension AbilityPackageValidator {
             duplicates(fixture.interactions.map(\.rawValue)).forEach {
                 sink.error("duplicate-fixture-interaction", "\(path).interactions", "Interaction \($0) appears more than once.")
             }
+            checkPlaceholders(fixture.utterance, "\(path).utterance", sink)
         }
+        // The same pragma, in the two trigger fields that also become corpus.
+        for (index, phrase) in package.ability.triggers.phrases.enumerated() {
+            checkPlaceholders(phrase, "ability.triggers.phrases[\(index)]", sink)
+        }
+        for (key, seeds) in package.ability.triggers.intentSeeds.sorted(by: {
+            $0.key < $1.key
+        }) {
+            for (index, seed) in seeds.enumerated() {
+                checkPlaceholders(
+                    seed, "ability.triggers.intentSeeds.\(key)[\(index)]", sink)
+            }
+        }
+    }
+
+    /// AN UNFILLED PLACEHOLDER REACHES NOBODY.
+    ///
+    /// The identical rule `PluginValidator+Corpus` states for a document URL
+    /// template: a brace that names no declared slot is not expanded by
+    /// anything, so the braces survive into the corpus and match no sentence a
+    /// person would ever say. Failing the package is the only way an author
+    /// finds out — the symptom is silence.
+    static func checkPlaceholders(
+        _ text: String, _ path: String, _ sink: PackageIssueSink
+    ) {
+        let unknown = UtteranceTemplate.unknownPlaceholders(in: text)
+        guard !unknown.isEmpty else { return }
+        let known = UtteranceSlot.allCases
+            .map { "{\($0.rawValue)}" }
+            .joined(separator: ", ")
+        sink.error(
+            "unknown-utterance-placeholder",
+            path,
+            "\(unknown.joined(separator: ", ")) is not a placeholder this format fills; an unfilled one stays in the sentence and reaches nobody. Available: \(known).")
     }
 }

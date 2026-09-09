@@ -82,7 +82,8 @@ public struct SemanticIntentIndex: Sendable {
     /// and Skill embedding indexes — see `AbilityLibrary+PackageLifecycle`.
     public static func build(
         records: [AbilityPackageRecord],
-        vectorizer: any UtteranceVectorizer
+        vectorizer: any UtteranceVectorizer,
+        templates: UtteranceTemplateExpander? = nil
     ) -> SemanticIntentIndex? {
         var seeds: [Seed] = []
         var skipped = 0
@@ -106,7 +107,11 @@ public struct SemanticIntentIndex: Sendable {
                     unknownIntentKeys += 1
                     continue
                 }
-                for term in terms where !term.isEmpty {
+                // A seed may carry `{application}`; it becomes one seed per
+                // pointable application. A seed without a slot is itself.
+                let expanded = templates?.expand(
+                    terms, for: record.package.ability.id) ?? terms
+                for term in expanded where !term.isEmpty {
                     addSeed(intent, term)
                 }
             }

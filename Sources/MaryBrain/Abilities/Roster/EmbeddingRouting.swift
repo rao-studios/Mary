@@ -134,11 +134,12 @@ public enum EmbeddingRouting {
         for skill: AbilityRuntimeSkill,
         utterance: String,
         applicationID: String?,
-        applicationProfiles: [ApplicationProfile] = []
+        applicationProfiles: [ApplicationProfile] = [],
+        templates: UtteranceTemplateExpander? = nil
     ) -> String {
         filledArguments(
             for: skill, utterance: utterance, applicationID: applicationID,
-            applicationProfiles: applicationProfiles).json
+            applicationProfiles: applicationProfiles, templates: templates).json
     }
 
     /// The shortcut's arguments, and how the words became them.
@@ -150,19 +151,27 @@ public enum EmbeddingRouting {
         for skill: AbilityRuntimeSkill,
         utterance: String,
         applicationID: String?,
-        applicationProfiles: [ApplicationProfile] = []
+        applicationProfiles: [ApplicationProfile] = [],
+        templates: UtteranceTemplateExpander? = nil
     ) -> (json: String, stages: [String]) {
         var args: [String: String] = [:]
         var stages: [String] = []
         let parameters = skill.skill.modelExposure.parameters
         let required = parameters.filter(\.required)
         let aliases = applicationProfiles.first { $0.id == applicationID }?.aliases ?? []
+        // THE PEELER MATCHES PHRASES LITERALLY, so a trigger carrying
+        // `{application}` would be compared word-for-word against the sentence
+        // and never match anything — silently dead vocabulary. Expanding first
+        // is what makes a templated phrase actually strip: "open a new Safari
+        // window" peels away, which is the whole point of authoring it.
+        let triggers = expandedTriggers(
+            skill.ability.triggers, ability: skill.ability.id, templates: templates)
         /// The sentence's remaining span, peeled once for whichever parameter takes it.
         var peeledSpan: (value: String, stages: [String])?
         func span() -> (value: String, stages: [String]) {
             if let peeledSpan { return peeledSpan }
             let peeled = SpokenArgumentExtractor.peeled(
-                utterance, triggers: skill.ability.triggers, applicationAliases: aliases)
+                utterance, triggers: triggers, applicationAliases: aliases)
             peeledSpan = peeled
             return peeled
         }
@@ -225,6 +234,25 @@ public enum EmbeddingRouting {
         let data = (try? JSONSerialization.data(
             withJSONObject: args, options: [.sortedKeys])) ?? Data("{}".utf8)
         return (String(data: data, encoding: .utf8) ?? "{}", stages)
+    }
+
+    /// The ability's phrases and tokens with every `{application}` filled in.
+    ///
+    /// Only the two fields the peeler reads. Returns the schema untouched when
+    /// nothing carries a slot, which is every shipped package but one.
+    static func expandedTriggers(
+        _ triggers: AbilityTriggerSchema,
+        ability: AbilityID,
+        templates: UtteranceTemplateExpander?
+    ) -> AbilityTriggerSchema {
+        guard let templates,
+              triggers.phrases.contains(where: UtteranceTemplate.hasSlots)
+                  || triggers.tokens.contains(where: UtteranceTemplate.hasSlots)
+        else { return triggers }
+        var expanded = triggers
+        expanded.phrases = templates.expand(triggers.phrases, for: ability)
+        expanded.tokens = templates.expand(triggers.tokens, for: ability)
+        return expanded
     }
 
     public static func recordRoutingHabits(

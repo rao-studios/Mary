@@ -95,6 +95,11 @@ extension AbilityRuntime {
         /// may be pointed at. Nil leaves `ApplicationReferenceResolution` with
         /// only its exact-naming tier, which is a narrower answer, not a wrong one.
         public let semanticApplicationIndex: SemanticApplicationIndex?
+        /// What `{application}` expands to for each Ability, for the readers
+        /// that cannot be handed pre-expanded strings — the literal phrase
+        /// peeler, the routing fixture suite, and Ability Studio. Built from
+        /// these same records, so it always agrees with the corpora above.
+        public let templates: UtteranceTemplateExpander
 
         public init(
             revision: UUID = UUID(),
@@ -108,13 +113,15 @@ extension AbilityRuntime {
             semanticSkillIndex: SemanticSkillRequestIndex? = nil,
             semanticIntentIndex: SemanticIntentIndex? = nil,
             semanticSeedFamilyIndex: SemanticSeedFamilyIndex? = nil,
-            semanticApplicationIndex: SemanticApplicationIndex? = nil
+            semanticApplicationIndex: SemanticApplicationIndex? = nil,
+            templates: UtteranceTemplateExpander? = nil
         ) {
             self.semanticIndex = semanticIndex
             self.semanticSkillIndex = semanticSkillIndex
             self.semanticIntentIndex = semanticIntentIndex
             self.semanticSeedFamilyIndex = semanticSeedFamilyIndex
             self.semanticApplicationIndex = semanticApplicationIndex
+            self.templates = templates ?? UtteranceTemplateExpander(records: records)
             let inventory = InstalledAdapterInventory(
                 manifests: adapterManifests + plugins.adapterManifests,
                 primitiveBindings: primitiveBindings)
@@ -646,6 +653,37 @@ extension AbilityRuntime.Snapshot {
     /// shipped packages, thrown away by the only index that read dependencies.
     public func applicationsSupporting(_ ability: AbilityID) -> [AbilityID] {
         applicationsBySupport[ability] ?? []
+    }
+
+    /// THE APPLICATIONS AN ABILITY CAN BE POINTED AT, however it earns them.
+    ///
+    /// An Ability reaches applications by one of two authored routes, and until
+    /// now nothing joined them: a DISCIPLINE is inherited by expertise packages
+    /// that require it (`expertiseAbilities(extending:)`), while a
+    /// SYSTEM-CONTROL ability is named as an optional support by the packages
+    /// it can operate (`applicationsSupporting(_:)`). Both are the dependency
+    /// graph read backwards; they differ only in which edge carries the claim.
+    ///
+    /// `{application}` means THIS set. That is the whole point of the pragma —
+    /// an author writes the relationship once and the roster supplies the
+    /// names, so `multimedia` expands over its players and `window-management`
+    /// over its targets without either package saying so twice.
+    ///
+    /// Ordered by the underlying indexes (declared preference, then id) and
+    /// deduplicated, so an expansion is identical across launches.
+    public func pointableApplications(of ability: AbilityID) -> [ApplicationAffinity] {
+        var seen = Set<String>()
+        var found: [ApplicationAffinity] = []
+        for abilityID in expertiseAbilities(extending: ability)
+            + applicationsSupporting(ability) {
+            guard let affinity = records.first(where: {
+                $0.package.ability.id == abilityID
+            })?.package.applicationAffinities.first,
+                seen.insert(affinity.id).inserted
+            else { continue }
+            found.append(affinity)
+        }
+        return found
     }
 
     /// The applications a Skill may be pointed at, or empty when it did not ask.

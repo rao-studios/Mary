@@ -62,6 +62,7 @@ public struct SemanticAbilityRequestIndex: Sendable {
     public static func build(
         records: [AbilityPackageRecord],
         vectorizer: any UtteranceVectorizer,
+        templates: UtteranceTemplateExpander? = nil,
         positiveThreshold: Float = defaultPositiveThreshold,
         negativeMargin: Float = defaultNegativeMargin,
         dominanceMargin: Float = defaultDominanceMargin
@@ -89,6 +90,10 @@ public struct SemanticAbilityRequestIndex: Sendable {
                 .filter { $0.expectedDisposition == "route" }
                 .map(\.utterance)
             if !ability.summary.isEmpty { positiveTerms.append(ability.summary) }
+            // `{application}` becomes one sentence per pointable application.
+            // A term with no slot passes through untouched.
+            positiveTerms = templates?.expand(positiveTerms, for: ability.id)
+                ?? positiveTerms
             let positives = positiveTerms.compactMap {
                 vectorizer.vector(for: $0).map(Self.normalized)
             }

@@ -521,7 +521,8 @@ extension MaryBrain {
                 ?? namedApplicationID
             let filled = EmbeddingRouting.filledArguments(
                 for: skill, utterance: userText, applicationID: applicationID,
-                applicationProfiles: applicationProfiles)
+                applicationProfiles: applicationProfiles,
+                templates: turnRegistry.templates)
             let argumentsJSON = filled.json
             // WHAT THE SHORTCUT DID, said where somebody can read it. A dispatch
             // with no model round is the hardest lane to trust on sight: the only
